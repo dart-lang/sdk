@@ -1190,6 +1190,68 @@ import 'a.dart';
 ''');
   }
 
+  test_changeFile_notUsed_libraryWithPart() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+''');
+    newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+''');
+    var c = newFile('$testPackageLibPath/c.dart', 'class C1 {}');
+
+    var driver = driverFor(testFile);
+    var collector = DriverEventCollector(driver);
+
+    driver.addFile2(a);
+    driver.addFile2(c);
+
+    // Nothing interesting, "a" with its part "b", and "c" are analyzed.
+    await assertEventsText(collector, r'''
+[status] working
+[operation] analyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: exists isLibrary
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/b.dart
+    uri: package:test/b.dart
+    flags: exists isPart
+[operation] analyzeFile
+  file: /home/test/lib/c.dart
+  library: /home/test/lib/c.dart
+[stream]
+  ResolvedUnitResult #2
+    path: /home/test/lib/c.dart
+    uri: package:test/c.dart
+    flags: exists isLibrary
+[status] idle
+''');
+
+    // Change "c" and notify.
+    modifyFile2(c, 'class C2 {}');
+    driver.changeFile2(c);
+
+    // Only "c" is analyzed.
+    // The errors of "a" and "b" are the same, so they are not produced.
+    await assertEventsText(collector, r'''
+[status] working
+[operation] analyzeFile
+  file: /home/test/lib/c.dart
+  library: /home/test/lib/c.dart
+[stream]
+  ResolvedUnitResult #3
+    path: /home/test/lib/c.dart
+    uri: package:test/c.dart
+    flags: exists isLibrary
+[status] idle
+''');
+  }
+
   test_changeFile_potentiallyAffected_imported() async {
     newFile('$testPackageLibPath/a.dart', '');
 

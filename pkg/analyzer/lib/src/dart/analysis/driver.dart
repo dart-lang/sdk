@@ -1476,7 +1476,7 @@ class AnalysisDriver {
           }
 
           _fileTracker.fileWasAnalyzed(unitFile.path);
-          _lastProducedSignatures[path] = unitSignature;
+          _lastProducedSignatures[unitFile.path] = unitSignature;
           _scheduler.eventsController.add(resolvedUnit);
 
           if (isLibraryWithPriorityFile) {
