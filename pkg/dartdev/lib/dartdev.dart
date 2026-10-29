@@ -297,11 +297,20 @@ class DartdevRunner extends CommandRunner<int> {
         showsConsentMessage: showConsentMessage,
       ).toString(),
     );
+    // Unless a root tool was inherited, dartdev is the root tool, except for
+    // commands that other tools start (such as `language-server`), which then
+    // have no root tool; see `hasRootTool`.
     final envTool = environment[DashEnvVar.tool.name];
+    final rootToolKnown = hasRootTool(
+      inheritedTool: envTool,
+      commandName: topLevelResults.command?.name,
+    );
     if (envTool == null) {
+      // Explicitly unset when there's no root tool, so that a value set by an
+      // earlier run in the same isolate (for example, in tests) can't leak.
       await VmInteropHandler.setEnvironmentVariable(
         DashEnvVar.tool.name,
-        DashTool.dartTool.label,
+        rootToolKnown ? DashTool.dartTool.label : null,
       );
     }
 
@@ -378,7 +387,9 @@ class DartdevRunner extends CommandRunner<int> {
         // Any caught non-UsageExceptions when running the sub command.
         try {
           exitCode = await super.runCommand(topLevelResults);
-          if (unifiedAnalytics.telemetryEnabled) {
+          // dartdev doesn't report commands that an unidentified tool started
+          // (see `hasRootTool`).
+          if (rootToolKnown && unifiedAnalytics.telemetryEnabled) {
             // Send the event to analytics
             final path = commandNames.join('/');
             final experiments = topLevelResults.enabledExperiments
