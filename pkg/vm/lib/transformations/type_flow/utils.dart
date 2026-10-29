@@ -202,7 +202,7 @@ class Statistics {
   static int usedCachedResultsOfInvocations = 0;
   static int invocationsInvalidated = 0;
   static int maxInvalidationsPerInvocation = 0;
-  static int recursiveInvocationsApproximated = 0;
+  static int recursiveInvocations = 0;
   static int typeConeSpecializations = 0;
   static int typeSpecializationsUsedWideCone = 0;
   static int iterationsOverInvocationsWorkList = 0;
@@ -238,7 +238,7 @@ class Statistics {
     usedCachedResultsOfInvocations = 0;
     invocationsInvalidated = 0;
     maxInvalidationsPerInvocation = 0;
-    recursiveInvocationsApproximated = 0;
+    recursiveInvocations = 0;
     typeConeSpecializations = 0;
     typeSpecializationsUsedWideCone = 0;
     iterationsOverInvocationsWorkList = 0;
@@ -289,7 +289,7 @@ class Statistics {
     ${usedCachedResultsOfInvocations} times cached result of invocation is used
     ${invocationsInvalidated} invocations invalidated
     ${maxInvalidationsPerInvocation} maximum invalidations per invocation
-    ${recursiveInvocationsApproximated} recursive invocations approximated
+    ${recursiveInvocations} recursive invocations
     ${typeConeSpecializations} type cones specialized
     ${typeSpecializationsUsedWideCone} type specializations used wide cone
     ${iterationsOverInvocationsWorkList} iterations over invocations work list

@@ -529,6 +529,11 @@ class _VariablesInfoCollector extends RecursiveVisitor {
   }
 
   @override
+  visitLocalFunctionVariable(LocalFunctionVariable node) {
+    node.visitChildren(this);
+  }
+
+  @override
   defaultVariable(Variable node) {
     final int index = numVariables;
     varDeclarations.add(node);
@@ -539,11 +544,15 @@ class _VariablesInfoCollector extends RecursiveVisitor {
   @override
   visitVariableGet(VariableGet node) {
     node.visitChildren(this);
-    _useVariable(node.variable, false);
+    final variable = node.variable;
+    if (variable is! LocalFunctionVariable) {
+      _useVariable(variable, false);
+    }
   }
 
   @override
   visitVariableSet(VariableSet node) {
+    assert(node.variable is! LocalFunctionVariable);
     node.visitChildren(this);
     _useVariable(node.variable, true);
   }
@@ -1048,6 +1057,8 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
       member.annotations.forEach(_visitAnnotation);
       member.enclosingClass?.annotations.forEach(_visitAnnotation);
       member.enclosingLibrary.annotations.forEach(_visitAnnotation);
+    } else if (localFunction is FunctionDeclaration) {
+      localFunction.variable.annotations.forEach(_visitAnnotation);
     }
 
     _enclosingMember = null;
@@ -1699,7 +1710,16 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     return _stringType;
   }
 
-  TypeExpr _closureType(LocalFunction node) {
+  // Called where a local function is not only invoked via
+  // `LocalFunctionInvocation` (it may e.g. escape).
+  TypeExpr _localClosure(LocalFunction node) {
+    final closure = Closure(_enclosingMember!, node);
+    final callMethod = _entryPointsListener.getClosureCallMethod(closure);
+    // In order to keep analysis scalable, targets of function calls are
+    // not calculated when target closure is not inferred.
+    // Raw call is added to account for such approximated function calls.
+    _entryPointsListener.addRawCall(DirectSelector(callMethod));
+
     final Class? concreteClass = target.concreteClosureClass(
       _environment.coreTypes,
     );
@@ -1718,6 +1738,20 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
         throw 'Unexpected ${node.runtimeType} $node';
     }
   }
+
+  void _narrowVariable(
+    Variable variable,
+    TypeExpr value, [
+    List<TypeExpr?>? state,
+  ]) {
+    if (_canNarrowVariable(variable)) {
+      (state ?? _variableValues)[_variablesInfo.varIndex[variable]!] = value;
+    }
+  }
+
+  bool _canNarrowVariable(Variable variable) =>
+      variable is! LocalFunctionVariable &&
+      !_aggregateVariable[_variablesInfo.varIndex[variable]!];
 
   bool _isSubtype(DartType subtype, DartType supertype) =>
       _environment.isSubtypeOf(subtype, supertype);
@@ -1808,8 +1842,8 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
       _addUse(result);
       final variableGet =
           (node is AsExpression ? node.operand : node) as VariableGet;
-      final int varIndex = _variablesInfo.varIndex[variableGet.variable]!;
-      if (!_aggregateVariable[varIndex]) {
+      if (_canNarrowVariable(variableGet.variable)) {
+        final int varIndex = _variablesInfo.varIndex[variableGet.variable]!;
         trueState[varIndex] = _boolTrue;
         falseState[varIndex] = _boolFalse;
       }
@@ -1855,9 +1889,8 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
         // 'x == c', where x is a variable and c is a constant.
         final result = _visit(node);
         _addUse(result);
-        final int varIndex = _variablesInfo.varIndex[lhs.variable]!;
-        if (!_aggregateVariable[varIndex]) {
-          trueState[varIndex] = _visit(rhs);
+        if (_canNarrowVariable(lhs.variable)) {
+          trueState[_variablesInfo.varIndex[lhs.variable]!] = _visit(rhs);
         }
         _variableValues = const <TypeExpr?>[]; // Should not be used.
         return result;
@@ -1872,9 +1905,9 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
         Args.two(expr, _nullType),
       );
       final narrowedNotNull = _makeNarrowNotNull(node, expr);
-      final int varIndex = _variablesInfo.varIndex[lhs.variable]!;
       final result = _makeUnaryOperation(UnaryOp.IsNull, expr);
-      if (!_aggregateVariable[varIndex]) {
+      if (_canNarrowVariable(lhs.variable)) {
+        final int varIndex = _variablesInfo.varIndex[lhs.variable]!;
         trueState[varIndex] = _makeUnaryOperation(UnaryOp.Move, _nullType)
           ..condition = result;
         falseState[varIndex] = narrowedNotNull;
@@ -1886,10 +1919,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
       final operand = node.operand as VariableGet;
       final TypeCheck typeCheck = _typeCheck(_visit(operand), node.type, node);
       isTests[node] = typeCheck;
-      final int varIndex = _variablesInfo.varIndex[operand.variable]!;
-      if (!_aggregateVariable[varIndex]) {
-        trueState[varIndex] = typeCheck;
-      }
+      _narrowVariable(operand.variable, typeCheck, trueState);
       final result = _makeUnaryOperation(
         UnaryOp.Not,
         _makeUnaryOperation(UnaryOp.IsEmpty, typeCheck),
@@ -1913,14 +1943,10 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   }) {
     if (receiverNode is VariableGet) {
       final nullSelectors = isSetter ? _nullSetters : _nullMethodsAndGetters;
-      if (!nullSelectors.contains(selector)) {
-        final int varIndex = _variablesInfo.varIndex[receiverNode.variable]!;
-        if (!_aggregateVariable[varIndex]) {
-          _variableValues[varIndex] = _makeNarrow(
-            receiverValue,
-            anyInstanceType,
-          );
-        }
+      if (!nullSelectors.contains(selector) &&
+          _canNarrowVariable(receiverNode.variable)) {
+        _variableValues[_variablesInfo.varIndex[receiverNode.variable]!] =
+            _makeNarrow(receiverValue, anyInstanceType);
       }
     }
   }
@@ -1939,10 +1965,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     final TypeCheck result = _typeCheck(operand, node.type, node);
     explicitCasts[node] = result;
     if (operandNode is VariableGet) {
-      final int varIndex = _variablesInfo.varIndex[operandNode.variable]!;
-      if (!_aggregateVariable[varIndex]) {
-        _variableValues[varIndex] = result;
-      }
+      _narrowVariable(operandNode.variable, result);
     }
     return result;
   }
@@ -1952,10 +1975,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     final operandNode = node.operand;
     final TypeExpr result = _makeNarrowNotNull(node, _visit(operandNode));
     if (operandNode is VariableGet) {
-      final int varIndex = _variablesInfo.varIndex[operandNode.variable]!;
-      if (!_aggregateVariable[varIndex]) {
-        _variableValues[varIndex] = result;
-      }
+      _narrowVariable(operandNode.variable, result);
     }
     return result;
   }
@@ -2033,15 +2053,8 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   }
 
   @override
-  TypeExpr visitFunctionExpression(FunctionExpression node) {
-    final closure = Closure(_enclosingMember!, node);
-    final callMethod = _entryPointsListener.getClosureCallMethod(closure);
-    // In order to keep analysis scalable, targets of function calls are
-    // not calculated when target closure is not inferred.
-    // Raw call is added to account for such approximated function calls.
-    _entryPointsListener.addRawCall(DirectSelector(callMethod));
-    return _closureType(node);
-  }
+  TypeExpr visitFunctionExpression(FunctionExpression node) =>
+      _localClosure(node);
 
   @override
   visitInstantiation(Instantiation node) {
@@ -2590,7 +2603,10 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
 
   @override
   TypeExpr visitVariableGet(VariableGet node) {
-    final readType = _readVariable(node.variable, node);
+    final variable = node.variable;
+    final readType = variable is LocalFunctionVariable
+        ? _localClosure(variable.parent as FunctionDeclaration)
+        : _readVariable(variable, node);
     if (node.promotedType != null) {
       return _makeNarrow(
         readType,
@@ -2731,17 +2747,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   }
 
   @override
-  TypeExpr? visitFunctionDeclaration(FunctionDeclaration node) {
-    node.variable.annotations.forEach(_visitAnnotation);
-    _declareVariable(node.variable, _closureType(node));
-    final closure = Closure(_enclosingMember!, node);
-    final callMethod = _entryPointsListener.getClosureCallMethod(closure);
-    // In order to keep analysis scalable, targets of function calls are
-    // not calculated when target closure is not inferred.
-    // Raw call is added to account for such approximated function calls.
-    _entryPointsListener.addRawCall(DirectSelector(callMethod));
-    return null;
-  }
+  TypeExpr? visitFunctionDeclaration(FunctionDeclaration node) => null;
 
   @override
   TypeExpr? visitIfStatement(IfStatement node) {

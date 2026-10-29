@@ -250,8 +250,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
             type: libraryBuilder.loader.target.stringType,
             name: "#name",
             nameOffset: null,
-            fileOffset: fileOffset,
-            fileUri: fileUri,
+            uriOffset: uriOffset,
             hasImmediatelyDeclaredDefaultValue: false,
           );
 
@@ -262,8 +261,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
             type: libraryBuilder.loader.target.intType,
             name: "#index",
             nameOffset: null,
-            fileOffset: fileOffset,
-            fileUri: fileUri,
+            uriOffset: uriOffset,
             hasImmediatelyDeclaredDefaultValue: false,
           );
 

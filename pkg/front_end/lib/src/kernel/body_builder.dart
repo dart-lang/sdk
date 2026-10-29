@@ -3828,6 +3828,9 @@ class BodyBuilderImpl extends StackListenerImpl
         return;
       }
     } else {
+      UriOffsetLength uriOffset = name != null
+          ? new UriOffsetLength(uri, nameOffset, name.name.length)
+          : new UriOffset(uri, nameOffset);
       String parameterName = name?.name ?? '';
       bool isWildcard =
           libraryFeatures.wildcardVariables.isEnabled && parameterName == '_';
@@ -3895,9 +3898,8 @@ class BodyBuilderImpl extends StackListenerImpl
             modifiers: modifiers,
             type: type ?? const ImplicitTypeBuilder(),
             name: parameterName,
-            fileOffset: nameOffset,
             nameOffset: nameOffset,
-            fileUri: uri,
+            uriOffset: uriOffset,
             hasImmediatelyDeclaredDefaultValue: initializerStart != null,
             wildcardIndex: wildcardIndex,
             publicName: publicName,

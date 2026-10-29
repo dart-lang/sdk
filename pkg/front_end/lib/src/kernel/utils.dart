@@ -24,6 +24,7 @@ import '../base/configuration.dart';
 import '../base/extension_scope.dart';
 import '../base/identifiers.dart';
 import '../base/modifiers.dart';
+import '../base/uri_offset.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/fixed_type_builder.dart';
 import '../builder/formal_parameter_builder.dart';
@@ -323,9 +324,8 @@ final FormalParameterBuilder dummyFormalParameterBuilder =
       modifiers: Modifiers.empty,
       type: const ImplicitTypeBuilder(),
       name: '',
-      fileOffset: -1,
+      uriOffset: new UriOffset(dummyUri, -1),
       nameOffset: null,
-      fileUri: dummyUri,
       hasImmediatelyDeclaredDefaultValue: false,
     );
 final FunctionTypeParameterBuilder dummyFunctionTypeParameterBuilder =

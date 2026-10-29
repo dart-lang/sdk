@@ -39,6 +39,7 @@ import '../base/messages.dart';
 import '../base/modifiers.dart' show Modifiers;
 import '../base/operator.dart' show Operator;
 import '../base/problems.dart' show unhandled;
+import '../base/uri_offset.dart';
 import '../base/uris.dart';
 import '../builder/compilation_unit.dart';
 import '../builder/constructor_reference_builder.dart';
@@ -3150,6 +3151,11 @@ class OutlineBuilder extends StackListenerImpl {
           hasThis: thisKeyword != null,
           hasSuper: superKeyword != null,
           nameOffset: identifier.nameOffset,
+          uriOffset: new UriOffsetLength(
+            _compilationUnit.fileUri,
+            identifier.nameOffset,
+            identifier.name.length,
+          ),
           initializerToken: initializerStart,
         ),
       );

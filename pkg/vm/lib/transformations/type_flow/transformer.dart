@@ -1238,6 +1238,10 @@ class TreeShaker {
   bool isMemberBodyReachable(Member m) =>
       typeFlowAnalysis.isMemberUsed(m) ||
       fieldMorpher.isExtraMemberWithReachableBody(m);
+  bool isLocalFunctionBodyReachable(
+    Member enclosingMember,
+    LocalFunction function,
+  ) => typeFlowAnalysis.isLocalFunctionUsed(enclosingMember, function);
   bool isFieldInitializerReachable(Field f) =>
       typeFlowAnalysis.isFieldInitializerUsed(f);
   bool isFieldGetterReachable(Field f) => typeFlowAnalysis.isFieldGetterUsed(f);
@@ -1837,6 +1841,9 @@ class _TreeShakerPass1 extends RemovingTransformer {
     FunctionDeclaration node,
     TreeNode? removalSentinel,
   ) {
+    if (!shaker.isLocalFunctionBodyReachable(currentMember, node)) {
+      return removalSentinel ?? EmptyStatement();
+    }
     node.id = (_localFunctionIdGenerator ??= LocalFunctionIdGenerator())
         .allocateId();
     return super.visitFunctionDeclaration(node, removalSentinel);

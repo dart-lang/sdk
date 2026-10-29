@@ -1,0 +1,87 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+
+abstract class Base extends core::Object {
+
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]
+  abstract method method() → void;
+}
+class SubA extends core::Object implements self::Base {
+  synthetic constructor •() → self::SubA
+    : super core::Object::•()
+    ;
+
+  [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]
+  method method() → void
+    return [@vm.inferred-type.metadata=dart.core::Null? (value: null)] core::print("SubA");
+}
+class SubB extends core::Object implements self::Base {
+  synthetic constructor •() → self::SubB
+    : super core::Object::•()
+    ;
+
+  [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]
+  method method() → void
+    return [@vm.inferred-type.metadata=dart.core::Null? (value: null)] core::print("SubB");
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method main() → void {
+  self::testDirectCall();
+  self::testTornOff();
+  self::testCapturedTearOff();
+  self::testTreeShaking();
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method testDirectCall() → void {
+  function passthrough(self::Base x) → self::Base {
+    [@vm.direct-call.metadata=#lib::SubA.method] [@vm.inferred-type.metadata=? (skip check)] x.{self::Base::method}(){() → void};
+    return x;
+  }
+  [@vm.direct-call.metadata=#lib::SubA.method] [@vm.inferred-type.metadata=? (skip check)] [@vm.inferred-type.metadata=#lib::SubA (receiver not int)] passthrough(new self::SubA::•()){(self::Base) → self::Base}.{self::Base::method}(){() → void};
+  function directOnly(self::Base x##1) → void {
+    [@vm.direct-call.metadata=#lib::SubA.method] [@vm.inferred-type.metadata=? (skip check)] x##1.{self::Base::method}(){() → void};
+  }
+  [@vm.inferred-type.metadata=? (receiver not int)] directOnly(new self::SubA::•()){(self::Base) → void};
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method testTornOff() → void {
+  function tornOff(self::Base x) → void {
+    x.{self::Base::method}(){() → void};
+  }
+  self::escapeAndCall(tornOff);
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+[@vm.closure-id=2]
+static method testCapturedTearOff() → void {
+
+  [@vm.closure-id=1]
+  function captured(self::Base x) → void {
+    x.{self::Base::method}(){() → void};
+  }
+  [@vm.direct-call.metadata=closure 2 in #lib::testCapturedTearOff] [@vm.inferred-type.metadata=? (receiver not int)]([@vm.closure-id=2]() → Null {
+    self::escapeAndCall(captured);
+  })(){() → Null};
+  [@vm.inferred-type.metadata=? (receiver not int)] captured(new self::SubA::•()){(self::Base) → void};
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method escapeAndCall([@vm.inferred-arg-type.metadata=dart.core::_Closure] (self::Base) → void f) → void
+  return [@vm.inferred-type.metadata=dart.core::Null? (value: null) (receiver not int)] f(new self::SubB::•()){(self::Base) → void};
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method testTreeShaking() → void {
+  if([@vm.inferred-type.metadata=dart.core::bool (value: false)] self::alwaysFalse()) {
+    throw "Attempt to execute code removed by Dart AOT compiler (TFA)";
+  }
+}
+
+[@vm.inferred-return-type.metadata=dart.core::bool (value: false)]
+static method alwaysFalse() → core::bool
+  return false;

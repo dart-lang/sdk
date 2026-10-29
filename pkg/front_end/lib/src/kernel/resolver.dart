@@ -25,6 +25,7 @@ import '../base/messages.dart';
 import '../base/modifiers.dart';
 import '../base/problems.dart';
 import '../base/scope.dart';
+import '../base/uri_offset.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/member_builder.dart';
@@ -914,8 +915,7 @@ class Resolver {
         type: const ImplicitTypeBuilder(),
         name: formalName,
         nameOffset: null,
-        fileOffset: formal.fileOffset,
-        fileUri: fileUri,
+        uriOffset: new UriOffset(fileUri, formal.fileOffset),
         hasImmediatelyDeclaredDefaultValue: false,
         wildcardIndex: wildcardIndex,
         variable: formal,
