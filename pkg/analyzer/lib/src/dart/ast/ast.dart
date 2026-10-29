@@ -2521,6 +2521,7 @@ final class AssignmentExpressionImpl extends ExpressionImpl
   @override
   final Token operator;
 
+  @override
   final AssignmentExpression2Impl _v1ProjectionOrigin;
 
   new v1ProjectionFromCompound(CompoundAssignmentImpl origin)
@@ -2673,9 +2674,6 @@ final class AssignmentExpressionImpl extends ExpressionImpl
   ChildEntities get _childEntities2 {
     throw StateError('AssignmentExpression is not in the V2 AST view.');
   }
-
-  @override
-  AstNodeImpl? get _v1ProjectionSource => _v1ProjectionOrigin;
 
   @generated
   @V1Ast('The V2 counterpart is accept2.')
@@ -3154,9 +3152,9 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
     if (_parent case var parent?) {
       return parent;
     }
-    var source = _astNodeApi == AstNodeApi.v1 ? _v1ProjectionSource : this;
-    if (source != null) {
-      V1Projection._materializeEnclosingTree(source);
+    var origin = _astNodeApi == AstNodeApi.v1 ? _v1ProjectionOrigin : this;
+    if (origin != null) {
+      V1Projection._materializeEnclosingTree(origin);
     }
     return _parent;
   }
@@ -3164,8 +3162,8 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
   /// The cascade operator that begins this V1 projection, or an empty string.
   ///
   /// A V1 node that begins a cascade section includes the cascade operator,
-  /// but its V2 source does not, so the operator is printed before the
-  /// source.
+  /// but its V2 origin does not, so the operator is printed before the
+  /// origin.
   @V1Ast()
   String get _v1CascadeOperator {
     var token = beginToken;
@@ -3179,12 +3177,14 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
   /// The canonical node from which this V1 projection was built, or `null`
   /// if this node is not a V1 projection, or was built without one.
   ///
-  /// Every V1-only node class must override this getter; the AST generator
-  /// enforces it. Existing origin fields let a projection requested directly
-  /// from its canonical node discover its parent without retaining another
-  /// tree link.
+  /// Every V1-only node class must override this getter, usually with its
+  /// origin field; the AST generator enforces it. A projection that can be
+  /// built from nodes of different types keeps a typed field for each, and
+  /// returns the one that is set. Origin fields let a projection requested
+  /// directly from its canonical node discover its parent without retaining
+  /// another tree link.
   @V1Ast()
-  AstNodeImpl? get _v1ProjectionSource => null;
+  AstNodeImpl? get _v1ProjectionOrigin => null;
 
   void detachFromParent() {
     // ignore: analyzer_v1_ast_use
@@ -3299,12 +3299,12 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
 
   @override
   String toSource() {
-    // A V1 projection without a V2 view prints its canonical source node.
+    // A V1 projection without a V2 view prints its V2 origin.
     if (_astNodeApi == AstNodeApi.v1) {
       // ignore: analyzer_v1_ast_use
-      if (_v1ProjectionSource case var source?) {
+      if (_v1ProjectionOrigin case var origin?) {
         // ignore: analyzer_v1_ast_use
-        return '$_v1CascadeOperator${source.toSource()}';
+        return '$_v1CascadeOperator${origin.toSource()}';
       }
     }
     StringBuffer buffer = StringBuffer();
@@ -3703,44 +3703,46 @@ abstract final class BinaryExpression
 )
 final class BinaryExpressionImpl extends ExpressionImpl
     implements BinaryExpression {
-  final ExpressionImpl _origin;
+  @override
+  final ExpressionImpl _v1ProjectionOrigin;
 
-  new _and(LogicalAndImpl origin) : _origin = origin {
+  new _and(LogicalAndImpl origin) : _v1ProjectionOrigin = origin {
     _attachV1Children();
   }
 
-  new _ifNull(IfNullImpl origin) : _origin = origin {
+  new _ifNull(IfNullImpl origin) : _v1ProjectionOrigin = origin {
     _attachV1Children();
   }
 
-  new _operator(BinaryOperatorInvocationImpl origin) : _origin = origin {
+  new _operator(BinaryOperatorInvocationImpl origin)
+    : _v1ProjectionOrigin = origin {
     _attachV1Children();
   }
 
-  new _or(LogicalOrImpl origin) : _origin = origin {
+  new _or(LogicalOrImpl origin) : _v1ProjectionOrigin = origin {
     _attachV1Children();
   }
 
   @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
   @override
-  Token get beginToken => _origin.beginToken;
+  Token get beginToken => _v1ProjectionOrigin.beginToken;
 
   @override
   InternalFormalParameterElement? get correspondingParameter =>
-      _origin.correspondingParameter;
+      _v1ProjectionOrigin.correspondingParameter;
 
   @override
-  MethodElement? get element => switch (_origin) {
+  MethodElement? get element => switch (_v1ProjectionOrigin) {
     BinaryOperatorInvocationImpl(:var element) => element,
     _ => null,
   };
 
   @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
   @override
-  Token get endToken => _origin.endToken;
+  Token get endToken => _v1ProjectionOrigin.endToken;
 
   @override
-  bool get inConstantContext => _origin.inConstantContext;
+  bool get inConstantContext => _v1ProjectionOrigin.inConstantContext;
 
   @DoNotGenerate(reason: 'Projects the canonical V2 operand')
   @override
@@ -3748,27 +3750,27 @@ final class BinaryExpressionImpl extends ExpressionImpl
 
   @experimental
   @override
-  ExpressionImpl get leftOperand2 => switch (_origin) {
+  ExpressionImpl get leftOperand2 => switch (_v1ProjectionOrigin) {
     BinaryOperatorInvocationImpl(:var leftOperand) =>
       V1Projection.toV1NamedReceiver(leftOperand),
     IfNullImpl(:var leftOperand) => leftOperand,
     LogicalAndImpl(:var leftOperand) => leftOperand,
     LogicalOrImpl(:var leftOperand) => leftOperand,
-    _ => throw StateError('Unexpected binary expression: $_origin'),
+    _ => throw StateError('Unexpected binary expression: $_v1ProjectionOrigin'),
   };
 
   @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
   @override
-  Token get operator => switch (_origin) {
+  Token get operator => switch (_v1ProjectionOrigin) {
     BinaryOperatorInvocationImpl(:var operator) => operator,
     IfNullImpl(:var operator) => operator,
     LogicalAndImpl(:var operator) => operator,
     LogicalOrImpl(:var operator) => operator,
-    _ => throw StateError('Unexpected binary expression: $_origin'),
+    _ => throw StateError('Unexpected binary expression: $_v1ProjectionOrigin'),
   };
 
   @override
-  Precedence get precedence => _origin.precedence;
+  Precedence get precedence => _v1ProjectionOrigin.precedence;
 
   @DoNotGenerate(reason: 'Projects the canonical V2 operand')
   @override
@@ -3776,22 +3778,22 @@ final class BinaryExpressionImpl extends ExpressionImpl
 
   @experimental
   @override
-  ExpressionImpl get rightOperand2 => switch (_origin) {
+  ExpressionImpl get rightOperand2 => switch (_v1ProjectionOrigin) {
     BinaryOperatorInvocationImpl(:var rightOperand) => rightOperand,
     IfNullImpl(:var rightOperand) => rightOperand,
     LogicalAndImpl(:var rightOperand) => rightOperand,
     LogicalOrImpl(:var rightOperand) => rightOperand,
-    _ => throw StateError('Unexpected binary expression: $_origin'),
+    _ => throw StateError('Unexpected binary expression: $_v1ProjectionOrigin'),
   };
 
   @override
-  FunctionTypeImpl? get staticInvokeType => switch (_origin) {
+  FunctionTypeImpl? get staticInvokeType => switch (_v1ProjectionOrigin) {
     BinaryOperatorInvocationImpl(:var element) => element?.type,
     _ => null,
   };
 
   @override
-  TypeImpl? get staticType => _origin.staticType;
+  TypeImpl? get staticType => _v1ProjectionOrigin.staticType;
 
   @generated
   @override
@@ -3811,9 +3813,6 @@ final class BinaryExpressionImpl extends ExpressionImpl
     throw StateError('BinaryExpression is not in the V2 AST view.');
   }
 
-  @override
-  AstNodeImpl? get _v1ProjectionSource => _origin;
-
   @generated
   @V1Ast('The V2 counterpart is accept2.')
   @override
@@ -3828,7 +3827,7 @@ final class BinaryExpressionImpl extends ExpressionImpl
 
   @override
   AttemptedConstantEvaluationResult? computeConstantValue() =>
-      _origin.computeConstantValue();
+      _v1ProjectionOrigin.computeConstantValue();
 
   @generated
   @override
@@ -4214,6 +4213,7 @@ final class BlockClassBodyImpl extends ClassBodyImpl implements BlockClassBody {
   @override
   final Token rightBracket;
 
+  @override
   final BlockInstanceDeclarationBodyImpl _v1ProjectionOrigin;
 
   /// A V1 projection of [origin].
@@ -4258,9 +4258,6 @@ final class BlockClassBodyImpl extends ClassBodyImpl implements BlockClassBody {
   ChildEntities get _childEntities2 {
     throw StateError('BlockClassBody is not in the V2 AST view.');
   }
-
-  @override
-  AstNodeImpl? get _v1ProjectionSource => _v1ProjectionOrigin;
 
   @generated
   @V1Ast('The V2 counterpart is accept2.')
@@ -4365,6 +4362,7 @@ final class BlockEnumBodyImpl extends EnumBodyImpl implements BlockEnumBody {
   @override
   final Token rightBracket;
 
+  @override
   final BlockEnumDeclarationBodyImpl _v1ProjectionOrigin;
 
   /// A V1 projection of [origin].
@@ -4415,9 +4413,6 @@ final class BlockEnumBodyImpl extends EnumBodyImpl implements BlockEnumBody {
   ChildEntities get _childEntities2 {
     throw StateError('BlockEnumBody is not in the V2 AST view.');
   }
-
-  @override
-  AstNodeImpl? get _v1ProjectionSource => _v1ProjectionOrigin;
 
   @generated
   @V1Ast('The V2 counterpart is accept2.')
@@ -8255,6 +8250,7 @@ final class ClassDeclarationImpl extends CompilationUnitMemberImpl
   @override
   final Token classKeyword;
 
+  @override
   final ClassDeclaration2Impl _v1ProjectionOrigin;
 
   late final ClassBodyImpl _v1Body = _becomeParentOf1(
@@ -8377,9 +8373,6 @@ final class ClassDeclarationImpl extends CompilationUnitMemberImpl
   @DoNotGenerate(reason: 'This node is not in the V2 AST view')
   @override
   ChildEntities get _childEntities2 => super._childEntities2;
-
-  @override
-  AstNodeImpl? get _v1ProjectionSource => _v1ProjectionOrigin;
 
   @generated
   @V1Ast('The V2 counterpart is accept2.')
@@ -9059,6 +9052,7 @@ final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
   @override
   final Token equals;
 
+  @override
   final ClassTypeAlias2Impl _v1ProjectionOrigin;
 
   new v1Projection(ClassTypeAlias2Impl origin)
@@ -9166,9 +9160,6 @@ final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
   @DoNotGenerate(reason: 'This node is not in the V2 AST view')
   @override
   ChildEntities get _childEntities2 => super._childEntities2;
-
-  @override
-  AstNodeImpl? get _v1ProjectionSource => _v1ProjectionOrigin;
 
   @generated
   @V1Ast('The V2 counterpart is accept2.')
@@ -12125,6 +12116,7 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
   final NodeListImpl<ConstructorInitializerImpl> initializers =
       NodeListImpl._();
 
+  @override
   final ConstructorDeclaration2Impl _v1ProjectionOrigin;
 
   late final SimpleIdentifierImpl? _v1TypeName = switch (typeName2) {
@@ -12262,9 +12254,6 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
   @DoNotGenerate(reason: 'This node is not in the V2 AST view')
   @override
   ChildEntities get _childEntities2 => super._childEntities2;
-
-  @override
-  AstNodeImpl? get _v1ProjectionSource => _v1ProjectionOrigin;
 
   @generated
   @V1Ast('The V2 counterpart is accept2.')
@@ -12929,7 +12918,8 @@ abstract final class ConstructorName
   'The V2 counterpart is ConstructorReference2Impl or ConstructorTearOffImpl.',
 )
 final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
-  final _ConstructorReferenceV2Origin? _origin;
+  @override
+  final _ConstructorReferenceV2Origin? _v1ProjectionOrigin;
 
   final NamedTypeImpl? _parsedType;
 
@@ -12941,7 +12931,7 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
     required NamedTypeImpl type,
     required Token period,
     required Token name,
-  }) : _origin = null,
+  }) : _v1ProjectionOrigin = null,
        _parsedType = type,
        _parsedPeriod = period,
        _parsedName = SimpleIdentifierImpl.v1Projection(token: name) {
@@ -12949,7 +12939,7 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
     _becomeParentOf1(_parsedName);
   }
 
-  new _(this._origin)
+  new _(this._v1ProjectionOrigin)
     : _parsedType = null,
       _parsedPeriod = null,
       _parsedName = null {
@@ -12965,7 +12955,7 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
 
   @override
   InternalConstructorElement? get element {
-    var origin = _origin;
+    var origin = _v1ProjectionOrigin;
     var element = origin?.element;
     if (origin is ConstructorTearOffImpl && element != null) {
       var parent = origin.parent2;
@@ -12983,7 +12973,7 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
   }
 
   set element(InternalConstructorElement? value) {
-    var origin = _origin;
+    var origin = _v1ProjectionOrigin;
     if (origin == null) {
       throw UnsupportedError('A parsed V1 projection cannot be resolved.');
     }
@@ -13005,10 +12995,10 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
   @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
   @override
   SimpleIdentifierImpl? get name {
-    var result = _origin?.selector?.name ?? _parsedName;
+    var result = _v1ProjectionOrigin?.selector?.name ?? _parsedName;
     if (result != null) {
       result.element = element;
-      if (_origin case ConstructorTearOffImpl origin) {
+      if (_v1ProjectionOrigin case ConstructorTearOffImpl origin) {
         var parent = origin.parent2;
         result.tearOffTypeArgumentTypes =
             parent is ImplicitFunctionInstantiationImpl
@@ -13022,12 +13012,12 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
 
   @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
   @override
-  Token? get period => _origin?.selector?.period ?? _parsedPeriod;
+  Token? get period => _v1ProjectionOrigin?.selector?.period ?? _parsedPeriod;
 
   @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
   @override
   NamedTypeImpl get type {
-    var result = _origin?.typeReference.namedType ?? _parsedType!;
+    var result = _v1ProjectionOrigin?.typeReference.namedType ?? _parsedType!;
     _becomeParentOf1(result);
     return result;
   }
@@ -13048,9 +13038,6 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
   @override
   ChildEntities get _childEntities2 =>
       throw StateError('ConstructorName is not in the V2 AST view.');
-
-  @override
-  AstNodeImpl? get _v1ProjectionSource => _origin as AstNodeImpl?;
 
   @generated
   @V1Ast('The V2 counterpart is accept2.')
@@ -13077,7 +13064,7 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
 
   @override
   String toSource() =>
-      _origin?.toSource() ?? '${type.toSource()}.${name!.name}';
+      _v1ProjectionOrigin?.toSource() ?? '${type.toSource()}.${name!.name}';
 
   @generated
   @V1Ast('The V2 counterpart is visitChildren2.')
@@ -13369,20 +13356,22 @@ final class ConstructorReference2Impl extends AstNodeImpl
 @V1Ast('The V2 counterpart is ConstructorTearOffImpl.')
 final class ConstructorReferenceImpl extends CommentReferableExpressionImpl
     implements ConstructorReference {
-  final ConstructorTearOffImpl _origin;
+  @override
+  final ConstructorTearOffImpl _v1ProjectionOrigin;
 
   @DoNotGenerate(reason: 'V1 projection over a canonical V2 node')
-  new _(this._origin) {
+  new _(this._v1ProjectionOrigin) {
     _attachV1Children();
   }
 
   @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
   @override
-  Token get beginToken => _origin.beginToken;
+  Token get beginToken => _v1ProjectionOrigin.beginToken;
 
   @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
   @override
-  ConstructorNameImpl get constructorName => _origin.constructorName;
+  ConstructorNameImpl get constructorName =>
+      _v1ProjectionOrigin.constructorName;
 
   @override
   InternalFormalParameterElement? get correspondingParameter =>
@@ -13390,7 +13379,7 @@ final class ConstructorReferenceImpl extends CommentReferableExpressionImpl
 
   @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
   @override
-  Token get endToken => _origin.endToken;
+  Token get endToken => _v1ProjectionOrigin.endToken;
 
   @override
   bool get inConstantContext => _expression.inConstantContext;
@@ -13418,12 +13407,11 @@ final class ConstructorReferenceImpl extends CommentReferableExpressionImpl
   }
 
   ExpressionImpl get _expression {
-    var parent = _origin.parent2;
-    return parent is ImplicitFunctionInstantiationImpl ? parent : _origin;
+    var parent = _v1ProjectionOrigin.parent2;
+    return parent is ImplicitFunctionInstantiationImpl
+        ? parent
+        : _v1ProjectionOrigin;
   }
-
-  @override
-  AstNodeImpl? get _v1ProjectionSource => _origin;
 
   @generated
   @V1Ast('The V2 counterpart is accept2.')
@@ -15848,6 +15836,7 @@ final class DotShorthandConstructorInvocationImpl
   @DoNotGenerate(reason: 'Caches the projected constructor name')
   final SimpleIdentifierImpl _constructorName;
 
+  @override
   final DotShorthandConstructorInvocation2Impl _v1ProjectionOrigin;
 
   new v1ProjectionFromConstructorInvocation(
@@ -15968,9 +15957,6 @@ final class DotShorthandConstructorInvocationImpl
       'DotShorthandConstructorInvocation is not in the V2 AST view.',
     );
   }
-
-  @override
-  AstNodeImpl? get _v1ProjectionSource => _v1ProjectionOrigin;
 
   @generated
   @V1Ast('The V2 counterpart is accept2.')
@@ -16129,15 +16115,15 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
   @DoNotGenerate(reason: 'Caches the projected member name')
   final SimpleIdentifierImpl _memberName;
 
-  final DotShorthandMethodInvocationImpl? _v1ProjectionOrigin;
+  final DotShorthandMethodInvocationImpl? _dotShorthandMethodInvocation;
 
-  final ParsedExpressionImpl? _parsedExpressionOrigin;
+  final ParsedExpressionImpl? _parsedExpression;
 
   new v1ProjectionFromMethodInvocation(DotShorthandMethodInvocationImpl origin)
     : period = origin.period,
       _memberName = SimpleIdentifierImpl.v1Projection(token: origin.name),
-      _v1ProjectionOrigin = origin,
-      _parsedExpressionOrigin = null,
+      _dotShorthandMethodInvocation = origin,
+      _parsedExpression = null,
       super.v1Projection(
         typeArguments: origin.typeArguments,
         argumentList: origin.argumentList,
@@ -16151,8 +16137,8 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
     required Token name,
     required super.typeArguments,
     required super.argumentList,
-  }) : _parsedExpressionOrigin = origin,
-       _v1ProjectionOrigin = null,
+  }) : _parsedExpression = origin,
+       _dotShorthandMethodInvocation = null,
        _memberName = SimpleIdentifierImpl.v1Projection(token: name),
        super.v1Projection() {
     _attachV1Children();
@@ -16161,7 +16147,7 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
   @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
   @override
   ArgumentListImpl get argumentList =>
-      _v1ProjectionOrigin?.argumentList ?? super.argumentList;
+      _dotShorthandMethodInvocation?.argumentList ?? super.argumentList;
 
   @DoNotGenerate(reason: 'V1 projection objects are read-only')
   @override
@@ -16177,7 +16163,7 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
 
   @override
   InternalFormalParameterElement? get correspondingParameter =>
-      _v1ProjectionOrigin?.correspondingParameter ??
+      _dotShorthandMethodInvocation?.correspondingParameter ??
       super.correspondingParameter;
 
   @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
@@ -16191,13 +16177,13 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
 
   @override
   bool get inConstantContext =>
-      _v1ProjectionOrigin?.inConstantContext ??
+      _dotShorthandMethodInvocation?.inConstantContext ??
       constantContext(includeSelf: false) != null;
 
   @DoNotGenerate(reason: 'V1 projections update from their V2 origin')
   @override
   SimpleIdentifierImpl get memberName {
-    if (_v1ProjectionOrigin case var origin?) {
+    if (_dotShorthandMethodInvocation case var origin?) {
       _memberName.element = switch (origin.resolution) {
         ExecutableInvocationResolutionImpl(:var element) => element,
         InvalidInvocationResolutionImpl(
@@ -16228,7 +16214,7 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
 
   @override
   TypeImpl? get staticInvokeType =>
-      _v1ProjectionOrigin?.staticInvokeType ?? super.staticInvokeType;
+      _dotShorthandMethodInvocation?.staticInvokeType ?? super.staticInvokeType;
 
   @override
   set staticInvokeType(TypeImpl? staticInvokeType) {
@@ -16237,12 +16223,12 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
 
   @override
   TypeImpl? get staticType =>
-      _v1ProjectionOrigin?.staticType ?? super.staticType;
+      _dotShorthandMethodInvocation?.staticType ?? super.staticType;
 
   @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
   @override
   TypeArgumentListImpl? get typeArguments =>
-      _v1ProjectionOrigin?.typeArguments ?? super.typeArguments;
+      _dotShorthandMethodInvocation?.typeArguments ?? super.typeArguments;
 
   @DoNotGenerate(reason: 'V1 projection objects are read-only')
   @override
@@ -16252,7 +16238,8 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
 
   @override
   List<TypeImpl>? get typeArgumentTypes =>
-      _v1ProjectionOrigin?.typeArgumentTypes ?? super.typeArgumentTypes;
+      _dotShorthandMethodInvocation?.typeArgumentTypes ??
+      super.typeArgumentTypes;
 
   @override
   set typeArgumentTypes(List<TypeImpl>? typeArgumentTypes) {
@@ -16279,8 +16266,8 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
   }
 
   @override
-  AstNodeImpl? get _v1ProjectionSource =>
-      _v1ProjectionOrigin ?? _parsedExpressionOrigin;
+  AstNodeImpl? get _v1ProjectionOrigin =>
+      _dotShorthandMethodInvocation ?? _parsedExpression;
 
   @generated
   @V1Ast('The V2 counterpart is accept2.')
@@ -16297,7 +16284,7 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
 
   @override
   AttemptedConstantEvaluationResult? computeConstantValue() =>
-      switch (_v1ProjectionOrigin) {
+      switch (_dotShorthandMethodInvocation) {
         var origin? => origin.computeConstantValue(),
         null => super.computeConstantValue(),
       };
@@ -16322,8 +16309,8 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
 
   @override
   String toSource() =>
-      _v1ProjectionOrigin?.toSource() ??
-      _parsedExpressionOrigin!._toSourceThrough(endToken);
+      _dotShorthandMethodInvocation?.toSource() ??
+      _parsedExpression!._toSourceThrough(endToken);
 
   @generated
   @V1Ast('The V2 counterpart is visitChildren2.')
@@ -16728,23 +16715,23 @@ final class DotShorthandPropertyAccessImpl extends ExpressionImpl
   @DoNotGenerate(reason: 'Caches the projected property name')
   final SimpleIdentifierImpl _propertyName;
 
-  final DotShorthandNameExpressionImpl? _v1ProjectionOrigin;
+  final DotShorthandNameExpressionImpl? _dotShorthandNameExpression;
 
-  final ParsedDotShorthandNameImpl? _parsedExpressionOrigin;
+  final ParsedDotShorthandNameImpl? _parsedDotShorthandName;
 
   new v1ProjectionFromNameExpression(DotShorthandNameExpressionImpl origin)
     : period = origin.period,
       _propertyName = SimpleIdentifierImpl.v1Projection(token: origin.name),
-      _parsedExpressionOrigin = null,
-      _v1ProjectionOrigin = origin {
+      _parsedDotShorthandName = null,
+      _dotShorthandNameExpression = origin {
     _attachV1Children();
   }
 
   new v1ProjectionFromParsedExpression(ParsedDotShorthandNameImpl origin)
     : period = origin.period,
       _propertyName = SimpleIdentifierImpl.v1Projection(token: origin.name),
-      _v1ProjectionOrigin = null,
-      _parsedExpressionOrigin = origin {
+      _dotShorthandNameExpression = null,
+      _parsedDotShorthandName = origin {
     _attachV1Children();
   }
 
@@ -16756,7 +16743,7 @@ final class DotShorthandPropertyAccessImpl extends ExpressionImpl
 
   @override
   InternalFormalParameterElement? get correspondingParameter =>
-      _v1ProjectionOrigin?.correspondingParameter ??
+      _dotShorthandNameExpression?.correspondingParameter ??
       super.correspondingParameter;
 
   @DoNotGenerate(reason: 'V1 projections use the projected property name')
@@ -16767,7 +16754,7 @@ final class DotShorthandPropertyAccessImpl extends ExpressionImpl
 
   @override
   bool get inConstantContext =>
-      _v1ProjectionOrigin?.inConstantContext ??
+      _dotShorthandNameExpression?.inConstantContext ??
       constantContext(includeSelf: false) != null;
 
   @override
@@ -16776,7 +16763,7 @@ final class DotShorthandPropertyAccessImpl extends ExpressionImpl
   @DoNotGenerate(reason: 'V1 projections update from their V2 origin')
   @override
   SimpleIdentifierImpl get propertyName {
-    if (_v1ProjectionOrigin case var origin?) {
+    if (_dotShorthandNameExpression case var origin?) {
       var element = origin._legacyReadElement;
       _propertyName.element = switch (element) {
         InternalConstructorElement() => element.baseElement,
@@ -16796,7 +16783,7 @@ final class DotShorthandPropertyAccessImpl extends ExpressionImpl
 
   @override
   TypeImpl? get staticType =>
-      _v1ProjectionOrigin?.staticType ?? super.staticType;
+      _dotShorthandNameExpression?.staticType ?? super.staticType;
 
   @generated
   @override
@@ -16816,8 +16803,8 @@ final class DotShorthandPropertyAccessImpl extends ExpressionImpl
   }
 
   @override
-  AstNodeImpl? get _v1ProjectionSource =>
-      _v1ProjectionOrigin ?? _parsedExpressionOrigin;
+  AstNodeImpl? get _v1ProjectionOrigin =>
+      _dotShorthandNameExpression ?? _parsedDotShorthandName;
 
   @generated
   @V1Ast('The V2 counterpart is accept2.')
@@ -16834,7 +16821,7 @@ final class DotShorthandPropertyAccessImpl extends ExpressionImpl
 
   @override
   AttemptedConstantEvaluationResult? computeConstantValue() =>
-      switch (_v1ProjectionOrigin) {
+      switch (_dotShorthandNameExpression) {
         var origin? => origin.computeConstantValue(),
         null => super.computeConstantValue(),
       };
@@ -16859,7 +16846,8 @@ final class DotShorthandPropertyAccessImpl extends ExpressionImpl
 
   @override
   String toSource() =>
-      _v1ProjectionOrigin?.toSource() ?? _parsedExpressionOrigin!.toSource();
+      _dotShorthandNameExpression?.toSource() ??
+      _parsedDotShorthandName!.toSource();
 
   @generated
   @V1Ast('The V2 counterpart is visitChildren2.')
@@ -17183,6 +17171,7 @@ final class EmptyClassBodyImpl extends ClassBodyImpl implements EmptyClassBody {
   late final NodeListImpl<ClassMemberImpl> members = NodeListImpl._()
     .._initialize(this, null);
 
+  @override
   final SemicolonInstanceDeclarationBodyImpl _v1ProjectionOrigin;
 
   new v1Projection(SemicolonInstanceDeclarationBodyImpl origin)
@@ -17216,9 +17205,6 @@ final class EmptyClassBodyImpl extends ClassBodyImpl implements EmptyClassBody {
   ChildEntities get _childEntities2 {
     throw StateError('EmptyClassBody is not in the V2 AST view.');
   }
-
-  @override
-  AstNodeImpl? get _v1ProjectionSource => _v1ProjectionOrigin;
 
   @generated
   @V1Ast('The V2 counterpart is accept2.')
@@ -17297,6 +17283,7 @@ final class EmptyEnumBodyImpl extends EnumBodyImpl implements EmptyEnumBody {
   late final NodeListImpl<ClassMemberImpl> members = NodeListImpl._()
     .._initialize(this, null);
 
+  @override
   final SemicolonEnumDeclarationBodyImpl _v1ProjectionOrigin;
 
   new v1Projection(SemicolonEnumDeclarationBodyImpl origin)
@@ -17330,9 +17317,6 @@ final class EmptyEnumBodyImpl extends EnumBodyImpl implements EmptyEnumBody {
   ChildEntities get _childEntities2 {
     throw StateError('EmptyEnumBody is not in the V2 AST view.');
   }
-
-  @override
-  AstNodeImpl? get _v1ProjectionSource => _v1ProjectionOrigin;
 
   @generated
   @V1Ast('The V2 counterpart is accept2.')
@@ -18080,6 +18064,7 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
   @override
   final Token name;
 
+  @override
   final EnumConstantDeclaration2Impl _v1ProjectionOrigin;
 
   new v1Projection(EnumConstantDeclaration2Impl origin)
@@ -18133,9 +18118,6 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
   @DoNotGenerate(reason: 'This node is not in the V2 AST view')
   @override
   ChildEntities get _childEntities2 => super._childEntities2;
-
-  @override
-  AstNodeImpl? get _v1ProjectionSource => _v1ProjectionOrigin;
 
   @generated
   @V1Ast('The V2 counterpart is accept2.')
@@ -18591,6 +18573,7 @@ final class EnumDeclarationImpl extends CompilationUnitMemberImpl
   @override
   final Token enumKeyword;
 
+  @override
   final EnumDeclaration2Impl _v1ProjectionOrigin;
 
   late final EnumBodyImpl _v1Body = _becomeParentOf1(
@@ -18671,9 +18654,6 @@ final class EnumDeclarationImpl extends CompilationUnitMemberImpl
   @DoNotGenerate(reason: 'This node is not in the V2 AST view')
   @override
   ChildEntities get _childEntities2 => super._childEntities2;
-
-  @override
-  AstNodeImpl? get _v1ProjectionSource => _v1ProjectionOrigin;
 
   @generated
   @V1Ast('The V2 counterpart is accept2.')
@@ -20438,6 +20418,7 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   @override
   final Token? name;
 
+  @override
   final ExtensionDeclaration2Impl _v1ProjectionOrigin;
 
   late final ClassBodyImpl _v1Body = _becomeParentOf1(
@@ -20516,9 +20497,6 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   @DoNotGenerate(reason: 'This node is not in the V2 AST view')
   @override
   ChildEntities get _childEntities2 => super._childEntities2;
-
-  @override
-  AstNodeImpl? get _v1ProjectionSource => _v1ProjectionOrigin;
 
   @generated
   @V1Ast('The V2 counterpart is accept2.')
@@ -21097,17 +21075,19 @@ final class ExtensionOverride2Impl extends InstanceReceiverImpl
 @V1Ast('The V2 counterpart is ExtensionOverride2Impl.')
 final class ExtensionOverrideImpl extends ExpressionImpl
     implements ExtensionOverride {
-  final ExtensionOverride2Impl _origin;
+  @override
+  final ExtensionOverride2Impl _v1ProjectionOrigin;
 
-  new v1Projection(this._origin) {
-    _becomeParentOf1(_origin.importPrefix);
-    _becomeParentOf1(_origin.typeArguments);
-    _becomeParentOf1(_origin.argumentList);
+  new v1Projection(this._v1ProjectionOrigin) {
+    _becomeParentOf1(_v1ProjectionOrigin.importPrefix);
+    _becomeParentOf1(_v1ProjectionOrigin.typeArguments);
+    _becomeParentOf1(_v1ProjectionOrigin.argumentList);
   }
 
   @DoNotGenerate(reason: 'Preserves V1 parent links')
   @override
-  ArgumentListImpl get argumentList => _becomeParentOf1(_origin.argumentList);
+  ArgumentListImpl get argumentList =>
+      _becomeParentOf1(_v1ProjectionOrigin.argumentList);
 
   @generated
   @override
@@ -21119,29 +21099,29 @@ final class ExtensionOverrideImpl extends ExpressionImpl
   }
 
   @override
-  ExtensionElementImpl get element => _origin.element;
+  ExtensionElementImpl get element => _v1ProjectionOrigin.element;
 
   @DoNotGenerate(reason: 'Delegates to the canonical receiver')
   @override
-  Token get endToken => _origin.endToken;
+  Token get endToken => _v1ProjectionOrigin.endToken;
 
   @override
-  TypeImpl? get extendedType => _origin.extendedType;
+  TypeImpl? get extendedType => _v1ProjectionOrigin.extendedType;
 
   @DoNotGenerate(reason: 'Preserves V1 parent links')
   @override
   ImportPrefixReferenceImpl? get importPrefix =>
-      _becomeParentOf1(_origin.importPrefix);
+      _becomeParentOf1(_v1ProjectionOrigin.importPrefix);
 
   @override
   bool get inConstantContext => constantContext(includeSelf: false) != null;
 
   @override
-  bool get isNullAware => _origin.isNullAware;
+  bool get isNullAware => _v1ProjectionOrigin.isNullAware;
 
   @DoNotGenerate(reason: 'Delegates to the canonical receiver')
   @override
-  Token get name => _origin.name;
+  Token get name => _v1ProjectionOrigin.name;
 
   @override
   Precedence get precedence => Precedence.postfix;
@@ -21149,10 +21129,11 @@ final class ExtensionOverrideImpl extends ExpressionImpl
   @DoNotGenerate(reason: 'Preserves V1 parent links')
   @override
   TypeArgumentListImpl? get typeArguments =>
-      _becomeParentOf1(_origin.typeArguments);
+      _becomeParentOf1(_v1ProjectionOrigin.typeArguments);
 
   @override
-  List<DartType>? get typeArgumentTypes => _origin.typeArgumentTypes;
+  List<DartType>? get typeArgumentTypes =>
+      _v1ProjectionOrigin.typeArgumentTypes;
 
   @generated
   @override
@@ -21172,9 +21153,6 @@ final class ExtensionOverrideImpl extends ExpressionImpl
   ChildEntities get _childEntities2 {
     throw StateError('ExtensionOverride is not in the V2 AST view.');
   }
-
-  @override
-  AstNodeImpl? get _v1ProjectionSource => _origin;
 
   @generated
   @V1Ast('The V2 counterpart is accept2.')
@@ -21621,6 +21599,7 @@ final class ExtensionTypeDeclarationImpl extends CompilationUnitMemberImpl
   @override
   final Token typeKeyword;
 
+  @override
   final ExtensionTypeDeclaration2Impl _v1ProjectionOrigin;
 
   late final ClassBodyImpl _v1Body = _becomeParentOf1(
@@ -21702,9 +21681,6 @@ final class ExtensionTypeDeclarationImpl extends CompilationUnitMemberImpl
   @DoNotGenerate(reason: 'This node is not in the V2 AST view')
   @override
   ChildEntities get _childEntities2 => super._childEntities2;
-
-  @override
-  AstNodeImpl? get _v1ProjectionSource => _v1ProjectionOrigin;
 
   @generated
   @V1Ast('The V2 counterpart is accept2.')
@@ -22073,6 +22049,7 @@ final class FieldDeclarationImpl extends ClassMemberImpl
   @override
   final Token semicolon;
 
+  @override
   final FieldsDeclarationImpl _v1ProjectionOrigin;
 
   new v1Projection(FieldsDeclarationImpl origin)
@@ -22147,9 +22124,6 @@ final class FieldDeclarationImpl extends ClassMemberImpl
   @DoNotGenerate(reason: 'This node is not in the V2 AST view')
   @override
   ChildEntities get _childEntities2 => super._childEntities2;
-
-  @override
-  AstNodeImpl? get _v1ProjectionSource => _v1ProjectionOrigin;
 
   @generated
   @V1Ast('The V2 counterpart is accept2.')
@@ -26067,6 +26041,7 @@ final class FunctionDeclarationImpl extends CompilationUnitMemberImpl
   @generated
   FunctionExpressionImpl _functionExpression;
 
+  @override
   final FunctionDeclarationV1OriginImpl _v1ProjectionOrigin;
 
   new v1Projection(FunctionDeclarationV1OriginImpl origin)
@@ -26166,9 +26141,6 @@ final class FunctionDeclarationImpl extends CompilationUnitMemberImpl
   @override
   ChildEntities get _childEntities2 => super._childEntities2;
 
-  @override
-  AstNodeImpl? get _v1ProjectionSource => _v1ProjectionOrigin;
-
   @generated
   @V1Ast('The V2 counterpart is accept2.')
   @override
@@ -26253,6 +26225,7 @@ final class FunctionDeclarationStatementImpl extends StatementImpl
   @generated
   FunctionDeclarationImpl _functionDeclaration;
 
+  @override
   final LocalFunctionDeclarationImpl _v1ProjectionOrigin;
 
   new v1Projection(LocalFunctionDeclarationImpl origin)
@@ -26305,9 +26278,6 @@ final class FunctionDeclarationStatementImpl extends StatementImpl
   ChildEntities get _childEntities2 {
     throw StateError('FunctionDeclarationStatement is not in the V2 AST view.');
   }
-
-  @override
-  AstNodeImpl? get _v1ProjectionSource => _v1ProjectionOrigin;
 
   @generated
   @V1Ast('The V2 counterpart is accept2.')
@@ -26464,6 +26434,7 @@ final class FunctionExpressionImpl extends ExpressionImpl
 
   ExecutableFragmentImpl? _declaredFragment;
 
+  @override
   FunctionDeclarationV1OriginImpl? _v1ProjectionOrigin;
 
   @generated
@@ -26607,9 +26578,6 @@ final class FunctionExpressionImpl extends ExpressionImpl
       ..addNode('parameters', parameters)
       ..addNode('body', body);
   }
-
-  @override
-  AstNodeImpl? get _v1ProjectionSource => _v1ProjectionOrigin;
 
   @generated
   @V1Ast('The V2 counterpart is accept2.')
@@ -26843,10 +26811,11 @@ abstract final class FunctionExpressionInvocation
 @V1Ast('The V2 counterpart is CallInvocationImpl.')
 final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
     implements FunctionExpressionInvocation {
-  final CallInvocationImpl _origin;
+  @override
+  final CallInvocationImpl _v1ProjectionOrigin;
 
   new _(CallInvocationImpl origin)
-    : _origin = origin,
+    : _v1ProjectionOrigin = origin,
       super.v1Projection(
         typeArguments: origin.typeArguments,
         argumentList: origin.argumentList,
@@ -26856,18 +26825,18 @@ final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
 
   @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
   @override
-  ArgumentListImpl get argumentList => _origin.argumentList;
+  ArgumentListImpl get argumentList => _v1ProjectionOrigin.argumentList;
 
   @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
   @override
-  Token get beginToken => _origin.beginToken;
+  Token get beginToken => _v1ProjectionOrigin.beginToken;
 
   @override
   InternalFormalParameterElement? get correspondingParameter =>
-      _origin.correspondingParameter;
+      _v1ProjectionOrigin.correspondingParameter;
 
   @override
-  ExecutableElement? get element => switch (_origin.resolution) {
+  ExecutableElement? get element => switch (_v1ProjectionOrigin.resolution) {
     ExecutableInvocationResolutionImpl(:var element) => element,
     InvalidInvocationResolutionImpl(
       recovery: ExecutableInvocationResolutionImpl(:var element),
@@ -26878,7 +26847,7 @@ final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
 
   @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
   @override
-  Token get endToken => _origin.endToken;
+  Token get endToken => _v1ProjectionOrigin.endToken;
 
   @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
   @V1Ast('The V2 counterpart is function2.')
@@ -26888,16 +26857,16 @@ final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
   @experimental
   @override
   ExpressionImpl get function2 =>
-      V1Projection.toV1NamedReceiver(_origin.receiver);
+      V1Projection.toV1NamedReceiver(_v1ProjectionOrigin.receiver);
 
   @override
-  bool get inConstantContext => _origin.inConstantContext;
+  bool get inConstantContext => _v1ProjectionOrigin.inConstantContext;
 
   @override
   Precedence get precedence => Precedence.postfix;
 
   @override
-  TypeImpl? get staticInvokeType => _origin.staticInvokeType;
+  TypeImpl? get staticInvokeType => _v1ProjectionOrigin.staticInvokeType;
 
   @override
   set staticInvokeType(TypeImpl? staticInvokeType) {
@@ -26905,14 +26874,15 @@ final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
   }
 
   @override
-  TypeImpl? get staticType => _origin.staticType;
+  TypeImpl? get staticType => _v1ProjectionOrigin.staticType;
 
   @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
   @override
-  TypeArgumentListImpl? get typeArguments => _origin.typeArguments;
+  TypeArgumentListImpl? get typeArguments => _v1ProjectionOrigin.typeArguments;
 
   @override
-  List<TypeImpl>? get typeArgumentTypes => _origin.typeArgumentTypes;
+  List<TypeImpl>? get typeArgumentTypes =>
+      _v1ProjectionOrigin.typeArgumentTypes;
 
   @override
   set typeArgumentTypes(List<TypeImpl>? typeArgumentTypes) {
@@ -26937,9 +26907,6 @@ final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
     throw StateError('FunctionExpressionInvocation is not in the V2 AST view.');
   }
 
-  @override
-  AstNodeImpl? get _v1ProjectionSource => _origin;
-
   @generated
   @V1Ast('The V2 counterpart is accept2.')
   @override
@@ -26955,7 +26922,7 @@ final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
 
   @override
   AttemptedConstantEvaluationResult? computeConstantValue() =>
-      _origin.computeConstantValue();
+      _v1ProjectionOrigin.computeConstantValue();
 
   @generated
   @override
@@ -27426,6 +27393,7 @@ final class FunctionReferenceImpl extends CommentReferableExpressionImpl
   @override
   List<TypeImpl>? typeArgumentTypes;
 
+  @override
   final ExpressionImpl _v1ProjectionOrigin;
 
   new v1Projection(ImplicitFunctionInstantiationImpl origin)
@@ -27523,9 +27491,6 @@ final class FunctionReferenceImpl extends CommentReferableExpressionImpl
   ChildEntities get _childEntities2 {
     throw StateError('FunctionReference is not in the V2 AST view.');
   }
-
-  @override
-  AstNodeImpl? get _v1ProjectionSource => _v1ProjectionOrigin;
 
   @generated
   @V1Ast('The V2 counterpart is accept2.')
@@ -27945,6 +27910,7 @@ final class FunctionTypeAlias2Impl extends TopLevelDeclarationImpl
 @V1Ast('The V2 counterpart is FunctionTypeAlias2Impl.')
 final class FunctionTypeAliasImpl extends TypeAliasImpl
     implements FunctionTypeAlias {
+  @override
   final FunctionTypeAlias2Impl _v1ProjectionOrigin;
 
   new v1Projection(FunctionTypeAlias2Impl origin)
@@ -28013,9 +27979,6 @@ final class FunctionTypeAliasImpl extends TypeAliasImpl
   @DoNotGenerate(reason: 'This node is not in the V2 AST view')
   @override
   ChildEntities get _childEntities2 => super._childEntities2;
-
-  @override
-  AstNodeImpl? get _v1ProjectionSource => _v1ProjectionOrigin;
 
   @generated
   @V1Ast('The V2 counterpart is accept2.')
@@ -29023,6 +28986,7 @@ final class GenericTypeAliasImpl extends TypeAliasImpl
   @override
   final Token equals;
 
+  @override
   final GenericTypeAlias2Impl _v1ProjectionOrigin;
 
   new v1Projection(GenericTypeAlias2Impl origin)
@@ -29101,9 +29065,6 @@ final class GenericTypeAliasImpl extends TypeAliasImpl
   @DoNotGenerate(reason: 'This node is not in the V2 AST view')
   @override
   ChildEntities get _childEntities2 => super._childEntities2;
-
-  @override
-  AstNodeImpl? get _v1ProjectionSource => _v1ProjectionOrigin;
 
   @generated
   @V1Ast('The V2 counterpart is accept2.')
@@ -31302,6 +31263,7 @@ final class ImplicitCallReferenceImpl extends ExpressionImpl
 
   final ExpressionImpl _expression2;
 
+  @override
   final ExpressionImpl _v1ProjectionOrigin;
 
   new v1Projection({
@@ -31384,9 +31346,6 @@ final class ImplicitCallReferenceImpl extends ExpressionImpl
   ChildEntities get _childEntities2 {
     throw StateError('ImplicitCallReference is not in the V2 AST view.');
   }
-
-  @override
-  AstNodeImpl? get _v1ProjectionSource => _v1ProjectionOrigin;
 
   @generated
   @V1Ast('The V2 counterpart is accept2.')
@@ -33557,6 +33516,7 @@ final class IndexExpressionImpl extends ExpressionImpl
   @override
   final Token rightBracket;
 
+  @override
   final AstNodeImpl _v1ProjectionOrigin;
 
   new v1ProjectionFromCascadeAssignmentTarget(
@@ -33773,9 +33733,6 @@ final class IndexExpressionImpl extends ExpressionImpl
     throw StateError('IndexExpression is not in the V2 AST view.');
   }
 
-  @override
-  AstNodeImpl? get _v1ProjectionSource => _v1ProjectionOrigin;
-
   @generated
   @V1Ast('The V2 counterpart is accept2.')
   @override
@@ -33960,9 +33917,9 @@ abstract final class InstanceCreationExpression implements Expression {
 @V1Ast('The V2 counterpart is ConstructorInvocationImpl.')
 final class InstanceCreationExpressionImpl extends ExpressionImpl
     implements InstanceCreationExpression {
-  final ConstructorInvocationImpl? _origin;
+  final ConstructorInvocationImpl? _constructorInvocation;
 
-  final ParsedExpressionImpl? _parsedOrigin;
+  final ParsedExpressionImpl? _parsedExpression;
 
   final ConstructorNameImpl? _parsedConstructorName;
 
@@ -33972,16 +33929,16 @@ final class InstanceCreationExpressionImpl extends ExpressionImpl
     required ParsedExpressionImpl origin,
     required ConstructorNameImpl constructorName,
     required ArgumentListImpl argumentList,
-  }) : _origin = null,
-       _parsedOrigin = origin,
+  }) : _constructorInvocation = null,
+       _parsedExpression = origin,
        _parsedConstructorName = constructorName,
        _parsedArgumentList = argumentList {
     _attachV1Children();
   }
 
   @DoNotGenerate(reason: 'V1 projection over a canonical V2 node')
-  new _(this._origin)
-    : _parsedOrigin = null,
+  new _(this._constructorInvocation)
+    : _parsedExpression = null,
       _parsedConstructorName = null,
       _parsedArgumentList = null {
     _attachV1Children();
@@ -33990,49 +33947,54 @@ final class InstanceCreationExpressionImpl extends ExpressionImpl
   @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
   @override
   ArgumentListImpl get argumentList =>
-      _origin?.argumentList ?? _parsedArgumentList!;
+      _constructorInvocation?.argumentList ?? _parsedArgumentList!;
 
   @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
   @override
-  Token get beginToken => _origin?.beginToken ?? constructorName.beginToken;
+  Token get beginToken =>
+      _constructorInvocation?.beginToken ?? constructorName.beginToken;
 
   @override
-  bool get canBeConst => _origin?.canBeConst ?? false;
+  bool get canBeConst => _constructorInvocation?.canBeConst ?? false;
 
   @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
   @override
   ConstructorNameImpl get constructorName =>
-      _origin?.constructorReference.constructorName ?? _parsedConstructorName!;
+      _constructorInvocation?.constructorReference.constructorName ??
+      _parsedConstructorName!;
 
   @override
   InternalFormalParameterElement? get correspondingParameter =>
-      _origin?.correspondingParameter ?? _parsedOrigin?.correspondingParameter;
+      _constructorInvocation?.correspondingParameter ??
+      _parsedExpression?.correspondingParameter;
 
   @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
   @override
   Token get endToken => argumentList.endToken;
 
   @override
-  bool get inConstantContext => (_origin ?? _parsedOrigin!).inConstantContext;
+  bool get inConstantContext =>
+      (_constructorInvocation ?? _parsedExpression!).inConstantContext;
 
   @override
-  bool get isConst => _origin?.isConst ?? inConstantContext;
+  bool get isConst => _constructorInvocation?.isConst ?? inConstantContext;
 
   /// Whether this is an implicit constructor invocation.
-  bool get isImplicit => _origin?.isImplicit ?? true;
+  bool get isImplicit => _constructorInvocation?.isImplicit ?? true;
 
   @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
   @override
-  Token? get keyword => _origin?.keyword;
+  Token? get keyword => _constructorInvocation?.keyword;
 
   @override
   Precedence get precedence => Precedence.primary;
 
   @override
-  TypeImpl? get staticType => _origin?.staticType;
+  TypeImpl? get staticType => _constructorInvocation?.staticType;
 
   @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
-  TypeArgumentListImpl? get typeArguments => _origin?.typeArguments;
+  TypeArgumentListImpl? get typeArguments =>
+      _constructorInvocation?.typeArguments;
 
   @generated
   @override
@@ -34054,7 +34016,8 @@ final class InstanceCreationExpressionImpl extends ExpressionImpl
   }
 
   @override
-  AstNodeImpl? get _v1ProjectionSource => _origin ?? _parsedOrigin;
+  AstNodeImpl? get _v1ProjectionOrigin =>
+      _constructorInvocation ?? _parsedExpression;
 
   @generated
   @V1Ast('The V2 counterpart is accept2.')
@@ -34071,7 +34034,7 @@ final class InstanceCreationExpressionImpl extends ExpressionImpl
 
   @override
   AttemptedConstantEvaluationResult? computeConstantValue() =>
-      _origin?.computeConstantValue();
+      _constructorInvocation?.computeConstantValue();
 
   @generated
   @override
@@ -34094,7 +34057,8 @@ final class InstanceCreationExpressionImpl extends ExpressionImpl
   @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
   @override
   String toSource() =>
-      _origin?.toSource() ?? _parsedOrigin!._toSourceThrough(endToken);
+      _constructorInvocation?.toSource() ??
+      _parsedExpression!._toSourceThrough(endToken);
 
   @generated
   @V1Ast('The V2 counterpart is visitChildren2.')
@@ -40383,6 +40347,7 @@ final class MethodDeclarationImpl extends ClassMemberImpl
   @override
   final Token name;
 
+  @override
   final MethodDeclarationV1OriginImpl _v1ProjectionOrigin;
 
   new v1Projection(MethodDeclarationV1OriginImpl origin)
@@ -40504,9 +40469,6 @@ final class MethodDeclarationImpl extends ClassMemberImpl
   @DoNotGenerate(reason: 'This node is not in the V2 AST view')
   @override
   ChildEntities get _childEntities2 => super._childEntities2;
-
-  @override
-  AstNodeImpl? get _v1ProjectionSource => _v1ProjectionOrigin;
 
   @generated
   @V1Ast('The V2 counterpart is accept2.')
@@ -40782,9 +40744,9 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
   @DoNotGenerate(reason: 'Stores the projected method name')
   final SimpleIdentifierImpl _methodName;
 
-  final NamedFunctionInvocationImpl? _v1ProjectionOrigin;
+  final NamedFunctionInvocationImpl? _namedFunctionInvocation;
 
-  final ParsedExpressionImpl? _parsedExpressionOrigin;
+  final ParsedExpressionImpl? _parsedExpression;
 
   new v1ProjectionFromNamedFunctionInvocation(
     NamedFunctionInvocationImpl origin,
@@ -40796,8 +40758,8 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
         _ => null,
       },
       _methodName = SimpleIdentifierImpl.v1Projection(token: origin.name),
-      _v1ProjectionOrigin = origin,
-      _parsedExpressionOrigin = null,
+      _namedFunctionInvocation = origin,
+      _parsedExpression = null,
       super.v1Projection(
         typeArguments: origin.typeArguments,
         argumentList: origin.argumentList,
@@ -40814,8 +40776,8 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
     required super.argumentList,
   }) : _target2 = target,
        _methodName = SimpleIdentifierImpl.v1Projection(token: name),
-       _v1ProjectionOrigin = null,
-       _parsedExpressionOrigin = origin,
+       _namedFunctionInvocation = null,
+       _parsedExpression = origin,
        super.v1Projection() {
     _becomeParentOf1(target);
     _becomeParentOf1(_methodName);
@@ -40824,7 +40786,7 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
   @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
   @override
   ArgumentListImpl get argumentList =>
-      _v1ProjectionOrigin?.argumentList ?? super.argumentList;
+      _namedFunctionInvocation?.argumentList ?? super.argumentList;
 
   @DoNotGenerate(reason: 'V1 projection objects are read-only')
   @override
@@ -40846,8 +40808,8 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
 
   @override
   InternalFormalParameterElement? get correspondingParameter =>
-      _v1ProjectionOrigin?.correspondingParameter ??
-      _parsedExpressionOrigin?.correspondingParameter ??
+      _namedFunctionInvocation?.correspondingParameter ??
+      _parsedExpression?.correspondingParameter ??
       super.correspondingParameter;
 
   @DoNotGenerate(reason: 'V1 projections have custom token ownership')
@@ -40859,8 +40821,8 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
 
   @override
   bool get inConstantContext =>
-      _v1ProjectionOrigin?.inConstantContext ??
-      _parsedExpressionOrigin?.inConstantContext ??
+      _namedFunctionInvocation?.inConstantContext ??
+      _parsedExpression?.inConstantContext ??
       constantContext(includeSelf: false) != null;
 
   @override
@@ -40882,7 +40844,7 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
   @DoNotGenerate(reason: 'V1 projections update from their V2 origin')
   @override
   SimpleIdentifierImpl get methodName {
-    if (_v1ProjectionOrigin case var origin?) {
+    if (_namedFunctionInvocation case var origin?) {
       _methodName.element = switch (origin.resolution) {
         ExecutableInvocationResolutionImpl(:var element) => element,
         InvalidInvocationResolutionImpl(
@@ -40919,7 +40881,7 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
 
   @DoNotGenerate(reason: 'V1 projections derive the written operator')
   @override
-  Token? get operator => switch (_v1ProjectionOrigin) {
+  Token? get operator => switch (_namedFunctionInvocation) {
     CascadeMethodInvocationImpl origin => _cascadeSectionOf(origin).operator,
     DotShorthandMethodInvocationImpl() => throw StateError(
       'DotShorthandMethodInvocation projects to DotShorthandInvocation.',
@@ -40958,7 +40920,7 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
 
   @override
   TypeImpl? get staticInvokeType =>
-      _v1ProjectionOrigin?.staticInvokeType ?? super.staticInvokeType;
+      _namedFunctionInvocation?.staticInvokeType ?? super.staticInvokeType;
 
   @override
   set staticInvokeType(TypeImpl? staticInvokeType) {
@@ -40967,7 +40929,7 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
 
   @override
   TypeImpl? get staticType =>
-      _v1ProjectionOrigin?.staticType ?? super.staticType;
+      _namedFunctionInvocation?.staticType ?? super.staticType;
 
   @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
   @V1Ast('The V2 counterpart is target2.')
@@ -40981,7 +40943,7 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
   @experimental
   @override
   ExpressionImpl? get target2 {
-    if (_v1ProjectionOrigin case ImportPrefixedFunctionInvocationImpl(
+    if (_namedFunctionInvocation case ImportPrefixedFunctionInvocationImpl(
       :var importPrefix,
     )) {
       (_target2 as SimpleIdentifierImpl).element = importPrefix.element;
@@ -40998,7 +40960,7 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
   @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
   @override
   TypeArgumentListImpl? get typeArguments =>
-      _v1ProjectionOrigin?.typeArguments ?? super.typeArguments;
+      _namedFunctionInvocation?.typeArguments ?? super.typeArguments;
 
   @DoNotGenerate(reason: 'V1 projection objects are read-only')
   @override
@@ -41008,7 +40970,7 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
 
   @override
   List<TypeImpl>? get typeArgumentTypes =>
-      _v1ProjectionOrigin?.typeArgumentTypes ?? super.typeArgumentTypes;
+      _namedFunctionInvocation?.typeArgumentTypes ?? super.typeArgumentTypes;
 
   @override
   set typeArgumentTypes(List<TypeImpl>? typeArgumentTypes) {
@@ -41020,7 +40982,7 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
   /// We expect that [isCascaded] is `true`.
   CascadeExpressionImpl get _ancestorCascade {
     assert(isCascaded);
-    var origin = _v1ProjectionOrigin ?? _parsedExpressionOrigin!;
+    var origin = _namedFunctionInvocation ?? _parsedExpression!;
     return origin.thisOrAncestorOfType2<CascadeExpressionImpl>()!;
   }
 
@@ -41045,8 +41007,8 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
   }
 
   @override
-  AstNodeImpl? get _v1ProjectionSource =>
-      _v1ProjectionOrigin ?? _parsedExpressionOrigin;
+  AstNodeImpl? get _v1ProjectionOrigin =>
+      _namedFunctionInvocation ?? _parsedExpression;
 
   @generated
   @V1Ast('The V2 counterpart is accept2.')
@@ -41062,7 +41024,7 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
 
   @override
   AttemptedConstantEvaluationResult? computeConstantValue() =>
-      switch (_v1ProjectionOrigin) {
+      switch (_namedFunctionInvocation) {
         var origin? => origin.computeConstantValue(),
         null => super.computeConstantValue(),
       };
@@ -41087,10 +41049,10 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
 
   @override
   String toSource() {
-    if (_v1ProjectionOrigin case var origin?) {
+    if (_namedFunctionInvocation case var origin?) {
       return '$_v1CascadeOperator${origin.toSource()}';
     }
-    if (_parsedExpressionOrigin case var origin?) {
+    if (_parsedExpression case var origin?) {
       return '$_v1CascadeOperator${origin._toSourceThrough(endToken)}';
     }
     return super.toSource();
@@ -41609,6 +41571,7 @@ final class MixinDeclarationImpl extends CompilationUnitMemberImpl
   @override
   final Token name;
 
+  @override
   final MixinDeclaration2Impl _v1ProjectionOrigin;
 
   late final ClassBodyImpl _v1Body = _becomeParentOf1(
@@ -41697,9 +41660,6 @@ final class MixinDeclarationImpl extends CompilationUnitMemberImpl
   @DoNotGenerate(reason: 'This node is not in the V2 AST view')
   @override
   ChildEntities get _childEntities2 => super._childEntities2;
-
-  @override
-  AstNodeImpl? get _v1ProjectionSource => _v1ProjectionOrigin;
 
   @generated
   @V1Ast('The V2 counterpart is accept2.')
@@ -42423,7 +42383,7 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
   }
 
   @override
-  AstNodeImpl? get _v1ProjectionSource => _constructorTypeReferenceOrigin;
+  AstNodeImpl? get _v1ProjectionOrigin => _constructorTypeReferenceOrigin;
 
   @generated
   @V1Ast('The V2 counterpart is accept2.')
@@ -47902,91 +47862,106 @@ abstract final class PostfixExpression
 final class PostfixExpressionImpl extends ExpressionImpl
     with CompoundAssignmentExpressionImpl
     implements PostfixExpression {
-  final ExpressionImpl _origin;
+  @override
+  final ExpressionImpl _v1ProjectionOrigin;
 
   new v1ProjectionFromIncrementOrDecrement(
     IncrementOrDecrementExpressionImpl origin,
-  ) : _origin = origin {
+  ) : _v1ProjectionOrigin = origin {
     _attachV1Children();
   }
 
   new v1ProjectionFromNullAssertion(NullAssertionExpressionImpl origin)
-    : _origin = origin {
+    : _v1ProjectionOrigin = origin {
     _attachV1Children();
   }
 
   @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
   @override
-  Token get beginToken => _origin.beginToken;
+  Token get beginToken => _v1ProjectionOrigin.beginToken;
 
   @override
   InternalFormalParameterElement? get correspondingParameter =>
-      _origin.correspondingParameter;
+      _v1ProjectionOrigin.correspondingParameter;
 
   @override
-  MethodElement? get element => switch (_origin) {
+  MethodElement? get element => switch (_v1ProjectionOrigin) {
     IncrementOrDecrementExpressionImpl origin => origin.element,
     NullAssertionExpressionImpl() => null,
-    _ => throw StateError('Unexpected PostfixExpression origin: $_origin'),
+    _ => throw StateError(
+      'Unexpected PostfixExpression origin: $_v1ProjectionOrigin',
+    ),
   };
 
   @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
   @override
-  Token get endToken => _origin.endToken;
+  Token get endToken => _v1ProjectionOrigin.endToken;
 
   @override
-  bool get inConstantContext => _origin.inConstantContext;
+  bool get inConstantContext => _v1ProjectionOrigin.inConstantContext;
 
   @DoNotGenerate(reason: 'Projects the canonical V2 operand')
   @override
-  ExpressionImpl get operand => switch (_origin) {
+  ExpressionImpl get operand => switch (_v1ProjectionOrigin) {
     IncrementOrDecrementExpressionImpl origin => origin._legacyOperand,
     NullAssertionExpressionImpl origin => V1Projection.toV1Expression(
       origin.operand,
     ),
-    _ => throw StateError('Unexpected PostfixExpression origin: $_origin'),
+    _ => throw StateError(
+      'Unexpected PostfixExpression origin: $_v1ProjectionOrigin',
+    ),
   };
 
   @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
   @override
-  Token get operator => switch (_origin) {
+  Token get operator => switch (_v1ProjectionOrigin) {
     IncrementOrDecrementExpressionImpl origin => origin.operator,
     NullAssertionExpressionImpl origin => origin.operator,
-    _ => throw StateError('Unexpected PostfixExpression origin: $_origin'),
+    _ => throw StateError(
+      'Unexpected PostfixExpression origin: $_v1ProjectionOrigin',
+    ),
   };
 
   @override
   Precedence get precedence => Precedence.postfix;
 
   @override
-  Element? get readElement => switch (_origin) {
+  Element? get readElement => switch (_v1ProjectionOrigin) {
     IncrementOrDecrementExpressionImpl origin => origin._legacyReadElement,
     NullAssertionExpressionImpl() => null,
-    _ => throw StateError('Unexpected PostfixExpression origin: $_origin'),
+    _ => throw StateError(
+      'Unexpected PostfixExpression origin: $_v1ProjectionOrigin',
+    ),
   };
 
   @override
-  TypeImpl? get readType => switch (_origin) {
+  TypeImpl? get readType => switch (_v1ProjectionOrigin) {
     IncrementOrDecrementExpressionImpl origin => origin._legacyReadType,
     NullAssertionExpressionImpl() => null,
-    _ => throw StateError('Unexpected PostfixExpression origin: $_origin'),
+    _ => throw StateError(
+      'Unexpected PostfixExpression origin: $_v1ProjectionOrigin',
+    ),
   };
 
   @override
-  TypeImpl? get staticType => _origin.staticType;
+  TypeImpl? get staticType => _v1ProjectionOrigin.staticType;
 
   @override
-  Element? get writeElement => switch (_origin) {
+  Element? get writeElement => switch (_v1ProjectionOrigin) {
     IncrementOrDecrementExpressionImpl origin => origin._legacyWriteElement,
     NullAssertionExpressionImpl() => null,
-    _ => throw StateError('Unexpected PostfixExpression origin: $_origin'),
+    _ => throw StateError(
+      'Unexpected PostfixExpression origin: $_v1ProjectionOrigin',
+    ),
   };
 
   @override
-  TypeImpl? get writeType => switch (_origin) {
+  TypeImpl? get writeType => switch (_v1ProjectionOrigin) {
     IncrementOrDecrementExpressionImpl origin => origin._legacyWriteType,
     NullAssertionExpressionImpl() => null,
-    _ => throw StateError('Unexpected PostfixExpression origin: $_origin'),
+    _ => throw StateError(
+      'Unexpected PostfixExpression origin: $_v1ProjectionOrigin',
+    ),
   };
 
   @generated
@@ -48006,9 +47981,6 @@ final class PostfixExpressionImpl extends ExpressionImpl
     throw StateError('PostfixExpression is not in the V2 AST view.');
   }
 
-  @override
-  AstNodeImpl? get _v1ProjectionSource => _origin;
-
   @generated
   @V1Ast('The V2 counterpart is accept2.')
   @override
@@ -48023,7 +47995,7 @@ final class PostfixExpressionImpl extends ExpressionImpl
 
   @override
   AttemptedConstantEvaluationResult? computeConstantValue() =>
-      _origin.computeConstantValue();
+      _v1ProjectionOrigin.computeConstantValue();
 
   @DoNotGenerate(reason: 'A V1 projection cannot be mutated')
   @override
@@ -48129,6 +48101,7 @@ final class PrefixedIdentifierImpl extends IdentifierImpl
   @override
   final Token period;
 
+  @override
   final ExpressionImpl? _v1ProjectionOrigin;
 
   @DoNotGenerate(reason: 'V1 projections synchronize the identifier getter')
@@ -48243,9 +48216,6 @@ final class PrefixedIdentifierImpl extends IdentifierImpl
   ChildEntities get _childEntities2 {
     throw StateError('PrefixedIdentifier is not in the V2 AST view.');
   }
-
-  @override
-  AstNodeImpl? get _v1ProjectionSource => _v1ProjectionOrigin;
 
   @generated
   @V1Ast('The V2 counterpart is accept2.')
@@ -48369,99 +48339,115 @@ abstract final class PrefixExpression
 final class PrefixExpressionImpl extends ExpressionImpl
     with CompoundAssignmentExpressionImpl
     implements PrefixExpression {
-  final ExpressionImpl _origin;
+  @override
+  final ExpressionImpl _v1ProjectionOrigin;
 
   new v1ProjectionFromIncrementOrDecrement(
     IncrementOrDecrementExpressionImpl origin,
-  ) : _origin = origin {
+  ) : _v1ProjectionOrigin = origin {
     _attachV1Children();
   }
 
-  new v1ProjectionFromLogicalNot(LogicalNotImpl origin) : _origin = origin {
+  new v1ProjectionFromLogicalNot(LogicalNotImpl origin)
+    : _v1ProjectionOrigin = origin {
     _attachV1Children();
   }
 
   new v1ProjectionFromUnaryOperatorInvocation(
     UnaryOperatorInvocationImpl origin,
-  ) : _origin = origin {
+  ) : _v1ProjectionOrigin = origin {
     _attachV1Children();
   }
 
   @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
   @override
-  Token get beginToken => _origin.beginToken;
+  Token get beginToken => _v1ProjectionOrigin.beginToken;
 
   @override
   InternalFormalParameterElement? get correspondingParameter =>
-      _origin.correspondingParameter;
+      _v1ProjectionOrigin.correspondingParameter;
 
   @override
-  MethodElement? get element => switch (_origin) {
+  MethodElement? get element => switch (_v1ProjectionOrigin) {
     IncrementOrDecrementExpressionImpl origin => origin.element,
     LogicalNotImpl() => null,
     UnaryOperatorInvocationImpl origin => origin.element,
-    _ => throw StateError('Unexpected PrefixExpression origin: $_origin'),
+    _ => throw StateError(
+      'Unexpected PrefixExpression origin: $_v1ProjectionOrigin',
+    ),
   };
 
   @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
   @override
-  Token get endToken => _origin.endToken;
+  Token get endToken => _v1ProjectionOrigin.endToken;
 
   @override
-  bool get inConstantContext => _origin.inConstantContext;
+  bool get inConstantContext => _v1ProjectionOrigin.inConstantContext;
 
   @DoNotGenerate(reason: 'Projects the canonical V2 operand')
   @override
-  ExpressionImpl get operand => switch (_origin) {
+  ExpressionImpl get operand => switch (_v1ProjectionOrigin) {
     IncrementOrDecrementExpressionImpl origin => origin._legacyOperand,
     LogicalNotImpl origin => V1Projection.toV1Expression(origin.operand),
     UnaryOperatorInvocationImpl origin => V1Projection.toV1NamedReceiver(
       origin.operand,
     ),
-    _ => throw StateError('Unexpected PrefixExpression origin: $_origin'),
+    _ => throw StateError(
+      'Unexpected PrefixExpression origin: $_v1ProjectionOrigin',
+    ),
   };
 
   @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
   @override
-  Token get operator => switch (_origin) {
+  Token get operator => switch (_v1ProjectionOrigin) {
     IncrementOrDecrementExpressionImpl origin => origin.operator,
     LogicalNotImpl origin => origin.operator,
     UnaryOperatorInvocationImpl origin => origin.operator,
-    _ => throw StateError('Unexpected PrefixExpression origin: $_origin'),
+    _ => throw StateError(
+      'Unexpected PrefixExpression origin: $_v1ProjectionOrigin',
+    ),
   };
 
   @override
   Precedence get precedence => Precedence.prefix;
 
   @override
-  Element? get readElement => switch (_origin) {
+  Element? get readElement => switch (_v1ProjectionOrigin) {
     IncrementOrDecrementExpressionImpl origin => origin._legacyReadElement,
     LogicalNotImpl() || UnaryOperatorInvocationImpl() => null,
-    _ => throw StateError('Unexpected PrefixExpression origin: $_origin'),
+    _ => throw StateError(
+      'Unexpected PrefixExpression origin: $_v1ProjectionOrigin',
+    ),
   };
 
   @override
-  TypeImpl? get readType => switch (_origin) {
+  TypeImpl? get readType => switch (_v1ProjectionOrigin) {
     IncrementOrDecrementExpressionImpl origin => origin._legacyReadType,
     LogicalNotImpl() || UnaryOperatorInvocationImpl() => null,
-    _ => throw StateError('Unexpected PrefixExpression origin: $_origin'),
+    _ => throw StateError(
+      'Unexpected PrefixExpression origin: $_v1ProjectionOrigin',
+    ),
   };
 
   @override
-  TypeImpl? get staticType => _origin.staticType;
+  TypeImpl? get staticType => _v1ProjectionOrigin.staticType;
 
   @override
-  Element? get writeElement => switch (_origin) {
+  Element? get writeElement => switch (_v1ProjectionOrigin) {
     IncrementOrDecrementExpressionImpl origin => origin._legacyWriteElement,
     LogicalNotImpl() || UnaryOperatorInvocationImpl() => null,
-    _ => throw StateError('Unexpected PrefixExpression origin: $_origin'),
+    _ => throw StateError(
+      'Unexpected PrefixExpression origin: $_v1ProjectionOrigin',
+    ),
   };
 
   @override
-  TypeImpl? get writeType => switch (_origin) {
+  TypeImpl? get writeType => switch (_v1ProjectionOrigin) {
     IncrementOrDecrementExpressionImpl origin => origin._legacyWriteType,
     LogicalNotImpl() || UnaryOperatorInvocationImpl() => null,
-    _ => throw StateError('Unexpected PrefixExpression origin: $_origin'),
+    _ => throw StateError(
+      'Unexpected PrefixExpression origin: $_v1ProjectionOrigin',
+    ),
   };
 
   @generated
@@ -48481,9 +48467,6 @@ final class PrefixExpressionImpl extends ExpressionImpl
     throw StateError('PrefixExpression is not in the V2 AST view.');
   }
 
-  @override
-  AstNodeImpl? get _v1ProjectionSource => _origin;
-
   @generated
   @V1Ast('The V2 counterpart is accept2.')
   @override
@@ -48498,7 +48481,7 @@ final class PrefixExpressionImpl extends ExpressionImpl
 
   @override
   AttemptedConstantEvaluationResult? computeConstantValue() =>
-      _origin.computeConstantValue();
+      _v1ProjectionOrigin.computeConstantValue();
 
   @DoNotGenerate(reason: 'A V1 projection cannot be mutated')
   @override
@@ -48857,6 +48840,7 @@ final class PrimaryConstructorBodyImpl extends ClassMemberImpl
   final NodeListImpl<ConstructorInitializerImpl> initializers =
       NodeListImpl._();
 
+  @override
   final PrimaryConstructorBody2Impl _v1ProjectionOrigin;
 
   new v1Projection(PrimaryConstructorBody2Impl origin)
@@ -48913,9 +48897,6 @@ final class PrimaryConstructorBodyImpl extends ClassMemberImpl
   @DoNotGenerate(reason: 'This node is not in the V2 AST view')
   @override
   ChildEntities get _childEntities2 => super._childEntities2;
-
-  @override
-  AstNodeImpl? get _v1ProjectionSource => _v1ProjectionOrigin;
 
   @generated
   @V1Ast('The V2 counterpart is accept2.')
@@ -49500,6 +49481,7 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
   @DoNotGenerate(reason: 'Initialized by the V1 projection constructors')
   final SimpleIdentifierImpl _propertyName;
 
+  @override
   final AstNodeImpl _v1ProjectionOrigin;
 
   new v1ProjectionFromCascadeAssignmentTarget(
@@ -49723,9 +49705,6 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
   ChildEntities get _childEntities2 {
     throw StateError('PropertyAccess is not in the V2 AST view.');
   }
-
-  @override
-  AstNodeImpl? get _v1ProjectionSource => _v1ProjectionOrigin;
 
   @generated
   @V1Ast('The V2 counterpart is accept2.')
@@ -54659,6 +54638,7 @@ final class SimpleIdentifierImpl extends IdentifierImpl
   @override
   final Token token;
 
+  @override
   final ExpressionImpl? _v1ProjectionOrigin;
 
   /// The element associated with this identifier based on static type
@@ -54743,9 +54723,6 @@ final class SimpleIdentifierImpl extends IdentifierImpl
   ChildEntities get _childEntities2 {
     throw StateError('SimpleIdentifier is not in the V2 AST view.');
   }
-
-  @override
-  AstNodeImpl? get _v1ProjectionSource => _v1ProjectionOrigin;
 
   @generated
   @V1Ast('The V2 counterpart is accept2.')
@@ -56115,10 +56092,11 @@ final class SuperExpressionImpl extends ExpressionImpl
   @override
   final Token superKeyword;
 
-  final SuperReferenceImpl _origin;
+  @override
+  final SuperReferenceImpl _v1ProjectionOrigin;
 
   new v1Projection(SuperReferenceImpl origin)
-    : _origin = origin,
+    : _v1ProjectionOrigin = origin,
       superKeyword = origin.superKeyword;
 
   @generated
@@ -56154,9 +56132,6 @@ final class SuperExpressionImpl extends ExpressionImpl
   ChildEntities get _childEntities2 {
     throw StateError('SuperExpression is not in the V2 AST view.');
   }
-
-  @override
-  AstNodeImpl? get _v1ProjectionSource => _origin;
 
   @generated
   @V1Ast('The V2 counterpart is accept2.')
@@ -59729,6 +59704,7 @@ final class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
   @override
   final Token semicolon;
 
+  @override
   final TopLevelVariablesDeclarationImpl _v1ProjectionOrigin;
 
   new v1Projection(TopLevelVariablesDeclarationImpl origin)
@@ -59795,9 +59771,6 @@ final class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
   @DoNotGenerate(reason: 'This node is not in the V2 AST view')
   @override
   ChildEntities get _childEntities2 => super._childEntities2;
-
-  @override
-  AstNodeImpl? get _v1ProjectionSource => _v1ProjectionOrigin;
 
   @generated
   @V1Ast('The V2 counterpart is accept2.')
@@ -62629,6 +62602,7 @@ final class VariableDeclarationImpl extends DeclarationImpl
   @override
   final Token? equals;
 
+  @override
   final VariableDeclarationV1OriginImpl _v1ProjectionOrigin;
 
   new v1Projection(VariableDeclarationV1OriginImpl origin)
@@ -62713,9 +62687,6 @@ final class VariableDeclarationImpl extends DeclarationImpl
   @DoNotGenerate(reason: 'This node is not in the V2 AST view')
   @override
   ChildEntities get _childEntities2 => super._childEntities2;
-
-  @override
-  AstNodeImpl? get _v1ProjectionSource => _v1ProjectionOrigin;
 
   @generated
   @V1Ast('The V2 counterpart is accept2.')
@@ -62854,6 +62825,7 @@ final class VariableDeclarationListImpl extends AnnotatedNodeImpl
   @override
   final NodeListImpl<VariableDeclarationImpl> variables = NodeListImpl._();
 
+  @override
   final VariableDeclarationListV1OriginImpl _v1ProjectionOrigin;
 
   /// A V1 projection of [origin].
@@ -62938,9 +62910,6 @@ final class VariableDeclarationListImpl extends AnnotatedNodeImpl
   @DoNotGenerate(reason: 'This node is not in the V2 AST view')
   @override
   ChildEntities get _childEntities2 => super._childEntities2;
-
-  @override
-  AstNodeImpl? get _v1ProjectionSource => _v1ProjectionOrigin;
 
   @generated
   @V1Ast('The V2 counterpart is accept2.')
@@ -63068,6 +63037,7 @@ final class VariableDeclarationStatementImpl extends StatementImpl
   @override
   final Token semicolon;
 
+  @override
   final LocalVariablesDeclarationStatementImpl _v1ProjectionOrigin;
 
   new v1Projection(LocalVariablesDeclarationStatementImpl origin)
@@ -63122,9 +63092,6 @@ final class VariableDeclarationStatementImpl extends StatementImpl
   ChildEntities get _childEntities2 {
     throw StateError('VariableDeclarationStatement is not in the V2 AST view.');
   }
-
-  @override
-  AstNodeImpl? get _v1ProjectionSource => _v1ProjectionOrigin;
 
   @generated
   @V1Ast('The V2 counterpart is accept2.')
@@ -64618,7 +64585,7 @@ final class _AnnotationV1Children {
   }
 }
 
-abstract interface class _ConstructorReferenceV2Origin {
+sealed class _ConstructorReferenceV2Origin implements AstNodeImpl {
   InternalConstructorElement? get element;
 
   set element(InternalConstructorElement? value);
@@ -64626,8 +64593,6 @@ abstract interface class _ConstructorReferenceV2Origin {
   ConstructorSelectorImpl? get selector;
 
   ConstructorTypeReferenceImpl get typeReference;
-
-  String toSource();
 }
 
 final class _FormalParameterListV1NodeList
