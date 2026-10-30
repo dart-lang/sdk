@@ -17,19 +17,37 @@ import 'package:kernel/kernel.dart'
         Library,
         Node,
         Procedure,
-        RecursiveVisitor;
+        RecursiveVisitor,
+        Source;
 
-Uint8List postProcess(Component c, {bool clearMetadata = true}) {
-  postProcessComponent(c, clearMetadata: clearMetadata);
+Uint8List postProcess(
+  Component c, {
+  bool clearMetadata = true,
+  bool clearConstantCoverageConstructors = false,
+}) {
+  postProcessComponent(
+    c,
+    clearMetadata: clearMetadata,
+    clearConstantCoverageConstructors: clearConstantCoverageConstructors,
+  );
   return serializeComponent(c);
 }
 
-void postProcessComponent(Component c, {bool clearMetadata = true}) {
+void postProcessComponent(
+  Component c, {
+  bool clearMetadata = true,
+  bool clearConstantCoverageConstructors = false,
+}) {
   if (clearMetadata) {
     // For now metadata isn't great for recompiles because it will only contain
     // what was just compiled. To avoid failures caused by this we for now just
     // clear the metadata.
     c.metadata.clear();
+  }
+  if (clearConstantCoverageConstructors) {
+    for (Source source in c.uriToSource.values) {
+      source.constantCoverageConstructors = null;
+    }
   }
   c.libraries.sort((l1, l2) {
     return "${l1.fileUri}".compareTo("${l2.fileUri}");

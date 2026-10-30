@@ -1,0 +1,67 @@
+# Copyright (c) 2026, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# A part with a component error (!) is claimed by two libraries.
+# When the bad one is invalidated the errors from the part should still be
+# issued and everything should be the same.
+# When the good one is invalidated the errors from the part should still be
+# issued and everything should be the same.
+
+type: newworld
+worlds:
+  - entry: main.dart
+    sources:
+      main.dart: |
+        // Bad first gives us the same error message in all compiles.
+        // If good is first we sometimes get a
+        // "Can't use <part-URI> as a part of more than one library."
+        import "bad.dart";
+        import "good.dart";
+
+        main() {
+          // no matter
+        }
+      good.dart: |
+        import 'dart:ffi';
+        part "part.dart";
+      bad.dart: |
+        import 'dart:ffi';
+        part "part.dart";
+      part.dart: |
+        part of "good.dart";
+        // Errors reported by a transformation (currently) becomes a component
+        // problem.
+        final class BadStruct extends Struct {
+          @Int8()
+          int foo = 42;
+        }
+    expectedLibraryCount: 3
+    errors: true
+
+  - entry: main.dart
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - bad.dart
+    expectedLibraryCount: 3
+    advancedInvalidation: problemsInLibrary
+    errors: true
+    expectSameErrorsAsWorld: 1
+    # At least for now this recompiles 'part.dart' (and then doesn't use it)
+    # overwriting the Source for 'part.dart', leaving the
+    # Source.constantCoverageConstructors null when recompiling (but not when
+    # compiling from scratch) which (rightfully) will cause the test to fail.
+    # That's not what we want to test here though, so at least for now we clear
+    # the Source.constantCoverageConstructors entirely.
+    clearConstantCoverageConstructors: true
+
+  - entry: main.dart
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - good.dart
+    expectedLibraryCount: 3
+    advancedInvalidation: importsFfi
+    errors: true
+    expectSameErrorsAsWorld: 1
