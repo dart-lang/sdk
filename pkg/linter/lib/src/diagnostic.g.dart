@@ -1400,6 +1400,7 @@ const LinterLintWithoutArguments eolAtEndOfFileTooMany =
       problemMessage: "Too many newlines at the end of the file.",
       correctionMessage:
           "Try removing the extra newlines at the end of the file.",
+      hasPublishedDocs: true,
       uniqueName: 'eol_at_end_of_file_too_many',
       expectedTypes: [],
     );

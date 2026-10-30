@@ -5651,7 +5651,7 @@ LinterLintCode:
     sharedName: eolAtEndOfFile
     problemMessage: "Too many newlines at the end of the file."
     correctionMessage: "Try removing the extra newlines at the end of the file."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
   eraseDartTypeExtensionTypes:
     # TODO(nshahan): Update.
     type: lint

@@ -894,7 +894,7 @@ abstract class CustomSection extends Section {
 class NameSection extends CustomSection {
   static const String customSectionName = 'name';
 
-  final String? moduleName;
+  final String moduleName;
   final ir.Functions functions;
   final List<List<ir.DefType>> types;
   final ir.Globals globals;
@@ -910,9 +910,7 @@ class NameSection extends CustomSection {
   @override
   void serializeContents(Serializer s) {
     final moduleNameSubsection = Serializer();
-    if (moduleName != null) {
-      moduleNameSubsection.writeName(moduleName!);
-    }
+    moduleNameSubsection.writeName(moduleName);
 
     int functionNameCount = 0;
     final functionNames = Serializer();
@@ -940,11 +938,7 @@ class NameSection extends CustomSection {
             typeNameCount++;
             if (defType is ir.StructType && defType.fieldNames.isNotEmpty) {
               fieldNames.writeUnsigned(typeIndex);
-              fieldNames.writeUnsigned(defType.fieldNames.length);
-              for (final entry in defType.fieldNames.entries) {
-                fieldNames.writeUnsigned(entry.key);
-                fieldNames.writeName(entry.value);
-              }
+              _writeNameMap(fieldNames, defType.fieldNames);
               typesWithNamedFieldsCount++;
             }
           }
@@ -971,11 +965,7 @@ class NameSection extends CustomSection {
       if (function is ir.DefinedFunction) {
         if (function.localNames.isNotEmpty) {
           localNames.writeUnsigned(function.finalizableIndex.value);
-          localNames.writeUnsigned(function.localNames.length);
-          for (final entry in function.localNames.entries) {
-            localNames.writeUnsigned(entry.key);
-            localNames.writeName(entry.value);
-          }
+          _writeNameMap(localNames, function.localNames);
           functionsWithLocalNamesCount++;
         }
       }
@@ -984,10 +974,8 @@ class NameSection extends CustomSection {
     s.writeName(customSectionName);
 
     s.writeByte(0); // Module name subsection
-    if (moduleNameSubsection.offset > 0) {
-      s.writeUnsigned(moduleNameSubsection.data.length);
-      s.writeData(moduleNameSubsection);
-    }
+    s.writeUnsigned(moduleNameSubsection.data.length);
+    s.writeData(moduleNameSubsection);
 
     if (functionNameCount > 0) {
       s.writeByte(1); // Function names subsection
@@ -1037,6 +1025,19 @@ class NameSection extends CustomSection {
       );
       s.writeUnsigned(typesWithNamedFieldsCount);
       s.writeData(fieldNames);
+    }
+  }
+
+  /// Writes [names] as a Wasm name map.
+  ///
+  /// The spec requires name map entries to be in increasing index order, and
+  /// engines may discard the whole name section otherwise.
+  static void _writeNameMap(Serializer s, Map<int, String> names) {
+    final sortedIndices = names.keys.toList()..sort();
+    s.writeUnsigned(sortedIndices.length);
+    for (final index in sortedIndices) {
+      s.writeUnsigned(index);
+      s.writeName(names[index]!);
     }
   }
 
