@@ -204,6 +204,7 @@ class _FunctionTypeParameterType extends _Type {
     _FunctionTypeParameterType other = unsafeCast<_FunctionTypeParameterType>(
       o,
     );
+    if (isDeclaredNullable != other.isDeclaredNullable) return false;
     // References to different type parameters can have the same index and thus
     // sometimes compare equal even if they are not. However, this can only
     // happen if the containing types are different in other places, in which
