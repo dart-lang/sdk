@@ -5,32 +5,32 @@ library;
 // pkg/front_end/testcases/class_modifiers/base/outside_library_mixedin_legacy/main.dart:13:7: Error: The type 'WithBaseMixinClass' must be 'base', 'final' or 'sealed' because the supertype 'BaseMixinClass' is 'base'.
 // Try adding 'base', 'final', or 'sealed' to the type.
 // class WithBaseMixinClass with BaseMixinClass {}
-//       ^
+//       ^^^^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/class_modifiers/base/outside_library_mixedin_legacy/main.dart:15:7: Error: The type 'WithAbstractBaseMixinClass' must be 'base', 'final' or 'sealed' because the supertype 'AbstractBaseMixinClass' is 'base'.
 // Try adding 'base', 'final', or 'sealed' to the type.
 // class WithAbstractBaseMixinClass with AbstractBaseMixinClass {}
-//       ^
+//       ^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/class_modifiers/base/outside_library_mixedin_legacy/main.dart:17:7: Error: The type 'WithBaseMixin' must be 'base', 'final' or 'sealed' because the supertype 'BaseMixin' is 'base'.
 // Try adding 'base', 'final', or 'sealed' to the type.
 // class WithBaseMixin with BaseMixin {}
-//       ^
+//       ^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/class_modifiers/base/outside_library_mixedin_legacy/main.dart:19:16: Error: The type 'AbstractWithBaseMixinClass' must be 'base', 'final' or 'sealed' because the supertype 'BaseMixinClass' is 'base'.
 // Try adding 'base', 'final', or 'sealed' to the type.
 // abstract class AbstractWithBaseMixinClass with BaseMixinClass {}
-//                ^
+//                ^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/class_modifiers/base/outside_library_mixedin_legacy/main.dart:21:16: Error: The type 'AbstractWithAbstractBaseMixinClass' must be 'base', 'final' or 'sealed' because the supertype 'AbstractBaseMixinClass' is 'base'.
 // Try adding 'base', 'final', or 'sealed' to the type.
 // abstract class AbstractWithAbstractBaseMixinClass with AbstractBaseMixinClass {}
-//                ^
+//                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/class_modifiers/base/outside_library_mixedin_legacy/main.dart:23:16: Error: The type 'AbstractWithBaseMixin' must be 'base', 'final' or 'sealed' because the supertype 'BaseMixin' is 'base'.
 // Try adding 'base', 'final', or 'sealed' to the type.
 // abstract class AbstractWithBaseMixin with BaseMixin {}
-//                ^
+//                ^^^^^^^^^^^^^^^^^^^^^
 //
 import self as self;
 import "dart:core" as core;

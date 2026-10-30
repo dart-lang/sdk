@@ -6,6 +6,7 @@ import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 
+import '../base/uri_offset.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/type_builder.dart';
@@ -91,13 +92,11 @@ void buildTypeParametersAndFormals(
 
       // Required named parameters can't have default values.
       if (formal.isRequiredNamed && formal.hasDeclaredDefaultValue) {
-        libraryBuilder.addProblem(
+        libraryBuilder.addProblem2(
           diag.requiredNamedParameterHasDefaultValueError.withArguments(
             parameterName: formal.name,
           ),
-          formal.fileOffset,
-          formal.name.length,
-          formal.fileUri,
+          formal.uriOffset,
         );
       }
     }

@@ -5,7 +5,7 @@ library;
 // pkg/front_end/testcases/general/ffi_sample.dart:12:7: Error: The type 'Coordinate' must be 'base', 'final' or 'sealed' because the supertype 'Struct' is 'base'.
 // Try adding 'base', 'final', or 'sealed' to the type.
 // class Coordinate extends Struct {
-//       ^
+//       ^^^^^^^^^^
 //
 import self as self;
 import "dart:ffi" as ffi;

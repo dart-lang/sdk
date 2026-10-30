@@ -1857,12 +1857,10 @@ class OutlineBuilder extends StackListenerImpl {
           TypeBuilder type = formal.type;
           if (type is FunctionTypeBuilder &&
               type.hasFunctionFormalParameterSyntax) {
-            _problemReporting.addProblem(
+            _problemReporting.addProblem2(
               // ignore: lines_longer_than_80_chars
               diag.extensionTypePrimaryConstructorFunctionFormalParameterSyntax,
-              formal.fileOffset,
-              formal.name.length,
-              formal.fileUri,
+              formal.uriOffset,
             );
           }
           if (libraryFeatures.primaryConstructors.isEnabled) {
@@ -1874,20 +1872,16 @@ class OutlineBuilder extends StackListenerImpl {
               // Final is allowed.
               ignoreFinal: true,
             )) {
-              _problemReporting.addProblem(
+              _problemReporting.addProblem2(
                 diag.representationFieldModifier,
-                formal.fileOffset,
-                formal.name.length,
-                formal.fileUri,
+                formal.uriOffset,
               );
             }
           } else {
             if (type is ImplicitTypeBuilder) {
-              _problemReporting.addProblem(
+              _problemReporting.addProblem2(
                 diag.expectedRepresentationType,
-                formal.fileOffset,
-                formal.name.length,
-                formal.fileUri,
+                formal.uriOffset,
               );
               formal.type = new InvalidTypeBuilderImpl(
                 formal.fileUri,
@@ -1901,20 +1895,16 @@ class OutlineBuilder extends StackListenerImpl {
               // Reported above as missing a representation type.
               ignoreVar: true,
             )) {
-              _problemReporting.addProblem(
+              _problemReporting.addProblem2(
                 diag.representationFieldModifier,
-                formal.fileOffset,
-                formal.name.length,
-                formal.fileUri,
+                formal.uriOffset,
               );
             }
           }
           if (formal.isInitializingFormal) {
-            _problemReporting.addProblem(
+            _problemReporting.addProblem2(
               diag.extensionTypePrimaryConstructorWithInitializingFormal,
-              formal.fileOffset,
-              formal.name.length,
-              formal.fileUri,
+              formal.uriOffset,
             );
           }
         }
@@ -2042,6 +2032,7 @@ class OutlineBuilder extends StackListenerImpl {
     _builderFactory.addPrimaryConstructorBody(
       offsetMap: _offsetMap,
       metadata: metadata,
+      thisToken: thisToken,
       beginToken: beginToken,
       endOffset: endToken.charOffset,
       initializersStartToken: beginInitializers,
@@ -2506,10 +2497,9 @@ class OutlineBuilder extends StackListenerImpl {
         if (formals != null) {
           for (FormalParameterBuilder formal in formals) {
             if (!formal.isRequiredPositional) {
-              addProblem(
+              _problemReporting.addProblem2(
                 diag.operatorWithOptionalFormals,
-                formal.fileOffset,
-                formal.name.length,
+                formal.uriOffset,
               );
             }
           }
@@ -3446,18 +3436,13 @@ class OutlineBuilder extends StackListenerImpl {
           if (existingFormal != null) {
             // Mark [formal] as a duplicate of [existingFormal].
             formal.next = existingFormal;
-            addProblem(
+            _problemReporting.addProblem2(
               diag.duplicatedParameterName.withArguments(name: formal.name),
-              formal.fileOffset,
-              formal.name.length,
+              formal.uriOffset,
               context: [
                 diag.duplicatedParameterNameCause
                     .withArguments(name: formal.name)
-                    .withLocation(
-                      uri,
-                      existingFormal.fileOffset,
-                      existingFormal.name.length,
-                    ),
+                    .withLocation2(existingFormal.uriOffset),
               ],
             );
           } else {
@@ -3496,11 +3481,9 @@ class OutlineBuilder extends StackListenerImpl {
           formals != null) {
         for (FormalParameterBuilder formal in formals) {
           if (formal.isSuperInitializingFormal) {
-            _problemReporting.addProblem(
+            _problemReporting.addProblem2(
               diag.extensionTypeConstructorWithSuperFormalParameter,
-              formal.fileOffset,
-              formal.name.length,
-              formal.fileUri,
+              formal.uriOffset,
             );
           }
         }
@@ -3517,16 +3500,15 @@ class OutlineBuilder extends StackListenerImpl {
     FormalParameterBuilder formal,
     FormalParameterBuilder previous,
   ) {
-    addProblem(
+    _problemReporting.addProblem2(
       diag.privateNamedParameterDuplicatePublicName.withArguments(
         name: publicName,
       ),
-      formal.fileOffset,
-      formal.name.length,
+      formal.uriOffset,
       context: [
         diag.duplicatedParameterNameCause
             .withArguments(name: publicName)
-            .withLocation(uri, previous.fileOffset, previous.name.length),
+            .withLocation2(previous.uriOffset),
       ],
     );
   }
@@ -4375,9 +4357,11 @@ class OutlineBuilder extends StackListenerImpl {
         push(
           _builderFactory.addNominalParameter(
             metadata: metadata,
-            name: identifier.name,
-            nameOffset: identifier.nameOffset,
-            fileUri: uri,
+            uriOffsetName: new UriOffsetName(
+              uri,
+              identifier.name,
+              identifier.nameOffset,
+            ),
             kind: declarationContext.typeParameterKind,
           ),
         );

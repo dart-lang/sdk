@@ -96,10 +96,9 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   bool get isMixinApplication => mixedInTypeBuilder != null;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isAnonymousMixinApplication {
-    return isMixinApplication &&
-        // Coverage-ignore(suite): Not run.
-        !isNamedMixinApplication;
+    return isMixinApplication && !isNamedMixinApplication;
   }
 
   @override

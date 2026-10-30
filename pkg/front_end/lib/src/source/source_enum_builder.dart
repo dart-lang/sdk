@@ -411,11 +411,9 @@ class SourceEnumBuilder extends SourceClassBuilder {
           // situation that can happen unless you start modifying the SDK
           // sources. (We should add a correct message. We no longer depend on
           // Object here.)
-          libraryBuilder.addProblem(
+          libraryBuilder.addProblem2(
             diag.noUnnamedConstructorInObject,
-            objectClass.fileOffset,
-            objectClass.name.length,
-            objectClass.fileUri,
+            objectClass.uriOffset,
           );
         } else {
           constructor.initializers.add(

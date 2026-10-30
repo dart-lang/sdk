@@ -5,6 +5,7 @@
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchyMembers;
 
+import '../../base/uri_offset.dart';
 import '../../builder/declaration_builders.dart';
 import '../../builder/formal_parameter_builder.dart';
 import '../../builder/type_builder.dart';
@@ -91,9 +92,7 @@ class ClassMembersBuilder implements ClassHierarchyMembers {
     TypeBuilder declaredFieldType,
     Iterable<ClassMember> overriddenMembers, {
     required String name,
-    required Uri fileUri,
-    required int nameOffset,
-    required int nameLength,
+    required UriOffsetLength uriOffset,
     required bool isAssignable,
   }) {
     ClassMembersNodeBuilder.inferFieldType(
@@ -103,9 +102,7 @@ class ClassMembersBuilder implements ClassHierarchyMembers {
       declaredFieldType,
       overriddenMembers,
       name: name,
-      fileUri: fileUri,
-      nameOffset: nameOffset,
-      nameLength: nameLength,
+      uriOffset: uriOffset,
       isAssignable: isAssignable,
     );
   }
@@ -115,9 +112,7 @@ class ClassMembersBuilder implements ClassHierarchyMembers {
     TypeBuilder declaredTypeBuilder,
     Iterable<ClassMember> overriddenMembers, {
     required String name,
-    required Uri fileUri,
-    required int nameOffset,
-    required int nameLength,
+    required UriOffsetLength uriOffset,
   }) {
     ClassMembersNodeBuilder.inferGetterType(
       hierarchyBuilder,
@@ -126,9 +121,7 @@ class ClassMembersBuilder implements ClassHierarchyMembers {
       declaredTypeBuilder,
       overriddenMembers,
       name: name,
-      fileUri: fileUri,
-      nameOffset: nameOffset,
-      nameLength: nameLength,
+      uriOffset: uriOffset,
     );
   }
 
@@ -137,9 +130,7 @@ class ClassMembersBuilder implements ClassHierarchyMembers {
     List<FormalParameterBuilder>? formals,
     Iterable<ClassMember> overriddenMembers, {
     required String name,
-    required Uri fileUri,
-    required int nameOffset,
-    required int nameLength,
+    required UriOffsetLength uriOffset,
   }) {
     ClassMembersNodeBuilder.inferSetterType(
       hierarchyBuilder,
@@ -148,9 +139,7 @@ class ClassMembersBuilder implements ClassHierarchyMembers {
       formals,
       overriddenMembers,
       name: name,
-      fileUri: fileUri,
-      nameOffset: nameOffset,
-      nameLength: nameLength,
+      uriOffset: uriOffset,
     );
   }
 
@@ -161,9 +150,7 @@ class ClassMembersBuilder implements ClassHierarchyMembers {
     List<FormalParameterBuilder>? formals,
     Iterable<ClassMember> overriddenMembers, {
     required String name,
-    required Uri fileUri,
-    required int nameOffset,
-    required int nameLength,
+    required UriOffsetLength uriOffset,
   }) {
     ClassMembersNodeBuilder.inferMethodType(
       hierarchyBuilder,
@@ -174,9 +161,7 @@ class ClassMembersBuilder implements ClassHierarchyMembers {
       formals,
       overriddenMembers,
       name: name,
-      fileUri: fileUri,
-      nameOffset: nameOffset,
-      nameLength: nameLength,
+      uriOffset: uriOffset,
     );
   }
 

@@ -570,22 +570,17 @@ class SynthesizedInterfaceMember extends SynthesizedMember {
 
       if (combinedMemberSignature.canonicalMember == null) {
         String name = classBuilder.fullNameForErrors;
-        int nameLength = classBuilder.isAnonymousMixinApplication
-            ? 1
-            : name.length;
         List<LocatedMessage> context = declarations.map((ClassMember d) {
           return diag.declaredMemberConflictsWithOverriddenMembersCause
               .withLocation2(d.uriOffset);
         }).toList();
 
-        classBuilder.libraryBuilder.addProblem(
+        classBuilder.libraryBuilder.addProblem2(
           diag.combinedMemberSignatureFailed.withArguments(
             className: name,
             memberName: declarations.first.fullNameForErrors,
           ),
-          classBuilder.fileOffset,
-          nameLength,
-          classBuilder.fileUri,
+          classBuilder.uriOffset,
           context: context,
         );
         // TODO(johnniwinther): Maybe we should have an invalid marker to avoid
@@ -990,20 +985,17 @@ class SynthesizedNonExtensionTypeMember extends SynthesizedMember {
 
     if (combinedMemberSignature.canonicalMember == null) {
       String name = extensionTypeDeclarationBuilder.fullNameForErrors;
-      int nameLength = name.length;
       List<LocatedMessage> context = declarations.map((ClassMember d) {
         return diag.declaredMemberConflictsWithInheritedMembersCause
             .withLocation2(d.uriOffset);
       }).toList();
 
-      extensionTypeDeclarationBuilder.libraryBuilder.addProblem(
+      extensionTypeDeclarationBuilder.libraryBuilder.addProblem2(
         diag.extensionTypeCombinedMemberSignatureFailed.withArguments(
           extensionTypeName: name,
           memberName: declarations.first.fullNameForErrors,
         ),
-        extensionTypeDeclarationBuilder.fileOffset,
-        nameLength,
-        extensionTypeDeclarationBuilder.fileUri,
+        extensionTypeDeclarationBuilder.uriOffset,
         context: context,
       );
       // TODO(johnniwinther): Maybe we should have an invalid marker to avoid

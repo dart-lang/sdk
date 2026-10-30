@@ -10,6 +10,7 @@ import '../base/loader.dart';
 import '../base/lookup_result.dart';
 import '../base/name_space.dart';
 import '../base/scope.dart';
+import '../base/uri_offset.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
@@ -223,6 +224,12 @@ class DillClassBuilder extends ClassBuilderImpl {
       content: content,
     );
   }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  UriOffsetLength get uriOffset => cls.isAnonymousMixin
+      ? new UriOffset(fileUri, fileOffset)
+      : new UriOffsetLength(fileUri, fileOffset, name.length);
 
   @override
   int get fileOffset => cls.fileOffset;

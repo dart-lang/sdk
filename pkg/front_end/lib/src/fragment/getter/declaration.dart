@@ -287,9 +287,7 @@ class RegularGetterDeclaration
         _fragment.returnType,
         getterOverrideDependencies,
         name: _fragment.name,
-        fileUri: _fragment.fileUri,
-        nameOffset: _fragment.nameOffset,
-        nameLength: _fragment.name.length,
+        uriOffset: uriOffset,
       );
     }
     _encoding.ensureTypes(libraryBuilder, membersBuilder.hierarchyBuilder);

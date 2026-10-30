@@ -343,7 +343,7 @@ abstract class Generator {
     required bool performTypeCanonicalization,
   }) {
     Message message = diag.notAType.withArguments(name: token.lexeme);
-    _helper.libraryBuilder.addProblem(
+    problemReporting.addProblem(
       message,
       fileOffset,
       lengthForToken(token),
@@ -4424,7 +4424,7 @@ class DeferredAccessGenerator extends Generator {
             lengthOfSpan(prefixGenerator.token, token),
           );
     }
-    _helper.libraryBuilder.addProblem(
+    problemReporting.addProblem(
       message.messageObject,
       message.charOffset,
       message.length,
@@ -4731,7 +4731,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
       if (aliasedTypeArguments != null &&
           aliasedTypeArguments.length != aliasBuilder.typeParametersCount) {
         // Coverage-ignore-block(suite): Not run.
-        _helper.libraryBuilder.addProblem(
+        problemReporting.addProblem(
           diag.typeArgumentMismatch.withArguments(
             expectedCount: aliasBuilder.typeParametersCount,
           ),
@@ -6563,7 +6563,7 @@ class UnexpectedQualifiedUseGenerator extends Generator {
       typeName: token.lexeme,
     );
     if (!errorHasBeenReported) {
-      _helper.libraryBuilder.addProblem(
+      problemReporting.addProblem(
         message,
         offsetForToken(prefixGenerator.token),
         lengthOfSpan(prefixGenerator.token, token),
@@ -6774,7 +6774,7 @@ class ParserErrorGenerator extends Generator {
     required bool allowPotentiallyConstantType,
     required bool performTypeCanonicalization,
   }) {
-    _helper.libraryBuilder.addProblem(message, fileOffset, noLength, _fileUri);
+    problemReporting.addProblem(message, fileOffset, noLength, _fileUri);
     return new NamedTypeBuilderImpl.forInvalidType(
       token.lexeme,
       nullabilityBuilder,

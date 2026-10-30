@@ -293,6 +293,7 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
     sourceClassBuilder.checkVarianceInReturnType(
       typeEnvironment,
       function.returnType,
+      uriOffset: _fragment.uriOffset,
       fileOffset: _fragment.nameOffset,
       fileUri: _fragment.fileUri,
     );
@@ -649,6 +650,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
     sourceClassBuilder.checkVarianceInReturnType(
       typeEnvironment,
       function.returnType,
+      uriOffset: _fragment.uriOffset,
       fileOffset: _fragment.nameOffset,
       fileUri: _fragment.fileUri,
     );

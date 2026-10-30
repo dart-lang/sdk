@@ -371,6 +371,7 @@ abstract class FragmentFactory {
   void addPrimaryConstructorBody({
     required OffsetMap offsetMap,
     required Token beginToken,
+    required Token thisToken,
     required List<MetadataBuilder>? metadata,
     required int endOffset,
     required Token? initializersStartToken,
@@ -543,9 +544,7 @@ abstract class FragmentFactory {
 
   TypeParameterFragment addNominalParameter({
     required List<MetadataBuilder>? metadata,
-    required String name,
-    required int nameOffset,
-    required Uri fileUri,
+    required UriOffsetName uriOffsetName,
     required TypeParameterKind kind,
   });
 

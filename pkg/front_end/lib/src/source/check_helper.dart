@@ -752,14 +752,12 @@ extension CheckHelper on ProblemReporting {
         if (isOptional &&
             formal.variable.type.isPotentiallyNonNullable &&
             !formal.hasDeclaredDefaultValue) {
-          addProblem(
+          addProblem2(
             diag.optionalNonNullableWithoutInitializerError.withArguments(
               parameterName: formal.name,
               parameterType: formal.variable.type,
             ),
-            formal.fileOffset,
-            formal.name.length,
-            formal.fileUri,
+            formal.uriOffset,
           );
           formal.variable.hasErroneousDefaultValue = true;
         }
@@ -835,8 +833,7 @@ extension CheckHelper on ProblemReporting {
 
   void reportTypeArgumentIssue({
     required Message message,
-    required Uri fileUri,
-    required int fileOffset,
+    required UriOffsetLength uriOffset,
     TypeParameter? typeParameter,
     DartType? superBoundedAttempt,
     DartType? superBoundedAttemptInverted,
@@ -872,10 +869,10 @@ extension CheckHelper on ProblemReporting {
               attemptedType: superBoundedAttempt,
               invertedType: superBoundedAttemptInverted,
             )
-            .withLocation(fileUri, fileOffset, noLength),
+            .withLocation2(uriOffset),
       );
     }
-    addProblem(message, fileOffset, noLength, fileUri, context: context);
+    addProblem2(message, uriOffset, context: context);
   }
 
   void _reportTypeArgumentIssueForStructuralParameter(

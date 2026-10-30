@@ -6,9 +6,6 @@ part of 'fragment.dart';
 
 class TypeParameterFragment {
   final List<MetadataBuilder>? metadata;
-  final String name;
-  final int nameOffset;
-  final Uri fileUri;
   final TypeParameterKind kind;
   final bool isWildcard;
   final String variableName;
@@ -20,17 +17,26 @@ class TypeParameterFragment {
 
   SourceNominalParameterBuilder? _builder;
 
+  final UriOffsetName _uriOffsetName;
+
   new({
     required this.metadata,
-    required this.name,
-    required this.nameOffset,
-    required this.fileUri,
+    required this._uriOffsetName,
     required this.kind,
     required this.isWildcard,
     required this.variableName,
     required this.extensionScope,
     required this.typeParameterScope,
   });
+
+  Uri get fileUri => _uriOffsetName.fileUri;
+
+  // Coverage-ignore(suite): Not run.
+  String get name => _uriOffsetName.name;
+
+  int get nameOffset => _uriOffsetName.nameOffset;
+
+  UriOffsetLength get uriOffset => _uriOffsetName;
 
   SourceNominalParameterBuilder get builder {
     assert(_builder != null, "Builder has not been set for $this.");

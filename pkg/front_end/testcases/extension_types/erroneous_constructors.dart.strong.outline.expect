@@ -8,7 +8,7 @@ library;
 //
 // pkg/front_end/testcases/extension_types/erroneous_constructors.dart:10:18: Error: Super parameters can only be used in non-redirecting generative constructors.
 //   E2.named(super.it) : this(it);
-//                  ^
+//                  ^^
 //
 import self as self;
 import "dart:core" as core;
