@@ -545,6 +545,45 @@ void main() {
     });
   });
 
+  test('dart build cli --define', timeout: longTimeout, () async {
+    await nativeAssetsTest('dart_app', (dartAppUri) async {
+      final binFile = File.fromUri(dartAppUri.resolve('bin/dart_app.dart'));
+      await binFile.writeAsString('''
+void main() {
+  print(const String.fromEnvironment('flavor'));
+  print(const int.fromEnvironment('number'));
+  print(const bool.fromEnvironment('enabled'));
+}
+''');
+      await runDart(
+        arguments: [
+          'build',
+          'cli',
+          '-Dflavor=release,number=17',
+          '--define=enabled=true',
+        ],
+        workingDirectory: dartAppUri,
+        logger: logger,
+      );
+
+      final relativeExeUri = relativeBundleUri
+          .resolve('bin/')
+          .resolve(OS.current.executableFileName('dart_app'));
+      final absoluteExeUri = dartAppUri.resolveUri(relativeExeUri);
+      expect(await File.fromUri(absoluteExeUri).exists(), true);
+
+      final processResult = await runProcess(
+        executable: absoluteExeUri,
+        logger: logger,
+        throwOnUnexpectedExitCode: true,
+      );
+      expect(
+        processResult.stdout.trim().split(RegExp(r'\r?\n')),
+        ['release', '17', 'true'],
+      );
+    });
+  });
+
   test('dart build cli with custom entrypoint and custom package config',
       timeout: longTimeout, () async {
     await nativeAssetsTest('dart_app', (dartAppUri) async {

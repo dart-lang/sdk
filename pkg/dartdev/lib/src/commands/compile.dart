@@ -1119,13 +1119,20 @@ Sets the verbosity level of the compilation.
     flagDefaultsTo: true,
   );
 
+  /// An example invocation of this command with [arguments].
+  ///
+  /// Used in the help text of options shared between subcommands, such as
+  /// [defineOption] and [packagesOption].
+  String exampleInvocation(String arguments) =>
+      'dart compile $name $arguments main.dart';
+
   late final Option defineOption = Option(
     flag: 'define',
     abbr: 'D',
     valueHelp: 'key=value',
     help: '''
 Define an environment declaration. To specify multiple declarations, use multiple options or use commas to separate key-value pairs.
-For example: dart compile $name -Da=1,b=2 main.dart''',
+For example: ${exampleInvocation('-Da=1,b=2')}''',
   );
 
   late final Option packagesOption = Option(
@@ -1135,7 +1142,7 @@ For example: dart compile $name -Da=1,b=2 main.dart''',
     help:
         '''Get package locations from the specified file instead of .dart_tool/package_config.json.
 <path> can be relative or absolute.
-For example: dart compile $name --packages=/tmp/pkgs.json main.dart''',
+For example: ${exampleInvocation('--packages=/tmp/pkgs.json')}''',
   );
 
   final Option enableAssertsOption = Option(
