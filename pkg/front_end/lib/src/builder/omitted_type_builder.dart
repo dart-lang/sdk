@@ -135,6 +135,7 @@ class ImplicitTypeBuilder extends OmittedTypeBuilderImpl {
   StringBuffer printOn(StringBuffer buffer) => buffer;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isExplicit => true;
 
   @override
@@ -159,11 +160,47 @@ class ImplicitTypeBuilder extends OmittedTypeBuilderImpl {
 /// [InferableTypeBuilder] should be created through
 /// [SourceLibraryBuilder.addInferableType] to ensure the type is inferred.
 class InferableTypeBuilder extends OmittedTypeBuilderImpl
-    with InferableTypeBuilderMixin
     implements InferableType {
   final InferenceDefaultType inferenceDefaultType;
 
+  DartType? _type;
+
+  List<InferredTypeListener>? _listeners;
+
   new(this.inferenceDefaultType);
+
+  @override
+  bool get hasType => _type != null;
+
+  @override
+  DartType get type => _type!;
+
+  @override
+  void registerInferredTypeListener(InferredTypeListener onType) {
+    if (isExplicit) return;
+    if (hasType) {
+      // Coverage-ignore-block(suite): Not run.
+      onType.onInferredType(type);
+    } else {
+      (_listeners ??= []).add(onType);
+    }
+  }
+
+  DartType registerType(DartType type) {
+    // TODO(johnniwinther): Avoid multiple registration from enums and
+    //  duplicated fields.
+    if (_type == null) {
+      _type = type;
+      List<InferredTypeListener>? listeners = _listeners;
+      if (listeners != null) {
+        _listeners = null;
+        for (InferredTypeListener listener in listeners) {
+          listener.onInferredType(type);
+        }
+      }
+    }
+    return _type!;
+  }
 
   @override
   DartType build(
