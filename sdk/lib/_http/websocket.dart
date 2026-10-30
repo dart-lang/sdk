@@ -110,7 +110,7 @@ class CompressionOptions {
       } else {
         int mwb =
             serverMaxWindowBits ??
-            int.tryParse(part) ??
+            _parseWindowBits(part) ??
             _WebSocketImpl.DEFAULT_WINDOW_BITS;
         info.headerValue = "; server_max_window_bits=$mwb";
         info.maxWindowBits = mwb;
