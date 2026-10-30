@@ -186,7 +186,7 @@ abstract class _UnicodeSubsetDecoder extends Converter<List<int>, String> {
     end = RangeError.checkValidRange(start, end, bytes.length);
     for (var i = start; i < end; i++) {
       var byte = bytes[i];
-      if ((byte & ~_subsetMask) != 0) {
+      if (byte < 0 || byte > _subsetMask) {
         if (!_allowInvalid) {
           throw FormatException("Invalid value in input: $byte");
         }
@@ -200,7 +200,7 @@ abstract class _UnicodeSubsetDecoder extends Converter<List<int>, String> {
     var buffer = StringBuffer();
     for (var i = start; i < end; i++) {
       var value = bytes[i];
-      if ((value & ~_subsetMask) != 0) value = 0xFFFD;
+      if (value < 0 || value > _subsetMask) value = 0xFFFD;
       buffer.writeCharCode(value);
     }
     return buffer.toString();
@@ -281,7 +281,8 @@ class _ErrorHandlingAsciiDecoderSink extends ByteConversionSink {
   void addSlice(List<int> source, int start, int end, bool isLast) {
     RangeError.checkValidRange(start, end, source.length);
     for (var i = start; i < end; i++) {
-      if ((source[i] & ~_asciiMask) != 0) {
+      var byte = source[i];
+      if (byte < 0 || byte > _asciiMask) {
         if (i > start) _utf8Sink.addSlice(source, start, i, false);
         // Add UTF-8 encoding of U+FFFD.
         _utf8Sink.add(const <int>[0xEF, 0xBF, 0xBD]);
@@ -306,7 +307,8 @@ class _SimpleAsciiDecoderSink extends ByteConversionSink {
 
   void add(List<int> source) {
     for (var i = 0; i < source.length; i++) {
-      if ((source[i] & ~_asciiMask) != 0) {
+      var byte = source[i];
+      if (byte < 0 || byte > _asciiMask) {
         throw FormatException("Source contains non-ASCII bytes.");
       }
     }
