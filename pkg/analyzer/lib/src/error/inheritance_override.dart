@@ -439,7 +439,7 @@ class _ClassVerifier {
           if (_reportConcreteClassWithAbstractMember(name.name)) {
             continue;
           }
-          if (interfaceElement.enclosingElement == classElement) {
+          if (interface.declared.containsKey(name)) {
             continue;
           }
           if (_isNotImplementedInConcreteSuperClass(name)) {
