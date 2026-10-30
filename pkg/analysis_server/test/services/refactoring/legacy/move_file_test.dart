@@ -394,6 +394,56 @@ import r'''package:test/222/new_name.dart''';
 """);
   }
 
+  Future<void> test_file_referenced_by_export_in_part() async {
+    var pathA = convertPath('/home/test/000/1111/a.dart');
+    var pathB = convertPath('/home/test/000/1111/b.dart');
+    testFilePath = convertPath('/home/test/000/1111/test.dart');
+    newFile(pathA, '''
+part 'b.dart';
+''');
+    newFile(pathB, '''
+part of 'a.dart';
+export 'test.dart';
+''');
+    await analyzeTestPackageFiles();
+    await resolveTestCode('');
+
+    _createRefactoring('/home/test/000/1111/22/new_name.dart');
+    await _assertSuccessfulRefactoring();
+
+    assertNoFileChange(pathA);
+    assertFileChangeResult(pathB, '''
+part of 'a.dart';
+export '22/new_name.dart';
+''');
+    assertNoFileChange(testFile.path);
+  }
+
+  Future<void> test_file_referenced_by_import_in_part() async {
+    var pathA = convertPath('/home/test/000/1111/a.dart');
+    var pathB = convertPath('/home/test/000/1111/b.dart');
+    testFilePath = convertPath('/home/test/000/1111/test.dart');
+    newFile(pathA, '''
+part 'b.dart';
+''');
+    newFile(pathB, '''
+part of 'a.dart';
+import 'test.dart';
+''');
+    await analyzeTestPackageFiles();
+    await resolveTestCode('');
+
+    _createRefactoring('/home/test/000/1111/22/new_name.dart');
+    await _assertSuccessfulRefactoring();
+
+    assertNoFileChange(pathA);
+    assertFileChangeResult(pathB, '''
+part of 'a.dart';
+import '22/new_name.dart';
+''');
+    assertNoFileChange(testFile.path);
+  }
+
   @failingTest
   Future<void> test_file_referenced_by_multiple_libraries() async {
     // This test fails because the search index doesn't support multiple uris for
@@ -515,6 +565,62 @@ import 'b.dart';
       expectedMessage:
           '${convertPath('/home/test/test_missing.dart')} does not exist.',
     );
+  }
+
+  Future<void> test_part_containing_export() async {
+    var pathA = convertPath('/home/test/000/1111/a.dart');
+    var pathB = convertPath('/home/test/000/1111/b.dart');
+    testFilePath = convertPath('/home/test/000/1111/test.dart');
+    newFile(pathA, '''
+part 'test.dart';
+''');
+    newFile(pathB, '');
+    addTestSource('''
+part of 'a.dart';
+export 'b.dart';
+''');
+    await analyzeTestPackageFiles();
+    await resolveTestFile();
+
+    _createRefactoring('/home/test/000/1111/22/test.dart');
+    await _assertSuccessfulRefactoring();
+
+    assertFileChangeResult(pathA, '''
+part '22/test.dart';
+''');
+    assertNoFileChange(pathB);
+    assertFileChangeResult(testFile.path, '''
+part of '../a.dart';
+export '../b.dart';
+''');
+  }
+
+  Future<void> test_part_containing_import() async {
+    var pathA = convertPath('/home/test/000/1111/a.dart');
+    var pathB = convertPath('/home/test/000/1111/b.dart');
+    testFilePath = convertPath('/home/test/000/1111/test.dart');
+    newFile(pathA, '''
+part 'test.dart';
+''');
+    newFile(pathB, '');
+    addTestSource('''
+part of 'a.dart';
+import 'b.dart';
+''');
+    await analyzeTestPackageFiles();
+    await resolveTestFile();
+
+    _createRefactoring('/home/test/000/1111/22/test.dart');
+    await _assertSuccessfulRefactoring();
+
+    assertFileChangeResult(pathA, '''
+part '22/test.dart';
+''');
+    assertNoFileChange(pathB);
+    assertFileChangeResult(testFile.path, '''
+part of '../a.dart';
+import '../b.dart';
+''');
   }
 
   @failingTest
