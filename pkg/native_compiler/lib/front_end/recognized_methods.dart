@@ -1004,6 +1004,13 @@ final class VmRecognizedMethods(
     index.getProcedure(
       'dart:core',
       '_Double',
+      'abs',
+    ): (FlowGraphBuilder builder) {
+      buildUnaryDoubleOp(builder, .abs);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_Double',
       'get:hashCode',
     ): (FlowGraphBuilder builder) {
       buildUnaryDoubleOp(builder, .hash);
