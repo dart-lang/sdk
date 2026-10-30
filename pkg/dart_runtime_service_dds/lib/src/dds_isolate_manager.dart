@@ -443,29 +443,28 @@ final class DdsIsolateManager extends IsolateManager {
     return timeline.toJson();
   }
 
+  static RpcResponse _collectedSentinel() => vm.Sentinel(
+    kind: vm.SentinelKind.kCollected,
+    valueAsString: '<collected>',
+  ).toJson();
+
   /// Handles the `readyToResume` custom DDS RPC.
   ///
   /// Signals that the calling [client] approves resuming the isolate specified
   /// by `isolateId`. If all other required clients and user permissions have
   /// also granted approval, forwards the resume request to the target VM.
   ///
-  /// Throws a [json_rpc.RpcException] with [json_rpc_error.INVALID_PARAMS] if
-  /// `isolateId` is not recognized.
+  /// Returns a collected [vm.Sentinel] if `isolateId` no longer exists.
   Future<RpcResponse> readyToResume(
     json_rpc.Parameters parameters,
     Client client,
   ) => _mutex.runGuarded(() async {
-    final isolateId = parameters['isolateId'].asString;
-    final isolate = ddsIsolates[isolateId];
+    final isolate = ddsIsolates[parameters['isolateId'].asString];
     if (isolate == null) {
-      throw json_rpc.RpcException(
-        json_rpc_error.INVALID_PARAMS,
-        'Invalid isolateId: $isolateId',
-      );
+      return _collectedSentinel();
     }
     if (isolate.shouldResume(resumingClient: client)) {
-      isolate.clearResumeApprovals();
-      await sendResumeRequest(isolateId: isolateId, parameters: parameters);
+      return await sendResumeRequest(isolate: isolate, parameters: parameters);
     }
     return vm.Success().toJson();
   });
@@ -475,24 +474,28 @@ final class DdsIsolateManager extends IsolateManager {
   /// Invocations of `resume` are considered to be resume requests made by the
   /// user and are treated as a force resume, bypassing any resume permissions
   /// set by tooling.
+  ///
+  /// Returns a collected [vm.Sentinel] if `isolateId` no longer exists.
   Future<RpcResponse> resume(json_rpc.Parameters parameters, Client client) =>
       _mutex.runGuarded(() async {
-        final isolateId = parameters['isolateId'].asString;
-        if (ddsIsolates[isolateId] case final isolate?) {
-          isolate.clearResumeApprovals();
+        final isolate = ddsIsolates[parameters['isolateId'].asString];
+        if (isolate == null) {
+          return _collectedSentinel();
         }
         return await sendResumeRequest(
-          isolateId: isolateId,
+          isolate: isolate,
           parameters: parameters,
         );
       });
 
-  /// Sends the `resume` request to the target VM Service client with optional
-  /// `step` and `frameIndex` parameters.
+  /// Clears resume approvals on [isolate] and sends the `resume` request to
+  /// the target VM Service client with optional `step` and `frameIndex`
+  /// parameters.
   Future<RpcResponse> sendResumeRequest({
-    required String isolateId,
+    required DdsRunningIsolate isolate,
     json_rpc.Parameters? parameters,
   }) async {
+    isolate.clearResumeApprovals();
     const invalidFrameIndex = -1;
     final step = switch (parameters?['step']) {
       final s? when s.exists => s.asString,
@@ -503,7 +506,7 @@ final class DdsIsolateManager extends IsolateManager {
       _ => null,
     };
     final response = await vmServiceClient.resume(
-      isolateId,
+      isolate.id,
       frameIndex: frameIndex == invalidFrameIndex ? null : frameIndex,
       step: step,
     );
@@ -566,8 +569,7 @@ final class DdsIsolateManager extends IsolateManager {
                 IsolateState.pauseExit ||
                 IsolateState.pausePostRequest) {
           if (isolate.shouldResume()) {
-            isolate.clearResumeApprovals();
-            await sendResumeRequest(isolateId: isolate.id);
+            await sendResumeRequest(isolate: isolate);
           }
         }
       }
