@@ -2202,40 +2202,40 @@ enum const E.named {v}
     var node = parseResult.findNode.singleEnumDeclaration;
     assertParsedNodeText(node, r'''
 EnumDeclaration2
-  enumKeyword: enum
+  enumKeyword: enum @0
   namePart: PrimaryConstructorDeclaration
-    constKeyword: const
-    typeName: E
+    constKeyword: const @5
+    typeName: E @11
     constructorName: PrimaryConstructorName
-      period: .
-      name: named
+      period: . @12
+      name: named @13
     formalParameters: FormalParameterList
-      leftParenthesis: ( <synthetic>
-      rightParenthesis: ) <synthetic>
+      leftParenthesis: ( @19 <synthetic>
+      rightParenthesis: ) @19 <synthetic>
   body: BlockEnumDeclarationBody
-    leftBracket: {
+    leftBracket: { @19
     constants
       EnumConstantDeclaration2
-        name: v
-    rightBracket: }
+        name: v @20
+    rightBracket: } @21
 V1: EnumDeclaration
-  enumKeyword: enum
+  enumKeyword: enum @0
   namePart: PrimaryConstructorDeclaration
-    constKeyword: const
-    typeName: E
+    constKeyword: const @5
+    typeName: E @11
     constructorName: PrimaryConstructorName
-      period: .
-      name: named
+      period: . @12
+      name: named @13
     formalParameters: FormalParameterList
-      leftParenthesis: ( <synthetic>
-      rightParenthesis: ) <synthetic>
+      leftParenthesis: ( @19 <synthetic>
+      rightParenthesis: ) @19 <synthetic>
   body: BlockEnumBody
-    leftBracket: {
+    leftBracket: { @19
     constants
       EnumConstantDeclaration
-        name: v
-    rightBracket: }
-''');
+        name: v @20
+    rightBracket: } @21
+''', withOffsets: true);
   }
 
   test_primaryConstructor_declaringFormalParameter_default_namedRequired_final() {
@@ -2946,38 +2946,148 @@ enum E.named {v}
     var node = parseResult.findNode.singleEnumDeclaration;
     assertParsedNodeText(node, r'''
 EnumDeclaration2
-  enumKeyword: enum
+  enumKeyword: enum @0
   namePart: PrimaryConstructorDeclaration
-    typeName: E
+    typeName: E @5
     constructorName: PrimaryConstructorName
-      period: .
-      name: named
+      period: . @6
+      name: named @7
     formalParameters: FormalParameterList
-      leftParenthesis: ( <synthetic>
-      rightParenthesis: ) <synthetic>
+      leftParenthesis: ( @13 <synthetic>
+      rightParenthesis: ) @13 <synthetic>
   body: BlockEnumDeclarationBody
-    leftBracket: {
+    leftBracket: { @13
     constants
       EnumConstantDeclaration2
-        name: v
-    rightBracket: }
+        name: v @14
+    rightBracket: } @15
 V1: EnumDeclaration
-  enumKeyword: enum
+  enumKeyword: enum @0
   namePart: PrimaryConstructorDeclaration
-    typeName: E
+    typeName: E @5
     constructorName: PrimaryConstructorName
-      period: .
-      name: named
+      period: . @6
+      name: named @7
     formalParameters: FormalParameterList
-      leftParenthesis: ( <synthetic>
-      rightParenthesis: ) <synthetic>
+      leftParenthesis: ( @13 <synthetic>
+      rightParenthesis: ) @13 <synthetic>
   body: BlockEnumBody
-    leftBracket: {
+    leftBracket: { @13
     constants
       EnumConstantDeclaration
-        name: v
-    rightBracket: }
+        name: v @14
+    rightBracket: } @15
+''', withOffsets: true);
+  }
+
+  test_primaryConstructor_notConst_typeName_periodName_noFormalParameters_implementsClause() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+enum E.named implements I {v}
+//     ^^^^^
+// [diag.missingPrimaryConstructorParameters] A primary constructor declaration must have formal parameters.
 ''');
+
+    var node = parseResult.findNode.singleEnumDeclaration;
+    assertParsedNodeText(node, r'''
+EnumDeclaration2
+  enumKeyword: enum @0
+  namePart: PrimaryConstructorDeclaration
+    typeName: E @5
+    constructorName: PrimaryConstructorName
+      period: . @6
+      name: named @7
+    formalParameters: FormalParameterList
+      leftParenthesis: ( @13 <synthetic>
+      rightParenthesis: ) @13 <synthetic>
+  implementsClause: ImplementsClause
+    implementsKeyword: implements @13
+    interfaces
+      NamedType
+        name: I @24
+  body: BlockEnumDeclarationBody
+    leftBracket: { @26
+    constants
+      EnumConstantDeclaration2
+        name: v @27
+    rightBracket: } @28
+V1: EnumDeclaration
+  enumKeyword: enum @0
+  namePart: PrimaryConstructorDeclaration
+    typeName: E @5
+    constructorName: PrimaryConstructorName
+      period: . @6
+      name: named @7
+    formalParameters: FormalParameterList
+      leftParenthesis: ( @13 <synthetic>
+      rightParenthesis: ) @13 <synthetic>
+  implementsClause: ImplementsClause
+    implementsKeyword: implements @13
+    interfaces
+      NamedType
+        name: I @24
+  body: BlockEnumBody
+    leftBracket: { @26
+    constants
+      EnumConstantDeclaration
+        name: v @27
+    rightBracket: } @28
+''', withOffsets: true);
+  }
+
+  test_primaryConstructor_notConst_typeName_typeParameters_periodName_noFormalParameters() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+enum E<T>.named {v}
+//        ^^^^^
+// [diag.missingPrimaryConstructorParameters] A primary constructor declaration must have formal parameters.
+''');
+
+    var node = parseResult.findNode.singleEnumDeclaration;
+    assertParsedNodeText(node, r'''
+EnumDeclaration2
+  enumKeyword: enum @0
+  namePart: PrimaryConstructorDeclaration
+    typeName: E @5
+    typeParameters: TypeParameterList
+      leftBracket: < @6
+      typeParameters
+        TypeParameter
+          name: T @7
+      rightBracket: > @8
+    constructorName: PrimaryConstructorName
+      period: . @9
+      name: named @10
+    formalParameters: FormalParameterList
+      leftParenthesis: ( @16 <synthetic>
+      rightParenthesis: ) @16 <synthetic>
+  body: BlockEnumDeclarationBody
+    leftBracket: { @16
+    constants
+      EnumConstantDeclaration2
+        name: v @17
+    rightBracket: } @18
+V1: EnumDeclaration
+  enumKeyword: enum @0
+  namePart: PrimaryConstructorDeclaration
+    typeName: E @5
+    typeParameters: TypeParameterList
+      leftBracket: < @6
+      typeParameters
+        TypeParameter
+          name: T @7
+      rightBracket: > @8
+    constructorName: PrimaryConstructorName
+      period: . @9
+      name: named @10
+    formalParameters: FormalParameterList
+      leftParenthesis: ( @16 <synthetic>
+      rightParenthesis: ) @16 <synthetic>
+  body: BlockEnumBody
+    leftBracket: { @16
+    constants
+      EnumConstantDeclaration
+        name: v @17
+    rightBracket: } @18
+''', withOffsets: true);
   }
 
   test_primaryConstructorBody() {

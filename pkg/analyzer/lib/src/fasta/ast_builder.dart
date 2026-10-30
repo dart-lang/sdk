@@ -24,6 +24,7 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart'
 import 'package:_fe_analyzer_shared/src/parser/quote.dart';
 import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart'
     show NullValues, StackListener;
+import 'package:_fe_analyzer_shared/src/parser/token_stream_rewriter.dart';
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show KeywordToken, StringToken, SyntheticToken;
@@ -1692,9 +1693,10 @@ class AstBuilder extends StackListener {
       var builder = _classLikeBuilder as _ExtensionTypeDeclarationBuilder;
       if (builder.augmentKeyword == null) {
         primaryConstructorBuilder ??= _PrimaryConstructorBuilder(
+          rewriter: parser.rewriter,
           constKeyword: null,
           constructorName: null,
-          formalParameterList: _syntheticFormalParameterList(builder.name),
+          formalParameterList: null,
         );
       }
 
@@ -2838,10 +2840,6 @@ class AstBuilder extends StackListener {
     bool hasConstructorName,
   ) {
     var formalParameterList = pop() as FormalParameterListImpl?;
-    if (formalParameterList == null) {
-      var extensionTypeName = beginToken.previous!;
-      formalParameterList = _syntheticFormalParameterList(extensionTypeName);
-    }
 
     switch (kind) {
       case DeclarationKind.TopLevel:
@@ -2876,6 +2874,7 @@ class AstBuilder extends StackListener {
 
     push(
       _PrimaryConstructorBuilder(
+        rewriter: parser.rewriter,
         constKeyword: constKeyword,
         constructorName: constructorName,
         formalParameterList: formalParameterList,
@@ -6772,17 +6771,6 @@ class AstBuilder extends StackListener {
     );
   }
 
-  FormalParameterListImpl _syntheticFormalParameterList(Token precedingToken) {
-    var left = parser.rewriter.insertParens(precedingToken, false);
-    var right = left.endGroup!;
-    return FormalParameterListImpl(
-      leftParenthesis: left,
-      requiredPositionalFormalParameters: [],
-      delimitedFormalParameters: null,
-      rightParenthesis: right,
-    );
-  }
-
   ParameterKind _toAnalyzerParameterKind(FormalParameterKind type) {
     switch (type) {
       case FormalParameterKind.requiredPositional:
@@ -7306,11 +7294,18 @@ class _ParenthesizedCondition {
 }
 
 class _PrimaryConstructorBuilder {
+  final TokenStreamRewriter rewriter;
   final Token? constKeyword;
   final PrimaryConstructorNameImpl? constructorName;
-  final FormalParameterListImpl formalParameterList;
+
+  /// The formal parameters, or `null` if they are missing.
+  ///
+  /// The synthetic formal parameters are inserted into the token stream only
+  /// in [build], when the parser has already read the tokens after them.
+  final FormalParameterListImpl? formalParameterList;
 
   new({
+    required this.rewriter,
     required this.constKeyword,
     required this.constructorName,
     required this.formalParameterList,
@@ -7325,7 +7320,22 @@ class _PrimaryConstructorBuilder {
       typeName: typeName,
       typeParameters: typeParameters,
       constructorName: constructorName,
-      formalParameters: formalParameterList,
+      formalParameters:
+          formalParameterList ??
+          _syntheticFormalParameterList(
+            constructorName?.name ?? typeParameters?.rightBracket ?? typeName,
+          ),
+    );
+  }
+
+  FormalParameterListImpl _syntheticFormalParameterList(Token precedingToken) {
+    var left = rewriter.insertParens(precedingToken, false);
+    var right = left.endGroup!;
+    return FormalParameterListImpl(
+      leftParenthesis: left,
+      requiredPositionalFormalParameters: [],
+      delimitedFormalParameters: null,
+      rightParenthesis: right,
     );
   }
 }
