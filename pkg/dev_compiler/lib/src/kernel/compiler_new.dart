@@ -2400,7 +2400,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
             fComputed.positionalParameters[index],
           ),
         ),
-        f.returnType,
+        fComputed.returnType,
         Nullability.nonNullable,
         namedParameters: NamedDartTypeList.mapped(
           f.namedParameters,

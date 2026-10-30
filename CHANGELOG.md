@@ -120,6 +120,15 @@ the `if` statement above, `o` has type `D`.
 
 [#64561]: https://github.com/dart-lang/sdk/issues/64561
 
+#### Dart Development Compiler (dartdevc)
+
+- Fixed a bug where a type parameter from an enclosing scope could be
+  incorrectly captured by a generic function type with a type parameter of the
+  same name, producing the wrong runtime type.
+  For more details, see SDK issue [#64517][].
+
+[#64517]: https://github.com/dart-lang/sdk/issues/64517
+
 #### Pub
 
 - `dart pub publish` now creates reproducible `.tar.gz` package archives with

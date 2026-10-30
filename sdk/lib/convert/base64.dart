@@ -377,12 +377,10 @@ class _Base64Encoder {
     var expectedBytes = 3 - _stateCount(state);
 
     // The input must be a list of bytes (integers in the range 0..255).
-    // The value of `byteOr` will be the bitwise or of all the values in
-    // `bytes` and a later check will validate that they were all valid bytes.
-    var byteOr = 0;
+    var allBytesValid = true;
     for (var i = start; i < end; i++) {
       var byte = bytes[i];
-      byteOr |= byte;
+      if (byte < 0 || byte > 255) allBytesValid = false;
       bits = ((bits << 8) | byte) & 0xFFFFFF; // Never store more than 24 bits.
       expectedBytes--;
       if (expectedBytes == 0) {
@@ -394,7 +392,7 @@ class _Base64Encoder {
         bits = 0;
       }
     }
-    if (byteOr >= 0 && byteOr <= 255) {
+    if (allBytesValid) {
       if (isLast && expectedBytes < 3) {
         writeFinalChunk(alphabet, output, outputIndex, 3 - expectedBytes, bits);
         return 0;

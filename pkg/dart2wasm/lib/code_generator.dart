@@ -1530,7 +1530,7 @@ abstract class AstCodeGenerator
         indexBlocks.add(c == null ? defaultLabel : switchLabels[c]!);
       }
 
-      brTable.emitBrTableExpr(b, switchValueNonNullableLocal);
+      brTable.emitBrTableExpr(b, switchValueNonNullableLocal, defaultLabel);
 
       b.br_table(indexBlocks, defaultLabel);
     } else {
@@ -5236,14 +5236,23 @@ class BrTableInfo {
   // Below this point we always accept the potential code size hit.
   static const int _maxSparseSize = 50;
 
-  int get rangeSize => _rangeSize(minValue, maxValue);
   final int minValue;
   final int maxValue;
   final void Function(w.Local switchExprLocal) _brTableExpr;
   final Map<int, SwitchCase> caseMap;
 
-  BrTableInfo._(this.minValue, this.maxValue, this.caseMap, this._brTableExpr)
-    : assert(!_isTooSparse(minValue, maxValue, caseMap));
+  /// Whether the switch value can be outside of the i32 range after being
+  /// normalized on 0, so it must be checked against the table range before
+  /// being wrapped to i32.
+  final bool needsRangeCheck;
+
+  BrTableInfo._(
+    this.minValue,
+    this.maxValue,
+    this.caseMap,
+    this._brTableExpr,
+    this.needsRangeCheck,
+  ) : assert(_canUseBrTable(minValue, maxValue, caseMap));
 
   /// Heuristically validate whether the provided table would be too sparse and
   /// if so return null. Otherwise return the expected table.
@@ -5252,29 +5261,60 @@ class BrTableInfo {
     void Function(w.Local switchExprLocal) brTableExpr, {
     required int minValue,
     required int maxValue,
+    required bool needsRangeCheck,
   }) {
     // Validate the table density and size is worth putting into a br_table.
-    if (_isTooSparse(minValue, maxValue, caseMap)) return null;
+    if (!_canUseBrTable(minValue, maxValue, caseMap)) return null;
 
-    return BrTableInfo._(minValue, maxValue, caseMap, brTableExpr);
+    return BrTableInfo._(
+      minValue,
+      maxValue,
+      caseMap,
+      brTableExpr,
+      needsRangeCheck,
+    );
   }
 
-  static bool _isTooSparse(int min, int max, Map<int, SwitchCase> caseMap) {
-    int rangeSize = _rangeSize(min, max);
-    return (caseMap.length / rangeSize) < _minimumTableOccupancy &&
-        rangeSize > _maxSparseSize;
+  static bool _canUseBrTable(int min, int max, Map<int, SwitchCase> caseMap) {
+    assert(min <= max);
+    final rangeSize = _rangeSize(min, max);
+    if (rangeSize <= 0) {
+      // The range size (which is positive) exceeds what signed int64 can
+      // represent.
+      return false;
+    }
+    return (caseMap.length / rangeSize) >= _minimumTableOccupancy ||
+        rangeSize <= _maxSparseSize;
   }
 
+  /// Returns the size of the range given the provided max and min values. This
+  /// may be negative if the difference does not fit in an int64.
   static int _rangeSize(int min, int max) => max - min + 1;
 
-  void emitBrTableExpr(w.InstructionsBuilder b, w.Local switchExprLocal) {
+  void emitBrTableExpr(
+    w.InstructionsBuilder b,
+    w.Local switchExprLocal,
+    w.Label defaultLabel,
+  ) {
     _brTableExpr(switchExprLocal);
     // Normalize on 0.
     if (minValue != 0) {
       b.i64_const(minValue);
       b.i64_sub();
     }
-    // Now that we've normalized on 0 it should be safe to switch to i32.
+    if (needsRangeCheck) {
+      // Branch to the default case if the index is outside of the table. The
+      // unsigned comparison also catches values below `minValue`. This must be
+      // done on the full 64-bit index, as wrapping to i32 could map an
+      // out-of-range value into the table.
+      final indexLocal = b.addLocal(w.NumType.i64);
+      b.local_tee(indexLocal);
+      b.i64_const(_rangeSize(minValue, maxValue));
+      b.i64_ge_u();
+      b.br_if(defaultLabel);
+      b.local_get(indexLocal);
+    }
+    // Now that the index is known to fit in an i32 it is safe to switch to i32.
     b.i32_wrap_i64();
   }
 }
@@ -5497,6 +5537,7 @@ class SwitchInfo {
         brTable = BrTableInfo.build(
           minValue: minValue!,
           maxValue: maxValue,
+          needsRangeCheck: true,
           caseMap,
           (switchExprLocal) {
             codeGen.b.local_get(switchExprLocal);
@@ -5560,6 +5601,10 @@ class SwitchInfo {
         brTable = BrTableInfo.build(
           minValue: minIndex!,
           maxValue: maxIndex,
+          // Enum indices are small, so the normalized index always fits in
+          // an i32. Values below `minIndex` wrap to large unsigned i32 values
+          // that `br_table` sends to the default case.
+          needsRangeCheck: false,
           caseMap,
           (switchExprLocal) {
             codeGen.b.local_get(switchExprLocal);

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:cfg/ir/constant_value.dart';
 import 'package:cfg/ir/functions.dart';
 import 'package:cfg/ir/instructions.dart';
 import 'package:cfg/ir/types.dart';
@@ -121,8 +122,11 @@ final class ProdWasmInstructionLowerer
     }
     final member = target.member;
     if (member is! ast.Procedure || member.isInstanceMember) return false;
-    // TODO(nshahan): Support generic calls (TypeArguments input).
-    if (target.hasFunctionTypeParameters) return false;
+    // TODO(nshahan): Support type arguments that depend on type parameters
+    // (`TypeArguments` instruction).
+    if (instr.hasTypeArguments && instr.typeArguments is! Constant) {
+      return false;
+    }
     // TODO(nshahan): Support intrinsics and external effects (see
     // `CodeGenerator.visitStaticInvocation`).
     if (member.isExternal ||
@@ -192,18 +196,51 @@ final class ProdWasmInstructionLowerer
     w.FunctionType signature,
     ParameterInfo paramInfo,
   ) {
-    // TODO(nshahan): Needs adjustment when adding support for type arguments.
-    assert(signature.inputs.length == paramInfo.paramCount);
+    assert(
+      signature.inputs.length ==
+          paramInfo.typeParamCount + paramInfo.paramCount,
+    );
     // Nothing to push, e.g. for getters and functions without parameters.
     if (signature.inputs.isEmpty) return;
 
     final argumentsShape = instr.argumentsShape;
+    // Index of the first instruction input after the type arguments.
+    int inputOffset = 0;
+    // Index of the first signature input after the type arguments.
+    int signatureOffset = 0;
+
+    // Push the type arguments. They are passed as a single input but each type
+    // argument is a separate function parameter.
+    if (instr.hasTypeArguments) {
+      final typeArguments =
+          (instr.typeArguments as Constant).value.constant
+              as TypeArgumentsConstant;
+      assert(typeArguments.types.length == paramInfo.typeParamCount);
+      for (int i = 0; i < typeArguments.types.length; ++i) {
+        // TODO(nshahan): Support type arguments that depend on type parameters
+        // (`TypeArguments` instruction).
+        assert(translator.types.isTypeConstant(typeArguments.types[i]));
+        translator.constants.instantiateConstant(
+          b,
+          ast.TypeLiteralConstant(typeArguments.types[i]),
+          signature.inputs[i],
+        );
+      }
+      // The CFG instruction packs all type arguments together into the input
+      // at offset 0. Positional parameters start after that.
+      inputOffset = 1;
+      signatureOffset = typeArguments.types.length;
+    }
 
     // Push the provided positional arguments.
     for (int i = 0; i < argumentsShape.positional; ++i) {
-      final argLocal = gen.getLocal(instr.inputDefAt(i));
+      final argLocal = gen.getLocal(instr.inputDefAt(inputOffset + i));
       b.local_get(argLocal);
-      translator.convertType(b, argLocal.type, signature.inputs[i]);
+      translator.convertType(
+        b,
+        argLocal.type,
+        signature.inputs[signatureOffset + i],
+      );
     }
     // Push default values for any remaining optional positional parameters.
     for (
@@ -214,7 +251,7 @@ final class ProdWasmInstructionLowerer
       translator.constants.instantiateConstant(
         b,
         paramInfo.positional[i]!,
-        signature.inputs[i],
+        signature.inputs[signatureOffset + i],
         dummyValueIfIncompatible: true,
       );
     }
@@ -222,14 +259,15 @@ final class ProdWasmInstructionLowerer
     final Map<String, w.Local> namedLocals = {
       for (int i = 0; i < argumentsShape.named.length; ++i)
         argumentsShape.named[i]: gen.getLocal(
-          instr.inputDefAt(argumentsShape.positional + i),
+          instr.inputDefAt(inputOffset + argumentsShape.positional + i),
         ),
     };
     // Re-order named arguments and push default values for optional named
     // parameters.
     for (var name in paramInfo.names) {
       final namedLocal = namedLocals[name];
-      final type = signature.inputs[paramInfo.nameIndex[name]!];
+      final type =
+          signature.inputs[signatureOffset + paramInfo.nameIndex[name]!];
       if (namedLocal != null) {
         b.local_get(namedLocal);
         translator.convertType(b, namedLocal.type, type);
