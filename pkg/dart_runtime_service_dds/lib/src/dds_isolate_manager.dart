@@ -443,10 +443,12 @@ final class DdsIsolateManager extends IsolateManager {
     return timeline.toJson();
   }
 
-  static RpcResponse _collectedSentinel() => vm.Sentinel(
-    kind: vm.SentinelKind.kCollected,
-    valueAsString: '<collected>',
-  ).toJson();
+  static final RpcResponse _collectedSentinel = Map.unmodifiable(
+    vm.Sentinel(
+      kind: vm.SentinelKind.kCollected,
+      valueAsString: '<collected>',
+    ).toJson(),
+  );
 
   /// Handles the `readyToResume` custom DDS RPC.
   ///
@@ -461,7 +463,7 @@ final class DdsIsolateManager extends IsolateManager {
   ) => _mutex.runGuarded(() async {
     final isolate = ddsIsolates[parameters['isolateId'].asString];
     if (isolate == null) {
-      return _collectedSentinel();
+      return _collectedSentinel;
     }
     if (isolate.shouldResume(resumingClient: client)) {
       return await sendResumeRequest(isolate: isolate, parameters: parameters);
@@ -480,7 +482,7 @@ final class DdsIsolateManager extends IsolateManager {
       _mutex.runGuarded(() async {
         final isolate = ddsIsolates[parameters['isolateId'].asString];
         if (isolate == null) {
-          return _collectedSentinel();
+          return _collectedSentinel;
         }
         return await sendResumeRequest(
           isolate: isolate,
