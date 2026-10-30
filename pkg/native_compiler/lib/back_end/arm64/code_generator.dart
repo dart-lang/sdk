@@ -866,6 +866,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
 
     final fieldOffset = objectLayout.getFieldOffset(field);
     final memoryOrder = objectLayout.getFieldMemoryOrder(field);
+    final isUnboxed = objectLayout.isUnboxedField(field);
     switch (memoryOrder) {
       case .relaxed:
         // TODO: compressed pointers, unboxed fields
@@ -877,6 +878,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
     if (instr.checkInitialized) {
       assert(valueReg != objectReg);
       assert(memoryOrder == .relaxed);
+      assert(!isUnboxed);
 
       _asm.loadFromPool(tempReg, SentinelConstant());
       _asm.cmp(valueReg, tempReg);
@@ -1023,9 +1025,11 @@ final class Arm64CodeGenerator extends CodeGenerator {
     final field = instr.field;
     final memoryOrder = objectLayout.getFieldMemoryOrder(field);
     final fieldOffset = objectLayout.getFieldOffset(field);
+    final isUnboxed = objectLayout.isUnboxedField(field);
 
     if (instr.checkNotInitialized) {
       assert(memoryOrder == .relaxed);
+      assert(!isUnboxed);
       assert(field.isLate && field.isFinal);
 
       _asm.ldr(scratch1Reg, _asm.fieldAddress(objectReg, fieldOffset));
@@ -1055,7 +1059,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
         _asm.addImmediate(tempReg, objectReg, fieldOffset - heapObjectTag);
         _asm.stlr(valueReg, tempReg);
     }
-    if (!_canSkipWriteBarrier(instr.object, instr.value)) {
+    if (!isUnboxed && !_canSkipWriteBarrier(instr.object, instr.value)) {
       _writeBarrier(
         objectReg,
         valueReg,
