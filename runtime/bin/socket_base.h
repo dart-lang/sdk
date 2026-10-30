@@ -123,8 +123,10 @@ class SocketAddress {
   static intptr_t GetAddrScope(const RawAddr& addr);
 
 #if !defined(DART_HOST_OS_FUCHSIA)
+  // One extra byte so a unix domain socket path that fills the whole
+  // sun_path field still has room for the terminating NUL.
   static constexpr intptr_t kMaxAddressStringLength =
-      sizeof(decltype(sockaddr_un::sun_path));
+      sizeof(decltype(sockaddr_un::sun_path)) + 1;
 #else
   static constexpr intptr_t kMaxAddressStringLength = INET6_ADDRSTRLEN;
 #endif  // !defined(DART_HOST_OS_FUCHSIA)
@@ -132,9 +134,7 @@ class SocketAddress {
   static_assert(kMaxAddressStringLength >= INET_ADDRSTRLEN);
 
  private:
-  // One extra byte so a unix domain socket path that fills the whole
-  // sun_path field still has room for the terminating NUL.
-  char as_string_[kMaxAddressStringLength + 1];
+  char as_string_[kMaxAddressStringLength];
   RawAddr addr_;
 
   DISALLOW_COPY_AND_ASSIGN(SocketAddress);
