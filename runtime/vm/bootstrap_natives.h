@@ -166,7 +166,6 @@ namespace dart {
   V(TypedDataView_typedData, 1)                                                \
   V(Float32x4_fromDoubles, 4)                                                  \
   V(Float32x4_fromInt32x4Bits, 1)                                              \
-  V(Float32x4_negate, 1)                                                       \
   V(Float32x4_scale, 2)                                                        \
   V(Float32x4_abs, 1)                                                          \
   V(Float32x4_getX, 1)                                                         \

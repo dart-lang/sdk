@@ -324,7 +324,7 @@ final FormalParameterBuilder dummyFormalParameterBuilder =
       modifiers: Modifiers.empty,
       type: const ImplicitTypeBuilder(),
       name: '',
-      uriOffset: new UriOffset(dummyUri, -1),
+      uriOffset: dummyUriOffset,
       nameOffset: null,
       hasImmediatelyDeclaredDefaultValue: false,
     );
@@ -344,14 +344,13 @@ final NominalParameterBuilder dummyNominalVariableBuilder =
         isWildcard: false,
         fileOffset: -1,
         fileUri: dummyUri,
+        uriOffset: dummyUriOffset,
       ),
     );
 final TypeParameterFragment dummyTypeParameterFragment =
     new TypeParameterFragment(
       metadata: null,
-      name: '',
-      nameOffset: -1,
-      fileUri: dummyUri,
+      uriOffsetName: dummyUriOffsetName,
       kind: TypeParameterKind.function,
       isWildcard: false,
       variableName: '',
@@ -380,6 +379,8 @@ final FieldInfo dummyFieldInfo = new FieldInfo(
 final Configuration dummyConfiguration = new Configuration(-1, '', '', '');
 final LookupScope dummyLookupScope = new _DummyLookupScope();
 final ExtensionScope dummyExtensionScope = new _DummyExtensionScope();
+final UriOffsetLength dummyUriOffset = new UriOffset(dummyUri, -1);
+final UriOffsetName dummyUriOffsetName = new UriOffsetName(dummyUri, '', -1);
 
 // Coverage-ignore(suite): Not run.
 class _DummyLookupScope implements LookupScope {

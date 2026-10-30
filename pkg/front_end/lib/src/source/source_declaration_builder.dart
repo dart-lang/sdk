@@ -6,8 +6,12 @@ import '../builder/declaration_builders.dart';
 import '../builder/library_builder.dart';
 import '../kernel/type_algorithms.dart';
 import 'source_library_builder.dart';
+import 'source_type_parameter_builder.dart';
 
 abstract class SourceDeclarationBuilder implements IDeclarationBuilder {
+  @override
+  List<SourceNominalParameterBuilder>? get typeParameters;
+
   void buildScopes(LibraryBuilder coreLibrary);
 
   int computeDefaultTypes(ComputeDefaultTypeContext context);

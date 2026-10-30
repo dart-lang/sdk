@@ -5,6 +5,7 @@
 import 'package:front_end/src/codes/diagnostic.dart' as diag;
 
 import '../base/messages.dart';
+import '../base/uri_offset.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/named_type_builder.dart';
@@ -106,17 +107,17 @@ class TypeParameterFactory {
     List<SourceNominalParameterBuilder> newVariableBuilders =
         <SourceNominalParameterBuilder>[];
     for (int index = 0; index < oldParameterBuilders.length; index++) {
-      NominalParameterBuilder oldVariable = oldParameterBuilders[index];
+      SourceNominalParameterBuilder oldVariable =
+          oldParameterBuilders[index] as SourceNominalParameterBuilder;
       TypeParameterFragment? oldFragment = oldParameterFragments?[index];
-      Uri fileUri = (oldFragment?.fileUri ?? oldVariable.fileUri)!;
-      int fileOffset = oldFragment?.nameOffset ?? oldVariable.fileOffset;
+      UriOffsetLength uriOffset =
+          (oldFragment?.uriOffset ?? oldVariable.uriOffset);
       SourceNominalParameterBuilder newVariable =
           new SourceNominalParameterBuilder(
             new SyntheticNominalParameterDeclaration(
               oldVariable,
               kind: kind,
-              fileUri: fileUri,
-              fileOffset: fileOffset,
+              uriOffset: uriOffset,
             ),
             variableVariance: oldVariable.parameter.isLegacyCovariant
                 ? null

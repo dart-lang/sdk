@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:cfg/ir/constant_value.dart';
+import 'package:cfg/ir/field.dart';
 import 'package:cfg/ir/functions.dart';
 import 'package:cfg/ir/instructions.dart';
 import 'package:cfg/ir/types.dart';
@@ -37,9 +38,16 @@ final class ProdCfgToWasm extends CfgToWasm {
 
   bool canTranslate() {
     if (kind != EntryPoint.normal) return false;
-    if (member is! ast.Procedure) return false;
-    final procedure = member as ast.Procedure;
-    if (procedure.isInstanceMember) return false;
+    final member = this.member;
+    switch (member) {
+      case ast.Procedure():
+        if (member.isInstanceMember) return false;
+      case ast.Field():
+        if (!member.isInstanceMember) return false;
+        if (member.enclosingClass!.typeParameters.isNotEmpty) return false;
+      default:
+        return false;
+    }
 
     for (final block in graph.preorder) {
       for (final instr in block) {
@@ -96,6 +104,13 @@ final class ProdWasmInstructionLowerer
         ComparisonOpcode.doubleLessOrEqual ||
         ComparisonOpcode.doubleGreater ||
         ComparisonOpcode.doubleGreaterOrEqual => true,
+        ComparisonOpcode.equal ||
+        ComparisonOpcode.notEqual ||
+        ComparisonOpcode.identical ||
+        ComparisonOpcode.notIdentical =>
+          instr.left.type is NullType ||
+              instr.right.type is NullType ||
+              (!instr.left.type.canBeNum && !instr.right.type.canBeNum),
         _ => false,
       },
       BinaryIntOp(:final op) =>
@@ -106,9 +121,17 @@ final class ProdWasmInstructionLowerer
       UnaryIntOp(:final op) =>
         op == UnaryIntOpcode.neg || op == UnaryIntOpcode.bitNot,
       UnaryBoolOp() => true,
+      TypeCast(:final isChecked) => !isChecked,
+      LoadInstanceField() => _canHandleInstanceField(instr.field),
+      StoreInstanceField() => _canHandleInstanceField(instr.field),
       DirectCall() => _canHandleDirectCall(instr),
       _ => false,
     };
+  }
+
+  bool _canHandleInstanceField(CField field) {
+    if (field.isSynthetic) return false;
+    return translator.fieldIndex.containsKey(field.astField);
   }
 
   bool _canHandleDirectCall(DirectCall instr) {
@@ -160,6 +183,46 @@ final class ProdWasmInstructionLowerer
       instr.value.constant,
       expectedType,
     );
+  }
+
+  @override
+  void visitLoadInstanceField(LoadInstanceField instr) {
+    assert(!instr.checkInitialized);
+    final field = instr.field.astField;
+    final info = translator.classInfo[field.enclosingClass!]!;
+    final fieldIndex = translator.fieldIndex[field]!;
+    final objectLocal = gen.getLocal(instr.object);
+    final resultLocal = gen.getLocal(instr);
+
+    b.local_get(objectLocal);
+    translator.convertType(b, objectLocal.type, info.nonNullableType);
+    b.struct_get(info.struct, fieldIndex);
+    translator.convertType(
+      b,
+      info.struct.fields[fieldIndex].type.unpacked,
+      resultLocal.type,
+    );
+    b.local_set(resultLocal);
+  }
+
+  @override
+  void visitStoreInstanceField(StoreInstanceField instr) {
+    assert(!instr.checkNotInitialized);
+    final field = instr.field.astField;
+    final info = translator.classInfo[field.enclosingClass!]!;
+    final fieldIndex = translator.fieldIndex[field]!;
+    final objectLocal = gen.getLocal(instr.object);
+    final valueLocal = gen.getLocal(instr.value);
+
+    b.local_get(objectLocal);
+    translator.convertType(b, objectLocal.type, info.nonNullableType);
+    b.local_get(valueLocal);
+    translator.convertType(
+      b,
+      valueLocal.type,
+      info.struct.fields[fieldIndex].type.unpacked,
+    );
+    b.struct_set(info.struct, fieldIndex);
   }
 
   @override

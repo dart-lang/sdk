@@ -205,6 +205,11 @@ void testBytes() {
   testLists(bytes);
   testLists(new List.from(bytes));
   testLists(new List.unmodifiable(bytes));
+
+  Expect.equals(
+    "data:application/octet-stream,%00A%FF",
+    UriData.fromBytes([0, 0x41, 0xFF], percentEncoded: true).toString(),
+  );
 }
 
 void testNormalization() {
@@ -274,6 +279,29 @@ void testErrors() {
   Expect.throwsArgumentError(
     () => new Uri.dataFromString("", mimeType: "noslash"),
   );
+
+  bool isNonByteError(Object e) => e is ArgumentError && e is! RangeError;
+  for (var value in [
+    256,
+    257,
+    -1,
+    0x141,
+    -0xBF,
+    0x10000000,
+    0x100000041,
+    0x1000000C3,
+  ]) {
+    Expect.throws<ArgumentError>(
+      () => UriData.fromBytes([value], percentEncoded: true),
+      isNonByteError,
+      '$value',
+    );
+    Expect.throws<ArgumentError>(
+      () => Uri.dataFromBytes([0x61, value], percentEncoded: true),
+      isNonByteError,
+      '$value',
+    );
+  }
 
   // Empty parameters allowed, not an error.
   var uri = new UriData.fromString("", mimeType: "", parameters: {});

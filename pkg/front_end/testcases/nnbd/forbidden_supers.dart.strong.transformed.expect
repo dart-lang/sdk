@@ -87,7 +87,7 @@ library;
 //
 // pkg/front_end/testcases/nnbd/forbidden_supers.dart:52:7: Error: The type 'Never' can't be mixed in.
 // class Ooo = Aoo with Never;
-//       ^
+//       ^^^
 //
 // pkg/front_end/testcases/nnbd/forbidden_supers.dart:28:19: Error: The type 'Never' can't be used as supertype.
 // class Koo extends Never {}

@@ -189,11 +189,11 @@ library;
 //
 // pkg/front_end/testcases/extension_types/extends_with.dart:9:7: Error: 'BarBaz' is a supertype of itself.
 // class BarBaz implements BarBaz {}
-//       ^
+//       ^^^^^^
 //
 // pkg/front_end/testcases/extension_types/extends_with.dart:10:7: Error: 'BarBoz' is a supertype of itself.
 // class BarBoz implements BarBoz {}
-//       ^
+//       ^^^^^^
 //
 // pkg/front_end/testcases/extension_types/extends_with.dart:29:42: Error: The implemented interface 'Bar' must be a supertype of the representation type 'BarBaz' of extension type 'ET18'.
 //  - 'Bar' is from 'pkg/front_end/testcases/extension_types/extends_with.dart'.

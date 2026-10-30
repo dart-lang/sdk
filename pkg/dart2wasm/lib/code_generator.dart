@@ -3638,13 +3638,17 @@ CodeGenerator? getInlinableMemberCodeGenerator(
       );
     }
     final useUncheckedEntry = reference.isUncheckedEntryReference;
-    return ImplicitFieldAccessorCodeGenerator(
+    final codeGenerator = ImplicitFieldAccessorCodeGenerator(
       translator,
       functionType,
       member,
       reference.isImplicitGetter,
       useUncheckedEntry,
     );
+    if (mayUseCfgToCompileMember(translator, member)) {
+      return CfgMemberCodeGenerator(codeGenerator, reference);
+    }
+    return codeGenerator;
   }
 
   if (member is Procedure && asyncMarker == AsyncMarker.Sync) {
@@ -3656,7 +3660,7 @@ CodeGenerator? getInlinableMemberCodeGenerator(
       reference.entryKind,
     );
     if (mayUseCfgToCompileMember(translator, member)) {
-      return CfgProcedureCodeGenerator(codeGenerator);
+      return CfgMemberCodeGenerator(codeGenerator, reference);
     }
     return codeGenerator;
   }

@@ -11725,8 +11725,8 @@ class Float64x2 : public Instance {
   static Float64x2Ptr New(simd128_value_t value,
                           Heap::Space space = Heap::kNew);
 
-  double x() const;
-  double y() const;
+  double x() const { return untag()->value_[0]; }
+  double y() const { return untag()->value_[1]; }
 
   void set_x(double x) const;
   void set_y(double y) const;

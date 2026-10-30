@@ -13,8 +13,6 @@ enum DeclarationFragmentKind {
 }
 
 abstract class DeclarationFragmentImpl implements DeclarationFragment {
-  final Uri fileUri;
-
   late final Modifiers modifiers;
 
   /// The scope in which the declaration is declared.
@@ -43,13 +41,14 @@ abstract class DeclarationFragmentImpl implements DeclarationFragment {
       typeParameters?.computeBuilderList;
 
   new({
-    required this.fileUri,
     required this.typeParameters,
     required this.enclosingScope,
     required this.typeParameterScope,
     required this.nominalParameterNameSpace,
     required this.enclosingCompilationUnit,
   }) : bodyScope = new DeclarationBuilderScope(typeParameterScope);
+
+  Uri get fileUri;
 
   String get name;
 

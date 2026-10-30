@@ -13,7 +13,6 @@ import '../../source/source_library_builder.dart';
 import '../fragment.dart';
 
 class ExtensionTypeDeclaration(final ExtensionTypeFragment _fragment) {
-  // Coverage-ignore(suite): Not run.
   /// [UriOffsetLength] for the extension type declaration.
   UriOffsetLength get uriOffset => _fragment.uriOffset;
 

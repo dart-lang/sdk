@@ -59,7 +59,7 @@ vars = {
 
   # co19 is a cipd package automatically generated for each co19 commit.
   # Use tests/co19/update.sh to update this hash.
-  "co19_rev": "f29289bd67fb20604cef418534d73ab7731d01e1",
+  "co19_rev": "54153bf276b53c5e979ddfeea73568221347086b",
 
   # The internal benchmarks to use. See go/dart-benchmarks-internal
   "benchmarks_internal_rev": "02b00ba22d77dc489e481c33b279edf5d008e0cd",
@@ -107,7 +107,7 @@ vars = {
 
   # Prefer to use hashes of binaryen that have been reviewed & rolled into g3.
   "binaryen_rev" : "a631c1445ced72a905b3303b26f148fc706647dd",
-  "boringssl_rev": "90c6b370770adce64ff435789bfd1940067df415",
+  "boringssl_rev": "77cb16a15b27beefab1e1284064a4d99895ef230",
   "browser-compat-data_tag": "ac8cae697014da1ff7124fba33b0b4245cc6cd1b", # v1.0.22
   "cpu_features_rev": "936b9ab5515dead115606559502e3864958f7f6e",
   "devtools_rev": "9ac04e2d8e52b1e868ae481622be3818660a54dc",
@@ -567,7 +567,7 @@ deps = {
     "packages": [
       {
       "package": "chromium/fuchsia/test-scripts",
-      "version": "2wk_kFw9dHlPpZw84VunfLjmH5jxb4gwkVAONMYi1aQC",
+      "version": "03aXV1tA0_szICA0zdaOQatWlgBj1VabAZildcSCa6wC",
       }
     ],
     "condition": 'download_fuchsia_deps',

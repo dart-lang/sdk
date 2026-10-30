@@ -5,7 +5,7 @@ library;
 // pkg/front_end/testcases/general/ffi_sample.dart:12:7: Error: The type 'Coordinate' must be 'base', 'final' or 'sealed' because the supertype 'Struct' is 'base'.
 // Try adding 'base', 'final', or 'sealed' to the type.
 // class Coordinate extends Struct {
-//       ^
+//       ^^^^^^^^^^
 //
 // pkg/front_end/testcases/general/ffi_sample.dart:19:23: Error: Field 'next' should be initialized because its type 'Pointer<Coordinate>' doesn't allow null.
 //  - 'Pointer' is from 'dart:ffi'.

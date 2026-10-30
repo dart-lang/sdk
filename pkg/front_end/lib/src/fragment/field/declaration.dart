@@ -462,8 +462,7 @@ class RegularFieldDeclaration
       isInstanceMember: !isStatic,
       hasSetter: hasSetter,
       isCovariantByDeclaration: _fragment.modifiers.isCovariant,
-      fileUri: fileUri,
-      fileOffset: nameOffset,
+      uriOffset: uriOffset,
     );
   }
 
@@ -624,9 +623,7 @@ class RegularFieldDeclaration
         typeBuilder,
         [...?getterOverrideDependencies, ...?setterOverrideDependencies],
         name: _fragment.name,
-        fileUri: fileUri,
-        nameOffset: nameOffset,
-        nameLength: _fragment.name.length,
+        uriOffset: uriOffset,
         isAssignable: hasSetter,
       );
     } else {

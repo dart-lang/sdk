@@ -19,7 +19,7 @@ library;
 // pkg/front_end/testcases/class_modifiers/issue52115/main.dart:21:16: Error: The type 'LegacyImplementBaseNoModifier' must be 'base', 'final' or 'sealed' because the supertype 'LinkedList' is 'base'.
 // Try adding 'base', 'final', or 'sealed' to the type.
 // abstract class LegacyImplementBaseNoModifier<E extends LinkedListEntry<E>>
-//                ^
+//                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/class_modifiers/issue52115/main.dart:22:16: Error: The class 'LinkedList' can't be implemented outside of its library because it's a base class.
 //     implements LegacyImplementBaseCore<E> {}

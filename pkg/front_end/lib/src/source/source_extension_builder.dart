@@ -103,6 +103,10 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
+  UriOffsetLength get uriOffset => _introductory.uriOffset;
+
+  @override
   Iterator<SourceMemberBuilder> get unfilteredMembersIterator =>
       _memberBuilders.iterator;
 

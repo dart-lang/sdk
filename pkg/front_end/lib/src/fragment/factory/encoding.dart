@@ -11,6 +11,7 @@ import 'package:kernel/type_environment.dart';
 import '../../base/lookup_result.dart';
 import '../../base/messages.dart';
 import '../../base/problems.dart' show unexpected, unhandled;
+import '../../base/uri_offset.dart';
 import '../../builder/builder.dart';
 import '../../builder/constructor_builder.dart';
 import '../../builder/constructor_reference_builder.dart';
@@ -503,11 +504,9 @@ class FactoryEncoding implements InferredTypeListener {
 
     // Ensure that constant factories only have constant targets/bodies.
     if (_fragment.modifiers.isConst && !target.isConst) {
-      libraryBuilder.addProblem(
+      libraryBuilder.addProblem2(
         diag.constFactoryRedirectionToNonConst,
-        _fragment.fullNameOffset,
-        noLength,
-        _fragment.fileUri,
+        _fragment.uriOffset,
       );
     }
 

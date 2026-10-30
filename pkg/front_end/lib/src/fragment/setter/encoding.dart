@@ -389,6 +389,7 @@ mixin _DirectSetterEncodingMixin implements SetterEncoding {
     sourceClassBuilder.checkVarianceInReturnType(
       typeEnvironment,
       function.returnType,
+      uriOffset: _fragment.uriOffset,
       fileOffset: _fragment.nameOffset,
       fileUri: _fragment.fileUri,
     );
@@ -718,6 +719,7 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
     sourceClassBuilder.checkVarianceInReturnType(
       typeEnvironment,
       function.returnType,
+      uriOffset: _fragment.uriOffset,
       fileOffset: _fragment.nameOffset,
       fileUri: _fragment.fileUri,
     );

@@ -31,6 +31,19 @@ class UriOffsetLength(
   final int length,
 );
 
+/// Source location based on the offset of a name.
+class UriOffsetName(
+  @override final Uri fileUri,
+  final String name,
+  final int nameOffset,
+) implements UriOffsetLength {
+  @override
+  int get fileOffset => nameOffset;
+
+  @override
+  int get length => name.length;
+}
+
 extension ProblemReportingExtension on ProblemReporting {
   /// Helper method for calling [ProblemReporting.addProblem] with a
   /// [UriOffsetLength].

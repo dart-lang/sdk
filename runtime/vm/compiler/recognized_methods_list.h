@@ -492,7 +492,7 @@ namespace dart {
   V(TypedDataLibrary, _Float32x4, reciprocalSqrt, Float32x4ReciprocalSqrt,     \
     0xddbada78)                                                                \
   V(TypedDataLibrary, _Float32x4, reciprocal, Float32x4Reciprocal, 0xd4350ab2) \
-  V(TypedDataLibrary, _Float32x4, unary-, Float32x4Negate, 0xe68eac52)         \
+  V(TypedDataLibrary, _Float32x4, unary-, Float32x4Negate, 0x719b6a84)         \
   V(TypedDataLibrary, _Float32x4, abs, Float32x4Abs, 0xeb296688)               \
   V(TypedDataLibrary, _Float32x4, withX, Float32x4WithX, 0x9b766656)           \
   V(TypedDataLibrary, _Float32x4, withY, Float32x4WithY, 0xb889207c)           \
