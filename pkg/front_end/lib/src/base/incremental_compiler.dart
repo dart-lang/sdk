@@ -4251,6 +4251,7 @@ class TransitiveDependenciesCalculator {
     Set<int> directDeps = directDependencies[componentNumber];
     for (int dep in directDeps) {
       _fillTransitiveDeps(dep, directDependencies);
+      if (_error) return;
       String directTransitiveHash = _transitiveDependencies[dep]!;
       hashMe.add(directTransitiveHash);
     }
