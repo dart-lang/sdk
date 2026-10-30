@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
@@ -342,6 +343,20 @@ extension DirectiveExtension on Directive {
 }
 
 extension ExpressionExtension on Expression {
+  /// The parameter type if this expression is passed as an argument in an
+  /// argument list or as the index in an index expression.
+  DartType? get argumentParameterType {
+    var parent = this.parent;
+    if (parent case NamedArgument named) {
+      return named.correspondingParameter?.type;
+    }
+    if (parent is ArgumentList ||
+        (parent is IndexExpression && this == parent.index)) {
+      return correspondingParameter?.type;
+    }
+    return null;
+  }
+
   /// Whether this [Expression] should be wrapped with parentheses when we want
   /// to use it as operand of a logical and-expression.
   bool get shouldWrapParenthesisBeforeAnd {

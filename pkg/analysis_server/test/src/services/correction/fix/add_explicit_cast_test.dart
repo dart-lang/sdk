@@ -277,6 +277,21 @@ class C {}
 ''');
   }
 
+  Future<void> test_assignment_downcast() async {
+    await resolveTestCode('''
+void f(num a) {
+  int b = a;
+  b;
+}
+''');
+    await assertHasFix('''
+void f(num a) {
+  int b = a as int;
+  b;
+}
+''');
+  }
+
   Future<void> test_assignment_extensionType_toList() async {
     await resolveTestCode('''
 final originalInts = Ints([1, 2, 3]);
@@ -671,6 +686,48 @@ class A {}
 class B {}
 class C {
   void operator []=(int i, B b) {}
+}
+''');
+  }
+
+  Future<void> test_indexExpression_assignment() async {
+    await resolveTestCode('''
+class C {
+  void operator []=(int a, int b) {}
+}
+
+void f(C c, num a) {
+  c[a] = 0;
+}
+''');
+    await assertHasFix('''
+class C {
+  void operator []=(int a, int b) {}
+}
+
+void f(C c, num a) {
+  c[a as int] = 0;
+}
+''');
+  }
+
+  Future<void> test_indexExpression_read() async {
+    await resolveTestCode('''
+class C {
+  int operator [](int a) => 0;
+}
+
+void f(C c, num a) {
+  c[a];
+}
+''');
+    await assertHasFix('''
+class C {
+  int operator [](int a) => 0;
+}
+
+void f(C c, num a) {
+  c[a as int];
 }
 ''');
   }
