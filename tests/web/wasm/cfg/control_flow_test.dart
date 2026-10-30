@@ -88,9 +88,34 @@ int nestedLoopsWithBreakContinue(int maxI, int maxJ) {
   return total;
 }
 
+extension type WrapInt(int value) {
+  @pragma('wasm:never-inline')
+  @pragma('wasm:cfg')
+  WrapInt.create(this.value);
+}
+
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+int unwrapPlusOne(WrapInt w) => w.value + 1;
+
 @pragma('wasm:never-inline')
 @pragma('wasm:cfg')
 bool negateBool(bool b) => !b;
+
+// `a ?? b` is lowered by the CFE to `let final #t1 = a in #t1 == null ? b : #t1{int}`,
+// where the promoted read `#t1{int}` produces an unchecked `TypeCast` in CFG IR.
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+int nullCoalesce(int? a, int b) => a ?? b;
+
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+int promotedIncrement(int? a) {
+  if (a != null) {
+    return a + 1;
+  }
+  return 0;
+}
 
 @pragma('wasm:never-inline')
 @pragma('wasm:cfg')
@@ -145,9 +170,13 @@ void main() {
   // Nested loops with break & continue
   Expect.equals(144, nestedLoopsWithBreakContinue(int5, int4));
 
-  // UnaryBoolOp (`!`) and null/reference Comparison
+  // UnaryBoolOp (`!`), null/reference Comparison, and unchecked TypeCast
   Expect.isFalse(negateBool(int5 > int0));
   Expect.isTrue(negateBool(int0 > int5));
+  Expect.equals(5, nullCoalesce(int5, int10));
+  Expect.equals(10, nullCoalesce(null, int10));
+  Expect.equals(6, promotedIncrement(int5));
+  Expect.equals(0, promotedIncrement(null));
   Expect.isTrue(checkNotNull(int5));
   Expect.isFalse(checkNotNull(null));
   const s1 = 'hello';
@@ -158,4 +187,5 @@ void main() {
   Expect.isTrue(sameRef(null, null));
   Expect.isFalse(notSameRef(s1, s1));
   Expect.isTrue(notSameRef(s1, s2));
+  Expect.equals(16, unwrapPlusOne(WrapInt.create(int15)));
 }

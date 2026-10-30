@@ -478,6 +478,18 @@ abstract base class WasmInstructionLowerer<T extends CfgToWasm>
 
   @override
   @nonVirtual
+  void visitTypeCast(TypeCast instr) {
+    assert(!instr.isChecked);
+    if (!instr.hasUses) return;
+    final operandLocal = gen.getLocal(instr.operand);
+    final resultLocal = gen.getLocal(instr);
+    b.local_get(operandLocal);
+    gen.convertType(operandLocal.type, resultLocal.type);
+    b.local_set(resultLocal);
+  }
+
+  @override
+  @nonVirtual
   void visitReturn(Return instr) {
     final returnType = gen.returnType;
 

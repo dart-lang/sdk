@@ -113,6 +113,7 @@ final class ProdWasmInstructionLowerer
       UnaryIntOp(:final op) =>
         op == UnaryIntOpcode.neg || op == UnaryIntOpcode.bitNot,
       UnaryBoolOp() => true,
+      TypeCast(:final isChecked) => !isChecked,
       DirectCall() => _canHandleDirectCall(instr),
       _ => false,
     };
