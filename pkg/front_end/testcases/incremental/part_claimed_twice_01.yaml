@@ -1,0 +1,51 @@
+# Copyright (c) 2026, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# A part with a component error (!) is claimed by two libraries.
+# When the bad one is removed from the import graph the error in the part
+# should still be reported.
+
+type: newworld
+worlds:
+  - entry: main.dart
+    sources:
+      main.dart: |
+        import "good.dart";
+        import "bad.dart";
+
+        main() {
+          // no matter
+        }
+      good.dart: |
+        import 'dart:ffi';
+        part "part.dart";
+      bad.dart: |
+        import 'dart:ffi';
+        part "part.dart";
+      part.dart: |
+        part of "good.dart";
+        // Errors reported by a transformation (currently) becomes a component
+        // problem.
+        final class BadStruct extends Struct {
+          @Int8()
+          int foo = 42;
+        }
+    expectedLibraryCount: 3
+    errors: true
+
+  - entry: main.dart
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - main.dart
+    sources:
+      main.dart: |
+        import "good.dart";
+
+        main() {
+          // no matter
+        }
+    expectedLibraryCount: 2
+    advancedInvalidation: outlineChange
+    errors: true

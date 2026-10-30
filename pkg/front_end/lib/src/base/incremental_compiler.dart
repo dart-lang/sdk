@@ -431,7 +431,18 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     _benchmarker
     // Coverage-ignore(suite): Not run.
     ?.enterPhase(BenchmarkPhases.incremental_cleanup);
-    _cleanupRemovedBuilders(lastGoodKernelTarget, reusedResult, uriTranslator);
+    Set<Uri> partsUsed = {};
+    for (DillLibraryBuilder library in reusedResult.reusedLibraries) {
+      for (LibraryPart part in library.library.parts) {
+        partsUsed.add(part.fileUri);
+      }
+    }
+    _cleanupRemovedBuilders(
+      lastGoodKernelTarget,
+      reusedResult,
+      uriTranslator,
+      partsUsed,
+    );
     _recreateDillTargetIfPackageWasUpdated(uriTranslator, c);
     ClassHierarchy? hierarchy = lastGoodKernelTarget?.loader.hierarchy;
     _cleanupHierarchy(hierarchy, experimentalInvalidation, reusedResult);
@@ -1219,6 +1230,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     IncrementalKernelTarget? lastGoodKernelTarget,
     ReusageResult reusedResult,
     UriTranslator uriTranslator,
+    Set<Uri> partsUsed,
   ) {
     bool removedDillBuilders = false;
     for (LibraryBuilder builder in reusedResult.notReusedLibraries) {
@@ -1228,6 +1240,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         builder,
         uriTranslator,
         context.uriToSource,
+        partsUsed: partsUsed,
       );
       _incrementalSerializer
       // Coverage-ignore(suite): Not run.
@@ -1241,7 +1254,11 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       }
 
       // Remove component problems for libraries we don't reuse.
-      _componentProblems.removeLibrary(builder.library, uriTranslator);
+      _componentProblems.removeLibrary(
+        builder.library,
+        uriTranslator,
+        partsUsed,
+      );
     }
 
     if (removedDillBuilders) {
@@ -1843,7 +1860,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     }
 
     LibraryGraph graph = new LibraryGraph(libraryMap);
-    Set<Uri?> partsUsed = new Set<Uri?>();
+    Set<Uri> partsUsed = new Set<Uri>();
     while (worklist.isNotEmpty && potentiallyReferencedLibraries.isNotEmpty) {
       Uri uri = worklist.removeLast();
       if (libraryMap.containsKey(uri)) {
@@ -1887,8 +1904,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           builder,
           uriTranslator,
           context.uriToSource,
-          uriToSource,
-          partsUsed,
+          uriToSourceExtra: uriToSource,
+          partsUsed: partsUsed,
         );
         _userBuilders?.remove(uri);
         _componentProblems.removeLibrary(lib, uriTranslator, partsUsed);
@@ -1929,18 +1946,16 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     ReusageResult? reusedResult,
     LibraryBuilder builder,
     UriTranslator uriTranslator,
-    Map<Uri, Source> uriToSource, [
+    Map<Uri, Source> uriToSource, {
     Map<Uri, Source>? uriToSourceExtra,
-    Set<Uri?>? partsUsed,
-  ]) {
+    required Set<Uri> partsUsed,
+  }) {
     uriToSource.remove(builder.fileUri);
     uriToSourceExtra?.remove(builder.fileUri);
     Library lib = builder.library;
     for (LibraryPart part in lib.parts) {
       Uri partFileUri = part.fileUri;
-      if (partsUsed != null &&
-          // Coverage-ignore(suite): Not run.
-          partsUsed.contains(partFileUri)) {
+      if (partsUsed.contains(partFileUri)) {
         continue;
       }
 
@@ -3889,15 +3904,17 @@ class _ComponentProblems {
   /// This is useful when a part has been "moved" to be part of another library.
   void removeLibrary(
     Library lib,
-    UriTranslator uriTranslator, [
-    Set<Uri?>? partsUsed,
-  ]) {
+    UriTranslator uriTranslator,
+    Set<Uri> partsUsed,
+  ) {
     if (_remainingComponentProblems.isNotEmpty) {
       _remainingComponentProblems.remove(lib.fileUri);
       // Remove parts too.
       for (LibraryPart part in lib.parts) {
         // Coverage-ignore-block(suite): Not run.
-        _remainingComponentProblems.remove(part.fileUri);
+        Uri partUri = part.fileUri;
+        if (partsUsed.contains(partUri)) continue;
+        _remainingComponentProblems.remove(partUri);
       }
     }
   }

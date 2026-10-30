@@ -910,7 +910,11 @@ class NewWorldTest {
       subtestResult = _checkFullCompile(world, compilerResult, worldTestData);
       if (subtestResult != null) return subtestResult;
 
-      util.postProcessComponent(compilerResult.component);
+      util.postProcessComponent(
+        compilerResult.component,
+        clearConstantCoverageConstructors:
+            world.clearConstantCoverageConstructors,
+      );
       String actualSerialized = _componentToStringSdkFiltered(
         compilerResult.component,
         printErrors: world.printErrorsInExpect
@@ -947,7 +951,11 @@ class NewWorldTest {
       }
 
       if (world.reject) {
-        util.postProcess(compilerResult.component);
+        util.postProcess(
+          compilerResult.component,
+          clearConstantCoverageConstructors:
+              world.clearConstantCoverageConstructors,
+        );
 
         // Reject: We keep the original "newest whole component" and also
         // reject/relink it.
@@ -965,6 +973,8 @@ class NewWorldTest {
         // Save it.
         newWorldTestData.newestWholeComponentData = util.postProcess(
           compilerResult.component,
+          clearConstantCoverageConstructors:
+              world.clearConstantCoverageConstructors,
         );
         newestWholeComponent = compilerResult.component;
       }
@@ -1953,7 +1963,11 @@ class NewWorldTest {
       await util.throwOnInsufficientUriToSource(componentLocal);
       print("Compile took ${stopwatch.elapsedMilliseconds} ms");
 
-      List<int> thisWholeComponent = util.postProcess(componentLocal);
+      List<int> thisWholeComponent = util.postProcess(
+        componentLocal,
+        clearConstantCoverageConstructors:
+            world.clearConstantCoverageConstructors,
+      );
       String componentLocalString = _componentToStringSdkFiltered(
         componentLocal,
         printErrors: world.printErrorsInExpect
@@ -2101,7 +2115,11 @@ class NewWorldTest {
         worldTestData,
       );
       if (result != null) return result;
-      List<int> thisWholeComponent = util.postProcess(componentLocal);
+      List<int> thisWholeComponent = util.postProcess(
+        componentLocal,
+        clearConstantCoverageConstructors:
+            world.clearConstantCoverageConstructors,
+      );
       String component2String = _componentToStringSdkFiltered(
         componentLocal,
         printErrors: world.printErrorsInExpect
@@ -2479,7 +2497,11 @@ class NewWorldTest {
       await util.throwOnInsufficientUriToSource(componentLocal);
       print("Compile took ${stopwatch.elapsedMilliseconds} ms");
 
-      List<int> thisWholeComponent = util.postProcess(componentLocal);
+      List<int> thisWholeComponent = util.postProcess(
+        componentLocal,
+        clearConstantCoverageConstructors:
+            world.clearConstantCoverageConstructors,
+      );
       String componentString = _componentToStringSdkFiltered(
         componentLocal,
         printErrors: world.printErrorsInExpect
@@ -2626,7 +2648,11 @@ class NewWorldTest {
       );
     }
 
-    List<int> thisWholeComponent = util.postProcess(componentLocal);
+    List<int> thisWholeComponent = util.postProcess(
+      componentLocal,
+      clearConstantCoverageConstructors:
+          world.clearConstantCoverageConstructors,
+    );
     String componentString = _componentToStringSdkFiltered(
       componentLocal,
       printErrors: world.printErrorsInExpect
@@ -3401,6 +3427,7 @@ class World {
   final bool allowDuplicateWarnings;
   final bool printErrorsInExpect;
   final bool reject;
+  final bool clearConstantCoverageConstructors;
 
   /// The expected result of the advanced invalidation.
   final AdvancedInvalidationResult advancedInvalidation;
@@ -3470,6 +3497,7 @@ class World {
     required this.allowDuplicateWarnings,
     required this.printErrorsInExpect,
     required this.reject,
+    required this.clearConstantCoverageConstructors,
   });
 
   static World create(Map world) {
@@ -3645,6 +3673,10 @@ class World {
 
     bool reject = WorldProperties.reject.read(world, keys);
 
+    bool clearConstantCoverageConstructors = WorldProperties
+        .clearConstantCoverageConstructors
+        .read(world, keys);
+
     if (keys.isNotEmpty) {
       throw "Unknown key(s) for World: $keys";
     }
@@ -3698,6 +3730,7 @@ class World {
       allowDuplicateWarnings: allowDuplicateWarnings,
       printErrorsInExpect: printErrorsInExpect,
       reject: reject,
+      clearConstantCoverageConstructors: clearConstantCoverageConstructors,
     );
   }
 }
@@ -3984,6 +4017,17 @@ class WorldProperties {
     BoolValue(),
     defaultValue: false,
   );
+
+  /// If true all sources will have their "constantCoverageConstructors" nulled
+  /// before serialization. Can be needed to make a test testing something else
+  /// pass until an error about reading too much and overwriting sources is
+  /// fixed.
+  static const Property<bool> clearConstantCoverageConstructors =
+      Property.optional(
+        'clearConstantCoverageConstructors',
+        BoolValue(),
+        defaultValue: false,
+      );
 }
 
 class WorldSpecificTestData {
