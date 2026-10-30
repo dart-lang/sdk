@@ -8582,6 +8582,68 @@ V1: AssignmentExpression
 ''');
   }
 
+  test_propertyAccess_super_simple_covariantInInterface() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  set foo(int x) {}
+}
+
+abstract class I {
+  set foo(covariant num x);
+}
+
+class B extends A implements I {}
+
+class C extends B {
+  set foo(int x) {
+    super.foo = 0;
+  }
+}
+''');
+
+    var node = result.findNode.directAssignment('foo = 0');
+    assertResolvedNodeText(node, r'''
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: SuperReference
+      superKeyword: super
+    operator: .
+    name: foo
+    read: <null>
+    write: SetterInvocationResolution
+      element: <testLibrary>::@class::A::@setter::foo
+      acceptedType: int
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <testLibrary>::@class::A::@setter::foo::@formalParameter::x
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: SuperExpression
+      superKeyword: super
+      staticType: C
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <testLibrary>::@class::A::@setter::foo::@formalParameter::x
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <testLibrary>::@class::A::@setter::foo
+  writeType: int
+  element: <null>
+  staticType: int
+''');
+  }
+
   test_propertyAccess_this_compound() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class A {

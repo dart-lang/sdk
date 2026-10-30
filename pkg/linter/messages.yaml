@@ -2204,6 +2204,31 @@ LinterLintCode:
       stable: "2.13"
     categories: [style]
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when multiple variables are 
+      declared on a single line. Declaring variables on separate lines
+      improves code readability and makes debugging easier. 
+
+      #### Example
+
+      The following code produces this diagnostic because multiple variables
+      are declared on the same line:
+
+      ```dart
+      String? foo, [!bar!], baz;
+      ```
+
+      #### Common fixes
+
+      Split the variable declarations into individual lines:
+
+      ```dart
+      String? foo;
+      String? bar;
+      String? baz;
+      ```
     deprecatedDetails: |-
       **DON'T** declare multiple variables on a single line.
 
@@ -9625,14 +9650,14 @@ LinterLintCode:
 
       **BAD:**
       ```dart
-      void badFunction(int required, {int optional: 42}) { // LINT
+      void badFunction(int parameter, {int? optional = 42}) { // LINT
         optional ??= 8;
       }
       ```
 
       **BAD:**
       ```dart
-      void badFunctionPositional(int required, [int optional = 42]) { // LINT
+      void badFunctionPositional(int parameter, [int? optional = 42]) { // LINT
         optional ??= 8;
       }
       ```
@@ -9655,15 +9680,15 @@ LinterLintCode:
 
       **GOOD:**
       ```dart
-      void actuallyGood(int required, {int optional}) { // OK
-        optional ??= ...;
+      void actuallyGood(int parameter, {int? optional}) { // OK
+        optional ??= 42;
       }
       ```
 
       **GOOD:**
       ```dart
-      void actuallyGoodPositional(int required, [int optional]) { // OK
-        optional ??= ...;
+      void actuallyGoodPositional(int parameter, [int? optional]) { // OK
+        optional ??= 42;
       }
       ```
 

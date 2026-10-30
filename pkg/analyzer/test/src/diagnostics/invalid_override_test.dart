@@ -859,6 +859,126 @@ class C extends B {
 ''');
   }
 
+  test_method_covariant_combined_mergedType() async {
+    await resolveTestCodeWithDiagnostics(r'''
+abstract class A {
+  void foo(covariant Object? x, dynamic y);
+}
+
+abstract class B {
+  void foo(dynamic x, Object? y);
+}
+
+abstract class C1 implements A, B {}
+
+abstract class C2 implements B, A {}
+
+class D1 implements C1 {
+  void foo(int x, Object? y) {}
+}
+
+class D2 implements C2 {
+  void foo(int x, Object? y) {}
+}
+''');
+  }
+
+  test_method_covariant_combined_mostSpecific() async {
+    await resolveTestCodeWithDiagnostics(r'''
+abstract class A {
+  void foo(covariant num x);
+}
+
+abstract class B {
+  void foo(Object x);
+}
+
+abstract class C1 implements A, B {}
+
+abstract class C2 implements B, A {}
+
+class D1 implements C1 {
+  void foo(int x) {}
+}
+
+class D2 implements C2 {
+  void foo(int x) {}
+}
+''');
+  }
+
+  test_method_covariant_combined_sameType() async {
+    await resolveTestCodeWithDiagnostics(r'''
+abstract class A {
+  void foo(covariant Object x);
+}
+
+abstract class B {
+  void foo(Object x);
+}
+
+abstract class C1 implements A, B {}
+
+abstract class C2 implements B, A {}
+
+class D1 implements C1 {
+  void foo(int x) {}
+}
+
+class D2 implements C2 {
+  void foo(int x) {}
+}
+''');
+  }
+
+  test_method_covariant_combined_unrelatedType() async {
+    await resolveTestCodeWithDiagnostics(r'''
+abstract class A {
+  void foo(covariant num x);
+}
+
+abstract class B {
+  void foo(num x);
+}
+
+abstract class C1 implements A, B {}
+
+abstract class C2 implements B, A {}
+
+class D1 implements C1 {
+  void foo(String x) {}
+//     ^^^
+// [diag.invalidOverride] 'D1.foo' ('void Function(String)') isn't a valid override of 'A.foo' ('void Function(num)').
+// [diag.invalidOverride] 'D1.foo' ('void Function(String)') isn't a valid override of 'B.foo' ('void Function(num)').
+}
+
+class D2 implements C2 {
+  void foo(String x) {}
+//     ^^^
+// [diag.invalidOverride] 'D2.foo' ('void Function(String)') isn't a valid override of 'B.foo' ('void Function(num)').
+// [diag.invalidOverride] 'D2.foo' ('void Function(String)') isn't a valid override of 'A.foo' ('void Function(num)').
+}
+''');
+  }
+
+  test_method_covariant_superclassAndInterface() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  void foo(Object x) {}
+}
+
+abstract class I {
+  void foo(covariant num x);
+}
+
+class B extends A implements I {}
+
+class C extends B {
+  void foo(int x) {}
+}
+''');
+  }
+
   test_method_named_fewerNamedParameters() async {
     await resolveTestCodeWithDiagnostics('''
 class A {
@@ -1321,6 +1441,48 @@ mixin M on A {
   set foo(int _) {}
 //    ^^^
 // [diag.invalidOverrideSetter][context 1] The setter 'M.foo' ('void Function(int)') isn't a valid override of 'A.foo' ('void Function(String)').
+}
+''');
+  }
+
+  test_setter_covariant_combined_mostSpecific() async {
+    await resolveTestCodeWithDiagnostics(r'''
+abstract class A {
+  set foo(covariant num x);
+}
+
+abstract class B {
+  set foo(Object x);
+}
+
+abstract class C1 implements A, B {}
+
+abstract class C2 implements B, A {}
+
+class D1 implements C1 {
+  set foo(int x) {}
+}
+
+class D2 implements C2 {
+  set foo(int x) {}
+}
+''');
+  }
+
+  test_setter_covariant_superclassAndInterface() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  set foo(Object x) {}
+}
+
+abstract class I {
+  set foo(covariant num x);
+}
+
+class B extends A implements I {}
+
+class C extends B {
+  set foo(int x) {}
 }
 ''');
   }

@@ -438,6 +438,47 @@ final class MemberContainerReference extends TopLevelReference {
     for (var byKey in _membersByKind) ...?byKey?.values,
   ];
 
+  /// Returns a new field reference that is not added to this container.
+  ///
+  /// It is for a member that is synthesized, not declared, such as a combined
+  /// member signature. Its path is the same as that of a declared member with
+  /// the same [key], but the reference itself is not shared with that member,
+  /// or with another synthesized member.
+  MemberReference createUnregisteredField(String key) {
+    return MemberReference._(
+      container: this,
+      key: key,
+      kind: _MemberReferenceKind.field,
+    );
+  }
+
+  /// Like [createUnregisteredField], but for a getter.
+  MemberReference createUnregisteredGetter(String key) {
+    return MemberReference._(
+      container: this,
+      key: key,
+      kind: _MemberReferenceKind.getter,
+    );
+  }
+
+  /// Like [createUnregisteredField], but for a method.
+  MemberReference createUnregisteredMethod(String key) {
+    return MemberReference._(
+      container: this,
+      key: key,
+      kind: _MemberReferenceKind.method,
+    );
+  }
+
+  /// Like [createUnregisteredField], but for a setter.
+  MemberReference createUnregisteredSetter(String key) {
+    return MemberReference._(
+      container: this,
+      key: key,
+      kind: _MemberReferenceKind.setter,
+    );
+  }
+
   MemberReference declareConstructor(String key) {
     return _declareMember(kind: _MemberReferenceKind.constructor, key: key);
   }

@@ -214,7 +214,13 @@ class TopMergeHelper {
         R_type = mergeTypes(T_parameter.type, S_parameter.type);
       }
 
-      R_parameters.add(T_parameter.copyWith(type: R_type, kind: R_kind));
+      R_parameters.add(
+        T_parameter.copyWith(
+          type: R_type,
+          kind: R_kind,
+          isCovariant: R_isCovariant,
+        ),
+      );
     }
 
     return FunctionTypeImpl(

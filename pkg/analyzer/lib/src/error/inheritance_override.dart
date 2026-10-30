@@ -464,7 +464,9 @@ class _ClassVerifier {
         // member declaration named `m`, then:
         // 1. if the class contains a non-overridden member whose signature is
         //    not a valid override of the interface member signature for `m`,
-        //    then it's a compile-time error.
+        //    then it's a compile-time error. For this check, `covariant` is
+        //    implicitly added to the parameters of the member that are
+        //    covariant in the interface member.
         // 2. if the class contains no member named `m`, and the class member
         //    for `noSuchMethod` is the one declared in `Object`, then it's a
         //    compile-time error.
@@ -478,6 +480,7 @@ class _ClassVerifier {
         CorrectOverrideHelper(
           typeSystem: typeSystem,
           thisMember: concreteElement,
+          addCovarianceFrom: [interfaceElement],
         ).verify(
           superMember: interfaceElement,
           diagnosticReporter: reporter,

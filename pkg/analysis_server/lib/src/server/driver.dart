@@ -10,6 +10,7 @@ import 'dart:math';
 import 'package:analysis_server/protocol/protocol_constants.dart'
     show PROTOCOL_VERSION;
 import 'package:analysis_server/src/analytics/analytics_manager.dart';
+import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/lsp/lsp_socket_server.dart';
 import 'package:analysis_server/src/server/crash_reporting.dart';
@@ -59,6 +60,10 @@ class Driver implements ServerStarter {
 
   /// The name of the option used to set the version for the client.
   static const String clientVersionOption = 'client-version';
+
+  /// The name of the option used to specify the reason the server was
+  /// started.
+  static const String startReasonOption = 'start-reason';
 
   /// The name of the option used to disable exception handling.
   static const String disableServerExceptionHandlingOption =
@@ -213,6 +218,8 @@ class Driver implements ServerStarter {
             : 'unknown.client.classic');
     analysisServerOptions.clientId = clientId;
     analysisServerOptions.clientVersion = results.option(clientVersionOption);
+    analysisServerOptions.startReason =
+        results.option(startReasonOption) ?? ContextRebuildReasons.unknown;
     analysisServerOptions.cacheFolder = results.option(cacheFolderOption);
     analysisServerOptions.useSingleFileByteStore = results.flag(
       useSingleFileByteStoreOption,
@@ -733,6 +740,7 @@ class Driver implements ServerStarter {
       protocolTrafficLogOption,
       protocolTrafficLogAliasOption,
       reportProtocolVersionOption,
+      startReasonOption,
       serverProtocolOption,
       sessionLogOption,
       suppressAnalyticsFlag,
@@ -835,6 +843,15 @@ class Driver implements ServerStarter {
       clientVersionOption,
       valueHelp: 'version',
       help: 'The version of the analysis server client.',
+    );
+    parser.addOption(
+      startReasonOption,
+      valueHelp: 'reason',
+      help:
+          'The reason the analysis server was started (for example '
+          '"clean-start", "server-crash-automatic-restart", "manual-restart", '
+          'or another value defined in the ContextRebuildReasons class in the '
+          'analysis_server package).',
     );
     parser.addOption(
       dartSdkOption,

@@ -129,6 +129,37 @@ bool shouldSuppressSubtools({
   required bool showsConsentMessage,
 }) => suppressAnalytics || showsConsentMessage;
 
+/// The names of the commands that other tools (IDEs and editors) start, as
+/// opposed to commands that users run directly.
+///
+/// dartdev is never the root tool for these commands. See [hasRootTool].
+///
+/// These are matched against the command name as typed, so any aliases must be
+/// listed too. (`LanguageServerCommand.commandName` isn't referenced directly,
+/// to avoid importing the analysis server here; a test checks that it matches.)
+const Set<String> _commandsStartedByOtherTools = {'language-server'};
+
+/// Returns whether this run of dartdev has a root tool (`DASH__TOOL`) that
+/// analytics can be attributed to.
+///
+/// [inheritedTool] is the value of `DASH__TOOL` that dartdev inherited, if
+/// any, and [commandName] is the name of the top-level command being run, if
+/// any.
+///
+/// If a root tool was inherited, it is preserved. Otherwise dartdev is the
+/// root tool (`dart-tool`), unless the command is one that other tools start
+/// (such as `dart language-server`). In that case the tool that started dartdev
+/// didn't identify itself (for example, a third-party LSP client), so there is
+/// no root tool: dartdev leaves `DASH__TOOL` unset and doesn't report the
+/// command. Sub-tools then identify the client themselves, if they can (the
+/// analysis server uses `--client-id`).
+bool hasRootTool({
+  required String? inheritedTool,
+  required String? commandName,
+}) =>
+    inheritedTool != null ||
+    !_commandsStartedByOtherTools.contains(commandName);
+
 String userHomeDir() {
   var envKey = Platform.operatingSystem == 'windows' ? 'APPDATA' : 'HOME';
   var value = Platform.environment[envKey];

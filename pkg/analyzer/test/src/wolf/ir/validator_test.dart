@@ -1213,6 +1213,6 @@ class _ValidationTestIRWriter extends TestIRWriter {
 }
 
 extension on Subject<ValidationError> {
-  Subject<int> get address => has((e) => e.address, 'address');
-  Subject<String> get message => has((e) => e.message, 'message');
+  Subject<int> get address => has2('address', (e) => e.address);
+  Subject<String> get message => has2('message', (e) => e.message);
 }

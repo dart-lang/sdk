@@ -106,7 +106,7 @@ void main() {
         }
       }
 
-      check(entries).has((e) => e.length, 'length').equals(3);
+      check(entries).has2('length', (e) => e.length).equals(3);
       check(entries).containsKey('a.txt');
       check(entries['a.txt']).equals('a');
       check(entries).containsKey('sub/');

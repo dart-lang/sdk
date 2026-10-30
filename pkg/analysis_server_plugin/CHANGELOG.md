@@ -1,7 +1,12 @@
-## 0.3.26-dev
+## 0.3.27-dev
 
-- Require version `14.7.0-dev` of the `analyzer` package.
-- Require version `0.14.20-dev` of the `analyzer_plugin` package.
+- Require version `14.8.0-dev` of the `analyzer` package.
+- Require version `0.14.21-dev` of the `analyzer_plugin` package.
+
+## 0.3.26
+
+- Require version `14.7.0` of the `analyzer` package.
+- Require version `0.14.20` of the `analyzer_plugin` package.
 
 ## 0.3.25
 

@@ -95,6 +95,32 @@ extension LibraryElementExtensions on LibraryElement {
   bool get isDartCollection => uri.toString() == 'dart:collection';
 }
 
+extension LibraryFragmentExtensions on LibraryFragment {
+  /// Returns a list containing the receiver and any parts that are children of
+  /// the receiver, either directly or indirectly.
+  List<LibraryFragment> get withAllNestedFragments {
+    var fragments = <LibraryFragment>[this];
+    _addNestedFragments(fragments, this);
+    return fragments;
+  }
+
+  /// Adds all children of the [containingFragment] to the list of [fragments].
+  ///
+  /// Used by [withAllNestedFragments].
+  void _addNestedFragments(
+    List<LibraryFragment> fragments,
+    LibraryFragment containingFragment,
+  ) {
+    for (var part in containingFragment.partIncludes) {
+      var nestedFragment = part.includedFragment;
+      if (nestedFragment != null) {
+        fragments.add(nestedFragment);
+        _addNestedFragments(fragments, nestedFragment);
+      }
+    }
+  }
+}
+
 extension MethodElementExtensions on MethodElement {
   /// Return `true` if this element represents the method `cast` from either
   /// `Iterable`, `List`, `Map`, or `Set`.

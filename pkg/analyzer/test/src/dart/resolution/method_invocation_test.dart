@@ -9200,6 +9200,138 @@ V1: MethodInvocation
 ''');
   }
 
+  test_hasReceiver_super_method_covariantInInterface() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  void foo(int x) {}
+}
+
+abstract class I {
+  void foo(covariant num x);
+}
+
+class B extends A implements I {}
+
+class C extends B {
+  void foo(int x) {
+    super.foo(0);
+  }
+}
+''');
+
+    var node = result.findNode.receiverMethodInvocation('foo(0);');
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: SuperReference
+    superKeyword: super
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <testLibrary>::@class::A::@method::foo::@formalParameter::x
+        staticType: int
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::A::@method::foo
+    invokeType: void Function(int)
+    type: void
+  staticType: void
+V1: MethodInvocation
+  target: SuperExpression
+    superKeyword: super
+    staticType: C
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@class::A::@method::foo
+    staticType: void Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <testLibrary>::@class::A::@method::foo::@formalParameter::x
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: void Function(int)
+  staticType: void
+''');
+  }
+
+  test_hasReceiver_super_method_covariantInInterface_combined() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  void foo(int x, Object? y) {}
+}
+
+abstract class I {
+  void foo(covariant Object? x, dynamic y);
+}
+
+abstract class J {
+  void foo(dynamic x, Object? y);
+}
+
+class B extends A implements I, J {}
+
+class C extends B {
+  void foo(Object? x, Object? y) {
+    super.foo('', 0);
+//            ^^
+// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'.
+  }
+}
+''');
+
+    var node = result.findNode.receiverMethodInvocation("foo('', 0);");
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: SuperReference
+    superKeyword: super
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      SimpleStringLiteral
+        literal: ''
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <testLibrary>::@class::A::@method::foo::@formalParameter::y
+        staticType: int
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::A::@method::foo
+    invokeType: void Function(int, Object?)
+    type: void
+  staticType: void
+V1: MethodInvocation
+  target: SuperExpression
+    superKeyword: super
+    staticType: C
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@class::A::@method::foo
+    staticType: void Function(int, Object?)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleStringLiteral
+        literal: ''
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <testLibrary>::@class::A::@method::foo::@formalParameter::y
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: void Function(int, Object?)
+  staticType: void
+''');
+  }
+
   test_hasReceiver_super_method_generic() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T> {

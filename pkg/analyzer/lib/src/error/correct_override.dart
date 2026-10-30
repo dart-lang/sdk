@@ -24,8 +24,17 @@ class CorrectOverrideHelper {
 
   final DiagnosticFactory _diagnosticFactory = DiagnosticFactory();
 
-  new({required this._typeSystem, required this._thisMember}) {
-    _computeThisTypeForSubtype();
+  /// A parameter of [_thisMember] is also treated as covariant if the
+  /// corresponding parameter of any of [addCovarianceFrom] is covariant.
+  ///
+  /// This is how an inherited implementation is checked against the interface
+  /// of the class that inherits it: the implementation itself does not change.
+  new({
+    required this._typeSystem,
+    required this._thisMember,
+    List<ExecutableElement> addCovarianceFrom = const [],
+  }) {
+    _computeThisTypeForSubtype(addCovarianceFrom);
   }
 
   /// Return `true` if [_thisMember] is a correct override of [superMember].
@@ -63,14 +72,20 @@ class CorrectOverrideHelper {
 
   /// Fill [_thisTypeForSubtype]. If [_thisMember] has covariant formal
   /// parameters, replace their types with `Object?` or `Object`.
-  void _computeThisTypeForSubtype() {
+  void _computeThisTypeForSubtype(List<ExecutableElement> addCovarianceFrom) {
     var type = _thisMember.type;
     var parameters = type.formalParameters;
 
     List<InternalFormalParameterElement>? newParameters;
     for (var i = 0; i < parameters.length; i++) {
       var parameter = parameters[i];
-      if (parameter.isCovariant) {
+      var isCovariant =
+          parameter.isCovariant ||
+          addCovarianceFrom.any((member) {
+            var corresponding = member.correspondingParameter(parameter, i);
+            return corresponding != null && corresponding.isCovariant;
+          });
+      if (isCovariant) {
         newParameters ??= parameters.toList(growable: false);
         newParameters[i] = parameter.copyWith(type: _typeSystem.objectQuestion);
       }
@@ -160,8 +175,7 @@ class CovariantParametersVerifier {
       if (parameter.isCovariant) {
         superMembers ??= _superMembers();
         for (var superMember in superMembers) {
-          var superParameter = _correspondingParameter(
-            superMember.rawElement.formalParameters,
+          var superParameter = superMember.rawElement.correspondingParameter(
             parameter,
             i,
           );
@@ -215,31 +229,6 @@ class CovariantParametersVerifier {
         return classElement.getGetter(proto.displayName);
       }
       return classElement.getSetter(proto.displayName);
-    }
-    return null;
-  }
-
-  /// Return an element of [parameters] that corresponds for the [proto],
-  /// or `null` if no such parameter exist.
-  static FormalParameterElement? _correspondingParameter(
-    List<FormalParameterElement> parameters,
-    FormalParameterElement proto,
-    int protoIndex,
-  ) {
-    if (proto.isPositional) {
-      if (parameters.length > protoIndex) {
-        var parameter = parameters[protoIndex];
-        if (parameter.isPositional) {
-          return parameter;
-        }
-      }
-    } else {
-      assert(proto.isNamed);
-      for (var parameter in parameters) {
-        if (parameter.isNamed && parameter.name == proto.name) {
-          return parameter;
-        }
-      }
     }
     return null;
   }

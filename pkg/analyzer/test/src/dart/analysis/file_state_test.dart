@@ -7243,6 +7243,44 @@ enum E2 {
     expect(resolution, isNull);
   }
 
+  test_getFilesSubtypingName_changeFile() {
+    String a = convertPath('/a.dart');
+    String b = convertPath('/b.dart');
+
+    newFile(a, r'''
+class A {}
+class B extends A {}
+''');
+    newFile(b, r'''
+class A {}
+class D implements A {}
+''');
+
+    FileState aFile = fileSystemState.getFileForPath(a);
+    FileState bFile = fileSystemState.getFileForPath(b);
+
+    expect(
+      fileSystemState.getFilesSubtypingName('A'),
+      unorderedEquals([aFile, bFile]),
+    );
+
+    // Change b.dart so that it does not subtype A.
+    newFile(b, r'''
+class C {}
+class D implements C {}
+''');
+    fileSystemState.changeFile(b);
+    bFile = fileSystemState.getFileForPath(b);
+    expect(
+      fileSystemState.getFilesSubtypingName('A'),
+      unorderedEquals([aFile]),
+    );
+    expect(
+      fileSystemState.getFilesSubtypingName('C'),
+      unorderedEquals([bFile]),
+    );
+  }
+
   test_getFilesSubtypingName_class() {
     String a = convertPath('/a.dart');
     String b = convertPath('/b.dart');

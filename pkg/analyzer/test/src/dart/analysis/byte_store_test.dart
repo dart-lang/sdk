@@ -10,6 +10,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(CiderByteStoreTest);
     defineReflectiveTests(MemoryCachingByteStoreTest);
     defineReflectiveTests(NullByteStoreTest);
   });
@@ -17,6 +18,19 @@ main() {
 
 Uint8List _b(int length) {
   return Uint8List(length);
+}
+
+@reflectiveTest
+class CiderByteStoreTest {
+  test_release_notFound() {
+    var store = CiderByteStore();
+    store.putGet('1', _b(10));
+    store.putGet('3', _b(30));
+
+    // There is no '2', but '3' is still released.
+    store.release(['1', '2', '3']);
+    expect(store.map, isEmpty);
+  }
 }
 
 @reflectiveTest

@@ -299,7 +299,7 @@ class _Visitor(final MultiAnalysisRule rule, final TypeSystemImpl typeSystem)
   /// inconsistent. In order to determine if this test is valid, this function
   /// erases any interop types to its `dart:js_interop` equivalent and any other
   /// extension type to its erasure type. If there are nested types involved, it
-  /// nests as needed.
+  /// nests as needed, see [_nestedTypePairs].
   ///
   /// Let `l` be the positionally-equivalent type in [leftType] and `r` be the
   /// positionally-equivalent type in [rightType]. Let `le` be the
@@ -335,7 +335,11 @@ class _Visitor(final MultiAnalysisRule rule, final TypeSystemImpl typeSystem)
     required bool check,
   }) {
     DiagnosticCode? lintCode;
-    (TypeImpl, TypeImpl) eraseTypes(TypeImpl left, TypeImpl right) {
+
+    /// Checks the type test from [left] to [right], without nested types.
+    ///
+    /// Returns the erased types, to look for nested type pairs in them.
+    (TypeImpl, TypeImpl) checkTypes(TypeImpl left, TypeImpl right) {
       var erasedLeft = typeSystem.promoteToNonNull(
         eraseNonJsInteropTypes.perform(left),
       );
@@ -351,84 +355,86 @@ class _Visitor(final MultiAnalysisRule rule, final TypeSystemImpl typeSystem)
         _InteropTypeKind.dartJsInteropType,
       );
 
-      // If there's already an invalid check in this `canBeSubtypeOf` check, we
-      // are already going to lint, so only continue checking if we haven't
-      // found an issue.
-      if (lintCode == null) {
-        if (leftIsInteropType && _isDartJsType(erasedRight) ||
-            rightIsInteropType && _isDartJsType(erasedLeft)) {
-          lintCode = diag.invalidRuntimeCheckWithJsInteropTypesJsAndDartJs;
-        } else if (leftIsInteropType || rightIsInteropType) {
-          if (!_isWasmIncompatibleJsInterop(erasedLeft) &&
-              !_isWasmIncompatibleJsInterop(erasedRight)) {
-            var erasedLeftIsSubtype = typeSystem.isSubtypeOf(
-              erasedLeft,
-              erasedRight,
-            );
-            var erasedRightIsSubtype = typeSystem.isSubtypeOf(
-              erasedRight,
-              erasedLeft,
-            );
-            var erasedLeftIsDynamic = erasedLeft is DynamicType;
-            var erasedRightIsDynamic = erasedRight is DynamicType;
-            if (check) {
-              if (!erasedLeftIsSubtype && !erasedRightIsDynamic) {
-                if (leftIsInteropType && rightIsInteropType) {
-                  lintCode = diag
-                      .invalidRuntimeCheckWithJsInteropTypesJsIsInconsistentJs;
-                } else if (leftIsInteropType) {
-                  lintCode = diag.invalidRuntimeCheckWithJsInteropTypesJsIsDart;
-                } else {
-                  lintCode = diag.invalidRuntimeCheckWithJsInteropTypesDartIsJs;
-                }
-              } else if (erasedLeftIsSubtype &&
-                  leftIsInteropType &&
-                  rightIsInteropType) {
-                // Only report if the right type is a user JS interop type.
-                // Checks like `window is JSAny` are not confusing and not worth
-                // linting.
-                if (_isJsInteropType(
-                      right,
-                      _InteropTypeKind.userJsInteropType,
-                    ) &&
-                    !typeSystem.isSubtypeOf(
-                      eraseNonJsInteropTypes.perform(
-                        left,
-                        keepUserInteropTypes: true,
-                      ),
-                      eraseNonJsInteropTypes.perform(
-                        right,
-                        keepUserInteropTypes: true,
-                      ),
-                    )) {
-                  lintCode =
-                      diag.invalidRuntimeCheckWithJsInteropTypesJsIsUnrelatedJs;
-                }
+      if (leftIsInteropType && _isDartJsType(erasedRight) ||
+          rightIsInteropType && _isDartJsType(erasedLeft)) {
+        lintCode = diag.invalidRuntimeCheckWithJsInteropTypesJsAndDartJs;
+      } else if (leftIsInteropType || rightIsInteropType) {
+        if (!_isWasmIncompatibleJsInterop(erasedLeft) &&
+            !_isWasmIncompatibleJsInterop(erasedRight)) {
+          var erasedLeftIsSubtype = typeSystem.isSubtypeOf(
+            erasedLeft,
+            erasedRight,
+          );
+          var erasedRightIsSubtype = typeSystem.isSubtypeOf(
+            erasedRight,
+            erasedLeft,
+          );
+          var erasedLeftIsDynamic = erasedLeft is DynamicType;
+          var erasedRightIsDynamic = erasedRight is DynamicType;
+          if (check) {
+            if (!erasedLeftIsSubtype && !erasedRightIsDynamic) {
+              if (leftIsInteropType && rightIsInteropType) {
+                lintCode = diag
+                    .invalidRuntimeCheckWithJsInteropTypesJsIsInconsistentJs;
+              } else if (leftIsInteropType) {
+                lintCode = diag.invalidRuntimeCheckWithJsInteropTypesJsIsDart;
+              } else {
+                lintCode = diag.invalidRuntimeCheckWithJsInteropTypesDartIsJs;
               }
-            } else {
-              if (!erasedLeftIsSubtype &&
-                  !erasedRightIsSubtype &&
-                  !erasedLeftIsDynamic &&
-                  !erasedRightIsDynamic) {
-                if (leftIsInteropType && rightIsInteropType) {
-                  lintCode = diag
-                      .invalidRuntimeCheckWithJsInteropTypesJsAsIncompatibleJs;
-                } else if (leftIsInteropType) {
-                  lintCode = diag.invalidRuntimeCheckWithJsInteropTypesJsAsDart;
-                } else {
-                  lintCode = diag.invalidRuntimeCheckWithJsInteropTypesDartAsJs;
-                }
+            } else if (erasedLeftIsSubtype &&
+                leftIsInteropType &&
+                rightIsInteropType) {
+              // Only report if the right type is a user JS interop type.
+              // Checks like `window is JSAny` are not confusing and not worth
+              // linting.
+              if (_isJsInteropType(right, _InteropTypeKind.userJsInteropType) &&
+                  !typeSystem.isSubtypeOf(
+                    eraseNonJsInteropTypes.perform(
+                      left,
+                      keepUserInteropTypes: true,
+                    ),
+                    eraseNonJsInteropTypes.perform(
+                      right,
+                      keepUserInteropTypes: true,
+                    ),
+                  )) {
+                lintCode =
+                    diag.invalidRuntimeCheckWithJsInteropTypesJsIsUnrelatedJs;
+              }
+            }
+          } else {
+            if (!erasedLeftIsSubtype &&
+                !erasedRightIsSubtype &&
+                !erasedLeftIsDynamic &&
+                !erasedRightIsDynamic) {
+              if (leftIsInteropType && rightIsInteropType) {
+                lintCode = diag
+                    .invalidRuntimeCheckWithJsInteropTypesJsAsIncompatibleJs;
+              } else if (leftIsInteropType) {
+                lintCode = diag.invalidRuntimeCheckWithJsInteropTypesJsAsDart;
+              } else {
+                lintCode = diag.invalidRuntimeCheckWithJsInteropTypesDartAsJs;
               }
             }
           }
         }
       }
-      // The resulting types that are checked in `canBeSubtypeOf` are assumed to
-      // not be extension types, so erase the types if we avoided erasing them
-      // in `EraseNonJSInteropTypes` before continuing.
-      if (leftIsInteropType) erasedLeft = left.extensionTypeErasure;
-      if (rightIsInteropType) erasedRight = right.extensionTypeErasure;
       return (erasedLeft, erasedRight);
+    }
+
+    /// Checks the type test from [left] to [right], and then the nested type
+    /// pairs, until the first invalid type test.
+    void checkTypesDeep(TypeImpl left, TypeImpl right) {
+      var (erasedLeft, erasedRight) = checkTypes(left, right);
+      for (var (nestedLeft, nestedRight) in _nestedTypePairs(
+        erasedLeft,
+        erasedRight,
+      )) {
+        if (lintCode != null) {
+          return;
+        }
+        checkTypesDeep(nestedLeft, nestedRight);
+      }
     }
 
     // If there are no relevant interop types, exit early.
@@ -436,12 +442,7 @@ class _Visitor(final MultiAnalysisRule rule, final TypeSystemImpl typeSystem)
         !interopTypeChecker.hasInteropType(rightType)) {
       return lintCode;
     }
-    // Called here for the side effects of `eraseTypes`.
-    typeSystem.canBeSubtypeOf(
-      leftType as TypeImpl,
-      rightType as TypeImpl,
-      eraseTypes: eraseTypes,
-    );
+    checkTypesDeep(leftType as TypeImpl, rightType as TypeImpl);
     return lintCode;
   }
 
@@ -487,6 +488,76 @@ class _Visitor(final MultiAnalysisRule rule, final TypeSystemImpl typeSystem)
         diagnosticCode: code,
       );
     }
+  }
+
+  /// Returns the pairs of types nested in [left] and [right] that a runtime
+  /// type test from [left] to [right] compares with each other.
+  ///
+  /// The type arguments of interface types are compared after aligning them to
+  /// the same element, so `List<A>` and `Iterable<B>` compare `A` and `B`.
+  /// Generics of `dart:js_interop` types are ignored, so they have no nested
+  /// type pairs.
+  List<(TypeImpl, TypeImpl)> _nestedTypePairs(TypeImpl left, TypeImpl right) {
+    if (_isJsInteropType(left, _InteropTypeKind.dartJsInteropType) ||
+        _isJsInteropType(right, _InteropTypeKind.dartJsInteropType)) {
+      return const [];
+    }
+
+    // `FutureOr<T>` is either `T` or `Future<T>`.
+    if (left.isDartAsyncFutureOr) {
+      var base = typeSystem.futureOrBase(left);
+      var future = typeSystem.typeProvider.futureType(base);
+      return [(base, right), (future, right)];
+    }
+    if (right.isDartAsyncFutureOr) {
+      var base = typeSystem.futureOrBase(right);
+      var future = typeSystem.typeProvider.futureType(base);
+      return [(left, base), (left, future)];
+    }
+
+    if (left is InterfaceTypeImpl && right is InterfaceTypeImpl) {
+      if (left.asInstanceOf(right.element) case var leftAsRight?) {
+        return _zipTypes(leftAsRight.typeArguments, right.typeArguments);
+      }
+      if (right.asInstanceOf(left.element) case var rightAsLeft?) {
+        return _zipTypes(left.typeArguments, rightAsLeft.typeArguments);
+      }
+      return const [];
+    }
+
+    if (left is RecordTypeImpl && right is RecordTypeImpl) {
+      var leftNamed = left.namedFields;
+      var rightNamed = right.namedFields;
+      if (left.positionalFields.length != right.positionalFields.length ||
+          leftNamed.length != rightNamed.length) {
+        return const [];
+      }
+      for (var i = 0; i < leftNamed.length; i++) {
+        if (leftNamed[i].name != rightNamed[i].name) {
+          return const [];
+        }
+      }
+      return [
+        ..._zipTypes(
+          [for (var field in left.positionalFields) field.type],
+          [for (var field in right.positionalFields) field.type],
+        ),
+        ..._zipTypes(
+          [for (var field in leftNamed) field.type],
+          [for (var field in rightNamed) field.type],
+        ),
+      ];
+    }
+
+    return const [];
+  }
+
+  static List<(TypeImpl, TypeImpl)> _zipTypes(
+    List<TypeImpl> left,
+    List<TypeImpl> right,
+  ) {
+    assert(left.length == right.length);
+    return [for (var i = 0; i < left.length; i++) (left[i], right[i])];
   }
 }
 

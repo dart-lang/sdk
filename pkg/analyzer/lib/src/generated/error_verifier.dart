@@ -6549,6 +6549,11 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
         var isCorrect = CorrectOverrideHelper(
           typeSystem: typeSystem,
           thisMember: superMember,
+          addCovarianceFrom: [
+            ?_inheritanceManager.getMember3(element.supertype!, nameObject),
+            for (var mixin in element.mixins.take(mixinIndex))
+              ?_inheritanceManager.getMember3(mixin, nameObject),
+          ],
         ).isCorrectOverrideOf(superMember: mixinMember);
         if (!isCorrect) {
           diagnosticReporter.report(

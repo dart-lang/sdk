@@ -286,9 +286,10 @@ List<CompiledModule> _decodeModules(Parameters params) => [
 ];
 
 extension ModulesEventChecks on Subject<ModulesEvent> {
-  Subject<List<CompiledModule>> get modules => has((e) => e.modules, 'modules');
+  Subject<List<CompiledModule>> get modules =>
+      has2('modules', (e) => e.modules);
   Subject<List<String>> get moduleNames =>
-      has((e) => e.moduleNames, 'moduleNames');
+      has2('moduleNames', (e) => e.moduleNames);
 
   /// Some bundle contains [pattern].
   ///
@@ -299,13 +300,13 @@ extension ModulesEventChecks on Subject<ModulesEvent> {
 }
 
 extension RunMainEventChecks on Subject<RunEvent> {
-  Subject<String> get libraryUri => has((e) => e.libraryUri, 'libraryUri');
-  Subject<String> get mode => has((e) => e.mode, 'mode');
-  Subject<String> get packageRoot => has((e) => e.packageRoot, 'packageRoot');
+  Subject<String> get libraryUri => has2('libraryUri', (e) => e.libraryUri);
+  Subject<String> get mode => has2('mode', (e) => e.mode);
+  Subject<String> get packageRoot => has2('packageRoot', (e) => e.packageRoot);
 }
 
 extension InvokeExtensionEventChecks on Subject<InvokeExtensionEvent> {
-  Subject<String> get method => has((e) => e.method, 'method');
+  Subject<String> get method => has2('method', (e) => e.method);
   Subject<Map<String, dynamic>> get parameters =>
-      has((e) => e.parameters, 'parameters');
+      has2('parameters', (e) => e.parameters);
 }

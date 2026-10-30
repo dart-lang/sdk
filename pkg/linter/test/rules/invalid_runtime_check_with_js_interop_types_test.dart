@@ -115,8 +115,8 @@ export 'dart:_js_annotations' show JS, staticInterop;
     await _testChecks([
       _IsCheck('Object', 'JSAny'),
       _IsCheck('dynamic', 'JSObject'),
-      // TODO(srujzs): These two checks should lint, but `canBeSubtypeOf`
-      // determines subtyping via a pairwise comparison. So, we never actually
+      // TODO(srujzs): These two checks should lint, but this lint compares
+      // nested types via a pairwise comparison. So, we never actually
       // check the JS interop type against anything, since the left type is not
       // generic.
       _IsCheck('Object', 'List<JSAny>', lint: false),
@@ -300,7 +300,7 @@ export 'dart:_js_annotations' show JS, staticInterop;
   }
 
   // TODO(srujzs): Some of the following type tests should result in an error,
-  // but `canBeSubtypeOf` doesn't nest for function types.
+  // but this lint doesn't nest for function types.
   test_functionTypesAs_function_type_with_js_types_as() async {
     await _testCasts([
       _AsCast(
@@ -329,7 +329,7 @@ export 'dart:_js_annotations' show JS, staticInterop;
   }
 
   // TODO(srujzs): Some of the following type tests should result in an error,
-  // but `canBeSubtypeOf` doesn't nest for function types.
+  // but this lint doesn't nest for function types.
   test_functionTypesIs_function_type_with_js_types_is() async {
     await _testChecks([
       _IsCheck(
@@ -458,12 +458,28 @@ export 'dart:_js_annotations' show JS, staticInterop;
       _AsCast('Iterable<JSArray>', 'List<JSObject>', lint: false),
       _AsCast('List<JSAny>', 'Iterable<JSBoolean>', lint: false),
       _AsCast('Iterable<JSObject>', 'List<JSArray>', lint: false),
-      // TODO(srujzs): These should be errors as there is a side cast within the
-      // generics, and you can't declare a class that subtypes both the left
-      // and right type, but `canBeSubtypeOf` doesn't nest in this case.
-      _AsCast('List<JSString>', 'Iterable<JSBoolean>', lint: false),
-      _AsCast('Iterable<JSBoolean>', 'List<JSString>', lint: false),
+      _AsCast('List<JSString>', 'Iterable<JSBoolean>'),
+      _AsCast('Iterable<JSBoolean>', 'List<JSString>'),
     ]);
+  }
+
+  test_genericTypesAs_js_type_generic_with_declared_supertype_as() async {
+    await _testCasts(
+      [
+        _AsCast('A', 'R<JSString>'),
+        _AsCast('B', 'R<JSString>'),
+        _AsCast('C<String>', 'R<JSString>'),
+        _AsCast('R<JSString>', 'D', lint: false),
+        _AsCast('R<JSBoolean>', 'D'),
+      ],
+      typeDeclarations: [
+        'class R<T> {}',
+        'class A extends R<String> {}',
+        'final class B extends R<String> {}',
+        'final class C<T> extends R<T> {}',
+        'class D extends R<JSString> {}',
+      ],
+    );
   }
 
   test_genericTypesAs_top_type_generic_as_js_type_generic() async {
@@ -597,15 +613,30 @@ export 'dart:_js_annotations' show JS, staticInterop;
         unnecessary: true,
       ),
       _IsCheck('Iterable<JSArray>', 'List<JSObject>', lint: false),
-      // TODO(srujzs): These should be errors as there is a subtype or unrelated
-      // check within the generics, and you can't declare a class that subtypes
-      // both the left and right type, but `canBeSubtypeOf` doesn't nest in this
-      // case.
-      _IsCheck('List<JSAny>', 'Iterable<JSBoolean>', lint: false),
-      _IsCheck('Iterable<JSObject>', 'List<JSArray>', lint: false),
-      _IsCheck('List<JSString>', 'Iterable<JSBoolean>', lint: false),
-      _IsCheck('Iterable<JSBoolean>', 'List<JSString>', lint: false),
+      _IsCheck('List<JSAny>', 'Iterable<JSBoolean>'),
+      _IsCheck('Iterable<JSObject>', 'List<JSArray>'),
+      _IsCheck('List<JSString>', 'Iterable<JSBoolean>'),
+      _IsCheck('Iterable<JSBoolean>', 'List<JSString>'),
     ]);
+  }
+
+  test_genericTypesIs_js_type_generic_with_declared_supertype_is() async {
+    await _testChecks(
+      [
+        _IsCheck('A', 'R<JSString>'),
+        _IsCheck('B', 'R<JSString>'),
+        _IsCheck('C<String>', 'R<JSString>'),
+        _IsCheck('R<JSString>', 'D', lint: false),
+        _IsCheck('R<JSBoolean>', 'D'),
+      ],
+      typeDeclarations: [
+        'class R<T> {}',
+        'class A extends R<String> {}',
+        'final class B extends R<String> {}',
+        'final class C<T> extends R<T> {}',
+        'class D extends R<JSString> {}',
+      ],
+    );
   }
 
   test_genericTypesIs_top_type_generic_is_js_type_generic() async {

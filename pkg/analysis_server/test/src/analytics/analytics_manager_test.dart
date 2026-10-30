@@ -171,11 +171,12 @@ class AnalyticsManagerTest with ResourceProviderMixin {
       ),
     ]);
 
-    // Subsequent periodic data sends or shutdown do not send them again.
+    // Subsequent periodic data sends do not send them again, but shutdown
+    // sends the session data again with the actual duration.
     await manager.sendPeriodicData();
     await manager.shutdown();
     analytics.assertEvents([
-      _ExpectedEvent.session(),
+      _ExpectedEvent.session(eventData: {'duration': 0}),
       _ExpectedEvent.contextStructure(
         eventData: {
           'immediateFileCount': 1,
@@ -191,6 +192,7 @@ class AnalyticsManagerTest with ResourceProviderMixin {
           'numberOfPackagesInWorkspace': _IsPercentiles(),
         },
       ),
+      _ExpectedEvent.session(eventData: {'duration': greaterThanOrEqualTo(0)}),
     ]);
   }
 
@@ -515,7 +517,7 @@ class AnalyticsManagerTest with ResourceProviderMixin {
           'flags': arguments.join(','),
           'clientId': clientId,
           'clientVersion': '',
-          'duration': 0,
+          'duration': greaterThan(0),
         },
       ),
       _ExpectedEvent.contextStructure(),
@@ -557,7 +559,7 @@ class AnalyticsManagerTest with ResourceProviderMixin {
           'flags': arguments.join(','),
           'clientId': clientId,
           'clientVersion': clientVersion,
-          'duration': 0,
+          'duration': greaterThan(0),
         },
       ),
       _ExpectedEvent.contextStructure(),

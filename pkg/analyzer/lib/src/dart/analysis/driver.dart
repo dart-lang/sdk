@@ -113,7 +113,7 @@ testFineAfterLibraryAnalyzerHook;
 // TODO(scheglov): Clean up the list of implicitly analyzed files.
 class AnalysisDriver {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 752;
+  static const int DATA_VERSION = 753;
 
   /// The signature of the numbering of token types.
   ///
@@ -703,6 +703,10 @@ class AnalysisDriver {
   void clearLibraryContext() {
     _libraryContext?.dispose();
     _libraryContext = null;
+
+    // The cached results belong to the discarded session.
+    _priorityResults.clear();
+    _resolvedLibraryCache.clear();
   }
 
   /// Discards data that is expensive to keep in memory, and can be computed
@@ -1210,7 +1214,8 @@ class AnalysisDriver {
       } catch (exception, stackTrace) {
         _reportException(request.path, exception, stackTrace, null);
         request.completer.completeError(exception, stackTrace);
-        _clearLibraryContextAfterException();
+        // Recover from a possibly inconsistent library context.
+        clearLibraryContext();
       }
       return;
     }
@@ -1476,7 +1481,7 @@ class AnalysisDriver {
           }
 
           _fileTracker.fileWasAnalyzed(unitFile.path);
-          _lastProducedSignatures[path] = unitSignature;
+          _lastProducedSignatures[unitFile.path] = unitSignature;
           _scheduler.eventsController.add(resolvedUnit);
 
           if (isLibraryWithPriorityFile) {
@@ -1567,7 +1572,8 @@ class AnalysisDriver {
         }
         // getResolvedLibrary()
         completeWithError(_requestedLibraries.remove(library.file.path));
-        _clearLibraryContextAfterException();
+        // Recover from a possibly inconsistent library context.
+        clearLibraryContext();
       }
 
       return null;
@@ -1604,16 +1610,6 @@ class AnalysisDriver {
         completer.complete(accumulatedAffected.toList());
       }
     }
-  }
-
-  /// There was an exception during a file analysis, we don't know why.
-  /// But it might have been caused by an inconsistency of files state, and
-  /// the library context state. Reset the library context, and hope that
-  /// we will solve the inconsistency while loading / building summaries.
-  void _clearLibraryContextAfterException() {
-    clearLibraryContext();
-    _priorityResults.clear();
-    _resolvedLibraryCache.clear();
   }
 
   /// Completes pending requests if a required SDK library is missing.

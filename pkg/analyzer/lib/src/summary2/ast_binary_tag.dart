@@ -140,6 +140,10 @@ enum ElementTag {
   libraryImportPrefix,
   typeParameter,
   formalParameter,
+
+  /// A member synthesized for the interface of a class, written as the class
+  /// and the name of the member, and read by looking up the interface.
+  interfaceMember,
 }
 
 enum FormalParameterKindTag {

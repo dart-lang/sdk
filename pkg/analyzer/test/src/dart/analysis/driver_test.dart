@@ -632,6 +632,66 @@ void f() {
 ''');
   }
 
+  test_cachedPriorityResults_flush_onClearLibraryContext() async {
+    var a = newFile('$testPackageLibPath/a.dart', '');
+
+    var driver = driverFor(testFile);
+    var collector = DriverEventCollector(driver);
+
+    driver.priorityFiles2 = [a];
+
+    collector.getResolvedUnit('A1', a);
+    collector.getResolvedLibrary('L1', a);
+    await assertEventsText(collector, r'''
+[status] working
+[operation] analyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: exists isLibrary
+[status] idle
+[future] getResolvedUnit A1
+  ResolvedUnitResult #0
+[future] getResolvedLibrary L1
+  ResolvedLibraryResult #1
+    element: package:test/a.dart
+    units
+      ResolvedUnitResult #0
+''');
+
+    // Clear the library context.
+    // The cache is flushed, so we get new results.
+    driver.clearLibraryContext();
+    expect(driver.getCachedResolvedUnit2(a), isNull);
+    collector.getResolvedUnit('A2', a);
+    collector.getResolvedLibrary('L2', a);
+    await assertEventsText(collector, r'''
+[status] working
+[operation] analyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
+[operation] reuseLinkedBundle SDK
+[operation] reuseLinkedBundle
+  package:test/a.dart
+[stream]
+  ResolvedUnitResult #2
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: exists isLibrary
+[status] idle
+[future] getResolvedUnit A2
+  ResolvedUnitResult #2
+[future] getResolvedLibrary L2
+  ResolvedLibraryResult #3
+    element: package:test/a.dart
+    units
+      ResolvedUnitResult #2
+''');
+  }
+
   test_cachedPriorityResults_flush_onPrioritySetChange() async {
     var a = newFile('$testPackageLibPath/a.dart', '');
     var b = newFile('$testPackageLibPath/b.dart', '');
@@ -1186,6 +1246,68 @@ import 'a.dart';
     // Nothing depends on "b", so nothing is analyzed.
     await assertEventsText(collector, r'''
 [status] working
+[status] idle
+''');
+  }
+
+  test_changeFile_notUsed_libraryWithPart() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+''');
+    newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+''');
+    var c = newFile('$testPackageLibPath/c.dart', 'class C1 {}');
+
+    var driver = driverFor(testFile);
+    var collector = DriverEventCollector(driver);
+
+    driver.addFile2(a);
+    driver.addFile2(c);
+
+    // Nothing interesting, "a" with its part "b", and "c" are analyzed.
+    await assertEventsText(collector, r'''
+[status] working
+[operation] analyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: exists isLibrary
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/b.dart
+    uri: package:test/b.dart
+    flags: exists isPart
+[operation] analyzeFile
+  file: /home/test/lib/c.dart
+  library: /home/test/lib/c.dart
+[stream]
+  ResolvedUnitResult #2
+    path: /home/test/lib/c.dart
+    uri: package:test/c.dart
+    flags: exists isLibrary
+[status] idle
+''');
+
+    // Change "c" and notify.
+    modifyFile2(c, 'class C2 {}');
+    driver.changeFile2(c);
+
+    // Only "c" is analyzed.
+    // The errors of "a" and "b" are the same, so they are not produced.
+    await assertEventsText(collector, r'''
+[status] working
+[operation] analyzeFile
+  file: /home/test/lib/c.dart
+  library: /home/test/lib/c.dart
+[stream]
+  ResolvedUnitResult #3
+    path: /home/test/lib/c.dart
+    uri: package:test/c.dart
+    flags: exists isLibrary
 [status] idle
 ''');
   }
