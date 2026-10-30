@@ -2000,9 +2000,10 @@ final class _Float32x4 implements Float32x4 {
   Float32x4 operator +(Float32x4 other) =>
       Float32x4(x + other.x, y + other.y, z + other.z, w + other.w);
   @pragma("vm:recognized", "other")
-  @pragma("vm:exact-result-type", _Float32x4)
-  @pragma("vm:external-name", "Float32x4_negate")
-  external Float32x4 operator -();
+  @pragma("vm:prefer-inline")
+  Float32x4 operator -() => Float32x4.fromInt32x4Bits(
+    Int32x4.fromFloat32x4Bits(this) ^ Int32x4.splat(0x80000000),
+  );
   @pragma("vm:recognized", "graph-intrinsic")
   Float32x4 operator -(Float32x4 other) =>
       Float32x4(x - other.x, y - other.y, z - other.z, w - other.w);

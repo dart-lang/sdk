@@ -35,15 +35,6 @@ DEFINE_NATIVE_ENTRY(Float32x4_fromInt32x4Bits, 0, 1) {
   return Float32x4::New(v.value());
 }
 
-DEFINE_NATIVE_ENTRY(Float32x4_negate, 0, 1) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, self, arguments->NativeArgAt(0));
-  float _x = -self.x();
-  float _y = -self.y();
-  float _z = -self.z();
-  float _w = -self.w();
-  return Float32x4::New(_x, _y, _z, _w);
-}
-
 DEFINE_NATIVE_ENTRY(Float32x4_scale, 0, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, self, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Double, scale, arguments->NativeArgAt(1));

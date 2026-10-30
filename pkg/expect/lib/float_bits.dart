@@ -66,6 +66,9 @@ final class const Float64(final int high, final int low) implements FloatBits {
   /// The largest positive subnormal.
   static const positiveLargestSubnormal = Float64(0x000FFFFF, 0xFFFFFFFF);
 
+  /// The negation of [positiveQuietNanLowPayload].
+  static const negativeQuietNanLowPayload = Float64(0xFFF80000, 0x000000FF);
+
   /// A non-canonical quiet NaN with a payload in its low byte.
   static const positiveQuietNanLowPayload = Float64(0x7FF80000, 0x000000FF);
 
@@ -75,6 +78,9 @@ final class const Float64(final int high, final int low) implements FloatBits {
   /// an implementation that returns the bitwise AND or OR of its operands
   /// gives neither of them.
   static const positiveSignalingNanLowPayload = Float64(0x7FF00000, 0x0000FF00);
+
+  /// The negation of [positiveSignalingNanLowPayload].
+  static const negativeSignalingNanLowPayload = Float64(0xFFF00000, 0x0000FF00);
 
   /// Every constant above.
   static const List<Float64> values = [
@@ -90,7 +96,9 @@ final class const Float64(final int high, final int low) implements FloatBits {
     positiveSmallestSubnormal,
     negativeLargestSubnormal,
     positiveLargestSubnormal,
+    negativeQuietNanLowPayload,
     positiveQuietNanLowPayload,
+    negativeSignalingNanLowPayload,
     positiveSignalingNanLowPayload,
   ];
 
@@ -137,7 +145,9 @@ final class const Float64(final int high, final int low) implements FloatBits {
     positiveSmallestSubnormal => '+subMin',
     negativeLargestSubnormal => '-subMax',
     positiveLargestSubnormal => '+subMax',
+    negativeQuietNanLowPayload => '-qNaN.lo',
     positiveQuietNanLowPayload => '+qNaN.lo',
+    negativeSignalingNanLowPayload => '-sNaN.lo',
     positiveSignalingNanLowPayload => '+sNaN.lo',
     _ => '0x${_hex8(high)}_${_hex8(low)}',
   };
@@ -183,6 +193,9 @@ final class const Float32(final int bits) implements FloatBits {
   /// set.
   static const positiveQuietNan = Float32(0x7FC00000);
 
+  /// The negation of [positiveQuietNanPayload].
+  static const negativeQuietNanPayload = Float32(0xFFE00000);
+
   /// A non-canonical quiet NaN with a payload.
   static const positiveQuietNanPayload = Float32(0x7FE00000);
 
@@ -195,6 +208,9 @@ final class const Float32(final int bits) implements FloatBits {
   /// Converting it to a [double] quiets it, so [toDouble] gives `0x7FD00000`
   /// widened.
   static const positiveSignalingNanPayload = Float32(0x7F900000);
+
+  /// The negation of [positiveSignalingNanPayload].
+  static const negativeSignalingNanPayload = Float32(0xFF900000);
 
   /// Every constant above.
   static const List<Float32> values = [
@@ -210,7 +226,9 @@ final class const Float32(final int bits) implements FloatBits {
     positiveLargestSubnormal,
     negativeQuietNan,
     positiveQuietNan,
+    negativeQuietNanPayload,
     positiveQuietNanPayload,
+    negativeSignalingNanPayload,
     positiveSignalingNanPayload,
   ];
 
@@ -252,7 +270,9 @@ final class const Float32(final int bits) implements FloatBits {
     positiveLargestSubnormal => '+f32SubMax',
     negativeQuietNan => '-f32NaN',
     positiveQuietNan => '+f32NaN',
+    negativeQuietNanPayload => '-f32qNaN',
     positiveQuietNanPayload => '+f32qNaN',
+    negativeSignalingNanPayload => '-f32sNaN',
     positiveSignalingNanPayload => '+f32sNaN',
     _ => 'f32 0x${_hex8(bits)}',
   };

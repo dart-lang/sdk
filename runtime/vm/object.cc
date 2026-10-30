@@ -26054,14 +26054,6 @@ Float64x2Ptr Float64x2::New(simd128_value_t value, Heap::Space space) {
   return result.ptr();
 }
 
-double Float64x2::x() const {
-  return untag()->value_[0];
-}
-
-double Float64x2::y() const {
-  return untag()->value_[1];
-}
-
 void Float64x2::set_x(double x) const {
   StoreNonPointer(&untag()->value_[0], x);
 }
