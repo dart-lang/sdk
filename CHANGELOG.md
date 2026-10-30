@@ -120,6 +120,11 @@ the `if` statement above, `o` has type `D`.
 
 [#64561]: https://github.com/dart-lang/sdk/issues/64561
 
+#### Dart CLI
+
+- `dart build cli` now supports a `--define` option. Run
+  `dart build cli --help` for more details.
+
 #### Dart Development Compiler (dartdevc)
 
 - Fixed a bug where a type parameter from an enclosing scope could be

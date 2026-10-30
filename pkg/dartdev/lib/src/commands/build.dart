@@ -77,6 +77,11 @@ class BuildCliSubcommand extends CompileSubcommandCommand {
         .replaceAll(' [arguments]', '');
   }
 
+  // Like [invocation], there is no positional entry point, so omit the
+  // 'main.dart' that the inherited examples use.
+  @override
+  String exampleInvocation(String arguments) => 'dart build $name $arguments';
+
   BuildCliSubcommand({
     bool verbose = false,
     required this.recordUseEnabled,
@@ -143,6 +148,12 @@ then that is used instead.''',
         abbr: packagesOption.abbr,
         valueHelp: packagesOption.valueHelp,
         help: packagesOption.help,
+      )
+      ..addMultiOption(
+        defineOption.flag,
+        help: defineOption.help,
+        abbr: defineOption.abbr,
+        valueHelp: defineOption.valueHelp,
       )
       ..addFlag(
         enableAssertsOption.flag,
@@ -279,6 +290,7 @@ then that is used instead.''',
     final verbosity = args.option('verbosity')!;
     final depFile = args.option('depfile');
     final enabledExperiments = args.enabledExperiments;
+    final defines = args.multiOption(defineOption.flag);
     final enableAsserts = args.flag(enableAssertsOption.flag);
 
     Uri? packageConfigUri;
@@ -313,6 +325,7 @@ then that is used instead.''',
       dataAssetsExperimentEnabled: dataAssetsExperimentEnabled,
       verbose: verbose,
       verbosity: verbosity,
+      defines: defines,
       enableAsserts: enableAsserts,
       depFile: depFile,
       sanitizer: sanitizer,
@@ -339,6 +352,7 @@ then that is used instead.''',
     required bool verbose,
     required String verbosity,
     bool logGenerated = true,
+    List<String> defines = const [],
     bool enableAsserts = false,
     Sanitizer sanitizer = Sanitizer.none,
     String? depFile,
@@ -513,7 +527,7 @@ then that is used instead.''',
             outputFile: (outputSnapshotUri ?? outputExeUri).toFilePath(),
             verbose: verbose,
             verbosity: verbosity,
-            defines: [...sanitizer.defines],
+            defines: [...sanitizer.defines, ...defines],
             packages: packageConfigUri.toFilePath(),
             targetOS: targetOS,
             enableExperiment: enabledExperiments.join(','),

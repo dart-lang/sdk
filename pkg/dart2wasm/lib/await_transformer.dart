@@ -184,7 +184,9 @@ class _AwaitTransformer extends Transformer {
       final newStatement = transform(statement);
       statements.add(newStatement);
     }
-    final newBlock = Block(statements);
+    final newBlock = Block(statements)
+      ..fileOffset = stmt.fileOffset
+      ..fileEndOffset = stmt.fileEndOffset;
     statements = savedStatements;
     return newBlock;
   }

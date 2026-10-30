@@ -46,15 +46,6 @@ DEFINE_NATIVE_ENTRY(Float32x4_scale, 0, 2) {
   return Float32x4::New(_x, _y, _z, _w);
 }
 
-DEFINE_NATIVE_ENTRY(Float32x4_abs, 0, 1) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, self, arguments->NativeArgAt(0));
-  float _x = fabsf(self.x());
-  float _y = fabsf(self.y());
-  float _z = fabsf(self.z());
-  float _w = fabsf(self.w());
-  return Float32x4::New(_x, _y, _z, _w);
-}
-
 DEFINE_NATIVE_ENTRY(Float32x4_getX, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, self, arguments->NativeArgAt(0));
   double value = static_cast<double>(self.x());
@@ -260,13 +251,6 @@ DEFINE_NATIVE_ENTRY(Float64x2_fromFloat32x4, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, v, arguments->NativeArgAt(0));
   double _x = v.x();
   double _y = v.y();
-  return Float64x2::New(_x, _y);
-}
-
-DEFINE_NATIVE_ENTRY(Float64x2_abs, 0, 1) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Float64x2, self, arguments->NativeArgAt(0));
-  double _x = fabs(self.x());
-  double _y = fabs(self.y());
   return Float64x2::New(_x, _y);
 }
 

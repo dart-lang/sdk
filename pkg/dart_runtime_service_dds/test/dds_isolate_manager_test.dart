@@ -726,5 +726,34 @@ void main() {
         expect(response['timeExtentMicros'], -1);
       }
     });
+
+    const expectedSentinel = <String, Object?>{
+      'type': 'Sentinel',
+      'kind': vm.SentinelKind.kCollected,
+      'valueAsString': '<collected>',
+    };
+
+    test('readyToResume and resume return Collected Sentinel for unknown '
+        'isolateId', () async {
+      final client = createTestClient(name: 'client');
+
+      final readyResponse = await manager.readyToResume(
+        json_rpc.Parameters('readyToResume', const <String, Object?>{
+          'isolateId': 'isolates/nonexistent',
+        }),
+        client,
+      );
+      expect(readyResponse, equals(expectedSentinel));
+      expect(fakeVmService.resumedIsolates, isEmpty);
+
+      final resumeResponse = await manager.resume(
+        json_rpc.Parameters('resume', const <String, Object?>{
+          'isolateId': 'isolates/nonexistent',
+        }),
+        client,
+      );
+      expect(resumeResponse, equals(expectedSentinel));
+      expect(fakeVmService.resumedIsolates, isEmpty);
+    });
   });
 }

@@ -55,6 +55,7 @@ namespace dart {
   V(CoreLibrary, _Double, _div, DoubleDiv, 0x28601fd1)                         \
   V(CoreLibrary, _Double, _modulo, DoubleMod, 0xfd967c6e)                      \
   V(CoreLibrary, _Double, _remainder, DoubleRem, 0xf0f458d2)                   \
+  V(CoreLibrary, _Double, abs, DoubleAbs, 0x41b6aaa1)                          \
   V(CoreLibrary, _Double, ceil, DoubleCeilToInt, 0xcedbc005)                   \
   V(CoreLibrary, _Double, ceilToDouble, DoubleCeilToDouble, 0x5efeb358)        \
   V(CoreLibrary, _Double, floor, DoubleFloorToInt, 0x2a1527c8)                 \
@@ -493,7 +494,7 @@ namespace dart {
     0xddbada78)                                                                \
   V(TypedDataLibrary, _Float32x4, reciprocal, Float32x4Reciprocal, 0xd4350ab2) \
   V(TypedDataLibrary, _Float32x4, unary-, Float32x4Negate, 0x719b6a84)         \
-  V(TypedDataLibrary, _Float32x4, abs, Float32x4Abs, 0xeb296688)               \
+  V(TypedDataLibrary, _Float32x4, abs, Float32x4Abs, 0xe6fdfdfb)               \
   V(TypedDataLibrary, _Float32x4, withX, Float32x4WithX, 0x9b766656)           \
   V(TypedDataLibrary, _Float32x4, withY, Float32x4WithY, 0xb889207c)           \
   V(TypedDataLibrary, _Float32x4, withZ, Float32x4WithZ, 0xc7e2bf2f)           \
@@ -506,7 +507,7 @@ namespace dart {
   V(TypedDataLibrary, _Float64x2, get:x, Float64x2GetX, 0x3a1c6d70)            \
   V(TypedDataLibrary, _Float64x2, get:y, Float64x2GetY, 0x27adc893)            \
   V(TypedDataLibrary, _Float64x2, unary-, Float64x2Negate, 0x3a5dc21a)         \
-  V(TypedDataLibrary, _Float64x2, abs, Float64x2Abs, 0x9a07af9e)               \
+  V(TypedDataLibrary, _Float64x2, abs, Float64x2Abs, 0x2c86676c)               \
   V(TypedDataLibrary, _Float64x2, sqrt, Float64x2Sqrt, 0x6ac8ad92)             \
   V(TypedDataLibrary, _Float64x2, get:signMask, Float64x2GetSignMask,          \
     0x7c4dfa2a)                                                                \

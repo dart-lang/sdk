@@ -99,11 +99,12 @@ void buildDoubleIsNaN(FlowGraphBuilder builder) {
 void buildArrayElementGetter(
   FlowGraphBuilder builder,
   ArrayKind kind,
-  CField lengthField,
+  CField? lengthField, // For index check.
   CType elemType, {
   CField? indirectDataField,
   bool checkIndex = true,
 }) {
+  assert(lengthField != null || !checkIndex);
   final index = builder.pop();
   final array = builder.pop();
   builder.push(array);
@@ -113,7 +114,7 @@ void buildArrayElementGetter(
   builder.push(index);
   if (checkIndex) {
     builder.push(array);
-    builder.addLoadInstanceField(lengthField);
+    builder.addLoadInstanceField(lengthField!);
     builder.addIndexCheck();
   }
   builder.addLoadArrayElement(kind, elemType);
@@ -123,10 +124,11 @@ void buildArrayElementGetter(
 void buildArrayElementSetter(
   FlowGraphBuilder builder,
   ArrayKind kind,
-  CField lengthField, {
+  CField? lengthField, { // For index check.
   CField? indirectDataField,
   bool checkIndex = true,
 }) {
+  assert(lengthField != null || !checkIndex);
   final value = builder.pop();
   final index = builder.pop();
   final array = builder.pop();
@@ -137,7 +139,7 @@ void buildArrayElementSetter(
   builder.push(index);
   if (checkIndex) {
     builder.push(array);
-    builder.addLoadInstanceField(lengthField);
+    builder.addLoadInstanceField(lengthField!);
     builder.addIndexCheck();
   }
   builder.push(value);
@@ -605,6 +607,31 @@ void buildExtensionStreamHasListener(
   );
   builder.addIntConstant(0);
   builder.addComparison(.intNotEqual);
+}
+
+/// Build IR for dart:ffi::_fromAddress.
+void buildPointerFromAddress(
+  FlowGraphBuilder builder,
+  ObjectLayout objectLayout,
+  ast.Class cls,
+) {
+  final ptr = builder.pop();
+  builder.pop(); // Drop passed type arguments.
+
+  builder.addTypeArguments(const [ast.NeverType.nonNullable()]);
+  final typeArgs = builder.pop();
+  final type = StaticType(
+    ast.InterfaceType(
+      cls,
+      .nonNullable,
+      ast.DartTypeList(const ast.NeverType.nonNullable()),
+    ),
+  );
+  final obj = builder.addAllocateObject(type, typeArguments: typeArgs);
+
+  builder.push(obj);
+  builder.push(ptr);
+  builder.addStoreInstanceField(objectLayout.PointerBase_data);
 }
 
 /// Build IR for ThreadLocal._hasValue.
@@ -2009,6 +2036,61 @@ final class VmRecognizedMethods(
       assert(targetAbiIndex >= 0);
       buildConstantGetter(builder, ConstantValue.fromInt(targetAbiIndex));
     },
+    index.getProcedure(
+      'dart:ffi',
+      'Pointer',
+      'get:address',
+    ): (FlowGraphBuilder builder) {
+      buildInstanceGetter(builder, objectLayout.PointerBase_data);
+    },
+    index.getTopLevelProcedure(
+      'dart:ffi',
+      '_fromAddress',
+    ): (FlowGraphBuilder builder) {
+      buildPointerFromAddress(
+        builder,
+        objectLayout,
+        index.getClass('dart:ffi', 'Pointer'),
+      );
+    },
+    for (ArrayKind arrayKind in [
+      .int8ByteData,
+      .uint8ByteData,
+      .int16ByteData,
+      .uint16ByteData,
+      .int32ByteData,
+      .uint32ByteData,
+      .int64ByteData,
+      .uint64ByteData,
+    ])
+      index.getTopLevelProcedure(
+        'dart:ffi',
+        '_load${arrayKind.elementName}',
+      ): (FlowGraphBuilder builder) {
+        buildArrayElementGetter(
+          builder,
+          arrayKind,
+          null,
+          arrayKind.elementType,
+          checkIndex: false,
+        );
+      },
+    for (ArrayKind arrayKind in [
+      .int8ByteData,
+      .uint8ByteData,
+      .int16ByteData,
+      .uint16ByteData,
+      .int32ByteData,
+      .uint32ByteData,
+      .int64ByteData,
+      .uint64ByteData,
+    ])
+      index.getTopLevelProcedure(
+        'dart:ffi',
+        '_store${arrayKind.elementName}',
+      ): (FlowGraphBuilder builder) {
+        buildArrayElementSetter(builder, arrayKind, null, checkIndex: false);
+      },
 
     // dart:_vm
     index.getProcedure(

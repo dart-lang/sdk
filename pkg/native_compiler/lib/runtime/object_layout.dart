@@ -639,6 +639,13 @@ class ObjectLayout {
     'FinalizerEntry': vmOffsets.FinalizerEntry_InstanceSize,
   };
 
+  late final Map<String, Object> _dartFfiInstanceLayout = {
+    'Pointer': (
+      vmOffsets.Pointer_InstanceSize,
+      vmOffsets.Pointer_type_arguments_offset,
+    ),
+  };
+
   late final Map<String, Object> _dartNativewrappersInstanceLayout = {
     'NativeFieldWrapperClass1':
         vmOffsets.Instance_InstanceSize + compressedWordSize,
@@ -661,6 +668,7 @@ class ObjectLayout {
   late final ast.Library _internalLibrary = _libraryIndex.getLibrary(
     'dart:_internal',
   );
+  late final ast.Library _ffiLibrary = _libraryIndex.getLibrary('dart:ffi');
   late final ast.Library _nativewrappersLibrary = _libraryIndex.getLibrary(
     'dart:nativewrappers',
   );
@@ -680,6 +688,8 @@ class ObjectLayout {
       layout = _dartCompactHashInstanceLayout[cls.name];
     } else if (library == _internalLibrary) {
       layout = _dartInternalInstanceLayout[cls.name];
+    } else if (library == _ffiLibrary) {
+      layout = _dartFfiInstanceLayout[cls.name];
     } else if (library == _nativewrappersLibrary) {
       layout = _dartNativewrappersInstanceLayout[cls.name];
     } else if (library == _vmLibrary) {

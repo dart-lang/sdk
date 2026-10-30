@@ -203,6 +203,13 @@ abstract base class ExpressionEvaluator {
         scope: scope,
         targetId: targetId,
       );
+      // If `isolateId` refers to an isolate that has exited, `buildScope`
+      // returns a collected `Sentinel` rather than throwing an RPC error.
+      // Return the `Sentinel` directly instead of attempting to compile the
+      // expression with an invalid scope.
+      if (scopeResult case {'type': 'Sentinel'}) {
+        return scopeResult;
+      }
 
       final compileParams = buildCompileParams(
         expression: expression,

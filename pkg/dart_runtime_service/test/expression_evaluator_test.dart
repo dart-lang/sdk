@@ -4,13 +4,20 @@
 
 import 'package:dart_runtime_service/dart_runtime_service.dart';
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
+import 'package:stream_channel/stream_channel.dart';
 import 'package:test/test.dart';
 
+import 'utils/utilities.dart';
+
 base class TestExpressionEvaluator extends ExpressionEvaluator {
-  TestExpressionEvaluator({UnmodifiableClientNamedLookup? clients})
-    : super(
-        clients: clients ?? UnmodifiableClientNamedLookup(ClientNamedLookup()),
-      );
+  TestExpressionEvaluator({
+    this.buildScopeResult,
+    UnmodifiableClientNamedLookup? clients,
+  }) : super(
+         clients: clients ?? UnmodifiableClientNamedLookup(ClientNamedLookup()),
+       );
+
+  final Map<String, Object?>? buildScopeResult;
 
   Map<String, Object?> testBuildCompileParams({
     required String expression,
@@ -29,6 +36,9 @@ base class TestExpressionEvaluator extends ExpressionEvaluator {
     Map<String, String>? scope,
     String? targetId,
   }) async {
+    if (buildScopeResult case final result?) {
+      return result;
+    }
     return <String, Object?>{
       'isolateId': isolateId,
       'klass': 'MyClass',
@@ -138,6 +148,39 @@ void main() {
           'type': 'InstanceRef',
           'valueAsString': 'fallback:evaluateInFrame:myVar',
         });
+      },
+    );
+
+    test(
+      'evaluate returns Sentinel directly when buildScope returns a Sentinel',
+      () async {
+        final service = await createDartRuntimeServiceForTest(
+          config: const DartRuntimeServiceOptions(),
+        );
+        addTearDown(service.shutdown);
+        final controller = StreamChannelController<String>();
+        service.clientManager
+            .addClient(connection: controller.foreign)
+            .registerService(service: 'compileExpression', alias: 'Compiler');
+
+        const sentinel = <String, Object?>{
+          'type': 'Sentinel',
+          'kind': 'Collected',
+          'valueAsString': '<collected>',
+        };
+        final evaluator = TestExpressionEvaluator(
+          buildScopeResult: sentinel,
+          clients: service.clientManager.clients,
+        );
+
+        final response = await evaluator.evaluate(
+          json_rpc.Parameters('evaluate', {
+            'isolateId': 'isolates/exited',
+            'targetId': 'targets/1',
+            'expression': '1 + 2',
+          }),
+        );
+        expect(response, equals(sentinel));
       },
     );
   });
