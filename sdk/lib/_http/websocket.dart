@@ -108,19 +108,9 @@ class CompressionOptions {
       if (part.length >= 2 && part.startsWith('0')) {
         throw ArgumentError("Illegal 0 padding on value.");
       } else {
-        // RFC 7692 only permits a window size of 8..15 bits. Ignore a
-        // requested value outside that range instead of passing it through to
-        // zlib, which would otherwise fail to initialise and tear down the
-        // connection with an opaque error.
-        int? requestedBits = int.tryParse(part);
-        if (requestedBits != null &&
-            (requestedBits < ZLibOption.minWindowBits ||
-                requestedBits > ZLibOption.maxWindowBits)) {
-          requestedBits = null;
-        }
         int mwb =
             serverMaxWindowBits ??
-            requestedBits ??
+            _parseWindowBits(part) ??
             _WebSocketImpl.DEFAULT_WINDOW_BITS;
         info.headerValue = "; server_max_window_bits=$mwb";
         info.maxWindowBits = mwb;
