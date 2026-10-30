@@ -853,6 +853,10 @@ abstract interface class Cookie {
   abstract int? maxAge;
 
   /// The domain that the cookie applies to.
+  ///
+  /// The allowed characters in a cookie domain are the ASCII letters, digits,
+  /// `-` and `.`. The domain must not end with `.`, and a leading `.` is
+  /// ignored.
   abstract String? domain;
 
   /// The path within the [domain] that the cookie applies to.

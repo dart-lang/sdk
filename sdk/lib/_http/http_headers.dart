@@ -1364,14 +1364,31 @@ class _Cookie implements Cookie {
 
   static void _validateDomain(String? domain) {
     if (domain == null) return;
-    // Like the path, the domain is written verbatim as an attribute value, so
-    // ';' and controls must not occur in it.
-    var errorAt = _isValidPath(domain, 0, domain.length);
-    if (errorAt >= 0) {
+    // domain-value = <subdomain>, as defined in RFC 1034 section 3.5 and
+    // enhanced by RFC 1123 section 2.1, so only ASCII letters, digits, '-'
+    // and '.' can occur. A leading '.' is ignored (RFC 6265 section 5.2.3)
+    // and the domain must not end with a '.'.
+    for (int i = domain.startsWith('.') ? 1 : 0; i < domain.length; i++) {
+      int codeUnit = domain.codeUnitAt(i);
+      bool isValid =
+          (codeUnit >= _CharCode.LETTER_a && codeUnit <= _CharCode.LETTER_z) ||
+          (codeUnit >= _CharCode.LETTER_A && codeUnit <= _CharCode.LETTER_Z) ||
+          (codeUnit >= _CharCode.ZERO && codeUnit <= _CharCode.NINE) ||
+          codeUnit == _CharCode.MINUS ||
+          codeUnit == _CharCode.DOT;
+      if (!isValid) {
+        throw FormatException(
+          "Invalid character in cookie domain, code unit: '$codeUnit'",
+          domain,
+          i,
+        );
+      }
+    }
+    if (domain.endsWith('.')) {
       throw FormatException(
-        "Invalid character in cookie domain, code unit: '${domain.codeUnitAt(errorAt)}'",
+        "Cookie domain must not end with '.'",
         domain,
-        errorAt,
+        domain.length - 1,
       );
     }
   }

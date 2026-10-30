@@ -131,22 +131,37 @@ void testValidatePath() {
 void testValidateDomain() {
   Cookie cookie = Cookie.fromSetCookieValue(" cname = cval; domain= foo.com ");
   Expect.equals('foo.com', cookie.domain);
-  cookie.domain = null;
-  Expect.throws<FormatException>(() {
-    cookie.domain = "a.foo.com; Domain=foo.com";
-  }, (e) => e.toString().contains('Invalid character'));
+  for (var domain in ['Sub-1.foo.com', '.foo.com', '127.0.0.1', '', null]) {
+    cookie.domain = domain;
+    Expect.equals(domain, cookie.domain);
+  }
 
-  StringBuffer buffer = StringBuffer();
-  buffer.writeCharCode(0x1f);
-  Expect.throws<FormatException>(() {
-    cookie.domain = buffer.toString();
-  }, (e) => e.toString().contains('Invalid character'));
+  // Only ASCII letters, digits, '-' and '.' are allowed.
+  for (var domain in [
+    'a.foo.com; Domain=foo.com',
+    ' foo.com',
+    'foo_bar.com',
+    'foo.com/',
+    'f\u00f6o.com',
+    '\x1f',
+    '\x7f',
+  ]) {
+    Expect.throws<FormatException>(() {
+      cookie.domain = domain;
+    }, (e) => e.toString().contains('Invalid character'));
+  }
 
-  buffer.clear();
-  buffer.writeCharCode(0x7f);
-  Expect.throws<FormatException>(() {
-    cookie.domain = buffer.toString();
-  }, (e) => e.toString().contains('Invalid character'));
+  // A leading '.' is ignored, but the domain must not end with one.
+  for (var domain in ['foo.com.', '.']) {
+    Expect.throws<FormatException>(() {
+      cookie.domain = domain;
+    }, (e) => e.toString().contains("must not end with '.'"));
+  }
+
+  // The same check applies when parsing a Set-Cookie header.
+  Expect.throws<FormatException>(
+    () => Cookie.fromSetCookieValue("cname=cval; Domain=foo.com."),
+  );
 }
 
 void testCookieSameSite() {

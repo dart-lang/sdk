@@ -67,9 +67,9 @@ remove them.
 
 #### `dart:io`
 
-- A validation check is added to `domain` of class `Cookie`, matching the one
-  on `path`. Setting it to a string containing characters ranging from 0x00 to
-  0x1f, 0x7f and above, or 0x3b (";") now throws a `FormatException`.
+- A validation check is added to `domain` of class `Cookie`. Setting it to a
+  string containing characters other than ASCII letters, digits, `-` and `.`,
+  or to a string ending with `.`, now throws a `FormatException`.
 
 ## 3.14.0
 
