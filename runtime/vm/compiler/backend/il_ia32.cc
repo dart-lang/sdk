@@ -4648,6 +4648,9 @@ void UnaryDoubleOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   XmmRegister value = locs()->in(0).fpu_reg();
   ASSERT(locs()->out(0).fpu_reg() == value);
   switch (op_kind()) {
+    case Token::kABS:
+      __ DoubleAbs(value);
+      break;
     case Token::kNEGATE:
       __ DoubleNegate(value);
       break;
