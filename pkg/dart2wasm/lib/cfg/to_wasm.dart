@@ -266,6 +266,54 @@ abstract base class WasmInstructionLowerer<T extends CfgToWasm>
     final rightLocal = gen.getLocal(instr.right);
     final resultLocal = gen.getLocal(instr);
 
+    switch (instr.op) {
+      case ComparisonOpcode.equal:
+      case ComparisonOpcode.notEqual:
+      case ComparisonOpcode.identical:
+      case ComparisonOpcode.notIdentical:
+        final isNegated =
+            instr.op == ComparisonOpcode.notEqual ||
+            instr.op == ComparisonOpcode.notIdentical;
+        if (instr.right.type is NullType) {
+          if (leftLocal.type.nullable) {
+            b.local_get(leftLocal);
+            b.ref_is_null();
+            if (isNegated) b.i32_eqz();
+          } else {
+            b.i32_const(isNegated ? 1 : 0);
+          }
+          b.local_set(resultLocal);
+          return;
+        }
+        if (instr.left.type is NullType) {
+          if (rightLocal.type.nullable) {
+            b.local_get(rightLocal);
+            b.ref_is_null();
+            if (isNegated) b.i32_eqz();
+          } else {
+            b.i32_const(isNegated ? 1 : 0);
+          }
+          b.local_set(resultLocal);
+          return;
+        }
+        if (!instr.left.type.canBeNum && !instr.right.type.canBeNum) {
+          const eqRefType = w.RefType.eq(nullable: true);
+          b.local_get(leftLocal);
+          gen.convertType(leftLocal.type, eqRefType);
+          b.local_get(rightLocal);
+          gen.convertType(rightLocal.type, eqRefType);
+          b.ref_eq();
+          if (isNegated) b.i32_eqz();
+          b.local_set(resultLocal);
+          return;
+        }
+        throw UnimplementedError(
+          'Comparison ${instr.op} on (${instr.left.type}, ${instr.right.type})',
+        );
+      default:
+        break;
+    }
+
     b.local_get(leftLocal);
     b.local_get(rightLocal);
 

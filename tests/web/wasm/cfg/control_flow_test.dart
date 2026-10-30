@@ -92,6 +92,18 @@ int nestedLoopsWithBreakContinue(int maxI, int maxJ) {
 @pragma('wasm:cfg')
 bool negateBool(bool b) => !b;
 
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+bool checkNotNull(int? x) => x != null;
+
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+bool sameRef(String? a, String? b) => identical(a, b);
+
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+bool notSameRef(String? a, String? b) => !identical(a, b);
+
 void main() {
   final int0 = int.parse('0');
   final int1 = int.parse('1');
@@ -133,7 +145,17 @@ void main() {
   // Nested loops with break & continue
   Expect.equals(144, nestedLoopsWithBreakContinue(int5, int4));
 
-  // UnaryBoolOp (`!`)
+  // UnaryBoolOp (`!`) and null/reference Comparison
   Expect.isFalse(negateBool(int5 > int0));
   Expect.isTrue(negateBool(int0 > int5));
+  Expect.isTrue(checkNotNull(int5));
+  Expect.isFalse(checkNotNull(null));
+  const s1 = 'hello';
+  const s2 = 'world';
+  Expect.isTrue(sameRef(s1, s1));
+  Expect.isFalse(sameRef(s1, s2));
+  Expect.isFalse(sameRef(s1, null));
+  Expect.isTrue(sameRef(null, null));
+  Expect.isFalse(notSameRef(s1, s1));
+  Expect.isTrue(notSameRef(s1, s2));
 }

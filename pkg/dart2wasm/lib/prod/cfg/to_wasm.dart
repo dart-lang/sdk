@@ -96,6 +96,13 @@ final class ProdWasmInstructionLowerer
         ComparisonOpcode.doubleLessOrEqual ||
         ComparisonOpcode.doubleGreater ||
         ComparisonOpcode.doubleGreaterOrEqual => true,
+        ComparisonOpcode.equal ||
+        ComparisonOpcode.notEqual ||
+        ComparisonOpcode.identical ||
+        ComparisonOpcode.notIdentical =>
+          instr.left.type is NullType ||
+              instr.right.type is NullType ||
+              (!instr.left.type.canBeNum && !instr.right.type.canBeNum),
         _ => false,
       },
       BinaryIntOp(:final op) =>

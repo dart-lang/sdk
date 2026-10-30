@@ -183,9 +183,8 @@ String optionalString(bool c, [String s = 'default']) => c ? s : 'other';
 String callOptionalString(int x) => optionalString(x > 0);
 
 @pragma('wasm:never-inline')
-bool isNull([int? x]) =>
-    // `==` on `int?` is not compiled via CFG.
-    x == null;
+@pragma('wasm:cfg')
+bool isNull([int? x]) => x == null;
 
 @pragma('wasm:never-inline')
 @pragma('wasm:cfg')
@@ -234,6 +233,7 @@ String callPickNamedB(int x, String s) => pickNamed(b: s, c: x > 0);
 String callPickNamedA(int x, String s) => pickNamed(c: x > 0, a: s);
 
 @pragma('wasm:never-inline')
+@pragma('wasm:cfg')
 bool isNullNamed({int? x}) => x == null;
 
 @pragma('wasm:never-inline')
