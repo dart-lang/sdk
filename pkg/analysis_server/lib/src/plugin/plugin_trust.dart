@@ -9,18 +9,15 @@ import 'package:analyzer/src/utilities/hash/blake3.dart';
 import 'package:convert/convert.dart';
 import 'package:meta/meta.dart';
 
-/// The persisted trust state for an analyzer plugin.
-enum TrustSetting { trusted, untrusted, unset }
-
 /// Manages persistent trust decisions for analyzer plugins.
 ///
-/// Trust state is stored in `<state-location>/.workspace_trust/workspace_trust.json`.
+/// Trust state is stored in `<state-location>/.plugin_trust/plugin_trust.json`.
 ///
 /// Plugins can be trusted at their exact current code contents via a BLAKE3
 /// content digest (via `--trust-plugins`).
-class WorkspaceTrust {
-  static const String _stateFolderName = '.workspace_trust';
-  static const String _fileName = 'workspace_trust.json';
+class PluginTrust {
+  static const String _stateFolderName = '.plugin_trust';
+  static const String _fileName = 'plugin_trust.json';
   static const String _pluginsKey = 'plugins';
   static const String _hashesKey = 'hashes';
 
@@ -183,6 +180,9 @@ class WorkspaceTrust {
     }
   }
 }
+
+/// The persisted trust state for an analyzer plugin.
+enum TrustSetting { trusted, untrusted, unset }
 
 class _PluginTrustData {
   final Set<String> contentHashes = {};
