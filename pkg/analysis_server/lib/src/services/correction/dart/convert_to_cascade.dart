@@ -138,11 +138,8 @@ class ConvertToCascade extends ResolvedCorrectionProducer {
         return true;
       }
       AstNode? last;
-      for (var child in node.childEntities.toList().reversed) {
-        if (child is AstNode) {
-          last = child;
-          break;
-        }
+      for (var child in node.childEntities) {
+        if (child is AstNode) last = child;
       }
       if (last == null || last.end != node.end) return false;
       node = last;
