@@ -79,6 +79,21 @@ void foo(int two) {
 ''');
   }
 
+  Future<void> test_declaration_closure() async {
+    await resolveTestCode('''
+void foo() {
+  var g = () => print('');
+  g.toString();
+}
+''');
+    await assertHasFix('''
+void foo() {
+  var g = (() => print(''))
+  ..toString();
+}
+''');
+  }
+
   Future<void> test_declaration_method() async {
     await resolveTestCode('''
 class A {
@@ -272,6 +287,198 @@ void f(A a) {
 ''');
   }
 
+  Future<void> test_property_closure_alreadyParenthesized_middle() async {
+    await resolveTestCode('''
+class A {
+  int? x;
+  void Function()? g;
+  int? h;
+}
+void foo(A a) {
+  a.x = 1;
+  a.g = (() => print(''));
+  a.h = 3;
+}
+''');
+    await assertHasFix('''
+class A {
+  int? x;
+  void Function()? g;
+  int? h;
+}
+void foo(A a) {
+  a..x = 1
+  ..g = (() => print(''))
+  ..h = 3;
+}
+''');
+  }
+
+  Future<void> test_property_closure_async_middle() async {
+    await resolveTestCode('''
+class A {
+  int? x;
+  Future<void> Function()? g;
+  int? h;
+}
+void foo(A a) {
+  a.x = 1;
+  a.g = () async => print('');
+  a.h = 3;
+}
+''');
+    await assertHasFix('''
+class A {
+  int? x;
+  Future<void> Function()? g;
+  int? h;
+}
+void foo(A a) {
+  a..x = 1
+  ..g = (() async => print(''))
+  ..h = 3;
+}
+''');
+  }
+
+  Future<void> test_property_closure_blockBody_middle() async {
+    // A block body is terminated by its closing brace, so it can't absorb the
+    // cascade section that follows it.
+    await resolveTestCode('''
+class A {
+  int? x;
+  void Function()? g;
+  int? h;
+}
+void foo(A a) {
+  a.x = 1;
+  a.g = () { print(''); };
+  a.h = 3;
+}
+''');
+    await assertHasFix('''
+class A {
+  int? x;
+  void Function()? g;
+  int? h;
+}
+void foo(A a) {
+  a..x = 1
+  ..g = () { print(''); }
+  ..h = 3;
+}
+''');
+  }
+
+  Future<void> test_property_closure_inArgument_middle() async {
+    // The argument list's closing parenthesis terminates the expression body.
+    await resolveTestCode('''
+class A {
+  int? x;
+  void Function()? g;
+  int? h;
+}
+void Function() wrap(void Function() f) => f;
+void foo(A a) {
+  a.x = 1;
+  a.g = wrap(() => print(''));
+  a.h = 3;
+}
+''');
+    await assertHasFix('''
+class A {
+  int? x;
+  void Function()? g;
+  int? h;
+}
+void Function() wrap(void Function() f) => f;
+void foo(A a) {
+  a..x = 1
+  ..g = wrap(() => print(''))
+  ..h = 3;
+}
+''');
+  }
+
+  Future<void> test_property_closure_middle() async {
+    await resolveTestCode('''
+class A {
+  int? x;
+  void Function()? g;
+  int? h;
+}
+void foo(A a) {
+  a.x = 1;
+  a.g = () => print('');
+  a.h = 3;
+}
+''');
+    await assertHasFix('''
+class A {
+  int? x;
+  void Function()? g;
+  int? h;
+}
+void foo(A a) {
+  a..x = 1
+  ..g = (() => print(''))
+  ..h = 3;
+}
+''');
+  }
+
+  Future<void> test_property_closure_property() async {
+    await resolveTestCode('''
+class A {
+  void Function()? f;
+  void Function()? g;
+}
+void foo(A a) {
+  a.f = () => print('');
+  a.g = () => print('');
+}
+''');
+    await assertHasFix('''
+class A {
+  void Function()? f;
+  void Function()? g;
+}
+void foo(A a) {
+  a..f = (() => print(''))
+  ..g = () => print('');
+}
+''');
+  }
+
+  Future<void> test_property_conditional_closure_middle() async {
+    // The closure is not the right-hand side itself, but it does end it, so
+    // its body would still absorb the following cascade section.
+    await resolveTestCode('''
+class A {
+  int? x;
+  void Function()? g;
+  int? h;
+}
+void foo(A a, bool b) {
+  a.x = 1;
+  a.g = b ? null : () => print('');
+  a.h = 3;
+}
+''');
+    await assertHasFix('''
+class A {
+  int? x;
+  void Function()? g;
+  int? h;
+}
+void foo(A a, bool b) {
+  a..x = 1
+  ..g = (b ? null : () => print(''))
+  ..h = 3;
+}
+''');
+  }
+
   Future<void> test_property_method() async {
     await resolveTestCode('''
 class A {
@@ -368,6 +575,34 @@ void f(A a) {
   a..x = 1
   ..x = 2
   ..x = 3;
+}
+''');
+  }
+
+  Future<void> test_property_switchExpression_closure_middle() async {
+    // The switch expression's closing brace terminates the expression body.
+    await resolveTestCode('''
+class A {
+  int? x;
+  void Function()? g;
+  int? h;
+}
+void foo(A a, int k) {
+  a.x = 1;
+  a.g = switch (k) { _ => () => print('') };
+  a.h = 3;
+}
+''');
+    await assertHasFix('''
+class A {
+  int? x;
+  void Function()? g;
+  int? h;
+}
+void foo(A a, int k) {
+  a..x = 1
+  ..g = switch (k) { _ => () => print('') }
+  ..h = 3;
 }
 ''');
   }

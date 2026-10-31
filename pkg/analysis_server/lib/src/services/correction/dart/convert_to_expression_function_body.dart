@@ -6,6 +6,7 @@ import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -79,7 +80,11 @@ class ConvertToExpressionFunctionBody extends ResolvedCorrectionProducer {
     }
 
     var prefix = utils.getNodePrefix(body.parent!);
+    var closureNeedingParentheses = _closureNeedingParentheses(parent);
     await builder.addDartFileEdit(file, (builder) {
+      if (closureNeedingParentheses != null) {
+        builder.addSimpleInsertion(closureNeedingParentheses.offset, '(');
+      }
       builder.addReplacement(range.node(body), (builder) {
         if (body.isAsynchronous) {
           builder.write('async ');
@@ -119,6 +124,9 @@ class ConvertToExpressionFunctionBody extends ResolvedCorrectionProducer {
               ? BeforeCommentWrite.space
               : BeforeCommentWrite.nothing,
         );
+        if (closureNeedingParentheses != null) {
+          builder.write(')');
+        }
         var parent = body.parent;
         if (parent is! FunctionExpression ||
             parent.parent is FunctionDeclaration) {
@@ -126,5 +134,29 @@ class ConvertToExpressionFunctionBody extends ResolvedCorrectionProducer {
         }
       });
     });
+  }
+
+  /// Returns [node] if it is a function expression that must be wrapped in
+  /// parentheses once its body becomes an expression body, and `null`
+  /// otherwise.
+  ///
+  /// An expression body extends as far to the right as possible, so if the
+  /// function expression is followed by anything that could continue an
+  /// expression (an argument list, a selector, a cascade section, an operator,
+  /// etc.), then that code would be absorbed into the new body. Such tokens
+  /// are exactly those with a non-trivial [Precedence], so that's used here
+  /// rather than enumerating the terminator tokens (`,`, `)`, `]`, `}`, `;`,
+  /// `:`, EOF) that are safe, which would be fragile in the face of new or
+  /// uncommon token types.
+  FunctionExpression? _closureNeedingParentheses(AstNode? node) {
+    if (node is! FunctionExpression || node.parent is FunctionDeclaration) {
+      return null;
+    }
+    var nextType = node.endToken.next?.type;
+    if (nextType == null ||
+        Precedence.forTokenType(nextType) == Precedence.none) {
+      return null;
+    }
+    return node;
   }
 }
