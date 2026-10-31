@@ -111,9 +111,7 @@ class WorkspaceSymbolHandler
       range: range,
     );
 
-    var parameters = declaration.parameters;
-    var hasParams = parameters != null && parameters.isNotEmpty;
-    var paramString = hasParams ? (parameters == '()' ? '()' : '(…)') : '';
+    var paramString = declaration.parameters ?? '';
 
     var name = declaration.name;
     var containerName = declaration.className ?? declaration.mixinName;

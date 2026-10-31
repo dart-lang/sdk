@@ -220,7 +220,7 @@ void f(bool a, String b) {}
     await _getDeclarations();
 
     var declaration = assertHas('f', ElementKind.FUNCTION);
-    expect(declaration.parameters, '(bool a, String b)');
+    expect(declaration.parameters, '(…)');
   }
 
   /// Elements in part files should return paths of the definitions, not the

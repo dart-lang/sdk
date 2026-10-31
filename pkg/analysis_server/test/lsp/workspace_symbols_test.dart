@@ -78,6 +78,48 @@ void f() {}
     expect(symbolsResponse2.error, isNull);
   }
 
+  Future<void> test_concurrentRequestsCancellation() async {
+    const content = '''
+void f() {}
+''';
+    var code = TestCode.parse(content);
+    newFile(mainFilePath, code.code);
+    await initialize();
+
+    var responseFutures = [
+      getWorkspaceSymbols('f'),
+      getWorkspaceSymbols('f'),
+      getWorkspaceSymbols('f'),
+    ];
+
+    var expectationFutures = [
+      expectLater(
+        responseFutures[0],
+        throwsA(
+          isResponseError(
+            ErrorCodes.RequestCancelled,
+            message: 'Another workspace/symbol request was started',
+          ),
+        ),
+      ),
+      expectLater(
+        responseFutures[1],
+        throwsA(
+          isResponseError(
+            ErrorCodes.RequestCancelled,
+            message: 'Another workspace/symbol request was started',
+          ),
+        ),
+      ),
+      expectLater(
+        responseFutures[2],
+        completion(hasLength(greaterThanOrEqualTo(1))),
+      ),
+    ];
+
+    await Future.wait(expectationFutures);
+  }
+
   Future<void> test_class_unnamed() async {
     const content = '''
 class {

@@ -165,12 +165,18 @@ final class MessageScheduler {
           _processDocumentChange(msg);
         }
       } else if (msg is lsp.RequestMessage) {
-        // Cancel in progress completion and refactoring requests.
+        // Cancel in progress completion, workspace symbol, and refactoring requests.
         var incomingMsgMethod = msg.method;
         if (_isCancelableRequest(msg)) {
-          var reason = incomingMsgMethod == lsp.Method.workspace_executeCommand
-              ? 'Another workspace/executeCommand request for a refactor was started'
-              : 'Another textDocument/completion request was started';
+          var reason = switch (incomingMsgMethod) {
+            lsp.Method.textDocument_completion =>
+              'Another textDocument/completion request was started',
+            lsp.Method.workspace_executeCommand =>
+              'Another workspace/executeCommand request for a refactor was started',
+            lsp.Method.workspace_symbol =>
+              'Another workspace/symbol request was started',
+            _ => 'Another ${incomingMsgMethod.toJson()} request was started',
+          };
           for (var activeMessage in _activeMessages) {
             if (activeMessage is LspMessage && activeMessage.isRequest) {
               var message = activeMessage.message as lsp.RequestMessage;
@@ -402,6 +408,9 @@ final class MessageScheduler {
           RefactoringProcessor.generators.containsKey(params?.command)) {
         return true;
       }
+    }
+    if (message.method == lsp.Method.workspace_symbol) {
+      return true;
     }
     return false;
   }

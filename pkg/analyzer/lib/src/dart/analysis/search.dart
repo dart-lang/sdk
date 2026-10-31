@@ -1564,12 +1564,8 @@ class _FindLibraryDeclarations {
     }
 
     String? parameters;
-    if (element is ExecutableElement) {
-      var displayString = element.displayString();
-      var parameterIndex = displayString.indexOf('(');
-      if (parameterIndex > 0) {
-        parameters = displayString.substring(parameterIndex);
-      }
+    if (element is ExecutableElement && element is! GetterElement) {
+      parameters = element.formalParameters.isEmpty ? '()' : '(…)';
     }
 
     var firstFragment = element.firstFragment;

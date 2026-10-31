@@ -334,7 +334,7 @@ testFile
     offset: 68 6:12
     codeOffset: 59 + 16
     className: C
-    parameters: (dynamic _)
+    parameters: (…)
   METHOD m
     offset: 83 7:8
     codeOffset: 78 + 11
@@ -535,7 +535,7 @@ testFile
   SETTER s
     offset: 59 4:12
     codeOffset: 50 + 16
-    parameters: (dynamic _)
+    parameters: (…)
   METHOD m
     offset: 74 5:8
     codeOffset: 69 + 11
@@ -573,7 +573,7 @@ testFile
     offset: 15 1:16
     codeOffset: 15 + 9
     className: E
-    parameters: (int it)
+    parameters: (…)
   GETTER g
     offset: 37 2:11
     codeOffset: 29 + 15
@@ -582,7 +582,7 @@ testFile
     offset: 56 3:12
     codeOffset: 47 + 16
     className: E
-    parameters: (dynamic _)
+    parameters: (…)
   METHOD m
     offset: 71 4:8
     codeOffset: 66 + 11
@@ -697,7 +697,7 @@ testFile
     offset: 48 4:12
     codeOffset: 39 + 16
     mixinName: M
-    parameters: (dynamic _)
+    parameters: (…)
   METHOD m
     offset: 63 5:8
     codeOffset: 58 + 11
@@ -791,11 +791,11 @@ testFile
     offset: 35 3:8
     codeOffset: 30 + 26
     className: C
-    parameters: (int a, double b)
+    parameters: (…)
   FUNCTION f
     offset: 64 5:6
     codeOffset: 59 + 27
-    parameters: (bool a, String b)
+    parameters: (…)
 ''',
     );
   }
@@ -824,19 +824,19 @@ testFile
   FUNCTION f1
     offset: 5 1:6
     codeOffset: 0 + 35
-    parameters: (bool Function(int, String) a)
+    parameters: (…)
   FUNCTION f2
     offset: 41 2:6
     codeOffset: 36 + 19
-    parameters: (dynamic Function(dynamic, dynamic) a)
+    parameters: (…)
   FUNCTION f3
     offset: 61 3:6
     codeOffset: 56 + 44
-    parameters: (bool Function(int, String) c)
+    parameters: (…)
   FUNCTION f4
     offset: 106 4:6
     codeOffset: 101 + 40
-    parameters: (bool Function(int, String) a)
+    parameters: (…)
 ''',
     );
   }
@@ -870,17 +870,17 @@ testFile
     offset: 24 2:8
     codeOffset: 19 + 30
     className: A
-    parameters: (Map<int, String> a)
+    parameters: (…)
   METHOD m2
     offset: 57 3:8
     codeOffset: 52 + 26
     className: A
-    parameters: (Map<T, U> a)
+    parameters: (…)
   METHOD m3
     offset: 86 4:8
     codeOffset: 81 + 50
     className: A
-    parameters: (Map<Map<T2, U2>, Map<U1, T>> a)
+    parameters: (…)
 ''',
     );
   }
@@ -914,11 +914,11 @@ testFile
   SETTER s
     offset: 25 2:10
     codeOffset: 16 + 16
-    parameters: (dynamic _)
+    parameters: (…)
   FUNCTION f
     offset: 38 3:6
     codeOffset: 33 + 16
-    parameters: (int p)
+    parameters: (…)
   VARIABLE v
     offset: 54 4:5
     codeOffset: 50 + 5
