@@ -631,6 +631,7 @@ class _RecordType extends _Type {
   bool operator ==(Object o) {
     if (ClassID.getID(o) != ClassID.cidRecordType) return false;
     _RecordType other = unsafeCast<_RecordType>(o);
+    if (isDeclaredNullable != other.isDeclaredNullable) return false;
 
     if (!_sameShape(other)) {
       return false;
@@ -648,6 +649,7 @@ class _RecordType extends _Type {
   @override
   int get hashCode {
     int hash = mix64(ClassID.cidRecordType.toIntSigned());
+    hash = mix64(hash ^ (isDeclaredNullable ? 1 : 0));
     for (int i = 0; i < names.length; i++) {
       hash = mix64(hash ^ names[i].hashCode);
     }
