@@ -303,10 +303,6 @@ class StdHandle : public FileHandle {
   static StdHandle* Stdin(HANDLE handle);
 
   virtual void DoCloseLocked(MonitorLocker* ml);
-  virtual intptr_t Write(const void* buffer, intptr_t num_bytes);
-
-  void WriteSyncCompleteAsync();
-  void RunWriteLoop();
 
 #if defined(DEBUG)
   static StdHandle* StdinPtr() { return stdin_; }
@@ -318,11 +314,6 @@ class StdHandle : public FileHandle {
 
   explicit StdHandle(HANDLE handle)
       : FileHandle(handle, kStd, SupportsOverlappedIO::kNo) {}
-
-  HANDLE thread_handle_ = INVALID_HANDLE_VALUE;
-  intptr_t thread_wrote_ = 0;
-  bool write_thread_exists_ = false;
-  bool write_thread_running_ = false;
 
   DISALLOW_COPY_AND_ASSIGN(StdHandle);
 };
