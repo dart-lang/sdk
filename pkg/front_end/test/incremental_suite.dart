@@ -2442,108 +2442,31 @@ class NewWorldTest {
     Set<String> prevFormattedErrors,
     Set<String> prevFormattedWarnings,
   ) async {
-    // Load modules via additionalDillModules.
     if (!world.noFullComponent && world.modules != null) {
-      // Do compile from scratch and compare.
-      worldTestData.clearPrevErrorsEtc();
-      CompilerOptions options = _createOptionsForWorld(
+      Result<TestData>? result = await _compileAndPerformChecks(
+        new TestIncrementalCompiler(
+          _clearPrevErrorsAndCreateOptionsForCompile(
+            worldTestData,
+            newWorldTestData,
+            world,
+          ),
+          worldTestData.entries.first,
+          null,
+          world.outlineOnly,
+        ),
+        worldTestData,
+        world,
+        "component (4)",
         newWorldTestData,
-        worldTestData,
-        world,
-        // The DDC target saves stuff in the target that causes leaks
-        // in this config where we've loaded a new sdk etc, so we create
-        // a new target to avoid it.
-        createNewTarget: true,
-      );
-
-      List<Uri> additionalDillModules = [];
-      int moduleNum = 0;
-      for (String moduleName in world.modules!) {
-        moduleNum++;
-        final Uri moduleUri = newWorldTestData.base.resolve(
-          "module_$moduleNum.dill",
-        );
-        newWorldTestData.fs
-            .entityForUri(moduleUri)
-            .writeAsBytesSync(newWorldTestData.moduleData![moduleName]!);
-        additionalDillModules.add(moduleUri);
-      }
-
-      options.additionalDillModules = additionalDillModules;
-
-      TestIncrementalCompiler? compilerFromScratch =
-          new TestIncrementalCompiler(
-            options,
-            worldTestData.entries.first,
-            null,
-            world.outlineOnly,
-          );
-      Stopwatch stopwatch = new Stopwatch()..start();
-      IncrementalCompilerResult? compilerResultLocal = await compilerFromScratch
-          .computeDelta(
-            entryPoints: worldTestData.entries,
-            simulateTransformer: world.simulateTransformer,
-          );
-      Component? componentLocal = compilerResultLocal.component;
-      compilerResultLocal = null;
-      compilerFromScratch = null;
-      Result<TestData>? result = _performErrorAndWarningCheck(
-        world,
-        data,
-        worldTestData,
-      );
-      if (result != null) return result;
-      util.throwOnEmptyMixinBodies(componentLocal);
-      await util.throwOnInsufficientUriToSource(componentLocal);
-      print("Compile took ${stopwatch.elapsedMilliseconds} ms");
-
-      List<int> thisWholeComponent = util.postProcess(
-        componentLocal,
-        clearConstantCoverageConstructors:
-            world.clearConstantCoverageConstructors,
-      );
-      String componentString = _componentToStringSdkFiltered(
-        componentLocal,
-        printErrors: world.printErrorsInExpect
-            ? worldTestData.formattedErrors
-            : null,
-      );
-      print("*****\n\ncomponent (4):\n$componentString\n\n\n");
-
-      var subtestResult = _checkExpectFile(
-        data,
-        newWorldTestData.worldNum,
-        "",
-        context,
-        componentString,
-        canUpdateExpect: false,
-      );
-      if (subtestResult != null) return subtestResult;
-
-      checkIsEqual(
-        newWorldTestData.newestWholeComponentData!,
-        thisWholeComponent,
-      );
-
-      _checkErrorsAndWarnings(
         prevFormattedErrors,
-        worldTestData.formattedErrors,
         prevFormattedWarnings,
-        worldTestData.formattedWarnings,
       );
 
-      componentLocal = null;
-
-      // For whatever reason the above introduces a "temporary leak" that
-      // awaiting something here removes.
-      await null;
+      return result;
     }
     return null;
   }
 
-  // TODO(jensj): This is very much alike _loadModulesViaAdditionalDillModules
-  // above (from which it was copied). Try to join to create helpers etc to
-  // limit copied code.
   Future<Result<TestData>?> _compileViaExperimentalCache(
     World world,
     WorldSpecificTestData worldTestData,
@@ -2562,58 +2485,25 @@ class NewWorldTest {
     incrementalCompilerCache.countLoadTries = 0;
     incrementalCompilerCache.countSaves = 0;
 
-    // Do compile from scratch and compare.
-    worldTestData.clearPrevErrorsEtc();
-    CompilerOptions options = _createOptionsForWorld(
+    Result<TestData>? result = await _compileAndPerformChecks(
+      new TestIncrementalCompiler.experimentalCacheForTesting(
+        _clearPrevErrorsAndCreateOptionsForCompile(
+          worldTestData,
+          newWorldTestData,
+          world,
+        ),
+        worldTestData.entries.first,
+        incrementalCompilerCache: incrementalCompilerCache,
+      ),
+      worldTestData,
+      world,
+      "component (5)",
       newWorldTestData,
-      worldTestData,
-      world,
-      // The DDC target saves stuff in the target that causes leaks
-      // in this config where we've loaded a new sdk etc, so we create
-      // a new target to avoid it.
-      createNewTarget: true,
+      prevFormattedErrors,
+      prevFormattedWarnings,
     );
 
-    if (world.modules != null) {
-      List<Uri> additionalDillModules = [];
-      int moduleNum = 0;
-      for (String moduleName in world.modules!) {
-        moduleNum++;
-        final Uri moduleUri = newWorldTestData.base.resolve(
-          "module_$moduleNum.dill",
-        );
-        newWorldTestData.fs
-            .entityForUri(moduleUri)
-            .writeAsBytesSync(newWorldTestData.moduleData![moduleName]!);
-        additionalDillModules.add(moduleUri);
-      }
-      options.additionalDillModules = additionalDillModules;
-    }
-
-    TestIncrementalCompiler? compilerFromScratch =
-        new TestIncrementalCompiler.experimentalCacheForTesting(
-          options,
-          worldTestData.entries.first,
-          incrementalCompilerCache: incrementalCompilerCache,
-        );
-    Stopwatch stopwatch = new Stopwatch()..start();
-    IncrementalCompilerResult? compilerResultLocal = await compilerFromScratch
-        .computeDelta(
-          entryPoints: worldTestData.entries,
-          simulateTransformer: world.simulateTransformer,
-        );
-    Component? componentLocal = compilerResultLocal.component;
-    compilerResultLocal = null;
-    compilerFromScratch = null;
-    Result<TestData>? result = _performErrorAndWarningCheck(
-      world,
-      data,
-      worldTestData,
-    );
     if (result != null) return result;
-    util.throwOnEmptyMixinBodies(componentLocal);
-    await util.throwOnInsufficientUriToSource(componentLocal);
-    print("Compile took ${stopwatch.elapsedMilliseconds} ms");
 
     print("Loaded ${incrementalCompilerCache.countLoads} dills");
 
@@ -2648,6 +2538,36 @@ class NewWorldTest {
       );
     }
 
+    return null;
+  }
+
+  Future<Result<TestData>?> _compileAndPerformChecks(
+    TestIncrementalCompiler compilerFromScratch,
+    WorldSpecificTestData worldTestData,
+    World world,
+    String printTitle,
+    NewWorldTestData newWorldTestData,
+    Set<String> prevFormattedErrors,
+    Set<String> prevFormattedWarnings,
+  ) async {
+    Stopwatch stopwatch = new Stopwatch()..start();
+    IncrementalCompilerResult? compilerResultLocal = await compilerFromScratch
+        .computeDelta(
+          entryPoints: worldTestData.entries,
+          simulateTransformer: world.simulateTransformer,
+        );
+    Component? componentLocal = compilerResultLocal.component;
+    compilerResultLocal = null;
+    Result<TestData>? result = _performErrorAndWarningCheck(
+      world,
+      data,
+      worldTestData,
+    );
+    if (result != null) return result;
+    util.throwOnEmptyMixinBodies(componentLocal);
+    await util.throwOnInsufficientUriToSource(componentLocal);
+    print("Compile took ${stopwatch.elapsedMilliseconds} ms");
+
     List<int> thisWholeComponent = util.postProcess(
       componentLocal,
       clearConstantCoverageConstructors:
@@ -2659,7 +2579,8 @@ class NewWorldTest {
           ? worldTestData.formattedErrors
           : null,
     );
-    print("*****\n\ncomponent (5):\n$componentString\n\n\n");
+
+    print("*****\n\n$printTitle:\n$componentString\n\n\n");
 
     var subtestResult = _checkExpectFile(
       data,
@@ -2684,13 +2605,42 @@ class NewWorldTest {
     );
 
     componentLocal = null;
-
-    // TODO(jensj): Verify that the below is also true here.
-
-    // For whatever reason the above introduces a "temporary leak" that
-    // awaiting something here removes.
-    await null;
     return null;
+  }
+
+  CompilerOptions _clearPrevErrorsAndCreateOptionsForCompile(
+    WorldSpecificTestData worldTestData,
+    NewWorldTestData newWorldTestData,
+    World world,
+  ) {
+    // Do compile from scratch and compare.
+    worldTestData.clearPrevErrorsEtc();
+    CompilerOptions options = _createOptionsForWorld(
+      newWorldTestData,
+      worldTestData,
+      world,
+      // The DDC target saves stuff in the target that causes leaks
+      // in this config where we've loaded a new sdk etc, so we create
+      // a new target to avoid it.
+      createNewTarget: true,
+    );
+
+    if (world.modules != null) {
+      List<Uri> additionalDillModules = [];
+      int moduleNum = 0;
+      for (String moduleName in world.modules!) {
+        moduleNum++;
+        final Uri moduleUri = newWorldTestData.base.resolve(
+          "module_$moduleNum.dill",
+        );
+        newWorldTestData.fs
+            .entityForUri(moduleUri)
+            .writeAsBytesSync(newWorldTestData.moduleData![moduleName]!);
+        additionalDillModules.add(moduleUri);
+      }
+      options.additionalDillModules = additionalDillModules;
+    }
+    return options;
   }
 
   void _loadWorldModules(
