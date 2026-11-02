@@ -158,14 +158,15 @@ void testIeeeTables<T extends FloatBits>(
   List<T> values,
   List<List<List<T>>> ieeeMin,
   List<List<List<T>>> ieeeMax,
+  T Function(T) handleSubnormal,
 ) {
   // An empty (`nans`) cell accepts any NaN. Other cells require an exact match.
-  void check(String op, FloatBits got, List<FloatBits> allowed) {
+  void check(String op, T got, List<T> allowed) {
     if (allowed.isEmpty) {
       Expect.isTrue(got.isNaN, '$name: $op was $got, expected a NaN');
     } else {
       Expect.isTrue(
-        allowed.contains(got),
+        allowed.map(handleSubnormal).contains(handleSubnormal(got)),
         '$name: $op was $got, expected one of $allowed',
       );
     }
@@ -192,11 +193,16 @@ void testAlgebra<T extends FloatBits>(
   T Function(T, T) max,
   List<T> values,
   ({T ninf, T pinf, T pnorm, T pnan}) special,
+  T Function(T) handleSubnormal,
 ) {
   final (:ninf, :pinf, :pnorm, :pnan) = special;
   // Compares bit for bit, but treats all NaNs as the same.
-  bool same(FloatBits actual, FloatBits expected) =>
-      (actual.isNaN && expected.isNaN) || actual == expected;
+  bool same(T actual, T expected) {
+    final handledActual = handleSubnormal(actual);
+    final handledExpected = handleSubnormal(expected);
+    return (handledActual.isNaN && handledExpected.isNaN) ||
+        handledActual == handledExpected;
+  }
 
   final nonNan = values.where((v) => !v.isNaN).toList();
 
@@ -288,17 +294,20 @@ void runTablesAndAlgebraExpectations<T extends FloatBits>(
   ({T ninf, T pinf, T pnorm, T pnan}) special,
   List<List<List<T>>> ieeeMin,
   List<List<List<T>>> ieeeMax,
+  T Function(T) handleSubnormal,
 ) {
   for (var lane = 0; lane < lanes; lane++) {
     final tag = lanes > 1 ? '$name lane $lane' : name;
     T _min(T a, T b) => min(a, b, lane);
     T _max(T a, T b) => max(a, b, lane);
-    testIeeeTables(tag, _min, _max, values, ieeeMin, ieeeMax);
-    testAlgebra(tag, _min, _max, values, special);
+    testIeeeTables(tag, _min, _max, values, ieeeMin, ieeeMax, handleSubnormal);
+    testAlgebra(tag, _min, _max, values, special, handleSubnormal);
   }
 }
 
 void main() {
+  T identity<T>(T x) => x;
+
   runTablesAndAlgebraExpectations(
     'dart:math',
     1,
@@ -308,9 +317,15 @@ void main() {
     float64Special,
     ieeeMinDouble,
     ieeeMaxDouble,
+    identity<Float64>,
   );
 
   {
+    // A float32 subnormal becomes the zero of the same sign. Other values are
+    // kept.
+    Float32 flushSubnormalFloat32(Float32 x) =>
+        x.isSubnormal ? Float32(x.bits & 0x80000000) : x;
+
     // The lanes go in and out as bits, so no NaN is converted.
     Float32x4 f32(Float32 v, int lane) =>
         Float32x4.fromInt32x4Bits(switch (lane) {
@@ -333,6 +348,7 @@ void main() {
       float32Special,
       ieeeMinFloat32,
       ieeeMaxFloat32,
+      subnormalsAreZero ? flushSubnormalFloat32 : identity<Float32>,
     );
   }
 
@@ -353,6 +369,7 @@ void main() {
       float64Special,
       ieeeMinDouble,
       ieeeMaxDouble,
+      identity<Float64>,
     );
   }
 }

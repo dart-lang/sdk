@@ -1,0 +1,39 @@
+//
+// Problems outside component:
+//
+// Error: Invalid package URI 'package:fruits/outside_part.dart?':
+//   Package URIs must not have a query part.
+//
+// pkg/front_end/testcases/general/part_escape_package/fruits/lib/fruits_lib.dart:5:6: Error: Not found: 'package:fruits/outside_part.dart?'
+// part '../outside_part.dart?';
+//      ^
+//
+// Error: Invalid package URI 'package:fruits/outside_lib.dart?':
+//   Package URIs must not have a query part.
+//
+// pkg/front_end/testcases/general/part_escape_package/fruits/lib/src/banana_part.dart:5:9: Error: Not found: 'package:fruits/outside_lib.dart?'
+// part of '../../outside_lib.dart?';
+//         ^
+//
+// pkg/front_end/testcases/general/part_escape_package/fruits/lib/fruits_lib.dart:5:6: Error: Can't use 'org-dartlang-untranslatable-uri:package%3Afruits%2Foutside_part.dart%3F' as a part, because it has no 'part of' declaration.
+// part '../outside_part.dart?';
+//      ^
+//
+// pkg/front_end/testcases/general/part_escape_package/fruits/lib/fruits_lib.dart:6:6: Error: Using 'pkg/front_end/testcases/general/part_escape_package/fruits/lib/src/banana_part.dart' as part of 'package:fruits/fruits_lib.dart' but its 'part of' declaration says 'package:fruits/outside_lib.dart?'.
+// part 'src/banana_part.dart';
+//      ^
+//
+// pkg/front_end/testcases/general/part_escape_package/fruits/lib/fruits_lib.dart:9:3: Error: Method not found: 'ClassA'.
+//   ClassA();
+//   ^^^^^^
+//
+library;
+import self as self;
+import "package:fruits/fruits_lib.dart" as fru;
+
+import "package:fruits/fruits_lib.dart";
+
+static method test() → dynamic {
+  fru::method();
+}
+static method main() → dynamic {}
