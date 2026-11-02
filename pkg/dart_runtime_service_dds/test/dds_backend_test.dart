@@ -23,6 +23,7 @@ class MockVmService {
   final HttpServer server;
   final int port;
   final clients = <json_rpc.Peer>[];
+  final unsupportedStreams = <String>{};
   Uri? existingDdsUri;
   int? yieldControlErrorCode;
 
@@ -77,6 +78,12 @@ class MockVmService {
       });
 
       peer.registerMethod('streamListen', (json_rpc.Parameters params) {
+        final streamId = params['streamId'].asString;
+        if (mock.unsupportedStreams.contains(streamId)) {
+          throw json_rpc.RpcException.invalidParams(
+            "streamListen: invalid 'streamId' parameter: $streamId",
+          );
+        }
         return vm.Success().toJson();
       });
 
@@ -345,6 +352,27 @@ void main() {
           ),
         ),
       );
+    });
+
+    test('getStreamHistory returns empty history when target VM rejects Timer '
+        'streamListen', () async {
+      mockVmService!.unsupportedStreams.add(vm.EventStreams.kTimer);
+      final service = await DartRuntimeService.initialize(
+        config: const DartRuntimeServiceOptions(),
+        backendBuilder: (frontend) => DartRuntimeServiceDdsBackend(
+          mockVmService!.uri,
+          frontend: frontend,
+        ),
+      );
+      addTearDown(service.shutdown);
+
+      final client = await vmServiceConnectUri(service.uri.toString());
+      addTearDown(client.dispose);
+
+      final timerHistory = await client.getStreamHistory(
+        vm.EventStreams.kTimer,
+      );
+      expect(timerHistory.history, isEmpty);
     });
 
     test('does not start DTD when serveDevTools is false', () async {

@@ -82,6 +82,10 @@ abstract class DartRuntimeServiceBackend<IM extends IsolateManager> {
   /// Invoked when [EventStreamManager.streamListen] is called and the first
   /// client has subscribed to [streamId].
   ///
+  /// Concurrent `streamListen` requests for the same unsubscribed [streamId]
+  /// share the in-flight [onStreamListen] invocation rather than calling this
+  /// method multiple times.
+  ///
   /// [params] contains all of the parameters sent as part of the
   /// `streamListen` request.
   ///
@@ -98,7 +102,18 @@ abstract class DartRuntimeServiceBackend<IM extends IsolateManager> {
   FutureOr<void> onStreamCancel({required String streamId}) {}
 
   /// Invoked when a client subscribes to [streamId].
-  void onClientSubscribe(Client client, String streamId) {}
+  ///
+  /// [params] contains all of the parameters sent as part of the
+  /// `streamListen` request.
+  ///
+  /// [client] is already subscribed to [streamId] when this is invoked, so
+  /// events may be delivered to [client] before the returned future
+  /// completes. Implementations should not throw.
+  FutureOr<void> onClientSubscribe(
+    Client client,
+    String streamId, {
+    Map<String, Object?> params = const <String, Object?>{},
+  }) {}
 
   /// Invoked when a client unsubscribes from [streamId].
   void onClientUnsubscribe(Client client, String streamId) {}
