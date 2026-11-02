@@ -7552,6 +7552,84 @@ ASSEMBLER_TEST_RUN(Vceqw, test) {
       "ret\n");
 }
 
+ASSEMBLER_TEST_GENERATE(Vcgtw, assembler) {
+  __ fldrq(V0, Address(R0, 0));
+  __ fldrq(V1, Address(R0, 16));
+  __ vcgtw(V2, V0, V1);
+  __ fstrq(V2, Address(R0, 32));
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Vcgtw, test) {
+  typedef void (*VcgtwCode)(intptr_t) DART_UNUSED;
+  struct {
+    int32_t left[4];
+    int32_t right[4];
+    int32_t result[4];
+  } buffer;
+  auto check = [&](const int32_t (&left)[4], const int32_t (&right)[4],
+                   const int32_t (&expected)[4]) {
+    for (intptr_t i = 0; i < 4; i++) {
+      buffer.left[i] = left[i];
+      buffer.right[i] = right[i];
+      buffer.result[i] = static_cast<int32_t>(0xAAAAAAAA);
+    }
+    EXECUTE_TEST_CODE_INTPTR_INTPTR(VcgtwCode, test->entry(),
+                                    reinterpret_cast<intptr_t>(&buffer));
+    for (intptr_t i = 0; i < 4; i++) {
+      EXPECT_EQ(expected[i], buffer.result[i]);
+    }
+  };
+  check({5, -6, 7, kMinInt32}, {5, 0, 3, kMaxInt32}, {0, 0, -1, 0});
+  check({5, 0, 3, kMaxInt32}, {5, -6, 7, kMinInt32}, {0, -1, 0, -1});
+  check({0, -1, kMinInt32, 1}, {-1, 0, kMaxInt32, -1}, {-1, 0, 0, -1});
+  EXPECT_DISASSEMBLY(
+      "fldrq v0, [r0]\n"
+      "fldrq v1, [r0, #16]\n"
+      "vcgtw v2, v0, v1\n"
+      "fstrq v2, [r0, #32]\n"
+      "ret\n");
+}
+
+ASSEMBLER_TEST_GENERATE(Vcgew, assembler) {
+  __ fldrq(V0, Address(R0, 0));
+  __ fldrq(V1, Address(R0, 16));
+  __ vcgew(V2, V0, V1);
+  __ fstrq(V2, Address(R0, 32));
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Vcgew, test) {
+  typedef void (*VcgewCode)(intptr_t) DART_UNUSED;
+  struct {
+    int32_t left[4];
+    int32_t right[4];
+    int32_t result[4];
+  } buffer;
+  auto check = [&](const int32_t (&left)[4], const int32_t (&right)[4],
+                   const int32_t (&expected)[4]) {
+    for (intptr_t i = 0; i < 4; i++) {
+      buffer.left[i] = left[i];
+      buffer.right[i] = right[i];
+      buffer.result[i] = static_cast<int32_t>(0xAAAAAAAA);
+    }
+    EXECUTE_TEST_CODE_INTPTR_INTPTR(VcgewCode, test->entry(),
+                                    reinterpret_cast<intptr_t>(&buffer));
+    for (intptr_t i = 0; i < 4; i++) {
+      EXPECT_EQ(expected[i], buffer.result[i]);
+    }
+  };
+  check({5, -6, 7, kMinInt32}, {5, 0, 3, kMaxInt32}, {-1, 0, -1, 0});
+  check({5, 0, 3, kMaxInt32}, {5, -6, 7, kMinInt32}, {-1, -1, 0, -1});
+  check({0, -1, kMinInt32, 1}, {-1, 0, kMaxInt32, -1}, {-1, 0, 0, -1});
+  EXPECT_DISASSEMBLY(
+      "fldrq v0, [r0]\n"
+      "fldrq v1, [r0, #16]\n"
+      "vcgew v2, v0, v1\n"
+      "fstrq v2, [r0, #32]\n"
+      "ret\n");
+}
+
 ASSEMBLER_TEST_GENERATE(Vcgts, assembler) {
   __ LoadDImmediate(V0, 42.0);
   __ LoadDImmediate(V1, -42.0);
