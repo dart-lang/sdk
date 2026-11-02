@@ -5681,7 +5681,7 @@ class AstBuilder extends StackListener {
         builder.implementsClause = implementsClause;
       } else {
         builder.implementsClause = ImplementsClauseImpl(
-          implementsKeyword: implementsClause.implementsKeyword,
+          implementsKeyword: existingClause.implementsKeyword,
           interfaces: [
             ...existingClause.interfaces,
             ...implementsClause.interfaces,
