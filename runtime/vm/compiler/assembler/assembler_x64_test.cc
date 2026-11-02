@@ -5421,6 +5421,39 @@ ASSEMBLER_TEST_RUN(Pcmpeqd, test) {
       "ret\n");
 }
 
+ASSEMBLER_TEST_GENERATE(Pcmpgtd, assembler) {
+  __ movq(RAX, CallingConventions::kArg1Reg);
+  __ movups(XMM0, Address(RAX, 0));
+  __ movups(XMM1, Address(RAX, 16));
+  __ pcmpgtd(XMM0, XMM1);
+  __ movups(Address(RAX, 32), XMM0);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Pcmpgtd, test) {
+  typedef void (*PcmpgtdCode)(int32_t* data);
+  auto check = [&](const int32_t (&left)[4], const int32_t (&right)[4],
+                   const int32_t (&expected)[4]) {
+    int32_t data[12];
+    for (intptr_t i = 0; i < 4; i++) {
+      data[i] = left[i];
+      data[4 + i] = right[i];
+      data[8 + i] = static_cast<int32_t>(0xAAAAAAAA);
+    }
+    reinterpret_cast<PcmpgtdCode>(test->entry())(data);
+    for (intptr_t i = 0; i < 4; i++) {
+      EXPECT_EQ(expected[i], data[8 + i]);
+    }
+  };
+  check({5, -6, 7, kMinInt32}, {5, 0, 3, kMaxInt32}, {0, 0, -1, 0});
+  check({5, 0, 3, kMaxInt32}, {5, -6, 7, kMinInt32}, {0, -1, 0, -1});
+  check({0, -1, kMinInt32, 1}, {-1, 0, kMaxInt32, -1}, {-1, 0, 0, -1});
+  EXPECT_DISASSEMBLY_ENDS_WITH(
+      "pcmpgtd xmm0,xmm1\n"
+      "movups [rax+0x20],xmm0\n"
+      "ret\n");
+}
+
 ASSEMBLER_TEST_GENERATE(Ptest, assembler) {
   // Zero vector: ptest sets ZF=1, so setcc(EQUAL) yields 1.
   __ xorps(XMM0, XMM0);
