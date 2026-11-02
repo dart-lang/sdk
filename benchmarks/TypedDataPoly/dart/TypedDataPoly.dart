@@ -68,6 +68,7 @@ class Monomorphic extends Base {
   @pragma('vm:never-inline')
   @pragma('wasm:never-inline')
   @pragma('dart2js:never-inline')
+  @pragma('vm:align-loops')
   static int sum(List<int> list) {
     var s = 0;
     for (int i = 0; i < list.length; i++) {
@@ -105,6 +106,7 @@ class Baseline extends Base {
   @pragma('vm:never-inline')
   @pragma('wasm:never-inline')
   @pragma('dart2js:never-inline')
+  @pragma('vm:align-loops')
   static int sum(List<int> list) {
     return list.length;
   }
@@ -145,6 +147,7 @@ class Polymorphic1 extends Base {
   @pragma('vm:never-inline')
   @pragma('wasm:never-inline')
   @pragma('dart2js:never-inline')
+  @pragma('vm:align-loops')
   static int sum(List<int> list) {
     var s = 0;
     for (int i = 0; i < list.length; i++) {
@@ -197,6 +200,7 @@ class Polymorphic2 extends Base {
   @pragma('vm:never-inline')
   @pragma('wasm:never-inline')
   @pragma('dart2js:never-inline')
+  @pragma('vm:align-loops')
   static int sum(List<int> list) {
     var s = 0;
     for (int i = 0; i < list.length; i++) {
@@ -241,6 +245,7 @@ class Polymorphic3 extends Base {
   @pragma('vm:never-inline')
   @pragma('wasm:never-inline')
   @pragma('dart2js:never-inline')
+  @pragma('vm:align-loops')
   static int sum(List<int> list) {
     var s = 0;
     for (int i = 0; i < list.length; i++) {
@@ -288,6 +293,7 @@ class Polymorphic4 extends Base {
   @pragma('vm:never-inline')
   @pragma('wasm:never-inline')
   @pragma('dart2js:never-inline')
+  @pragma('vm:align-loops')
   static int sum(List<int> list) {
     var s = 0;
     for (int i = 0; i < list.length; i++) {
@@ -392,6 +398,7 @@ class Polymorphic5 extends Base {
   @pragma('vm:never-inline')
   @pragma('wasm:never-inline')
   @pragma('dart2js:never-inline')
+  @pragma('vm:align-loops')
   static int sum(List<int> list) {
     var s = 0;
     for (int i = 0; i < list.length; i++) {
