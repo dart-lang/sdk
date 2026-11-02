@@ -2364,6 +2364,15 @@ class Parser {
         beforeInlineFunctionType == null) {
       nameToken = token.next!;
       listener.handleNoName(nameToken);
+    } else if (identical(token, beforeInlineFunctionType)) {
+      // The name is missing before the inline function type, as in
+      // `f(<T>())`; [ensureIdentifier] would insert it after the `<`.
+      nameToken = token = insertSyntheticIdentifier(
+        token,
+        nameContext,
+        message: diag.expectedIdentifier.withArguments(lexeme: token.next!),
+      );
+      listener.handleIdentifier(nameToken, nameContext);
     } else {
       nameToken = token = ensureIdentifier(token, nameContext);
     }
