@@ -7577,16 +7577,18 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     // When evaluating exactly a dot shorthand in the RHS, we use the LHS type
     // to provide the context type for the shorthand.
-    DartType rightTypeContext =
-        right is DotShorthand &&
-            leftType is! InvalidType &&
-            leftType is! DynamicType &&
-            leftType is! VoidType
-        ? leftType
-        : const UnknownType();
+    if (right is DotShorthand &&
+        leftType is! InvalidType &&
+        leftType is! DynamicType &&
+        leftType is! VoidType) {
+      pushDotShorthandContext(
+        right.innerExpression,
+        new SharedTypeSchemaView(leftType),
+      );
+    }
     ExpressionInferenceResult rightResult = inferExpression(
       right,
-      rightTypeContext,
+      const UnknownType(),
       isVoidAllowed: false,
     );
 
