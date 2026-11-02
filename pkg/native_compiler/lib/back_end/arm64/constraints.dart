@@ -681,6 +681,14 @@ final class Arm64Constraints extends Constraints {
           const [anyCpuRegister],
           instr.right.canBeZero ? Safepoint() : null,
         ),
+        .shiftLeft ||
+        .shiftRight ||
+        .unsignedShiftRight => InstructionConstraints(
+          anyCpuRegister,
+          [anyCpuRegister, anyRegisterOrImmediate(instr.right)],
+          const [],
+          instr.right.canBeNegative ? Safepoint() : null,
+        ),
         _ => InstructionConstraints(anyCpuRegister, [
           anyCpuRegister,
           anyRegisterOrImmediate(instr.right),

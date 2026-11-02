@@ -135,8 +135,13 @@ final class Arm64StackFrame extends StackFrame {
       case SubtypeCheck():
         return 6; // Result + 5 arguments for SubtypeCheck call.
       case BinaryIntOp(:var op)
-          when op == .truncatingDiv || op == .mod || op == .rem:
-        return 1; // Result for IntegerDivisionByZeroException runtime call.
+          when op == .truncatingDiv ||
+              op == .mod ||
+              op == .rem ||
+              op == .shiftLeft ||
+              op == .shiftRight ||
+              op == .unsignedShiftRight:
+        return 1; // Result for IntegerDivisionByZeroException/ArgumentErrorUnboxedInt64 runtime call.
       case UnaryDoubleOp(:var op)
           when op == .round || op == .floor || op == .ceil || op == .truncate:
         return 2; // Result + 1 argument for UnsupportedError runtime call.
