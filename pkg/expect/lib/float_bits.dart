@@ -7,6 +7,12 @@ library;
 
 import 'dart:typed_data';
 
+import 'config.dart' show isArm32Configuration;
+
+/// Whether Float32x4 operations may flush subnormals to zero, as AArch32 NEON
+/// does.
+bool get subnormalsAreZero => isArm32Configuration;
+
 /// An IEEE-754 bit pattern of some width, [Float64] or [Float32].
 ///
 /// Two bit patterns are equal when they have the same width and the same bits,
@@ -15,9 +21,17 @@ sealed class FloatBits {
   /// Materializes these bits as a Dart [double].
   double toDouble();
 
-  /// Whether all exponent bits are set and the fraction is not zero, which is
-  /// how IEEE-754 defines a NaN.
+  /// Whether the number is a NaN (Not-a-Number) value.
+  ///
+  /// IEEE-754 NaNs are values with all exponent bits set and at least one
+  /// mantissa bit set.
   bool get isNaN;
+
+  /// Whether the number is a subnormal.
+  ///
+  /// IEEE-754 subnormals are values other than zero which have all exponent
+  /// bits cleared.
+  bool get isSubnormal;
 
   /// The short name of the constant with these bits, or the bits if there is
   /// none, since `-0.0` against `0.0` and one NaN against another print the
@@ -115,13 +129,26 @@ final class const Float64(final int high, final int low) implements FloatBits {
             ..setUint32(0, low, .little))
           .getFloat64(0, .little);
 
+  int get _exponent => high & 0x7FF00000;
+
+  int get _fractionHigh => high & 0x000FFFFF;
+
   @override
   bool get isNaN {
     // A NaN has all 11 exponent bits set.
-    final exponentAllOnes = (high & 0x7FF00000) == 0x7FF00000;
+    final exponentAllOnes = _exponent == 0x7FF00000;
     // A nonzero fraction tells it apart from an infinity.
-    final fractionNonZero = ((high & 0x000FFFFF) | low) != 0;
+    final fractionNonZero = (_fractionHigh | low) != 0;
     return exponentAllOnes && fractionNonZero;
+  }
+
+  @override
+  bool get isSubnormal {
+    // A subnormal has all 11 exponent bits clear.
+    final exponentAllZeros = _exponent == 0;
+    // A nonzero fraction tells it apart from a zero.
+    final fractionNonZero = (_fractionHigh | low) != 0;
+    return exponentAllZeros && fractionNonZero;
   }
 
   @override
@@ -241,13 +268,26 @@ final class const Float32(final int bits) implements FloatBits {
   double toDouble() =>
       (ByteData(4)..setUint32(0, bits, .little)).getFloat32(0, .little);
 
+  int get _exponent => bits & 0x7F800000;
+
+  int get _fraction => bits & 0x007FFFFF;
+
   @override
   bool get isNaN {
     // A NaN has all 8 exponent bits set.
-    final exponentAllOnes = (bits & 0x7F800000) == 0x7F800000;
+    final exponentAllOnes = _exponent == 0x7F800000;
     // A nonzero fraction tells it apart from an infinity.
-    final fractionNonZero = (bits & 0x007FFFFF) != 0;
+    final fractionNonZero = _fraction != 0;
     return exponentAllOnes && fractionNonZero;
+  }
+
+  @override
+  bool get isSubnormal {
+    // A subnormal has all 8 exponent bits clear.
+    final exponentAllZeros = _exponent == 0;
+    // A nonzero fraction tells it apart from a zero.
+    final fractionNonZero = _fraction != 0;
+    return exponentAllZeros && fractionNonZero;
   }
 
   @override
