@@ -818,12 +818,12 @@ class FragmentFactoryImpl implements FragmentFactory {
       charOffset,
       isPart: true,
     );
-    // To support absolute paths from within packages in the part uri, we try to
-    // translate the file uri from the resolved import uri before resolving
+    // To support absolute paths from within packages in the part uri, we let
+    // the loader translate the resolved package import uri instead of resolving
     // through the file uri of this library. See issue #52964.
-    Uri newFileUri =
-        loader.target.uriTranslator.translate(resolvedUri) ??
-        _resolve(_compilationUnit.fileUri, uri, charOffset);
+    Uri? newFileUri = resolvedUri.isScheme("package")
+        ? null
+        : _resolve(_compilationUnit.fileUri, uri, charOffset);
     CompilationUnit compilationUnit = loader.read(
       resolvedUri,
       charOffset,
@@ -844,8 +844,11 @@ class FragmentFactoryImpl implements FragmentFactory {
     );
 
     // TODO(ahe): [metadata] should be stored, evaluated, and added to [part].
-    LibraryPart part = new LibraryPart(<Expression>[], uri, newFileUri)
-      ..fileOffset = charOffset;
+    LibraryPart part = new LibraryPart(
+      <Expression>[],
+      uri,
+      compilationUnit.fileUri,
+    )..fileOffset = charOffset;
     _compilationUnitRegistry.registerLibraryPart(part);
     offsetMap.registerPart(partKeyword, part);
   }
@@ -883,11 +886,11 @@ class FragmentFactoryImpl implements FragmentFactory {
   }) {
     Uri resolvedUri = _resolve(_compilationUnit.importUri, uri, uriOffset);
     // To support absolute paths from within packages in the part of uri, we
-    // try to translate the file uri from the resolved import uri before
+    // let the loader translate the resolved package import uri instead of
     // resolving through the file uri of this library. See issue #52964.
-    Uri newFileUri =
-        loader.target.uriTranslator.translate(resolvedUri) ??
-        _resolve(_compilationUnit.fileUri, uri, uriOffset);
+    Uri? newFileUri = resolvedUri.isScheme("package")
+        ? null
+        : _resolve(_compilationUnit.fileUri, uri, uriOffset);
     loader.read(
       resolvedUri,
       uriOffset,

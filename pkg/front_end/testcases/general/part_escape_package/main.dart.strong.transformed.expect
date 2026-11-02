@@ -1,0 +1,10 @@
+library;
+import self as self;
+import "package:fruits/fruits_lib.dart" as fru;
+
+import "package:fruits/fruits_lib.dart";
+
+static method test() → dynamic {
+  fru::method();
+}
+static method main() → dynamic {}
