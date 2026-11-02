@@ -2454,7 +2454,11 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     endLine(';');
   }
 
-  void writeBlockBody(List<Statement> statements, {bool asExpression = false}) {
+  void writeBlockBody(
+    List<Statement> statements, {
+    bool asExpression = false,
+    int? fileEndOffset,
+  }) {
     if (statements.isEmpty) {
       asExpression ? writeSymbol('{}') : endLine('{}');
       return;
@@ -2463,6 +2467,9 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     ++indentation;
     statements.forEach(writeNode);
     --indentation;
+    if (showOffsets && fileEndOffset != null) {
+      writeWord("[${fileEndOffset}]");
+    }
     writeIndentation();
     asExpression ? writeSymbol('}') : endLine('}');
   }
@@ -2473,7 +2480,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     if (node.scope case Scope scope?) {
       writeScope(scope);
     }
-    writeBlockBody(node.statements);
+    writeBlockBody(node.statements, fileEndOffset: node.fileEndOffset);
   }
 
   @override

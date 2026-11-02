@@ -8605,6 +8605,7 @@ class CloneContextInstr : public TemplateDefinition<1, Throws> {
   DECLARE_INSTRUCTION(CloneContext)
   virtual CompileType ComputeType() const;
 
+  virtual bool CanBecomeDeoptimizationTarget() const { return true; }
   virtual bool ComputeCanDeoptimize() const { return false; }
   virtual bool ComputeCanDeoptimizeAfterCall() const {
     // We test that allocation instructions have correct deopt environment
