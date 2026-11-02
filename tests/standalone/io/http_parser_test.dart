@@ -684,6 +684,29 @@ Content-Length: 38\r
 GET /admin HTTP/1.1\r\nHost: backend\r\n\r\n""";
     _testParseInvalidRequest(request);
 
+    // The only whitespace allowed around a transfer coding is OWS, i.e. SP and
+    // HTAB (RFC 9110 section 5.6.3). A coding padded with any other byte is not
+    // "chunked", so the coding list has no final chunked and the request must
+    // be rejected. These bytes (U+000B, U+000C, U+0085, U+00A0) are stripped by
+    // String.trim(), which previously let them pass as chunked and disagree
+    // with an upstream that frames the request by Content-Length.
+    for (var padding in ["\x0b", "\x0c", "\x85", "\xa0"]) {
+      for (var coding in [
+        "${padding}chunked",
+        "chunked$padding",
+        "gzip, ${padding}chunked",
+      ]) {
+        request =
+            """
+POST /test HTTP/1.1\r
+Transfer-Encoding: $coding\r
+Content-Length: 38\r
+\r
+GET /admin HTTP/1.1\r\nHost: backend\r\n\r\n""";
+        _testParseInvalidRequest(request);
+      }
+    }
+
     // RFC 7230 section 3.2.2 lets recipients combine multiple header lines
     // with the same field name into one comma-separated value. So a request
     // that splits Transfer-Encoding across two lines, ending in chunked,

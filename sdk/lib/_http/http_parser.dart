@@ -787,7 +787,14 @@ class _HttpParser extends Stream<_HttpIncoming> {
               // is malformed. This will be validated in _headersEnd.
               List<String> tokens = _tokenizeFieldValue(headerValue);
               if (tokens.isNotEmpty) {
-                _chunked = tokens.last.trim().toLowerCase() == "chunked";
+                // _tokenizeFieldValue already strips the only whitespace
+                // allowed around a transfer coding, the OWS (SP / HTAB) of
+                // RFC 9110 section 5.6.3. Do not use String.trim() here: it
+                // also strips Unicode whitespace such as U+000B, U+000C,
+                // U+0085 and U+00A0, which would make e.g. "\u000bchunked" be
+                // treated as chunked while an upstream applying the OWS rule
+                // treats it as an unknown coding, allowing a CL/TE desync.
+                _chunked = tokens.last.toLowerCase() == "chunked";
               }
               _contentLength = false;
             }
