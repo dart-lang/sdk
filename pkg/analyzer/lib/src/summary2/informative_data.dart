@@ -46,16 +46,18 @@ class InformativeDataApplier {
     if (elementFactory.isApplyingInformativeData) {
       throw StateError('Unexpected recursion.');
     }
+
     elementFactory.isApplyingInformativeData = true;
-
-    for (var libraryFragment in libraryElement.internal.fragments) {
-      var uri = libraryFragment.source.uri;
-      if (unitsInformativeBytes[uri] case var infoBytes?) {
-        _applyFromBytes(libraryFragment, infoBytes);
+    try {
+      for (var libraryFragment in libraryElement.internal.fragments) {
+        var uri = libraryFragment.source.uri;
+        if (unitsInformativeBytes[uri] case var infoBytes?) {
+          _applyFromBytes(libraryFragment, infoBytes);
+        }
       }
+    } finally {
+      elementFactory.isApplyingInformativeData = false;
     }
-
-    elementFactory.isApplyingInformativeData = false;
   }
 
   void _applyFromBytes(
