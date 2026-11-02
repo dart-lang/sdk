@@ -174,7 +174,10 @@ class _Random implements Random {
   // Use a singleton Random object to get a new seed if no seed was passed.
   static final _prng = _Random._withState(_initialSeed());
 
-  static int _setupSeed(int seed) => mix64(seed);
+  static int _setupSeed(int seed) {
+    final state = mix64(seed);
+    return state == 0 ? 0x5a17 : state;
+  }
 
   external static int _initialSeed();
 
