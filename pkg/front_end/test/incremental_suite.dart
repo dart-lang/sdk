@@ -192,6 +192,14 @@ const String EXPECTATIONS = '''
   {
     "name": "ConstantCoverageReferenceWithoutNode",
     "group": "Fail"
+  },
+  {
+    "name": "ErrorOnCompileViaExperimentalCache",
+    "group": "Fail"
+  },
+  {
+    "name": "ErrorOnCompileFromScratch",
+    "group": "Fail"
   }
 ]
 ''';
@@ -229,6 +237,10 @@ final Expectation NeededDillMismatch =
     staticExpectationSet["NeededDillMismatch"];
 final Expectation ReachableLibrariesError =
     staticExpectationSet["ReachableLibrariesError"];
+final Expectation ErrorOnCompileViaExperimentalCache =
+    staticExpectationSet["ErrorOnCompileViaExperimentalCache"];
+final Expectation ErrorOnCompileFromScratch =
+    staticExpectationSet["ErrorOnCompileFromScratch"];
 
 final ExpectationSet staticExpectationSet = new ExpectationSet.fromJsonList(
   jsonDecode(EXPECTATIONS),
@@ -922,7 +934,7 @@ class NewWorldTest {
             : null,
       );
       print(
-        "*****\n\ncomponent:\n"
+        "*****\n\ncomponent (first compile):\n"
         "${actualSerialized}\n\n\n",
       );
       subtestResult = _checkExpectFile(
@@ -1139,6 +1151,17 @@ class NewWorldTest {
         incrementalCompilerCache,
       );
       if (subtestResult != null) return subtestResult;
+
+      if (!world.skipCompileFromScratch) {
+        subtestResult = await _compileFromScratch(
+          world,
+          worldTestData,
+          newWorldTestData,
+          prevFormattedErrors,
+          prevFormattedWarnings,
+        );
+        if (subtestResult != null) return subtestResult;
+      }
 
       // Dummy tree nodes can (currently) leak though the parent pointer.
       // To avoid that (here) (for leak testing) we'll null them out.
@@ -1974,7 +1997,11 @@ class NewWorldTest {
             ? worldTestData.formattedErrors
             : null,
       );
-      print("*****\n\ncomponent (3):\n$componentLocalString\n\n\n");
+      print(
+        "*****\n\ncomponent (compile from scratch incremental "
+        "serialization or opt-in)):\n"
+        "$componentLocalString\n\n\n",
+      );
       checkIsEqual(
         newWorldTestData.newestWholeComponentData!,
         thisWholeComponent,
@@ -2126,7 +2153,10 @@ class NewWorldTest {
             ? worldTestData.formattedErrors
             : null,
       );
-      print("*****\n\ncomponent2:\n$component2String\n\n\n");
+      print(
+        "*****\n\ncomponent (compile to full component):\n"
+        "$component2String\n\n\n",
+      );
       checkIsEqual(
         newWorldTestData.newestWholeComponentData!,
         thisWholeComponent,
@@ -2456,7 +2486,7 @@ class NewWorldTest {
         ),
         worldTestData,
         world,
-        "component (4)",
+        "component (compile with load modules via additional dill modules)",
         newWorldTestData,
         prevFormattedErrors,
         prevFormattedWarnings,
@@ -2497,13 +2527,19 @@ class NewWorldTest {
       ),
       worldTestData,
       world,
-      "component (5)",
+      "component (compile via experimental cache)",
       newWorldTestData,
       prevFormattedErrors,
       prevFormattedWarnings,
     );
 
-    if (result != null) return result;
+    if (result != null) {
+      return new Result<TestData>(
+        data,
+        ErrorOnCompileViaExperimentalCache,
+        "Error on compiling via experimental cache: ${result.error}.",
+      );
+    }
 
     print("Loaded ${incrementalCompilerCache.countLoads} dills");
 
@@ -2538,6 +2574,43 @@ class NewWorldTest {
       );
     }
 
+    return null;
+  }
+
+  Future<Result<TestData>?> _compileFromScratch(
+    World world,
+    WorldSpecificTestData worldTestData,
+    NewWorldTestData newWorldTestData,
+    Set<String> prevFormattedErrors,
+    Set<String> prevFormattedWarnings,
+  ) async {
+    if (world.outlineOnly) return null;
+    if (incrementalSerialization) return null;
+    if (world.noFullComponent) return null;
+
+    Result<TestData>? result = await _compileAndPerformChecks(
+      new TestIncrementalCompiler(
+        _clearPrevErrorsAndCreateOptionsForCompile(
+          worldTestData,
+          newWorldTestData,
+          world,
+        ),
+        worldTestData.entries.first,
+      ),
+      worldTestData,
+      world,
+      "component (compile from scratch)",
+      newWorldTestData,
+      prevFormattedErrors,
+      prevFormattedWarnings,
+    );
+    if (result != null) {
+      return new Result<TestData>(
+        data,
+        ErrorOnCompileFromScratch,
+        "Error on compiling from scratch: ${result.error}.",
+      );
+    }
     return null;
   }
 
@@ -2582,7 +2655,7 @@ class NewWorldTest {
 
     print("*****\n\n$printTitle:\n$componentString\n\n\n");
 
-    var subtestResult = _checkExpectFile(
+    Result<TestData>? subtestResult = _checkExpectFile(
       data,
       newWorldTestData.worldNum,
       "",
@@ -3378,6 +3451,7 @@ class World {
   final bool printErrorsInExpect;
   final bool reject;
   final bool clearConstantCoverageConstructors;
+  final bool skipCompileFromScratch;
 
   /// The expected result of the advanced invalidation.
   final AdvancedInvalidationResult advancedInvalidation;
@@ -3448,6 +3522,7 @@ class World {
     required this.printErrorsInExpect,
     required this.reject,
     required this.clearConstantCoverageConstructors,
+    required this.skipCompileFromScratch,
   });
 
   static World create(Map world) {
@@ -3627,6 +3702,11 @@ class World {
         .clearConstantCoverageConstructors
         .read(world, keys);
 
+    bool skipCompileFromScratch = WorldProperties.skipCompileFromScratch.read(
+      world,
+      keys,
+    );
+
     if (keys.isNotEmpty) {
       throw "Unknown key(s) for World: $keys";
     }
@@ -3681,6 +3761,7 @@ class World {
       printErrorsInExpect: printErrorsInExpect,
       reject: reject,
       clearConstantCoverageConstructors: clearConstantCoverageConstructors,
+      skipCompileFromScratch: skipCompileFromScratch,
     );
   }
 }
@@ -3978,6 +4059,16 @@ class WorldProperties {
         BoolValue(),
         defaultValue: false,
       );
+
+  /// If true we skip the compile from scratch.
+  /// This can for instance be needed in some cases where a compile from scratch
+  /// sees a different world and/or has less information than an incremental
+  /// compile.
+  static const Property<bool> skipCompileFromScratch = Property.optional(
+    'skipCompileFromScratch',
+    BoolValue(),
+    defaultValue: false,
+  );
 }
 
 class WorldSpecificTestData {
