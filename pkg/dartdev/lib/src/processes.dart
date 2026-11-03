@@ -53,7 +53,8 @@ class ProcessInfo {
     }
   }
 
-  static ProcessInfo? _parseLinux(String line, {bool elideFilePaths = true}) {
+  @visibleForTesting
+  static ProcessInfo? parseLinux(String line, {bool elideFilePaths = true}) {
     // "33712   0.0 01-19:07:19 launchd ..."
     line = line.replaceAll(wsRegex, ' ');
 
@@ -260,7 +261,7 @@ List<ProcessInfo> _getProcessInfoLinux({bool elideFilePaths = true}) {
       .map((line) => line.trim())
       .where((line) => line.isNotEmpty)
       .map(
-        (line) => ProcessInfo._parseLinux(line, elideFilePaths: elideFilePaths),
+        (line) => ProcessInfo.parseLinux(line, elideFilePaths: elideFilePaths),
       )
       .whereType<ProcessInfo>()
       .where(_isProcessDartRelated)
