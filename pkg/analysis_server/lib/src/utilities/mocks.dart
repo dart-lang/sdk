@@ -286,6 +286,7 @@ class TestPluginManager(final ResourceProvider resourceProvider)
   Map<PluginIsolate, Future<plugin.Response>>? Function(plugin.RequestParams)?
   handleRequest;
   Map<analyzer.ContextRoot, List<String>> contextRootPlugins = {};
+  File? Function(Folder pluginFolder)? onResolvePackageConfig;
 
   @override
   List<PluginIsolate> pluginIsolates = [];
@@ -360,6 +361,17 @@ class TestPluginManager(final ResourceProvider resourceProvider)
   @override
   void removedContextRoot(analyzer.ContextRoot contextRoot) {
     contextRootPlugins.remove(contextRoot);
+  }
+
+  @override
+  File? resolvePackageConfig(Folder pluginFolder) {
+    if (onResolvePackageConfig case var callback?) {
+      return callback(pluginFolder);
+    }
+    var packageConfigFile = pluginFolder
+        .getFolder('.dart_tool')
+        .getFile('package_config.json');
+    return packageConfigFile.exists ? packageConfigFile : null;
   }
 
   @override

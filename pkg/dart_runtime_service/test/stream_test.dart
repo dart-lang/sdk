@@ -248,15 +248,37 @@ void main() {
         final listen2 = client2
             .streamListen(HelloWorldEvent.kStreamId)
             .then((_) => listen2Completed = true);
-        await backend.waitForListenCount(HelloWorldEvent.kStreamId, 2);
+        await client2.callMethod('getClientName');
+        await pumpEventQueue();
 
         expect(listen1Completed, isFalse);
         expect(listen2Completed, isFalse);
+        expect(
+          backend.onStreamListenCountByStream[HelloWorldEvent.kStreamId],
+          1,
+        );
 
         // Subscriptions to other streams should not be blocked by the in-flight
         // subscription on HelloWorldEvent.kStreamId.
         await client1.streamListen(EventStreams.kService);
         expect(backend.onStreamListenCountByStream[EventStreams.kService], 1);
+
+        final client1Events = <Event>[];
+        final client2Events = <Event>[];
+        final client1EventCompleter = Completer<void>();
+        final client2EventCompleter = Completer<void>();
+        client1.onEvent(HelloWorldEvent.kStreamId).listen((event) {
+          client1Events.add(event);
+          if (!client1EventCompleter.isCompleted) {
+            client1EventCompleter.complete();
+          }
+        });
+        client2.onEvent(HelloWorldEvent.kStreamId).listen((event) {
+          client2Events.add(event);
+          if (!client2EventCompleter.isCompleted) {
+            client2EventCompleter.complete();
+          }
+        });
 
         backend.onStreamListenCompleters[HelloWorldEvent.kStreamId]!.complete(
           true,
@@ -266,12 +288,25 @@ void main() {
         expect(listen1Completed, isTrue);
         expect(listen2Completed, isTrue);
         expect(
+          backend.onStreamListenCountByStream[HelloWorldEvent.kStreamId],
+          1,
+        );
+        expect(
           service
               .eventStreamManager
               .streamListeners[HelloWorldEvent.kStreamId]
               ?.length,
           2,
         );
+
+        HelloWorldEvent().send(eventStreamMethods: service.eventStreamManager);
+        await Future.wait([
+          client1EventCompleter.future,
+          client2EventCompleter.future,
+        ]);
+        await pumpEventQueue();
+        expect(client1Events, hasLength(1));
+        expect(client2Events, hasLength(1));
       },
     );
 
@@ -301,17 +336,26 @@ void main() {
         client2.streamListen(HelloWorldEvent.kStreamId),
         throwsInvalidParamsRPCError,
       );
-      await backend.waitForListenCount(HelloWorldEvent.kStreamId, 2);
+      await client2.callMethod('getClientName');
+      await pumpEventQueue();
+      expect(backend.onStreamListenCountByStream[HelloWorldEvent.kStreamId], 1);
 
       backend.onStreamListenCompleters[HelloWorldEvent.kStreamId]!.complete(
         false,
       );
       await Future.wait([listen1, listen2]);
 
+      expect(backend.onStreamListenCountByStream[HelloWorldEvent.kStreamId], 1);
       expect(
         service.eventStreamManager.streamListeners[HelloWorldEvent.kStreamId],
         isNull,
       );
+
+      // Verify that the failed pending listen was cleared so a subsequent
+      // streamListen invokes onStreamListen again.
+      backend.onStreamListenCompleters.remove(HelloWorldEvent.kStreamId);
+      await client1.streamListen(HelloWorldEvent.kStreamId);
+      expect(backend.onStreamListenCountByStream[HelloWorldEvent.kStreamId], 2);
     });
 
     test('BinaryStreamEvent.fromData parses streamId and payload', () {

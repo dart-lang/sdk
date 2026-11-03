@@ -1,0 +1,9 @@
+class Foo<T> {
+  Foo();
+  @override
+  bool operator ==(Object other) => other is Foo<T>;
+  static Foo<T> bounded<T extends String>() => Foo<T>();
+  static Foo<T> of<T>(T value) => Foo<T>();
+}
+
+void test() {}

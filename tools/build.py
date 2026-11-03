@@ -344,6 +344,9 @@ def Main():
         env.pop('LIBRARY_PATH', None)
         env.pop('SDKROOT', None)
 
+    if 'SISO_LIMITS' not in env:
+        env['SISO_LIMITS'] = 'fastlocal=%s' % HOST_CPUS
+
     # Always run GN before building.
     gn_py.RunGnOnConfiguredConfigurations(options, env)
 

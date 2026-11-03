@@ -235,39 +235,39 @@ class A implements B implements C, D {}
 CompilationUnit
   declarations2
     ClassDeclaration2
-      classKeyword: class
+      classKeyword: class @0
       namePart: NameWithTypeParameters
-        typeName: A
+        typeName: A @6
       implementsClause: ImplementsClause
-        implementsKeyword: implements
+        implementsKeyword: implements @8
         interfaces
           NamedType
-            name: B
+            name: B @19
           NamedType
-            name: C
+            name: C @32
           NamedType
-            name: D
+            name: D @35
       body: BlockInstanceDeclarationBody
-        leftBracket: {
-        rightBracket: }
+        leftBracket: { @37
+        rightBracket: } @38
   declarations(v1)
     ClassDeclaration
-      classKeyword: class
+      classKeyword: class @0
       namePart: NameWithTypeParameters
-        typeName: A
+        typeName: A @6
       implementsClause: ImplementsClause
-        implementsKeyword: implements
+        implementsKeyword: implements @8
         interfaces
           NamedType
-            name: B
+            name: B @19
           NamedType
-            name: C
+            name: C @32
           NamedType
-            name: D
+            name: D @35
       body: BlockClassBody
-        leftBracket: {
-        rightBracket: }
-''');
+        leftBracket: { @37
+        rightBracket: } @38
+''', withOffsets: true);
   }
 
   void test_multipleWith() {
@@ -282,47 +282,47 @@ class A extends B with C, D with E {}
 CompilationUnit
   declarations2
     ClassDeclaration2
-      classKeyword: class
+      classKeyword: class @0
       namePart: NameWithTypeParameters
-        typeName: A
+        typeName: A @6
       extendsClause: ExtendsClause
-        extendsKeyword: extends
+        extendsKeyword: extends @8
         superclass: NamedType
-          name: B
+          name: B @16
       withClause: WithClause
-        withKeyword: with
+        withKeyword: with @18
         mixinTypes
           NamedType
-            name: C
+            name: C @23
           NamedType
-            name: D
+            name: D @26
           NamedType
-            name: E
+            name: E @33
       body: BlockInstanceDeclarationBody
-        leftBracket: {
-        rightBracket: }
+        leftBracket: { @35
+        rightBracket: } @36
   declarations(v1)
     ClassDeclaration
-      classKeyword: class
+      classKeyword: class @0
       namePart: NameWithTypeParameters
-        typeName: A
+        typeName: A @6
       extendsClause: ExtendsClause
-        extendsKeyword: extends
+        extendsKeyword: extends @8
         superclass: NamedType
-          name: B
+          name: B @16
       withClause: WithClause
-        withKeyword: with
+        withKeyword: with @18
         mixinTypes
           NamedType
-            name: C
+            name: C @23
           NamedType
-            name: D
+            name: D @26
           NamedType
-            name: E
+            name: E @33
       body: BlockClassBody
-        leftBracket: {
-        rightBracket: }
-''');
+        leftBracket: { @35
+        rightBracket: } @36
+''', withOffsets: true);
   }
 
   void test_typing_extends() {
@@ -1222,37 +1222,37 @@ mixin A implements B implements C, D {}
 CompilationUnit
   declarations2
     MixinDeclaration2
-      mixinKeyword: mixin
-      name: A
+      mixinKeyword: mixin @0
+      name: A @6
       implementsClause: ImplementsClause
-        implementsKeyword: implements
+        implementsKeyword: implements @8
         interfaces
           NamedType
-            name: B
+            name: B @19
           NamedType
-            name: C
+            name: C @32
           NamedType
-            name: D
+            name: D @35
       body: BlockInstanceDeclarationBody
-        leftBracket: {
-        rightBracket: }
+        leftBracket: { @37
+        rightBracket: } @38
   declarations(v1)
     MixinDeclaration
-      mixinKeyword: mixin
-      name: A
+      mixinKeyword: mixin @0
+      name: A @6
       implementsClause: ImplementsClause
-        implementsKeyword: implements
+        implementsKeyword: implements @8
         interfaces
           NamedType
-            name: B
+            name: B @19
           NamedType
-            name: C
+            name: C @32
           NamedType
-            name: D
+            name: D @35
       body: BlockClassBody
-        leftBracket: {
-        rightBracket: }
-''');
+        leftBracket: { @37
+        rightBracket: } @38
+''', withOffsets: true);
   }
 
   void test_multipleOn() {
@@ -1267,33 +1267,33 @@ mixin A on B on C {}
 CompilationUnit
   declarations2
     MixinDeclaration2
-      mixinKeyword: mixin
-      name: A
+      mixinKeyword: mixin @0
+      name: A @6
       onClause: MixinOnClause
-        onKeyword: on
+        onKeyword: on @8
         superclassConstraints
           NamedType
-            name: B
+            name: B @11
           NamedType
-            name: C
+            name: C @16
       body: BlockInstanceDeclarationBody
-        leftBracket: {
-        rightBracket: }
+        leftBracket: { @18
+        rightBracket: } @19
   declarations(v1)
     MixinDeclaration
-      mixinKeyword: mixin
-      name: A
+      mixinKeyword: mixin @0
+      name: A @6
       onClause: MixinOnClause
-        onKeyword: on
+        onKeyword: on @8
         superclassConstraints
           NamedType
-            name: B
+            name: B @11
           NamedType
-            name: C
+            name: C @16
       body: BlockClassBody
-        leftBracket: {
-        rightBracket: }
-''');
+        leftBracket: { @18
+        rightBracket: } @19
+''', withOffsets: true);
   }
 
   void test_typing_implements() {

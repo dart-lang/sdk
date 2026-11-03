@@ -380,9 +380,11 @@ class DartRuntimeServiceDdsBackend
   Future<void> onServerShutdown() async {}
 
   @override
-  void onClientSubscribe(Client client, String streamId) {
-    streamManager.onClientSubscribe(client, streamId);
-  }
+  Future<void> onClientSubscribe(
+    Client client,
+    String streamId, {
+    Map<String, Object?> params = const <String, Object?>{},
+  }) => streamManager.onClientSubscribe(client, streamId, params: params);
 
   @override
   Future<bool> onStreamListen({

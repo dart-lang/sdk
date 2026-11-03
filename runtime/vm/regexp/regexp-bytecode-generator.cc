@@ -155,8 +155,9 @@ auto RegExpBytecodeWriter::GetCheckedBasicOperandValue(T value) {
   } else {
     static_assert(std::is_convertible_v<T, CType>);
   }
-  DCHECK_GE(value, Traits::kMinValue);
-  DCHECK_LE(value, Traits::kMaxValue);
+  // Avoid silent truncation.
+  CHECK_GE(value, Traits::kMinValue);
+  CHECK_LE(value, Traits::kMaxValue);
   return static_cast<CType>(value);
 }
 
@@ -365,9 +366,25 @@ void RegExpBytecodeGenerator::LoadCurrentCharacterImpl(int cp_offset,
                                                        int eats_at_least) {
   DCHECK_GE(eats_at_least, characters);
   if (eats_at_least > characters && check_bounds) {
-    Emit<RegExpBytecode::kCheckPosition>(cp_offset + eats_at_least - 1,
-                                         on_failure);
-    check_bounds = false;  // Load below doesn't need to check.
+    // eats_at_least + cp_offset can overflow ReBcOpType::kOffset.
+    // Only emit this optimization if the computed value fits into the expected
+    // range for the CheckPosition BC.
+    using CheckPositionOps =
+        RegExpBytecodeOperands<RegExpBytecode::kCheckPosition>;
+    using CheckPositionNames =
+        detail::RegExpBytecodeOperandNames<RegExpBytecode::kCheckPosition>;
+    using OffsetTraits = RegExpOperandTypeTraits<CheckPositionOps::Type(
+        CheckPositionNames::cp_offset)>;
+    // Avoid possible overflow by widening to int64_t.
+    static_assert(sizeof(int) < sizeof(int64_t));
+    const int64_t total_offset =
+        static_cast<int64_t>(cp_offset) + eats_at_least - 1;
+    if (base::IsInRange(total_offset, OffsetTraits::kMinValue,
+                        OffsetTraits::kMaxValue)) {
+      Emit<RegExpBytecode::kCheckPosition>(
+          static_cast<OffsetTraits::kCType>(total_offset), on_failure);
+      check_bounds = false;  // Load below doesn't need to check.
+    }
   }
 
   CHECK(base::IsInRange(cp_offset, kMinCPOffset, kMaxCPOffset));

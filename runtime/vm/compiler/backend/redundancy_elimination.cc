@@ -4862,6 +4862,7 @@ void TryCatchAnalyzer::Optimize() {
     catch_entry->initial_definitions()->Clear();
     catch_entry->initial_definitions()->AddArray(updated_params);
   }
+  flow_graph_->AllocateCatchEntryParameterLocations();
 }
 
 // Returns true iff this definition is used in a non-phi instruction.

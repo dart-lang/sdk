@@ -1,0 +1,35 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Foo<T extends core::Object? = dynamic> extends core::Object {
+  constructor •() → self::Foo<self::Foo::T%>
+    : super core::Object::•()
+    ;
+  static method of<T extends core::Object? = dynamic>(self::Foo::of::T% value) → self::Foo<self::Foo::of::T%>
+    return new self::Foo::•<self::Foo::of::T%>();
+  static method bounded<T extends core::String>() → self::Foo<self::Foo::bounded::T>
+    return new self::Foo::•<self::Foo::bounded::T>();
+  @#C1
+  operator ==(core::Object other) → core::bool
+    return other is self::Foo<self::Foo::T%>;
+}
+static method test() → void {
+  self::Foo<core::int> foo = new self::Foo::•<core::int>();
+  core::bool equalsOf = foo =={self::Foo::==}{(core::Object) → core::bool} self::Foo::of<core::String>("a");
+  core::bool equalsOfShorthand = foo =={self::Foo::==}{(core::Object) → core::bool} self::Foo::of<core::String>("a");
+  core::bool notEqualsOf = !(foo =={self::Foo::==}{(core::Object) → core::bool} self::Foo::of<core::String>("a"));
+  core::bool notEqualsOfShorthand = !(foo =={self::Foo::==}{(core::Object) → core::bool} self::Foo::of<core::String>("a"));
+  core::bool equalsBounded = foo =={self::Foo::==}{(core::Object) → core::bool} self::Foo::bounded<core::String>();
+  core::bool equalsBoundedShorthand = foo =={self::Foo::==}{(core::Object) → core::bool} self::Foo::bounded<core::String>();
+  core::bool equalsNew = foo =={self::Foo::==}{(core::Object) → core::bool} new self::Foo::•<dynamic>();
+  core::bool equalsNewShorthand = foo =={self::Foo::==}{(core::Object) → core::bool} new self::Foo::•<dynamic>();
+  core::bool equalsListOfString = core::_GrowableList::_literal1<core::int>(3) =={core::List::==}{(core::Object) → core::bool} core::List::of<core::String>(core::_GrowableList::_literal1<core::String>("a"));
+  core::bool equalsListOfStringShorthand = core::_GrowableList::_literal1<core::int>(3) =={core::List::==}{(core::Object) → core::bool} core::List::of<core::String>(core::_GrowableList::_literal1<core::String>("a"));
+  core::bool equalsListOfDouble = core::_GrowableList::_literal1<core::int>(3) =={core::List::==}{(core::Object) → core::bool} core::List::of<core::double>(core::_GrowableList::_literal1<core::double>(3.5));
+  core::bool equalsListOfDoubleShorthand = core::_GrowableList::_literal1<core::int>(3) =={core::List::==}{(core::Object) → core::bool} core::List::of<core::double>(core::_GrowableList::_literal1<core::double>(3.5));
+}
+
+constants  {
+  #C1 = core::_Override {}
+}
