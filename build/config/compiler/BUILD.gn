@@ -909,6 +909,7 @@ if (is_win) {
       # See http://lwn.net/Articles/192624/ .
       "-Wl,-O2",
       "-Wl,--gc-sections",
+      "-Wl,--no-keep-memory",
     ]
 
     if (!using_sanitizer) {
@@ -988,11 +989,15 @@ config("symbols") {
     cflags = [ "/Zi" ]  # Produce PDB file, no edit and continue.
     ldflags = [ "/DEBUG" ]
   } else {
-    cflags = [
-      "-g3",
-      "-ggdb3",
-    ]
+    cflags = [ "-g" ]
     asmflags = [ "-g" ]
+    if (is_clang) {
+      cflags += [ "-gsplit-dwarf=single" ]
+      asmflags += [ "-gsplit-dwarf=single" ]
+    } else {
+      cflags += [ "-gsplit-dwarf" ]
+      asmflags += [ "-gsplit-dwarf" ]
+    }
   }
 }
 
