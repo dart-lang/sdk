@@ -5413,8 +5413,10 @@ sealed class InstanceElementImpl extends ElementImpl
     );
 
     return globalResultRequirements.alreadyRecorded(() {
-      for (var e in fields) {
-        if (e.name == name) return e;
+      var fields = this.fields;
+      for (var i = 0; i < fields.length; i++) {
+        var field = fields[i];
+        if (field.name == name) return field;
       }
       return null;
     });
@@ -5429,8 +5431,10 @@ sealed class InstanceElementImpl extends ElementImpl
     );
 
     return globalResultRequirements.alreadyRecorded(() {
-      for (var e in getters) {
-        if (e.name == name) return e;
+      var getters = this.getters;
+      for (var i = 0; i < getters.length; i++) {
+        var getter = getters[i];
+        if (getter.name == name) return getter;
       }
       return null;
     });
@@ -5468,8 +5472,10 @@ sealed class InstanceElementImpl extends ElementImpl
     );
 
     return globalResultRequirements.alreadyRecorded(() {
-      for (var e in methods) {
-        if (e.lookupName == name) return e;
+      var methods = this.methods;
+      for (var i = 0; i < methods.length; i++) {
+        var method = methods[i];
+        if (method.lookupName == name) return method;
       }
       return null;
     });
@@ -5484,7 +5490,12 @@ sealed class InstanceElementImpl extends ElementImpl
     );
 
     return globalResultRequirements.alreadyRecorded(() {
-      return setters.firstWhereOrNull((e) => e.name == name);
+      var setters = this.setters;
+      for (var i = 0; i < setters.length; i++) {
+        var setter = setters[i];
+        if (setter.name == name) return setter;
+      }
+      return null;
     });
   }
 
@@ -6085,8 +6096,10 @@ sealed class InterfaceElementImpl extends InstanceElementImpl
     );
 
     return globalResultRequirements.alreadyRecorded(() {
-      for (var e in constructors) {
-        if (e.name == name) return e;
+      var constructors = this.constructors;
+      for (var i = 0; i < constructors.length; i++) {
+        var constructor = constructors[i];
+        if (constructor.name == name) return constructor;
       }
       return null;
     });
