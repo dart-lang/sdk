@@ -338,12 +338,15 @@ class ParsedLibraryResultImpl extends AnalysisResultImpl
     Fragment fragment, {
     required bool useV2,
   }) {
+    var libraryFragment = fragment.libraryFragment;
     var nameOffset = _getFragmentNameOffset(fragment);
-    if (fragment is LibraryFragment || nameOffset == null) {
+    if (fragment is LibraryFragment ||
+        libraryFragment == null ||
+        nameOffset == null) {
       return null;
     }
 
-    var elementPath = fragment.libraryFragment!.source.fullName;
+    var elementPath = libraryFragment.source.fullName;
     var unitResult = units.firstWhere(
       (r) => r.path == elementPath,
       orElse: () {
@@ -490,12 +493,15 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
     Fragment fragment, {
     required bool useV2,
   }) {
+    var libraryFragment = fragment.libraryFragment;
     var nameOffset = _getFragmentNameOffset(fragment);
-    if (fragment is LibraryFragment || nameOffset == null) {
+    if (fragment is LibraryFragment ||
+        libraryFragment == null ||
+        nameOffset == null) {
       return null;
     }
 
-    var elementPath = fragment.libraryFragment!.source.fullName;
+    var elementPath = libraryFragment.source.fullName;
     var unitResult = units.firstWhere(
       (r) => r.path == elementPath,
       orElse: () {

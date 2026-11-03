@@ -59,8 +59,7 @@ class AnalysisSessionHelper {
   Future<FragmentDeclarationResult?> getFragmentDeclaration(
     Fragment fragment,
   ) async {
-    var libraryPath = fragment.libraryFragment!.source.fullName;
-    var resolvedLibrary = await _getResolvedLibrary(libraryPath);
+    var resolvedLibrary = await _getResolvedLibraryOfFragment(fragment);
     return resolvedLibrary?.getFragmentDeclaration(fragment);
   }
 
@@ -71,8 +70,7 @@ class AnalysisSessionHelper {
   Future<FragmentDeclarationResult?> getFragmentDeclaration2(
     Fragment fragment,
   ) async {
-    var libraryPath = fragment.libraryFragment!.source.fullName;
-    var resolvedLibrary = await _getResolvedLibrary(libraryPath);
+    var resolvedLibrary = await _getResolvedLibraryOfFragment(fragment);
     return resolvedLibrary?.getFragmentDeclaration2(fragment);
   }
 
@@ -133,5 +131,20 @@ class AnalysisSessionHelper {
       }
     }
     return result;
+  }
+
+  /// Returns the resolved library that contains the [fragment].
+  ///
+  /// Returns `null` if the [fragment] is not in any library fragment, e.g.
+  /// for `dynamic`, or for a formal parameter of a function type loaded from
+  /// a summary.
+  Future<ResolvedLibraryResult?> _getResolvedLibraryOfFragment(
+    Fragment fragment,
+  ) async {
+    var libraryFragment = fragment.libraryFragment;
+    if (libraryFragment == null) {
+      return null;
+    }
+    return _getResolvedLibrary(libraryFragment.source.fullName);
   }
 }
