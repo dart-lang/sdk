@@ -1,0 +1,13 @@
+name: debug_info
+# This package is not intended for consumption on pub.dev. DO NOT publish.
+publish_to: none
+description: Debug information representation and source map generation
+
+environment:
+  sdk: '^3.13.0-0'
+
+resolution: workspace
+
+# Use 'any' constraints here; we get our versions from the DEPS file.
+dev_dependencies:
+  lints: any
