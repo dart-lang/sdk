@@ -11986,11 +11986,6 @@ abstract class VariableFragmentImpl extends FragmentImpl
     setFlag(_FragmentStorageFlag.variableFragment_hasImplicitType, value);
   }
 
-  // TODO(scheglov): remove this
-  ExpressionImpl? get initializer {
-    return constantInitializer2;
-  }
-
   /// Whether the executable element is abstract.
   ///
   /// Executable elements are abstract if they are not external, and have no
