@@ -88,6 +88,7 @@ def empty_cq(repository):
     )
 
 empty_cq("monorepo")
+empty_cq("pub-ops")
 empty_cq("vibepad")
 
 luci.list_view(
