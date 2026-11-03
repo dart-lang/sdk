@@ -1,4 +1,4 @@
-## 27.2.1-wip
+## 27.2.1
 
 - Fix connecting to large apps failing when Chrome takes more than 20 seconds
   to respond to `Debugger.enable`. DWDS now waits up to 3 minutes, and resends
