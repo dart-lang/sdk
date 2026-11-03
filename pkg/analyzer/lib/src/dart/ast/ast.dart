@@ -26838,9 +26838,11 @@ final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
   @override
   ArgumentListImpl get argumentList => _v1ProjectionOrigin.argumentList;
 
-  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
+  @generated
   @override
-  Token get beginToken => _v1ProjectionOrigin.beginToken;
+  Token get beginToken {
+    return function.beginToken;
+  }
 
   @override
   InternalFormalParameterElement? get correspondingParameter =>
@@ -47887,9 +47889,11 @@ final class PostfixExpressionImpl extends ExpressionImpl
     _attachV1Children();
   }
 
-  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
+  @generated
   @override
-  Token get beginToken => _v1ProjectionOrigin.beginToken;
+  Token get beginToken {
+    return operand.beginToken;
+  }
 
   @override
   InternalFormalParameterElement? get correspondingParameter =>
