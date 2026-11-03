@@ -5191,6 +5191,39 @@ V1: FieldDeclaration
 ''');
   }
 
+  void test_parseField_late_static() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {
+  late static int x;
+//     ^^^^^^
+// [diag.modifierOutOfOrder] The modifier 'static' should be before the modifier 'late'.
+}
+''');
+
+    var node = parseResult.findNode.singleClassMember;
+    assertParsedNodeText(node, r'''
+FieldsDeclaration
+  staticKeyword: static
+  lateKeyword: late
+  type: NamedType
+    name: int
+  fields
+    Field
+      name: x
+  semicolon: ;
+V1: FieldDeclaration
+  staticKeyword: static
+  fields: VariableDeclarationList
+    lateKeyword: late
+    type: NamedType
+      name: int
+    variables
+      VariableDeclaration
+        name: x
+  semicolon: ;
+''');
+  }
+
   void test_parseField_late_var() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 class C {

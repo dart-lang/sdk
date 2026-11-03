@@ -466,6 +466,47 @@ V1: ExtensionDeclaration
 ''');
   }
 
+  test_field_static_final_late() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+extension on int {
+  static final late int x = 0;
+//             ^^^^
+// [diag.modifierOutOfOrder] The modifier 'late' should be before the modifier 'final'.
+}
+''');
+
+    var node = parseResult.findNode.singleFieldsDeclaration;
+    assertParsedNodeText(node, r'''
+FieldsDeclaration
+  staticKeyword: static
+  lateKeyword: late
+  constFinalOrVarKeyword: final
+  type: NamedType
+    name: int
+  fields
+    Field
+      name: x
+      equals: =
+      initializer: IntegerLiteral
+        literal: 0
+  semicolon: ;
+V1: FieldDeclaration
+  staticKeyword: static
+  fields: VariableDeclarationList
+    lateKeyword: late
+    keyword: final
+    type: NamedType
+      name: int
+    variables
+      VariableDeclaration
+        name: x
+        equals: =
+        initializer: IntegerLiteral
+          literal: 0
+  semicolon: ;
+''');
+  }
+
   test_getter_augment() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 augment extension E {

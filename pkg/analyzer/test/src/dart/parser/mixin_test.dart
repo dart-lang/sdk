@@ -576,6 +576,39 @@ V1: MixinDeclaration
 ''');
   }
 
+  test_field_final_late() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+mixin M {
+  final late int x;
+//      ^^^^
+// [diag.modifierOutOfOrder] The modifier 'late' should be before the modifier 'final'.
+}
+''');
+
+    var node = parseResult.findNode.singleFieldsDeclaration;
+    assertParsedNodeText(node, r'''
+FieldsDeclaration
+  lateKeyword: late
+  constFinalOrVarKeyword: final
+  type: NamedType
+    name: int
+  fields
+    Field
+      name: x
+  semicolon: ;
+V1: FieldDeclaration
+  fields: VariableDeclarationList
+    lateKeyword: late
+    keyword: final
+    type: NamedType
+      name: int
+    variables
+      VariableDeclaration
+        name: x
+  semicolon: ;
+''');
+  }
+
   test_getter_augment() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 augment mixin M {

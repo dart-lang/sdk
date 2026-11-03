@@ -279,4 +279,35 @@ V1: TopLevelVariableDeclaration
   semicolon: ;
 ''');
   }
+
+  test_external_augment() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+external augment int foo;
+//       ^^^^^^^
+// [diag.modifierOutOfOrder] The modifier 'augment' should be before the modifier 'external'.
+''');
+
+    var node = parseResult.findNode.singleTopLevelVariablesDeclaration;
+    assertParsedNodeText(node, r'''
+TopLevelVariablesDeclaration
+  augmentKeyword: augment
+  externalKeyword: external
+  type: NamedType
+    name: int
+  variables
+    TopLevelVariable
+      name: foo
+  semicolon: ;
+V1: TopLevelVariableDeclaration
+  augmentKeyword: augment
+  externalKeyword: external
+  variables: VariableDeclarationList
+    type: NamedType
+      name: int
+    variables
+      VariableDeclaration
+        name: foo
+  semicolon: ;
+''');
+  }
 }

@@ -22,7 +22,6 @@ import '../summary/resolved_ast_printer.dart';
 class ParserDiagnosticsTest {
   FeatureSet get testFeatureSet => FeatureSets.latestWithExperiments;
 
-  // TODO(scheglov): Enable [withCheckingLinking] everywhere.
   void assertParsedNodeText(
     AstNode node,
     String expected, {
@@ -113,6 +112,7 @@ class ParserDiagnosticsTest {
       sink: sink,
       elementPrinter: elementPrinter,
       configuration: ResolvedNodeTextConfiguration()
+        ..withCheckingTokenStream = true
         ..withTokenPreviousNext = withTokenPreviousNext,
       withResolution: false,
       withOffsets: withOffsets,

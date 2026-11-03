@@ -124,7 +124,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
     ResolvedAstPrinter(
       sink: sink,
       elementPrinter: elementPrinter,
-      configuration: ResolvedNodeTextConfiguration(),
+      configuration: ResolvedNodeTextConfiguration()
+        ..withCheckingTokenStream = true,
       withResolution: false,
     ).writeNodeWithV1Projection(node);
 

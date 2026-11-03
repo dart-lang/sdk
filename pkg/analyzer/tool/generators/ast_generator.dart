@@ -357,7 +357,7 @@ Token get beginToken {
           }
           var names = groupProperties.map((p) => p.name).join(', ');
           buffer.write('''
-if (Token.lexicallyFirst($names) case var result?) {
+if (AstNodeImpl._lexicallyFirst($names) case var result?) {
   return result;
 }''');
           continue;

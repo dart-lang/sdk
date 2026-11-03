@@ -549,6 +549,37 @@ V1: FunctionDeclaration
 ''');
   }
 
+  test_getter_external_augment() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+external augment int get foo;
+//       ^^^^^^^
+// [diag.modifierOutOfOrder] The modifier 'augment' should be before the modifier 'external'.
+''');
+
+    var node = parseResult.findNode.singleTopLevelGetterDeclaration;
+    assertParsedNodeText(node, r'''
+TopLevelGetterDeclaration
+  augmentKeyword: augment
+  externalKeyword: external
+  returnType: NamedType
+    name: int
+  getKeyword: get
+  name: foo
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: FunctionDeclaration
+  augmentKeyword: augment
+  externalKeyword: external
+  returnType: NamedType
+    name: int
+  propertyKeyword: get
+  name: foo
+  functionExpression: FunctionExpression
+    body: EmptyFunctionBody
+      semicolon: ;
+''');
+  }
+
   test_getter_typeParameters() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 int get foo<T> => 0;
@@ -616,7 +647,6 @@ void get() {
 }
 ''');
 
-    // Note, there is a cycle that should not be there.
     var node = parseResult.findNode.singleTopLevelFunctionDeclaration;
     assertParsedNodeText(
       node,
@@ -1013,6 +1043,48 @@ TopLevelSetterDeclaration
   body: EmptyFunctionBody
     semicolon: ;
 V1: FunctionDeclaration
+  propertyKeyword: set
+  name: foo
+  functionExpression: FunctionExpression
+    parameters: FormalParameterList
+      leftParenthesis: (
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+        name: _
+      rightParenthesis: )
+    body: EmptyFunctionBody
+      semicolon: ;
+''');
+  }
+
+  test_setter_external_augment() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+external augment set foo(int _);
+//       ^^^^^^^
+// [diag.modifierOutOfOrder] The modifier 'augment' should be before the modifier 'external'.
+''');
+
+    var node = parseResult.findNode.singleTopLevelSetterDeclaration;
+    assertParsedNodeText(node, r'''
+TopLevelSetterDeclaration
+  augmentKeyword: augment
+  externalKeyword: external
+  setKeyword: set
+  name: foo
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: int
+        name: _
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: FunctionDeclaration
+  augmentKeyword: augment
+  externalKeyword: external
   propertyKeyword: set
   name: foo
   functionExpression: FunctionExpression
