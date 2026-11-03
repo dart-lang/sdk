@@ -3628,9 +3628,9 @@ void f() {
   void test_staticAfterConst() {
     parseTestCodeWithDiagnostics(r'''
 class C {
-  final static int f = 0;
+  const static int f = 0;
 //      ^^^^^^
-// [diag.modifierOutOfOrder] The modifier 'static' should be before the modifier 'final'.
+// [diag.modifierOutOfOrder] The modifier 'static' should be before the modifier 'const'.
 }
 ''');
   }
@@ -3638,9 +3638,9 @@ class C {
   void test_staticAfterFinal() {
     parseTestCodeWithDiagnostics(r'''
 class C {
-  const static int f = 0;
+  final static int f = 0;
 //      ^^^^^^
-// [diag.modifierOutOfOrder] The modifier 'static' should be before the modifier 'const'.
+// [diag.modifierOutOfOrder] The modifier 'static' should be before the modifier 'final'.
 }
 ''');
   }
