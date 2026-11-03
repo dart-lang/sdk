@@ -1616,6 +1616,59 @@ library
 ''');
   }
 
+  test_defaultValue_doubleLiteral() async {
+    var library = await buildLibrary(r'''
+void f({double a = 0.5, double b = .5, double c = 1e3}) {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      functions
+        #F1 isComplete isOriginDeclaration isStatic f (nameOffset:5) (firstTokenOffset:0) (offset:5)
+          element: <testLibrary>::@function::f
+          formalParameters
+            #F2 optionalNamed isOriginDeclaration a (nameOffset:15) (firstTokenOffset:8) (offset:15)
+              element: <testLibrary>::@function::f::@formalParameter::a
+              constantInitializer2: expression_0
+                DoubleLiteral
+                  literal: 0.5 @19
+                  staticType: double
+            #F3 optionalNamed isOriginDeclaration b (nameOffset:31) (firstTokenOffset:24) (offset:31)
+              element: <testLibrary>::@function::f::@formalParameter::b
+              constantInitializer2: expression_1
+                DoubleLiteral
+                  literal: .5 @35
+                  staticType: double
+            #F4 optionalNamed isOriginDeclaration c (nameOffset:46) (firstTokenOffset:39) (offset:46)
+              element: <testLibrary>::@function::f::@formalParameter::c
+              constantInitializer2: expression_2
+                DoubleLiteral
+                  literal: 1e3 @50
+                  staticType: double
+  functions
+    isOriginDeclaration isStatic f
+      reference: <testLibrary>::@function::f
+      firstFragment: #F1
+      formalParameters
+        #E0 optionalNamed hasDefaultValue a
+          firstFragment: #F2
+          type: double
+          constantInitializer2: expression_0
+        #E1 optionalNamed hasDefaultValue b
+          firstFragment: #F3
+          type: double
+          constantInitializer2: expression_1
+        #E2 optionalNamed hasDefaultValue c
+          firstFragment: #F4
+          type: double
+          constantInitializer2: expression_2
+      returnType: void
+''');
+  }
+
   test_defaultValue_eliminateTypeParameters() async {
     var library = await buildLibrary(r'''
 class A<T> {

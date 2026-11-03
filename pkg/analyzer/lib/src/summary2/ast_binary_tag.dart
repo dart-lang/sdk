@@ -35,6 +35,7 @@ enum AstNodeTag {
   DirectAssignment,
   DottedName,
   DoubleLiteral,
+  DoubleLiteralWithLexeme,
   ExtensionOverride2,
   FieldFormalParameter,
   ForEachPartsWithDeclaration,

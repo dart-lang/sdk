@@ -2331,6 +2331,174 @@ library
 ''');
   }
 
+  test_metadata_constructor_call_unnamed_doubleLiteral() async {
+    var library = await buildLibrary(r'''
+class A {
+  const A(double _);
+}
+
+@A(.5)
+@A(1e3)
+void f() {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:12) (offset:18)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 18
+              formalParameters
+                #F3 requiredPositional isOriginDeclaration _ (nameOffset:27) (firstTokenOffset:20) (offset:27)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::_
+      functions
+        #F4 isComplete isOriginDeclaration isStatic f (nameOffset:54) (firstTokenOffset:34) (offset:54)
+          element: <testLibrary>::@function::f
+          metadata
+            Annotation
+              atSign: @ @34
+              expression: ConstructorInvocation
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    name: A @35
+                    element: <testLibrary>::@class::A
+                    type: A
+                  element: <testLibrary>::@class::A::@constructor::new
+                argumentList: ArgumentList
+                  leftParenthesis: ( @36
+                  arguments2
+                    DoubleLiteral
+                      literal: .5 @37
+                      staticType: double
+                  rightParenthesis: ) @39
+                staticType: A
+              name: SimpleIdentifier
+                token: A @35
+                element: <testLibrary>::@class::A
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @36
+                arguments
+                  DoubleLiteral
+                    literal: .5 @37
+                    staticType: double
+                rightParenthesis: ) @39
+              element: <testLibrary>::@class::A::@constructor::new
+            Annotation
+              atSign: @ @41
+              expression: ConstructorInvocation
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    name: A @42
+                    element: <testLibrary>::@class::A
+                    type: A
+                  element: <testLibrary>::@class::A::@constructor::new
+                argumentList: ArgumentList
+                  leftParenthesis: ( @43
+                  arguments2
+                    DoubleLiteral
+                      literal: 1e3 @44
+                      staticType: double
+                  rightParenthesis: ) @47
+                staticType: A
+              name: SimpleIdentifier
+                token: A @42
+                element: <testLibrary>::@class::A
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @43
+                arguments
+                  DoubleLiteral
+                    literal: 1e3 @44
+                    staticType: double
+                rightParenthesis: ) @47
+              element: <testLibrary>::@class::A::@constructor::new
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        isConst isOriginDeclaration new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
+          formalParameters
+            #E0 requiredPositional _
+              firstFragment: #F3
+              type: double
+  functions
+    isOriginDeclaration isStatic f
+      reference: <testLibrary>::@function::f
+      firstFragment: #F4
+      metadata
+        Annotation
+          atSign: @ @34
+          expression: ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                name: A @35
+                element: <testLibrary>::@class::A
+                type: A
+              element: <testLibrary>::@class::A::@constructor::new
+            argumentList: ArgumentList
+              leftParenthesis: ( @36
+              arguments2
+                DoubleLiteral
+                  literal: .5 @37
+                  staticType: double
+              rightParenthesis: ) @39
+            staticType: A
+          name: SimpleIdentifier
+            token: A @35
+            element: <testLibrary>::@class::A
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @36
+            arguments
+              DoubleLiteral
+                literal: .5 @37
+                staticType: double
+            rightParenthesis: ) @39
+          element: <testLibrary>::@class::A::@constructor::new
+        Annotation
+          atSign: @ @41
+          expression: ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                name: A @42
+                element: <testLibrary>::@class::A
+                type: A
+              element: <testLibrary>::@class::A::@constructor::new
+            argumentList: ArgumentList
+              leftParenthesis: ( @43
+              arguments2
+                DoubleLiteral
+                  literal: 1e3 @44
+                  staticType: double
+              rightParenthesis: ) @47
+            staticType: A
+          name: SimpleIdentifier
+            token: A @42
+            element: <testLibrary>::@class::A
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @43
+            arguments
+              DoubleLiteral
+                literal: 1e3 @44
+                staticType: double
+            rightParenthesis: ) @47
+          element: <testLibrary>::@class::A::@constructor::new
+      returnType: void
+''');
+  }
+
   test_metadata_constructor_call_unnamed_generic_inference() async {
     var library = await buildLibrary(r'''
 class A<T> {

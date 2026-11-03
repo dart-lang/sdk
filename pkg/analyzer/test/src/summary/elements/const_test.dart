@@ -13288,6 +13288,154 @@ library
 ''');
   }
 
+  test_const_topLevel_doubleLiteral() async {
+    var library = await buildLibrary(r'''
+const a = 0.5;
+const b = .5;
+const c = 1.50;
+const d = 1_000.25;
+const e = 1e3;
+const f = 2E-10;
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:6) (firstTokenOffset:6) (offset:6)
+          element: <testLibrary>::@topLevelVariable::a
+          constantInitializer2: expression_0
+            DoubleLiteral
+              literal: 0.5 @10
+              staticType: double
+          inducedGetter: #F2
+        #F3 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic b (nameOffset:21) (firstTokenOffset:21) (offset:21)
+          element: <testLibrary>::@topLevelVariable::b
+          constantInitializer2: expression_1
+            DoubleLiteral
+              literal: .5 @25
+              staticType: double
+          inducedGetter: #F4
+        #F5 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic c (nameOffset:35) (firstTokenOffset:35) (offset:35)
+          element: <testLibrary>::@topLevelVariable::c
+          constantInitializer2: expression_2
+            DoubleLiteral
+              literal: 1.50 @39
+              staticType: double
+          inducedGetter: #F6
+        #F7 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic d (nameOffset:51) (firstTokenOffset:51) (offset:51)
+          element: <testLibrary>::@topLevelVariable::d
+          constantInitializer2: expression_3
+            DoubleLiteral
+              literal: 1_000.25 @55
+              staticType: double
+          inducedGetter: #F8
+        #F9 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic e (nameOffset:71) (firstTokenOffset:71) (offset:71)
+          element: <testLibrary>::@topLevelVariable::e
+          constantInitializer2: expression_4
+            DoubleLiteral
+              literal: 1e3 @75
+              staticType: double
+          inducedGetter: #F10
+        #F11 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic f (nameOffset:86) (firstTokenOffset:86) (offset:86)
+          element: <testLibrary>::@topLevelVariable::f
+          constantInitializer2: expression_5
+            DoubleLiteral
+              literal: 2E-10 @90
+              staticType: double
+          inducedGetter: #F12
+      getters
+        #F2 isComplete isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+          element: <testLibrary>::@getter::a
+          inducingVariable: #F1
+        #F4 isComplete isOriginVariable isStatic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+          element: <testLibrary>::@getter::b
+          inducingVariable: #F3
+        #F6 isComplete isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
+          element: <testLibrary>::@getter::c
+          inducingVariable: #F5
+        #F8 isComplete isOriginVariable isStatic d (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
+          element: <testLibrary>::@getter::d
+          inducingVariable: #F7
+        #F10 isComplete isOriginVariable isStatic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:71)
+          element: <testLibrary>::@getter::e
+          inducingVariable: #F9
+        #F12 isComplete isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:86)
+          element: <testLibrary>::@getter::f
+          inducingVariable: #F11
+  topLevelVariables
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer a
+      reference: <testLibrary>::@topLevelVariable::a
+      firstFragment: #F1
+      type: double
+      constantInitializer2: expression_0
+      getter: <testLibrary>::@getter::a
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer b
+      reference: <testLibrary>::@topLevelVariable::b
+      firstFragment: #F3
+      type: double
+      constantInitializer2: expression_1
+      getter: <testLibrary>::@getter::b
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer c
+      reference: <testLibrary>::@topLevelVariable::c
+      firstFragment: #F5
+      type: double
+      constantInitializer2: expression_2
+      getter: <testLibrary>::@getter::c
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer d
+      reference: <testLibrary>::@topLevelVariable::d
+      firstFragment: #F7
+      type: double
+      constantInitializer2: expression_3
+      getter: <testLibrary>::@getter::d
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer e
+      reference: <testLibrary>::@topLevelVariable::e
+      firstFragment: #F9
+      type: double
+      constantInitializer2: expression_4
+      getter: <testLibrary>::@getter::e
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer f
+      reference: <testLibrary>::@topLevelVariable::f
+      firstFragment: #F11
+      type: double
+      constantInitializer2: expression_5
+      getter: <testLibrary>::@getter::f
+  getters
+    isOriginVariable isStatic a
+      reference: <testLibrary>::@getter::a
+      firstFragment: #F2
+      returnType: double
+      variable: <testLibrary>::@topLevelVariable::a
+    isOriginVariable isStatic b
+      reference: <testLibrary>::@getter::b
+      firstFragment: #F4
+      returnType: double
+      variable: <testLibrary>::@topLevelVariable::b
+    isOriginVariable isStatic c
+      reference: <testLibrary>::@getter::c
+      firstFragment: #F6
+      returnType: double
+      variable: <testLibrary>::@topLevelVariable::c
+    isOriginVariable isStatic d
+      reference: <testLibrary>::@getter::d
+      firstFragment: #F8
+      returnType: double
+      variable: <testLibrary>::@topLevelVariable::d
+    isOriginVariable isStatic e
+      reference: <testLibrary>::@getter::e
+      firstFragment: #F10
+      returnType: double
+      variable: <testLibrary>::@topLevelVariable::e
+    isOriginVariable isStatic f
+      reference: <testLibrary>::@getter::f
+      firstFragment: #F12
+      returnType: double
+      variable: <testLibrary>::@topLevelVariable::f
+''');
+  }
+
   test_const_topLevel_identical() async {
     var library = await buildLibrary(r'''
 const vIdentical = (1 == 2) ? 11 : 22;
