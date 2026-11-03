@@ -644,6 +644,84 @@ plugins:
   }
 
   Future<void>
+  test_pluginTrust_alwaysTrustPlugins_subdirectoryOptions_trustsOnlyTargetDirectory() async {
+    newPubspecYamlFile('/foo', 'name: foo');
+    newFile('/foo/tools/analyzer_plugin/bin/plugin.dart', '');
+    newPubspecYamlFile('/bar', 'name: bar');
+    newFile('/bar/tools/analyzer_plugin/bin/plugin.dart', '');
+
+    newFile(join(testPackageRootPath, 'analysis_options.yaml'), '''
+plugins:
+  foo: ^1.0.0
+''');
+
+    var innerFolderPath = join(testPackageRootPath, 'inner');
+    newFile(join(innerFolderPath, 'analysis_options.yaml'), '''
+plugins:
+  foo: ^1.0.0
+  bar: ^1.0.0
+''');
+
+    writeTestPackageConfig2(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'foo', rootFolder: getFolder('/foo'))
+        ..add(name: 'bar', rootFolder: getFolder('/bar')),
+    );
+
+    var driver = driverFor(testFile);
+    var innerFolder = getFolder(innerFolderPath);
+    var builder = AnalysisOptionsBuilder(
+      file: innerFolder.getFile('analysis_options.yaml'),
+    );
+    builder.pluginsOptions = PluginsOptions(
+      configurations: [
+        PluginConfiguration(
+          name: 'foo',
+          source: VersionedPluginSource(constraint: '^1.0.0'),
+        ),
+        PluginConfiguration(
+          name: 'bar',
+          source: VersionedPluginSource(constraint: '^1.0.0'),
+        ),
+      ],
+      dependencyOverrides: null,
+    );
+    driver.analysisOptionsMap[innerFolder] = builder.build();
+
+    var pluginTrust = PluginTrust(resourceProvider);
+    var notifications = <String>[];
+
+    watcher = PluginWatcher(
+      resourceProvider,
+      manager,
+      pluginsAreEnabled: null,
+      alwaysTrust: true,
+      pluginTrust: pluginTrust,
+      onUnseenUntrustedPluginDirectory: notifications.add,
+    );
+    watcher.addedDriver(driver);
+
+    await pumpEventQueue();
+    var source = VersionedPluginSource(constraint: '^1.0.0');
+    // 'foo' is specified in the target root directory, so it is trusted.
+    expect(pluginTrust.getTrust('foo', source), TrustSetting.trusted);
+    // 'bar' is only specified in the subdirectory 'inner', so it is not trusted.
+    expect(pluginTrust.getTrust('bar', source), TrustSetting.unset);
+
+    expect(manager.contextRootPlugins.values.first, hasLength(1));
+    var pluginFolder = getFolder(manager.contextRootPlugins.values.first.first);
+    var pubspecContent = pluginFolder
+        .getFile('pubspec.yaml')
+        .readAsStringSync();
+    expect(pubspecContent, contains('foo:'));
+    expect(pubspecContent, isNot(contains('bar:')));
+
+    expect(notifications, [
+      PluginWatcher.untrustedPluginsMessage(innerFolder.path),
+    ]);
+  }
+
+  Future<void>
   test_pluginTrust_contentTrusted_resolvedFromPluginPackageConfig() async {
     newPubspecYamlFile('/foo', 'name: foo');
     newFile('/foo/lib/foo.dart', 'int x = 1;');
@@ -1108,6 +1186,77 @@ plugins:
 
     var rootPath = convertPath(testPackageRootPath);
     expect(notifications, [PluginWatcher.untrustedPluginsMessage(rootPath)]);
+  }
+
+  Future<void>
+  test_pluginTrust_trustPlugins_nestedContextRoot_trustsOnlyIncludedPath() async {
+    newPubspecYamlFile('/foo', 'name: foo');
+    newFile('/foo/lib/foo.dart', 'int x = 1;');
+    newPubspecYamlFile('/bar', 'name: bar');
+    newFile('/bar/lib/bar.dart', 'int y = 1;');
+
+    newFile(join(testPackageRootPath, 'analysis_options.yaml'), '''
+plugins:
+  foo: ^1.0.0
+''');
+
+    var nestedRootPath = join(testPackageRootPath, 'nested');
+    newPubspecYamlFile(nestedRootPath, 'name: nested');
+    newFile(join(nestedRootPath, 'analysis_options.yaml'), '''
+plugins:
+  bar: ^1.0.0
+''');
+    var nestedFile = newFile(join(nestedRootPath, 'lib', 'nested.dart'), '');
+
+    writeTestPackageConfig2(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'foo', rootFolder: getFolder('/foo'))
+        ..add(name: 'bar', rootFolder: getFolder('/bar')),
+    );
+    writePackageConfig2(
+      nestedRootPath,
+      config: PackageConfigFileBuilder()
+        ..add(name: 'nested', rootFolder: getFolder(nestedRootPath))
+        ..add(name: 'bar', rootFolder: getFolder('/bar')),
+    );
+
+    var rootDriver = driverFor(testFile);
+    var nestedDriver = driverFor(nestedFile);
+    var rootPath = convertPath(testPackageRootPath);
+    var nestedFolder = getFolder(nestedRootPath);
+
+    var pluginTrust = PluginTrust(resourceProvider);
+    var notifications = <String>[];
+
+    watcher = PluginWatcher(
+      resourceProvider,
+      manager,
+      pluginsAreEnabled: null,
+      trust: true,
+      pluginTrust: pluginTrust,
+      includedPaths: () => [rootPath],
+      onUnseenUntrustedPluginDirectory: notifications.add,
+    );
+    watcher.addedDriver(rootDriver);
+    watcher.addedDriver(nestedDriver);
+
+    await pumpEventQueue();
+    var source = VersionedPluginSource(constraint: '^1.0.0');
+    expect(
+      pluginTrust.getTrust('foo', source, pluginFolder: getFolder('/foo')),
+      TrustSetting.trusted,
+    );
+    expect(
+      pluginTrust.getTrust('bar', source, pluginFolder: getFolder('/bar')),
+      TrustSetting.unset,
+    );
+    expect(manager.contextRootPlugins.keys, [
+      rootDriver.analysisContext!.contextRoot,
+    ]);
+    expect(manager.contextRootsWithNoPlugins, {nestedFolder.path});
+    expect(notifications, [
+      PluginWatcher.untrustedPluginsMessage(nestedFolder.path),
+    ]);
   }
 
   Future<void>
