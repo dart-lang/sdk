@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:js_interop';
 
 import 'package:web/web.dart';
 
@@ -150,8 +149,7 @@ class SampleBufferControlElement extends CustomElement implements Renderable {
             new HTMLDivElement()
               ..innerHTML =
                   'Perhaps the <b>profile</b> '
-                          'flag has been disabled for this VM.'
-                      .toJS,
+                  'flag has been disabled for this VM.',
             new HTMLBRElement(),
             new HTMLButtonElement()
               ..textContent = 'Enable profiler'
