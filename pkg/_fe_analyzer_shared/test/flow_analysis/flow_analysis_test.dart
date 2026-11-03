@@ -6446,6 +6446,323 @@ main() {
       ]);
     });
 
+    group('promotion after promotion of target:', () {
+      // These tests exercise the situation where a property is promoted, then
+      // its target is promoted, causing the property's unpromoted type to
+      // change, and then the property is promoted again.
+      //
+      // When the promotion-chain-intersection-join feature is enabled, and the
+      // last type in the property's promotion chain isn't a subtype of the
+      // property's new unpromoted type, types in the property's promotion
+      // chain that the new promoted type is not a strict subtype of are
+      // discarded, so that the promotion chain remains valid (each type is a
+      // strict subtype of the previous one). See
+      // `FlowModel._filterPropertyPromotionChain`.
+
+      void setUpClasses({required String cFieldType}) {
+        h.addMember('B', '_field', 'Object?', promotable: true);
+        h.addMember('C', '_field', cFieldType, promotable: true);
+        h.addSuperInterfaces('C', (_) => [Type('B'), Type('Object')]);
+        h.addSuperInterfaces('B', (_) => [Type('Object')]);
+      }
+
+      /// Statements that promote `x._field` to [type] (while `x` has type
+      /// `B`), then promote `x` to `C`, then promote `x._field` to non-null.
+      List<ProtoStatement> promoteFieldThenTargetThenField(
+        Var x,
+        String type,
+      ) => [
+        if_(x.property('_field').isNot(type), [return_()]),
+        if_(x.isNot('C'), [return_()]),
+        if_(x.property('_field').eq(nullLiteral), [return_()]),
+      ];
+
+      test('stale promotion discarded', () {
+        setUpClasses(cFieldType: 'String?');
+        var x = Var('x');
+        h.run([
+          declare(x, type: 'B', initializer: expr('B')),
+          if_(x.property('_field').isNot('num'), [return_()]),
+          checkPromotionChain(x.property('_field'), ['num']),
+          if_(x.isNot('C'), [return_()]),
+          // `num` is not a subtype of `String?`, so the promotion is ignored.
+          checkNotPromoted(x.property('_field')),
+          x.property('_field').checkType('String?'),
+          if_(x.property('_field').eq(nullLiteral), [return_()]),
+          checkPromotionChain(x.property('_field'), ['String']),
+          checkPromoted(x.property('_field'), 'String'),
+          x.property('_field').checkType('String'),
+        ]);
+      });
+
+      test('stale promotion not discarded when disabled', () {
+        h.disablePromotionChainIntersectionJoin();
+        setUpClasses(cFieldType: 'String?');
+        var x = Var('x');
+        h.run([
+          declare(x, type: 'B', initializer: expr('B')),
+          ...promoteFieldThenTargetThenField(x, 'num'),
+          checkPromotionChain(x.property('_field'), ['num', 'String']),
+          checkPromoted(x.property('_field'), 'String'),
+          x.property('_field').checkType('String'),
+        ]);
+      });
+
+      test('promotion that is a strict supertype kept', () {
+        setUpClasses(cFieldType: 'int?');
+        var x = Var('x');
+        h.run([
+          declare(x, type: 'B', initializer: expr('B')),
+          if_(x.property('_field').isNot('num'), [return_()]),
+          if_(x.isNot('C'), [return_()]),
+          // `num` is not a subtype of `int?`, so the promotion is ignored.
+          checkNotPromoted(x.property('_field')),
+          x.property('_field').checkType('int?'),
+          if_(x.property('_field').eq(nullLiteral), [return_()]),
+          // But `int` is a strict subtype of `num`, so `num` is kept.
+          checkPromotionChain(x.property('_field'), ['num', 'int']),
+          checkPromoted(x.property('_field'), 'int'),
+          x.property('_field').checkType('int'),
+        ]);
+      });
+
+      test('promotion that is a strict supertype survives join', () {
+        setUpClasses(cFieldType: 'int?');
+        var x = Var('x');
+        h.run([
+          declare(x, type: 'B', initializer: expr('B')),
+          if_(x.property('_field').isNot('num'), [return_()]),
+          if_(x.is_('C'), [
+            if_(x.property('_field').eq(nullLiteral), [return_()]),
+            checkPromotionChain(x.property('_field'), ['num', 'int']),
+          ]),
+          checkPromotionChain(x.property('_field'), ['num']),
+          checkPromoted(x.property('_field'), 'num'),
+          x.property('_field').checkType('num'),
+        ]);
+      });
+
+      group('join is independent of order:', () {
+        // In each branch, `x._field` is promoted to some type while `x` has
+        // type `B`, then `x` is promoted to `C`, then `x._field` is promoted to
+        // `String`. Without filtering, the promotion chains for `x._field` in
+        // the two branches would be `[int, String]` and `[num, String]`, which
+        // aren't valid promotion chains, and the join algorithm would produce
+        // different results depending on the order of the branches.
+        void checkJoin(String thenType, String elseType) {
+          setUpClasses(cFieldType: 'String?');
+          var x = Var('x');
+          h.run([
+            declare(x, type: 'B', initializer: expr('B')),
+            if_(
+              expr('bool'),
+              promoteFieldThenTargetThenField(x, thenType),
+              promoteFieldThenTargetThenField(x, elseType),
+            ),
+            checkPromotionChain(x.property('_field'), ['String']),
+            checkPromoted(x.property('_field'), 'String'),
+            x.property('_field').checkType('String'),
+          ]);
+        }
+
+        test('int then num', () {
+          checkJoin('int', 'num');
+        });
+
+        test('num then int', () {
+          checkJoin('num', 'int');
+        });
+
+        // Without filtering, the promotion chains for `x._field` would be
+        // `[int, String]` and `[String]`, and the join algorithm would fail to
+        // find the common type `String`.
+        void checkJoinWithUnpromoted({required bool promoteInThen}) {
+          setUpClasses(cFieldType: 'String?');
+          var x = Var('x');
+          List<ProtoStatement> promoteTargetThenField = [
+            if_(x.isNot('C'), [return_()]),
+            if_(x.property('_field').eq(nullLiteral), [return_()]),
+          ];
+          List<ProtoStatement> promoteFieldFirst =
+              promoteFieldThenTargetThenField(x, 'int');
+          h.run([
+            declare(x, type: 'B', initializer: expr('B')),
+            if_(
+              expr('bool'),
+              promoteInThen ? promoteFieldFirst : promoteTargetThenField,
+              promoteInThen ? promoteTargetThenField : promoteFieldFirst,
+            ),
+            checkPromotionChain(x.property('_field'), ['String']),
+            checkPromoted(x.property('_field'), 'String'),
+            x.property('_field').checkType('String'),
+          ]);
+        }
+
+        test('promoted before target in then branch only', () {
+          checkJoinWithUnpromoted(promoteInThen: true);
+        });
+
+        test('promoted before target in else branch only', () {
+          checkJoinWithUnpromoted(promoteInThen: false);
+        });
+      });
+
+      test('stale promotions partially discarded', () {
+        setUpClasses(cFieldType: 'String?');
+        var x = Var('x');
+        h.run([
+          declare(x, type: 'B', initializer: expr('B')),
+          if_(x.property('_field').isNot('Object'), [return_()]),
+          if_(x.property('_field').isNot('int'), [return_()]),
+          checkPromotionChain(x.property('_field'), ['Object', 'int']),
+          if_(x.isNot('C'), [return_()]),
+          // `int` is not a subtype of `String?`, so the promotion is ignored.
+          checkPromoted(x.property('_field'), null),
+          x.property('_field').checkType('String?'),
+          if_(x.property('_field').eq(nullLiteral), [return_()]),
+          // `String` is a strict subtype of `Object` but not of `int`, so only
+          // `int` is discarded.
+          checkPromotionChain(x.property('_field'), ['Object', 'String']),
+          checkPromoted(x.property('_field'), 'String'),
+        ]);
+      });
+
+      group('promotion lost after join:', () {
+        // When the promotion-chain-intersection-join feature is enabled,
+        // discarding stale promotions can cause promotions to be lost after a
+        // join, since a promotion chain can't represent an intersection of
+        // unrelated types.
+        void setUpUnrelatedInterfaces() {
+          h.addSuperInterfaces('E', (_) => [Type('Object')]);
+          h.addSuperInterfaces('F', (_) => [Type('Object')]);
+          setUpClasses(cFieldType: 'F?');
+        }
+
+        List<ProtoStatement> promoteThenJoin(Var x) => [
+          declare(x, type: 'B', initializer: expr('B')),
+          if_(x.property('_field').isNot('E'), [return_()]),
+          if_(x.is_('C').and(x.property('_field').notEq(nullLiteral)), []),
+        ];
+
+        test('when enabled', () {
+          setUpUnrelatedInterfaces();
+          var x = Var('x');
+          h.run([
+            ...promoteThenJoin(x),
+            // Joining `[F]` with `[E]` produces `[]`.
+            checkPromotionChain(x.property('_field'), []),
+            checkNotPromoted(x.property('_field')),
+          ]);
+        });
+
+        test('when disabled', () {
+          h.disablePromotionChainIntersectionJoin();
+          setUpUnrelatedInterfaces();
+          var x = Var('x');
+          h.run([
+            ...promoteThenJoin(x),
+            // Joining `[E, F]` with `[E]` produces `[E]`.
+            checkPromotionChain(x.property('_field'), ['E']),
+            checkPromoted(x.property('_field'), 'E'),
+          ]);
+        });
+      });
+    });
+
+    group('pattern promotions of property not filtered:', () {
+      // When a pattern promotes a property, it uses a reference to the
+      // property that was created before the pattern began, so its type
+      // doesn't reflect promotions made by earlier subpatterns or `switch`
+      // cases. Therefore a promotion made by a later subpattern or case might
+      // not be a strict subtype of the last type in the property's promotion
+      // chain. But the target of the property access hasn't been promoted, so
+      // the last type in the property's promotion chain is a subtype of the
+      // property's unpromoted type, and the property's promotion chain is not
+      // filtered (see `FlowModel._filterPropertyPromotionChain`). These tests
+      // verify that the behavior in this situation is unchanged.
+      test('logical-and pattern with unrelated types', () {
+        h.addSuperInterfaces('A', (_) => [Type('Object')]);
+        h.addSuperInterfaces('B', (_) => [Type('Object')]);
+        h.addMember('D', '_field', 'Object?', promotable: true);
+        var x = Var('x');
+        h.run([
+          declare(x, type: 'D', initializer: expr('D')),
+          if_(
+            expr('bool'),
+            [
+              if_(x.property('_field').isNot('A'), [return_()]),
+            ],
+            [
+              ifCase(
+                x.property('_field'),
+                wildcard(type: 'A').and(wildcard(type: 'B')),
+                [],
+                [return_()],
+              ),
+            ],
+          ),
+          checkPromoted(x.property('_field'), 'A'),
+        ]);
+      });
+
+      test('logical-and pattern with subtype then supertype', () {
+        h.addSuperInterfaces('A', (_) => [Type('Object')]);
+        h.addSuperInterfaces('B', (_) => [Type('A'), Type('Object')]);
+        h.addMember('D', '_field', 'Object?', promotable: true);
+        var x = Var('x');
+        h.run(
+          [
+            declare(x, type: 'D', initializer: expr('D')),
+            if_(
+              expr('bool'),
+              [
+                if_(x.property('_field').isNot('B'), [return_()]),
+              ],
+              [
+                ifCase(
+                  x.property('_field'),
+                  wildcard(type: 'B')
+                      .and(wildcard(type: 'A')..errorId = 'WILDCARD'),
+                  [],
+                  [return_()],
+                ),
+              ],
+            ),
+            checkPromoted(x.property('_field'), 'B'),
+          ],
+          expectedErrors: {
+            'unnecessaryWildcardPattern(pattern: WILDCARD, '
+                'kind: logicalAndPatternOperand)',
+          },
+        );
+      });
+
+      test('switch cases', () {
+        h.addMember('D', '_field', 'FutureOr<num>?', promotable: true);
+        var x = Var('x');
+        h.run([
+          declare(x, type: 'D', initializer: expr('D')),
+          if_(
+            expr('bool'),
+            [
+              if_(x.property('_field').eq(nullLiteral), [return_()]),
+            ],
+            [
+              switch_(x.property('_field'), [
+                nullLiteral.pattern.then([return_()]),
+                objectPattern(
+                  requiredType: 'Future<num>',
+                  fields: [],
+                ).then([return_()]),
+                default_.then([break_()]),
+              ]),
+            ],
+          ),
+          checkPromoted(x.property('_field'), 'FutureOr<num>'),
+        ]);
+      });
+    });
+
     test('field not promotable after outer variable demoted', () {
       h.addMember('B', '_field', 'Object?', promotable: false);
       h.addMember('C', '_field', 'Object?', promotable: true);
