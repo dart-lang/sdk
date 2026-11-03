@@ -112,7 +112,6 @@ class ParserDiagnosticsTest {
       sink: sink,
       elementPrinter: elementPrinter,
       configuration: ResolvedNodeTextConfiguration()
-        ..withCheckingTokenStream = true
         ..withTokenPreviousNext = withTokenPreviousNext,
       withResolution: false,
       withOffsets: withOffsets,

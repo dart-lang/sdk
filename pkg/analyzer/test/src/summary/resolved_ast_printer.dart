@@ -3840,10 +3840,10 @@ class ResolvedNodeTextConfiguration {
   /// token is the [Token.previous] of its [Token.next]. This prints nothing;
   /// use [withTokenPreviousNext] to print the links.
   ///
-  /// This holds for parsed ASTs, but not for ASTs of the element model: they
-  /// are detached from the token stream, and some of their nodes are
-  /// synthesized.
-  bool withCheckingTokenStream = false;
+  /// This holds for parsed and resolved ASTs, but not for ASTs of the element
+  /// model: they are detached from the token stream, and some of their nodes
+  /// are synthesized.
+  bool withCheckingTokenStream = true;
 
   /// If `true`, elements of [InterfaceType] should be printed.
   bool withInterfaceTypeElements = false;

@@ -432,6 +432,8 @@ var v = a;
     var vg = resolution.element as PropertyAccessorElementImpl;
     var variable = vg.variable;
 
+    // The initializer of an imported variable is in the element model.
+    nodeTextConfiguration.withCheckingTokenStream = false;
     return variable.constantInitializer2 as ConstructorInvocation;
   }
 }
