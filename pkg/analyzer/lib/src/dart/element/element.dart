@@ -5298,7 +5298,7 @@ sealed class InstanceElementImpl extends ElementImpl
   @override
   @trackedIncludedInId
   MetadataImpl get metadata {
-    return _firstFragment.metadata;
+    return _firstFragment.elementMetadata;
   }
 
   @override
