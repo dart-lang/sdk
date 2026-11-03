@@ -32985,6 +32985,7 @@ WarningCode:
       combinator hides `List` and `int`:
 
       ```dart
+      // @dart = 3.14
       import 'dart:core' [!show Future, List, int show Future!];
 
       var x = Future.value(1);
@@ -32994,6 +32995,7 @@ WarningCode:
       the second `hide` combinator is redundant:
 
       ```dart
+      // @dart = 3.14
       import 'dart:math' [!hide Random, max, min hide min!];
 
       var x = pi;
@@ -33003,6 +33005,7 @@ WarningCode:
       the `hide` combinator is redundant:
 
       ```dart
+      // @dart = 3.14
       import 'dart:math' [!show Random, max hide min!];
 
       var x = max(0, 1);
@@ -33014,6 +33017,7 @@ WarningCode:
       so the `hide` combinator is redundant:
 
       ```dart
+      // @dart = 3.14
       import 'dart:math' [!hide Random, max show min!];
 
       var x = min(0, 1);

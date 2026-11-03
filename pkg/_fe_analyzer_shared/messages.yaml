@@ -291,7 +291,6 @@ multipleLibraryDirectives:
 
 multipleCombinators:
   type: syntacticError
-  experiments: single-combinators
   parameters: none
   problemMessage: "At most one 'show' or 'hide' combinator can be used on an import or export directive."
   correctionMessage: "Try combining all of the combinators into a single combinator."
@@ -1639,7 +1638,7 @@ prefixAfterCombinator:
   hasPublishedDocs: false
   script:
     main.dart: |
-      import "lib.dart" show Foo hide Foo as Foo;
+      import "lib.dart" show Foo as Foo;
     lib.dart: ""
 
 mixinDeclaresConstructor:

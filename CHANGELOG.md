@@ -88,6 +88,15 @@ void test(Object o, bool condition) {
 Now, the promotions that are common to both branches are preserved, so after
 the `if` statement above, `o` has type `D`.
 
+#### Restriction on `show` and `hide` clauses per import/export
+
+Import and export directives now only allow at most one `show` or `hide`
+combinator per directive. Specifying multiple combinators was previously
+deprecated and is now a compile-time error in libraries with a language version
+of 3.15 or greater. For more details, see
+[issue #2824][single-combinators-issue].
+
+[single-combinators-issue]: https://github.com/dart-lang/language/issues/2824
 [this-promotion-issue]: https://github.com/dart-lang/language/issues/1397
 [#4757]: https://github.com/dart-lang/language/issues/4757
 [language version]: https://dart.dev/to/language-version
