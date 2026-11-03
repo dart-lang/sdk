@@ -3230,16 +3230,26 @@ library
                 element: <testLibrary>::@getter::zero
                 type: int
               staticType: int
+          constantInitializer: expression_3
+            SimpleIdentifier
+              token: zero @43
+              element: <testLibrary>::@getter::zero
+              staticType: int
           inducedGetter: #F6
           nextFragment: #F7
         #F7 hasImplicitType hasInitializer isAugmentation isConst isOriginDeclaration isStatic foo (nameOffset:63) (firstTokenOffset:63) (offset:63)
           element: <testLibrary>::@topLevelVariable::foo
-          constantInitializer2: expression_3
+          constantInitializer2: expression_4
             UnqualifiedNameExpression
               name: one @69
               resolution: GetterInvocationResolution
                 element: <testLibrary>::@getter::one
                 type: int
+              staticType: int
+          constantInitializer: expression_5
+            SimpleIdentifier
+              token: one @69
+              element: <testLibrary>::@getter::one
               staticType: int
           inducedGetter: #F8
           previousFragment: #F5
@@ -3275,7 +3285,8 @@ library
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: #F5
       type: int
-      constantInitializer2: expression_3
+      constantInitializer2: expression_4
+      constantInitializer: expression_5
       getter: <testLibrary>::@getter::foo
   getters
     isOriginVariable isStatic zero
@@ -6046,6 +6057,20 @@ library
                 leftParenthesis: ( @47
                 rightParenthesis: ) @48
               staticType: A<int>
+          constantInitializer: expression_1
+            InstanceCreationExpression
+              constructorName: ConstructorName
+                type: NamedType
+                  name: A @46
+                  element: <testLibrary>::@class::A
+                  type: A<int>
+                element: SubstitutedConstructorElementImpl
+                  baseElement: <testLibrary>::@class::A::@constructor::new
+                  substitution: {T: int}
+              argumentList: ArgumentList
+                leftParenthesis: ( @47
+                rightParenthesis: ) @48
+              staticType: A<int>
           inducedGetter: #F5
       getters
         #F5 isComplete isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
@@ -6068,6 +6093,7 @@ library
       firstFragment: #F4
       type: A<int>
       constantInitializer2: expression_0
+      constantInitializer: expression_1
       getter: <testLibrary>::@getter::a
   getters
     isOriginVariable isStatic a

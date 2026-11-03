@@ -47,10 +47,16 @@ combinedFragmentData
           element: <testLibrary>::@getter::zero
           type: int
         staticType: int
+    constantInitializer: expression_1
+      SimpleIdentifier
+        token: zero @83
+        element: <testLibrary>::@getter::zero
+        staticType: int
   fragments
     #F0
     #F1
       constantInitializer2: expression_0
+      constantInitializer: expression_1
 library
   reference: <testLibrary>
   fragments
@@ -82,12 +88,13 @@ library
                 #F1 optionalPositional isOriginDeclaration x (nameOffset:79) (firstTokenOffset:75) (offset:79)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
                   constantInitializer2: expression_0
+                  constantInitializer: expression_1
                   previousFragment: #F0
               previousFragment: #F5
       topLevelVariables
         #F7 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic zero (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::zero
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
             IntegerLiteral
               literal: 0 @13
               staticType: int
@@ -109,12 +116,13 @@ library
               firstFragment: #F0
               type: int
               constantInitializer2: expression_0
+              constantInitializer: expression_1
   topLevelVariables
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer zero
       reference: <testLibrary>::@topLevelVariable::zero
       firstFragment: #F7
       type: int
-      constantInitializer2: expression_1
+      constantInitializer2: expression_2
       getter: <testLibrary>::@getter::zero
   getters
     isOriginVariable isStatic zero
@@ -727,10 +735,16 @@ combinedFragmentData
           element: <testLibrary>::@getter::zero
           type: int
         staticType: int
+    constantInitializer: expression_1
+      SimpleIdentifier
+        token: zero @97
+        element: <testLibrary>::@getter::zero
+        staticType: int
   fragments
     #F0
     #F1
       constantInitializer2: expression_0
+      constantInitializer: expression_1
 library
   reference: <testLibrary>
   fragments
@@ -763,11 +777,12 @@ library
                 #F1 optionalPositional isOriginDeclaration x (nameOffset:93) (firstTokenOffset:89) (offset:93)
                   element: <testLibrary>::@class::A::@method::foo::@formalParameter::x
                   constantInitializer2: expression_0
+                  constantInitializer: expression_1
                   previousFragment: #F0
       topLevelVariables
         #F8 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic zero (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::zero
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
             IntegerLiteral
               literal: 0 @13
               staticType: int
@@ -793,13 +808,14 @@ library
               firstFragment: #F0
               type: int
               constantInitializer2: expression_0
+              constantInitializer: expression_1
           returnType: void
   topLevelVariables
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer zero
       reference: <testLibrary>::@topLevelVariable::zero
       firstFragment: #F8
       type: int
-      constantInitializer2: expression_1
+      constantInitializer2: expression_2
       getter: <testLibrary>::@getter::zero
   getters
     isOriginVariable isStatic zero
@@ -1282,10 +1298,16 @@ combinedFragmentData
           element: <testLibrary>::@getter::zero
           type: int
         staticType: int
+    constantInitializer: expression_1
+      SimpleIdentifier
+        token: zero @63
+        element: <testLibrary>::@getter::zero
+        staticType: int
   fragments
     #F0
     #F1
       constantInitializer2: expression_0
+      constantInitializer: expression_1
 library
   reference: <testLibrary>
   fragments
@@ -1294,7 +1316,7 @@ library
       topLevelVariables
         #F3 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic zero (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::zero
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
             IntegerLiteral
               literal: 0 @13
               staticType: int
@@ -1318,13 +1340,14 @@ library
             #F1 optionalPositional isOriginDeclaration x (nameOffset:59) (firstTokenOffset:55) (offset:59)
               element: <testLibrary>::@function::foo::@formalParameter::x
               constantInitializer2: expression_0
+              constantInitializer: expression_1
               previousFragment: #F0
   topLevelVariables
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer zero
       reference: <testLibrary>::@topLevelVariable::zero
       firstFragment: #F3
       type: int
-      constantInitializer2: expression_1
+      constantInitializer2: expression_2
       getter: <testLibrary>::@getter::zero
   getters
     isOriginVariable isStatic zero
@@ -1341,6 +1364,7 @@ library
           firstFragment: #F0
           type: int
           constantInitializer2: expression_0
+          constantInitializer: expression_1
       returnType: void
 ''');
   }
@@ -1414,6 +1438,11 @@ library
                 UnqualifiedNameExpression
                   name: _notSerializableExpression @-1
                   resolution: <null>
+                  staticType: null
+              constantInitializer: expression_1
+                SimpleIdentifier
+                  token: _notSerializableExpression @-1
+                  element: <null>
                   staticType: null
               previousFragment: #F3
   functions
@@ -1666,9 +1695,14 @@ library
                   name: _notSerializableExpression @-1
                   resolution: <null>
                   staticType: null
+              constantInitializer: expression_1
+                SimpleIdentifier
+                  token: _notSerializableExpression @-1
+                  element: <null>
+                  staticType: null
             #F3 optionalPositional isOriginDeclaration b (nameOffset:30) (firstTokenOffset:26) (offset:30)
               element: <testLibrary>::@function::f::@formalParameter::b
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 IntegerLiteral
                   literal: 1 @34
                   staticType: int
@@ -1681,10 +1715,11 @@ library
           firstFragment: #F2
           type: Object
           constantInitializer2: expression_0
+          constantInitializer: expression_1
         #E1 optionalPositional hasDefaultValue b
           firstFragment: #F3
           type: int
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
       returnType: void
 ''');
   }
@@ -1728,6 +1763,15 @@ library
                         resolution: ExecutableTearOffResolution
                           element: <testLibrary>::@function::defaultF
                           type: void Function<T>(T)
+                        staticType: void Function<T>(T)
+                      staticType: void Function(dynamic)
+                      typeArgumentTypes
+                        dynamic
+                  constantInitializer: expression_1
+                    FunctionReference
+                      function: SimpleIdentifier
+                        token: defaultF @93
+                        element: <testLibrary>::@function::defaultF
                         staticType: void Function<T>(T)
                       staticType: void Function(dynamic)
                       typeArgumentTypes
@@ -1776,6 +1820,7 @@ library
                   typeArguments
                     dynamic
               constantInitializer2: expression_0
+              constantInitializer: expression_1
               field: <testLibrary>::@class::X::@field::f
       getters
         isOriginVariable f
@@ -1877,6 +1922,35 @@ library
                         leftParenthesis: ( @73
                         rightParenthesis: ) @74
                       staticType: A<dynamic Function()>
+                  constantInitializer: expression_1
+                    InstanceCreationExpression
+                      keyword: const @54
+                      constructorName: ConstructorName
+                        type: NamedType
+                          name: A @60
+                          typeArguments: TypeArgumentList
+                            leftBracket: < @61
+                            arguments
+                              GenericFunctionType
+                                functionKeyword: Function @62
+                                parameters: FormalParameterList
+                                  leftParenthesis: ( @70
+                                  rightParenthesis: ) @71
+                                declaredFragment: GenericFunctionTypeElement
+                                  parameters
+                                  returnType: dynamic
+                                  type: dynamic Function()
+                                type: dynamic Function()
+                            rightBracket: > @72
+                          element: <testLibrary>::@class::A
+                          type: A<dynamic Function()>
+                        element: SubstitutedConstructorElementImpl
+                          baseElement: <testLibrary>::@class::A::@constructor::new
+                          substitution: {T: dynamic Function()}
+                      argumentList: ArgumentList
+                        leftParenthesis: ( @73
+                        rightParenthesis: ) @74
+                      staticType: A<dynamic Function()>
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -1904,6 +1978,7 @@ library
               firstFragment: #F7
               type: dynamic
               constantInitializer2: expression_0
+              constantInitializer: expression_1
           returnType: void
 ''');
   }
@@ -1946,6 +2021,11 @@ library
                     element: <testLibrary>::@getter::zero
                     type: int
                   staticType: int
+              constantInitializer: expression_2
+                SimpleIdentifier
+                  token: zero @38
+                  element: <testLibrary>::@getter::zero
+                  staticType: int
   topLevelVariables
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer zero
       reference: <testLibrary>::@topLevelVariable::zero
@@ -1972,6 +2052,7 @@ library
           firstFragment: #F5
           type: int
           constantInitializer2: expression_1
+          constantInitializer: expression_2
       returnType: int
       variable: <testLibrary>::@topLevelVariable::foo
 ''');
@@ -2032,6 +2113,19 @@ library
                     element: dart:core::@class::Comparable::@method::compare
                     type: int Function(Comparable<dynamic>, Comparable<dynamic>)
                   staticType: int Function(Comparable<dynamic>, Comparable<dynamic>)
+              constantInitializer: expression_1
+                PrefixedIdentifier
+                  prefix: SimpleIdentifier
+                    token: Comparable @32
+                    element: dart:core::@class::Comparable
+                    staticType: null
+                  period: . @42
+                  identifier: SimpleIdentifier
+                    token: compare @43
+                    element: dart:core::@class::Comparable::@method::compare
+                    staticType: int Function(Comparable<dynamic>, Comparable<dynamic>)
+                  element: dart:core::@class::Comparable::@method::compare
+                  staticType: int Function(Comparable<dynamic>, Comparable<dynamic>)
   functions
     isOriginDeclaration isStatic f
       reference: <testLibrary>::@function::f
@@ -2044,6 +2138,7 @@ library
               typeArguments
                 InvalidType
           constantInitializer2: expression_0
+          constantInitializer: expression_1
       returnType: void
 ''');
   }
@@ -2344,6 +2439,11 @@ library
                         element: <testLibrary>::@extension::E::@method::f
                         type: void Function()
                       staticType: void Function()
+                  constantInitializer: expression_1
+                    SimpleIdentifier
+                      token: f @80
+                      element: <testLibrary>::@extension::E::@method::f
+                      staticType: void Function()
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -2371,6 +2471,7 @@ library
               firstFragment: #F6
               type: Object
               constantInitializer2: expression_0
+              constantInitializer: expression_1
           returnType: void
 ''');
   }
@@ -2431,6 +2532,21 @@ library
                         leftParenthesis: ( @82
                         rightParenthesis: ) @83
                       staticType: B<int, double>
+                  constantInitializer: expression_1
+                    InstanceCreationExpression
+                      keyword: const @75
+                      constructorName: ConstructorName
+                        type: NamedType
+                          name: B @81
+                          element: <testLibrary>::@class::B
+                          type: B<int, double>
+                        element: SubstitutedConstructorElementImpl
+                          baseElement: <testLibrary>::@class::B::@constructor::new
+                          substitution: {T1: int, T2: double}
+                      argumentList: ArgumentList
+                        leftParenthesis: ( @82
+                        rightParenthesis: ) @83
+                      staticType: B<int, double>
   classes
     isSimplyBounded class B
       reference: <testLibrary>::@class::B
@@ -2460,6 +2576,7 @@ library
               firstFragment: #F8
               type: B<int, double>
               constantInitializer2: expression_0
+              constantInitializer: expression_1
           returnType: void
 ''');
   }
@@ -2519,6 +2636,21 @@ library
                         leftParenthesis: ( @69
                         rightParenthesis: ) @70
                       staticType: B<Never>
+                  constantInitializer: expression_1
+                    InstanceCreationExpression
+                      keyword: const @62
+                      constructorName: ConstructorName
+                        type: NamedType
+                          name: B @68
+                          element: <testLibrary>::@class::B
+                          type: B<Never>
+                        element: SubstitutedConstructorElementImpl
+                          baseElement: <testLibrary>::@class::B::@constructor::new
+                          substitution: {T: Never}
+                      argumentList: ArgumentList
+                        leftParenthesis: ( @69
+                        rightParenthesis: ) @70
+                      staticType: B<Never>
   classes
     isSimplyBounded class B
       reference: <testLibrary>::@class::B
@@ -2545,6 +2677,7 @@ library
               firstFragment: #F7
               type: B<T>
               constantInitializer2: expression_0
+              constantInitializer: expression_1
 ''');
   }
 
@@ -2614,6 +2747,21 @@ library
                         leftParenthesis: ( @135
                         rightParenthesis: ) @136
                       staticType: B<Never>
+                  constantInitializer: expression_1
+                    InstanceCreationExpression
+                      keyword: const @128
+                      constructorName: ConstructorName
+                        type: NamedType
+                          name: B @134
+                          element: <testLibrary>::@class::B
+                          type: B<Never>
+                        element: SubstitutedConstructorElementImpl
+                          baseElement: <testLibrary>::@class::B::@constructor::new
+                          substitution: {T: Never}
+                      argumentList: ArgumentList
+                        leftParenthesis: ( @135
+                        rightParenthesis: ) @136
+                      staticType: B<Never>
   classes
     isAbstract isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -2654,6 +2802,7 @@ library
               firstFragment: #F10
               type: A<T>
               constantInitializer2: expression_0
+              constantInitializer: expression_1
 ''');
   }
 
@@ -2706,6 +2855,21 @@ library
                     leftParenthesis: ( @58
                     rightParenthesis: ) @59
                   staticType: B<Never>
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  keyword: const @51
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: B @57
+                      element: <testLibrary>::@class::B
+                      type: B<Never>
+                    element: SubstitutedConstructorElementImpl
+                      baseElement: <testLibrary>::@class::B::@constructor::new
+                      substitution: {T: Never}
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @58
+                    rightParenthesis: ) @59
+                  staticType: B<Never>
   classes
     isSimplyBounded class B
       reference: <testLibrary>::@class::B
@@ -2729,6 +2893,7 @@ library
           firstFragment: #F6
           type: B<T>
           constantInitializer2: expression_0
+          constantInitializer: expression_1
       returnType: void
 ''');
   }
@@ -2790,6 +2955,21 @@ library
                         leftParenthesis: ( @70
                         rightParenthesis: ) @71
                       staticType: B<Never>
+                  constantInitializer: expression_1
+                    InstanceCreationExpression
+                      keyword: const @63
+                      constructorName: ConstructorName
+                        type: NamedType
+                          name: B @69
+                          element: <testLibrary>::@class::B
+                          type: B<Never>
+                        element: SubstitutedConstructorElementImpl
+                          baseElement: <testLibrary>::@class::B::@constructor::new
+                          substitution: {T: Never}
+                      argumentList: ArgumentList
+                        leftParenthesis: ( @70
+                        rightParenthesis: ) @71
+                      staticType: B<Never>
   classes
     isSimplyBounded class B
       reference: <testLibrary>::@class::B
@@ -2820,6 +3000,7 @@ library
               firstFragment: #F8
               type: B<T>
               constantInitializer2: expression_0
+              constantInitializer: expression_1
           returnType: void
 ''');
   }
@@ -2886,6 +3067,21 @@ library
                         leftParenthesis: ( @85
                         rightParenthesis: ) @86
                       staticType: B<Never, Never>
+                  constantInitializer: expression_1
+                    InstanceCreationExpression
+                      keyword: const @78
+                      constructorName: ConstructorName
+                        type: NamedType
+                          name: B @84
+                          element: <testLibrary>::@class::B
+                          type: B<Never, Never>
+                        element: SubstitutedConstructorElementImpl
+                          baseElement: <testLibrary>::@class::B::@constructor::new
+                          substitution: {T1: Never, T2: Never}
+                      argumentList: ArgumentList
+                        leftParenthesis: ( @85
+                        rightParenthesis: ) @86
+                      staticType: B<Never, Never>
   classes
     isSimplyBounded class B
       reference: <testLibrary>::@class::B
@@ -2921,6 +3117,7 @@ library
               firstFragment: #F10
               type: B<E1, E2>
               constantInitializer2: expression_0
+              constantInitializer: expression_1
           returnType: void
 ''');
   }
@@ -2982,6 +3179,21 @@ library
                         leftParenthesis: ( @70
                         rightParenthesis: ) @71
                       staticType: B<Never>
+                  constantInitializer: expression_1
+                    InstanceCreationExpression
+                      keyword: const @63
+                      constructorName: ConstructorName
+                        type: NamedType
+                          name: B @69
+                          element: <testLibrary>::@class::B
+                          type: B<Never>
+                        element: SubstitutedConstructorElementImpl
+                          baseElement: <testLibrary>::@class::B::@constructor::new
+                          substitution: {T: Never}
+                      argumentList: ArgumentList
+                        leftParenthesis: ( @70
+                        rightParenthesis: ) @71
+                      staticType: B<Never>
   classes
     isSimplyBounded class B
       reference: <testLibrary>::@class::B
@@ -3012,6 +3224,7 @@ library
               firstFragment: #F8
               type: B<T>
               constantInitializer2: expression_0
+              constantInitializer: expression_1
           returnType: void
 ''');
   }
@@ -3067,6 +3280,19 @@ library
                         element: <testLibrary>::@class::A::@getter::zero
                         type: int
                       staticType: int
+                  constantInitializer: expression_2
+                    PrefixedIdentifier
+                      prefix: SimpleIdentifier
+                        token: A @54
+                        element: <testLibrary>::@class::A
+                        staticType: null
+                      period: . @55
+                      identifier: SimpleIdentifier
+                        token: zero @56
+                        element: <testLibrary>::@class::A::@getter::zero
+                        staticType: int
+                      element: <testLibrary>::@class::A::@getter::zero
+                      staticType: int
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -3102,6 +3328,7 @@ library
               firstFragment: #F7
               type: int
               constantInitializer2: expression_1
+              constantInitializer: expression_2
           returnType: void
           variable: <testLibrary>::@class::A::@field::foo
 ''');
@@ -3146,6 +3373,11 @@ library
                     element: <testLibrary>::@getter::zero
                     type: int
                   staticType: int
+              constantInitializer: expression_2
+                SimpleIdentifier
+                  token: zero @34
+                  element: <testLibrary>::@getter::zero
+                  staticType: int
   topLevelVariables
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer zero
       reference: <testLibrary>::@topLevelVariable::zero
@@ -3173,6 +3405,7 @@ library
           firstFragment: #F5
           type: int
           constantInitializer2: expression_1
+          constantInitializer: expression_2
       returnType: void
       variable: <testLibrary>::@topLevelVariable::foo
 ''');

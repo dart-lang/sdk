@@ -55,10 +55,28 @@ library
                           bar @18
                     rightParenthesis: ) @21
                   staticType: E
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @12
+                    arguments
+                      SymbolLiteral
+                        poundSign: # @13
+                        components
+                          foo @14
+                          bar @18
+                    rightParenthesis: ) @21
+                  staticType: E
               inducedGetter: #F3
             #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -102,12 +120,13 @@ library
           firstFragment: #F2
           type: E
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         isConst isOriginDeclaration new
@@ -172,10 +191,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: A
               inducedGetter: #F4
             #F5 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -231,10 +262,22 @@ library
           fields
             #F9 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v2 (nameOffset:36) (firstTokenOffset:36) (offset:36)
               element: <testLibrary>::@enum::A::@field::v2
-              constantInitializer2: expression_2
+              constantInitializer2: expression_3
                 ConstructorInvocation
                   constructorReference: ConstructorReference2
                     typeReference: ConstructorTypeReference
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: A
+              constantInitializer: expression_4
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -254,10 +297,22 @@ library
           fields
             #F11 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v3 (nameOffset:61) (firstTokenOffset:61) (offset:61)
               element: <testLibrary>::@enum::A::@field::v3
-              constantInitializer2: expression_3
+              constantInitializer2: expression_5
                 ConstructorInvocation
                   constructorReference: ConstructorReference2
                     typeReference: ConstructorTypeReference
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: A
+              constantInitializer: expression_6
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -282,24 +337,27 @@ library
           firstFragment: #F3
           type: A
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v1
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F5
           type: List<A>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
         hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v2
           reference: <testLibrary>::@enum::A::@field::v2
           firstFragment: #F9
           type: A
-          constantInitializer2: expression_2
+          constantInitializer2: expression_3
+          constantInitializer: expression_4
           getter: <testLibrary>::@enum::A::@getter::v2
         hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v3
           reference: <testLibrary>::@enum::A::@field::v3
           firstFragment: #F11
           type: A
-          constantInitializer2: expression_3
+          constantInitializer2: expression_5
+          constantInitializer: expression_6
           getter: <testLibrary>::@enum::A::@getter::v3
       constructors
         isConst isOriginImplicitDefault new
@@ -367,10 +425,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: A
               inducedGetter: #F4
             #F5 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -425,10 +495,22 @@ library
           fields
             #F8 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v2 (nameOffset:36) (firstTokenOffset:36) (offset:36)
               element: <testLibrary>::@enum::A::@field::v2
-              constantInitializer2: expression_2
+              constantInitializer2: expression_3
                 ConstructorInvocation
                   constructorReference: ConstructorReference2
                     typeReference: ConstructorTypeReference
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: A
+              constantInitializer: expression_4
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -441,10 +523,22 @@ library
               nextFragment: #F10
             #F10 hasImplicitType hasInitializer isAugmentation isConst isEnumConstant isOriginDeclaration isStatic v2 (nameOffset:50) (firstTokenOffset:42) (offset:50)
               element: <testLibrary>::@enum::A::@field::v2
-              constantInitializer2: expression_3
+              constantInitializer2: expression_5
                 ConstructorInvocation
                   constructorReference: ConstructorReference2
                     typeReference: ConstructorTypeReference
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: A
+              constantInitializer: expression_6
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -475,18 +569,20 @@ library
           firstFragment: #F3
           type: A
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v1
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F5
           type: List<A>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
         hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v2
           reference: <testLibrary>::@enum::A::@field::v2
           firstFragment: #F8
           type: A
-          constantInitializer2: expression_3
+          constantInitializer2: expression_5
+          constantInitializer: expression_6
           getter: <testLibrary>::@enum::A::@getter::v2
       constructors
         isConst isOriginImplicitDefault new
@@ -548,13 +644,10 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
-              inducedGetter: #F4
-            #F5 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v2 (nameOffset:15) (firstTokenOffset:15) (offset:15)
-              element: <testLibrary>::@enum::A::@field::v2
-              constantInitializer2: expression_1
-                ConstructorInvocation
-                  constructorReference: ConstructorReference2
-                    typeReference: ConstructorTypeReference
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -563,10 +656,9 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
-              inducedGetter: #F6
-              nextFragment: #F7
-            #F8 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v3 (nameOffset:19) (firstTokenOffset:19) (offset:19)
-              element: <testLibrary>::@enum::A::@field::v3
+              inducedGetter: #F4
+            #F5 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v2 (nameOffset:15) (firstTokenOffset:15) (offset:15)
+              element: <testLibrary>::@enum::A::@field::v2
               constantInitializer2: expression_2
                 ConstructorInvocation
                   constructorReference: ConstructorReference2
@@ -579,10 +671,50 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
+              constantInitializer: expression_3
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: A
+              inducedGetter: #F6
+              nextFragment: #F7
+            #F8 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v3 (nameOffset:19) (firstTokenOffset:19) (offset:19)
+              element: <testLibrary>::@enum::A::@field::v3
+              constantInitializer2: expression_4
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: A
+              constantInitializer: expression_5
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: A
               inducedGetter: #F9
             #F10 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_3
+              constantInitializer2: expression_6
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -654,10 +786,22 @@ library
           fields
             #F7 hasImplicitType hasInitializer isAugmentation isConst isEnumConstant isOriginDeclaration isStatic v2 (nameOffset:52) (firstTokenOffset:44) (offset:52)
               element: <testLibrary>::@enum::A::@field::v2
-              constantInitializer2: expression_4
+              constantInitializer2: expression_7
                 ConstructorInvocation
                   constructorReference: ConstructorReference2
                     typeReference: ConstructorTypeReference
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: A
+              constantInitializer: expression_8
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -684,24 +828,27 @@ library
           firstFragment: #F3
           type: A
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v1
         hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v2
           reference: <testLibrary>::@enum::A::@field::v2
           firstFragment: #F5
           type: A
-          constantInitializer2: expression_4
+          constantInitializer2: expression_7
+          constantInitializer: expression_8
           getter: <testLibrary>::@enum::A::@getter::v2
         hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v3
           reference: <testLibrary>::@enum::A::@field::v3
           firstFragment: #F8
           type: A
-          constantInitializer2: expression_2
+          constantInitializer2: expression_4
+          constantInitializer: expression_5
           getter: <testLibrary>::@enum::A::@getter::v3
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F10
           type: List<A>
-          constantInitializer2: expression_3
+          constantInitializer2: expression_6
           getter: <testLibrary>::@enum::A::@getter::values
       constructors
         isConst isOriginImplicitDefault new
@@ -775,11 +922,23 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: A
               inducedGetter: #F6
               nextFragment: #F7
             #F8 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v2 (nameOffset:14) (firstTokenOffset:14) (offset:14)
               element: <testLibrary>::@enum::A::@field::v2
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ConstructorInvocation
                   constructorReference: ConstructorReference2
                     typeReference: ConstructorTypeReference
@@ -791,10 +950,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
+              constantInitializer: expression_3
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: A
               inducedGetter: #F9
             #F10 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_2
+              constantInitializer2: expression_4
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -853,10 +1024,22 @@ library
           fields
             #F7 hasImplicitType hasInitializer isAugmentation isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:50) (firstTokenOffset:42) (offset:50)
               element: <testLibrary>::@enum::A::@field::v
-              constantInitializer2: expression_3
+              constantInitializer2: expression_5
                 ConstructorInvocation
                   constructorReference: ConstructorReference2
                     typeReference: ConstructorTypeReference
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: A
+              constantInitializer: expression_6
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -882,19 +1065,21 @@ library
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F5
           type: A
-          constantInitializer2: expression_3
+          constantInitializer2: expression_5
+          constantInitializer: expression_6
           getter: <testLibrary>::@enum::A::@getter::v
         hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v2
           reference: <testLibrary>::@enum::A::@field::v2
           firstFragment: #F8
           type: A
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
+          constantInitializer: expression_3
           getter: <testLibrary>::@enum::A::@getter::v2
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F10
           type: List<A>
-          constantInitializer2: expression_2
+          constantInitializer2: expression_4
           getter: <testLibrary>::@enum::A::@getter::values
       getters
         isOriginVariable isStatic v
@@ -962,11 +1147,29 @@ library
                         staticType: int
                     rightParenthesis: ) @18
                   staticType: A<int>
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A<int>
+                    element: SubstitutedConstructorElementImpl
+                      baseElement: <testLibrary>::@enum::A::@constructor::new
+                      substitution: {T: int}
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @16
+                    arguments
+                      IntegerLiteral
+                        literal: 0 @17
+                        staticType: int
+                    rightParenthesis: ) @18
+                  staticType: A<int>
               inducedGetter: #F6
               nextFragment: #F7
             #F8 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -1020,7 +1223,7 @@ library
           fields
             #F7 hasImplicitType hasInitializer isAugmentation isConst isEnumConstant isOriginDeclaration isStatic v1 (nameOffset:74) (firstTokenOffset:66) (offset:74)
               element: <testLibrary>::@enum::A::@field::v1
-              constantInitializer2: expression_2
+              constantInitializer2: expression_3
                 ConstructorInvocation
                   constructorReference: ConstructorReference2
                     typeReference: ConstructorTypeReference
@@ -1033,6 +1236,23 @@ library
                   argumentList: ArgumentList
                     leftParenthesis: ( @76
                     arguments2
+                      SimpleStringLiteral
+                        literal: 'a' @77
+                    rightParenthesis: ) @80
+                  staticType: A<int>
+              constantInitializer: expression_4
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A<int>
+                    element: SubstitutedConstructorElementImpl
+                      baseElement: <testLibrary>::@enum::A::@constructor::new
+                      substitution: {T: int}
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @76
+                    arguments
                       SimpleStringLiteral
                         literal: 'a' @77
                     rightParenthesis: ) @80
@@ -1057,13 +1277,14 @@ library
           reference: <testLibrary>::@enum::A::@field::v1
           firstFragment: #F5
           type: A<int>
-          constantInitializer2: expression_2
+          constantInitializer2: expression_3
+          constantInitializer: expression_4
           getter: <testLibrary>::@enum::A::@getter::v1
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F8
           type: List<A<dynamic>>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
       constructors
         hasEnclosingTypeParameterReference isConst isOriginDeclaration new
@@ -1129,11 +1350,27 @@ library
                         staticType: int
                     rightParenthesis: ) @15
                   staticType: A
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @13
+                    arguments
+                      IntegerLiteral
+                        literal: 1 @14
+                        staticType: int
+                    rightParenthesis: ) @15
+                  staticType: A
               inducedGetter: #F4
               nextFragment: #F5
             #F6 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v2 (nameOffset:18) (firstTokenOffset:18) (offset:18)
               element: <testLibrary>::@enum::A::@field::v2
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ConstructorInvocation
                   constructorReference: ConstructorReference2
                     typeReference: ConstructorTypeReference
@@ -1149,10 +1386,26 @@ library
                         staticType: int
                     rightParenthesis: ) @22
                   staticType: A
+              constantInitializer: expression_3
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @20
+                    arguments
+                      IntegerLiteral
+                        literal: 2 @21
+                        staticType: int
+                    rightParenthesis: ) @22
+                  staticType: A
               inducedGetter: #F7
             #F8 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_2
+              constantInitializer2: expression_4
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -1215,7 +1468,7 @@ library
           fields
             #F5 hasImplicitType hasInitializer isAugmentation isConst isEnumConstant isOriginDeclaration isStatic v1 (nameOffset:77) (firstTokenOffset:69) (offset:77)
               element: <testLibrary>::@enum::A::@field::v1
-              constantInitializer2: expression_3
+              constantInitializer2: expression_5
                 ConstructorInvocation
                   constructorReference: ConstructorReference2
                     typeReference: ConstructorTypeReference
@@ -1226,6 +1479,22 @@ library
                   argumentList: ArgumentList
                     leftParenthesis: ( @79
                     arguments2
+                      IntegerLiteral
+                        literal: 3 @80
+                        staticType: int
+                    rightParenthesis: ) @81
+                  staticType: A
+              constantInitializer: expression_6
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @79
+                    arguments
                       IntegerLiteral
                         literal: 3 @80
                         staticType: int
@@ -1248,19 +1517,21 @@ library
           reference: <testLibrary>::@enum::A::@field::v1
           firstFragment: #F3
           type: A
-          constantInitializer2: expression_3
+          constantInitializer2: expression_5
+          constantInitializer: expression_6
           getter: <testLibrary>::@enum::A::@getter::v1
         hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v2
           reference: <testLibrary>::@enum::A::@field::v2
           firstFragment: #F6
           type: A
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
+          constantInitializer: expression_3
           getter: <testLibrary>::@enum::A::@getter::v2
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F8
           type: List<A>
-          constantInitializer2: expression_2
+          constantInitializer2: expression_4
           getter: <testLibrary>::@enum::A::@getter::values
       constructors
         isConst isOriginDeclaration new
@@ -1335,7 +1606,19 @@ library
                           element: <testLibrary>::@getter::zero
                           type: int
                         staticType: int
-                    arguments(v1)
+                    rightParenthesis: ) @50
+                  staticType: A
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @45
+                    arguments
                       SimpleIdentifier
                         token: zero @46
                         element: <testLibrary>::@getter::zero
@@ -1346,7 +1629,7 @@ library
               nextFragment: #F5
             #F6 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -1396,7 +1679,7 @@ library
           fields
             #F5 hasImplicitType hasInitializer isAugmentation isConst isEnumConstant isOriginDeclaration isStatic v1 (nameOffset:105) (firstTokenOffset:97) (offset:105)
               element: <testLibrary>::@enum::A::@field::v1
-              constantInitializer2: expression_2
+              constantInitializer2: expression_3
                 ConstructorInvocation
                   constructorReference: ConstructorReference2
                     typeReference: ConstructorTypeReference
@@ -1413,7 +1696,19 @@ library
                           element: <testLibrary>::@getter::one
                           type: int
                         staticType: int
-                    arguments(v1)
+                    rightParenthesis: ) @111
+                  staticType: A
+              constantInitializer: expression_4
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @107
+                    arguments
                       SimpleIdentifier
                         token: one @108
                         element: <testLibrary>::@getter::one
@@ -1430,14 +1725,14 @@ library
       topLevelVariables
         #F11 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic zero (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::zero
-          constantInitializer2: expression_3
+          constantInitializer2: expression_5
             IntegerLiteral
               literal: 0 @13
               staticType: int
           inducedGetter: #F12
         #F13 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic one (nameOffset:22) (firstTokenOffset:22) (offset:22)
           element: <testLibrary>::@topLevelVariable::one
-          constantInitializer2: expression_4
+          constantInitializer2: expression_6
             IntegerLiteral
               literal: 1 @28
               staticType: int
@@ -1459,13 +1754,14 @@ library
           reference: <testLibrary>::@enum::A::@field::v1
           firstFragment: #F3
           type: A
-          constantInitializer2: expression_2
+          constantInitializer2: expression_3
+          constantInitializer: expression_4
           getter: <testLibrary>::@enum::A::@getter::v1
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F6
           type: List<A>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
       constructors
         isConst isOriginDeclaration new
@@ -1492,13 +1788,13 @@ library
       reference: <testLibrary>::@topLevelVariable::zero
       firstFragment: #F11
       type: int
-      constantInitializer2: expression_3
+      constantInitializer2: expression_5
       getter: <testLibrary>::@getter::zero
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer one
       reference: <testLibrary>::@topLevelVariable::one
       firstFragment: #F13
       type: int
-      constantInitializer2: expression_4
+      constantInitializer2: expression_6
       getter: <testLibrary>::@getter::one
   getters
     isOriginVariable isStatic zero
@@ -1550,10 +1846,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: A
               inducedGetter: #F4
             #F5 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -1598,10 +1906,22 @@ library
           fields
             #F8 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v2 (nameOffset:36) (firstTokenOffset:36) (offset:36)
               element: <testLibrary>::@enum::A::@field::v2
-              constantInitializer2: expression_2
+              constantInitializer2: expression_3
                 ConstructorInvocation
                   constructorReference: ConstructorReference2
                     typeReference: ConstructorTypeReference
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: A
+              constantInitializer: expression_4
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -1626,18 +1946,20 @@ library
           firstFragment: #F3
           type: A
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v1
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F5
           type: List<A>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
         hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v2
           reference: <testLibrary>::@enum::A::@field::v2
           firstFragment: #F8
           type: A
-          constantInitializer2: expression_2
+          constantInitializer2: expression_3
+          constantInitializer: expression_4
           getter: <testLibrary>::@enum::A::@getter::v2
       constructors
         isConst isOriginImplicitDefault new
@@ -1694,10 +2016,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               inducedGetter: #F4
             #F5 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -1740,12 +2074,13 @@ library
           firstFragment: #F3
           type: E
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F5
           type: List<E>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         isConst isOriginImplicitDefault new
@@ -1797,10 +2132,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               inducedGetter: #F4
             #F5 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -1843,12 +2190,13 @@ library
           firstFragment: #F3
           type: E
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F5
           type: List<E>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         isConst isOriginImplicitDefault new
@@ -1900,10 +2248,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               inducedGetter: #F4
             #F5 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -1946,12 +2306,13 @@ library
           firstFragment: #F3
           type: E
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F5
           type: List<E>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         isConst isOriginImplicitDefault new
@@ -2035,6 +2396,18 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
+              constantInitializer: expression_2
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               inducedGetter: #F7
           getters
             #F7 isComplete isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
@@ -2057,6 +2430,7 @@ library
           firstFragment: #F6
           type: E
           constantInitializer2: expression_1
+          constantInitializer: expression_2
           getter: <testLibrary>::@enum::E::@getter::v
       constructors
         isConst isOriginImplicitDefault new
@@ -2182,10 +2556,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: A
               inducedGetter: #F4
             #F5 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -2241,10 +2627,22 @@ library
           fields
             #F9 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v2 (nameOffset:36) (firstTokenOffset:36) (offset:36)
               element: <testLibrary>::@enum::A::@field::v2
-              constantInitializer2: expression_2
+              constantInitializer2: expression_3
                 ConstructorInvocation
                   constructorReference: ConstructorReference2
                     typeReference: ConstructorTypeReference
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: A
+              constantInitializer: expression_4
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -2274,10 +2672,22 @@ library
           fields
             #F14 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v3 (nameOffset:112) (firstTokenOffset:112) (offset:112)
               element: <testLibrary>::@enum::A::@field::v3
-              constantInitializer2: expression_3
+              constantInitializer2: expression_5
                 ConstructorInvocation
                   constructorReference: ConstructorReference2
                     typeReference: ConstructorTypeReference
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: A
+              constantInitializer: expression_6
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -2302,18 +2712,20 @@ library
           firstFragment: #F3
           type: A
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v1
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F5
           type: List<A>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
         hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v2
           reference: <testLibrary>::@enum::A::@field::v2
           firstFragment: #F9
           type: A
-          constantInitializer2: expression_2
+          constantInitializer2: expression_3
+          constantInitializer: expression_4
           getter: <testLibrary>::@enum::A::@getter::v2
         isOriginGetterSetter isStatic values
           reference: <testLibrary>::@enum::A::@field::values#1
@@ -2324,7 +2736,8 @@ library
           reference: <testLibrary>::@enum::A::@field::v3
           firstFragment: #F14
           type: A
-          constantInitializer2: expression_3
+          constantInitializer2: expression_5
+          constantInitializer: expression_6
           getter: <testLibrary>::@enum::A::@getter::v3
       constructors
         isConst isOriginImplicitDefault new
@@ -2397,11 +2810,23 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               inducedGetter: #F3
             #F4 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic b (nameOffset:48) (firstTokenOffset:38) (offset:48)
               element: <testLibrary>::@enum::E::@field::b
               documentationComment: /// bbb
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ConstructorInvocation
                   constructorReference: ConstructorReference2
                     typeReference: ConstructorTypeReference
@@ -2413,10 +2838,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
+              constantInitializer: expression_3
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               inducedGetter: #F5
             #F6 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_2
+              constantInitializer2: expression_4
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -2470,19 +2907,21 @@ library
           documentationComment: /**\n   * aaa\n   */
           type: E
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::a
         hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer b
           reference: <testLibrary>::@enum::E::@field::b
           firstFragment: #F4
           documentationComment: /// bbb
           type: E
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
+          constantInitializer: expression_3
           getter: <testLibrary>::@enum::E::@getter::b
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F6
           type: List<E>
-          constantInitializer2: expression_2
+          constantInitializer2: expression_4
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         isConst isOriginImplicitDefault new
@@ -2563,6 +3002,18 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               inducedGetter: #F3
             #F4 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic b (nameOffset:76) (firstTokenOffset:52) (offset:76)
               element: <testLibrary>::@enum::E::@field::b
@@ -2581,7 +3032,7 @@ library
                     element: <testLibrary>::@getter::annotation
                     staticType: null
                   element: <testLibrary>::@getter::annotation
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ConstructorInvocation
                   constructorReference: ConstructorReference2
                     typeReference: ConstructorTypeReference
@@ -2593,10 +3044,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
+              constantInitializer: expression_3
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               inducedGetter: #F5
             #F6 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_2
+              constantInitializer2: expression_4
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -2641,7 +3104,7 @@ library
       topLevelVariables
         #F9 hasInitializer isConst isOriginDeclaration isStatic annotation (nameOffset:92) (firstTokenOffset:92) (offset:92)
           element: <testLibrary>::@topLevelVariable::annotation
-          constantInitializer2: expression_3
+          constantInitializer2: expression_5
             IntegerLiteral
               literal: 0 @105
               staticType: int
@@ -2676,6 +3139,7 @@ library
               element: <testLibrary>::@getter::annotation
           type: E
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::a
         hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer b
           reference: <testLibrary>::@enum::E::@field::b
@@ -2696,13 +3160,14 @@ library
                 staticType: null
               element: <testLibrary>::@getter::annotation
           type: E
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
+          constantInitializer: expression_3
           getter: <testLibrary>::@enum::E::@getter::b
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F6
           type: List<E>
-          constantInitializer2: expression_2
+          constantInitializer2: expression_4
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         isConst isOriginImplicitDefault new
@@ -2730,7 +3195,7 @@ library
       reference: <testLibrary>::@topLevelVariable::annotation
       firstFragment: #F9
       type: int
-      constantInitializer2: expression_3
+      constantInitializer2: expression_5
       getter: <testLibrary>::@getter::annotation
   getters
     isOriginVariable isStatic annotation
@@ -2783,10 +3248,28 @@ library
                         staticType: int
                     rightParenthesis: ) @19
                   staticType: E<int>
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E<int>
+                    element: SubstitutedConstructorElementImpl
+                      baseElement: <testLibrary>::@enum::E::@constructor::new
+                      substitution: {T: int}
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @17
+                    arguments
+                      IntegerLiteral
+                        literal: 1 @18
+                        staticType: int
+                    rightParenthesis: ) @19
+                  staticType: E<int>
               inducedGetter: #F4
             #F5 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic string (nameOffset:24) (firstTokenOffset:24) (offset:24)
               element: <testLibrary>::@enum::E::@field::string
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ConstructorInvocation
                   constructorReference: ConstructorReference2
                     typeReference: ConstructorTypeReference
@@ -2803,10 +3286,27 @@ library
                         literal: '2' @31
                     rightParenthesis: ) @34
                   staticType: E<String>
+              constantInitializer: expression_3
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E<String>
+                    element: SubstitutedConstructorElementImpl
+                      baseElement: <testLibrary>::@enum::E::@constructor::new
+                      substitution: {T: String}
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @30
+                    arguments
+                      SimpleStringLiteral
+                        literal: '2' @31
+                    rightParenthesis: ) @34
+                  staticType: E<String>
               inducedGetter: #F6
             #F7 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_2
+              constantInitializer2: expression_4
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -2866,18 +3366,20 @@ library
           firstFragment: #F3
           type: E<int>
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::int
         hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer string
           reference: <testLibrary>::@enum::E::@field::string
           firstFragment: #F5
           type: E<String>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
+          constantInitializer: expression_3
           getter: <testLibrary>::@enum::E::@getter::string
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F7
           type: List<E<dynamic>>
-          constantInitializer2: expression_2
+          constantInitializer2: expression_4
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         hasEnclosingTypeParameterReference isConst isOriginDeclaration new
@@ -2954,10 +3456,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               inducedGetter: #F3
             #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -2989,7 +3503,7 @@ library
       topLevelVariables
         #F7 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::a
-          constantInitializer2: expression_2
+          constantInitializer2: expression_3
             IntegerLiteral
               literal: 42 @10
               staticType: int
@@ -3023,12 +3537,13 @@ library
               element: <testLibrary>::@getter::a
           type: E
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         isConst isOriginImplicitDefault new
@@ -3051,7 +3566,7 @@ library
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F7
       type: int
-      constantInitializer2: expression_2
+      constantInitializer2: expression_3
       getter: <testLibrary>::@getter::a
   getters
     isOriginVariable isStatic a
@@ -3150,13 +3665,37 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               inducedGetter: #F8
             #F9 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic b (nameOffset:85) (firstTokenOffset:85) (offset:85)
               element: <testLibrary>::@enum::E::@field::b
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ConstructorInvocation
                   constructorReference: ConstructorReference2
                     typeReference: ConstructorTypeReference
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
+              constantInitializer: expression_3
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -3198,7 +3737,7 @@ library
                         staticType: int
                     rightParenthesis: ) @96
                   element: <testLibrary>::@class::A::@constructor::new
-              constantInitializer2: expression_2
+              constantInitializer2: expression_4
                 ConstructorInvocation
                   constructorReference: ConstructorReference2
                     typeReference: ConstructorTypeReference
@@ -3210,10 +3749,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
+              constantInitializer: expression_5
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               inducedGetter: #F12
             #F13 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_3
+              constantInitializer2: expression_6
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -3334,12 +3885,14 @@ library
               element: <testLibrary>::@class::A::@constructor::new
           type: E
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::a
         hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer b
           reference: <testLibrary>::@enum::E::@field::b
           firstFragment: #F9
           type: E
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
+          constantInitializer: expression_3
           getter: <testLibrary>::@enum::E::@getter::b
         hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer c
           reference: <testLibrary>::@enum::E::@field::c
@@ -3375,13 +3928,14 @@ library
                 rightParenthesis: ) @96
               element: <testLibrary>::@class::A::@constructor::new
           type: E
-          constantInitializer2: expression_2
+          constantInitializer2: expression_4
+          constantInitializer: expression_5
           getter: <testLibrary>::@enum::E::@getter::c
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F13
           type: List<E>
-          constantInitializer2: expression_3
+          constantInitializer2: expression_6
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         isConst isOriginImplicitDefault new
@@ -3457,10 +4011,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               inducedGetter: #F3
             #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -3514,12 +4080,13 @@ library
               element: <testLibrary>::@enum::E::@getter::v
           type: E
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         isConst isOriginImplicitDefault new
@@ -3570,10 +4137,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               inducedGetter: #F3
             #F4 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic <null-name> (nameOffset:<null>) (firstTokenOffset:13) (offset:13)
               element: <testLibrary>::@enum::E::@field::#0
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ConstructorInvocation
                   constructorReference: ConstructorReference2
                     typeReference: ConstructorTypeReference
@@ -3585,10 +4164,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
+              constantInitializer: expression_3
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               inducedGetter: #F5
             #F6 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_2
+              constantInitializer2: expression_4
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -3640,18 +4231,20 @@ library
           firstFragment: #F2
           type: E
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::v
         hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer <null-name>
           reference: <testLibrary>::@enum::E::@field::#0
           firstFragment: #F4
           type: E
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
+          constantInitializer: expression_3
           getter: <testLibrary>::@enum::E::@getter::#1
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F6
           type: List<E>
-          constantInitializer2: expression_2
+          constantInitializer2: expression_4
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         isConst isOriginImplicitDefault new
@@ -3706,10 +4299,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               inducedGetter: #F3
             #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -3749,12 +4354,13 @@ library
           firstFragment: #F2
           type: E
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::_name
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         isConst isOriginImplicitDefault new
@@ -3824,10 +4430,36 @@ library
                         staticType: double
                     rightParenthesis: ) @26
                   staticType: E<double>
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      typeArguments: TypeArgumentList
+                        leftBracket: < @15
+                        arguments
+                          NamedType
+                            name: double @16
+                            element: dart:core::@class::double
+                            type: double
+                        rightBracket: > @22
+                      element: <testLibrary>::@enum::E
+                      type: E<double>
+                    element: SubstitutedConstructorElementImpl
+                      baseElement: <testLibrary>::@enum::E::@constructor::new
+                      substitution: {T: double}
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @23
+                    arguments
+                      IntegerLiteral
+                        literal: 42 @24
+                        staticType: double
+                    rightParenthesis: ) @26
+                  staticType: E<double>
               inducedGetter: #F4
             #F5 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -3874,12 +4506,13 @@ library
           firstFragment: #F3
           type: E<double>
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F5
           type: List<E<dynamic>>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         hasEnclosingTypeParameterReference isConst isOriginDeclaration new
@@ -3932,10 +4565,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               inducedGetter: #F3
             #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -3975,12 +4620,13 @@ library
           firstFragment: #F2
           type: E
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::_
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         isConst isOriginImplicitDefault new
@@ -4037,10 +4683,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: A
               inducedGetter: #F4
             #F5 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -4092,12 +4750,13 @@ library
           firstFragment: #F3
           type: A
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F5
           type: List<A>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
       constructors
         isConst isOriginDeclaration isPrimary new
@@ -4150,10 +4809,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               inducedGetter: #F3
             #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -4197,12 +4868,13 @@ library
           firstFragment: #F2
           type: E
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         isConst isOriginDeclaration isPrimary new
@@ -4264,10 +4936,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               inducedGetter: #F3
             #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -4317,12 +5001,13 @@ library
           firstFragment: #F2
           type: E
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
         isFinal isOriginDeclaration x
           reference: <testLibrary>::@enum::E::@field::x
@@ -4401,10 +5086,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               inducedGetter: #F3
             #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -4482,12 +5179,13 @@ library
           firstFragment: #F2
           type: E
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
         isFinal isOriginDeclaration y
           reference: <testLibrary>::@enum::E::@field::y
@@ -4595,10 +5293,26 @@ library
                         staticType: int
                     rightParenthesis: ) @21
                   staticType: E
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @19
+                    arguments
+                      IntegerLiteral
+                        literal: 0 @20
+                        staticType: int
+                    rightParenthesis: ) @21
+                  staticType: E
               inducedGetter: #F3
             #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -4659,12 +5373,13 @@ library
           firstFragment: #F2
           type: E
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         isConst isOriginDeclaration isPrimary new
@@ -4738,10 +5453,27 @@ library
                     leftParenthesis: ( @26
                     rightParenthesis: ) @27
                   staticType: E
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    period: . @-1
+                    name: SimpleIdentifier
+                      token: named @-1
+                      element: <testLibrary>::@enum::E::@constructor::named
+                      staticType: null
+                    element: <testLibrary>::@enum::E::@constructor::named
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @26
+                    rightParenthesis: ) @27
+                  staticType: E
               inducedGetter: #F3
             #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -4786,12 +5518,13 @@ library
           firstFragment: #F2
           type: E
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         isConst isOriginDeclaration isPrimary named
@@ -4852,10 +5585,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               inducedGetter: #F3
             #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -4895,12 +5640,13 @@ library
           firstFragment: #F2
           type: E
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         isConst isOriginImplicitDefault new
@@ -4953,10 +5699,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               inducedGetter: #F3
             #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -5000,12 +5758,13 @@ library
           firstFragment: #F2
           type: E
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         isConst isOriginDeclaration isPrimary new
@@ -5070,10 +5829,26 @@ library
                         staticType: int
                     rightParenthesis: ) @21
                   staticType: E
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @19
+                    arguments
+                      IntegerLiteral
+                        literal: 1 @20
+                        staticType: int
+                    rightParenthesis: ) @21
+                  staticType: E
               inducedGetter: #F3
             #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -5120,12 +5895,13 @@ library
           firstFragment: #F2
           type: E
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         isConst isOriginDeclaration isPrimary new
@@ -5218,10 +5994,29 @@ library
                           staticType: int
                     rightParenthesis: ) @37
                   staticType: A
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @30
+                    arguments
+                      NamedArgument
+                        name: foo @31
+                        colon: : @34
+                        argumentExpression: IntegerLiteral
+                          literal: 0 @36
+                          staticType: int
+                    rightParenthesis: ) @37
+                  staticType: A
               inducedGetter: #F3
             #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -5272,12 +6067,13 @@ library
           firstFragment: #F2
           type: A
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
         isFinal isOriginDeclaringFormalParameter foo
           reference: <testLibrary>::@enum::A::@field::foo
@@ -5348,10 +6144,26 @@ library
                         staticType: int
                     rightParenthesis: ) @32
                   staticType: A
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @30
+                    arguments
+                      IntegerLiteral
+                        literal: 0 @31
+                        staticType: int
+                    rightParenthesis: ) @32
+                  staticType: A
               inducedGetter: #F3
             #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -5402,12 +6214,13 @@ library
           firstFragment: #F2
           type: A
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
         isFinal isOriginDeclaringFormalParameter foo
           reference: <testLibrary>::@enum::A::@field::foo
@@ -5481,10 +6294,29 @@ library
                           staticType: int
                     rightParenthesis: ) @45
                   staticType: A
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @38
+                    arguments
+                      NamedArgument
+                        name: foo @39
+                        colon: : @42
+                        argumentExpression: IntegerLiteral
+                          literal: 0 @44
+                          staticType: int
+                    rightParenthesis: ) @45
+                  staticType: A
               inducedGetter: #F3
             #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -5535,12 +6367,13 @@ library
           firstFragment: #F2
           type: A
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
         isFinal isOriginDeclaringFormalParameter foo
           reference: <testLibrary>::@enum::A::@field::foo
@@ -5611,10 +6444,22 @@ library
                     leftParenthesis: ( @72
                     rightParenthesis: ) @73
                   staticType: A
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @72
+                    rightParenthesis: ) @73
+                  staticType: A
               inducedGetter: #F3
             #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -5680,12 +6525,13 @@ library
           firstFragment: #F2
           type: A
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
         isFinal isOriginDeclaringFormalParameter foo
           reference: <testLibrary>::@enum::A::@field::foo
@@ -5790,10 +6636,26 @@ library
                         staticType: int
                     rightParenthesis: ) @71
                   staticType: A
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @69
+                    arguments
+                      IntegerLiteral
+                        literal: 0 @70
+                        staticType: int
+                    rightParenthesis: ) @71
+                  staticType: A
               inducedGetter: #F3
             #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -5859,12 +6721,13 @@ library
           firstFragment: #F2
           type: A
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
         isFinal isOriginDeclaringFormalParameter foo
           reference: <testLibrary>::@enum::A::@field::foo
@@ -5965,10 +6828,26 @@ library
                         staticType: int
                     rightParenthesis: ) @27
                   staticType: A
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @25
+                    arguments
+                      IntegerLiteral
+                        literal: 0 @26
+                        staticType: int
+                    rightParenthesis: ) @27
+                  staticType: A
               inducedGetter: #F3
             #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -6027,12 +6906,13 @@ library
           firstFragment: #F2
           type: A
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
         isOriginDeclaringFormalParameter foo
           reference: <testLibrary>::@enum::A::@field::foo
@@ -6131,10 +7011,26 @@ library
                         staticType: int
                     rightParenthesis: ) @71
                   staticType: B
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: B @-1
+                      element: <testLibrary>::@enum::B
+                      type: B
+                    element: <testLibrary>::@enum::B::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @69
+                    arguments
+                      IntegerLiteral
+                        literal: 0 @70
+                        staticType: int
+                    rightParenthesis: ) @71
+                  staticType: B
               inducedGetter: #F7
             #F8 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
               element: <testLibrary>::@enum::B::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -6207,12 +7103,13 @@ library
           firstFragment: #F6
           type: B
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::B::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::B::@field::values
           firstFragment: #F8
           type: List<B>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::B::@getter::values
         hasImplicitType isFinal isOriginDeclaringFormalParameter isTypeInferredFromOverride foo
           reference: <testLibrary>::@enum::B::@field::foo
@@ -6288,10 +7185,28 @@ library
                         staticType: int
                     rightParenthesis: ) @30
                   staticType: A<int>
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A<int>
+                    element: SubstitutedConstructorElementImpl
+                      baseElement: <testLibrary>::@enum::A::@constructor::new
+                      substitution: {T: int}
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @28
+                    arguments
+                      IntegerLiteral
+                        literal: 0 @29
+                        staticType: int
+                    rightParenthesis: ) @30
+                  staticType: A<int>
               inducedGetter: #F4
             #F5 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -6345,12 +7260,13 @@ library
           firstFragment: #F3
           type: A<int>
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F5
           type: List<A<dynamic>>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
         hasEnclosingTypeParameterReference isFinal isOriginDeclaringFormalParameter foo
           reference: <testLibrary>::@enum::A::@field::foo
@@ -6423,10 +7339,26 @@ library
                         staticType: int
                     rightParenthesis: ) @24
                   staticType: A
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @22
+                    arguments
+                      IntegerLiteral
+                        literal: 0 @23
+                        staticType: int
+                    rightParenthesis: ) @24
+                  staticType: A
               inducedGetter: #F3
             #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -6477,12 +7409,13 @@ library
           firstFragment: #F2
           type: A
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
         isFinal isOriginDeclaration foo
           reference: <testLibrary>::@enum::A::@field::foo
@@ -6552,10 +7485,26 @@ library
                         staticType: int
                     rightParenthesis: ) @25
                   staticType: A
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @23
+                    arguments
+                      IntegerLiteral
+                        literal: 0 @24
+                        staticType: int
+                    rightParenthesis: ) @25
+                  staticType: A
               inducedGetter: #F3
             #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -6600,12 +7549,13 @@ library
           firstFragment: #F2
           type: A
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
       constructors
         isConst isOriginDeclaration isPrimary new
@@ -6664,10 +7614,26 @@ library
                         staticType: int
                     rightParenthesis: ) @23
                   staticType: A
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @21
+                    arguments
+                      IntegerLiteral
+                        literal: 0 @22
+                        staticType: int
+                    rightParenthesis: ) @23
+                  staticType: A
               inducedGetter: #F3
             #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -6712,12 +7678,13 @@ library
           firstFragment: #F2
           type: A
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
       constructors
         isConst isOriginDeclaration isPrimary new
@@ -6775,10 +7742,27 @@ library
                     leftParenthesis: ( @32
                     rightParenthesis: ) @33
                   staticType: A
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    period: . @-1
+                    name: SimpleIdentifier
+                      token: named @-1
+                      element: <testLibrary>::@enum::A::@constructor::named
+                      staticType: null
+                    element: <testLibrary>::@enum::A::@constructor::named
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @32
+                    rightParenthesis: ) @33
+                  staticType: A
               inducedGetter: #F3
             #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -6821,12 +7805,13 @@ library
           firstFragment: #F2
           type: A
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
       constructors
         isConst isOriginDeclaration isPrimary named
@@ -6880,10 +7865,27 @@ library
                     leftParenthesis: ( @26
                     rightParenthesis: ) @27
                   staticType: A
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    period: . @-1
+                    name: SimpleIdentifier
+                      token: named @-1
+                      element: <testLibrary>::@enum::A::@constructor::named
+                      staticType: null
+                    element: <testLibrary>::@enum::A::@constructor::named
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @26
+                    rightParenthesis: ) @27
+                  staticType: A
               inducedGetter: #F3
             #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -6926,12 +7928,13 @@ library
           firstFragment: #F2
           type: A
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
       constructors
         isConst isOriginDeclaration isPrimary named
@@ -7005,10 +8008,24 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E<dynamic>
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E<dynamic>
+                    element: SubstitutedConstructorElementImpl
+                      baseElement: <testLibrary>::@enum::E::@constructor::new
+                      substitution: {T: dynamic}
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E<dynamic>
               inducedGetter: #F4
             #F5 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -7028,7 +8045,7 @@ library
               inducedGetter: #F6
             #F7 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic foo (nameOffset:74) (firstTokenOffset:74) (offset:74)
               element: <testLibrary>::@enum::E::@field::foo
-              constantInitializer2: expression_2
+              constantInitializer2: expression_3
                 IntegerLiteral
                   literal: 1 @80
                   staticType: int
@@ -7056,12 +8073,17 @@ library
                         element: <testLibrary>::@enum::E::@getter::foo
                         staticType: null
                       element: <testLibrary>::@enum::E::@getter::foo
-                  constantInitializer2: expression_3
+                  constantInitializer2: expression_4
                     UnqualifiedNameExpression
                       name: foo @45
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::foo
                         type: int
+                      staticType: int
+                  constantInitializer: expression_5
+                    SimpleIdentifier
+                      token: foo @45
+                      element: <testLibrary>::@enum::E::@getter::foo
                       staticType: int
           getters
             #F4 isComplete isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:55)
@@ -7076,7 +8098,7 @@ library
       topLevelVariables
         #F11 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic foo (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::foo
-          constantInitializer2: expression_4
+          constantInitializer2: expression_6
             IntegerLiteral
               literal: 0 @12
               staticType: int
@@ -7113,18 +8135,19 @@ library
           firstFragment: #F3
           type: E<dynamic>
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F5
           type: List<E<dynamic>>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
         hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer foo
           reference: <testLibrary>::@enum::E::@field::foo
           firstFragment: #F7
           type: int
-          constantInitializer2: expression_2
+          constantInitializer2: expression_3
           getter: <testLibrary>::@enum::E::@getter::foo
       constructors
         hasEnclosingTypeParameterReference isConst isOriginDeclaration isPrimary new
@@ -7148,7 +8171,8 @@ library
                     element: <testLibrary>::@enum::E::@getter::foo
                     staticType: null
                   element: <testLibrary>::@enum::E::@getter::foo
-              constantInitializer2: expression_3
+              constantInitializer2: expression_4
+              constantInitializer: expression_5
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         isOriginVariable isStatic v
@@ -7171,7 +8195,7 @@ library
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: #F11
       type: int
-      constantInitializer2: expression_4
+      constantInitializer2: expression_6
       getter: <testLibrary>::@getter::foo
   getters
     isOriginVariable isStatic foo
@@ -7226,10 +8250,31 @@ library
                         staticType: int
                     rightParenthesis: ) @55
                   staticType: A<int, int>
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A<int, int>
+                    element: SubstitutedConstructorElementImpl
+                      baseElement: <testLibrary>::@enum::A::@constructor::new
+                      substitution: {T: int, U: int}
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @50
+                    arguments
+                      IntegerLiteral
+                        literal: 0 @51
+                        staticType: int
+                      IntegerLiteral
+                        literal: 0 @54
+                        staticType: int
+                    rightParenthesis: ) @55
+                  staticType: A<int, int>
               inducedGetter: #F5
             #F6 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -7283,12 +8328,13 @@ library
           firstFragment: #F4
           type: A<int, int>
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F6
           type: List<A<num, num>>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
       constructors
         hasEnclosingTypeParameterReference isConst isOriginDeclaration isPrimary new
@@ -7346,10 +8392,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: A
               inducedGetter: #F3
             #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -7391,12 +8449,13 @@ library
           firstFragment: #F2
           type: A
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
       constructors
         isConst isOriginDeclaration isPrimary new
@@ -7447,10 +8506,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: A
               inducedGetter: #F3
             #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -7492,12 +8563,13 @@ library
           firstFragment: #F2
           type: A
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
       constructors
         isConst isOriginDeclaration isPrimary new
@@ -7558,10 +8630,27 @@ library
                     leftParenthesis: ( @18
                     rightParenthesis: ) @19
                   staticType: A
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    period: . @-1
+                    name: SimpleIdentifier
+                      token: named @-1
+                      element: <testLibrary>::@enum::A::@constructor::named
+                      staticType: null
+                    element: <testLibrary>::@enum::A::@constructor::named
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @18
+                    rightParenthesis: ) @19
+                  staticType: A
               inducedGetter: #F4
             #F5 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -7606,12 +8695,13 @@ library
           firstFragment: #F3
           type: A
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F5
           type: List<A>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
       constructors
         isConst isOriginDeclaration named
@@ -7686,10 +8776,39 @@ library
                     leftParenthesis: ( @26
                     rightParenthesis: ) @27
                   staticType: A<int>
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      typeArguments: TypeArgumentList
+                        leftBracket: < @15
+                        arguments
+                          NamedType
+                            name: int @16
+                            element: dart:core::@class::int
+                            type: int
+                        rightBracket: > @19
+                      element: <testLibrary>::@enum::A
+                      type: A<int>
+                    period: . @-1
+                    name: SimpleIdentifier
+                      token: named @-1
+                      element: SubstitutedConstructorElementImpl
+                        baseElement: <testLibrary>::@enum::A::@constructor::named
+                        substitution: {T: int}
+                      staticType: null
+                    element: SubstitutedConstructorElementImpl
+                      baseElement: <testLibrary>::@enum::A::@constructor::named
+                      substitution: {T: int}
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @26
+                    rightParenthesis: ) @27
+                  staticType: A<int>
               inducedGetter: #F6
             #F7 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -7744,12 +8863,13 @@ library
           firstFragment: #F5
           type: A<int>
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F7
           type: List<A<dynamic>>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
       constructors
         hasEnclosingTypeParameterReference isConst isOriginDeclaration named
@@ -7812,10 +8932,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: A
               inducedGetter: #F4
             #F5 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -7865,12 +8997,13 @@ library
           firstFragment: #F3
           type: A
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F5
           type: List<A>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
       constructors
         isConst isOriginDeclaration new
@@ -7932,10 +9065,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: A
               inducedGetter: #F4
             #F5 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -7979,12 +9124,13 @@ library
           firstFragment: #F3
           type: A
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F5
           type: List<A>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
       constructors
         isConst isOriginDeclaration new
@@ -8043,10 +9189,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: A
               inducedGetter: #F4
             #F5 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -8096,12 +9254,13 @@ library
           firstFragment: #F3
           type: A
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F5
           type: List<A>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
       constructors
         isConst isOriginDeclaration named
@@ -8164,10 +9323,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <null>
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: A
               inducedGetter: #F4
             #F5 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -8218,12 +9389,13 @@ library
           firstFragment: #F3
           type: A
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F5
           type: List<A>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
         isFinal isOriginDeclaration f
           reference: <testLibrary>::@enum::A::@field::f
@@ -8308,10 +9480,26 @@ library
                         staticType: int
                     rightParenthesis: ) @14
                   staticType: A
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <null>
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @12
+                    arguments
+                      IntegerLiteral
+                        literal: 0 @13
+                        staticType: int
+                    rightParenthesis: ) @14
+                  staticType: A
               inducedGetter: #F4
             #F5 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -8365,12 +9553,13 @@ library
           firstFragment: #F3
           type: A
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F5
           type: List<A>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
         isFinal isOriginDeclaration f
           reference: <testLibrary>::@enum::A::@field::f
@@ -8446,10 +9635,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: A
               inducedGetter: #F4
             #F5 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -8514,12 +9715,13 @@ library
           firstFragment: #F3
           type: A
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F5
           type: List<A>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
       constructors
         isFactory isOriginDeclaration new
@@ -8571,10 +9773,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               inducedGetter: #F3
             #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -8616,12 +9830,13 @@ library
           firstFragment: #F2
           type: E
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         isFactory isOriginDeclaration new
@@ -8673,10 +9888,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               inducedGetter: #F3
             #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -8722,12 +9949,13 @@ library
           firstFragment: #F2
           type: E
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         isFactory isOriginDeclaration named
@@ -8783,10 +10011,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               inducedGetter: #F3
             #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -8830,12 +10070,13 @@ library
           firstFragment: #F2
           type: E
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         isFactory isOriginDeclaration named
@@ -8895,10 +10136,27 @@ library
                     leftParenthesis: ( @18
                     rightParenthesis: ) @19
                   staticType: E
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    period: . @-1
+                    name: SimpleIdentifier
+                      token: named @-1
+                      element: <testLibrary>::@enum::E::@constructor::named
+                      staticType: null
+                    element: <testLibrary>::@enum::E::@constructor::named
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @18
+                    rightParenthesis: ) @19
+                  staticType: E
               inducedGetter: #F3
             #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -8944,12 +10202,13 @@ library
           firstFragment: #F2
           type: E
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         isConst isOriginDeclaration named
@@ -9006,10 +10265,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               inducedGetter: #F3
             #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -9038,7 +10309,7 @@ library
               formalParameters
                 #F9 optionalNamed hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:46) (firstTokenOffset:41) (offset:46)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::x
-                  constantInitializer2: expression_2
+                  constantInitializer2: expression_3
                     BinaryOperatorInvocation
                       leftOperand: IntegerLiteral
                         literal: 1 @50
@@ -9049,6 +10320,18 @@ library
                         staticType: int
                       binaryOperator: add
                       element: dart:core::@class::num::@method::+
+                      staticType: int
+                  constantInitializer: expression_4
+                    BinaryExpression
+                      leftOperand: IntegerLiteral
+                        literal: 1 @50
+                        staticType: int
+                      operator: + @52
+                      rightOperand: IntegerLiteral
+                        literal: 2 @54
+                        staticType: int
+                      element: dart:core::@class::num::@method::+
+                      staticInvokeType: num Function(num)
                       staticType: int
           getters
             #F3 isComplete isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
@@ -9071,12 +10354,13 @@ library
           firstFragment: #F2
           type: E
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
         isFinal isOriginDeclaration x
           reference: <testLibrary>::@enum::E::@field::x
@@ -9091,7 +10375,8 @@ library
             #E0 optionalNamed hasDefaultValue hasImplicitType isFinal this.x
               firstFragment: #F9
               type: int
-              constantInitializer2: expression_2
+              constantInitializer2: expression_3
+              constantInitializer: expression_4
               field: <testLibrary>::@enum::E::@field::x
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
@@ -9146,10 +10431,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               inducedGetter: #F3
             #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -9199,12 +10496,13 @@ library
           firstFragment: #F2
           type: E
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
         hasImplicitType isFinal isOriginDeclaration x
           reference: <testLibrary>::@enum::E::@field::x
@@ -9273,10 +10571,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               inducedGetter: #F3
             #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -9326,12 +10636,13 @@ library
           firstFragment: #F2
           type: E
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
         hasImplicitType isFinal isOriginDeclaration x
           reference: <testLibrary>::@enum::E::@field::x
@@ -9400,10 +10711,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               inducedGetter: #F3
             #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -9453,12 +10776,13 @@ library
           firstFragment: #F2
           type: E
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
         isFinal isOriginDeclaration x
           reference: <testLibrary>::@enum::E::@field::x
@@ -9527,10 +10851,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               inducedGetter: #F3
             #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -9580,12 +10916,13 @@ library
           firstFragment: #F2
           type: E
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
         hasImplicitType isFinal isOriginDeclaration x
           reference: <testLibrary>::@enum::E::@field::x
@@ -9656,10 +10993,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               inducedGetter: #F3
             #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -9715,12 +11064,13 @@ library
           firstFragment: #F2
           type: E
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
         isFinal isOriginDeclaration x
           reference: <testLibrary>::@enum::E::@field::x
@@ -9798,10 +11148,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               inducedGetter: #F3
             #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -9845,12 +11207,13 @@ library
           firstFragment: #F2
           type: E
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         isConst isOriginDeclaration new
@@ -9914,10 +11277,24 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E<dynamic>
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E<dynamic>
+                    element: SubstitutedConstructorElementImpl
+                      baseElement: <testLibrary>::@enum::E::@constructor::new
+                      substitution: {T: dynamic}
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E<dynamic>
               inducedGetter: #F4
             #F5 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -9970,12 +11347,13 @@ library
           firstFragment: #F3
           type: E<dynamic>
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F5
           type: List<E<dynamic>>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
         isFinal isOriginDeclaration x
           reference: <testLibrary>::@enum::E::@field::x
@@ -10078,10 +11456,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               inducedGetter: #F3
             #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -10128,7 +11518,7 @@ library
       topLevelVariables
         #F7 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::a
-          constantInitializer2: expression_2
+          constantInitializer2: expression_3
             IntegerLiteral
               literal: 42 @10
               staticType: int
@@ -10148,12 +11538,13 @@ library
           firstFragment: #F2
           type: E
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         isConst isOriginDeclaration new
@@ -10190,7 +11581,7 @@ library
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F7
       type: int
-      constantInitializer2: expression_2
+      constantInitializer2: expression_3
       getter: <testLibrary>::@getter::a
   getters
     isOriginVariable isStatic a
@@ -10240,10 +11631,31 @@ library
                         staticType: int
                     rightParenthesis: ) @21
                   staticType: E
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    period: . @-1
+                    name: SimpleIdentifier
+                      token: named @-1
+                      element: <testLibrary>::@enum::E::@constructor::named
+                      staticType: null
+                    element: <testLibrary>::@enum::E::@constructor::named
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @18
+                    arguments
+                      IntegerLiteral
+                        literal: 42 @19
+                        staticType: int
+                    rightParenthesis: ) @21
+                  staticType: E
               inducedGetter: #F3
             #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -10288,12 +11700,13 @@ library
           firstFragment: #F2
           type: E
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         isConst isOriginDeclaration named
@@ -10353,10 +11766,27 @@ library
                     leftParenthesis: ( @18
                     rightParenthesis: ) @19
                   staticType: E
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    period: . @-1
+                    name: SimpleIdentifier
+                      token: named @-1
+                      element: <testLibrary>::@enum::E::@constructor::named
+                      staticType: null
+                    element: <testLibrary>::@enum::E::@constructor::named
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @18
+                    rightParenthesis: ) @19
+                  staticType: E
               inducedGetter: #F3
             #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -10397,12 +11827,13 @@ library
           firstFragment: #F2
           type: E
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         isConst isOriginDeclaration named
@@ -10458,10 +11889,27 @@ library
                     leftParenthesis: ( @18
                     rightParenthesis: ) @19
                   staticType: E
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    period: . @-1
+                    name: SimpleIdentifier
+                      token: named @-1
+                      element: <testLibrary>::@enum::E::@constructor::named
+                      staticType: null
+                    element: <testLibrary>::@enum::E::@constructor::named
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @18
+                    rightParenthesis: ) @19
+                  staticType: E
               inducedGetter: #F3
             #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -10502,12 +11950,13 @@ library
           firstFragment: #F2
           type: E
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         isConst isOriginDeclaration named
@@ -10560,10 +12009,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               inducedGetter: #F3
             #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -10604,12 +12065,13 @@ library
           firstFragment: #F2
           type: E
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         isConst isOriginDeclaration new
@@ -10662,10 +12124,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               inducedGetter: #F3
             #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -10706,12 +12180,13 @@ library
           firstFragment: #F2
           type: E
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         isConst isOriginDeclaration new
@@ -10768,10 +12243,27 @@ library
                     leftParenthesis: ( @34
                     rightParenthesis: ) @35
                   staticType: E
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    period: . @-1
+                    name: SimpleIdentifier
+                      token: named @-1
+                      element: <testLibrary>::@enum::E::@constructor::named
+                      staticType: null
+                    element: <testLibrary>::@enum::E::@constructor::named
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @34
+                    rightParenthesis: ) @35
+                  staticType: E
               inducedGetter: #F3
             #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -10813,12 +12305,13 @@ library
           firstFragment: #F2
           type: E
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         isOriginDeclaration named
@@ -10872,10 +12365,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               inducedGetter: #F3
             #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -10916,12 +12421,13 @@ library
           firstFragment: #F2
           type: E
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         isOriginDeclaration new
@@ -10978,10 +12484,26 @@ library
                         staticType: int
                     rightParenthesis: ) @15
                   staticType: E
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @12
+                    arguments
+                      IntegerLiteral
+                        literal: 42 @13
+                        staticType: int
+                    rightParenthesis: ) @15
+                  staticType: E
               inducedGetter: #F3
             #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -11025,12 +12547,13 @@ library
           firstFragment: #F2
           type: E
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         isConst isOriginDeclaration new
@@ -11119,10 +12642,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
+              constantInitializer: expression_2
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: A
               inducedGetter: #F9
             #F10 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:43)
               element: <testLibrary>::@enum::A#1::@field::values
-              constantInitializer2: expression_2
+              constantInitializer2: expression_3
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -11198,12 +12733,13 @@ library
           firstFragment: #F8
           type: A
           constantInitializer2: expression_1
+          constantInitializer: expression_2
           getter: <testLibrary>::@enum::A#1::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A#1::@field::values
           firstFragment: #F10
           type: List<A>
-          constantInitializer2: expression_2
+          constantInitializer2: expression_3
           getter: <testLibrary>::@enum::A#1::@getter::values
       constructors
         isConst isOriginImplicitDefault new
@@ -11395,10 +12931,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: A
               inducedGetter: #F6
             #F7 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -11514,12 +13062,13 @@ library
           firstFragment: #F5
           type: A
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F7
           type: List<A>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
       constructors
         isConst isOriginImplicitDefault new
@@ -11587,10 +13136,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: A
               inducedGetter: #F5
             #F6 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -11631,12 +13192,13 @@ library
           firstFragment: #F4
           type: A
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F6
           type: List<A>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
       getters
         isOriginVariable isStatic v
@@ -11690,10 +13252,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: A
               inducedGetter: #F4
             #F5 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -11723,7 +13297,7 @@ library
           fields
             #F8 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
               element: <testLibrary>::@enum::A#1::@field::values
-              constantInitializer2: expression_2
+              constantInitializer2: expression_3
                 ListLiteral
                   leftBracket: [ @0
                   rightBracket: ] @0
@@ -11749,12 +13323,13 @@ library
           firstFragment: #F3
           type: A
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F5
           type: List<A>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
       getters
         isOriginVariable isStatic v
@@ -11777,7 +13352,7 @@ library
           reference: <testLibrary>::@enum::A#1::@field::values
           firstFragment: #F8
           type: List<A>
-          constantInitializer2: expression_2
+          constantInitializer2: expression_3
           getter: <testLibrary>::@enum::A#1::@getter::values
       getters
         isOriginVariable isStatic values
@@ -11817,13 +13392,10 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-              inducedGetter: #F3
-            #F4 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic bbb (nameOffset:14) (firstTokenOffset:14) (offset:14)
-              element: <testLibrary>::@enum::E::@field::bbb
-              constantInitializer2: expression_1
-                ConstructorInvocation
-                  constructorReference: ConstructorReference2
-                    typeReference: ConstructorTypeReference
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -11832,9 +13404,9 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-              inducedGetter: #F5
-            #F6 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic ccc (nameOffset:19) (firstTokenOffset:19) (offset:19)
-              element: <testLibrary>::@enum::E::@field::ccc
+              inducedGetter: #F3
+            #F4 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic bbb (nameOffset:14) (firstTokenOffset:14) (offset:14)
+              element: <testLibrary>::@enum::E::@field::bbb
               constantInitializer2: expression_2
                 ConstructorInvocation
                   constructorReference: ConstructorReference2
@@ -11847,10 +13419,49 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
+              constantInitializer: expression_3
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
+              inducedGetter: #F5
+            #F6 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic ccc (nameOffset:19) (firstTokenOffset:19) (offset:19)
+              element: <testLibrary>::@enum::E::@field::ccc
+              constantInitializer2: expression_4
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
+              constantInitializer: expression_5
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               inducedGetter: #F7
             #F8 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_3
+              constantInitializer2: expression_6
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -11916,24 +13527,27 @@ library
           firstFragment: #F2
           type: E
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::aaa
         hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer bbb
           reference: <testLibrary>::@enum::E::@field::bbb
           firstFragment: #F4
           type: E
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
+          constantInitializer: expression_3
           getter: <testLibrary>::@enum::E::@getter::bbb
         hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer ccc
           reference: <testLibrary>::@enum::E::@field::ccc
           firstFragment: #F6
           type: E
-          constantInitializer2: expression_2
+          constantInitializer2: expression_4
+          constantInitializer: expression_5
           getter: <testLibrary>::@enum::E::@getter::ccc
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F8
           type: List<E>
-          constantInitializer2: expression_3
+          constantInitializer2: expression_6
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         isConst isOriginImplicitDefault new
@@ -11996,10 +13610,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               inducedGetter: #F3
             #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -12040,12 +13666,13 @@ library
           firstFragment: #F2
           type: E
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         isConst isOriginImplicitDefault new
@@ -12319,13 +13946,10 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-              inducedGetter: #F16
-            #F17 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic b (nameOffset:12) (firstTokenOffset:12) (offset:12)
-              element: <testLibrary>::@enum::E::@field::b
-              constantInitializer2: expression_1
-                ConstructorInvocation
-                  constructorReference: ConstructorReference2
-                    typeReference: ConstructorTypeReference
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -12334,9 +13958,9 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-              inducedGetter: #F18
-            #F19 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic c (nameOffset:15) (firstTokenOffset:15) (offset:15)
-              element: <testLibrary>::@enum::E::@field::c
+              inducedGetter: #F16
+            #F17 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic b (nameOffset:12) (firstTokenOffset:12) (offset:12)
+              element: <testLibrary>::@enum::E::@field::b
               constantInitializer2: expression_2
                 ConstructorInvocation
                   constructorReference: ConstructorReference2
@@ -12349,10 +13973,49 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
+              constantInitializer: expression_3
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
+              inducedGetter: #F18
+            #F19 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic c (nameOffset:15) (firstTokenOffset:15) (offset:15)
+              element: <testLibrary>::@enum::E::@field::c
+              constantInitializer2: expression_4
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
+              constantInitializer: expression_5
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               inducedGetter: #F20
             #F21 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_3
+              constantInitializer2: expression_6
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -12484,24 +14147,27 @@ library
           firstFragment: #F15
           type: E
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::a
         hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer b
           reference: <testLibrary>::@enum::E::@field::b
           firstFragment: #F17
           type: E
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
+          constantInitializer: expression_3
           getter: <testLibrary>::@enum::E::@getter::b
         hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer c
           reference: <testLibrary>::@enum::E::@field::c
           firstFragment: #F19
           type: E
-          constantInitializer2: expression_2
+          constantInitializer2: expression_4
+          constantInitializer: expression_5
           getter: <testLibrary>::@enum::E::@getter::c
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F21
           type: List<E>
-          constantInitializer2: expression_3
+          constantInitializer2: expression_6
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         isConst isOriginImplicitDefault new
@@ -12569,10 +14235,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               inducedGetter: #F5
             #F6 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -12622,12 +14300,13 @@ library
           firstFragment: #F4
           type: E
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F6
           type: List<E>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         isConst isOriginImplicitDefault new
@@ -12698,10 +14377,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: A
               inducedGetter: #F8
             #F9 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -12762,12 +14453,13 @@ library
           firstFragment: #F7
           type: A
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F9
           type: List<A>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
       constructors
         isConst isOriginImplicitDefault new
@@ -12847,10 +14539,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: A
               inducedGetter: #F10
             #F11 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -12923,12 +14627,13 @@ library
           firstFragment: #F9
           type: A
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F11
           type: List<A>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
       constructors
         isConst isOriginImplicitDefault new
@@ -13016,10 +14721,32 @@ library
                     leftParenthesis: ( @34
                     rightParenthesis: ) @35
                   staticType: A<int>
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      typeArguments: TypeArgumentList
+                        leftBracket: < @29
+                        arguments
+                          NamedType
+                            name: int @30
+                            element: dart:core::@class::int
+                            type: int
+                        rightBracket: > @33
+                      element: <testLibrary>::@enum::A
+                      type: A<int>
+                    element: SubstitutedConstructorElementImpl
+                      baseElement: <testLibrary>::@enum::A::@constructor::new
+                      substitution: {T: int}
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @34
+                    rightParenthesis: ) @35
+                  staticType: A<int>
               inducedGetter: #F11
             #F12 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -13090,12 +14817,13 @@ library
           firstFragment: #F10
           type: A<int>
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F12
           type: List<A<dynamic>>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
       constructors
         hasEnclosingTypeParameterReference isConst isOriginImplicitDefault new
@@ -13178,10 +14906,24 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A<dynamic>
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A<dynamic>
+                    element: SubstitutedConstructorElementImpl
+                      baseElement: <testLibrary>::@enum::A::@constructor::new
+                      substitution: {T: dynamic}
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: A<dynamic>
               inducedGetter: #F13
             #F14 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -13255,12 +14997,13 @@ library
           firstFragment: #F12
           type: A<dynamic>
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F14
           type: List<A<dynamic>>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
       constructors
         hasEnclosingTypeParameterReference isConst isOriginImplicitDefault new
@@ -13323,10 +15066,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               inducedGetter: #F5
             #F6 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:58)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -13383,12 +15138,13 @@ library
           firstFragment: #F4
           type: E
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F6
           type: List<E>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
       getters
         isOriginVariable isStatic v
@@ -13469,10 +15225,24 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E<dynamic>
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E<dynamic>
+                    element: SubstitutedConstructorElementImpl
+                      baseElement: <testLibrary>::@enum::E::@constructor::new
+                      substitution: {U: dynamic}
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E<dynamic>
               inducedGetter: #F7
             #F8 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -13528,12 +15298,13 @@ library
           firstFragment: #F6
           type: E<dynamic>
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F8
           type: List<E<dynamic>>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         hasEnclosingTypeParameterReference isConst isOriginImplicitDefault new
@@ -13599,10 +15370,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               inducedGetter: #F7
             #F8 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -13660,12 +15443,13 @@ library
           firstFragment: #F6
           type: E
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F8
           type: List<E>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         isConst isOriginImplicitDefault new
@@ -13852,10 +15636,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               inducedGetter: #F3
             #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -13887,7 +15683,7 @@ library
       topLevelVariables
         #F7 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::a
-          constantInitializer2: expression_2
+          constantInitializer2: expression_3
             IntegerLiteral
               literal: 42 @10
               staticType: int
@@ -13907,12 +15703,13 @@ library
           firstFragment: #F2
           type: E
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         isConst isOriginImplicitDefault new
@@ -13935,7 +15732,7 @@ library
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F7
       type: int
-      constantInitializer2: expression_2
+      constantInitializer2: expression_3
       getter: <testLibrary>::@getter::a
   getters
     isOriginVariable isStatic a
@@ -14002,10 +15799,24 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E<dynamic>
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E<dynamic>
+                    element: SubstitutedConstructorElementImpl
+                      baseElement: <testLibrary>::@enum::E::@constructor::new
+                      substitution: {T: dynamic}
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E<dynamic>
               inducedGetter: #F4
             #F5 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -14025,7 +15836,7 @@ library
               inducedGetter: #F6
             #F7 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic foo (nameOffset:59) (firstTokenOffset:59) (offset:59)
               element: <testLibrary>::@enum::E::@field::foo
-              constantInitializer2: expression_2
+              constantInitializer2: expression_3
                 IntegerLiteral
                   literal: 1 @65
                   staticType: int
@@ -14064,7 +15875,7 @@ library
       topLevelVariables
         #F11 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic foo (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::foo
-          constantInitializer2: expression_3
+          constantInitializer2: expression_4
             IntegerLiteral
               literal: 0 @12
               staticType: int
@@ -14101,18 +15912,19 @@ library
           firstFragment: #F3
           type: E<dynamic>
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F5
           type: List<E<dynamic>>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
         hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer foo
           reference: <testLibrary>::@enum::E::@field::foo
           firstFragment: #F7
           type: int
-          constantInitializer2: expression_2
+          constantInitializer2: expression_3
           getter: <testLibrary>::@enum::E::@getter::foo
       constructors
         hasEnclosingTypeParameterReference isConst isOriginImplicitDefault new
@@ -14159,7 +15971,7 @@ library
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: #F11
       type: int
-      constantInitializer2: expression_3
+      constantInitializer2: expression_4
       getter: <testLibrary>::@getter::foo
   getters
     isOriginVariable isStatic foo
@@ -14200,10 +16012,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: InvalidType
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: <empty> @-1 <synthetic>
+                      element: <null>
+                      type: InvalidType
+                    element: <null>
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: InvalidType
               inducedGetter: #F3
             #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:0)
               element: <testLibrary>::@enum::#0::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -14243,12 +16067,13 @@ library
           firstFragment: #F2
           type: InvalidType
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::#0::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::#0::@field::values
           firstFragment: #F4
           type: List<<null>>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::#0::@getter::values
       constructors
         isConst isOriginImplicitDefault new
@@ -14299,10 +16124,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               inducedGetter: #F3
             #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -14347,12 +16184,13 @@ library
           firstFragment: #F2
           type: E
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         isConst isOriginImplicitDefault new
@@ -14416,10 +16254,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: A
               inducedGetter: #F4
             #F5 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -14471,12 +16321,13 @@ library
           firstFragment: #F3
           type: A
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F5
           type: List<A>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
       constructors
         isConst isOriginImplicitDefault new
@@ -14562,10 +16413,32 @@ library
                     leftParenthesis: ( @31
                     rightParenthesis: ) @32
                   staticType: A<int>
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      typeArguments: TypeArgumentList
+                        leftBracket: < @26
+                        arguments
+                          NamedType
+                            name: int @27
+                            element: dart:core::@class::int
+                            type: int
+                        rightBracket: > @30
+                      element: <testLibrary>::@enum::A
+                      type: A<int>
+                    element: SubstitutedConstructorElementImpl
+                      baseElement: <testLibrary>::@enum::A::@constructor::new
+                      substitution: {T: int}
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @31
+                    rightParenthesis: ) @32
+                  staticType: A<int>
               inducedGetter: #F6
             #F7 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -14646,12 +16519,13 @@ library
           firstFragment: #F5
           type: A<int>
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F7
           type: List<A<dynamic>>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
       constructors
         hasEnclosingTypeParameterReference isConst isOriginImplicitDefault new
@@ -14739,10 +16613,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               inducedGetter: #F5
             #F6 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:58)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -14799,12 +16685,13 @@ library
           firstFragment: #F4
           type: E
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F6
           type: List<E>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
       getters
         isOriginVariable isStatic v
@@ -14872,10 +16759,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               inducedGetter: #F3
             #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:46)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -14929,12 +16828,13 @@ library
           firstFragment: #F2
           type: E
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         isConst isOriginImplicitDefault new
@@ -15061,10 +16961,24 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E<dynamic>
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E<dynamic>
+                    element: SubstitutedConstructorElementImpl
+                      baseElement: <testLibrary>::@enum::E::@constructor::new
+                      substitution: {T: dynamic}
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E<dynamic>
               inducedGetter: #F4
             #F5 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -15107,12 +17021,13 @@ library
           firstFragment: #F3
           type: E<dynamic>
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F5
           type: List<E<dynamic>>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         hasEnclosingTypeParameterReference isConst isOriginImplicitDefault new
@@ -15174,10 +17089,24 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A<int>
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A<int>
+                    element: SubstitutedConstructorElementImpl
+                      baseElement: <testLibrary>::@enum::A::@constructor::new
+                      substitution: {T: int}
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: A<int>
               inducedGetter: #F6
             #F7 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -15229,12 +17158,13 @@ library
           firstFragment: #F5
           type: A<int>
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F7
           type: List<A<int>>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
       constructors
         hasEnclosingTypeParameterReference isConst isOriginImplicitDefault new
@@ -15296,10 +17226,24 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A<int>
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A<int>
+                    element: SubstitutedConstructorElementImpl
+                      baseElement: <testLibrary>::@enum::A::@constructor::new
+                      substitution: {T: int}
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: A<int>
               inducedGetter: #F6
             #F7 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -15351,12 +17295,13 @@ library
           firstFragment: #F5
           type: A<int>
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F7
           type: List<A<int>>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
       constructors
         hasEnclosingTypeParameterReference isConst isOriginImplicitDefault new
@@ -15419,10 +17364,24 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E<dynamic>
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E<dynamic>
+                    element: SubstitutedConstructorElementImpl
+                      baseElement: <testLibrary>::@enum::E::@constructor::new
+                      substitution: {T: dynamic}
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E<dynamic>
               inducedGetter: #F8
             #F9 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -15484,12 +17443,13 @@ library
           firstFragment: #F7
           type: E<dynamic>
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F9
           type: List<E<dynamic>>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
       getters
         isOriginVariable isStatic v
@@ -15550,10 +17510,24 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E<dynamic>
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E<dynamic>
+                    element: SubstitutedConstructorElementImpl
+                      baseElement: <testLibrary>::@enum::E::@constructor::new
+                      substitution: {T: dynamic}
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E<dynamic>
               inducedGetter: #F10
             #F11 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -15622,12 +17596,13 @@ library
           firstFragment: #F9
           type: E<dynamic>
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F11
           type: List<E<dynamic>>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
       getters
         isOriginVariable isStatic v
@@ -15685,10 +17660,24 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E<dynamic, dynamic>
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E<dynamic, dynamic>
+                    element: SubstitutedConstructorElementImpl
+                      baseElement: <testLibrary>::@enum::E::@constructor::new
+                      substitution: {T: dynamic, U: dynamic}
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E<dynamic, dynamic>
               inducedGetter: #F8
             #F9 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -15752,12 +17741,13 @@ library
           firstFragment: #F7
           type: E<dynamic, dynamic>
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F9
           type: List<E<dynamic, dynamic>>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
       getters
         isOriginVariable isStatic v
@@ -15808,10 +17798,24 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E<num, num>
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E<num, num>
+                    element: SubstitutedConstructorElementImpl
+                      baseElement: <testLibrary>::@enum::E::@constructor::new
+                      substitution: {T: num, U: num}
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E<num, num>
               inducedGetter: #F5
             #F6 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -15858,12 +17862,13 @@ library
           firstFragment: #F4
           type: E<num, num>
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F6
           type: List<E<num, num>>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         hasEnclosingTypeParameterReference isConst isOriginImplicitDefault new
@@ -16132,10 +18137,24 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E<dynamic>
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E<dynamic>
+                    element: SubstitutedConstructorElementImpl
+                      baseElement: <testLibrary>::@enum::E::@constructor::new
+                      substitution: {T: dynamic}
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E<dynamic>
               inducedGetter: #F4
             #F5 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -16167,7 +18186,7 @@ library
       topLevelVariables
         #F8 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::a
-          constantInitializer2: expression_2
+          constantInitializer2: expression_3
             IntegerLiteral
               literal: 42 @10
               staticType: int
@@ -16204,12 +18223,13 @@ library
           firstFragment: #F3
           type: E<dynamic>
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F5
           type: List<E<dynamic>>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         hasEnclosingTypeParameterReference isConst isOriginImplicitDefault new
@@ -16232,7 +18252,7 @@ library
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F8
       type: int
-      constantInitializer2: expression_2
+      constantInitializer2: expression_3
       getter: <testLibrary>::@getter::a
   getters
     isOriginVariable isStatic a
@@ -16527,10 +18547,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               inducedGetter: #F3
             #F4 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v2 (nameOffset:13) (firstTokenOffset:13) (offset:13)
               element: <testLibrary>::@enum::E::@field::v2
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ConstructorInvocation
                   constructorReference: ConstructorReference2
                     typeReference: ConstructorTypeReference
@@ -16542,10 +18574,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
+              constantInitializer: expression_3
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               inducedGetter: #F5
             #F6 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_2
+              constantInitializer2: expression_4
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -16598,18 +18642,20 @@ library
           firstFragment: #F2
           type: E
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::v1
         hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v2
           reference: <testLibrary>::@enum::E::@field::v2
           firstFragment: #F4
           type: E
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
+          constantInitializer: expression_3
           getter: <testLibrary>::@enum::E::@getter::v2
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F6
           type: List<E>
-          constantInitializer2: expression_2
+          constantInitializer2: expression_4
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         isConst isOriginImplicitDefault new
@@ -16665,10 +18711,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E1
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E1 @-1
+                      element: <testLibrary>::@enum::E1
+                      type: E1
+                    element: <testLibrary>::@enum::E1::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E1
               inducedGetter: #F3
             #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E1::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -16702,7 +18760,7 @@ library
           fields
             #F8 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v2 (nameOffset:26) (firstTokenOffset:26) (offset:26)
               element: <testLibrary>::@enum::E2::@field::v2
-              constantInitializer2: expression_2
+              constantInitializer2: expression_3
                 ConstructorInvocation
                   constructorReference: ConstructorReference2
                     typeReference: ConstructorTypeReference
@@ -16714,10 +18772,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E2
+              constantInitializer: expression_4
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E2 @-1
+                      element: <testLibrary>::@enum::E2
+                      type: E2
+                    element: <testLibrary>::@enum::E2::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E2
               inducedGetter: #F9
             #F10 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@enum::E2::@field::values
-              constantInitializer2: expression_3
+              constantInitializer2: expression_5
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -16757,12 +18827,13 @@ library
           firstFragment: #F2
           type: E1
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E1::@getter::v1
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E1::@field::values
           firstFragment: #F4
           type: List<E1>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::E1::@getter::values
       constructors
         isConst isOriginImplicitDefault new
@@ -16789,13 +18860,14 @@ library
           reference: <testLibrary>::@enum::E2::@field::v2
           firstFragment: #F8
           type: E2
-          constantInitializer2: expression_2
+          constantInitializer2: expression_3
+          constantInitializer: expression_4
           getter: <testLibrary>::@enum::E2::@getter::v2
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E2::@field::values
           firstFragment: #F10
           type: List<E2>
-          constantInitializer2: expression_3
+          constantInitializer2: expression_5
           getter: <testLibrary>::@enum::E2::@getter::values
       constructors
         isConst isOriginImplicitDefault new
@@ -16848,10 +18920,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               inducedGetter: #F3
             #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -16871,7 +18955,7 @@ library
               inducedGetter: #F5
             #F6 hasImplicitType hasInitializer isFinal isOriginDeclaration foo (nameOffset:23) (firstTokenOffset:23) (offset:23)
               element: <testLibrary>::@enum::E::@field::foo
-              constantInitializer2: expression_2
+              constantInitializer2: expression_3
                 IntegerLiteral
                   literal: 42 @29
                   staticType: int
@@ -16901,18 +18985,19 @@ library
           firstFragment: #F2
           type: E
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
         hasImplicitType hasInitializer isFinal isOriginDeclaration isTypeInferredFromInitializer foo
           reference: <testLibrary>::@enum::E::@field::foo
           firstFragment: #F6
           type: int
-          constantInitializer2: expression_2
+          constantInitializer2: expression_3
           getter: <testLibrary>::@enum::E::@getter::foo
       constructors
         isConst isOriginImplicitDefault new
@@ -16976,10 +19061,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: A
               inducedGetter: #F4
             #F5 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -16999,7 +19096,7 @@ library
               inducedGetter: #F6
             #F7 hasInitializer isFinal isOriginDeclaration foo1 (nameOffset:26) (firstTokenOffset:26) (offset:26)
               element: <testLibrary>::@enum::A::@field::foo1
-              constantInitializer2: expression_2
+              constantInitializer2: expression_3
                 IntegerLiteral
                   literal: 0 @33
                   staticType: int
@@ -17024,7 +19121,7 @@ library
           fields
             #F10 hasInitializer isFinal isOriginDeclaration foo2 (nameOffset:69) (firstTokenOffset:69) (offset:69)
               element: <testLibrary>::@enum::A::@field::foo2
-              constantInitializer2: expression_3
+              constantInitializer2: expression_4
                 IntegerLiteral
                   literal: 0 @76
                   staticType: int
@@ -17044,24 +19141,25 @@ library
           firstFragment: #F3
           type: A
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F5
           type: List<A>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
         hasInitializer isFinal isOriginDeclaration foo1
           reference: <testLibrary>::@enum::A::@field::foo1
           firstFragment: #F7
           type: int
-          constantInitializer2: expression_2
+          constantInitializer2: expression_3
           getter: <testLibrary>::@enum::A::@getter::foo1
         hasInitializer isFinal isOriginDeclaration foo2
           reference: <testLibrary>::@enum::A::@field::foo2
           firstFragment: #F10
           type: int
-          constantInitializer2: expression_3
+          constantInitializer2: expression_4
           getter: <testLibrary>::@enum::A::@getter::foo2
       constructors
         isConst isOriginImplicitDefault new
@@ -17144,10 +19242,32 @@ library
                     leftParenthesis: ( @20
                     rightParenthesis: ) @21
                   staticType: A<int>
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      typeArguments: TypeArgumentList
+                        leftBracket: < @15
+                        arguments
+                          NamedType
+                            name: int @16
+                            element: dart:core::@class::int
+                            type: int
+                        rightBracket: > @19
+                      element: <testLibrary>::@enum::A
+                      type: A<int>
+                    element: SubstitutedConstructorElementImpl
+                      baseElement: <testLibrary>::@enum::A::@constructor::new
+                      substitution: {T: int}
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @20
+                    rightParenthesis: ) @21
+                  staticType: A<int>
               inducedGetter: #F6
             #F7 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -17211,12 +19331,13 @@ library
           firstFragment: #F5
           type: A<int>
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F7
           type: List<A<dynamic>>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
         hasEnclosingTypeParameterReference isFinal isOriginDeclaration foo1
           reference: <testLibrary>::@enum::A::@field::foo1
@@ -17295,10 +19416,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: A
               inducedGetter: #F4
             #F5 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -17350,12 +19483,13 @@ library
           firstFragment: #F3
           type: A
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F5
           type: List<A>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
         isFinal isOriginDeclaration foo
           reference: <testLibrary>::@enum::A::@field::foo
@@ -17440,10 +19574,26 @@ library
                         staticType: int
                     rightParenthesis: ) @14
                   staticType: A
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @12
+                    arguments
+                      IntegerLiteral
+                        literal: 0 @13
+                        staticType: int
+                    rightParenthesis: ) @14
+                  staticType: A
               inducedGetter: #F4
             #F5 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -17498,12 +19648,13 @@ library
           firstFragment: #F3
           type: A
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F5
           type: List<A>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
         isFinal isOriginDeclaration foo
           reference: <testLibrary>::@enum::A::@field::foo
@@ -17577,10 +19728,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: A
               inducedGetter: #F4
             #F5 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -17600,7 +19763,7 @@ library
               inducedGetter: #F6
             #F7 hasInitializer isFinal isOriginDeclaration foo (nameOffset:26) (firstTokenOffset:26) (offset:26)
               element: <testLibrary>::@enum::A::@field::foo
-              constantInitializer2: expression_2
+              constantInitializer2: expression_3
                 IntegerLiteral
                   literal: 0 @32
                   staticType: int
@@ -17627,7 +19790,7 @@ library
           fields
             #F9 hasInitializer isAugmentation isFinal isOriginDeclaration foo (nameOffset:76) (firstTokenOffset:76) (offset:76)
               element: <testLibrary>::@enum::A::@field::foo
-              constantInitializer2: expression_3
+              constantInitializer2: expression_4
                 IntegerLiteral
                   literal: 1 @82
                   staticType: int
@@ -17649,18 +19812,19 @@ library
           firstFragment: #F3
           type: A
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F5
           type: List<A>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
         hasInitializer isFinal isOriginDeclaration foo
           reference: <testLibrary>::@enum::A::@field::foo
           firstFragment: #F7
           type: int
-          constantInitializer2: expression_3
+          constantInitializer2: expression_4
           getter: <testLibrary>::@enum::A::@getter::foo
       constructors
         isConst isOriginImplicitDefault new
@@ -17728,10 +19892,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: A
               inducedGetter: #F4
             #F5 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -17751,7 +19927,7 @@ library
               inducedGetter: #F6
             #F7 hasInitializer isFinal isOriginDeclaration foo (nameOffset:26) (firstTokenOffset:26) (offset:26)
               element: <testLibrary>::@enum::A::@field::foo
-              constantInitializer2: expression_2
+              constantInitializer2: expression_3
                 IntegerLiteral
                   literal: 0 @32
                   staticType: int
@@ -17787,7 +19963,7 @@ library
           fields
             #F9 hasInitializer isAugmentation isFinal isOriginDeclaration foo (nameOffset:125) (firstTokenOffset:125) (offset:125)
               element: <testLibrary>::@enum::A::@field::foo
-              constantInitializer2: expression_3
+              constantInitializer2: expression_4
                 IntegerLiteral
                   literal: 2 @131
                   staticType: int
@@ -17809,18 +19985,19 @@ library
           firstFragment: #F3
           type: A
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F5
           type: List<A>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
         hasInitializer isFinal isOriginDeclaration foo
           reference: <testLibrary>::@enum::A::@field::foo
           firstFragment: #F7
           type: int
-          constantInitializer2: expression_3
+          constantInitializer2: expression_4
           getter: <testLibrary>::@enum::A::@getter::foo
       constructors
         isConst isOriginImplicitDefault new
@@ -17888,10 +20065,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: A
               inducedGetter: #F4
             #F5 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -17911,7 +20100,7 @@ library
               inducedGetter: #F6
             #F7 hasInitializer isFinal isOriginDeclaration foo (nameOffset:26) (firstTokenOffset:26) (offset:26)
               element: <testLibrary>::@enum::A::@field::foo
-              constantInitializer2: expression_2
+              constantInitializer2: expression_3
                 IntegerLiteral
                   literal: 0 @32
                   staticType: int
@@ -17948,7 +20137,7 @@ library
           fields
             #F9 hasInitializer isAugmentation isFinal isOriginDeclaration foo (nameOffset:125) (firstTokenOffset:125) (offset:125)
               element: <testLibrary>::@enum::A::@field::foo
-              constantInitializer2: expression_3
+              constantInitializer2: expression_4
                 IntegerLiteral
                   literal: 2 @131
                   staticType: int
@@ -17970,18 +20159,19 @@ library
           firstFragment: #F3
           type: A
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F5
           type: List<A>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
         hasInitializer isFinal isOriginDeclaration foo
           reference: <testLibrary>::@enum::A::@field::foo
           firstFragment: #F7
           type: int
-          constantInitializer2: expression_3
+          constantInitializer2: expression_4
           getter: <testLibrary>::@enum::A::@getter::foo
           setter: <testLibrary>::@enum::A::@setter::foo
       constructors
@@ -18057,10 +20247,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: A
               inducedGetter: #F4
             #F5 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -18080,7 +20282,7 @@ library
               inducedGetter: #F6
             #F7 hasInitializer isFinal isOriginDeclaration foo (nameOffset:26) (firstTokenOffset:26) (offset:26)
               element: <testLibrary>::@enum::A::@field::foo
-              constantInitializer2: expression_2
+              constantInitializer2: expression_3
                 IntegerLiteral
                   literal: 0 @32
                   staticType: int
@@ -18107,7 +20309,7 @@ library
           fields
             #F9 hasInitializer isAugmentation isFinal isOriginDeclaration foo (nameOffset:79) (firstTokenOffset:79) (offset:79)
               element: <testLibrary>::@enum::A::@field::foo
-              constantInitializer2: expression_3
+              constantInitializer2: expression_4
                 DoubleLiteral
                   literal: 1.2 @85
                   staticType: double
@@ -18129,18 +20331,19 @@ library
           firstFragment: #F3
           type: A
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F5
           type: List<A>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
         hasInitializer isFinal isOriginDeclaration foo
           reference: <testLibrary>::@enum::A::@field::foo
           firstFragment: #F7
           type: int
-          constantInitializer2: expression_3
+          constantInitializer2: expression_4
           getter: <testLibrary>::@enum::A::@getter::foo
       constructors
         isConst isOriginImplicitDefault new
@@ -18206,10 +20409,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: A
               inducedGetter: #F4
             #F5 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -18250,7 +20465,7 @@ library
           fields
             #F8 hasInitializer isAugmentation isFinal isOriginDeclaration foo (nameOffset:75) (firstTokenOffset:75) (offset:75)
               element: <testLibrary>::@enum::A::@field::foo
-              constantInitializer2: expression_2
+              constantInitializer2: expression_3
                 IntegerLiteral
                   literal: 1 @81
                   staticType: int
@@ -18272,18 +20487,19 @@ library
           firstFragment: #F3
           type: A
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F5
           type: List<A>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
         hasInitializer isOriginGetterSetter foo
           reference: <testLibrary>::@enum::A::@field::foo
           firstFragment: #F7
           type: int
-          constantInitializer2: expression_2
+          constantInitializer2: expression_3
           getter: <testLibrary>::@enum::A::@getter::foo
       constructors
         isConst isOriginImplicitDefault new
@@ -18350,10 +20566,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: A
               inducedGetter: #F4
             #F5 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -18373,10 +20601,15 @@ library
               inducedGetter: #F6
             #F7 hasInitializer isFinal isOriginDeclaration foo (nameOffset:37) (firstTokenOffset:37) (offset:37)
               element: <testLibrary>::@enum::A::@field::foo
-              constantInitializer2: expression_2
+              constantInitializer2: expression_3
                 UnqualifiedNameExpression
                   name: _notSerializableExpression @-1
                   resolution: <null>
+                  staticType: null
+              constantInitializer: expression_4
+                SimpleIdentifier
+                  token: _notSerializableExpression @-1
+                  element: <null>
                   staticType: null
               inducedGetter: #F8
               nextFragment: #F9
@@ -18401,10 +20634,15 @@ library
           fields
             #F9 hasInitializer isAugmentation isFinal isOriginDeclaration foo (nameOffset:119) (firstTokenOffset:119) (offset:119)
               element: <testLibrary>::@enum::A::@field::foo
-              constantInitializer2: expression_3
+              constantInitializer2: expression_5
                 UnqualifiedNameExpression
                   name: _notSerializableExpression @-1
                   resolution: <null>
+                  staticType: null
+              constantInitializer: expression_6
+                SimpleIdentifier
+                  token: _notSerializableExpression @-1
+                  element: <null>
                   staticType: null
               inducedGetter: #F11
               previousFragment: #F7
@@ -18424,18 +20662,20 @@ library
           firstFragment: #F3
           type: A
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F5
           type: List<A>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
         hasInitializer isFinal isOriginDeclaration foo
           reference: <testLibrary>::@enum::A::@field::foo
           firstFragment: #F7
           type: int Function()
-          constantInitializer2: expression_3
+          constantInitializer2: expression_5
+          constantInitializer: expression_6
           getter: <testLibrary>::@enum::A::@getter::foo
       constructors
         isConst isOriginImplicitDefault new
@@ -18503,10 +20743,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: A
               inducedGetter: #F4
             #F5 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -18526,7 +20778,7 @@ library
               inducedGetter: #F6
             #F7 hasInitializer isFinal isOriginDeclaration foo (nameOffset:26) (firstTokenOffset:26) (offset:26)
               element: <testLibrary>::@enum::A::@field::foo
-              constantInitializer2: expression_2
+              constantInitializer2: expression_3
                 IntegerLiteral
                   literal: 0 @32
                   staticType: int
@@ -18554,7 +20806,7 @@ library
           fields
             #F9 hasInitializer isAugmentation isFinal isOriginDeclaration foo (nameOffset:76) (firstTokenOffset:76) (offset:76)
               element: <testLibrary>::@enum::A::@field::foo
-              constantInitializer2: expression_3
+              constantInitializer2: expression_4
                 IntegerLiteral
                   literal: 1 @82
                   staticType: int
@@ -18573,7 +20825,7 @@ library
           fields
             #F13 hasInitializer isAugmentation isFinal isOriginDeclaration foo (nameOffset:126) (firstTokenOffset:126) (offset:126)
               element: <testLibrary>::@enum::A::@field::foo
-              constantInitializer2: expression_4
+              constantInitializer2: expression_5
                 IntegerLiteral
                   literal: 2 @132
                   staticType: int
@@ -18595,18 +20847,19 @@ library
           firstFragment: #F3
           type: A
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F5
           type: List<A>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
         hasInitializer isFinal isOriginDeclaration foo
           reference: <testLibrary>::@enum::A::@field::foo
           firstFragment: #F7
           type: int
-          constantInitializer2: expression_4
+          constantInitializer2: expression_5
           getter: <testLibrary>::@enum::A::@getter::foo
       constructors
         isConst isOriginImplicitDefault new
@@ -18691,10 +20944,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               inducedGetter: #F3
             #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -18738,12 +21003,13 @@ library
           firstFragment: #F2
           type: E
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
         isOriginGetterSetter foo
           reference: <testLibrary>::@enum::E::@field::foo
@@ -18812,10 +21078,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: A
               inducedGetter: #F4
             #F5 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -18868,12 +21146,13 @@ library
           firstFragment: #F3
           type: A
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F5
           type: List<A>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
         isOriginGetterSetter foo1
           reference: <testLibrary>::@enum::A::@field::foo1
@@ -18966,10 +21245,32 @@ library
                     leftParenthesis: ( @20
                     rightParenthesis: ) @21
                   staticType: A<int>
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      typeArguments: TypeArgumentList
+                        leftBracket: < @15
+                        arguments
+                          NamedType
+                            name: int @16
+                            element: dart:core::@class::int
+                            type: int
+                        rightBracket: > @19
+                      element: <testLibrary>::@enum::A
+                      type: A<int>
+                    element: SubstitutedConstructorElementImpl
+                      baseElement: <testLibrary>::@enum::A::@constructor::new
+                      substitution: {T: int}
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @20
+                    rightParenthesis: ) @21
+                  staticType: A<int>
               inducedGetter: #F6
             #F7 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -19029,12 +21330,13 @@ library
           firstFragment: #F5
           type: A<int>
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F7
           type: List<A<dynamic>>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
         hasEnclosingTypeParameterReference isOriginGetterSetter foo1
           reference: <testLibrary>::@enum::A::@field::foo1
@@ -19114,10 +21416,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: A
               inducedGetter: #F4
             #F5 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -19173,12 +21487,13 @@ library
           firstFragment: #F3
           type: A
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F5
           type: List<A>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
         isOriginGetterSetter foo1
           reference: <testLibrary>::@enum::A::@field::foo1
@@ -19257,10 +21572,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: A
               inducedGetter: #F4
             #F5 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -19280,7 +21607,7 @@ library
               inducedGetter: #F6
             #F7 hasInitializer isFinal isOriginDeclaration foo (nameOffset:26) (firstTokenOffset:26) (offset:26)
               element: <testLibrary>::@enum::A::@field::foo
-              constantInitializer2: expression_2
+              constantInitializer2: expression_3
                 IntegerLiteral
                   literal: 0 @32
                   staticType: int
@@ -19318,18 +21645,19 @@ library
           firstFragment: #F3
           type: A
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F5
           type: List<A>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
         hasInitializer isFinal isOriginDeclaration foo
           reference: <testLibrary>::@enum::A::@field::foo
           firstFragment: #F7
           type: int
-          constantInitializer2: expression_2
+          constantInitializer2: expression_3
           getter: <testLibrary>::@enum::A::@getter::foo
       constructors
         isConst isOriginImplicitDefault new
@@ -19397,10 +21725,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: A
               inducedGetter: #F4
             #F5 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -19420,7 +21760,7 @@ library
               inducedGetter: #F6
             #F7 hasInitializer isFinal isOriginDeclaration foo (nameOffset:26) (firstTokenOffset:26) (offset:26)
               element: <testLibrary>::@enum::A::@field::foo
-              constantInitializer2: expression_2
+              constantInitializer2: expression_3
                 IntegerLiteral
                   literal: 0 @32
                   staticType: int
@@ -19467,18 +21807,19 @@ library
           firstFragment: #F3
           type: A
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F5
           type: List<A>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
         hasInitializer isFinal isOriginDeclaration foo
           reference: <testLibrary>::@enum::A::@field::foo
           firstFragment: #F7
           type: int
-          constantInitializer2: expression_2
+          constantInitializer2: expression_3
           getter: <testLibrary>::@enum::A::@getter::foo
       constructors
         isConst isOriginImplicitDefault new
@@ -19543,10 +21884,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: A
               inducedGetter: #F4
             #F5 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -19591,12 +21944,13 @@ library
           firstFragment: #F3
           type: A
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F5
           type: List<A>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
         isOriginGetterSetter foo
           reference: <testLibrary>::@enum::A::@field::foo
@@ -19664,10 +22018,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: A
               inducedGetter: #F4
             #F5 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -19728,12 +22094,13 @@ library
           firstFragment: #F3
           type: A
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F5
           type: List<A>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
         isOriginGetterSetter foo
           reference: <testLibrary>::@enum::A::@field::foo
@@ -19803,10 +22170,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: A
               inducedGetter: #F4
             #F5 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -19862,12 +22241,13 @@ library
           firstFragment: #F3
           type: A
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F5
           type: List<A>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
         isOriginGetterSetter foo
           reference: <testLibrary>::@enum::A::@field::foo
@@ -19935,10 +22315,24 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E<dynamic>
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E<dynamic>
+                    element: SubstitutedConstructorElementImpl
+                      baseElement: <testLibrary>::@enum::E::@constructor::new
+                      substitution: {T: dynamic}
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E<dynamic>
               inducedGetter: #F4
             #F5 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -19992,12 +22386,13 @@ library
           firstFragment: #F3
           type: E<dynamic>
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F5
           type: List<E<dynamic>>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         hasEnclosingTypeParameterReference isConst isOriginImplicitDefault new
@@ -20071,10 +22466,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: A
               inducedGetter: #F4
             #F5 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -20123,12 +22530,13 @@ library
           firstFragment: #F3
           type: A
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F5
           type: List<A>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
       constructors
         isConst isOriginImplicitDefault new
@@ -20210,10 +22618,32 @@ library
                     leftParenthesis: ( @20
                     rightParenthesis: ) @21
                   staticType: A<int>
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      typeArguments: TypeArgumentList
+                        leftBracket: < @15
+                        arguments
+                          NamedType
+                            name: int @16
+                            element: dart:core::@class::int
+                            type: int
+                        rightBracket: > @19
+                      element: <testLibrary>::@enum::A
+                      type: A<int>
+                    element: SubstitutedConstructorElementImpl
+                      baseElement: <testLibrary>::@enum::A::@constructor::new
+                      substitution: {T: int}
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @20
+                    rightParenthesis: ) @21
+                  staticType: A<int>
               inducedGetter: #F6
             #F7 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -20269,12 +22699,13 @@ library
           firstFragment: #F5
           type: A<int>
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F7
           type: List<A<dynamic>>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
       constructors
         hasEnclosingTypeParameterReference isConst isOriginImplicitDefault new
@@ -20350,10 +22781,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: B
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: B @-1
+                      element: <testLibrary>::@enum::B
+                      type: B
+                    element: <testLibrary>::@enum::B::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: B
               inducedGetter: #F4
             #F5 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@enum::B::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -20404,12 +22847,13 @@ library
           firstFragment: #F3
           type: B
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::B::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::B::@field::values
           firstFragment: #F5
           type: List<B>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::B::@getter::values
       constructors
         isConst isOriginImplicitDefault new
@@ -20485,10 +22929,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: B
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: B @-1
+                      element: <testLibrary>::@enum::B
+                      type: B
+                    element: <testLibrary>::@enum::B::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: B
               inducedGetter: #F4
             #F5 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@enum::B::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -20539,12 +22995,13 @@ library
           firstFragment: #F3
           type: B
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::B::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::B::@field::values
           firstFragment: #F5
           type: List<B>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::B::@getter::values
       constructors
         isConst isOriginImplicitDefault new
@@ -20620,10 +23077,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: B
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: B @-1
+                      element: <testLibrary>::@enum::B
+                      type: B
+                    element: <testLibrary>::@enum::B::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: B
               inducedGetter: #F4
             #F5 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@enum::B::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -20674,12 +23143,13 @@ library
           firstFragment: #F3
           type: B
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::B::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::B::@field::values
           firstFragment: #F5
           type: List<B>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::B::@getter::values
       constructors
         isConst isOriginImplicitDefault new
@@ -20745,10 +23215,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: A
               inducedGetter: #F4
             #F5 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -20786,7 +23268,7 @@ library
               formalParameters
                 #F9 optionalPositional isOriginDeclaration x (nameOffset:50) (firstTokenOffset:46) (offset:50)
                   element: <testLibrary>::@enum::A::@method::foo::@formalParameter::x
-                  constantInitializer2: expression_2
+                  constantInitializer2: expression_3
                     IntegerLiteral
                       literal: 42 @54
                       staticType: int
@@ -20801,12 +23283,13 @@ library
           firstFragment: #F3
           type: A
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F5
           type: List<A>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
       constructors
         isConst isOriginImplicitDefault new
@@ -20832,7 +23315,7 @@ library
             #E0 optionalPositional hasDefaultValue x
               firstFragment: #F9
               type: int
-              constantInitializer2: expression_2
+              constantInitializer2: expression_3
           returnType: void
 ''');
   }
@@ -20876,10 +23359,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: A
               inducedGetter: #F4
             #F5 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -20932,12 +23427,13 @@ library
           firstFragment: #F3
           type: A
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F5
           type: List<A>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
       constructors
         isConst isOriginImplicitDefault new
@@ -21019,10 +23515,32 @@ library
                     leftParenthesis: ( @20
                     rightParenthesis: ) @21
                   staticType: A<int>
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      typeArguments: TypeArgumentList
+                        leftBracket: < @15
+                        arguments
+                          NamedType
+                            name: int @16
+                            element: dart:core::@class::int
+                            type: int
+                        rightBracket: > @19
+                      element: <testLibrary>::@enum::A
+                      type: A<int>
+                    element: SubstitutedConstructorElementImpl
+                      baseElement: <testLibrary>::@enum::A::@constructor::new
+                      substitution: {T: int}
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @20
+                    rightParenthesis: ) @21
+                  staticType: A<int>
               inducedGetter: #F6
             #F7 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -21080,12 +23598,13 @@ library
           firstFragment: #F5
           type: A<int>
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F7
           type: List<A<dynamic>>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
       constructors
         hasEnclosingTypeParameterReference isConst isOriginImplicitDefault new
@@ -21152,10 +23671,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: A
               inducedGetter: #F4
             #F5 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -21215,12 +23746,13 @@ library
           firstFragment: #F3
           type: A
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F5
           type: List<A>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
       constructors
         isConst isOriginImplicitDefault new
@@ -21285,10 +23817,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: A
               inducedGetter: #F4
             #F5 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -21343,12 +23887,13 @@ library
           firstFragment: #F3
           type: A
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F5
           type: List<A>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
       constructors
         isConst isOriginImplicitDefault new
@@ -21414,10 +23959,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: A
               inducedGetter: #F4
             #F5 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -21500,12 +24057,13 @@ library
           firstFragment: #F3
           type: A
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F5
           type: List<A>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
       constructors
         isConst isOriginImplicitDefault new
@@ -21574,10 +24132,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: A
               inducedGetter: #F4
             #F5 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -21670,12 +24240,13 @@ library
           firstFragment: #F3
           type: A
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F5
           type: List<A>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
       constructors
         isConst isOriginImplicitDefault new
@@ -21744,10 +24315,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: A
               inducedGetter: #F4
             #F5 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -21830,12 +24413,13 @@ library
           firstFragment: #F3
           type: A
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F5
           type: List<A>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
       constructors
         isConst isOriginImplicitDefault new
@@ -21901,10 +24485,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               inducedGetter: #F3
             #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -21953,7 +24549,7 @@ library
       topLevelVariables
         #F8 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::a
-          constantInitializer2: expression_2
+          constantInitializer2: expression_3
             IntegerLiteral
               literal: 42 @10
               staticType: int
@@ -21973,12 +24569,13 @@ library
           firstFragment: #F2
           type: E
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         isConst isOriginImplicitDefault new
@@ -22020,7 +24617,7 @@ library
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F8
       type: int
-      constantInitializer2: expression_2
+      constantInitializer2: expression_3
       getter: <testLibrary>::@getter::a
   getters
     isOriginVariable isStatic a
@@ -22063,10 +24660,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               inducedGetter: #F3
             #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -22109,12 +24718,13 @@ library
           firstFragment: #F2
           type: E
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         isConst isOriginImplicitDefault new
@@ -22176,10 +24786,26 @@ library
                         staticType: int
                     rightParenthesis: ) @23
                   staticType: E
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @21
+                    arguments
+                      IntegerLiteral
+                        literal: 0 @22
+                        staticType: int
+                    rightParenthesis: ) @23
+                  staticType: E
               inducedGetter: #F3
             #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -22199,12 +24825,17 @@ library
               inducedGetter: #F5
             #F6 hasImplicitType hasInitializer isFinal isOriginDeclaration bar (nameOffset:35) (firstTokenOffset:35) (offset:35)
               element: <testLibrary>::@enum::E::@field::bar
-              constantInitializer2: expression_2
+              constantInitializer2: expression_3
                 UnqualifiedNameExpression
                   name: foo @41
                   resolution: VariableReadResolution
                     element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::foo
                     type: int
+                  staticType: int
+              constantInitializer: expression_4
+                SimpleIdentifier
+                  token: foo @41
+                  element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::foo
                   staticType: int
               inducedGetter: #F7
           constructors
@@ -22237,18 +24868,20 @@ library
           firstFragment: #F2
           type: E
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
         hasImplicitType hasInitializer isFinal isOriginDeclaration isTypeInferredFromInitializer bar
           reference: <testLibrary>::@enum::E::@field::bar
           firstFragment: #F6
           type: int
-          constantInitializer2: expression_2
+          constantInitializer2: expression_3
+          constantInitializer: expression_4
           getter: <testLibrary>::@enum::E::@getter::bar
       constructors
         isConst isOriginDeclaration isPrimary new
@@ -22314,10 +24947,26 @@ library
                         staticType: int
                     rightParenthesis: ) @29
                   staticType: E
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @27
+                    arguments
+                      IntegerLiteral
+                        literal: 0 @28
+                        staticType: int
+                    rightParenthesis: ) @29
+                  staticType: E
               inducedGetter: #F3
             #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -22340,12 +24989,17 @@ library
               inducedGetter: #F7
             #F8 hasImplicitType hasInitializer isFinal isOriginDeclaration bar (nameOffset:41) (firstTokenOffset:41) (offset:41)
               element: <testLibrary>::@enum::E::@field::bar
-              constantInitializer2: expression_2
+              constantInitializer2: expression_3
                 UnqualifiedNameExpression
                   name: foo @47
                   resolution: VariableReadResolution
                     element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::foo
                     type: int
+                  staticType: int
+              constantInitializer: expression_4
+                SimpleIdentifier
+                  token: foo @47
+                  element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::foo
                   staticType: int
               inducedGetter: #F9
           constructors
@@ -22381,12 +25035,13 @@ library
           firstFragment: #F2
           type: E
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
         isFinal isOriginDeclaringFormalParameter foo
           reference: <testLibrary>::@enum::E::@field::foo
@@ -22398,7 +25053,8 @@ library
           reference: <testLibrary>::@enum::E::@field::bar
           firstFragment: #F8
           type: int
-          constantInitializer2: expression_2
+          constantInitializer2: expression_3
+          constantInitializer: expression_4
           getter: <testLibrary>::@enum::E::@getter::bar
       constructors
         isConst isOriginDeclaration isPrimary new
@@ -22470,10 +25126,26 @@ library
                         staticType: int
                     rightParenthesis: ) @23
                   staticType: E
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @21
+                    arguments
+                      IntegerLiteral
+                        literal: 0 @22
+                        staticType: int
+                    rightParenthesis: ) @23
+                  staticType: E
               inducedGetter: #F3
             #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -22493,11 +25165,16 @@ library
               inducedGetter: #F5
             #F6 hasImplicitType hasInitializer isFinal isLate isOriginDeclaration bar (nameOffset:40) (firstTokenOffset:40) (offset:40)
               element: <testLibrary>::@enum::E::@field::bar
-              constantInitializer2: expression_2
+              constantInitializer2: expression_3
                 UnqualifiedNameExpression
                   name: foo @46
                   resolution: InvalidNamedReadResolution
                     recoveryElement: <null>
+                  staticType: InvalidType
+              constantInitializer: expression_4
+                SimpleIdentifier
+                  token: foo @46
+                  element: <null>
                   staticType: InvalidType
               inducedGetter: #F7
           constructors
@@ -22530,18 +25207,20 @@ library
           firstFragment: #F2
           type: E
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
         hasImplicitType hasInitializer isFinal isLate isOriginDeclaration isTypeInferredFromInitializer bar
           reference: <testLibrary>::@enum::E::@field::bar
           firstFragment: #F6
           type: InvalidType
-          constantInitializer2: expression_2
+          constantInitializer2: expression_3
+          constantInitializer: expression_4
           getter: <testLibrary>::@enum::E::@getter::bar
       constructors
         isConst isOriginDeclaration isPrimary new
@@ -22607,10 +25286,26 @@ library
                         staticType: int
                     rightParenthesis: ) @24
                   staticType: E
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @22
+                    arguments
+                      IntegerLiteral
+                        literal: 0 @23
+                        staticType: int
+                    rightParenthesis: ) @24
+                  staticType: E
               inducedGetter: #F3
             #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -22630,7 +25325,7 @@ library
               inducedGetter: #F5
             #F6 hasImplicitType hasInitializer isFinal isOriginDeclaration bar (nameOffset:36) (firstTokenOffset:36) (offset:36)
               element: <testLibrary>::@enum::E::@field::bar
-              constantInitializer2: expression_2
+              constantInitializer2: expression_3
                 ConditionalExpression
                   condition2: BinaryOperatorInvocation
                     leftOperand: UnqualifiedNameExpression
@@ -22705,18 +25400,19 @@ library
           firstFragment: #F2
           type: E
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
         hasImplicitType hasInitializer isFinal isOriginDeclaration isTypeInferredFromInitializer bar
           reference: <testLibrary>::@enum::E::@field::bar
           firstFragment: #F6
           type: int
-          constantInitializer2: expression_2
+          constantInitializer2: expression_3
           getter: <testLibrary>::@enum::E::@getter::bar
       constructors
         isConst isOriginDeclaration isPrimary new
@@ -22782,10 +25478,26 @@ library
                         staticType: int
                     rightParenthesis: ) @23
                   staticType: E
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @21
+                    arguments
+                      IntegerLiteral
+                        literal: 0 @22
+                        staticType: int
+                    rightParenthesis: ) @23
+                  staticType: E
               inducedGetter: #F3
             #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -22836,12 +25548,13 @@ library
           firstFragment: #F2
           type: E
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
         hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic isTypeInferredFromInitializer bar
           reference: <testLibrary>::@enum::E::@field::bar
@@ -22908,10 +25621,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
               inducedGetter: #F3
             #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -22959,12 +25684,13 @@ library
           firstFragment: #F2
           type: E
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
         isOriginGetterSetter foo
           reference: <testLibrary>::@enum::E::@field::foo
@@ -23038,10 +25764,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: A
               inducedGetter: #F4
             #F5 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -23101,12 +25839,13 @@ library
           firstFragment: #F3
           type: A
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F5
           type: List<A>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
         isOriginGetterSetter foo1
           reference: <testLibrary>::@enum::A::@field::foo1
@@ -23195,10 +25934,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: A
               inducedGetter: #F4
             #F5 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -23266,12 +26017,13 @@ library
           firstFragment: #F3
           type: A
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F5
           type: List<A>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
         isOriginGetterSetter foo1
           reference: <testLibrary>::@enum::A::@field::foo1
@@ -23359,10 +26111,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: A
               inducedGetter: #F4
             #F5 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -23382,7 +26146,7 @@ library
               inducedGetter: #F6
             #F7 hasInitializer isFinal isOriginDeclaration foo (nameOffset:26) (firstTokenOffset:26) (offset:26)
               element: <testLibrary>::@enum::A::@field::foo
-              constantInitializer2: expression_2
+              constantInitializer2: expression_3
                 IntegerLiteral
                   literal: 0 @32
                   staticType: int
@@ -23421,18 +26185,19 @@ library
           firstFragment: #F3
           type: A
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F5
           type: List<A>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
         hasInitializer isFinal isOriginDeclaration foo
           reference: <testLibrary>::@enum::A::@field::foo
           firstFragment: #F7
           type: int
-          constantInitializer2: expression_2
+          constantInitializer2: expression_3
           getter: <testLibrary>::@enum::A::@getter::foo
           setter: <testLibrary>::@enum::A::@setter::foo
       constructors
@@ -23507,10 +26272,22 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: A
               inducedGetter: #F4
             #F5 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -23562,12 +26339,13 @@ library
           firstFragment: #F3
           type: A
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::A::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F5
           type: List<A>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::A::@getter::values
         isOriginGetterSetter foo
           reference: <testLibrary>::@enum::A::@field::foo

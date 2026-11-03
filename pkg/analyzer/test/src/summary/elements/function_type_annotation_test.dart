@@ -701,7 +701,40 @@ library
                                     type: int?
                             rightDelimiter: } @64
                           rightParenthesis: ) @65
-                        parameters(v1): FormalParameterList
+                        declaredFragment: GenericFunctionTypeElement
+                          parameters
+                            a
+                              kind: optional named
+                              element:
+                                type: int?
+                          returnType: String
+                          type: String Function({int? a})
+                        type: String Function({int? a})
+                    rightBracket: > @66
+                  element: <testLibrary>::@class::A
+                  type: A<String Function({int? a})>
+                element: SubstitutedConstructorElementImpl
+                  baseElement: <testLibrary>::@class::A::@constructor::new
+                  substitution: {T: String Function({int? a})}
+              argumentList: ArgumentList
+                leftParenthesis: ( @67
+                rightParenthesis: ) @68
+              staticType: A<String Function({int? a})>
+          constantInitializer: expression_1
+            InstanceCreationExpression
+              constructorName: ConstructorName
+                type: NamedType
+                  name: A @39
+                  typeArguments: TypeArgumentList
+                    leftBracket: < @40
+                    arguments
+                      GenericFunctionType
+                        returnType: NamedType
+                          name: String @41
+                          element: dart:core::@class::String
+                          type: String
+                        functionKeyword: Function @48
+                        parameters: FormalParameterList
                           leftParenthesis: ( @56
                           leftDelimiter: { @57
                           parameter: RegularFormalParameter
@@ -757,6 +790,7 @@ library
       firstFragment: #F4
       type: A<String Function({int? a})>
       constantInitializer2: expression_0
+      constantInitializer: expression_1
       getter: <testLibrary>::@getter::v
   getters
     isOriginVariable isStatic v
@@ -826,7 +860,40 @@ library
                                     type: int?
                             rightDelimiter: ] @64
                           rightParenthesis: ) @65
-                        parameters(v1): FormalParameterList
+                        declaredFragment: GenericFunctionTypeElement
+                          parameters
+                            a
+                              kind: optional positional
+                              element:
+                                type: int?
+                          returnType: String
+                          type: String Function([int?])
+                        type: String Function([int?])
+                    rightBracket: > @66
+                  element: <testLibrary>::@class::A
+                  type: A<String Function([int?])>
+                element: SubstitutedConstructorElementImpl
+                  baseElement: <testLibrary>::@class::A::@constructor::new
+                  substitution: {T: String Function([int?])}
+              argumentList: ArgumentList
+                leftParenthesis: ( @67
+                rightParenthesis: ) @68
+              staticType: A<String Function([int?])>
+          constantInitializer: expression_1
+            InstanceCreationExpression
+              constructorName: ConstructorName
+                type: NamedType
+                  name: A @39
+                  typeArguments: TypeArgumentList
+                    leftBracket: < @40
+                    arguments
+                      GenericFunctionType
+                        returnType: NamedType
+                          name: String @41
+                          element: dart:core::@class::String
+                          type: String
+                        functionKeyword: Function @48
+                        parameters: FormalParameterList
                           leftParenthesis: ( @56
                           leftDelimiter: [ @57
                           parameter: RegularFormalParameter
@@ -882,6 +949,7 @@ library
       firstFragment: #F4
       type: A<String Function([int?])>
       constantInitializer2: expression_0
+      constantInitializer: expression_1
       getter: <testLibrary>::@getter::v
   getters
     isOriginVariable isStatic v
@@ -951,7 +1019,40 @@ library
                                     type: int
                             rightDelimiter: } @72
                           rightParenthesis: ) @73
-                        parameters(v1): FormalParameterList
+                        declaredFragment: GenericFunctionTypeElement
+                          parameters
+                            a
+                              kind: required named
+                              element:
+                                type: int
+                          returnType: String
+                          type: String Function({required int a})
+                        type: String Function({required int a})
+                    rightBracket: > @74
+                  element: <testLibrary>::@class::A
+                  type: A<String Function({required int a})>
+                element: SubstitutedConstructorElementImpl
+                  baseElement: <testLibrary>::@class::A::@constructor::new
+                  substitution: {T: String Function({required int a})}
+              argumentList: ArgumentList
+                leftParenthesis: ( @75
+                rightParenthesis: ) @76
+              staticType: A<String Function({required int a})>
+          constantInitializer: expression_1
+            InstanceCreationExpression
+              constructorName: ConstructorName
+                type: NamedType
+                  name: A @39
+                  typeArguments: TypeArgumentList
+                    leftBracket: < @40
+                    arguments
+                      GenericFunctionType
+                        returnType: NamedType
+                          name: String @41
+                          element: dart:core::@class::String
+                          type: String
+                        functionKeyword: Function @48
+                        parameters: FormalParameterList
                           leftParenthesis: ( @56
                           leftDelimiter: { @57
                           parameter: RegularFormalParameter
@@ -1007,6 +1108,7 @@ library
       firstFragment: #F4
       type: A<String Function({required int a})>
       constantInitializer2: expression_0
+      constantInitializer: expression_1
       getter: <testLibrary>::@getter::v
   getters
     isOriginVariable isStatic v
@@ -1072,7 +1174,40 @@ library
                                 element: isPublic
                                   type: int
                           rightParenthesis: ) @62
-                        parameters(v1): FormalParameterList
+                        declaredFragment: GenericFunctionTypeElement
+                          parameters
+                            a
+                              kind: required positional
+                              element:
+                                type: int
+                          returnType: String
+                          type: String Function(int)
+                        type: String Function(int)
+                    rightBracket: > @63
+                  element: <testLibrary>::@class::A
+                  type: A<String Function(int)>
+                element: SubstitutedConstructorElementImpl
+                  baseElement: <testLibrary>::@class::A::@constructor::new
+                  substitution: {T: String Function(int)}
+              argumentList: ArgumentList
+                leftParenthesis: ( @64
+                rightParenthesis: ) @65
+              staticType: A<String Function(int)>
+          constantInitializer: expression_1
+            InstanceCreationExpression
+              constructorName: ConstructorName
+                type: NamedType
+                  name: A @39
+                  typeArguments: TypeArgumentList
+                    leftBracket: < @40
+                    arguments
+                      GenericFunctionType
+                        returnType: NamedType
+                          name: String @41
+                          element: dart:core::@class::String
+                          type: String
+                        functionKeyword: Function @48
+                        parameters: FormalParameterList
                           leftParenthesis: ( @56
                           parameter: RegularFormalParameter
                             type: NamedType
@@ -1125,6 +1260,7 @@ library
       firstFragment: #F4
       type: A<String Function(int)>
       constantInitializer2: expression_0
+      constantInitializer: expression_1
       getter: <testLibrary>::@getter::v
   getters
     isOriginVariable isStatic v

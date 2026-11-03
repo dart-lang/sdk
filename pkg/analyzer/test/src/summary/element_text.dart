@@ -5,8 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/ast/ast.dart'
-    show ExpressionImpl, V1Projection;
+import 'package:analyzer/src/dart/ast/ast.dart' show AstNodeApi, AstNodeImpl;
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/field_name_non_promotability_info.dart';
 import 'package:analyzer/src/error/inference_error.dart';
@@ -429,32 +428,60 @@ class _Element2Writer extends _AbstractElementWriter {
     _writeNode(node);
   }
 
-  void _writeConstantInitializerExpression(String name, Expression expression) {
+  /// Writes [expression], the V2 initializer, and then the V1 initializer
+  /// returned by [getV1], if it is a different node.
+  void _writeConstantInitializer(
+    Expression expression,
+    Expression Function() getV1,
+  ) {
     expect(
       expression.thisOrAncestorOfType2<CompilationUnit>(),
       isNull,
       reason: 'Element constant initializers must be detached.',
     );
 
-    // ignore: analyzer_v1_ast_use
-    var v1 = V1Projection.toV1Expression(expression as ExpressionImpl);
-    if (!identical(v1, expression)) {
+    Expression getCheckedV1() {
+      var v1 = getV1();
+      expect(
+        (v1 as AstNodeImpl).astNodeApi,
+        isNot(AstNodeApi.v2),
+        reason: 'V1 initializers must not be V2 nodes.',
+      );
       expect(
         // ignore: analyzer_v1_ast_use
         v1.thisOrAncestorOfType<CompilationUnit>(),
         isNull,
-        reason: 'V1 projections of element initializers must be detached.',
+        reason: 'V1 initializers must be detached.',
       );
+      return v1;
     }
 
+    var printer = _createAstPrinter();
+    Expression? v1;
     if (_idMap.existingExpressionId(expression) case var id?) {
-      _sink.writelnWithIndent('$name: $id');
+      _sink.writelnWithIndent('constantInitializer2: $id');
+      var checkedV1 = getCheckedV1();
+      if (!identical(checkedV1, expression)) {
+        v1 = checkedV1;
+      }
     } else {
-      var id = _idMap[expression];
-      _sink.writelnWithIndent('$name: $id');
+      _sink.writelnWithIndent('constantInitializer2: ${_idMap[expression]}');
       _sink.withIndent(() {
-        _writeNode(expression);
+        _sink.writeIndent();
+        v1 = printer.writeNodeBeforeV1(expression, getCheckedV1);
       });
+    }
+
+    if (v1 case var v1?) {
+      if (_idMap.existingExpressionId(v1) case var id?) {
+        _sink.writelnWithIndent('constantInitializer: $id');
+      } else {
+        _sink.writelnWithIndent('constantInitializer: ${_idMap[v1]}');
+        _sink.withIndent(() {
+          _sink.writeIndent();
+          printer.writeNode(v1);
+        });
+      }
     }
   }
 
@@ -1907,14 +1934,22 @@ class _Element2Writer extends _AbstractElementWriter {
 
   void _writeVariableElementConstantInitializer(VariableElementImpl e) {
     if (e.constantInitializer2 case var initializer?) {
-      _writeConstantInitializerExpression('constantInitializer2', initializer);
+      _writeConstantInitializer(
+        initializer,
+        // ignore: analyzer_v1_ast_use
+        () => e.constantInitializer!,
+      );
     }
   }
 
   void _writeVariableFragmentInitializer(VariableFragment f) {
     f as VariableFragmentImpl;
     if (f.constantInitializer2 case var initializer?) {
-      _writeConstantInitializerExpression('constantInitializer2', initializer);
+      _writeConstantInitializer(
+        initializer,
+        // ignore: analyzer_v1_ast_use
+        () => f.constantInitializer!,
+      );
     }
   }
 }

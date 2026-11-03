@@ -286,6 +286,11 @@ library
               name: _notSerializableExpression @-1
               resolution: <null>
               staticType: null
+          constantInitializer: expression_1
+            SimpleIdentifier
+              token: _notSerializableExpression @-1
+              element: <null>
+              staticType: null
           inducedGetter: #F2
       getters
         #F2 isComplete isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
@@ -297,6 +302,7 @@ library
       firstFragment: #F1
       type: int
       constantInitializer2: expression_0
+      constantInitializer: expression_1
       getter: <testLibrary>::@getter::v
   getters
     isOriginVariable isStatic v
@@ -335,6 +341,11 @@ library
                       name: _notSerializableExpression @-1
                       resolution: <null>
                       staticType: null
+                  constantInitializer: expression_1
+                    SimpleIdentifier
+                      token: _notSerializableExpression @-1
+                      element: <null>
+                      staticType: null
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -348,6 +359,7 @@ library
               firstFragment: #F3
               type: Object
               constantInitializer2: expression_0
+              constantInitializer: expression_1
 ''');
   }
 
@@ -372,6 +384,11 @@ library
                   name: _notSerializableExpression @-1
                   resolution: <null>
                   staticType: null
+              constantInitializer: expression_1
+                SimpleIdentifier
+                  token: _notSerializableExpression @-1
+                  element: <null>
+                  staticType: null
   functions
     isOriginDeclaration isStatic f
       reference: <testLibrary>::@function::f
@@ -381,6 +398,7 @@ library
           firstFragment: #F2
           type: Object
           constantInitializer2: expression_0
+          constantInitializer: expression_1
       returnType: void
 ''');
   }
@@ -410,10 +428,15 @@ library
                   name: _notSerializableExpression @-1
                   resolution: <null>
                   staticType: null
+              constantInitializer: expression_1
+                SimpleIdentifier
+                  token: _notSerializableExpression @-1
+                  element: <null>
+                  staticType: null
               inducedGetter: #F3
             #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
-              constantInitializer2: expression_1
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -457,12 +480,13 @@ library
           firstFragment: #F2
           type: E
           constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@enum::E::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E>
-          constantInitializer2: expression_1
+          constantInitializer2: expression_2
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         isConst isOriginDeclaration new

@@ -1886,6 +1886,13 @@ library
                       package:test/a.dart::@function::V
                       package:test/b.dart::@function::V
                   staticType: InvalidType
+              constantInitializer: expression_1
+                SimpleIdentifier
+                  token: V @44
+                  element: multiplyDefinedElement
+                    package:test/a.dart::@function::V
+                    package:test/b.dart::@function::V
+                  staticType: InvalidType
   functions
     hasImplicitReturnType isOriginDeclaration isStatic foo
       reference: <testLibrary>::@function::foo
@@ -1895,6 +1902,7 @@ library
           firstFragment: #F2
           type: dynamic
           constantInitializer2: expression_0
+          constantInitializer: expression_1
       returnType: dynamic
 ''');
   }
@@ -1936,6 +1944,11 @@ library
                     element: package:test/a.dart::@function::V
                     type: dynamic Function()
                   staticType: dynamic Function()
+              constantInitializer: expression_1
+                SimpleIdentifier
+                  token: V @27
+                  element: package:test/a.dart::@function::V
+                  staticType: dynamic Function()
   functions
     hasImplicitReturnType isOriginDeclaration isStatic foo
       reference: <testLibrary>::@function::foo
@@ -1945,6 +1958,7 @@ library
           firstFragment: #F2
           type: dynamic
           constantInitializer2: expression_0
+          constantInitializer: expression_1
       returnType: dynamic
 ''');
   }
@@ -1990,6 +2004,11 @@ library
                     element: <testLibrary>::@getter::V
                     type: dynamic
                   staticType: dynamic
+              constantInitializer: expression_1
+                SimpleIdentifier
+                  token: V @9
+                  element: <testLibrary>::@getter::V
+                  staticType: dynamic
         #F7 hasImplicitReturnType isComplete isOriginDeclaration isStatic V (nameOffset:16) (firstTokenOffset:16) (offset:16)
           element: <testLibrary>::@function::V
   topLevelVariables
@@ -2024,6 +2043,7 @@ library
           firstFragment: #F6
           type: dynamic
           constantInitializer2: expression_0
+          constantInitializer: expression_1
       returnType: dynamic
     hasImplicitReturnType isOriginDeclaration isStatic V
       reference: <testLibrary>::@function::V

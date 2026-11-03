@@ -5038,6 +5038,11 @@ library
                         element: <testLibrary>::@extensionType::E::@getter::foo
                         type: int
                       staticType: int
+                  constantInitializer: expression_2
+                    SimpleIdentifier
+                      token: foo @56
+                      element: <testLibrary>::@extensionType::E::@getter::foo
+                      staticType: int
           getters
             #F4 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: <testLibrary>::@extensionType::E::@getter::it
@@ -5048,7 +5053,7 @@ library
       topLevelVariables
         #F9 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic foo (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::foo
-          constantInitializer2: expression_2
+          constantInitializer2: expression_3
             IntegerLiteral
               literal: 0 @12
               staticType: int
@@ -5131,6 +5136,7 @@ library
                     staticType: null
                   element: <testLibrary>::@extensionType::E::@getter::foo
               constantInitializer2: expression_1
+              constantInitializer: expression_2
               field: <testLibrary>::@extensionType::E::@field::it
       getters
         isExtensionTypeMember isOriginVariable it
@@ -5148,7 +5154,7 @@ library
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: #F9
       type: int
-      constantInitializer2: expression_2
+      constantInitializer2: expression_3
       getter: <testLibrary>::@getter::foo
   getters
     isOriginVariable isStatic foo
