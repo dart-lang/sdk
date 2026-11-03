@@ -22,6 +22,9 @@ import 'package:analyzer/src/dart/element/type_visitor.dart';
 import '../analyzer.dart';
 import '../diagnostic.dart' as diag;
 
+const String _dartAsyncUri = 'dart:async';
+const String _dartCollectionUri = 'dart:collection';
+const String _dartCoreUri = 'dart:core';
 const String _dartJsAnnotationsUri = 'dart:_js_annotations';
 const String _dartJsInteropUri = 'dart:js_interop';
 const String _dartJsUri = 'dart:js';
@@ -36,6 +39,36 @@ const Set<String> _sdkWebLibraries = {
   'dart:svg',
   'dart:web_audio',
   'dart:web_gl',
+};
+
+/// The `(libraryUri, className, memberName)` triples for SDK collection
+/// constructors and static `castFrom` methods that perform runtime element or
+/// entry casts.
+///
+/// `Set.unmodifiable` is intentionally omitted because it takes `Iterable<E>`
+/// and is statically type-checked, unlike `List.unmodifiable(Iterable)` and
+/// `Map.unmodifiable(Map)`.
+const Set<(String, String, String)> _staticSdkCollectionCastMembers = {
+  (_dartAsyncUri, 'Stream', 'castFrom'),
+  (_dartCollectionUri, 'DoubleLinkedQueue', 'from'),
+  (_dartCollectionUri, 'HashMap', 'from'),
+  (_dartCollectionUri, 'HashSet', 'from'),
+  (_dartCollectionUri, 'LinkedHashMap', 'from'),
+  (_dartCollectionUri, 'LinkedHashSet', 'from'),
+  (_dartCollectionUri, 'ListQueue', 'from'),
+  (_dartCollectionUri, 'Queue', 'castFrom'),
+  (_dartCollectionUri, 'Queue', 'from'),
+  (_dartCollectionUri, 'SplayTreeMap', 'from'),
+  (_dartCollectionUri, 'SplayTreeSet', 'from'),
+  (_dartCoreUri, 'Iterable', 'castFrom'),
+  (_dartCoreUri, 'List', 'castFrom'),
+  (_dartCoreUri, 'List', 'from'),
+  (_dartCoreUri, 'List', 'unmodifiable'),
+  (_dartCoreUri, 'Map', 'castFrom'),
+  (_dartCoreUri, 'Map', 'from'),
+  (_dartCoreUri, 'Map', 'unmodifiable'),
+  (_dartCoreUri, 'Set', 'castFrom'),
+  (_dartCoreUri, 'Set', 'from'),
 };
 
 /// Whether [type] is a type declared in `dart:js` or a type parameter that is
@@ -263,7 +296,11 @@ class InvalidRuntimeCheckWithJSInteropTypes extends MultiAnalysisRule {
     var visitor = _Visitor(this, context.typeSystem as TypeSystemImpl);
     registry.addAsExpression(this, visitor);
     registry.addCatchClause(this, visitor);
+    registry.addDotShorthandConstructorInvocation(this, visitor);
+    registry.addDotShorthandInvocation(this, visitor);
+    registry.addInstanceCreationExpression(this, visitor);
     registry.addIsExpression(this, visitor);
+    registry.addMethodInvocation(this, visitor);
   }
 }
 
@@ -476,6 +513,27 @@ class _Visitor(final MultiAnalysisRule rule, final TypeSystemImpl typeSystem)
   }
 
   @override
+  void visitDotShorthandConstructorInvocation(
+    DotShorthandConstructorInvocation node,
+  ) {
+    _checkConstructorInvocation(node, node.element, node.argumentList);
+  }
+
+  @override
+  void visitDotShorthandInvocation(DotShorthandInvocation node) {
+    _checkMethodInvocation(node, node.memberName.element);
+  }
+
+  @override
+  void visitInstanceCreationExpression(InstanceCreationExpression node) {
+    _checkConstructorInvocation(
+      node,
+      node.constructorName.element,
+      node.argumentList,
+    );
+  }
+
+  @override
   void visitIsExpression(IsExpression node) {
     var leftType = node.expression.staticType;
     var rightType = node.type.type;
@@ -488,6 +546,168 @@ class _Visitor(final MultiAnalysisRule rule, final TypeSystemImpl typeSystem)
         diagnosticCode: code,
       );
     }
+  }
+
+  @override
+  void visitMethodInvocation(MethodInvocation node) {
+    _checkMethodInvocation(node, node.methodName.element);
+  }
+
+  void _checkCollectionTypeTest(
+    AstNode node,
+    DartType? sourceType,
+    DartType? targetType, {
+    required InterfaceElement collectionElement,
+    required bool check,
+  }) {
+    if (sourceType == null || targetType == null) return;
+    var sourceAsCollection = sourceType.asInstanceOf(collectionElement);
+    var targetAsCollection = targetType.asInstanceOf(collectionElement);
+    if (sourceAsCollection == null || targetAsCollection == null) return;
+    var sourceTypeArgs = sourceAsCollection.typeArguments;
+    var targetTypeArgs = targetAsCollection.typeArguments;
+    assert(sourceTypeArgs.length == targetTypeArgs.length);
+    for (var i = 0; i < sourceTypeArgs.length; i++) {
+      var leftType = sourceTypeArgs[i];
+      var rightType = targetTypeArgs[i];
+      var code = getInvalidJsInteropTypeTest(leftType, rightType, check: check);
+      if (code != null) {
+        rule.reportAtNode(
+          node,
+          arguments: [leftType, rightType],
+          diagnosticCode: code,
+        );
+      }
+    }
+  }
+
+  void _checkConstructorInvocation(
+    Expression node,
+    ConstructorElement? element,
+    ArgumentList argumentList,
+  ) {
+    if (element == null) return;
+    var collectionElement = _collectionElementFor(
+      element.enclosingElement,
+      element.name,
+      isStaticSdkMember: true,
+    );
+    if (collectionElement == null) return;
+    var sourceType = argumentList.arguments
+        .where((a) => a is! NamedArgument)
+        .firstOrNull
+        ?.argumentExpression
+        .staticType;
+    _checkCollectionTypeTest(
+      node,
+      sourceType,
+      node.staticType,
+      collectionElement: collectionElement,
+      check: false,
+    );
+  }
+
+  void _checkMethodInvocation(InvocationExpression node, Element? element) {
+    if (element is! MethodElement) return;
+    var name = element.name;
+    var collectionElement = _collectionElementFor(
+      element.enclosingElement,
+      name,
+      isStaticSdkMember: element.isStatic,
+    );
+    if (collectionElement == null) return;
+    if (element.isStatic) {
+      var sourceType = node.argumentList.arguments
+          .where((a) => a is! NamedArgument)
+          .firstOrNull
+          ?.argumentExpression
+          .staticType;
+      if (sourceType is DynamicType) {
+        if (node.staticInvokeType case FunctionType(:var formalParameters)) {
+          sourceType = formalParameters
+              .where((p) => p.isPositional)
+              .firstOrNull
+              ?.type;
+        }
+      }
+      _checkCollectionTypeTest(
+        node,
+        sourceType,
+        node.staticType,
+        collectionElement: collectionElement,
+        check: false,
+      );
+    } else if (node is MethodInvocation &&
+        node.argumentList.arguments.isEmpty) {
+      _checkCollectionTypeTest(
+        node,
+        _getTargetType(node),
+        node.staticType,
+        collectionElement: collectionElement,
+        check: name == 'whereType',
+      );
+    }
+  }
+
+  /// Returns the base collection interface (`Iterable`, `Map`, or `Stream`)
+  /// whose type arguments are tested by [memberName] on [enclosingElement], or
+  /// `null` if the member is not a tracked collection cast or `whereType` call.
+  ///
+  /// When [isStaticSdkMember] is `true` (for constructors and static methods,
+  /// which are not inherited through subtypes), `(libraryUri, className,
+  /// memberName)` must match [_staticSdkCollectionCastMembers]. When `false`
+  /// (for instance methods), [enclosingElement] must be a subtype of
+  /// `Iterable` (for `cast` or `whereType`), `Map` (for `cast`), or `Stream`
+  /// (for `cast`).
+  InterfaceElement? _collectionElementFor(
+    Element? enclosingElement,
+    String? memberName, {
+    required bool isStaticSdkMember,
+  }) {
+    if (enclosingElement is! InterfaceElement || memberName == null) {
+      return null;
+    }
+    if (isStaticSdkMember) {
+      var libraryUri = enclosingElement.library.uri.toString();
+      var className = enclosingElement.name;
+      if (!_staticSdkCollectionCastMembers.contains((
+        libraryUri,
+        className,
+        memberName,
+      ))) {
+        return null;
+      }
+    }
+    var typeProvider = typeSystem.typeProvider;
+    var thisType = enclosingElement.thisType;
+    if (thisType.asInstanceOf(typeProvider.iterableElement) != null) {
+      if (!isStaticSdkMember &&
+          memberName != 'cast' &&
+          memberName != 'whereType') {
+        return null;
+      }
+      return typeProvider.iterableElement;
+    }
+    if (thisType.asInstanceOf(typeProvider.mapElement) != null) {
+      if (!isStaticSdkMember && memberName != 'cast') return null;
+      return typeProvider.mapElement;
+    }
+    if (thisType.asInstanceOf(typeProvider.streamElement) != null) {
+      if (!isStaticSdkMember && memberName != 'cast') return null;
+      return typeProvider.streamElement;
+    }
+    return null;
+  }
+
+  DartType? _getTargetType(MethodInvocation node) {
+    if (node.realTarget case var target?) {
+      return target.staticType;
+    }
+    if (node.root case CompilationUnit unit) {
+      // ignore: experimental_member_use
+      return unit.lookupThisType(offset: node.offset);
+    }
+    return null;
   }
 
   /// Returns the pairs of types nested in [left] and [right] that a runtime

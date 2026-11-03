@@ -190,8 +190,10 @@ class DdcLibraryBundleRestarter implements Restarter, TwoPhaseRestarter {
       await _dartDevEmbedder.debugger.maybeInvokeFlutterReassemble();
       return {'status': 'reassemble invoked'};
     } else if (method == 'getExtensionRpcs') {
-      final rpcs = _dartDevEmbedder.debugger.extensionNames.toDart
-          .cast<String>();
+      final rpcs = [
+        for (final rpc in _dartDevEmbedder.debugger.extensionNames.toDart)
+          rpc.toDart,
+      ];
       return {'rpcs': rpcs};
     } else {
       // For other extension methods, delegate to the debugger
