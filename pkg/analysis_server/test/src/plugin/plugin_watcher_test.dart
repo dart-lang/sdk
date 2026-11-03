@@ -525,61 +525,122 @@ plugins:
   }
 
   Future<void>
-  test_pluginTrust_contentTrusted_multiplePlugins_partialModification() async {
-    newPubspecYamlFile('/p1', 'name: p1');
-    newFile('/p1/lib/p1.dart', 'int v = 1;');
-    newPubspecYamlFile('/p2', 'name: p2');
-    newFile('/p2/lib/p2.dart', 'int v = 1;');
-    newPubspecYamlFile('/p3', 'name: p3');
-    newFile('/p3/lib/p3.dart', 'int v = 1;');
-
+  test_pluginTrust_alwaysTrustPlugins_gitSource_ignoresRefChanges() async {
+    newPubspecYamlFile('/foo', 'name: foo');
+    newFile('/foo/lib/foo.dart', '');
     newFile(join(testPackageRootPath, 'analysis_options.yaml'), '''
 plugins:
-  p1: ^1.0.0
-  p2: ^1.0.0
-  p3: ^1.0.0
+  foo:
+    git:
+      url: https://github.com/example/foo.git
+      ref: v1.0.0
 ''');
-
     writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
-        ..add(name: 'p1', rootFolder: getFolder('/p1'))
-        ..add(name: 'p2', rootFolder: getFolder('/p2'))
-        ..add(name: 'p3', rootFolder: getFolder('/p3')),
+        ..add(name: 'foo', rootFolder: getFolder('/foo')),
     );
 
     var driver = driverFor(testFile);
-    var source = VersionedPluginSource(constraint: '^1.0.0');
-    var pluginTrust = PluginTrust(resourceProvider)
-      ..setContentTrust('p1', source, getFolder('/p1'))
-      ..setContentTrust('p2', source, getFolder('/p2'))
-      ..setContentTrust('p3', source, getFolder('/p3'));
+    var pluginTrust = PluginTrust(resourceProvider);
     var notifications = <String>[];
-
-    // Modify p2's contents while leaving p1 and p3 unchanged.
-    newFile('/p2/lib/p2.dart', 'int v = 2;');
 
     watcher = PluginWatcher(
       resourceProvider,
       manager,
       pluginsAreEnabled: null,
+      alwaysTrust: true,
       pluginTrust: pluginTrust,
       onUnseenUntrustedPluginDirectory: notifications.add,
     );
     watcher.addedDriver(driver);
 
     await pumpEventQueue();
-    expect(manager.contextRootPlugins.values.first, hasLength(1));
+    expect(manager.contextRootPlugins, hasLength(1));
+    expect(notifications, isEmpty);
 
-    var pluginFolder = getFolder(manager.contextRootPlugins.values.first.first);
-    var pubspecContent = pluginFolder
-        .getFile('pubspec.yaml')
-        .readAsStringSync();
-    expect(pubspecContent, contains('p1:'));
-    expect(pubspecContent, isNot(contains('p2:')));
-    expect(pubspecContent, contains('p3:'));
+    // Update the git ref in analysis_options.yaml; it should remain trusted.
+    var rootFolder = getFolder(testPackageRootPath);
+    var builder = AnalysisOptionsBuilder(
+      file: rootFolder.getFile('analysis_options.yaml'),
+    );
+    builder.pluginsOptions = PluginsOptions(
+      configurations: [
+        PluginConfiguration(
+          name: 'foo',
+          source: GitPluginSource(
+            url: 'https://github.com/example/foo.git',
+            ref: 'v2.0.0',
+          ),
+        ),
+      ],
+      dependencyOverrides: null,
+    );
+    driver.analysisOptionsMap[rootFolder] = builder.build();
 
-    var rootPath = convertPath(testPackageRootPath);
-    expect(notifications, [PluginWatcher.untrustedPluginsMessage(rootPath)]);
+    var manager2 = TestPluginManager(resourceProvider);
+    var watcher2 = PluginWatcher(
+      resourceProvider,
+      manager2,
+      pluginsAreEnabled: null,
+      pluginTrust: pluginTrust,
+      onUnseenUntrustedPluginDirectory: notifications.add,
+    );
+    watcher2.addedDriver(driver);
+
+    await pumpEventQueue();
+    expect(manager2.contextRootPlugins, hasLength(1));
+    expect(notifications, isEmpty);
+  }
+
+  Future<void>
+  test_pluginTrust_alwaysTrustPlugins_persistsTrustedTrueAndRunsPlugins() async {
+    newPubspecYamlFile('/foo', 'name: foo');
+    newFile('/foo/tools/analyzer_plugin/bin/plugin.dart', '');
+    newFile(join(testPackageRootPath, 'analysis_options.yaml'), '''
+plugins:
+  foo: ^1.0.0
+''');
+    writeTestPackageConfig2(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'foo', rootFolder: getFolder('/foo')),
+    );
+
+    var driver = driverFor(testFile);
+    var pluginTrust = PluginTrust(resourceProvider);
+    var notifications = <String>[];
+
+    watcher = PluginWatcher(
+      resourceProvider,
+      manager,
+      pluginsAreEnabled: null,
+      alwaysTrust: true,
+      pluginTrust: pluginTrust,
+      onUnseenUntrustedPluginDirectory: notifications.add,
+    );
+    watcher.addedDriver(driver);
+
+    await pumpEventQueue();
+    expect(manager.contextRootPlugins, hasLength(1));
+    expect(notifications, isEmpty);
+    expect(
+      pluginTrust.getTrust('foo', VersionedPluginSource(constraint: '^2.0.0')),
+      TrustSetting.trusted,
+    );
+
+    // Subsequent run with no flags should run plugins without notification.
+    var manager2 = TestPluginManager(resourceProvider);
+    var watcher2 = PluginWatcher(
+      resourceProvider,
+      manager2,
+      pluginsAreEnabled: null,
+      pluginTrust: pluginTrust,
+      onUnseenUntrustedPluginDirectory: notifications.add,
+    );
+    watcher2.addedDriver(driver);
+
+    await pumpEventQueue();
+    expect(manager2.contextRootPlugins, hasLength(1));
+    expect(notifications, isEmpty);
   }
 
   Future<void>
@@ -624,58 +685,6 @@ plugins:
     await pumpEventQueue();
     expect(manager.contextRootPlugins, hasLength(1));
     expect(notifications, isEmpty);
-  }
-
-  Future<void>
-  test_pluginTrust_contentTrusted_runsWhenUnchangedAndSkipsOnChange() async {
-    newPubspecYamlFile('/foo', 'name: foo');
-    newFile('/foo/lib/foo.dart', 'int x = 1;');
-    newFile(join(testPackageRootPath, 'analysis_options.yaml'), '''
-plugins:
-  foo: ^1.0.0
-''');
-    writeTestPackageConfig2(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'foo', rootFolder: getFolder('/foo')),
-    );
-
-    var driver = driverFor(testFile);
-    var source = VersionedPluginSource(constraint: '^1.0.0');
-    var pluginTrust = PluginTrust(resourceProvider)
-      ..setContentTrust('foo', source, getFolder('/foo'));
-    var notifications = <String>[];
-
-    // First run with unchanged plugin contents runs the plugin without notice.
-    watcher = PluginWatcher(
-      resourceProvider,
-      manager,
-      pluginsAreEnabled: null,
-      pluginTrust: pluginTrust,
-      onUnseenUntrustedPluginDirectory: notifications.add,
-    );
-    watcher.addedDriver(driver);
-
-    await pumpEventQueue();
-    expect(manager.contextRootPlugins, hasLength(1));
-    expect(notifications, isEmpty);
-
-    // Modify the plugin's code contents; the next run should skip the plugin
-    // and emit the untrusted notice.
-    newFile('/foo/lib/foo.dart', 'int x = 2;');
-    var manager2 = TestPluginManager(resourceProvider);
-    var watcher2 = PluginWatcher(
-      resourceProvider,
-      manager2,
-      pluginsAreEnabled: null,
-      pluginTrust: pluginTrust,
-      onUnseenUntrustedPluginDirectory: notifications.add,
-    );
-    watcher2.addedDriver(driver);
-
-    await pumpEventQueue();
-    var rootPath = convertPath(testPackageRootPath);
-    expect(manager2.contextRootPlugins, isEmpty);
-    expect(notifications, [PluginWatcher.untrustedPluginsMessage(rootPath)]);
   }
 
   Future<void>
@@ -778,17 +787,12 @@ analyzer:
     expect(manager.contextRootPlugins, isEmpty);
     expect(notifications, [PluginWatcher.untrustedPluginsMessage(rootPath)]);
 
-    var fooFolder = getFolder('/foo');
-    pluginTrust.setContentTrust(
-      'foo',
-      PathPluginSource(path: fooFolder.path),
-      fooFolder,
-    );
     var manager2 = TestPluginManager(resourceProvider);
     var watcher2 = PluginWatcher(
       resourceProvider,
       manager2,
       pluginsAreEnabled: null,
+      trust: true,
       pluginTrust: pluginTrust,
       onUnseenUntrustedPluginDirectory: notifications.add,
     );
@@ -918,67 +922,56 @@ plugins:
   }
 
   Future<void>
-  test_pluginTrust_nestedContextRoot_isolatesOptionsPerDriver() async {
+  test_pluginTrust_neverTrustPlugins_persistsTrustedFalseAndSkipsSilently() async {
     newPubspecYamlFile('/foo', 'name: foo');
-    newFile('/foo/lib/foo.dart', 'int x = 1;');
-    newPubspecYamlFile('/bar', 'name: bar');
-    newFile('/bar/lib/bar.dart', 'int y = 1;');
-
+    newFile('/foo/tools/analyzer_plugin/bin/plugin.dart', '');
     newFile(join(testPackageRootPath, 'analysis_options.yaml'), '''
 plugins:
   foo: ^1.0.0
 ''');
-
-    var nestedRootPath = join(testPackageRootPath, 'nested');
-    newPubspecYamlFile(nestedRootPath, 'name: nested');
-    newFile(join(nestedRootPath, 'analysis_options.yaml'), '''
-plugins:
-  bar: ^1.0.0
-''');
-    var nestedFile = newFile(join(nestedRootPath, 'lib', 'nested.dart'), '');
-
     writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
-        ..add(name: 'foo', rootFolder: getFolder('/foo'))
-        ..add(name: 'bar', rootFolder: getFolder('/bar')),
-    );
-    writePackageConfig2(
-      nestedRootPath,
-      config: PackageConfigFileBuilder()
-        ..add(name: 'nested', rootFolder: getFolder(nestedRootPath))
-        ..add(name: 'bar', rootFolder: getFolder('/bar')),
+        ..add(name: 'foo', rootFolder: getFolder('/foo')),
     );
 
-    var rootDriver = driverFor(testFile);
-    var nestedDriver = driverFor(nestedFile);
-    var nestedFolder = getFolder(nestedRootPath);
-
-    var pluginTrust = PluginTrust(resourceProvider)
-      ..setSourceTrust(
-        'foo',
-        VersionedPluginSource(constraint: '^1.0.0'),
-        trusted: true,
-      );
+    var driver = driverFor(testFile);
+    var pluginTrust = PluginTrust(resourceProvider);
     var notifications = <String>[];
 
     watcher = PluginWatcher(
       resourceProvider,
       manager,
       pluginsAreEnabled: null,
+      neverTrust: true,
       pluginTrust: pluginTrust,
       onUnseenUntrustedPluginDirectory: notifications.add,
     );
-    watcher.addedDriver(rootDriver);
-    watcher.addedDriver(nestedDriver);
+    watcher.addedDriver(driver);
 
     await pumpEventQueue();
-    expect(manager.contextRootPlugins.keys, [
-      rootDriver.analysisContext!.contextRoot,
-    ]);
-    expect(manager.contextRootsWithNoPlugins, {nestedFolder.path});
-    expect(notifications, [
-      PluginWatcher.untrustedPluginsMessage(nestedFolder.path),
-    ]);
+    expect(manager.contextRootPlugins, isEmpty);
+    expect(manager.initializedCompleter.isCompleted, isTrue);
+    expect(notifications, isEmpty);
+    expect(
+      pluginTrust.getTrust('foo', VersionedPluginSource(constraint: '^1.0.0')),
+      TrustSetting.untrusted,
+    );
+
+    // Subsequent run with no flags should skip plugins silently (no notice).
+    var manager2 = TestPluginManager(resourceProvider);
+    var watcher2 = PluginWatcher(
+      resourceProvider,
+      manager2,
+      pluginsAreEnabled: null,
+      pluginTrust: pluginTrust,
+      onUnseenUntrustedPluginDirectory: notifications.add,
+    );
+    watcher2.addedDriver(driver);
+
+    await pumpEventQueue();
+    expect(manager2.contextRootPlugins, isEmpty);
+    expect(manager2.initializedCompleter.isCompleted, isTrue);
+    expect(notifications, isEmpty);
   }
 
   Future<void> test_pluginTrust_noPluginsOverride_skipsEvenWhenTrusted() async {
@@ -1045,37 +1038,39 @@ plugins:
   }
 
   Future<void>
-  test_pluginTrust_sourceTrusted_gitSource_ignoresRefChanges() async {
-    newPubspecYamlFile('/foo', 'name: foo');
-    newFile('/foo/lib/foo.dart', '');
+  test_pluginTrust_trustPlugins_multiplePlugins_partialModification() async {
+    newPubspecYamlFile('/p1', 'name: p1');
+    newFile('/p1/lib/p1.dart', 'int v = 1;');
+    newPubspecYamlFile('/p2', 'name: p2');
+    newFile('/p2/lib/p2.dart', 'int v = 1;');
+    newPubspecYamlFile('/p3', 'name: p3');
+    newFile('/p3/lib/p3.dart', 'int v = 1;');
+
     newFile(join(testPackageRootPath, 'analysis_options.yaml'), '''
 plugins:
-  foo:
-    git:
-      url: https://github.com/example/foo.git
-      ref: v2.0.0
+  p1: ^1.0.0
+  p2: ^1.0.0
+  p3: ^1.0.0
 ''');
+
     writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
-        ..add(name: 'foo', rootFolder: getFolder('/foo')),
+        ..add(name: 'p1', rootFolder: getFolder('/p1'))
+        ..add(name: 'p2', rootFolder: getFolder('/p2'))
+        ..add(name: 'p3', rootFolder: getFolder('/p3')),
     );
 
     var driver = driverFor(testFile);
-    var pluginTrust = PluginTrust(resourceProvider)
-      ..setSourceTrust(
-        'foo',
-        GitPluginSource(
-          url: 'https://github.com/example/foo.git',
-          ref: 'v1.0.0',
-        ),
-        trusted: true,
-      );
+    var pluginTrust = PluginTrust(resourceProvider);
     var notifications = <String>[];
 
+    // Run with `--trust-plugins` (`trust: true`) to record BLAKE3 hashes for
+    // p1, p2, and p3.
     watcher = PluginWatcher(
       resourceProvider,
       manager,
       pluginsAreEnabled: null,
+      trust: true,
       pluginTrust: pluginTrust,
       onUnseenUntrustedPluginDirectory: notifications.add,
     );
@@ -1084,11 +1079,41 @@ plugins:
     await pumpEventQueue();
     expect(manager.contextRootPlugins, hasLength(1));
     expect(notifications, isEmpty);
+
+    // Modify p2's contents while leaving p1 and p3 unchanged.
+    newFile('/p2/lib/p2.dart', 'int v = 2;');
+
+    var manager2 = TestPluginManager(resourceProvider);
+    var watcher2 = PluginWatcher(
+      resourceProvider,
+      manager2,
+      pluginsAreEnabled: null,
+      pluginTrust: pluginTrust,
+      onUnseenUntrustedPluginDirectory: notifications.add,
+    );
+    watcher2.addedDriver(driver);
+
+    await pumpEventQueue();
+    expect(manager2.contextRootPlugins.values.first, hasLength(1));
+
+    var pluginFolder = getFolder(
+      manager2.contextRootPlugins.values.first.first,
+    );
+    var pubspecContent = pluginFolder
+        .getFile('pubspec.yaml')
+        .readAsStringSync();
+    expect(pubspecContent, contains('p1:'));
+    expect(pubspecContent, isNot(contains('p2:')));
+    expect(pubspecContent, contains('p3:'));
+
+    var rootPath = convertPath(testPackageRootPath);
+    expect(notifications, [PluginWatcher.untrustedPluginsMessage(rootPath)]);
   }
 
-  Future<void> test_pluginTrust_sourceUntrusted_skipsSilently() async {
+  Future<void>
+  test_pluginTrust_trustPlugins_persistsHashAndInvalidatesOnChange() async {
     newPubspecYamlFile('/foo', 'name: foo');
-    newFile('/foo/tools/analyzer_plugin/bin/plugin.dart', '');
+    newFile('/foo/lib/foo.dart', 'int x = 1;');
     newFile(join(testPackageRootPath, 'analysis_options.yaml'), '''
 plugins:
   foo: ^1.0.0
@@ -1099,27 +1124,55 @@ plugins:
     );
 
     var driver = driverFor(testFile);
-    var pluginTrust = PluginTrust(resourceProvider)
-      ..setSourceTrust(
-        'foo',
-        VersionedPluginSource(constraint: '^1.0.0'),
-        trusted: false,
-      );
+    var pluginTrust = PluginTrust(resourceProvider);
     var notifications = <String>[];
 
     watcher = PluginWatcher(
       resourceProvider,
       manager,
       pluginsAreEnabled: null,
+      trust: true,
       pluginTrust: pluginTrust,
       onUnseenUntrustedPluginDirectory: notifications.add,
     );
     watcher.addedDriver(driver);
 
     await pumpEventQueue();
-    expect(manager.contextRootPlugins, isEmpty);
-    expect(manager.initializedCompleter.isCompleted, isTrue);
+    expect(manager.contextRootPlugins, hasLength(1));
     expect(notifications, isEmpty);
+
+    // Second run with unchanged plugin contents runs the plugin without notice.
+    var manager2 = TestPluginManager(resourceProvider);
+    var watcher2 = PluginWatcher(
+      resourceProvider,
+      manager2,
+      pluginsAreEnabled: null,
+      pluginTrust: pluginTrust,
+      onUnseenUntrustedPluginDirectory: notifications.add,
+    );
+    watcher2.addedDriver(driver);
+
+    await pumpEventQueue();
+    expect(manager2.contextRootPlugins, hasLength(1));
+    expect(notifications, isEmpty);
+
+    // Modify the plugin's code contents; the third run should skip the plugin
+    // and emit the untrusted notice.
+    newFile('/foo/lib/foo.dart', 'int x = 2;');
+    var manager3 = TestPluginManager(resourceProvider);
+    var watcher3 = PluginWatcher(
+      resourceProvider,
+      manager3,
+      pluginsAreEnabled: null,
+      pluginTrust: pluginTrust,
+      onUnseenUntrustedPluginDirectory: notifications.add,
+    );
+    watcher3.addedDriver(driver);
+
+    await pumpEventQueue();
+    var rootPath = convertPath(testPackageRootPath);
+    expect(manager3.contextRootPlugins, isEmpty);
+    expect(notifications, [PluginWatcher.untrustedPluginsMessage(rootPath)]);
   }
 
   Future<void>

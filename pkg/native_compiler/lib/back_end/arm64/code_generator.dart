@@ -2825,10 +2825,42 @@ final class Arm64CodeGenerator extends CodeGenerator {
       case .unsignedShiftRight:
         final done = Label();
         late final Label slowPath = addSlowPath(() {
-          _asm.unimplemented(
-            'Unimplemented: code generation for slow path of BinaryIntOp ${instr.op.token}',
-          );
-          _asm.b(done);
+          final bool canBeNegative = right.canBeNegative;
+          Register rightReg;
+          if (right is Constant) {
+            assert(canBeNegative);
+            _asm.loadImmediate(tempReg, right.value.intValue);
+            rightReg = tempReg;
+          } else {
+            rightReg = inputReg(instr, 1);
+            final isNegative = Label();
+            if (canBeNegative) {
+              _asm.tbnz(rightReg, 63, isNegative);
+            }
+            if (instr.op == .shiftRight) {
+              _asm.asr(resultReg, leftReg, 63);
+            } else {
+              _asm.mov(resultReg, ZR);
+            }
+            _asm.b(done);
+            _asm.bind(isNegative);
+          }
+          if (canBeNegative) {
+            _asm.str(
+              rightReg,
+              _asm.address(
+                threadReg,
+                vmOffsets.Thread_unboxed_runtime_arg_offset,
+              ),
+            );
+            assert(stackFrame.maxArgumentsStackSlots >= 1);
+            _asm.str(
+              nullReg, // Space for result.
+              RegOffsetAddress(stackPointerReg, 0),
+            );
+            _callRuntime(RuntimeEntry.ArgumentErrorUnboxedInt64, 0);
+            _asm.breakpoint();
+          }
         });
         if (right is Constant) {
           final shift = right.value.intValue;

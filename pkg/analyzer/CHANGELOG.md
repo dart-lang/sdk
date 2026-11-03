@@ -1,6 +1,9 @@
 ## 14.8.0-dev
 
-* Internal changes only
+* A V1 `FunctionExpressionInvocation` or `PostfixExpression` that begins a cascade section, as in `a..b(0)(1)` or
+  `a..b!`, begins at the cascade operator again, as do the nodes that contain it, such as `PropertyAccess` in `a..b!.c`.
+  So its `offset`, `beginToken`, and `toSource()` include `..` or `?..`. This was a regression in 14.2.0 for
+  `PostfixExpression`, and in 14.4.0 for `FunctionExpressionInvocation`, through 14.7.0.
 
 ## 14.7.0
 

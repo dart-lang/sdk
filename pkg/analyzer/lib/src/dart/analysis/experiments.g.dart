@@ -716,7 +716,7 @@ class ExperimentalFeatures {
     isExpired: IsExpired.single_combinators,
     documentation: 'Allow at most one `show` or `hide` combinator per import or export directive.',
     experimentalReleaseVersion: null,
-    releaseVersion: null,
+    releaseVersion: Version.parse('3.15.0'),
     channels: ["stable", "beta", "dev", "main"],
   );
 
@@ -955,7 +955,7 @@ class IsEnabledByDefault {
   static const bool set_literals = true;
 
   /// Default state of the experiment "single-combinators"
-  static const bool single_combinators = false;
+  static const bool single_combinators = true;
 
   /// Default state of the experiment "sound-flow-analysis"
   static const bool sound_flow_analysis = true;

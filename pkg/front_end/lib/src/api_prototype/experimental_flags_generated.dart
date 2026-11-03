@@ -350,10 +350,10 @@ class ExperimentalFlag {
 
   static const ExperimentalFlag singleCombinators = const ExperimentalFlag(
     name: 'single-combinators',
-    isEnabledByDefault: false,
+    isEnabledByDefault: true,
     isExpired: false,
-    experimentEnabledVersion: defaultLanguageVersion,
-    experimentReleasedVersion: defaultLanguageVersion,
+    experimentEnabledVersion: const Version(3, 15),
+    experimentReleasedVersion: const Version(3, 15),
   );
 
   static const ExperimentalFlag soundFlowAnalysis = const ExperimentalFlag(

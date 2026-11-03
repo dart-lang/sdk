@@ -44,6 +44,16 @@ class PluginWatcher implements DriverWatcher {
 
   final bool? _pluginsAreEnabled;
 
+  /// Whether to mark plugins in the context roots as trusted with their
+  /// current contents.
+  final bool _trust;
+
+  /// Whether to mark plugins in the context roots as always trusted.
+  final bool _alwaysTrust;
+
+  /// Whether to mark plugins in the context roots as never trusted.
+  final bool _neverTrust;
+
   final PluginTrust _pluginTrust;
 
   final void Function(String message)? _onUnseenUntrustedPluginDirectory;
@@ -55,6 +65,9 @@ class PluginWatcher implements DriverWatcher {
     this.resourceProvider,
     this.manager, {
     required this._pluginsAreEnabled,
+    this._trust = false,
+    this._alwaysTrust = false,
+    this._neverTrust = false,
     PluginTrust? pluginTrust,
     this._onUnseenUntrustedPluginDirectory,
   }) : _pluginTrust = pluginTrust ?? PluginTrust(resourceProvider),
@@ -62,6 +75,12 @@ class PluginWatcher implements DriverWatcher {
 
   @override
   void addedDriver(AnalysisDriver driver) {
+    if (_alwaysTrust || _neverTrust) {
+      _persistSourceTrust(driver, trusted: _alwaysTrust);
+    } else if (_trust) {
+      _persistContentTrust(driver);
+    }
+
     if (_pluginsAreEnabled == false) {
       // Call the plugin manager "initialized."
       if (!manager.initializedCompleter.isCompleted) {
@@ -452,6 +471,67 @@ class PluginWatcher implements DriverWatcher {
                 contextRoot.isAnalyzed(file.parent.path))
           options,
     };
+  }
+
+  void _persistContentTrust(AnalysisDriver driver) {
+    for (var hostPackageName in driver.enabledLegacyPluginNames) {
+      var resolved = _resolveLegacyPlugin(driver, hostPackageName);
+      if (resolved != null) {
+        _pluginTrust.setContentTrust(
+          hostPackageName,
+          PathPluginSource(path: resolved.packageRoot),
+          resourceProvider.getFolder(resolved.packageRoot),
+        );
+      }
+    }
+
+    for (var options in _optionsForDriver(driver)) {
+      var file = options.file;
+      if (file == null || options.pluginConfigurations.isEmpty) {
+        continue;
+      }
+      var folders = _locatePluginFolders(
+        driver,
+        options.pluginConfigurations,
+        options.pluginsOptions.dependencyOverrides,
+      );
+      for (var config in options.pluginConfigurations) {
+        if (folders[config.name] case var pluginFolder?) {
+          _pluginTrust.setContentTrust(
+            config.name,
+            config.source,
+            pluginFolder,
+          );
+        }
+      }
+    }
+  }
+
+  void _persistSourceTrust(AnalysisDriver driver, {required bool trusted}) {
+    for (var hostPackageName in driver.enabledLegacyPluginNames) {
+      var resolved = _resolveLegacyPlugin(driver, hostPackageName);
+      if (resolved != null) {
+        _pluginTrust.setSourceTrust(
+          hostPackageName,
+          PathPluginSource(path: resolved.packageRoot),
+          trusted: trusted,
+        );
+      }
+    }
+
+    for (var options in _optionsForDriver(driver)) {
+      var file = options.file;
+      if (file == null) {
+        continue;
+      }
+      for (var config in options.pluginConfigurations) {
+        _pluginTrust.setSourceTrust(
+          config.name,
+          config.source,
+          trusted: trusted,
+        );
+      }
+    }
   }
 
   ({String packageRoot, String pluginPath})? _resolveLegacyPlugin(
