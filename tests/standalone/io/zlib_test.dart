@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -298,6 +299,170 @@ void testConcatenatedBlocksGZip() {
   Expect.listEquals([1, 2, 3, 4, 5, 6], decodedData);
 }
 
+// https://dartbug.com/64218
+
+// An empty gzip member before a member with data.
+void testGZipEmptyMemberFirst() {
+  final compressedData = [
+    // An empty member: header, empty deflate block, CRC-32 and size.
+    0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff,
+    0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    // A member of "hello": header, deflate data, CRC-32 and size.
+    0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff,
+    0xcb, 0x48, 0xcd, 0xc9, 0xc9, 0x07, 0x00, 0x86, 0xa6, 0x10,
+    0x36, 0x05, 0x00, 0x00, 0x00,
+  ];
+  Expect.listEquals(utf8.encode('hello'), gzip.decode(compressedData));
+  Expect.listEquals(
+    [1, 2, 3],
+    gzip.decode([
+      ...gzip.encode([]),
+      ...gzip.encode([1, 2, 3]),
+    ]),
+  );
+}
+
+// An empty gzip member between two members with data.
+void testGZipEmptyMemberMiddle() {
+  final compressedData = [
+    ...gzip.encode([1, 2, 3]),
+    ...gzip.encode([]),
+    ...gzip.encode([4, 5, 6]),
+  ];
+  Expect.listEquals([1, 2, 3, 4, 5, 6], gzip.decode(compressedData));
+}
+
+// Several empty gzip members in a row, only empty ones, and an empty last one.
+void testGZipEmptyMembers() {
+  Expect.listEquals(
+    [7],
+    gzip.decode([
+      ...gzip.encode([]),
+      ...gzip.encode([]),
+      ...gzip.encode([]),
+      ...gzip.encode([7]),
+    ]),
+  );
+  Expect.listEquals([], gzip.decode([...gzip.encode([]), ...gzip.encode([])]));
+  Expect.listEquals(
+    [1, 2, 3],
+    gzip.decode([
+      ...gzip.encode([1, 2, 3]),
+      ...gzip.encode([]),
+    ]),
+  );
+}
+
+// Invalid data after an empty gzip member is an error.
+void testGZipInvalidDataAfterEmptyMember() {
+  Expect.throwsFormatException(
+    () => gzip.decode([...gzip.encode([]), 1, 2, 3]),
+  );
+}
+
+// Data after an empty zlib stream is not decoded: only gzip has members.
+void testZLibDataAfterEmptyStream() {
+  final compressedData = [
+    ...ZLibEncoder().convert([]),
+    ...ZLibEncoder().convert([1, 2, 3]),
+  ];
+  Expect.listEquals([], ZLibDecoder(gzip: false).convert(compressedData));
+}
+
+// Deterministic letters A to D, enough to fill several output buffers.
+List<int> _pseudoRandomLetters(int length, int seed) {
+  var state = seed;
+  return List<int>.generate(length, (_) {
+    state = (state * 1103515245 + 12345) & 0x7fffffff;
+    return 0x41 + (state >> 16) % 4;
+  });
+}
+
+// An empty gzip member between two members larger than the output buffer.
+void testGZipEmptyMemberBetweenLargeMembers() {
+  final first = _pseudoRandomLetters(200000, 1);
+  final second = _pseudoRandomLetters(200000, 2);
+  final decodedData = gzip.decode([
+    ...gzip.encode(first),
+    ...gzip.encode([]),
+    ...gzip.encode(second),
+  ]);
+  Expect.equals(first.length + second.length, decodedData.length);
+  Expect.listEquals([...first, ...second], decodedData);
+}
+
+// Decodes [chunks] as consecutive add() calls to one chunked gzip decoder.
+void _expectGZipChunks(
+  List<int> expected,
+  List<List<int>> chunks,
+  String where,
+) {
+  final out = <int>[];
+  try {
+    final sink = ZLibDecoder(gzip: true)
+        .startChunkedConversion(ByteConversionSink.withCallback(out.addAll));
+    for (final chunk in chunks) {
+      sink.add(chunk);
+    }
+    sink.close();
+  } catch (e) {
+    Expect.fail('$where: $e');
+  }
+  Expect.listEquals(expected, out, where);
+}
+
+// Concatenated gzip members given in two chunks split at every position,
+// including inside a member's trailer.
+void testGZipChunkBoundaries() {
+  final first = utf8.encode('first\n');
+  final second = utf8.encode('second\n');
+  final withEmpty = [
+    ...gzip.encode(first),
+    ...gzip.encode([]),
+    ...gzip.encode(second),
+  ];
+  final withoutEmpty = [...gzip.encode(first), ...gzip.encode(second)];
+  for (var i = 0; i <= withEmpty.length; i++) {
+    _expectGZipChunks(
+      [...first, ...second],
+      [withEmpty.sublist(0, i), withEmpty.sublist(i)],
+      'empty member between, split at $i of ${withEmpty.length}',
+    );
+  }
+  for (var i = 0; i <= withoutEmpty.length; i++) {
+    _expectGZipChunks(
+      [...first, ...second],
+      [withoutEmpty.sublist(0, i), withoutEmpty.sublist(i)],
+      'no empty member, split at $i of ${withoutEmpty.length}',
+    );
+  }
+}
+
+// Concatenated gzip members given in three chunks split at every pair of
+// positions, so that an add() follows a chunk that ended inside a trailer.
+void testGZipChunkBoundariesThreeChunks() {
+  final first = utf8.encode('first\n');
+  final second = utf8.encode('second\n');
+  final compressedData = [
+    ...gzip.encode(first),
+    ...gzip.encode([]),
+    ...gzip.encode(second),
+  ];
+  for (var i = 0; i <= compressedData.length; i++) {
+    for (var j = i; j <= compressedData.length; j++) {
+      _expectGZipChunks(
+        [...first, ...second],
+        [
+          compressedData.sublist(0, i),
+          compressedData.sublist(i, j),
+          compressedData.sublist(j),
+        ],
+        'split at $i and $j of ${compressedData.length}',
+      );
+    }
+  }
+}
+
 void testConcatenatedBlocksZLib() {
   // RFC-1950 says: Any data which may appear after ADLER32 are not part of
   // the zlib stream.
@@ -382,6 +547,14 @@ void main() {
   testRoundTripLarge();
   testZlibWithDictionary();
   testConcatenatedBlocksGZip();
+  testGZipEmptyMemberFirst();
+  testGZipEmptyMemberMiddle();
+  testGZipEmptyMembers();
+  testGZipInvalidDataAfterEmptyMember();
+  testZLibDataAfterEmptyStream();
+  testGZipEmptyMemberBetweenLargeMembers();
+  testGZipChunkBoundaries();
+  testGZipChunkBoundariesThreeChunks();
   testConcatenatedBlocksZLib();
   testInvalidDataAfterBlockGZip();
   testInvalidDataAfterBlockZLib();
