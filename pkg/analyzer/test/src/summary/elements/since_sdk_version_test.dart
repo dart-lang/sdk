@@ -385,7 +385,7 @@ library
           fields
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v1 (nameOffset:37) (firstTokenOffset:37) (offset:37)
               element: dart:foo::@enum::E::@field::v1
-              initializer: expression_0
+              constantInitializer2: expression_0
                 ConstructorInvocation
                   constructorReference: ConstructorReference2
                     typeReference: ConstructorTypeReference
@@ -400,7 +400,7 @@ library
               inducedGetter: #F3
             #F4 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v2 (nameOffset:60) (firstTokenOffset:43) (offset:60)
               element: dart:foo::@enum::E::@field::v2
-              initializer: expression_1
+              constantInitializer2: expression_1
                 ConstructorInvocation
                   constructorReference: ConstructorReference2
                     typeReference: ConstructorTypeReference
@@ -415,7 +415,7 @@ library
               inducedGetter: #F5
             #F6 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: dart:foo::@enum::E::@field::values
-              initializer: expression_2
+              constantInitializer2: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -463,26 +463,20 @@ library
           reference: dart:foo::@enum::E::@field::v1
           firstFragment: #F2
           type: E
-          constantInitializer
-            fragment: #F2
-            expression: expression_0
+          constantInitializer2: expression_0
           getter: dart:foo::@enum::E::@getter::v1
         hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v2
           reference: dart:foo::@enum::E::@field::v2
           firstFragment: #F4
           sinceSdkVersion: 2.15.0
           type: E
-          constantInitializer
-            fragment: #F4
-            expression: expression_1
+          constantInitializer2: expression_1
           getter: dart:foo::@enum::E::@getter::v2
         isConst isOriginEnumValues isStatic values
           reference: dart:foo::@enum::E::@field::values
           firstFragment: #F6
           type: List<E>
-          constantInitializer
-            fragment: #F6
-            expression: expression_2
+          constantInitializer2: expression_2
           getter: dart:foo::@enum::E::@getter::values
       getters
         isOriginVariable isStatic v1
@@ -527,7 +521,7 @@ library
           fields
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:52) (firstTokenOffset:52) (offset:52)
               element: dart:foo::@enum::E::@field::v
-              initializer: expression_0
+              constantInitializer2: expression_0
                 ConstructorInvocation
                   constructorReference: ConstructorReference2
                     typeReference: ConstructorTypeReference
@@ -542,7 +536,7 @@ library
               inducedGetter: #F3
             #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:46)
               element: dart:foo::@enum::E::@field::values
-              initializer: expression_1
+              constantInitializer2: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -582,18 +576,14 @@ library
           firstFragment: #F2
           sinceSdkVersion: 2.15.0
           type: E
-          constantInitializer
-            fragment: #F2
-            expression: expression_0
+          constantInitializer2: expression_0
           getter: dart:foo::@enum::E::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: dart:foo::@enum::E::@field::values
           firstFragment: #F4
           sinceSdkVersion: 2.15.0
           type: List<E>
-          constantInitializer
-            fragment: #F4
-            expression: expression_1
+          constantInitializer2: expression_1
           getter: dart:foo::@enum::E::@getter::values
       getters
         isOriginVariable isStatic v

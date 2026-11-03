@@ -5784,7 +5784,6 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
       // constant evaluation and other element consumers don't observe the
       // detached parser node.
       fragment.constantInitializer2 = defaultValue;
-      fragment.element.resetConstantInitializer();
     }
   }
 

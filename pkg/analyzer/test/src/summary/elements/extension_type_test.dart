@@ -650,7 +650,7 @@ library
               formalParameters
                 #F5 optionalNamed hasImplicitType isFinal isOriginDeclaration this.it (nameOffset:23) (firstTokenOffset:18) (offset:23)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-                  initializer: expression_0
+                  constantInitializer2: expression_0
                     IntegerLiteral
                       literal: 0 @28
                       staticType: int
@@ -679,9 +679,7 @@ library
             #E0 optionalNamed hasDefaultValue hasImplicitType isFinal this.it
               firstFragment: #F5
               type: dynamic
-              constantInitializer
-                fragment: #F5
-                expression: expression_0
+              constantInitializer2: expression_0
               field: <null>
       getters
         isExtensionTypeMember isOriginVariable <null-name>
@@ -1046,7 +1044,7 @@ library
               formalParameters
                 #F5 optionalNamed hasImplicitType isDeclaring isFinal isOriginDeclaration this.it (nameOffset:18) (firstTokenOffset:18) (offset:18)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-                  initializer: expression_0
+                  constantInitializer2: expression_0
                     IntegerLiteral
                       literal: 0 @23
                       staticType: int
@@ -1076,9 +1074,7 @@ library
             #E0 optionalNamed hasDefaultValue hasImplicitType isDeclaring isFinal this.it
               firstFragment: #F5
               type: int
-              constantInitializer
-                fragment: #F5
-                expression: expression_0
+              constantInitializer2: expression_0
               field: <testLibrary>::@extensionType::A::@field::it
       getters
         isExtensionTypeMember isOriginVariable it
@@ -1119,7 +1115,7 @@ library
               formalParameters
                 #F5 optionalNamed isDeclaring isFinal isOriginDeclaration this.a (nameOffset:22) (firstTokenOffset:18) (offset:22)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::a
-                  initializer: expression_0
+                  constantInitializer2: expression_0
                     IntegerLiteral
                       literal: 0 @26
                       staticType: int
@@ -1149,9 +1145,7 @@ library
             #E0 optionalNamed hasDefaultValue isDeclaring isFinal this.a
               firstFragment: #F5
               type: int
-              constantInitializer
-                fragment: #F5
-                expression: expression_0
+              constantInitializer2: expression_0
               field: <testLibrary>::@extensionType::A::@field::a
       getters
         isExtensionTypeMember isOriginVariable a
@@ -1322,7 +1316,7 @@ library
               formalParameters
                 #F5 optionalPositional hasImplicitType isDeclaring isFinal isOriginDeclaration this.it (nameOffset:18) (firstTokenOffset:18) (offset:18)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-                  initializer: expression_0
+                  constantInitializer2: expression_0
                     IntegerLiteral
                       literal: 0 @23
                       staticType: int
@@ -1352,9 +1346,7 @@ library
             #E0 optionalPositional hasDefaultValue hasImplicitType isDeclaring isFinal this.it
               firstFragment: #F5
               type: int
-              constantInitializer
-                fragment: #F5
-                expression: expression_0
+              constantInitializer2: expression_0
               field: <testLibrary>::@extensionType::A::@field::it
       getters
         isExtensionTypeMember isOriginVariable it
@@ -1394,7 +1386,7 @@ library
               formalParameters
                 #F5 optionalPositional hasImplicitType isDeclaring isFinal isOriginDeclaration this.it (nameOffset:18) (firstTokenOffset:18) (offset:18)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-                  initializer: expression_0
+                  constantInitializer2: expression_0
                     IntegerLiteral
                       literal: 0 @23
                       staticType: int
@@ -1443,9 +1435,7 @@ library
             #E0 optionalPositional hasDefaultValue hasImplicitType isDeclaring isFinal this.it
               firstFragment: #F5
               type: int
-              constantInitializer
-                fragment: #F5
-                expression: expression_0
+              constantInitializer2: expression_0
               field: <testLibrary>::@extensionType::A::@field::it
       getters
         isExtensionTypeMember isOriginVariable it
@@ -1514,7 +1504,7 @@ library
               formalParameters
                 #F5 optionalPositional isDeclaring isFinal isOriginDeclaration this.a (nameOffset:22) (firstTokenOffset:18) (offset:22)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::a
-                  initializer: expression_0
+                  constantInitializer2: expression_0
                     IntegerLiteral
                       literal: 0 @26
                       staticType: int
@@ -1544,9 +1534,7 @@ library
             #E0 optionalPositional hasDefaultValue isDeclaring isFinal this.a
               firstFragment: #F5
               type: int
-              constantInitializer
-                fragment: #F5
-                expression: expression_0
+              constantInitializer2: expression_0
               field: <testLibrary>::@extensionType::A::@field::a
       getters
         isExtensionTypeMember isOriginVariable a
@@ -3504,7 +3492,7 @@ library
               formalParameters
                 #F5 optionalNamed hasImplicitType isFinal isOriginDeclaration super.it (nameOffset:24) (firstTokenOffset:18) (offset:24)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-                  initializer: expression_0
+                  constantInitializer2: expression_0
                     IntegerLiteral
                       literal: 0 @29
                       staticType: int
@@ -3533,9 +3521,7 @@ library
             #E0 optionalNamed hasDefaultValue hasImplicitType isFinal super.it
               firstFragment: #F5
               type: dynamic
-              constantInitializer
-                fragment: #F5
-                expression: expression_0
+              constantInitializer2: expression_0
               superConstructorParameter: <null>
       getters
         isExtensionTypeMember isOriginVariable <null-name>
@@ -5017,7 +5003,7 @@ library
               inducedGetter: #F4
             #F5 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic foo (nameOffset:79) (firstTokenOffset:79) (offset:79)
               element: <testLibrary>::@extensionType::E::@field::foo
-              initializer: expression_0
+              constantInitializer2: expression_0
                 IntegerLiteral
                   literal: 1 @85
                   staticType: int
@@ -5045,7 +5031,7 @@ library
                         element: <testLibrary>::@extensionType::E::@getter::foo
                         staticType: null
                       element: <testLibrary>::@extensionType::E::@getter::foo
-                  initializer: expression_1
+                  constantInitializer2: expression_1
                     UnqualifiedNameExpression
                       name: foo @56
                       resolution: GetterInvocationResolution
@@ -5062,7 +5048,7 @@ library
       topLevelVariables
         #F9 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic foo (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::foo
-          initializer: expression_2
+          constantInitializer2: expression_2
             IntegerLiteral
               literal: 0 @12
               staticType: int
@@ -5120,9 +5106,7 @@ library
           reference: <testLibrary>::@extensionType::E::@field::foo
           firstFragment: #F5
           type: int
-          constantInitializer
-            fragment: #F5
-            expression: expression_0
+          constantInitializer2: expression_0
           getter: <testLibrary>::@extensionType::E::@getter::foo
       constructors
         hasEnclosingTypeParameterReference isExtensionTypeMember isOriginDeclaration isPrimary new
@@ -5146,9 +5130,7 @@ library
                     element: <testLibrary>::@extensionType::E::@getter::foo
                     staticType: null
                   element: <testLibrary>::@extensionType::E::@getter::foo
-              constantInitializer
-                fragment: #F8
-                expression: expression_1
+              constantInitializer2: expression_1
               field: <testLibrary>::@extensionType::E::@field::it
       getters
         isExtensionTypeMember isOriginVariable it
@@ -5166,9 +5148,7 @@ library
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: #F9
       type: int
-      constantInitializer
-        fragment: #F9
-        expression: expression_2
+      constantInitializer2: expression_2
       getter: <testLibrary>::@getter::foo
   getters
     isOriginVariable isStatic foo
@@ -12249,7 +12229,7 @@ library
               inducedGetter: #F3
             #F4 hasInitializer isConst isOriginDeclaration isStatic foo (nameOffset:46) (firstTokenOffset:46) (offset:46)
               element: <testLibrary>::@extensionType::A::@field::foo
-              initializer: expression_0
+              constantInitializer2: expression_0
                 IntegerLiteral
                   literal: 0 @52
                   staticType: int
@@ -12279,9 +12259,7 @@ library
           reference: <testLibrary>::@extensionType::A::@field::foo
           firstFragment: #F4
           type: int
-          constantInitializer
-            fragment: #F4
-            expression: expression_0
+          constantInitializer2: expression_0
           getter: <testLibrary>::@extensionType::A::@getter::foo
       getters
         isExtensionTypeMember isOriginVariable it
@@ -12320,7 +12298,7 @@ library
               inducedGetter: #F3
             #F4 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic foo (nameOffset:42) (firstTokenOffset:42) (offset:42)
               element: <testLibrary>::@extensionType::A::@field::foo
-              initializer: expression_0
+              constantInitializer2: expression_0
                 IntegerLiteral
                   literal: 0 @48
                   staticType: int
@@ -12350,9 +12328,7 @@ library
           reference: <testLibrary>::@extensionType::A::@field::foo
           firstFragment: #F4
           type: int
-          constantInitializer
-            fragment: #F4
-            expression: expression_0
+          constantInitializer2: expression_0
           getter: <testLibrary>::@extensionType::A::@getter::foo
       getters
         isExtensionTypeMember isOriginVariable it
@@ -14729,7 +14705,7 @@ library
               formalParameters
                 #F5 optionalNamed isOriginDeclaration a (nameOffset:43) (firstTokenOffset:39) (offset:43)
                   element: <testLibrary>::@extensionType::A::@method::foo::@formalParameter::a
-                  initializer: expression_0
+                  constantInitializer2: expression_0
                     IntegerLiteral
                       literal: 0 @47
                       staticType: int
@@ -14761,9 +14737,7 @@ library
             #E0 optionalNamed hasDefaultValue a
               firstFragment: #F5
               type: int
-              constantInitializer
-                fragment: #F5
-                expression: expression_0
+              constantInitializer2: expression_0
           returnType: void
 ''');
   }

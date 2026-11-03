@@ -1906,22 +1906,15 @@ class _Element2Writer extends _AbstractElementWriter {
   }
 
   void _writeVariableElementConstantInitializer(VariableElementImpl e) {
-    if (e.constantInitializerData case var initializer?) {
-      _sink.writelnWithIndent('constantInitializer');
-      _sink.withIndent(() {
-        _writeFragmentReference('fragment', initializer.fragment);
-        _writeConstantInitializerExpression(
-          'expression',
-          initializer.expression,
-        );
-      });
+    if (e.constantInitializer2 case var initializer?) {
+      _writeConstantInitializerExpression('constantInitializer2', initializer);
     }
   }
 
   void _writeVariableFragmentInitializer(VariableFragment f) {
     f as VariableFragmentImpl;
-    if (f.initializer case var initializer?) {
-      _writeConstantInitializerExpression('initializer', initializer);
+    if (f.constantInitializer2 case var initializer?) {
+      _writeConstantInitializerExpression('constantInitializer2', initializer);
     }
   }
 }

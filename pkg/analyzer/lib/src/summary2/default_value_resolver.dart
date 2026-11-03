@@ -117,6 +117,5 @@ class DefaultValueResolver {
       node.defaultClause!,
       contextType: contextType,
     );
-    formalParameter.resetConstantInitializer();
   }
 }

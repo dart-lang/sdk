@@ -2587,7 +2587,7 @@ library
           formalParameters
             #F2 optionalNamed isOriginDeclaration a (nameOffset:10) (firstTokenOffset:6) (offset:10)
               element: <testLibrary>::@function::main::@formalParameter::a
-              initializer: expression_0
+              constantInitializer2: expression_0
                 IntegerLiteral
                   literal: 1 @14
                   staticType: int
@@ -2595,7 +2595,7 @@ library
               element: <testLibrary>::@function::main::@formalParameter::b
             #F4 optionalNamed isOriginDeclaration c (nameOffset:28) (firstTokenOffset:24) (offset:28)
               element: <testLibrary>::@function::main::@formalParameter::c
-              initializer: expression_1
+              constantInitializer2: expression_1
                 IntegerLiteral
                   literal: 2 @32
                   staticType: int
@@ -2607,18 +2607,14 @@ library
         #E0 optionalNamed hasDefaultValue a
           firstFragment: #F2
           type: int
-          constantInitializer
-            fragment: #F2
-            expression: expression_0
+          constantInitializer2: expression_0
         #E1 optionalNamed b
           firstFragment: #F3
           type: int
         #E2 optionalNamed hasDefaultValue c
           firstFragment: #F4
           type: int
-          constantInitializer
-            fragment: #F4
-            expression: expression_1
+          constantInitializer2: expression_1
       returnType: dynamic
 ''');
   }

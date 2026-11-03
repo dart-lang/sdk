@@ -281,7 +281,7 @@ library
       topLevelVariables
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic v (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::v
-          initializer: expression_0
+          constantInitializer2: expression_0
             UnqualifiedNameExpression
               name: _notSerializableExpression @-1
               resolution: <null>
@@ -296,9 +296,7 @@ library
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: #F1
       type: int
-      constantInitializer
-        fragment: #F1
-        expression: expression_0
+      constantInitializer2: expression_0
       getter: <testLibrary>::@getter::v
   getters
     isOriginVariable isStatic v
@@ -332,7 +330,7 @@ library
               formalParameters
                 #F3 optionalNamed isOriginDeclaration p (nameOffset:22) (firstTokenOffset:15) (offset:22)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::p
-                  initializer: expression_0
+                  constantInitializer2: expression_0
                     UnqualifiedNameExpression
                       name: _notSerializableExpression @-1
                       resolution: <null>
@@ -349,9 +347,7 @@ library
             #E0 optionalNamed hasDefaultValue p
               firstFragment: #F3
               type: Object
-              constantInitializer
-                fragment: #F3
-                expression: expression_0
+              constantInitializer2: expression_0
 ''');
   }
 
@@ -371,7 +367,7 @@ library
           formalParameters
             #F2 optionalNamed isOriginDeclaration p (nameOffset:15) (firstTokenOffset:8) (offset:15)
               element: <testLibrary>::@function::f::@formalParameter::p
-              initializer: expression_0
+              constantInitializer2: expression_0
                 UnqualifiedNameExpression
                   name: _notSerializableExpression @-1
                   resolution: <null>
@@ -384,9 +380,7 @@ library
         #E0 optionalNamed hasDefaultValue p
           firstFragment: #F2
           type: Object
-          constantInitializer
-            fragment: #F2
-            expression: expression_0
+          constantInitializer2: expression_0
       returnType: void
 ''');
   }
@@ -411,7 +405,7 @@ library
           fields
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::v
-              initializer: expression_0
+              constantInitializer2: expression_0
                 UnqualifiedNameExpression
                   name: _notSerializableExpression @-1
                   resolution: <null>
@@ -419,7 +413,7 @@ library
               inducedGetter: #F3
             #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
-              initializer: expression_1
+              constantInitializer2: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements2
@@ -462,17 +456,13 @@ library
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
-          constantInitializer
-            fragment: #F2
-            expression: expression_0
+          constantInitializer2: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E>
-          constantInitializer
-            fragment: #F4
-            expression: expression_1
+          constantInitializer2: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
         isConst isOriginDeclaration new

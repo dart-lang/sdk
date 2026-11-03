@@ -415,7 +415,7 @@ library
       topLevelVariables
         #F1 hasInitializer isConst isOriginDeclaration isStatic foo (nameOffset:10) (firstTokenOffset:10) (offset:10)
           element: <testLibrary>::@topLevelVariable::foo
-          initializer: expression_0
+          constantInitializer2: expression_0
             IntegerLiteral
               literal: 0 @16
               staticType: int
@@ -433,9 +433,7 @@ library
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: #F1
       type: int
-      constantInitializer
-        fragment: #F1
-        expression: expression_0
+      constantInitializer2: expression_0
       getter: <testLibrary>::@getter::foo
   getters
     isOriginVariable isStatic foo
@@ -2202,7 +2200,7 @@ library
       topLevelVariables
         #F1 hasInitializer isConst isOriginDeclaration isStatic foo (nameOffset:10) (firstTokenOffset:10) (offset:10)
           element: <testLibrary>::@topLevelVariable::foo
-          initializer: expression_0
+          constantInitializer2: expression_0
             IntegerLiteral
               literal: 0 @16
               staticType: int
@@ -2222,9 +2220,7 @@ library
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: #F1
       type: int
-      constantInitializer
-        fragment: #F1
-        expression: expression_0
+      constantInitializer2: expression_0
       getter: <testLibrary>::@getter::foo
       setter: <testLibrary>::@setter::foo
   getters
@@ -3157,7 +3153,7 @@ library
       topLevelVariables
         #F1 hasInitializer isConst isOriginDeclaration isStatic foo (nameOffset:10) (firstTokenOffset:10) (offset:10)
           element: <testLibrary>::@topLevelVariable::foo
-          initializer: expression_0
+          constantInitializer2: expression_0
             IntegerLiteral
               literal: 0 @16
               staticType: int
@@ -3165,7 +3161,7 @@ library
           nextFragment: #F3
         #F3 hasInitializer isAugmentation isConst isOriginDeclaration isStatic foo (nameOffset:37) (firstTokenOffset:37) (offset:37)
           element: <testLibrary>::@topLevelVariable::foo
-          initializer: expression_1
+          constantInitializer2: expression_1
             IntegerLiteral
               literal: 1 @43
               staticType: int
@@ -3185,9 +3181,7 @@ library
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: #F1
       type: int
-      constantInitializer
-        fragment: #F3
-        expression: expression_1
+      constantInitializer2: expression_1
       getter: <testLibrary>::@getter::foo
   getters
     isOriginVariable isStatic foo
@@ -3215,21 +3209,21 @@ library
       topLevelVariables
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic zero (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::zero
-          initializer: expression_0
+          constantInitializer2: expression_0
             IntegerLiteral
               literal: 0 @13
               staticType: int
           inducedGetter: #F2
         #F3 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic one (nameOffset:22) (firstTokenOffset:22) (offset:22)
           element: <testLibrary>::@topLevelVariable::one
-          initializer: expression_1
+          constantInitializer2: expression_1
             IntegerLiteral
               literal: 1 @28
               staticType: int
           inducedGetter: #F4
         #F5 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic foo (nameOffset:37) (firstTokenOffset:37) (offset:37)
           element: <testLibrary>::@topLevelVariable::foo
-          initializer: expression_2
+          constantInitializer2: expression_2
             UnqualifiedNameExpression
               name: zero @43
               resolution: GetterInvocationResolution
@@ -3240,7 +3234,7 @@ library
           nextFragment: #F7
         #F7 hasImplicitType hasInitializer isAugmentation isConst isOriginDeclaration isStatic foo (nameOffset:63) (firstTokenOffset:63) (offset:63)
           element: <testLibrary>::@topLevelVariable::foo
-          initializer: expression_3
+          constantInitializer2: expression_3
             UnqualifiedNameExpression
               name: one @69
               resolution: GetterInvocationResolution
@@ -3269,25 +3263,19 @@ library
       reference: <testLibrary>::@topLevelVariable::zero
       firstFragment: #F1
       type: int
-      constantInitializer
-        fragment: #F1
-        expression: expression_0
+      constantInitializer2: expression_0
       getter: <testLibrary>::@getter::zero
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer one
       reference: <testLibrary>::@topLevelVariable::one
       firstFragment: #F3
       type: int
-      constantInitializer
-        fragment: #F3
-        expression: expression_1
+      constantInitializer2: expression_1
       getter: <testLibrary>::@getter::one
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer foo
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: #F5
       type: int
-      constantInitializer
-        fragment: #F7
-        expression: expression_3
+      constantInitializer2: expression_3
       getter: <testLibrary>::@getter::foo
   getters
     isOriginVariable isStatic zero
@@ -3556,7 +3544,7 @@ library
           formalParameters
             #F5 optionalPositional isOriginDeclaration x (nameOffset:17) (firstTokenOffset:13) (offset:17)
               element: x@17
-              initializer: expression_0
+              constantInitializer2: expression_0
                 IntegerLiteral
                   literal: 1 @21
                   staticType: int
@@ -3584,9 +3572,7 @@ library
         #E0 optionalPositional hasDefaultValue x
           firstFragment: #F5
           type: int
-          constantInitializer
-            fragment: #F5
-            expression: expression_0
+          constantInitializer2: expression_0
       returnType: int
       variable: <testLibrary>::@topLevelVariable::foo
 ''');
@@ -4405,7 +4391,7 @@ library
       topLevelVariables
         #F1 hasInitializer isConst isOriginDeclaration isStatic i (nameOffset:10) (firstTokenOffset:10) (offset:10)
           element: <testLibrary>::@topLevelVariable::i
-          initializer: expression_0
+          constantInitializer2: expression_0
             IntegerLiteral
               literal: 0 @14
               staticType: int
@@ -4419,9 +4405,7 @@ library
       reference: <testLibrary>::@topLevelVariable::i
       firstFragment: #F1
       type: int
-      constantInitializer
-        fragment: #F1
-        expression: expression_0
+      constantInitializer2: expression_0
       getter: <testLibrary>::@getter::i
   getters
     isOriginVariable isStatic i
@@ -4445,7 +4429,7 @@ library
       topLevelVariables
         #F1 hasInitializer isConst isLate isOriginDeclaration isStatic i (nameOffset:15) (firstTokenOffset:15) (offset:15)
           element: <testLibrary>::@topLevelVariable::i
-          initializer: expression_0
+          constantInitializer2: expression_0
             IntegerLiteral
               literal: 0 @19
               staticType: int
@@ -4459,9 +4443,7 @@ library
       reference: <testLibrary>::@topLevelVariable::i
       firstFragment: #F1
       type: int
-      constantInitializer
-        fragment: #F1
-        expression: expression_0
+      constantInitializer2: expression_0
       getter: <testLibrary>::@getter::i
   getters
     isOriginVariable isStatic i
@@ -5060,7 +5042,7 @@ library
       topLevelVariables
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic x (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::x
-          initializer: expression_0
+          constantInitializer2: expression_0
             RecordLiteral
               leftParenthesis: ( @10
               fields2
@@ -5082,9 +5064,7 @@ library
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F1
       type: (int, bool)
-      constantInitializer
-        fragment: #F1
-        expression: expression_0
+      constantInitializer2: expression_0
       getter: <testLibrary>::@getter::x
   getters
     isOriginVariable isStatic x
@@ -5472,7 +5452,7 @@ library
       topLevelVariables
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic i (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::i
-          initializer: expression_0
+          constantInitializer2: expression_0
             IntegerLiteral
               literal: 0 @10
               staticType: int
@@ -5486,9 +5466,7 @@ library
       reference: <testLibrary>::@topLevelVariable::i
       firstFragment: #F1
       type: int
-      constantInitializer
-        fragment: #F1
-        expression: expression_0
+      constantInitializer2: expression_0
       getter: <testLibrary>::@getter::i
   getters
     isOriginVariable isStatic i
@@ -6054,7 +6032,7 @@ library
       topLevelVariables
         #F4 hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:42) (firstTokenOffset:42) (offset:42)
           element: <testLibrary>::@topLevelVariable::a
-          initializer: expression_0
+          constantInitializer2: expression_0
             ConstructorInvocation
               constructorReference: ConstructorReference2
                 typeReference: ConstructorTypeReference
@@ -6089,9 +6067,7 @@ library
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F4
       type: A<int>
-      constantInitializer
-        fragment: #F4
-        expression: expression_0
+      constantInitializer2: expression_0
       getter: <testLibrary>::@getter::a
   getters
     isOriginVariable isStatic a

@@ -670,7 +670,7 @@ library
       topLevelVariables
         #F4 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic v (nameOffset:35) (firstTokenOffset:35) (offset:35)
           element: <testLibrary>::@topLevelVariable::v
-          initializer: expression_0
+          constantInitializer2: expression_0
             ConstructorInvocation
               constructorReference: ConstructorReference2
                 typeReference: ConstructorTypeReference
@@ -756,9 +756,7 @@ library
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: #F4
       type: A<String Function({int? a})>
-      constantInitializer
-        fragment: #F4
-        expression: expression_0
+      constantInitializer2: expression_0
       getter: <testLibrary>::@getter::v
   getters
     isOriginVariable isStatic v
@@ -797,7 +795,7 @@ library
       topLevelVariables
         #F4 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic v (nameOffset:35) (firstTokenOffset:35) (offset:35)
           element: <testLibrary>::@topLevelVariable::v
-          initializer: expression_0
+          constantInitializer2: expression_0
             ConstructorInvocation
               constructorReference: ConstructorReference2
                 typeReference: ConstructorTypeReference
@@ -883,9 +881,7 @@ library
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: #F4
       type: A<String Function([int?])>
-      constantInitializer
-        fragment: #F4
-        expression: expression_0
+      constantInitializer2: expression_0
       getter: <testLibrary>::@getter::v
   getters
     isOriginVariable isStatic v
@@ -924,7 +920,7 @@ library
       topLevelVariables
         #F4 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic v (nameOffset:35) (firstTokenOffset:35) (offset:35)
           element: <testLibrary>::@topLevelVariable::v
-          initializer: expression_0
+          constantInitializer2: expression_0
             ConstructorInvocation
               constructorReference: ConstructorReference2
                 typeReference: ConstructorTypeReference
@@ -1010,9 +1006,7 @@ library
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: #F4
       type: A<String Function({required int a})>
-      constantInitializer
-        fragment: #F4
-        expression: expression_0
+      constantInitializer2: expression_0
       getter: <testLibrary>::@getter::v
   getters
     isOriginVariable isStatic v
@@ -1051,7 +1045,7 @@ library
       topLevelVariables
         #F4 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic v (nameOffset:35) (firstTokenOffset:35) (offset:35)
           element: <testLibrary>::@topLevelVariable::v
-          initializer: expression_0
+          constantInitializer2: expression_0
             ConstructorInvocation
               constructorReference: ConstructorReference2
                 typeReference: ConstructorTypeReference
@@ -1130,9 +1124,7 @@ library
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: #F4
       type: A<String Function(int)>
-      constantInitializer
-        fragment: #F4
-        expression: expression_0
+      constantInitializer2: expression_0
       getter: <testLibrary>::@getter::v
   getters
     isOriginVariable isStatic v

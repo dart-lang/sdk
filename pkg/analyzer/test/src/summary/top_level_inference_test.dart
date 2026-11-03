@@ -9677,7 +9677,7 @@ library
               formalParameters
                 #F6 optionalPositional hasImplicitType isFinal isOriginDeclaration this.f (nameOffset:33) (firstTokenOffset:28) (offset:33)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::f
-                  initializer: expression_0
+                  constantInitializer2: expression_0
                     SimpleStringLiteral
                       literal: 'hello' @37
           getters
@@ -9710,9 +9710,7 @@ library
             #E0 optionalPositional hasDefaultValue hasImplicitType isFinal this.f
               firstFragment: #F6
               type: int
-              constantInitializer
-                fragment: #F6
-                expression: expression_0
+              constantInitializer2: expression_0
               field: <testLibrary>::@class::A::@field::f
       getters
         isOriginVariable f
