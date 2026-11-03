@@ -11,6 +11,7 @@ import 'package:dart_runtime_service/dart_runtime_service.dart';
 import 'package:dart_runtime_service_dds/dart_runtime_service_dds.dart';
 import 'package:dds_service_extensions/dap.dart';
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
+import 'package:logging/logging.dart' as logging;
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart' as vm;
 import 'package:vm_service/vm_service_io.dart';
@@ -332,5 +333,29 @@ void main() {
         expect(ddsService.clients, hasLength(2));
       },
     );
+
+    test('shutting down DDS after client disconnect does not throw concurrent '
+        'modification error', () async {
+      final warnings = <logging.LogRecord>[];
+      final logSubscription = logging.Logger.root.onRecord.listen((record) {
+        if (record.level >= logging.Level.WARNING) {
+          warnings.add(record);
+        }
+      });
+      addTearDown(logSubscription.cancel);
+
+      final clientDone = ddsService.clients.first.done;
+      await sendDapRequest(Command.threads);
+      expect(ddsService.clients, hasLength(2));
+
+      // Wait for the external DDS client disconnect cleanup to complete on
+      // the server before shutting down DDS while the internal DdsHostedAdapter
+      // client is still connected and subscribed to the non-core 'Service' and
+      // 'ToolEvent' streams.
+      await ddsClient.dispose();
+      await clientDone;
+      await ddsService.shutdown();
+      expect(warnings, isEmpty);
+    });
   });
 }
