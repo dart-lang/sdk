@@ -188,6 +188,10 @@ void nonModedTests<T extends JSAny?>({required bool testProxy}) {
   list.length = 4;
   Expect.listEquals([1, 2, 3, null], list.toListDouble);
 
+  final nonNullableList = jsList<JSNumber>([1.toJS, 2.toJS], testProxy);
+  Expect.throwsTypeError(() => nonNullableList.length = 3);
+  Expect.equals(2, nonNullableList.length);
+
   // operators [], []=
   Expect.equals(1, list[0]?.toDouble);
   list[0] = 5.toJS as T;
