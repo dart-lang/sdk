@@ -399,6 +399,45 @@ B17 = JoinBlock(B30, B10) idom:B0
 B24 = TargetBlock() idom:B4
   Throw(v19, v20)
 
+--- sequentialTry
+B0 = EntryBlock() dominates:(B2, B1)
+  v4 = Constant(1)
+  v12 = Constant(null)
+  v17 = Constant(2)
+  TryEntry(try-body: B1, catch-block: B2)
+B1 = TargetBlock() exception-handler:B2 idom:B0 dominates:(B6)
+  DirectCall print(v4)
+  Goto(B6)
+B6 = JoinBlock(B1) idom:B1 dominates:(B15, B14)
+  TryEntry(try-body: B14, catch-block: B15)
+B14 = TargetBlock() exception-handler:B15 idom:B6
+  DirectCall print(v17)
+  Return(v12)
+B15 = CatchBlock() idom:B6
+  Parameter(#exception)
+  Parameter(#stackTrace)
+  Return(v12)
+B2 = CatchBlock() idom:B0
+  Parameter(#exception)
+  Parameter(#stackTrace)
+  Return(v12)
+
+--- throwAfterTry
+B0 = EntryBlock() dominates:(B2, B1)
+  v4 = Constant(1)
+  v12 = Constant(null)
+  v14 = Constant("Done!")
+  TryEntry(try-body: B1, catch-block: B2)
+B1 = TargetBlock() exception-handler:B2 idom:B0 dominates:(B6)
+  DirectCall print(v4)
+  Goto(B6)
+B6 = JoinBlock(B1) idom:B1
+  Throw(v14)
+B2 = CatchBlock() idom:B0
+  Parameter(#exception)
+  Parameter(#stackTrace)
+  Return(v12)
+
 --- main
 B0 = EntryBlock()
   v1 = Constant("hey")
