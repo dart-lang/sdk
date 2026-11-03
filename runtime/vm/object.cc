@@ -26828,9 +26828,7 @@ static void WriteImageBuildId(BaseTextBuffer* buffer,
     ASSERT(build_id.len > 0);
     buffer->AddString(prefix);
     buffer->AddString("'");
-    for (intptr_t i = 0; i < build_id.len; i++) {
-      buffer->Printf("%2.2x", build_id.data[i]);
-    }
+    build_id.PrintTo(buffer);
     buffer->AddString("'");
   }
 }

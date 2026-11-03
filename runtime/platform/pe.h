@@ -42,6 +42,41 @@ struct coff_optional_header {
 static constexpr uint16_t kPE32Magic = 0x10b;
 static constexpr uint16_t kPE32PlusMagic = 0x20b;
 
+// Offsets of the data directories in the COFF optional header. They are
+// immediately preceded by the number of data directories.
+static constexpr intptr_t kPE32DataDirectoriesOffset = 96;
+static constexpr intptr_t kPE32PlusDataDirectoriesOffset = 112;
+
+static constexpr intptr_t kDebugDataDirectoryIndex = 6;
+
+struct data_directory {
+  uint32_t virtual_address;
+  uint32_t size;
+};
+
+struct debug_directory_entry {
+  uint32_t characteristics;
+  uint32_t timestamp;
+  uint16_t major_version;
+  uint16_t minor_version;
+  uint32_t type;
+  uint32_t data_size;
+  uint32_t data_address;
+  uint32_t data_file_offset;
+};
+
+static constexpr uint32_t kDebugTypeCodeView = 2;
+
+// The CodeView record that identifies the PDB for a PE image.
+static const char kCodeViewPDB70Signature[] = {'R', 'S', 'D', 'S'};
+
+struct codeview_pdb70_record {
+  char signature[sizeof(kCodeViewPDB70Signature)];
+  uint8_t guid[16];
+  uint32_t age;
+  // Followed by the null-terminated path of the PDB.
+};
+
 static constexpr intptr_t kCoffSectionNameSize = 8;
 
 struct coff_section_header {

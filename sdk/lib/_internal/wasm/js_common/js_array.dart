@@ -503,6 +503,8 @@ class JSArrayImpl<T extends JSAny?> extends js.JSExternWrapper
 
   void set length(int newLength) {
     RangeErrorUtils.checkNotNegative(newLength, "length");
+    // Verify that element type is nullable.
+    if (newLength > length) null as T;
     js.JS<WasmVoid>(
       '(a, l) => a.length = l',
       wrappedExternRef,

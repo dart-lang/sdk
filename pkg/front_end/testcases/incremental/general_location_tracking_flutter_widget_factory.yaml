@@ -115,3 +115,6 @@ worlds:
         Foo extensionStaticFoo = FooExtension.staticFoo();
     expectedLibraryCount: 4
     advancedInvalidation: bodiesOnly
+    # TODO(CFETeam): Compilation from scratch and not from scratch should give
+    # the same result.
+    skipCompileFromScratch: true

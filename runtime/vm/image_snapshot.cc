@@ -8,6 +8,8 @@
 #include "platform/assert.h"
 #include "platform/elf.h"
 #include "platform/mach_o.h"
+#include "platform/pe.h"
+#include "platform/unaligned.h"
 #include "vm/bss_relocs.h"
 #include "vm/class_id.h"
 #include "vm/compiler/runtime_api.h"
@@ -100,33 +102,97 @@ const void* Image::build_id_start() const {
   return nullptr;
 }
 
-const uint8_t* Image::build_id() const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-  auto* const start = build_id_start();
-  if (start == nullptr) return nullptr;
-  if (compiled_to_elf()) {
-    auto* const note = reinterpret_cast<const elf::Note*>(start);
-    return note->data + note->name_size;
-  } else if (compiled_to_macho()) {
-    return reinterpret_cast<const mach_o::uuid_command*>(start)->uuid;
+#if defined(DART_PRECOMPILED_RUNTIME) && defined(DART_HOST_OS_WINDOWS)
+// Returns the CodeView record that identifies the PDB for the PE image starting
+// at [image], or nullptr if the image has none.
+static const pe::codeview_pdb70_record* PECodeViewRecord(const uint8_t* image) {
+  const uint32_t pe_offset = LoadUnaligned(
+      reinterpret_cast<const uint32_t*>(image + pe::kPEOffsetOffset));
+  const uint8_t* const coff_header = image + pe_offset + sizeof(pe::kPEMagic);
+  const auto* const file_header =
+      reinterpret_cast<const pe::coff_file_header*>(coff_header);
+  const uint8_t* const optional_header =
+      coff_header + sizeof(pe::coff_file_header);
+  const uint16_t magic =
+      LoadUnaligned(reinterpret_cast<const uint16_t*>(optional_header));
+  intptr_t directories_offset;
+  if (magic == pe::kPE32PlusMagic) {
+    directories_offset = pe::kPE32PlusDataDirectoriesOffset;
+  } else if (magic == pe::kPE32Magic) {
+    directories_offset = pe::kPE32DataDirectoriesOffset;
+  } else {
+    return nullptr;
   }
-#endif
+  const intptr_t debug_directory_end =
+      directories_offset +
+      (pe::kDebugDataDirectoryIndex + 1) * sizeof(pe::data_directory);
+  if (file_header->optional_header_size < debug_directory_end) return nullptr;
+  const uint32_t directory_count =
+      LoadUnaligned(reinterpret_cast<const uint32_t*>(
+          optional_header + directories_offset - sizeof(uint32_t)));
+  if (directory_count <= pe::kDebugDataDirectoryIndex) return nullptr;
+  const auto* const debug_directory =
+      reinterpret_cast<const pe::data_directory*>(optional_header +
+                                                  directories_offset) +
+      pe::kDebugDataDirectoryIndex;
+  const auto* const entries =
+      reinterpret_cast<const pe::debug_directory_entry*>(
+          image + debug_directory->virtual_address);
+  const intptr_t entry_count =
+      debug_directory->size / sizeof(pe::debug_directory_entry);
+  for (intptr_t i = 0; i < entry_count; i++) {
+    const auto& entry = entries[i];
+    // The data address is 0 if the record is not mapped into memory.
+    if (entry.type != pe::kDebugTypeCodeView || entry.data_address == 0 ||
+        entry.data_size < sizeof(pe::codeview_pdb70_record)) {
+      continue;
+    }
+    const auto* const record =
+        reinterpret_cast<const pe::codeview_pdb70_record*>(image +
+                                                           entry.data_address);
+    if (memcmp(record->signature, pe::kCodeViewPDB70Signature,
+               sizeof(pe::kCodeViewPDB70Signature)) == 0) {
+      return record;
+    }
+  }
   return nullptr;
 }
 
-intptr_t Image::build_id_length() const {
+// The build ID of a PE image is the signature of its PDB: the GUID followed
+// by the age, as they appear in the CodeView record.
+static constexpr intptr_t kPEBuildIdLength =
+    sizeof(pe::codeview_pdb70_record::guid) +
+    sizeof(pe::codeview_pdb70_record::age);
+static_assert(offsetof(pe::codeview_pdb70_record, age) ==
+                  offsetof(pe::codeview_pdb70_record, guid) +
+                      sizeof(pe::codeview_pdb70_record::guid),
+              "PE build ID is not contiguous");
+#endif
+
+OS::BuildId Image::build_id() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
   ASSERT(extra_info_ != nullptr);
-  auto* const start = build_id_start();
-  if (start == nullptr) return 0;
-  if (compiled_to_elf()) {
-    auto const note = reinterpret_cast<const elf::Note*>(start);
-    return note->description_size;
-  } else if (compiled_to_macho()) {
-    return sizeof(mach_o::uuid_command::uuid);
+#if defined(DART_HOST_OS_WINDOWS)
+  if (compiled_to_pe()) {
+    if (auto* const record = PECodeViewRecord(shared_object_start())) {
+      return {kPEBuildIdLength, record->guid, OS::BuildId::Format::kPEGUID};
+    }
+    return {0, nullptr};
   }
 #endif
-  return 0;
+  auto* const start = build_id_start();
+  if (start == nullptr) return {0, nullptr};
+  if (compiled_to_elf()) {
+    auto* const note = reinterpret_cast<const elf::Note*>(start);
+    return {static_cast<intptr_t>(note->description_size),
+            note->data + note->name_size, OS::BuildId::Format::kGnuBuildId};
+  } else if (compiled_to_macho()) {
+    return {sizeof(mach_o::uuid_command::uuid),
+            reinterpret_cast<const mach_o::uuid_command*>(start)->uuid,
+            OS::BuildId::Format::kMachoUUID};
+  }
+#endif
+  return {0, nullptr};
 }
 
 bool Image::compiled_to_shared_object() const {
@@ -176,6 +242,21 @@ bool Image::compiled_to_macho() const {
   return false;
 #endif
 }
+
+#if defined(DART_HOST_OS_WINDOWS)
+bool Image::compiled_to_pe() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  if (!compiled_to_shared_object()) return false;
+  auto* const start = shared_object_start();
+  if (start[0] != 'M' || start[1] != 'Z') return false;
+  const uint32_t pe_offset = LoadUnaligned(
+      reinterpret_cast<const uint32_t*>(start + pe::kPEOffsetOffset));
+  return memcmp(start + pe_offset, pe::kPEMagic, sizeof(pe::kPEMagic)) == 0;
+#else
+  return false;
+#endif
+}
+#endif
 
 uword ObjectOffsetTrait::Hash(Key key) {
   ObjectPtr obj = key;
