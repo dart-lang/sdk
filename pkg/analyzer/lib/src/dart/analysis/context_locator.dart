@@ -824,9 +824,14 @@ class _ContextLocator {
         location: location,
       );
 
-      if (!root.isAnalyzed(folder.path)) {
-        root.included.add(folder);
+      // Included folders are sorted so that outer folders come first. So if
+      // the root already analyzes the folder, then the folder was already
+      // searched for nested context roots, as a part of another included
+      // folder. Searching it again would create duplicate context roots.
+      if (root.isAnalyzed(folder.path)) {
+        continue;
       }
+      root.included.add(folder);
 
       var rootEnabledLegacyPlugins = _getEnabledLegacyPlugins(
         location.workspace,
