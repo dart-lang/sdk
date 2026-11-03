@@ -1095,7 +1095,7 @@ class _Element2Writer extends _AbstractElementWriter {
         e.previousFragmentOfDifferentKind,
       );
       _writeDocumentation(e.documentationComment);
-      // _writeMetadata(e.metadata);
+      _writeMetadata(e.metadata);
       _writeSinceSdkVersion(e);
       _writeElementList(
         'typeParameters',
@@ -1195,6 +1195,7 @@ class _Element2Writer extends _AbstractElementWriter {
     });
     _sink.withIndent(() {
       _writeElementReference('element', f.element);
+      _writeMetadata(f.metadata);
       _writeFragmentReference('previousFragment', f.previousFragment);
       _writeFragmentReference('nextFragment', f.nextFragment);
       if (f is InterfaceFragmentImpl && f.withClauseMixinStartIndex != 0) {

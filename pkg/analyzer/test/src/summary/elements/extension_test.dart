@@ -400,6 +400,41 @@ library
       extensions
         #F3 extension E (nameOffset:52) (firstTokenOffset:29) (offset:52)
           element: <testLibrary>::@extension::E
+          metadata
+            Annotation
+              atSign: @ @29
+              expression: UnqualifiedNameExpression
+                name: a @30
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::a
+                  type: dynamic
+                staticType: dynamic
+              name: SimpleIdentifier
+                token: a @30
+                element: <testLibrary>::@getter::a
+                staticType: null
+              element: <testLibrary>::@getter::a
+            Annotation
+              atSign: @ @32
+              expression: ConstructorInvocation
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    name: Object @33
+                    element: dart:core::@class::Object
+                    type: Object
+                  element: dart:core::@class::Object::@constructor::new
+                argumentList: ArgumentList
+                  leftParenthesis: ( @39
+                  rightParenthesis: ) @40
+                staticType: Object
+              name: SimpleIdentifier
+                token: Object @33
+                element: dart:core::@class::Object
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @39
+                rightParenthesis: ) @40
+              element: dart:core::@class::Object::@constructor::new
       topLevelVariables
         #F4 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::a
@@ -424,6 +459,41 @@ library
     extension E
       reference: <testLibrary>::@extension::E
       firstFragment: #F3
+      metadata
+        Annotation
+          atSign: @ @29
+          expression: UnqualifiedNameExpression
+            name: a @30
+            resolution: GetterInvocationResolution
+              element: <testLibrary>::@getter::a
+              type: dynamic
+            staticType: dynamic
+          name: SimpleIdentifier
+            token: a @30
+            element: <testLibrary>::@getter::a
+            staticType: null
+          element: <testLibrary>::@getter::a
+        Annotation
+          atSign: @ @32
+          expression: ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                name: Object @33
+                element: dart:core::@class::Object
+                type: Object
+              element: dart:core::@class::Object::@constructor::new
+            argumentList: ArgumentList
+              leftParenthesis: ( @39
+              rightParenthesis: ) @40
+            staticType: Object
+          name: SimpleIdentifier
+            token: Object @33
+            element: dart:core::@class::Object
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @39
+            rightParenthesis: ) @40
+          element: dart:core::@class::Object::@constructor::new
       extendedType: A
       onDeclaration: <testLibrary>::@class::A
   topLevelVariables
@@ -462,6 +532,20 @@ library
       extensions
         #F1 extension E (nameOffset:31) (firstTokenOffset:16) (offset:31)
           element: <testLibrary>::@extension::E
+          metadata
+            Annotation
+              atSign: @ @16
+              expression: UnqualifiedNameExpression
+                name: foo @17
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::foo
+                  type: int
+                staticType: int
+              name: SimpleIdentifier
+                token: foo @17
+                element: <testLibrary>::@getter::foo
+                staticType: null
+              element: <testLibrary>::@getter::foo
           typeParameters
             #F2 T (nameOffset:38) (firstTokenOffset:33) (offset:38)
               element: #E0 T
@@ -524,6 +608,20 @@ library
     extension E
       reference: <testLibrary>::@extension::E
       firstFragment: #F1
+      metadata
+        Annotation
+          atSign: @ @16
+          expression: UnqualifiedNameExpression
+            name: foo @17
+            resolution: GetterInvocationResolution
+              element: <testLibrary>::@getter::foo
+              type: int
+            staticType: int
+          name: SimpleIdentifier
+            token: foo @17
+            element: <testLibrary>::@getter::foo
+            staticType: null
+          element: <testLibrary>::@getter::foo
       typeParameters
         #E0 T
           firstFragment: #F2

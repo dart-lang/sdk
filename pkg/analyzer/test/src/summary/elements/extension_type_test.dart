@@ -9411,6 +9411,20 @@ library
       extensionTypes
         #F1 extension type A (nameOffset:38) (firstTokenOffset:18) (offset:38)
           element: <testLibrary>::@extensionType::A
+          metadata
+            Annotation
+              atSign: @ @18
+              expression: UnqualifiedNameExpression
+                name: foo @19
+                resolution: GetterInvocationResolution
+                  element: package:test/a.dart::@getter::foo
+                  type: int
+                staticType: int
+              name: SimpleIdentifier
+                token: foo @19
+                element: package:test/a.dart::@getter::foo
+                staticType: null
+              element: package:test/a.dart::@getter::foo
           fields
             #F2 isFinal isOriginDeclaringFormalParameter it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
               element: <testLibrary>::@extensionType::A::@field::it
@@ -9432,6 +9446,20 @@ library
     isSimplyBounded extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: #F1
+      metadata
+        Annotation
+          atSign: @ @18
+          expression: UnqualifiedNameExpression
+            name: foo @19
+            resolution: GetterInvocationResolution
+              element: package:test/a.dart::@getter::foo
+              type: int
+            staticType: int
+          name: SimpleIdentifier
+            token: foo @19
+            element: package:test/a.dart::@getter::foo
+            staticType: null
+          element: package:test/a.dart::@getter::foo
       representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int

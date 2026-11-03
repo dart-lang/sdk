@@ -15621,6 +15621,20 @@ library
       enums
         #F1 enum E (nameOffset:23) (firstTokenOffset:15) (offset:23)
           element: <testLibrary>::@enum::E
+          metadata
+            Annotation
+              atSign: @ @15
+              expression: UnqualifiedNameExpression
+                name: a @16
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::a
+                  type: int
+                staticType: int
+              name: SimpleIdentifier
+                token: a @16
+                element: <testLibrary>::@getter::a
+                staticType: null
+              element: <testLibrary>::@getter::a
           fields
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:27) (firstTokenOffset:27) (offset:27)
               element: <testLibrary>::@enum::E::@field::v
@@ -15696,6 +15710,20 @@ library
     isSimplyBounded enum E
       reference: <testLibrary>::@enum::E
       firstFragment: #F1
+      metadata
+        Annotation
+          atSign: @ @15
+          expression: UnqualifiedNameExpression
+            name: a @16
+            resolution: GetterInvocationResolution
+              element: <testLibrary>::@getter::a
+              type: int
+            staticType: int
+          name: SimpleIdentifier
+            token: a @16
+            element: <testLibrary>::@getter::a
+            staticType: null
+          element: <testLibrary>::@getter::a
       supertype: Enum
       fields
         hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
@@ -15765,6 +15793,20 @@ library
       enums
         #F1 enum E (nameOffset:26) (firstTokenOffset:16) (offset:26)
           element: <testLibrary>::@enum::E
+          metadata
+            Annotation
+              atSign: @ @16
+              expression: UnqualifiedNameExpression
+                name: foo @17
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::foo
+                  type: int
+                staticType: int
+              name: SimpleIdentifier
+                token: foo @17
+                element: <testLibrary>::@getter::foo
+                staticType: null
+              element: <testLibrary>::@getter::foo
           typeParameters
             #F2 T (nameOffset:33) (firstTokenOffset:28) (offset:33)
               element: #E0 T
@@ -15888,6 +15930,20 @@ library
     isSimplyBounded enum E
       reference: <testLibrary>::@enum::E
       firstFragment: #F1
+      metadata
+        Annotation
+          atSign: @ @16
+          expression: UnqualifiedNameExpression
+            name: foo @17
+            resolution: GetterInvocationResolution
+              element: <testLibrary>::@getter::foo
+              type: int
+            staticType: int
+          name: SimpleIdentifier
+            token: foo @17
+            element: <testLibrary>::@getter::foo
+            staticType: null
+          element: <testLibrary>::@getter::foo
       typeParameters
         #E0 T
           firstFragment: #F2

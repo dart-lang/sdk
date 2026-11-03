@@ -981,30 +981,151 @@ library
       classes
         #F1 class BeforeMeta (nameOffset:48) (firstTokenOffset:0) (offset:48)
           element: <testLibrary>::@class::BeforeMeta
+          metadata
+            Annotation
+              atSign: @ @28
+              expression: ConstructorInvocation
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    name: Annotation @29
+                    element: <testLibrary>::@class::Annotation
+                    type: Annotation
+                  element: <testLibrary>::@class::Annotation::@constructor::new
+                argumentList: ArgumentList
+                  leftParenthesis: ( @39
+                  rightParenthesis: ) @40
+                staticType: Annotation
+              name: SimpleIdentifier
+                token: Annotation @29
+                element: <testLibrary>::@class::Annotation
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @39
+                rightParenthesis: ) @40
+              element: <testLibrary>::@class::Annotation::@constructor::new
           constructors
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:48)
               element: <testLibrary>::@class::BeforeMeta::@constructor::new
               typeName: BeforeMeta
         #F3 class BeforeMetaNamed (nameOffset:117) (firstTokenOffset:63) (offset:117)
           element: <testLibrary>::@class::BeforeMetaNamed
+          metadata
+            Annotation
+              atSign: @ @91
+              expression: ConstructorInvocation
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    name: Annotation @92
+                    element: <testLibrary>::@class::Annotation
+                    type: Annotation
+                  selector: ConstructorSelector
+                    period: . @102
+                    name2: named @103
+                  element: <testLibrary>::@class::Annotation::@constructor::named
+                argumentList: ArgumentList
+                  leftParenthesis: ( @108
+                  rightParenthesis: ) @109
+                staticType: Annotation
+              name: PrefixedIdentifier
+                prefix: SimpleIdentifier
+                  token: Annotation @92
+                  element: <testLibrary>::@class::Annotation
+                  staticType: null
+                period: . @102
+                identifier: SimpleIdentifier
+                  token: named @103
+                  element: <testLibrary>::@class::Annotation::@constructor::named
+                  staticType: null
+                element: <testLibrary>::@class::Annotation::@constructor::named
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @108
+                rightParenthesis: ) @109
+              element: <testLibrary>::@class::Annotation::@constructor::named
           constructors
             #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:117)
               element: <testLibrary>::@class::BeforeMetaNamed::@constructor::new
               typeName: BeforeMetaNamed
         #F5 class AfterMeta (nameOffset:185) (firstTokenOffset:137) (offset:185)
           element: <testLibrary>::@class::AfterMeta
+          metadata
+            Annotation
+              atSign: @ @137
+              expression: ConstructorInvocation
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    name: Annotation @138
+                    element: <testLibrary>::@class::Annotation
+                    type: Annotation
+                  element: <testLibrary>::@class::Annotation::@constructor::new
+                argumentList: ArgumentList
+                  leftParenthesis: ( @148
+                  rightParenthesis: ) @149
+                staticType: Annotation
+              name: SimpleIdentifier
+                token: Annotation @138
+                element: <testLibrary>::@class::Annotation
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @148
+                rightParenthesis: ) @149
+              element: <testLibrary>::@class::Annotation::@constructor::new
           constructors
             #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:185)
               element: <testLibrary>::@class::AfterMeta::@constructor::new
               typeName: AfterMeta
         #F7 class AroundMeta (nameOffset:247) (firstTokenOffset:213) (offset:247)
           element: <testLibrary>::@class::AroundMeta
+          metadata
+            Annotation
+              atSign: @ @213
+              expression: ConstructorInvocation
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    name: Annotation @214
+                    element: <testLibrary>::@class::Annotation
+                    type: Annotation
+                  element: <testLibrary>::@class::Annotation::@constructor::new
+                argumentList: ArgumentList
+                  leftParenthesis: ( @224
+                  rightParenthesis: ) @225
+                staticType: Annotation
+              name: SimpleIdentifier
+                token: Annotation @214
+                element: <testLibrary>::@class::Annotation
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @224
+                rightParenthesis: ) @225
+              element: <testLibrary>::@class::Annotation::@constructor::new
           constructors
             #F8 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:247)
               element: <testLibrary>::@class::AroundMeta::@constructor::new
               typeName: AroundMeta
         #F9 class DocBeforeMetaNotDocAfter (nameOffset:319) (firstTokenOffset:262) (offset:319)
           element: <testLibrary>::@class::DocBeforeMetaNotDocAfter
+          metadata
+            Annotation
+              atSign: @ @279
+              expression: ConstructorInvocation
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    name: Annotation @280
+                    element: <testLibrary>::@class::Annotation
+                    type: Annotation
+                  element: <testLibrary>::@class::Annotation::@constructor::new
+                argumentList: ArgumentList
+                  leftParenthesis: ( @290
+                  rightParenthesis: ) @291
+                staticType: Annotation
+              name: SimpleIdentifier
+                token: Annotation @280
+                element: <testLibrary>::@class::Annotation
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @290
+                rightParenthesis: ) @291
+              element: <testLibrary>::@class::Annotation::@constructor::new
           constructors
             #F10 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:319)
               element: <testLibrary>::@class::DocBeforeMetaNotDocAfter::@constructor::new
@@ -1026,6 +1147,28 @@ library
       reference: <testLibrary>::@class::BeforeMeta
       firstFragment: #F1
       documentationComment: /// Comment 1\n/// Comment 2
+      metadata
+        Annotation
+          atSign: @ @28
+          expression: ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                name: Annotation @29
+                element: <testLibrary>::@class::Annotation
+                type: Annotation
+              element: <testLibrary>::@class::Annotation::@constructor::new
+            argumentList: ArgumentList
+              leftParenthesis: ( @39
+              rightParenthesis: ) @40
+            staticType: Annotation
+          name: SimpleIdentifier
+            token: Annotation @29
+            element: <testLibrary>::@class::Annotation
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @39
+            rightParenthesis: ) @40
+          element: <testLibrary>::@class::Annotation::@constructor::new
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::BeforeMeta::@constructor::new
@@ -1034,6 +1177,39 @@ library
       reference: <testLibrary>::@class::BeforeMetaNamed
       firstFragment: #F3
       documentationComment: /// Comment 1\n/// Comment 2
+      metadata
+        Annotation
+          atSign: @ @91
+          expression: ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                name: Annotation @92
+                element: <testLibrary>::@class::Annotation
+                type: Annotation
+              selector: ConstructorSelector
+                period: . @102
+                name2: named @103
+              element: <testLibrary>::@class::Annotation::@constructor::named
+            argumentList: ArgumentList
+              leftParenthesis: ( @108
+              rightParenthesis: ) @109
+            staticType: Annotation
+          name: PrefixedIdentifier
+            prefix: SimpleIdentifier
+              token: Annotation @92
+              element: <testLibrary>::@class::Annotation
+              staticType: null
+            period: . @102
+            identifier: SimpleIdentifier
+              token: named @103
+              element: <testLibrary>::@class::Annotation::@constructor::named
+              staticType: null
+            element: <testLibrary>::@class::Annotation::@constructor::named
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @108
+            rightParenthesis: ) @109
+          element: <testLibrary>::@class::Annotation::@constructor::named
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::BeforeMetaNamed::@constructor::new
@@ -1042,6 +1218,28 @@ library
       reference: <testLibrary>::@class::AfterMeta
       firstFragment: #F5
       documentationComment: /// Comment 1\n/// Comment 2
+      metadata
+        Annotation
+          atSign: @ @137
+          expression: ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                name: Annotation @138
+                element: <testLibrary>::@class::Annotation
+                type: Annotation
+              element: <testLibrary>::@class::Annotation::@constructor::new
+            argumentList: ArgumentList
+              leftParenthesis: ( @148
+              rightParenthesis: ) @149
+            staticType: Annotation
+          name: SimpleIdentifier
+            token: Annotation @138
+            element: <testLibrary>::@class::Annotation
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @148
+            rightParenthesis: ) @149
+          element: <testLibrary>::@class::Annotation::@constructor::new
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::AfterMeta::@constructor::new
@@ -1050,6 +1248,28 @@ library
       reference: <testLibrary>::@class::AroundMeta
       firstFragment: #F7
       documentationComment: /// Comment 2
+      metadata
+        Annotation
+          atSign: @ @213
+          expression: ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                name: Annotation @214
+                element: <testLibrary>::@class::Annotation
+                type: Annotation
+              element: <testLibrary>::@class::Annotation::@constructor::new
+            argumentList: ArgumentList
+              leftParenthesis: ( @224
+              rightParenthesis: ) @225
+            staticType: Annotation
+          name: SimpleIdentifier
+            token: Annotation @214
+            element: <testLibrary>::@class::Annotation
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @224
+            rightParenthesis: ) @225
+          element: <testLibrary>::@class::Annotation::@constructor::new
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::AroundMeta::@constructor::new
@@ -1058,6 +1278,28 @@ library
       reference: <testLibrary>::@class::DocBeforeMetaNotDocAfter
       firstFragment: #F9
       documentationComment: /// Doc comment.
+      metadata
+        Annotation
+          atSign: @ @279
+          expression: ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                name: Annotation @280
+                element: <testLibrary>::@class::Annotation
+                type: Annotation
+              element: <testLibrary>::@class::Annotation::@constructor::new
+            argumentList: ArgumentList
+              leftParenthesis: ( @290
+              rightParenthesis: ) @291
+            staticType: Annotation
+          name: SimpleIdentifier
+            token: Annotation @280
+            element: <testLibrary>::@class::Annotation
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @290
+            rightParenthesis: ) @291
+          element: <testLibrary>::@class::Annotation::@constructor::new
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::DocBeforeMetaNotDocAfter::@constructor::new

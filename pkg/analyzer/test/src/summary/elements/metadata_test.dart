@@ -906,6 +906,58 @@ library
       classes
         #F1 class C (nameOffset:20) (firstTokenOffset:0) (offset:20)
           element: <testLibrary>::@class::C
+          metadata
+            Annotation
+              atSign: @ @0
+              expression: ConstructorInvocation
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    name: A @1
+                    element: <testLibrary>::@class::A
+                    type: A
+                  element: <testLibrary>::@class::A::@constructor::new
+                argumentList: ArgumentList
+                  leftParenthesis: ( @2
+                  arguments2
+                    RecordLiteral
+                      leftParenthesis: ( @3
+                      fields2
+                        IntegerLiteral
+                          literal: 2 @4
+                          staticType: int
+                        RecordLiteralNamedField
+                          name: a @7
+                          colon: : @8
+                          fieldExpression2: IntegerLiteral
+                            literal: 3 @10
+                            staticType: int
+                      rightParenthesis: ) @11
+                      staticType: (int, {int a})
+                  rightParenthesis: ) @12
+                staticType: A
+              name: SimpleIdentifier
+                token: A @1
+                element: <testLibrary>::@class::A
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @2
+                arguments
+                  RecordLiteral
+                    leftParenthesis: ( @3
+                    fields
+                      IntegerLiteral
+                        literal: 2 @4
+                        staticType: int
+                      RecordLiteralNamedField
+                        name: a @7
+                        colon: : @8
+                        fieldExpression: IntegerLiteral
+                          literal: 3 @10
+                          staticType: int
+                    rightParenthesis: ) @11
+                    staticType: (int, {int a})
+                rightParenthesis: ) @12
+              element: <testLibrary>::@class::A::@constructor::new
           constructors
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
               element: <testLibrary>::@class::C::@constructor::new
@@ -924,6 +976,58 @@ library
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: #F1
+      metadata
+        Annotation
+          atSign: @ @0
+          expression: ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                name: A @1
+                element: <testLibrary>::@class::A
+                type: A
+              element: <testLibrary>::@class::A::@constructor::new
+            argumentList: ArgumentList
+              leftParenthesis: ( @2
+              arguments2
+                RecordLiteral
+                  leftParenthesis: ( @3
+                  fields2
+                    IntegerLiteral
+                      literal: 2 @4
+                      staticType: int
+                    RecordLiteralNamedField
+                      name: a @7
+                      colon: : @8
+                      fieldExpression2: IntegerLiteral
+                        literal: 3 @10
+                        staticType: int
+                  rightParenthesis: ) @11
+                  staticType: (int, {int a})
+              rightParenthesis: ) @12
+            staticType: A
+          name: SimpleIdentifier
+            token: A @1
+            element: <testLibrary>::@class::A
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @2
+            arguments
+              RecordLiteral
+                leftParenthesis: ( @3
+                fields
+                  IntegerLiteral
+                    literal: 2 @4
+                    staticType: int
+                  RecordLiteralNamedField
+                    name: a @7
+                    colon: : @8
+                    fieldExpression: IntegerLiteral
+                      literal: 3 @10
+                      staticType: int
+                rightParenthesis: ) @11
+                staticType: (int, {int a})
+            rightParenthesis: ) @12
+          element: <testLibrary>::@class::A::@constructor::new
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -960,6 +1064,46 @@ library
       classes
         #F1 class C (nameOffset:22) (firstTokenOffset:0) (offset:22)
           element: <testLibrary>::@class::C
+          metadata
+            Annotation
+              atSign: @ @0
+              expression: ConstructorInvocation
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    name: A @1
+                    element: <testLibrary>::@class::A
+                    type: A
+                  element: <testLibrary>::@class::A::@constructor::new
+                argumentList: ArgumentList
+                  leftParenthesis: ( @2
+                  arguments2
+                    RecordLiteral
+                      constKeyword: const @3
+                      leftParenthesis: ( @9
+                      fields2
+                        SimpleStringLiteral
+                          literal: '' @10
+                      rightParenthesis: ) @13
+                      staticType: (String,)
+                  rightParenthesis: ) @14
+                staticType: A
+              name: SimpleIdentifier
+                token: A @1
+                element: <testLibrary>::@class::A
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @2
+                arguments
+                  RecordLiteral
+                    constKeyword: const @3
+                    leftParenthesis: ( @9
+                    fields
+                      SimpleStringLiteral
+                        literal: '' @10
+                    rightParenthesis: ) @13
+                    staticType: (String,)
+                rightParenthesis: ) @14
+              element: <testLibrary>::@class::A::@constructor::new
           constructors
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@class::C::@constructor::new
@@ -978,6 +1122,46 @@ library
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: #F1
+      metadata
+        Annotation
+          atSign: @ @0
+          expression: ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                name: A @1
+                element: <testLibrary>::@class::A
+                type: A
+              element: <testLibrary>::@class::A::@constructor::new
+            argumentList: ArgumentList
+              leftParenthesis: ( @2
+              arguments2
+                RecordLiteral
+                  constKeyword: const @3
+                  leftParenthesis: ( @9
+                  fields2
+                    SimpleStringLiteral
+                      literal: '' @10
+                  rightParenthesis: ) @13
+                  staticType: (String,)
+              rightParenthesis: ) @14
+            staticType: A
+          name: SimpleIdentifier
+            token: A @1
+            element: <testLibrary>::@class::A
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @2
+            arguments
+              RecordLiteral
+                constKeyword: const @3
+                leftParenthesis: ( @9
+                fields
+                  SimpleStringLiteral
+                    literal: '' @10
+                rightParenthesis: ) @13
+                staticType: (String,)
+            rightParenthesis: ) @14
+          element: <testLibrary>::@class::A::@constructor::new
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -1168,6 +1352,41 @@ library
       classes
         #F1 class C (nameOffset:40) (firstTokenOffset:23) (offset:40)
           element: <testLibrary>::@class::C
+          metadata
+            Annotation
+              atSign: @ @23
+              expression: ConstructorTearOff
+                typeReference: ConstructorTypeReference
+                  importPrefix: ImportPrefixReference
+                    name: a @24
+                    period: . @25
+                    element: <testLibraryFragment>::@prefix::a
+                  name: A @26
+                  element: package:test/a.dart::@class::A
+                  type: A
+                selector: ConstructorSelector
+                  period: . @27
+                  name2: named @28
+                element: package:test/a.dart::@class::A::@constructor::named
+                staticType: A Function()
+              name: PrefixedIdentifier
+                prefix: SimpleIdentifier
+                  token: a @24
+                  element: <testLibraryFragment>::@prefix::a
+                  staticType: null
+                period: . @25
+                identifier: SimpleIdentifier
+                  token: A @26
+                  element: package:test/a.dart::@class::A
+                  staticType: null
+                element: package:test/a.dart::@class::A
+                staticType: null
+              period: . @27
+              constructorName: SimpleIdentifier
+                token: named @28
+                element: package:test/a.dart::@class::A::@constructor::named
+                staticType: null
+              element: package:test/a.dart::@class::A::@constructor::named
           constructors
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
               element: <testLibrary>::@class::C::@constructor::new
@@ -1176,6 +1395,41 @@ library
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: #F1
+      metadata
+        Annotation
+          atSign: @ @23
+          expression: ConstructorTearOff
+            typeReference: ConstructorTypeReference
+              importPrefix: ImportPrefixReference
+                name: a @24
+                period: . @25
+                element: <testLibraryFragment>::@prefix::a
+              name: A @26
+              element: package:test/a.dart::@class::A
+              type: A
+            selector: ConstructorSelector
+              period: . @27
+              name2: named @28
+            element: package:test/a.dart::@class::A::@constructor::named
+            staticType: A Function()
+          name: PrefixedIdentifier
+            prefix: SimpleIdentifier
+              token: a @24
+              element: <testLibraryFragment>::@prefix::a
+              staticType: null
+            period: . @25
+            identifier: SimpleIdentifier
+              token: A @26
+              element: package:test/a.dart::@class::A
+              staticType: null
+            element: package:test/a.dart::@class::A
+            staticType: null
+          period: . @27
+          constructorName: SimpleIdentifier
+            token: named @28
+            element: package:test/a.dart::@class::A::@constructor::named
+            staticType: null
+          element: package:test/a.dart::@class::A::@constructor::named
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -1206,6 +1460,32 @@ library
       classes
         #F1 class C (nameOffset:33) (firstTokenOffset:18) (offset:33)
           element: <testLibrary>::@class::C
+          metadata
+            Annotation
+              atSign: @ @18
+              expression: ConstructorTearOff
+                typeReference: ConstructorTypeReference
+                  name: A @19
+                  element: package:test/a.dart::@class::A
+                  type: A
+                selector: ConstructorSelector
+                  period: . @20
+                  name2: named @21
+                element: package:test/a.dart::@class::A::@constructor::named
+                staticType: A Function()
+              name: PrefixedIdentifier
+                prefix: SimpleIdentifier
+                  token: A @19
+                  element: package:test/a.dart::@class::A
+                  staticType: null
+                period: . @20
+                identifier: SimpleIdentifier
+                  token: named @21
+                  element: package:test/a.dart::@class::A::@constructor::named
+                  staticType: null
+                element: package:test/a.dart::@class::A::@constructor::named
+                staticType: null
+              element: package:test/a.dart::@class::A::@constructor::named
           constructors
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:33)
               element: <testLibrary>::@class::C::@constructor::new
@@ -1214,6 +1494,32 @@ library
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: #F1
+      metadata
+        Annotation
+          atSign: @ @18
+          expression: ConstructorTearOff
+            typeReference: ConstructorTypeReference
+              name: A @19
+              element: package:test/a.dart::@class::A
+              type: A
+            selector: ConstructorSelector
+              period: . @20
+              name2: named @21
+            element: package:test/a.dart::@class::A::@constructor::named
+            staticType: A Function()
+          name: PrefixedIdentifier
+            prefix: SimpleIdentifier
+              token: A @19
+              element: package:test/a.dart::@class::A
+              staticType: null
+            period: . @20
+            identifier: SimpleIdentifier
+              token: named @21
+              element: package:test/a.dart::@class::A::@constructor::named
+              staticType: null
+            element: package:test/a.dart::@class::A::@constructor::named
+            staticType: null
+          element: package:test/a.dart::@class::A::@constructor::named
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -1521,6 +1827,20 @@ library
       classes
         #F1 class C (nameOffset:27) (firstTokenOffset:16) (offset:27)
           element: <testLibrary>::@class::C
+          metadata
+            Annotation
+              atSign: @ @16
+              expression: UnqualifiedNameExpression
+                name: foo @17
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::foo
+                  type: int
+                staticType: int
+              name: SimpleIdentifier
+                token: foo @17
+                element: <testLibrary>::@getter::foo
+                staticType: null
+              element: <testLibrary>::@getter::foo
           typeParameters
             #F2 T (nameOffset:34) (firstTokenOffset:29) (offset:34)
               element: #E0 T
@@ -1587,6 +1907,20 @@ library
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: #F1
+      metadata
+        Annotation
+          atSign: @ @16
+          expression: UnqualifiedNameExpression
+            name: foo @17
+            resolution: GetterInvocationResolution
+              element: <testLibrary>::@getter::foo
+              type: int
+            staticType: int
+          name: SimpleIdentifier
+            token: foo @17
+            element: <testLibrary>::@getter::foo
+            staticType: null
+          element: <testLibrary>::@getter::foo
       typeParameters
         #E0 T
           firstFragment: #F2
@@ -1674,6 +2008,33 @@ library
       classes
         #F1 class C (nameOffset:45) (firstTokenOffset:33) (offset:45)
           element: <testLibrary>::@class::C
+          metadata
+            Annotation
+              atSign: @ @33
+              expression: UnqualifiedNameExpression
+                name: a @34
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::a
+                  type: dynamic
+                staticType: dynamic
+              name: SimpleIdentifier
+                token: a @34
+                element: <testLibrary>::@getter::a
+                staticType: null
+              element: <testLibrary>::@getter::a
+            Annotation
+              atSign: @ @36
+              expression: UnqualifiedNameExpression
+                name: b @37
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::b
+                  type: dynamic
+                staticType: dynamic
+              name: SimpleIdentifier
+                token: b @37
+                element: <testLibrary>::@getter::b
+                staticType: null
+              element: <testLibrary>::@getter::b
           constructors
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:45)
               element: <testLibrary>::@class::C::@constructor::new
@@ -1704,6 +2065,33 @@ library
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: #F1
+      metadata
+        Annotation
+          atSign: @ @33
+          expression: UnqualifiedNameExpression
+            name: a @34
+            resolution: GetterInvocationResolution
+              element: <testLibrary>::@getter::a
+              type: dynamic
+            staticType: dynamic
+          name: SimpleIdentifier
+            token: a @34
+            element: <testLibrary>::@getter::a
+            staticType: null
+          element: <testLibrary>::@getter::a
+        Annotation
+          atSign: @ @36
+          expression: UnqualifiedNameExpression
+            name: b @37
+            resolution: GetterInvocationResolution
+              element: <testLibrary>::@getter::b
+              type: dynamic
+            staticType: dynamic
+          name: SimpleIdentifier
+            token: b @37
+            element: <testLibrary>::@getter::b
+            staticType: null
+          element: <testLibrary>::@getter::b
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -1754,6 +2142,20 @@ library
       classes
         #F1 isMixinApplication class C (nameOffset:25) (firstTokenOffset:16) (offset:25)
           element: <testLibrary>::@class::C
+          metadata
+            Annotation
+              atSign: @ @16
+              expression: UnqualifiedNameExpression
+                name: a @17
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::a
+                  type: dynamic
+                staticType: dynamic
+              name: SimpleIdentifier
+                token: a @17
+                element: <testLibrary>::@getter::a
+                staticType: null
+              element: <testLibrary>::@getter::a
           constructors
             #F2 isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@class::C::@constructor::new
@@ -1786,6 +2188,20 @@ library
     isMixinApplication isSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: #F1
+      metadata
+        Annotation
+          atSign: @ @16
+          expression: UnqualifiedNameExpression
+            name: a @17
+            resolution: GetterInvocationResolution
+              element: <testLibrary>::@getter::a
+              type: dynamic
+            staticType: dynamic
+          name: SimpleIdentifier
+            token: a @17
+            element: <testLibrary>::@getter::a
+            staticType: null
+          element: <testLibrary>::@getter::a
       supertype: D
       mixins
         E
@@ -1860,6 +2276,47 @@ library
                   element: <testLibrary>::@class::A::@constructor::named::@formalParameter::_
         #F4 class C (nameOffset:55) (firstTokenOffset:37) (offset:55)
           element: <testLibrary>::@class::C
+          metadata
+            Annotation
+              atSign: @ @37
+              expression: ConstructorInvocation
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    name: A @38
+                    element: <testLibrary>::@class::A
+                    type: A
+                  selector: ConstructorSelector
+                    period: . @39
+                    name2: named @40
+                  element: <testLibrary>::@class::A::@constructor::named
+                argumentList: ArgumentList
+                  leftParenthesis: ( @45
+                  arguments2
+                    IntegerLiteral
+                      literal: 0 @46
+                      staticType: int
+                  rightParenthesis: ) @47
+                staticType: A
+              name: PrefixedIdentifier
+                prefix: SimpleIdentifier
+                  token: A @38
+                  element: <testLibrary>::@class::A
+                  staticType: null
+                period: . @39
+                identifier: SimpleIdentifier
+                  token: named @40
+                  element: <testLibrary>::@class::A::@constructor::named
+                  staticType: null
+                element: <testLibrary>::@class::A::@constructor::named
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @45
+                arguments
+                  IntegerLiteral
+                    literal: 0 @46
+                    staticType: int
+                rightParenthesis: ) @47
+              element: <testLibrary>::@class::A::@constructor::named
           constructors
             #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:55)
               element: <testLibrary>::@class::C::@constructor::new
@@ -1879,6 +2336,47 @@ library
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: #F4
+      metadata
+        Annotation
+          atSign: @ @37
+          expression: ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                name: A @38
+                element: <testLibrary>::@class::A
+                type: A
+              selector: ConstructorSelector
+                period: . @39
+                name2: named @40
+              element: <testLibrary>::@class::A::@constructor::named
+            argumentList: ArgumentList
+              leftParenthesis: ( @45
+              arguments2
+                IntegerLiteral
+                  literal: 0 @46
+                  staticType: int
+              rightParenthesis: ) @47
+            staticType: A
+          name: PrefixedIdentifier
+            prefix: SimpleIdentifier
+              token: A @38
+              element: <testLibrary>::@class::A
+              staticType: null
+            period: . @39
+            identifier: SimpleIdentifier
+              token: named @40
+              element: <testLibrary>::@class::A::@constructor::named
+              staticType: null
+            element: <testLibrary>::@class::A::@constructor::named
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @45
+            arguments
+              IntegerLiteral
+                literal: 0 @46
+                staticType: int
+            rightParenthesis: ) @47
+          element: <testLibrary>::@class::A::@constructor::named
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -1918,6 +2416,55 @@ library
                   element: <testLibrary>::@class::A::@constructor::named::@formalParameter::_
         #F5 class C (nameOffset:56) (firstTokenOffset:38) (offset:56)
           element: <testLibrary>::@class::C
+          metadata
+            Annotation
+              atSign: @ @38
+              expression: ConstructorInvocation
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    name: A @39
+                    element: <testLibrary>::@class::A
+                    type: A<int>
+                  selector: ConstructorSelector
+                    period: . @40
+                    name2: named @41
+                  element: SubstitutedConstructorElementImpl
+                    baseElement: <testLibrary>::@class::A::@constructor::named
+                    substitution: {T: int}
+                argumentList: ArgumentList
+                  leftParenthesis: ( @46
+                  arguments2
+                    IntegerLiteral
+                      literal: 0 @47
+                      staticType: int
+                  rightParenthesis: ) @48
+                staticType: A<int>
+              name: PrefixedIdentifier
+                prefix: SimpleIdentifier
+                  token: A @39
+                  element: <testLibrary>::@class::A
+                  staticType: null
+                period: . @40
+                identifier: SimpleIdentifier
+                  token: named @41
+                  element: SubstitutedConstructorElementImpl
+                    baseElement: <testLibrary>::@class::A::@constructor::named
+                    substitution: {T: int}
+                  staticType: null
+                element: SubstitutedConstructorElementImpl
+                  baseElement: <testLibrary>::@class::A::@constructor::named
+                  substitution: {T: int}
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @46
+                arguments
+                  IntegerLiteral
+                    literal: 0 @47
+                    staticType: int
+                rightParenthesis: ) @48
+              element: SubstitutedConstructorElementImpl
+                baseElement: <testLibrary>::@class::A::@constructor::named
+                substitution: {T: int}
           constructors
             #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:56)
               element: <testLibrary>::@class::C::@constructor::new
@@ -1940,6 +2487,55 @@ library
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: #F5
+      metadata
+        Annotation
+          atSign: @ @38
+          expression: ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                name: A @39
+                element: <testLibrary>::@class::A
+                type: A<int>
+              selector: ConstructorSelector
+                period: . @40
+                name2: named @41
+              element: SubstitutedConstructorElementImpl
+                baseElement: <testLibrary>::@class::A::@constructor::named
+                substitution: {T: int}
+            argumentList: ArgumentList
+              leftParenthesis: ( @46
+              arguments2
+                IntegerLiteral
+                  literal: 0 @47
+                  staticType: int
+              rightParenthesis: ) @48
+            staticType: A<int>
+          name: PrefixedIdentifier
+            prefix: SimpleIdentifier
+              token: A @39
+              element: <testLibrary>::@class::A
+              staticType: null
+            period: . @40
+            identifier: SimpleIdentifier
+              token: named @41
+              element: SubstitutedConstructorElementImpl
+                baseElement: <testLibrary>::@class::A::@constructor::named
+                substitution: {T: int}
+              staticType: null
+            element: SubstitutedConstructorElementImpl
+              baseElement: <testLibrary>::@class::A::@constructor::named
+              substitution: {T: int}
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @46
+            arguments
+              IntegerLiteral
+                literal: 0 @47
+                staticType: int
+            rightParenthesis: ) @48
+          element: SubstitutedConstructorElementImpl
+            baseElement: <testLibrary>::@class::A::@constructor::named
+            substitution: {T: int}
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -1976,6 +2572,58 @@ library
               periodOffset: 22
         #F4 class C (nameOffset:57) (firstTokenOffset:35) (offset:57)
           element: <testLibrary>::@class::C
+          metadata
+            Annotation
+              atSign: @ @35
+              expression: ConstructorInvocation
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    name: A @36
+                    typeArguments: TypeArgumentList
+                      leftBracket: < @37
+                      arguments
+                        NamedType
+                          name: int @38
+                          element: dart:core::@class::int
+                          type: int
+                      rightBracket: > @41
+                    element: <testLibrary>::@class::A
+                    type: A<int>
+                  selector: ConstructorSelector
+                    period: . @42
+                    name2: named @43
+                  element: SubstitutedConstructorElementImpl
+                    baseElement: <testLibrary>::@class::A::@constructor::named
+                    substitution: {T: int}
+                argumentList: ArgumentList
+                  leftParenthesis: ( @48
+                  rightParenthesis: ) @49
+                staticType: A<int>
+              name: SimpleIdentifier
+                token: A @36
+                element: <testLibrary>::@class::A
+                staticType: null
+              typeArguments: TypeArgumentList
+                leftBracket: < @37
+                arguments
+                  NamedType
+                    name: int @38
+                    element: dart:core::@class::int
+                    type: int
+                rightBracket: > @41
+              period: . @42
+              constructorName: SimpleIdentifier
+                token: named @43
+                element: SubstitutedConstructorElementImpl
+                  baseElement: <testLibrary>::@class::A::@constructor::named
+                  substitution: {T: int}
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @48
+                rightParenthesis: ) @49
+              element: SubstitutedConstructorElementImpl
+                baseElement: <testLibrary>::@class::A::@constructor::named
+                substitution: {T: int}
           constructors
             #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
               element: <testLibrary>::@class::C::@constructor::new
@@ -1994,6 +2642,58 @@ library
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: #F4
+      metadata
+        Annotation
+          atSign: @ @35
+          expression: ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                name: A @36
+                typeArguments: TypeArgumentList
+                  leftBracket: < @37
+                  arguments
+                    NamedType
+                      name: int @38
+                      element: dart:core::@class::int
+                      type: int
+                  rightBracket: > @41
+                element: <testLibrary>::@class::A
+                type: A<int>
+              selector: ConstructorSelector
+                period: . @42
+                name2: named @43
+              element: SubstitutedConstructorElementImpl
+                baseElement: <testLibrary>::@class::A::@constructor::named
+                substitution: {T: int}
+            argumentList: ArgumentList
+              leftParenthesis: ( @48
+              rightParenthesis: ) @49
+            staticType: A<int>
+          name: SimpleIdentifier
+            token: A @36
+            element: <testLibrary>::@class::A
+            staticType: null
+          typeArguments: TypeArgumentList
+            leftBracket: < @37
+            arguments
+              NamedType
+                name: int @38
+                element: dart:core::@class::int
+                type: int
+            rightBracket: > @41
+          period: . @42
+          constructorName: SimpleIdentifier
+            token: named @43
+            element: SubstitutedConstructorElementImpl
+              baseElement: <testLibrary>::@class::A::@constructor::named
+              substitution: {T: int}
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @48
+            rightParenthesis: ) @49
+          element: SubstitutedConstructorElementImpl
+            baseElement: <testLibrary>::@class::A::@constructor::named
+            substitution: {T: int}
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -2030,6 +2730,58 @@ library
               periodOffset: 22
         #F4 class C (nameOffset:57) (firstTokenOffset:35) (offset:57)
           element: <testLibrary>::@class::C
+          metadata
+            Annotation
+              atSign: @ @35
+              expression: ConstructorInvocation
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    name: A @36
+                    typeArguments: TypeArgumentList
+                      leftBracket: < @37
+                      arguments
+                        NamedType
+                          name: int @38
+                          element: dart:core::@class::int
+                          type: int
+                      rightBracket: > @41
+                    element: <testLibrary>::@class::A
+                    type: A<int>
+                  selector: ConstructorSelector
+                    period: . @42
+                    name2: named @43
+                  element: SubstitutedConstructorElementImpl
+                    baseElement: <testLibrary>::@class::A::@constructor::named
+                    substitution: {T: int}
+                argumentList: ArgumentList
+                  leftParenthesis: ( @48
+                  rightParenthesis: ) @49
+                staticType: A<int>
+              name: SimpleIdentifier
+                token: A @36
+                element: <testLibrary>::@class::A
+                staticType: null
+              typeArguments: TypeArgumentList
+                leftBracket: < @37
+                arguments
+                  NamedType
+                    name: int @38
+                    element: dart:core::@class::int
+                    type: int
+                rightBracket: > @41
+              period: . @42
+              constructorName: SimpleIdentifier
+                token: named @43
+                element: SubstitutedConstructorElementImpl
+                  baseElement: <testLibrary>::@class::A::@constructor::named
+                  substitution: {T: int}
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @48
+                rightParenthesis: ) @49
+              element: SubstitutedConstructorElementImpl
+                baseElement: <testLibrary>::@class::A::@constructor::named
+                substitution: {T: int}
           constructors
             #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
               element: <testLibrary>::@class::C::@constructor::new
@@ -2048,6 +2800,58 @@ library
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: #F4
+      metadata
+        Annotation
+          atSign: @ @35
+          expression: ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                name: A @36
+                typeArguments: TypeArgumentList
+                  leftBracket: < @37
+                  arguments
+                    NamedType
+                      name: int @38
+                      element: dart:core::@class::int
+                      type: int
+                  rightBracket: > @41
+                element: <testLibrary>::@class::A
+                type: A<int>
+              selector: ConstructorSelector
+                period: . @42
+                name2: named @43
+              element: SubstitutedConstructorElementImpl
+                baseElement: <testLibrary>::@class::A::@constructor::named
+                substitution: {T: int}
+            argumentList: ArgumentList
+              leftParenthesis: ( @48
+              rightParenthesis: ) @49
+            staticType: A<int>
+          name: SimpleIdentifier
+            token: A @36
+            element: <testLibrary>::@class::A
+            staticType: null
+          typeArguments: TypeArgumentList
+            leftBracket: < @37
+            arguments
+              NamedType
+                name: int @38
+                element: dart:core::@class::int
+                type: int
+            rightBracket: > @41
+          period: . @42
+          constructorName: SimpleIdentifier
+            token: named @43
+            element: SubstitutedConstructorElementImpl
+              baseElement: <testLibrary>::@class::A::@constructor::named
+              substitution: {T: int}
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @48
+            rightParenthesis: ) @49
+          element: SubstitutedConstructorElementImpl
+            baseElement: <testLibrary>::@class::A::@constructor::named
+            substitution: {T: int}
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -2081,6 +2885,56 @@ library
       classes
         #F1 class C (nameOffset:49) (firstTokenOffset:27) (offset:49)
           element: <testLibrary>::@class::C
+          metadata
+            Annotation
+              atSign: @ @27
+              expression: ConstructorInvocation
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    importPrefix: ImportPrefixReference
+                      name: foo @28
+                      period: . @31
+                      element: <testLibraryFragment>::@prefix::foo
+                    name: A @32
+                    element: package:test/foo.dart::@class::A
+                    type: A
+                  selector: ConstructorSelector
+                    period: . @33
+                    name2: named @34
+                  element: package:test/foo.dart::@class::A::@constructor::named
+                argumentList: ArgumentList
+                  leftParenthesis: ( @39
+                  arguments2
+                    IntegerLiteral
+                      literal: 0 @40
+                      staticType: int
+                  rightParenthesis: ) @41
+                staticType: A
+              name: PrefixedIdentifier
+                prefix: SimpleIdentifier
+                  token: foo @28
+                  element: <testLibraryFragment>::@prefix::foo
+                  staticType: null
+                period: . @31
+                identifier: SimpleIdentifier
+                  token: A @32
+                  element: package:test/foo.dart::@class::A
+                  staticType: null
+                element: package:test/foo.dart::@class::A
+                staticType: null
+              period: . @33
+              constructorName: SimpleIdentifier
+                token: named @34
+                element: package:test/foo.dart::@class::A::@constructor::named
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @39
+                arguments
+                  IntegerLiteral
+                    literal: 0 @40
+                    staticType: int
+                rightParenthesis: ) @41
+              element: package:test/foo.dart::@class::A::@constructor::named
           constructors
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
               element: <testLibrary>::@class::C::@constructor::new
@@ -2089,6 +2943,56 @@ library
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: #F1
+      metadata
+        Annotation
+          atSign: @ @27
+          expression: ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                importPrefix: ImportPrefixReference
+                  name: foo @28
+                  period: . @31
+                  element: <testLibraryFragment>::@prefix::foo
+                name: A @32
+                element: package:test/foo.dart::@class::A
+                type: A
+              selector: ConstructorSelector
+                period: . @33
+                name2: named @34
+              element: package:test/foo.dart::@class::A::@constructor::named
+            argumentList: ArgumentList
+              leftParenthesis: ( @39
+              arguments2
+                IntegerLiteral
+                  literal: 0 @40
+                  staticType: int
+              rightParenthesis: ) @41
+            staticType: A
+          name: PrefixedIdentifier
+            prefix: SimpleIdentifier
+              token: foo @28
+              element: <testLibraryFragment>::@prefix::foo
+              staticType: null
+            period: . @31
+            identifier: SimpleIdentifier
+              token: A @32
+              element: package:test/foo.dart::@class::A
+              staticType: null
+            element: package:test/foo.dart::@class::A
+            staticType: null
+          period: . @33
+          constructorName: SimpleIdentifier
+            token: named @34
+            element: package:test/foo.dart::@class::A::@constructor::named
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @39
+            arguments
+              IntegerLiteral
+                literal: 0 @40
+                staticType: int
+            rightParenthesis: ) @41
+          element: package:test/foo.dart::@class::A::@constructor::named
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -2122,6 +3026,62 @@ library
       classes
         #F1 class C (nameOffset:49) (firstTokenOffset:27) (offset:49)
           element: <testLibrary>::@class::C
+          metadata
+            Annotation
+              atSign: @ @27
+              expression: ConstructorInvocation
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    importPrefix: ImportPrefixReference
+                      name: foo @28
+                      period: . @31
+                      element: <testLibraryFragment>::@prefix::foo
+                    name: A @32
+                    element: package:test/foo.dart::@class::A
+                    type: A<int>
+                  selector: ConstructorSelector
+                    period: . @33
+                    name2: named @34
+                  element: SubstitutedConstructorElementImpl
+                    baseElement: package:test/foo.dart::@class::A::@constructor::named
+                    substitution: {T: int}
+                argumentList: ArgumentList
+                  leftParenthesis: ( @39
+                  arguments2
+                    IntegerLiteral
+                      literal: 0 @40
+                      staticType: int
+                  rightParenthesis: ) @41
+                staticType: A<int>
+              name: PrefixedIdentifier
+                prefix: SimpleIdentifier
+                  token: foo @28
+                  element: <testLibraryFragment>::@prefix::foo
+                  staticType: null
+                period: . @31
+                identifier: SimpleIdentifier
+                  token: A @32
+                  element: package:test/foo.dart::@class::A
+                  staticType: null
+                element: package:test/foo.dart::@class::A
+                staticType: null
+              period: . @33
+              constructorName: SimpleIdentifier
+                token: named @34
+                element: SubstitutedConstructorElementImpl
+                  baseElement: package:test/foo.dart::@class::A::@constructor::named
+                  substitution: {T: int}
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @39
+                arguments
+                  IntegerLiteral
+                    literal: 0 @40
+                    staticType: int
+                rightParenthesis: ) @41
+              element: SubstitutedConstructorElementImpl
+                baseElement: package:test/foo.dart::@class::A::@constructor::named
+                substitution: {T: int}
           constructors
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
               element: <testLibrary>::@class::C::@constructor::new
@@ -2130,6 +3090,62 @@ library
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: #F1
+      metadata
+        Annotation
+          atSign: @ @27
+          expression: ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                importPrefix: ImportPrefixReference
+                  name: foo @28
+                  period: . @31
+                  element: <testLibraryFragment>::@prefix::foo
+                name: A @32
+                element: package:test/foo.dart::@class::A
+                type: A<int>
+              selector: ConstructorSelector
+                period: . @33
+                name2: named @34
+              element: SubstitutedConstructorElementImpl
+                baseElement: package:test/foo.dart::@class::A::@constructor::named
+                substitution: {T: int}
+            argumentList: ArgumentList
+              leftParenthesis: ( @39
+              arguments2
+                IntegerLiteral
+                  literal: 0 @40
+                  staticType: int
+              rightParenthesis: ) @41
+            staticType: A<int>
+          name: PrefixedIdentifier
+            prefix: SimpleIdentifier
+              token: foo @28
+              element: <testLibraryFragment>::@prefix::foo
+              staticType: null
+            period: . @31
+            identifier: SimpleIdentifier
+              token: A @32
+              element: package:test/foo.dart::@class::A
+              staticType: null
+            element: package:test/foo.dart::@class::A
+            staticType: null
+          period: . @33
+          constructorName: SimpleIdentifier
+            token: named @34
+            element: SubstitutedConstructorElementImpl
+              baseElement: package:test/foo.dart::@class::A::@constructor::named
+              substitution: {T: int}
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @39
+            arguments
+              IntegerLiteral
+                literal: 0 @40
+                staticType: int
+            rightParenthesis: ) @41
+          element: SubstitutedConstructorElementImpl
+            baseElement: package:test/foo.dart::@class::A::@constructor::named
+            substitution: {T: int}
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -2163,6 +3179,70 @@ library
       classes
         #F1 class C (nameOffset:53) (firstTokenOffset:27) (offset:53)
           element: <testLibrary>::@class::C
+          metadata
+            Annotation
+              atSign: @ @27
+              expression: ConstructorInvocation
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    importPrefix: ImportPrefixReference
+                      name: foo @28
+                      period: . @31
+                      element: <testLibraryFragment>::@prefix::foo
+                    name: A @32
+                    typeArguments: TypeArgumentList
+                      leftBracket: < @33
+                      arguments
+                        NamedType
+                          name: int @34
+                          element: dart:core::@class::int
+                          type: int
+                      rightBracket: > @37
+                    element: package:test/foo.dart::@class::A
+                    type: A<int>
+                  selector: ConstructorSelector
+                    period: . @38
+                    name2: named @39
+                  element: SubstitutedConstructorElementImpl
+                    baseElement: package:test/foo.dart::@class::A::@constructor::named
+                    substitution: {T: int}
+                argumentList: ArgumentList
+                  leftParenthesis: ( @44
+                  rightParenthesis: ) @45
+                staticType: A<int>
+              name: PrefixedIdentifier
+                prefix: SimpleIdentifier
+                  token: foo @28
+                  element: <testLibraryFragment>::@prefix::foo
+                  staticType: null
+                period: . @31
+                identifier: SimpleIdentifier
+                  token: A @32
+                  element: package:test/foo.dart::@class::A
+                  staticType: null
+                element: package:test/foo.dart::@class::A
+                staticType: null
+              typeArguments: TypeArgumentList
+                leftBracket: < @33
+                arguments
+                  NamedType
+                    name: int @34
+                    element: dart:core::@class::int
+                    type: int
+                rightBracket: > @37
+              period: . @38
+              constructorName: SimpleIdentifier
+                token: named @39
+                element: SubstitutedConstructorElementImpl
+                  baseElement: package:test/foo.dart::@class::A::@constructor::named
+                  substitution: {T: int}
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @44
+                rightParenthesis: ) @45
+              element: SubstitutedConstructorElementImpl
+                baseElement: package:test/foo.dart::@class::A::@constructor::named
+                substitution: {T: int}
           constructors
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
               element: <testLibrary>::@class::C::@constructor::new
@@ -2171,6 +3251,70 @@ library
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: #F1
+      metadata
+        Annotation
+          atSign: @ @27
+          expression: ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                importPrefix: ImportPrefixReference
+                  name: foo @28
+                  period: . @31
+                  element: <testLibraryFragment>::@prefix::foo
+                name: A @32
+                typeArguments: TypeArgumentList
+                  leftBracket: < @33
+                  arguments
+                    NamedType
+                      name: int @34
+                      element: dart:core::@class::int
+                      type: int
+                  rightBracket: > @37
+                element: package:test/foo.dart::@class::A
+                type: A<int>
+              selector: ConstructorSelector
+                period: . @38
+                name2: named @39
+              element: SubstitutedConstructorElementImpl
+                baseElement: package:test/foo.dart::@class::A::@constructor::named
+                substitution: {T: int}
+            argumentList: ArgumentList
+              leftParenthesis: ( @44
+              rightParenthesis: ) @45
+            staticType: A<int>
+          name: PrefixedIdentifier
+            prefix: SimpleIdentifier
+              token: foo @28
+              element: <testLibraryFragment>::@prefix::foo
+              staticType: null
+            period: . @31
+            identifier: SimpleIdentifier
+              token: A @32
+              element: package:test/foo.dart::@class::A
+              staticType: null
+            element: package:test/foo.dart::@class::A
+            staticType: null
+          typeArguments: TypeArgumentList
+            leftBracket: < @33
+            arguments
+              NamedType
+                name: int @34
+                element: dart:core::@class::int
+                type: int
+            rightBracket: > @37
+          period: . @38
+          constructorName: SimpleIdentifier
+            token: named @39
+            element: SubstitutedConstructorElementImpl
+              baseElement: package:test/foo.dart::@class::A::@constructor::named
+              substitution: {T: int}
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @44
+            rightParenthesis: ) @45
+          element: SubstitutedConstructorElementImpl
+            baseElement: package:test/foo.dart::@class::A::@constructor::named
+            substitution: {T: int}
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -2217,6 +3361,47 @@ library
               typeName: C
         #F6 class D (nameOffset:85) (firstTokenOffset:68) (offset:85)
           element: <testLibrary>::@class::D
+          metadata
+            Annotation
+              atSign: @ @68
+              expression: ConstructorInvocation
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    name: C @69
+                    element: <testLibrary>::@class::C
+                    type: C<dynamic>
+                  selector: ConstructorSelector
+                    period: . @70
+                    name2: named @71
+                  element: SubstitutedConstructorElementImpl
+                    baseElement: <testLibrary>::@class::C::@constructor::named
+                    substitution: {T: dynamic}
+                argumentList: ArgumentList
+                  leftParenthesis: ( @76
+                  rightParenthesis: ) @77
+                staticType: C<dynamic>
+              name: PrefixedIdentifier
+                prefix: SimpleIdentifier
+                  token: C @69
+                  element: <testLibrary>::@class::C
+                  staticType: null
+                period: . @70
+                identifier: SimpleIdentifier
+                  token: named @71
+                  element: SubstitutedConstructorElementImpl
+                    baseElement: <testLibrary>::@class::C::@constructor::named
+                    substitution: {T: dynamic}
+                  staticType: null
+                element: SubstitutedConstructorElementImpl
+                  baseElement: <testLibrary>::@class::C::@constructor::named
+                  substitution: {T: dynamic}
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @76
+                rightParenthesis: ) @77
+              element: SubstitutedConstructorElementImpl
+                baseElement: <testLibrary>::@class::C::@constructor::named
+                substitution: {T: dynamic}
           constructors
             #F7 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:85)
               element: <testLibrary>::@class::D::@constructor::new
@@ -2264,6 +3449,47 @@ library
     isSimplyBounded class D
       reference: <testLibrary>::@class::D
       firstFragment: #F6
+      metadata
+        Annotation
+          atSign: @ @68
+          expression: ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                name: C @69
+                element: <testLibrary>::@class::C
+                type: C<dynamic>
+              selector: ConstructorSelector
+                period: . @70
+                name2: named @71
+              element: SubstitutedConstructorElementImpl
+                baseElement: <testLibrary>::@class::C::@constructor::named
+                substitution: {T: dynamic}
+            argumentList: ArgumentList
+              leftParenthesis: ( @76
+              rightParenthesis: ) @77
+            staticType: C<dynamic>
+          name: PrefixedIdentifier
+            prefix: SimpleIdentifier
+              token: C @69
+              element: <testLibrary>::@class::C
+              staticType: null
+            period: . @70
+            identifier: SimpleIdentifier
+              token: named @71
+              element: SubstitutedConstructorElementImpl
+                baseElement: <testLibrary>::@class::C::@constructor::named
+                substitution: {T: dynamic}
+              staticType: null
+            element: SubstitutedConstructorElementImpl
+              baseElement: <testLibrary>::@class::C::@constructor::named
+              substitution: {T: dynamic}
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @76
+            rightParenthesis: ) @77
+          element: SubstitutedConstructorElementImpl
+            baseElement: <testLibrary>::@class::C::@constructor::named
+            substitution: {T: dynamic}
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::D::@constructor::new
@@ -2305,6 +3531,36 @@ library
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::_
         #F4 class C (nameOffset:43) (firstTokenOffset:31) (offset:43)
           element: <testLibrary>::@class::C
+          metadata
+            Annotation
+              atSign: @ @31
+              expression: ConstructorInvocation
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    name: A @32
+                    element: <testLibrary>::@class::A
+                    type: A
+                  element: <testLibrary>::@class::A::@constructor::new
+                argumentList: ArgumentList
+                  leftParenthesis: ( @33
+                  arguments2
+                    IntegerLiteral
+                      literal: 0 @34
+                      staticType: int
+                  rightParenthesis: ) @35
+                staticType: A
+              name: SimpleIdentifier
+                token: A @32
+                element: <testLibrary>::@class::A
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @33
+                arguments
+                  IntegerLiteral
+                    literal: 0 @34
+                    staticType: int
+                rightParenthesis: ) @35
+              element: <testLibrary>::@class::A::@constructor::new
           constructors
             #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:43)
               element: <testLibrary>::@class::C::@constructor::new
@@ -2324,6 +3580,36 @@ library
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: #F4
+      metadata
+        Annotation
+          atSign: @ @31
+          expression: ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                name: A @32
+                element: <testLibrary>::@class::A
+                type: A
+              element: <testLibrary>::@class::A::@constructor::new
+            argumentList: ArgumentList
+              leftParenthesis: ( @33
+              arguments2
+                IntegerLiteral
+                  literal: 0 @34
+                  staticType: int
+              rightParenthesis: ) @35
+            staticType: A
+          name: SimpleIdentifier
+            token: A @32
+            element: <testLibrary>::@class::A
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @33
+            arguments
+              IntegerLiteral
+                literal: 0 @34
+                staticType: int
+            rightParenthesis: ) @35
+          element: <testLibrary>::@class::A::@constructor::new
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -2530,6 +3816,40 @@ library
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::_
         #F5 class C (nameOffset:44) (firstTokenOffset:32) (offset:44)
           element: <testLibrary>::@class::C
+          metadata
+            Annotation
+              atSign: @ @32
+              expression: ConstructorInvocation
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    name: A @33
+                    element: <testLibrary>::@class::A
+                    type: A<int>
+                  element: SubstitutedConstructorElementImpl
+                    baseElement: <testLibrary>::@class::A::@constructor::new
+                    substitution: {T: int}
+                argumentList: ArgumentList
+                  leftParenthesis: ( @34
+                  arguments2
+                    IntegerLiteral
+                      literal: 0 @35
+                      staticType: int
+                  rightParenthesis: ) @36
+                staticType: A<int>
+              name: SimpleIdentifier
+                token: A @33
+                element: <testLibrary>::@class::A
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @34
+                arguments
+                  IntegerLiteral
+                    literal: 0 @35
+                    staticType: int
+                rightParenthesis: ) @36
+              element: SubstitutedConstructorElementImpl
+                baseElement: <testLibrary>::@class::A::@constructor::new
+                substitution: {T: int}
           constructors
             #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
               element: <testLibrary>::@class::C::@constructor::new
@@ -2552,6 +3872,40 @@ library
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: #F5
+      metadata
+        Annotation
+          atSign: @ @32
+          expression: ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                name: A @33
+                element: <testLibrary>::@class::A
+                type: A<int>
+              element: SubstitutedConstructorElementImpl
+                baseElement: <testLibrary>::@class::A::@constructor::new
+                substitution: {T: int}
+            argumentList: ArgumentList
+              leftParenthesis: ( @34
+              arguments2
+                IntegerLiteral
+                  literal: 0 @35
+                  staticType: int
+              rightParenthesis: ) @36
+            staticType: A<int>
+          name: SimpleIdentifier
+            token: A @33
+            element: <testLibrary>::@class::A
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @34
+            arguments
+              IntegerLiteral
+                literal: 0 @35
+                staticType: int
+            rightParenthesis: ) @36
+          element: SubstitutedConstructorElementImpl
+            baseElement: <testLibrary>::@class::A::@constructor::new
+            substitution: {T: int}
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -2587,6 +3941,48 @@ library
               typeNameOffset: 21
         #F4 class C (nameOffset:45) (firstTokenOffset:29) (offset:45)
           element: <testLibrary>::@class::C
+          metadata
+            Annotation
+              atSign: @ @29
+              expression: ConstructorInvocation
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    name: A @30
+                    typeArguments: TypeArgumentList
+                      leftBracket: < @31
+                      arguments
+                        NamedType
+                          name: int @32
+                          element: dart:core::@class::int
+                          type: int
+                      rightBracket: > @35
+                    element: <testLibrary>::@class::A
+                    type: A<int>
+                  element: SubstitutedConstructorElementImpl
+                    baseElement: <testLibrary>::@class::A::@constructor::new
+                    substitution: {T: int}
+                argumentList: ArgumentList
+                  leftParenthesis: ( @36
+                  rightParenthesis: ) @37
+                staticType: A<int>
+              name: SimpleIdentifier
+                token: A @30
+                element: <testLibrary>::@class::A
+                staticType: null
+              typeArguments: TypeArgumentList
+                leftBracket: < @31
+                arguments
+                  NamedType
+                    name: int @32
+                    element: dart:core::@class::int
+                    type: int
+                rightBracket: > @35
+              arguments: ArgumentList
+                leftParenthesis: ( @36
+                rightParenthesis: ) @37
+              element: SubstitutedConstructorElementImpl
+                baseElement: <testLibrary>::@class::A::@constructor::new
+                substitution: {T: int}
           constructors
             #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:45)
               element: <testLibrary>::@class::C::@constructor::new
@@ -2605,6 +4001,48 @@ library
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: #F4
+      metadata
+        Annotation
+          atSign: @ @29
+          expression: ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                name: A @30
+                typeArguments: TypeArgumentList
+                  leftBracket: < @31
+                  arguments
+                    NamedType
+                      name: int @32
+                      element: dart:core::@class::int
+                      type: int
+                  rightBracket: > @35
+                element: <testLibrary>::@class::A
+                type: A<int>
+              element: SubstitutedConstructorElementImpl
+                baseElement: <testLibrary>::@class::A::@constructor::new
+                substitution: {T: int}
+            argumentList: ArgumentList
+              leftParenthesis: ( @36
+              rightParenthesis: ) @37
+            staticType: A<int>
+          name: SimpleIdentifier
+            token: A @30
+            element: <testLibrary>::@class::A
+            staticType: null
+          typeArguments: TypeArgumentList
+            leftBracket: < @31
+            arguments
+              NamedType
+                name: int @32
+                element: dart:core::@class::int
+                type: int
+            rightBracket: > @35
+          arguments: ArgumentList
+            leftParenthesis: ( @36
+            rightParenthesis: ) @37
+          element: SubstitutedConstructorElementImpl
+            baseElement: <testLibrary>::@class::A::@constructor::new
+            substitution: {T: int}
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -2638,6 +4076,48 @@ library
       classes
         #F1 class C (nameOffset:43) (firstTokenOffset:27) (offset:43)
           element: <testLibrary>::@class::C
+          metadata
+            Annotation
+              atSign: @ @27
+              expression: ConstructorInvocation
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    importPrefix: ImportPrefixReference
+                      name: foo @28
+                      period: . @31
+                      element: <testLibraryFragment>::@prefix::foo
+                    name: A @32
+                    element: package:test/foo.dart::@class::A
+                    type: A
+                  element: package:test/foo.dart::@class::A::@constructor::new
+                argumentList: ArgumentList
+                  leftParenthesis: ( @33
+                  arguments2
+                    IntegerLiteral
+                      literal: 0 @34
+                      staticType: int
+                  rightParenthesis: ) @35
+                staticType: A
+              name: PrefixedIdentifier
+                prefix: SimpleIdentifier
+                  token: foo @28
+                  element: <testLibraryFragment>::@prefix::foo
+                  staticType: null
+                period: . @31
+                identifier: SimpleIdentifier
+                  token: A @32
+                  element: package:test/foo.dart::@class::A
+                  staticType: null
+                element: package:test/foo.dart::@class::A
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @33
+                arguments
+                  IntegerLiteral
+                    literal: 0 @34
+                    staticType: int
+                rightParenthesis: ) @35
+              element: package:test/foo.dart::@class::A::@constructor::new
           constructors
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:43)
               element: <testLibrary>::@class::C::@constructor::new
@@ -2646,6 +4126,48 @@ library
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: #F1
+      metadata
+        Annotation
+          atSign: @ @27
+          expression: ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                importPrefix: ImportPrefixReference
+                  name: foo @28
+                  period: . @31
+                  element: <testLibraryFragment>::@prefix::foo
+                name: A @32
+                element: package:test/foo.dart::@class::A
+                type: A
+              element: package:test/foo.dart::@class::A::@constructor::new
+            argumentList: ArgumentList
+              leftParenthesis: ( @33
+              arguments2
+                IntegerLiteral
+                  literal: 0 @34
+                  staticType: int
+              rightParenthesis: ) @35
+            staticType: A
+          name: PrefixedIdentifier
+            prefix: SimpleIdentifier
+              token: foo @28
+              element: <testLibraryFragment>::@prefix::foo
+              staticType: null
+            period: . @31
+            identifier: SimpleIdentifier
+              token: A @32
+              element: package:test/foo.dart::@class::A
+              staticType: null
+            element: package:test/foo.dart::@class::A
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @33
+            arguments
+              IntegerLiteral
+                literal: 0 @34
+                staticType: int
+            rightParenthesis: ) @35
+          element: package:test/foo.dart::@class::A::@constructor::new
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -2679,6 +4201,52 @@ library
       classes
         #F1 class C (nameOffset:43) (firstTokenOffset:27) (offset:43)
           element: <testLibrary>::@class::C
+          metadata
+            Annotation
+              atSign: @ @27
+              expression: ConstructorInvocation
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    importPrefix: ImportPrefixReference
+                      name: foo @28
+                      period: . @31
+                      element: <testLibraryFragment>::@prefix::foo
+                    name: A @32
+                    element: package:test/foo.dart::@class::A
+                    type: A<int>
+                  element: SubstitutedConstructorElementImpl
+                    baseElement: package:test/foo.dart::@class::A::@constructor::new
+                    substitution: {T: int}
+                argumentList: ArgumentList
+                  leftParenthesis: ( @33
+                  arguments2
+                    IntegerLiteral
+                      literal: 0 @34
+                      staticType: int
+                  rightParenthesis: ) @35
+                staticType: A<int>
+              name: PrefixedIdentifier
+                prefix: SimpleIdentifier
+                  token: foo @28
+                  element: <testLibraryFragment>::@prefix::foo
+                  staticType: null
+                period: . @31
+                identifier: SimpleIdentifier
+                  token: A @32
+                  element: package:test/foo.dart::@class::A
+                  staticType: null
+                element: package:test/foo.dart::@class::A
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @33
+                arguments
+                  IntegerLiteral
+                    literal: 0 @34
+                    staticType: int
+                rightParenthesis: ) @35
+              element: SubstitutedConstructorElementImpl
+                baseElement: package:test/foo.dart::@class::A::@constructor::new
+                substitution: {T: int}
           constructors
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:43)
               element: <testLibrary>::@class::C::@constructor::new
@@ -2687,6 +4255,52 @@ library
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: #F1
+      metadata
+        Annotation
+          atSign: @ @27
+          expression: ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                importPrefix: ImportPrefixReference
+                  name: foo @28
+                  period: . @31
+                  element: <testLibraryFragment>::@prefix::foo
+                name: A @32
+                element: package:test/foo.dart::@class::A
+                type: A<int>
+              element: SubstitutedConstructorElementImpl
+                baseElement: package:test/foo.dart::@class::A::@constructor::new
+                substitution: {T: int}
+            argumentList: ArgumentList
+              leftParenthesis: ( @33
+              arguments2
+                IntegerLiteral
+                  literal: 0 @34
+                  staticType: int
+              rightParenthesis: ) @35
+            staticType: A<int>
+          name: PrefixedIdentifier
+            prefix: SimpleIdentifier
+              token: foo @28
+              element: <testLibraryFragment>::@prefix::foo
+              staticType: null
+            period: . @31
+            identifier: SimpleIdentifier
+              token: A @32
+              element: package:test/foo.dart::@class::A
+              staticType: null
+            element: package:test/foo.dart::@class::A
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @33
+            arguments
+              IntegerLiteral
+                literal: 0 @34
+                staticType: int
+            rightParenthesis: ) @35
+          element: SubstitutedConstructorElementImpl
+            baseElement: package:test/foo.dart::@class::A::@constructor::new
+            substitution: {T: int}
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -2720,6 +4334,60 @@ library
       classes
         #F1 class C (nameOffset:47) (firstTokenOffset:27) (offset:47)
           element: <testLibrary>::@class::C
+          metadata
+            Annotation
+              atSign: @ @27
+              expression: ConstructorInvocation
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    importPrefix: ImportPrefixReference
+                      name: foo @28
+                      period: . @31
+                      element: <testLibraryFragment>::@prefix::foo
+                    name: A @32
+                    typeArguments: TypeArgumentList
+                      leftBracket: < @33
+                      arguments
+                        NamedType
+                          name: int @34
+                          element: dart:core::@class::int
+                          type: int
+                      rightBracket: > @37
+                    element: package:test/foo.dart::@class::A
+                    type: A<int>
+                  element: SubstitutedConstructorElementImpl
+                    baseElement: package:test/foo.dart::@class::A::@constructor::new
+                    substitution: {T: int}
+                argumentList: ArgumentList
+                  leftParenthesis: ( @38
+                  rightParenthesis: ) @39
+                staticType: A<int>
+              name: PrefixedIdentifier
+                prefix: SimpleIdentifier
+                  token: foo @28
+                  element: <testLibraryFragment>::@prefix::foo
+                  staticType: null
+                period: . @31
+                identifier: SimpleIdentifier
+                  token: A @32
+                  element: package:test/foo.dart::@class::A
+                  staticType: null
+                element: package:test/foo.dart::@class::A
+                staticType: null
+              typeArguments: TypeArgumentList
+                leftBracket: < @33
+                arguments
+                  NamedType
+                    name: int @34
+                    element: dart:core::@class::int
+                    type: int
+                rightBracket: > @37
+              arguments: ArgumentList
+                leftParenthesis: ( @38
+                rightParenthesis: ) @39
+              element: SubstitutedConstructorElementImpl
+                baseElement: package:test/foo.dart::@class::A::@constructor::new
+                substitution: {T: int}
           constructors
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:47)
               element: <testLibrary>::@class::C::@constructor::new
@@ -2728,6 +4396,60 @@ library
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: #F1
+      metadata
+        Annotation
+          atSign: @ @27
+          expression: ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                importPrefix: ImportPrefixReference
+                  name: foo @28
+                  period: . @31
+                  element: <testLibraryFragment>::@prefix::foo
+                name: A @32
+                typeArguments: TypeArgumentList
+                  leftBracket: < @33
+                  arguments
+                    NamedType
+                      name: int @34
+                      element: dart:core::@class::int
+                      type: int
+                  rightBracket: > @37
+                element: package:test/foo.dart::@class::A
+                type: A<int>
+              element: SubstitutedConstructorElementImpl
+                baseElement: package:test/foo.dart::@class::A::@constructor::new
+                substitution: {T: int}
+            argumentList: ArgumentList
+              leftParenthesis: ( @38
+              rightParenthesis: ) @39
+            staticType: A<int>
+          name: PrefixedIdentifier
+            prefix: SimpleIdentifier
+              token: foo @28
+              element: <testLibraryFragment>::@prefix::foo
+              staticType: null
+            period: . @31
+            identifier: SimpleIdentifier
+              token: A @32
+              element: package:test/foo.dart::@class::A
+              staticType: null
+            element: package:test/foo.dart::@class::A
+            staticType: null
+          typeArguments: TypeArgumentList
+            leftBracket: < @33
+            arguments
+              NamedType
+                name: int @34
+                element: dart:core::@class::int
+                type: int
+            rightBracket: > @37
+          arguments: ArgumentList
+            leftParenthesis: ( @38
+            rightParenthesis: ) @39
+          element: SubstitutedConstructorElementImpl
+            baseElement: package:test/foo.dart::@class::A::@constructor::new
+            substitution: {T: int}
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -2773,6 +4495,32 @@ library
               typeName: C
         #F6 class D (nameOffset:73) (firstTokenOffset:62) (offset:73)
           element: <testLibrary>::@class::D
+          metadata
+            Annotation
+              atSign: @ @62
+              expression: ConstructorInvocation
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    name: C @63
+                    element: <testLibrary>::@class::C
+                    type: C<dynamic>
+                  element: SubstitutedConstructorElementImpl
+                    baseElement: <testLibrary>::@class::C::@constructor::new
+                    substitution: {T: dynamic}
+                argumentList: ArgumentList
+                  leftParenthesis: ( @64
+                  rightParenthesis: ) @65
+                staticType: C<dynamic>
+              name: SimpleIdentifier
+                token: C @63
+                element: <testLibrary>::@class::C
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @64
+                rightParenthesis: ) @65
+              element: SubstitutedConstructorElementImpl
+                baseElement: <testLibrary>::@class::C::@constructor::new
+                substitution: {T: dynamic}
           constructors
             #F7 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:73)
               element: <testLibrary>::@class::D::@constructor::new
@@ -2812,6 +4560,32 @@ library
     isSimplyBounded class D
       reference: <testLibrary>::@class::D
       firstFragment: #F6
+      metadata
+        Annotation
+          atSign: @ @62
+          expression: ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                name: C @63
+                element: <testLibrary>::@class::C
+                type: C<dynamic>
+              element: SubstitutedConstructorElementImpl
+                baseElement: <testLibrary>::@class::C::@constructor::new
+                substitution: {T: dynamic}
+            argumentList: ArgumentList
+              leftParenthesis: ( @64
+              rightParenthesis: ) @65
+            staticType: C<dynamic>
+          name: SimpleIdentifier
+            token: C @63
+            element: <testLibrary>::@class::C
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @64
+            rightParenthesis: ) @65
+          element: SubstitutedConstructorElementImpl
+            baseElement: <testLibrary>::@class::C::@constructor::new
+            substitution: {T: dynamic}
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::D::@constructor::new
@@ -2853,6 +4627,36 @@ library
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
         #F4 class C (nameOffset:42) (firstTokenOffset:27) (offset:42)
           element: <testLibrary>::@class::C
+          metadata
+            Annotation
+              atSign: @ @27
+              expression: ConstructorInvocation
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    name: A @28
+                    element: <testLibrary>::@class::A
+                    type: A
+                  element: <testLibrary>::@class::A::@constructor::new
+                argumentList: ArgumentList
+                  leftParenthesis: ( @29
+                  arguments2
+                    NullLiteral
+                      literal: null @30
+                      staticType: Null
+                  rightParenthesis: ) @34
+                staticType: A
+              name: SimpleIdentifier
+                token: A @28
+                element: <testLibrary>::@class::A
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @29
+                arguments
+                  NullLiteral
+                    literal: null @30
+                    staticType: Null
+                rightParenthesis: ) @34
+              element: <testLibrary>::@class::A::@constructor::new
           constructors
             #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
               element: <testLibrary>::@class::C::@constructor::new
@@ -2872,6 +4676,36 @@ library
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: #F4
+      metadata
+        Annotation
+          atSign: @ @27
+          expression: ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                name: A @28
+                element: <testLibrary>::@class::A
+                type: A
+              element: <testLibrary>::@class::A::@constructor::new
+            argumentList: ArgumentList
+              leftParenthesis: ( @29
+              arguments2
+                NullLiteral
+                  literal: null @30
+                  staticType: Null
+              rightParenthesis: ) @34
+            staticType: A
+          name: SimpleIdentifier
+            token: A @28
+            element: <testLibrary>::@class::A
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @29
+            arguments
+              NullLiteral
+                literal: null @30
+                staticType: Null
+            rightParenthesis: ) @34
+          element: <testLibrary>::@class::A::@constructor::new
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -4877,6 +6711,36 @@ library
       classes
         #F1 class C (nameOffset:22) (firstTokenOffset:9) (offset:22)
           element: <testLibrary>::@class::C
+          metadata
+            Annotation
+              atSign: @ @9
+              expression: ConstructorInvocation
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    name: f @10
+                    element: <testLibrary>::@function::f
+                    type: InvalidType
+                  element: <null>
+                argumentList: ArgumentList
+                  leftParenthesis: ( @11
+                  arguments2
+                    IntegerLiteral
+                      literal: 42 @12
+                      staticType: int
+                  rightParenthesis: ) @14
+                staticType: InvalidType
+              name: SimpleIdentifier
+                token: f @10
+                element: <testLibrary>::@function::f
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @11
+                arguments
+                  IntegerLiteral
+                    literal: 42 @12
+                    staticType: int
+                rightParenthesis: ) @14
+              element: <null>
           constructors
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@class::C::@constructor::new
@@ -4891,6 +6755,36 @@ library
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: #F1
+      metadata
+        Annotation
+          atSign: @ @9
+          expression: ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                name: f @10
+                element: <testLibrary>::@function::f
+                type: InvalidType
+              element: <null>
+            argumentList: ArgumentList
+              leftParenthesis: ( @11
+              arguments2
+                IntegerLiteral
+                  literal: 42 @12
+                  staticType: int
+              rightParenthesis: ) @14
+            staticType: InvalidType
+          name: SimpleIdentifier
+            token: f @10
+            element: <testLibrary>::@function::f
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @11
+            arguments
+              IntegerLiteral
+                literal: 42 @12
+                staticType: int
+            rightParenthesis: ) @14
+          element: <null>
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -5580,6 +7474,20 @@ library
       mixins
         #F1 mixin M (nameOffset:27) (firstTokenOffset:16) (offset:27)
           element: <testLibrary>::@mixin::M
+          metadata
+            Annotation
+              atSign: @ @16
+              expression: UnqualifiedNameExpression
+                name: foo @17
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::foo
+                  type: int
+                staticType: int
+              name: SimpleIdentifier
+                token: foo @17
+                element: <testLibrary>::@getter::foo
+                staticType: null
+              element: <testLibrary>::@getter::foo
           typeParameters
             #F2 T (nameOffset:34) (firstTokenOffset:29) (offset:34)
               element: #E0 T
@@ -5642,6 +7550,20 @@ library
     isSimplyBounded mixin M
       reference: <testLibrary>::@mixin::M
       firstFragment: #F1
+      metadata
+        Annotation
+          atSign: @ @16
+          expression: UnqualifiedNameExpression
+            name: foo @17
+            resolution: GetterInvocationResolution
+              element: <testLibrary>::@getter::foo
+              type: int
+            staticType: int
+          name: SimpleIdentifier
+            token: foo @17
+            element: <testLibrary>::@getter::foo
+            staticType: null
+          element: <testLibrary>::@getter::foo
       typeParameters
         #E0 T
           firstFragment: #F2
@@ -5727,6 +7649,33 @@ library
       mixins
         #F1 mixin M (nameOffset:45) (firstTokenOffset:33) (offset:45)
           element: <testLibrary>::@mixin::M
+          metadata
+            Annotation
+              atSign: @ @33
+              expression: UnqualifiedNameExpression
+                name: a @34
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::a
+                  type: dynamic
+                staticType: dynamic
+              name: SimpleIdentifier
+                token: a @34
+                element: <testLibrary>::@getter::a
+                staticType: null
+              element: <testLibrary>::@getter::a
+            Annotation
+              atSign: @ @36
+              expression: UnqualifiedNameExpression
+                name: b @37
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::b
+                  type: dynamic
+                staticType: dynamic
+              name: SimpleIdentifier
+                token: b @37
+                element: <testLibrary>::@getter::b
+                staticType: null
+              element: <testLibrary>::@getter::b
       topLevelVariables
         #F2 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::a
@@ -5753,6 +7702,33 @@ library
     isSimplyBounded mixin M
       reference: <testLibrary>::@mixin::M
       firstFragment: #F1
+      metadata
+        Annotation
+          atSign: @ @33
+          expression: UnqualifiedNameExpression
+            name: a @34
+            resolution: GetterInvocationResolution
+              element: <testLibrary>::@getter::a
+              type: dynamic
+            staticType: dynamic
+          name: SimpleIdentifier
+            token: a @34
+            element: <testLibrary>::@getter::a
+            staticType: null
+          element: <testLibrary>::@getter::a
+        Annotation
+          atSign: @ @36
+          expression: UnqualifiedNameExpression
+            name: b @37
+            resolution: GetterInvocationResolution
+              element: <testLibrary>::@getter::b
+              type: dynamic
+            staticType: dynamic
+          name: SimpleIdentifier
+            token: b @37
+            element: <testLibrary>::@getter::b
+            staticType: null
+          element: <testLibrary>::@getter::b
       superclassConstraints
         Object
   topLevelVariables
@@ -5798,6 +7774,20 @@ library
       classes
         #F1 class A (nameOffset:27) (firstTokenOffset:16) (offset:27)
           element: <testLibrary>::@class::A
+          metadata
+            Annotation
+              atSign: @ @16
+              expression: UnqualifiedNameExpression
+                name: foo @17
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::foo
+                  type: int
+                staticType: int
+              name: SimpleIdentifier
+                token: foo @17
+                element: <testLibrary>::@getter::foo
+                staticType: null
+              element: <testLibrary>::@getter::foo
           typeParameters
             #F2 T (nameOffset:34) (firstTokenOffset:29) (offset:34)
               element: #E0 T
@@ -5835,6 +7825,20 @@ library
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
+      metadata
+        Annotation
+          atSign: @ @16
+          expression: UnqualifiedNameExpression
+            name: foo @17
+            resolution: GetterInvocationResolution
+              element: <testLibrary>::@getter::foo
+              type: int
+            staticType: int
+          name: SimpleIdentifier
+            token: foo @17
+            element: <testLibrary>::@getter::foo
+            staticType: null
+          element: <testLibrary>::@getter::foo
       typeParameters
         #E0 T
           firstFragment: #F2
@@ -6426,6 +8430,20 @@ library
               typeName: A
         #F3 isMixinApplication class B (nameOffset:51) (firstTokenOffset:40) (offset:51)
           element: <testLibrary>::@class::B
+          metadata
+            Annotation
+              atSign: @ @40
+              expression: UnqualifiedNameExpression
+                name: foo @41
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::foo
+                  type: int
+                staticType: int
+              name: SimpleIdentifier
+                token: foo @41
+                element: <testLibrary>::@getter::foo
+                staticType: null
+              element: <testLibrary>::@getter::foo
           typeParameters
             #F4 T (nameOffset:58) (firstTokenOffset:53) (offset:58)
               element: #E0 T
@@ -6473,6 +8491,20 @@ library
     isMixinApplication isSimplyBounded class B
       reference: <testLibrary>::@class::B
       firstFragment: #F3
+      metadata
+        Annotation
+          atSign: @ @40
+          expression: UnqualifiedNameExpression
+            name: foo @41
+            resolution: GetterInvocationResolution
+              element: <testLibrary>::@getter::foo
+              type: int
+            staticType: int
+          name: SimpleIdentifier
+            token: foo @41
+            element: <testLibrary>::@getter::foo
+            staticType: null
+          element: <testLibrary>::@getter::foo
       typeParameters
         #E0 T
           firstFragment: #F4
@@ -6549,6 +8581,20 @@ library
       enums
         #F1 enum E (nameOffset:26) (firstTokenOffset:16) (offset:26)
           element: <testLibrary>::@enum::E
+          metadata
+            Annotation
+              atSign: @ @16
+              expression: UnqualifiedNameExpression
+                name: foo @17
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::foo
+                  type: int
+                staticType: int
+              name: SimpleIdentifier
+                token: foo @17
+                element: <testLibrary>::@getter::foo
+                staticType: null
+              element: <testLibrary>::@getter::foo
           fields
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic e1 (nameOffset:39) (firstTokenOffset:32) (offset:39)
               element: <testLibrary>::@enum::E::@field::e1
@@ -6732,6 +8778,20 @@ library
     isSimplyBounded enum E
       reference: <testLibrary>::@enum::E
       firstFragment: #F1
+      metadata
+        Annotation
+          atSign: @ @16
+          expression: UnqualifiedNameExpression
+            name: foo @17
+            resolution: GetterInvocationResolution
+              element: <testLibrary>::@getter::foo
+              type: int
+            staticType: int
+          name: SimpleIdentifier
+            token: foo @17
+            element: <testLibrary>::@getter::foo
+            staticType: null
+          element: <testLibrary>::@getter::foo
       supertype: Enum
       fields
         hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer e1
@@ -6847,6 +8907,20 @@ library
       extensions
         #F1 extension E (nameOffset:31) (firstTokenOffset:16) (offset:31)
           element: <testLibrary>::@extension::E
+          metadata
+            Annotation
+              atSign: @ @16
+              expression: UnqualifiedNameExpression
+                name: foo @17
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::foo
+                  type: int
+                staticType: int
+              name: SimpleIdentifier
+                token: foo @17
+                element: <testLibrary>::@getter::foo
+                staticType: null
+              element: <testLibrary>::@getter::foo
           typeParameters
             #F2 T (nameOffset:38) (firstTokenOffset:33) (offset:38)
               element: #E0 T
@@ -6880,6 +8954,20 @@ library
     extension E
       reference: <testLibrary>::@extension::E
       firstFragment: #F1
+      metadata
+        Annotation
+          atSign: @ @16
+          expression: UnqualifiedNameExpression
+            name: foo @17
+            resolution: GetterInvocationResolution
+              element: <testLibrary>::@getter::foo
+              type: int
+            staticType: int
+          name: SimpleIdentifier
+            token: foo @17
+            element: <testLibrary>::@getter::foo
+            staticType: null
+          element: <testLibrary>::@getter::foo
       typeParameters
         #E0 T
           firstFragment: #F2
@@ -7230,6 +9318,20 @@ library
       mixins
         #F1 mixin A (nameOffset:27) (firstTokenOffset:16) (offset:27)
           element: <testLibrary>::@mixin::A
+          metadata
+            Annotation
+              atSign: @ @16
+              expression: UnqualifiedNameExpression
+                name: foo @17
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::foo
+                  type: int
+                staticType: int
+              name: SimpleIdentifier
+                token: foo @17
+                element: <testLibrary>::@getter::foo
+                staticType: null
+              element: <testLibrary>::@getter::foo
           typeParameters
             #F2 T (nameOffset:34) (firstTokenOffset:29) (offset:34)
               element: #E0 T
@@ -7263,6 +9365,20 @@ library
     isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A
       firstFragment: #F1
+      metadata
+        Annotation
+          atSign: @ @16
+          expression: UnqualifiedNameExpression
+            name: foo @17
+            resolution: GetterInvocationResolution
+              element: <testLibrary>::@getter::foo
+              type: int
+            staticType: int
+          name: SimpleIdentifier
+            token: foo @17
+            element: <testLibrary>::@getter::foo
+            staticType: null
+          element: <testLibrary>::@getter::foo
       typeParameters
         #E0 T
           firstFragment: #F2
@@ -8439,6 +10555,20 @@ library
       classes
         #F2 class A (nameOffset:39) (firstTokenOffset:21) (offset:39)
           element: <testLibrary>::@class::A
+          metadata
+            Annotation
+              atSign: @ @21
+              expression: UnqualifiedNameExpression
+                name: deprecated @22
+                resolution: GetterInvocationResolution
+                  element: dart:core::@getter::deprecated
+                  type: Deprecated
+                staticType: Deprecated
+              name: SimpleIdentifier
+                token: deprecated @22
+                element: dart:core::@getter::deprecated
+                staticType: null
+              element: dart:core::@getter::deprecated
           constructors
             #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
               element: <testLibrary>::@class::A::@constructor::new
@@ -8447,6 +10577,20 @@ library
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: #F2
+      metadata
+        Annotation
+          atSign: @ @21
+          expression: UnqualifiedNameExpression
+            name: deprecated @22
+            resolution: GetterInvocationResolution
+              element: dart:core::@getter::deprecated
+              type: Deprecated
+            staticType: Deprecated
+          name: SimpleIdentifier
+            token: deprecated @22
+            element: dart:core::@getter::deprecated
+            staticType: null
+          element: dart:core::@getter::deprecated
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
@@ -8624,6 +10768,32 @@ library
       classes
         #F1 class C (nameOffset:34) (firstTokenOffset:23) (offset:34)
           element: <testLibrary>::@class::C
+          metadata
+            Annotation
+              atSign: @ @23
+              expression: ImportPrefixedNameExpression
+                importPrefix: ImportPrefixReference
+                  name: a @24
+                  period: . @25
+                  element: <testLibraryFragment>::@prefix::a
+                name: b @26
+                resolution: GetterInvocationResolution
+                  element: package:test/a.dart::@getter::b
+                  type: dynamic
+                staticType: dynamic
+              name: PrefixedIdentifier
+                prefix: SimpleIdentifier
+                  token: a @24
+                  element: <testLibraryFragment>::@prefix::a
+                  staticType: null
+                period: . @25
+                identifier: SimpleIdentifier
+                  token: b @26
+                  element: package:test/a.dart::@getter::b
+                  staticType: null
+                element: package:test/a.dart::@getter::b
+                staticType: null
+              element: package:test/a.dart::@getter::b
           constructors
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
               element: <testLibrary>::@class::C::@constructor::new
@@ -8632,6 +10802,32 @@ library
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: #F1
+      metadata
+        Annotation
+          atSign: @ @23
+          expression: ImportPrefixedNameExpression
+            importPrefix: ImportPrefixReference
+              name: a @24
+              period: . @25
+              element: <testLibraryFragment>::@prefix::a
+            name: b @26
+            resolution: GetterInvocationResolution
+              element: package:test/a.dart::@getter::b
+              type: dynamic
+            staticType: dynamic
+          name: PrefixedIdentifier
+            prefix: SimpleIdentifier
+              token: a @24
+              element: <testLibraryFragment>::@prefix::a
+              staticType: null
+            period: . @25
+            identifier: SimpleIdentifier
+              token: b @26
+              element: package:test/a.dart::@getter::b
+              staticType: null
+            element: package:test/a.dart::@getter::b
+            staticType: null
+          element: package:test/a.dart::@getter::b
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -12409,6 +14605,32 @@ library
               inducingVariable: #F2
         #F5 class C (nameOffset:46) (firstTokenOffset:35) (offset:46)
           element: <testLibrary>::@class::C
+          metadata
+            Annotation
+              atSign: @ @35
+              expression: ReceiverPropertyExtraction
+                receiver: StaticQualifier
+                  name: A @36
+                  element: <testLibrary>::@class::A
+                operator: . @37
+                name: x @38
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@class::A::@getter::x
+                  type: int
+                staticType: int
+              name: PrefixedIdentifier
+                prefix: SimpleIdentifier
+                  token: A @36
+                  element: <testLibrary>::@class::A
+                  staticType: null
+                period: . @37
+                identifier: SimpleIdentifier
+                  token: x @38
+                  element: <testLibrary>::@class::A::@getter::x
+                  staticType: null
+                element: <testLibrary>::@class::A::@getter::x
+                staticType: null
+              element: <testLibrary>::@class::A::@getter::x
           constructors
             #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:46)
               element: <testLibrary>::@class::C::@constructor::new
@@ -12437,6 +14659,32 @@ library
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: #F5
+      metadata
+        Annotation
+          atSign: @ @35
+          expression: ReceiverPropertyExtraction
+            receiver: StaticQualifier
+              name: A @36
+              element: <testLibrary>::@class::A
+            operator: . @37
+            name: x @38
+            resolution: GetterInvocationResolution
+              element: <testLibrary>::@class::A::@getter::x
+              type: int
+            staticType: int
+          name: PrefixedIdentifier
+            prefix: SimpleIdentifier
+              token: A @36
+              element: <testLibrary>::@class::A
+              staticType: null
+            period: . @37
+            identifier: SimpleIdentifier
+              token: x @38
+              element: <testLibrary>::@class::A::@getter::x
+              staticType: null
+            element: <testLibrary>::@class::A::@getter::x
+            staticType: null
+          element: <testLibrary>::@class::A::@getter::x
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -12460,6 +14708,32 @@ library
       classes
         #F1 class C (nameOffset:31) (firstTokenOffset:20) (offset:31)
           element: <testLibrary>::@class::C
+          metadata
+            Annotation
+              atSign: @ @20
+              expression: ReceiverPropertyExtraction
+                receiver: StaticQualifier
+                  name: E @21
+                  element: <testLibrary>::@enum::E
+                operator: . @22
+                name: b @23
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@enum::E::@getter::b
+                  type: E
+                staticType: E
+              name: PrefixedIdentifier
+                prefix: SimpleIdentifier
+                  token: E @21
+                  element: <testLibrary>::@enum::E
+                  staticType: null
+                period: . @22
+                identifier: SimpleIdentifier
+                  token: b @23
+                  element: <testLibrary>::@enum::E::@getter::b
+                  staticType: null
+                element: <testLibrary>::@enum::E::@getter::b
+                staticType: null
+              element: <testLibrary>::@enum::E::@getter::b
           constructors
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: <testLibrary>::@class::C::@constructor::new
@@ -12610,6 +14884,32 @@ library
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: #F1
+      metadata
+        Annotation
+          atSign: @ @20
+          expression: ReceiverPropertyExtraction
+            receiver: StaticQualifier
+              name: E @21
+              element: <testLibrary>::@enum::E
+            operator: . @22
+            name: b @23
+            resolution: GetterInvocationResolution
+              element: <testLibrary>::@enum::E::@getter::b
+              type: E
+            staticType: E
+          name: PrefixedIdentifier
+            prefix: SimpleIdentifier
+              token: E @21
+              element: <testLibrary>::@enum::E
+              staticType: null
+            period: . @22
+            identifier: SimpleIdentifier
+              token: b @23
+              element: <testLibrary>::@enum::E::@getter::b
+              staticType: null
+            element: <testLibrary>::@enum::E::@getter::b
+            staticType: null
+          element: <testLibrary>::@enum::E::@getter::b
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -12694,6 +14994,32 @@ library
       classes
         #F1 class C (nameOffset:57) (firstTokenOffset:46) (offset:57)
           element: <testLibrary>::@class::C
+          metadata
+            Annotation
+              atSign: @ @46
+              expression: ReceiverPropertyExtraction
+                receiver: StaticQualifier
+                  name: E @47
+                  element: <testLibrary>::@extension::E
+                operator: . @48
+                name: x @49
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@extension::E::@getter::x
+                  type: int
+                staticType: int
+              name: PrefixedIdentifier
+                prefix: SimpleIdentifier
+                  token: E @47
+                  element: <testLibrary>::@extension::E
+                  staticType: null
+                period: . @48
+                identifier: SimpleIdentifier
+                  token: x @49
+                  element: <testLibrary>::@extension::E::@getter::x
+                  staticType: null
+                element: <testLibrary>::@extension::E::@getter::x
+                staticType: null
+              element: <testLibrary>::@extension::E::@getter::x
           constructors
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
               element: <testLibrary>::@class::C::@constructor::new
@@ -12717,6 +15043,32 @@ library
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: #F1
+      metadata
+        Annotation
+          atSign: @ @46
+          expression: ReceiverPropertyExtraction
+            receiver: StaticQualifier
+              name: E @47
+              element: <testLibrary>::@extension::E
+            operator: . @48
+            name: x @49
+            resolution: GetterInvocationResolution
+              element: <testLibrary>::@extension::E::@getter::x
+              type: int
+            staticType: int
+          name: PrefixedIdentifier
+            prefix: SimpleIdentifier
+              token: E @47
+              element: <testLibrary>::@extension::E
+              staticType: null
+            period: . @48
+            identifier: SimpleIdentifier
+              token: x @49
+              element: <testLibrary>::@extension::E::@getter::x
+              staticType: null
+            element: <testLibrary>::@extension::E::@getter::x
+            staticType: null
+          element: <testLibrary>::@extension::E::@getter::x
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -12847,6 +15199,41 @@ library
       classes
         #F1 class C (nameOffset:42) (firstTokenOffset:27) (offset:42)
           element: <testLibrary>::@class::C
+          metadata
+            Annotation
+              atSign: @ @27
+              expression: ReceiverPropertyExtraction
+                receiver: StaticQualifier
+                  importPrefix: ImportPrefixReference
+                    name: foo @28
+                    period: . @31
+                    element: <testLibraryFragment>::@prefix::foo
+                  name: E @32
+                  element: package:test/foo.dart::@extension::E
+                operator: . @33
+                name: x @34
+                resolution: GetterInvocationResolution
+                  element: package:test/foo.dart::@extension::E::@getter::x
+                  type: int
+                staticType: int
+              name: PrefixedIdentifier
+                prefix: SimpleIdentifier
+                  token: foo @28
+                  element: <testLibraryFragment>::@prefix::foo
+                  staticType: null
+                period: . @31
+                identifier: SimpleIdentifier
+                  token: E @32
+                  element: package:test/foo.dart::@extension::E
+                  staticType: null
+                element: package:test/foo.dart::@extension::E
+                staticType: null
+              period: . @33
+              constructorName: SimpleIdentifier
+                token: x @34
+                element: package:test/foo.dart::@extension::E::@getter::x
+                staticType: null
+              element: package:test/foo.dart::@extension::E::@getter::x
           constructors
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
               element: <testLibrary>::@class::C::@constructor::new
@@ -12855,6 +15242,41 @@ library
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: #F1
+      metadata
+        Annotation
+          atSign: @ @27
+          expression: ReceiverPropertyExtraction
+            receiver: StaticQualifier
+              importPrefix: ImportPrefixReference
+                name: foo @28
+                period: . @31
+                element: <testLibraryFragment>::@prefix::foo
+              name: E @32
+              element: package:test/foo.dart::@extension::E
+            operator: . @33
+            name: x @34
+            resolution: GetterInvocationResolution
+              element: package:test/foo.dart::@extension::E::@getter::x
+              type: int
+            staticType: int
+          name: PrefixedIdentifier
+            prefix: SimpleIdentifier
+              token: foo @28
+              element: <testLibraryFragment>::@prefix::foo
+              staticType: null
+            period: . @31
+            identifier: SimpleIdentifier
+              token: E @32
+              element: package:test/foo.dart::@extension::E
+              staticType: null
+            element: package:test/foo.dart::@extension::E
+            staticType: null
+          period: . @33
+          constructorName: SimpleIdentifier
+            token: x @34
+            element: package:test/foo.dart::@extension::E::@getter::x
+            staticType: null
+          element: package:test/foo.dart::@extension::E::@getter::x
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -12890,6 +15312,41 @@ library
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::_
         #F4 class C (nameOffset:43) (firstTokenOffset:27) (offset:43)
           element: <testLibrary>::@class::C
+          metadata
+            Annotation
+              atSign: @ @27
+              expression: ConstructorInvocation
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    name: A @28
+                    element: <testLibrary>::@class::A
+                    type: A
+                  element: <testLibrary>::@class::A::@constructor::new
+                argumentList: ArgumentList
+                  leftParenthesis: ( @29
+                  arguments2
+                    InvalidSuperExpression
+                      superReference: SuperReference
+                        superKeyword: super @30
+                      staticType: InvalidType
+                  arguments(v1)
+                    SuperExpression
+                      superKeyword: super @30
+                      staticType: InvalidType
+                  rightParenthesis: ) @35
+                staticType: A
+              name: SimpleIdentifier
+                token: A @28
+                element: <testLibrary>::@class::A
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @29
+                arguments
+                  SuperExpression
+                    superKeyword: super @30
+                    staticType: InvalidType
+                rightParenthesis: ) @35
+              element: <testLibrary>::@class::A::@constructor::new
           constructors
             #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:43)
               element: <testLibrary>::@class::C::@constructor::new
@@ -12909,6 +15366,41 @@ library
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: #F4
+      metadata
+        Annotation
+          atSign: @ @27
+          expression: ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                name: A @28
+                element: <testLibrary>::@class::A
+                type: A
+              element: <testLibrary>::@class::A::@constructor::new
+            argumentList: ArgumentList
+              leftParenthesis: ( @29
+              arguments2
+                InvalidSuperExpression
+                  superReference: SuperReference
+                    superKeyword: super @30
+                  staticType: InvalidType
+              arguments(v1)
+                SuperExpression
+                  superKeyword: super @30
+                  staticType: InvalidType
+              rightParenthesis: ) @35
+            staticType: A
+          name: SimpleIdentifier
+            token: A @28
+            element: <testLibrary>::@class::A
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @29
+            arguments
+              SuperExpression
+                superKeyword: super @30
+                staticType: InvalidType
+            rightParenthesis: ) @35
+          element: <testLibrary>::@class::A::@constructor::new
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -12944,6 +15436,36 @@ library
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::_
         #F4 class C (nameOffset:42) (firstTokenOffset:27) (offset:42)
           element: <testLibrary>::@class::C
+          metadata
+            Annotation
+              atSign: @ @27
+              expression: ConstructorInvocation
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    name: A @28
+                    element: <testLibrary>::@class::A
+                    type: A
+                  element: <testLibrary>::@class::A::@constructor::new
+                argumentList: ArgumentList
+                  leftParenthesis: ( @29
+                  arguments2
+                    ThisExpression
+                      thisKeyword: this @30
+                      staticType: InvalidType
+                  rightParenthesis: ) @34
+                staticType: A
+              name: SimpleIdentifier
+                token: A @28
+                element: <testLibrary>::@class::A
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @29
+                arguments
+                  ThisExpression
+                    thisKeyword: this @30
+                    staticType: InvalidType
+                rightParenthesis: ) @34
+              element: <testLibrary>::@class::A::@constructor::new
           constructors
             #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
               element: <testLibrary>::@class::C::@constructor::new
@@ -12963,6 +15485,36 @@ library
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: #F4
+      metadata
+        Annotation
+          atSign: @ @27
+          expression: ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                name: A @28
+                element: <testLibrary>::@class::A
+                type: A
+              element: <testLibrary>::@class::A::@constructor::new
+            argumentList: ArgumentList
+              leftParenthesis: ( @29
+              arguments2
+                ThisExpression
+                  thisKeyword: this @30
+                  staticType: InvalidType
+              rightParenthesis: ) @34
+            staticType: A
+          name: SimpleIdentifier
+            token: A @28
+            element: <testLibrary>::@class::A
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @29
+            arguments
+              ThisExpression
+                thisKeyword: this @30
+                staticType: InvalidType
+            rightParenthesis: ) @34
+          element: <testLibrary>::@class::A::@constructor::new
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -12984,6 +15536,40 @@ library
       classes
         #F1 class C (nameOffset:17) (firstTokenOffset:0) (offset:17)
           element: <testLibrary>::@class::C
+          metadata
+            Annotation
+              atSign: @ @0
+              expression: ConstructorInvocation
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    importPrefix: ImportPrefixReference
+                      name: foo @1
+                      period: . @4
+                      element: <null>
+                    name: bar @5
+                    element: <null>
+                    type: InvalidType
+                  element: <null>
+                argumentList: ArgumentList
+                  leftParenthesis: ( @8
+                  rightParenthesis: ) @9
+                staticType: InvalidType
+              name: PrefixedIdentifier
+                prefix: SimpleIdentifier
+                  token: foo @1
+                  element: <null>
+                  staticType: null
+                period: . @4
+                identifier: SimpleIdentifier
+                  token: bar @5
+                  element: <null>
+                  staticType: null
+                element: <null>
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @8
+                rightParenthesis: ) @9
+              element: <null>
           constructors
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
               element: <testLibrary>::@class::C::@constructor::new
@@ -12992,6 +15578,40 @@ library
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: #F1
+      metadata
+        Annotation
+          atSign: @ @0
+          expression: ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                importPrefix: ImportPrefixReference
+                  name: foo @1
+                  period: . @4
+                  element: <null>
+                name: bar @5
+                element: <null>
+                type: InvalidType
+              element: <null>
+            argumentList: ArgumentList
+              leftParenthesis: ( @8
+              rightParenthesis: ) @9
+            staticType: InvalidType
+          name: PrefixedIdentifier
+            prefix: SimpleIdentifier
+              token: foo @1
+              element: <null>
+              staticType: null
+            period: . @4
+            identifier: SimpleIdentifier
+              token: bar @5
+              element: <null>
+              staticType: null
+            element: <null>
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @8
+            rightParenthesis: ) @9
+          element: <null>
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -13013,6 +15633,39 @@ library
       classes
         #F1 class C (nameOffset:20) (firstTokenOffset:0) (offset:20)
           element: <testLibrary>::@class::C
+          metadata
+            Annotation
+              atSign: @ @0
+              expression: ConstructorInvocation
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    name: String @1
+                    element: dart:core::@class::String
+                    type: String
+                  selector: ConstructorSelector
+                    period: . @7
+                    name2: foo @8
+                  element: <null>
+                argumentList: ArgumentList
+                  leftParenthesis: ( @11
+                  rightParenthesis: ) @12
+                staticType: String
+              name: PrefixedIdentifier
+                prefix: SimpleIdentifier
+                  token: String @1
+                  element: dart:core::@class::String
+                  staticType: null
+                period: . @7
+                identifier: SimpleIdentifier
+                  token: foo @8
+                  element: <null>
+                  staticType: null
+                element: <null>
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @11
+                rightParenthesis: ) @12
+              element: <null>
           constructors
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
               element: <testLibrary>::@class::C::@constructor::new
@@ -13021,6 +15674,39 @@ library
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: #F1
+      metadata
+        Annotation
+          atSign: @ @0
+          expression: ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                name: String @1
+                element: dart:core::@class::String
+                type: String
+              selector: ConstructorSelector
+                period: . @7
+                name2: foo @8
+              element: <null>
+            argumentList: ArgumentList
+              leftParenthesis: ( @11
+              rightParenthesis: ) @12
+            staticType: String
+          name: PrefixedIdentifier
+            prefix: SimpleIdentifier
+              token: String @1
+              element: dart:core::@class::String
+              staticType: null
+            period: . @7
+            identifier: SimpleIdentifier
+              token: foo @8
+              element: <null>
+              staticType: null
+            element: <null>
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @11
+            rightParenthesis: ) @12
+          element: <null>
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -13042,6 +15728,33 @@ library
       classes
         #F1 class C (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@class::C
+          metadata
+            Annotation
+              atSign: @ @0
+              expression: ReceiverPropertyExtraction
+                receiver: UnqualifiedNameExpression
+                  name: foo @1
+                  resolution: InvalidNamedReadResolution
+                    recoveryElement: <null>
+                  staticType: InvalidType
+                operator: . @4
+                name: bar @5
+                resolution: InvalidNamedReadResolution
+                  recoveryElement: <null>
+                staticType: InvalidType
+              name: PrefixedIdentifier
+                prefix: SimpleIdentifier
+                  token: foo @1
+                  element: <null>
+                  staticType: null
+                period: . @4
+                identifier: SimpleIdentifier
+                  token: bar @5
+                  element: <null>
+                  staticType: null
+                element: <null>
+                staticType: null
+              element: <null>
           constructors
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@class::C::@constructor::new
@@ -13050,6 +15763,33 @@ library
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: #F1
+      metadata
+        Annotation
+          atSign: @ @0
+          expression: ReceiverPropertyExtraction
+            receiver: UnqualifiedNameExpression
+              name: foo @1
+              resolution: InvalidNamedReadResolution
+                recoveryElement: <null>
+              staticType: InvalidType
+            operator: . @4
+            name: bar @5
+            resolution: InvalidNamedReadResolution
+              recoveryElement: <null>
+            staticType: InvalidType
+          name: PrefixedIdentifier
+            prefix: SimpleIdentifier
+              token: foo @1
+              element: <null>
+              staticType: null
+            period: . @4
+            identifier: SimpleIdentifier
+              token: bar @5
+              element: <null>
+              staticType: null
+            element: <null>
+            staticType: null
+          element: <null>
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -13078,6 +15818,31 @@ library
       classes
         #F1 class C (nameOffset:44) (firstTokenOffset:29) (offset:44)
           element: <testLibrary>::@class::C
+          metadata
+            Annotation
+              atSign: @ @29
+              expression: ImportPrefixedNameExpression
+                importPrefix: ImportPrefixReference
+                  name: foo @30
+                  period: . @33
+                  element: <testLibraryFragment>::@prefix::foo
+                name: bar @34
+                resolution: InvalidNamedReadResolution
+                  recoveryElement: <null>
+                staticType: InvalidType
+              name: PrefixedIdentifier
+                prefix: SimpleIdentifier
+                  token: foo @30
+                  element: <testLibraryFragment>::@prefix::foo
+                  staticType: null
+                period: . @33
+                identifier: SimpleIdentifier
+                  token: bar @34
+                  element: <null>
+                  staticType: null
+                element: <null>
+                staticType: null
+              element: <null>
           constructors
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
               element: <testLibrary>::@class::C::@constructor::new
@@ -13086,6 +15851,31 @@ library
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: #F1
+      metadata
+        Annotation
+          atSign: @ @29
+          expression: ImportPrefixedNameExpression
+            importPrefix: ImportPrefixReference
+              name: foo @30
+              period: . @33
+              element: <testLibraryFragment>::@prefix::foo
+            name: bar @34
+            resolution: InvalidNamedReadResolution
+              recoveryElement: <null>
+            staticType: InvalidType
+          name: PrefixedIdentifier
+            prefix: SimpleIdentifier
+              token: foo @30
+              element: <testLibraryFragment>::@prefix::foo
+              staticType: null
+            period: . @33
+            identifier: SimpleIdentifier
+              token: bar @34
+              element: <null>
+              staticType: null
+            element: <null>
+            staticType: null
+          element: <null>
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -13107,6 +15897,48 @@ library
       classes
         #F1 class C (nameOffset:21) (firstTokenOffset:0) (offset:21)
           element: <testLibrary>::@class::C
+          metadata
+            Annotation
+              atSign: @ @0
+              expression: ConstructorInvocation
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    importPrefix: ImportPrefixReference
+                      name: foo @1
+                      period: . @4
+                      element: <null>
+                    name: bar @5
+                    element: <null>
+                    type: InvalidType
+                  selector: ConstructorSelector
+                    period: . @8
+                    name2: baz @9
+                  element: <null>
+                argumentList: ArgumentList
+                  leftParenthesis: ( @12
+                  rightParenthesis: ) @13
+                staticType: InvalidType
+              name: PrefixedIdentifier
+                prefix: SimpleIdentifier
+                  token: foo @1
+                  element: <null>
+                  staticType: null
+                period: . @4
+                identifier: SimpleIdentifier
+                  token: bar @5
+                  element: <null>
+                  staticType: null
+                element: <null>
+                staticType: null
+              period: . @8
+              constructorName: SimpleIdentifier
+                token: baz @9
+                element: <null>
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @12
+                rightParenthesis: ) @13
+              element: <null>
           constructors
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@class::C::@constructor::new
@@ -13115,6 +15947,48 @@ library
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: #F1
+      metadata
+        Annotation
+          atSign: @ @0
+          expression: ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                importPrefix: ImportPrefixReference
+                  name: foo @1
+                  period: . @4
+                  element: <null>
+                name: bar @5
+                element: <null>
+                type: InvalidType
+              selector: ConstructorSelector
+                period: . @8
+                name2: baz @9
+              element: <null>
+            argumentList: ArgumentList
+              leftParenthesis: ( @12
+              rightParenthesis: ) @13
+            staticType: InvalidType
+          name: PrefixedIdentifier
+            prefix: SimpleIdentifier
+              token: foo @1
+              element: <null>
+              staticType: null
+            period: . @4
+            identifier: SimpleIdentifier
+              token: bar @5
+              element: <null>
+              staticType: null
+            element: <null>
+            staticType: null
+          period: . @8
+          constructorName: SimpleIdentifier
+            token: baz @9
+            element: <null>
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @12
+            rightParenthesis: ) @13
+          element: <null>
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -13143,6 +16017,48 @@ library
       classes
         #F1 class C (nameOffset:50) (firstTokenOffset:29) (offset:50)
           element: <testLibrary>::@class::C
+          metadata
+            Annotation
+              atSign: @ @29
+              expression: ConstructorInvocation
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    importPrefix: ImportPrefixReference
+                      name: foo @30
+                      period: . @33
+                      element: <testLibraryFragment>::@prefix::foo
+                    name: bar @34
+                    element: <null>
+                    type: InvalidType
+                  selector: ConstructorSelector
+                    period: . @37
+                    name2: baz @38
+                  element: <null>
+                argumentList: ArgumentList
+                  leftParenthesis: ( @41
+                  rightParenthesis: ) @42
+                staticType: InvalidType
+              name: PrefixedIdentifier
+                prefix: SimpleIdentifier
+                  token: foo @30
+                  element: <testLibraryFragment>::@prefix::foo
+                  staticType: null
+                period: . @33
+                identifier: SimpleIdentifier
+                  token: bar @34
+                  element: <null>
+                  staticType: null
+                element: <null>
+                staticType: null
+              period: . @37
+              constructorName: SimpleIdentifier
+                token: baz @38
+                element: <null>
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @41
+                rightParenthesis: ) @42
+              element: <null>
           constructors
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:50)
               element: <testLibrary>::@class::C::@constructor::new
@@ -13151,6 +16067,48 @@ library
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: #F1
+      metadata
+        Annotation
+          atSign: @ @29
+          expression: ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                importPrefix: ImportPrefixReference
+                  name: foo @30
+                  period: . @33
+                  element: <testLibraryFragment>::@prefix::foo
+                name: bar @34
+                element: <null>
+                type: InvalidType
+              selector: ConstructorSelector
+                period: . @37
+                name2: baz @38
+              element: <null>
+            argumentList: ArgumentList
+              leftParenthesis: ( @41
+              rightParenthesis: ) @42
+            staticType: InvalidType
+          name: PrefixedIdentifier
+            prefix: SimpleIdentifier
+              token: foo @30
+              element: <testLibraryFragment>::@prefix::foo
+              staticType: null
+            period: . @33
+            identifier: SimpleIdentifier
+              token: bar @34
+              element: <null>
+              staticType: null
+            element: <null>
+            staticType: null
+          period: . @37
+          constructorName: SimpleIdentifier
+            token: baz @38
+            element: <null>
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @41
+            rightParenthesis: ) @42
+          element: <null>
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -13179,6 +16137,48 @@ library
       classes
         #F1 class C (nameOffset:53) (firstTokenOffset:29) (offset:53)
           element: <testLibrary>::@class::C
+          metadata
+            Annotation
+              atSign: @ @29
+              expression: ConstructorInvocation
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    importPrefix: ImportPrefixReference
+                      name: foo @30
+                      period: . @33
+                      element: <testLibraryFragment>::@prefix::foo
+                    name: Future @34
+                    element: dart:async::@class::Future
+                    type: Future<dynamic>
+                  selector: ConstructorSelector
+                    period: . @40
+                    name2: bar @41
+                  element: <null>
+                argumentList: ArgumentList
+                  leftParenthesis: ( @44
+                  rightParenthesis: ) @45
+                staticType: Future<dynamic>
+              name: PrefixedIdentifier
+                prefix: SimpleIdentifier
+                  token: foo @30
+                  element: <testLibraryFragment>::@prefix::foo
+                  staticType: null
+                period: . @33
+                identifier: SimpleIdentifier
+                  token: Future @34
+                  element: dart:async::@class::Future
+                  staticType: null
+                element: dart:async::@class::Future
+                staticType: null
+              period: . @40
+              constructorName: SimpleIdentifier
+                token: bar @41
+                element: <null>
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @44
+                rightParenthesis: ) @45
+              element: <null>
           constructors
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
               element: <testLibrary>::@class::C::@constructor::new
@@ -13187,6 +16187,48 @@ library
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: #F1
+      metadata
+        Annotation
+          atSign: @ @29
+          expression: ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                importPrefix: ImportPrefixReference
+                  name: foo @30
+                  period: . @33
+                  element: <testLibraryFragment>::@prefix::foo
+                name: Future @34
+                element: dart:async::@class::Future
+                type: Future<dynamic>
+              selector: ConstructorSelector
+                period: . @40
+                name2: bar @41
+              element: <null>
+            argumentList: ArgumentList
+              leftParenthesis: ( @44
+              rightParenthesis: ) @45
+            staticType: Future<dynamic>
+          name: PrefixedIdentifier
+            prefix: SimpleIdentifier
+              token: foo @30
+              element: <testLibraryFragment>::@prefix::foo
+              staticType: null
+            period: . @33
+            identifier: SimpleIdentifier
+              token: Future @34
+              element: dart:async::@class::Future
+              staticType: null
+            element: dart:async::@class::Future
+            staticType: null
+          period: . @40
+          constructorName: SimpleIdentifier
+            token: bar @41
+            element: <null>
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @44
+            rightParenthesis: ) @45
+          element: <null>
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -13208,6 +16250,40 @@ library
       classes
         #F1 class C (nameOffset:17) (firstTokenOffset:0) (offset:17)
           element: <testLibrary>::@class::C
+          metadata
+            Annotation
+              atSign: @ @0
+              expression: ConstructorInvocation
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    importPrefix: ImportPrefixReference
+                      name: foo @1
+                      period: . @4
+                      element: <null>
+                    name: bar @5
+                    element: <null>
+                    type: InvalidType
+                  element: <null>
+                argumentList: ArgumentList
+                  leftParenthesis: ( @8
+                  rightParenthesis: ) @9
+                staticType: InvalidType
+              name: PrefixedIdentifier
+                prefix: SimpleIdentifier
+                  token: foo @1
+                  element: <null>
+                  staticType: null
+                period: . @4
+                identifier: SimpleIdentifier
+                  token: bar @5
+                  element: <null>
+                  staticType: null
+                element: <null>
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @8
+                rightParenthesis: ) @9
+              element: <null>
           constructors
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
               element: <testLibrary>::@class::C::@constructor::new
@@ -13216,6 +16292,40 @@ library
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: #F1
+      metadata
+        Annotation
+          atSign: @ @0
+          expression: ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                importPrefix: ImportPrefixReference
+                  name: foo @1
+                  period: . @4
+                  element: <null>
+                name: bar @5
+                element: <null>
+                type: InvalidType
+              element: <null>
+            argumentList: ArgumentList
+              leftParenthesis: ( @8
+              rightParenthesis: ) @9
+            staticType: InvalidType
+          name: PrefixedIdentifier
+            prefix: SimpleIdentifier
+              token: foo @1
+              element: <null>
+              staticType: null
+            period: . @4
+            identifier: SimpleIdentifier
+              token: bar @5
+              element: <null>
+              staticType: null
+            element: <null>
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @8
+            rightParenthesis: ) @9
+          element: <null>
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -13244,6 +16354,40 @@ library
       classes
         #F1 class C (nameOffset:46) (firstTokenOffset:29) (offset:46)
           element: <testLibrary>::@class::C
+          metadata
+            Annotation
+              atSign: @ @29
+              expression: ConstructorInvocation
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    importPrefix: ImportPrefixReference
+                      name: foo @30
+                      period: . @33
+                      element: <testLibraryFragment>::@prefix::foo
+                    name: bar @34
+                    element: <null>
+                    type: InvalidType
+                  element: <null>
+                argumentList: ArgumentList
+                  leftParenthesis: ( @37
+                  rightParenthesis: ) @38
+                staticType: InvalidType
+              name: PrefixedIdentifier
+                prefix: SimpleIdentifier
+                  token: foo @30
+                  element: <testLibraryFragment>::@prefix::foo
+                  staticType: null
+                period: . @33
+                identifier: SimpleIdentifier
+                  token: bar @34
+                  element: <null>
+                  staticType: null
+                element: <null>
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @37
+                rightParenthesis: ) @38
+              element: <null>
           constructors
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:46)
               element: <testLibrary>::@class::C::@constructor::new
@@ -13252,6 +16396,40 @@ library
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: #F1
+      metadata
+        Annotation
+          atSign: @ @29
+          expression: ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                importPrefix: ImportPrefixReference
+                  name: foo @30
+                  period: . @33
+                  element: <testLibraryFragment>::@prefix::foo
+                name: bar @34
+                element: <null>
+                type: InvalidType
+              element: <null>
+            argumentList: ArgumentList
+              leftParenthesis: ( @37
+              rightParenthesis: ) @38
+            staticType: InvalidType
+          name: PrefixedIdentifier
+            prefix: SimpleIdentifier
+              token: foo @30
+              element: <testLibraryFragment>::@prefix::foo
+              staticType: null
+            period: . @33
+            identifier: SimpleIdentifier
+              token: bar @34
+              element: <null>
+              staticType: null
+            element: <null>
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @37
+            rightParenthesis: ) @38
+          element: <null>
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -13273,6 +16451,19 @@ library
       classes
         #F1 class C (nameOffset:11) (firstTokenOffset:0) (offset:11)
           element: <testLibrary>::@class::C
+          metadata
+            Annotation
+              atSign: @ @0
+              expression: UnqualifiedNameExpression
+                name: foo @1
+                resolution: InvalidNamedReadResolution
+                  recoveryElement: <null>
+                staticType: InvalidType
+              name: SimpleIdentifier
+                token: foo @1
+                element: <null>
+                staticType: null
+              element: <null>
           constructors
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@class::C::@constructor::new
@@ -13281,6 +16472,19 @@ library
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: #F1
+      metadata
+        Annotation
+          atSign: @ @0
+          expression: UnqualifiedNameExpression
+            name: foo @1
+            resolution: InvalidNamedReadResolution
+              recoveryElement: <null>
+            staticType: InvalidType
+          name: SimpleIdentifier
+            token: foo @1
+            element: <null>
+            staticType: null
+          element: <null>
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -13316,6 +16520,25 @@ library
       classes
         #F1 class C (nameOffset:44) (firstTokenOffset:35) (offset:44)
           element: <testLibrary>::@class::C
+          metadata
+            Annotation
+              atSign: @ @35
+              expression: UnqualifiedNameExpression
+                name: v @36
+                resolution: InvalidNamedReadResolution
+                  recoveryElement: multiplyDefinedElement
+                    package:test/a.dart::@getter::v
+                    package:test/b.dart::@getter::v
+                staticType: InvalidType
+              name: SimpleIdentifier
+                token: v @36
+                element: multiplyDefinedElement
+                  package:test/a.dart::@getter::v
+                  package:test/b.dart::@getter::v
+                staticType: null
+              element: multiplyDefinedElement
+                package:test/a.dart::@getter::v
+                package:test/b.dart::@getter::v
           constructors
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
               element: <testLibrary>::@class::C::@constructor::new
@@ -13324,6 +16547,25 @@ library
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: #F1
+      metadata
+        Annotation
+          atSign: @ @35
+          expression: UnqualifiedNameExpression
+            name: v @36
+            resolution: InvalidNamedReadResolution
+              recoveryElement: multiplyDefinedElement
+                package:test/a.dart::@getter::v
+                package:test/b.dart::@getter::v
+            staticType: InvalidType
+          name: SimpleIdentifier
+            token: v @36
+            element: multiplyDefinedElement
+              package:test/a.dart::@getter::v
+              package:test/b.dart::@getter::v
+            staticType: null
+          element: multiplyDefinedElement
+            package:test/a.dart::@getter::v
+            package:test/b.dart::@getter::v
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -13345,6 +16587,28 @@ library
       classes
         #F1 class C (nameOffset:13) (firstTokenOffset:0) (offset:13)
           element: <testLibrary>::@class::C
+          metadata
+            Annotation
+              atSign: @ @0
+              expression: ConstructorInvocation
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    name: foo @1
+                    element: <null>
+                    type: InvalidType
+                  element: <null>
+                argumentList: ArgumentList
+                  leftParenthesis: ( @4
+                  rightParenthesis: ) @5
+                staticType: InvalidType
+              name: SimpleIdentifier
+                token: foo @1
+                element: <null>
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @4
+                rightParenthesis: ) @5
+              element: <null>
           constructors
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
               element: <testLibrary>::@class::C::@constructor::new
@@ -13353,6 +16617,28 @@ library
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: #F1
+      metadata
+        Annotation
+          atSign: @ @0
+          expression: ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                name: foo @1
+                element: <null>
+                type: InvalidType
+              element: <null>
+            argumentList: ArgumentList
+              leftParenthesis: ( @4
+              rightParenthesis: ) @5
+            staticType: InvalidType
+          name: SimpleIdentifier
+            token: foo @1
+            element: <null>
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @4
+            rightParenthesis: ) @5
+          element: <null>
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new

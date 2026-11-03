@@ -336,6 +336,107 @@ library
               typeNameOffset: 21
         #F4 class B (nameOffset:64) (firstTokenOffset:29) (offset:64)
           element: <testLibrary>::@class::B
+          metadata
+            Annotation
+              atSign: @ @29
+              expression: ConstructorInvocation
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    name: A @30
+                    typeArguments: TypeArgumentList
+                      leftBracket: < @31
+                      arguments
+                        GenericFunctionType
+                          returnType: NamedType
+                            name: int @32
+                            element: dart:core::@class::int
+                            type: int
+                          functionKeyword: Function @36
+                          parameters: FormalParameterList
+                            leftParenthesis: ( @44
+                            requiredPositionalFormalParameters
+                              RegularFormalParameter
+                                type: NamedType
+                                  name: String @45
+                                  element: dart:core::@class::String
+                                  type: String
+                                name: a @52
+                                declaredFragment: <testLibraryFragment> a@52
+                                  element: isPublic
+                                    type: String
+                            rightParenthesis: ) @53
+                          parameters(v1): FormalParameterList
+                            leftParenthesis: ( @44
+                            parameter: RegularFormalParameter
+                              type: NamedType
+                                name: String @45
+                                element: dart:core::@class::String
+                                type: String
+                              name: a @52
+                              declaredFragment: <testLibraryFragment> a@52
+                                element: isPublic
+                                  type: String
+                            rightParenthesis: ) @53
+                          declaredFragment: GenericFunctionTypeElement
+                            parameters
+                              a
+                                kind: required positional
+                                element:
+                                  type: String
+                            returnType: int
+                            type: int Function(String)
+                          type: int Function(String)
+                      rightBracket: > @54
+                    element: <testLibrary>::@class::A
+                    type: A<int Function(String)>
+                  element: SubstitutedConstructorElementImpl
+                    baseElement: <testLibrary>::@class::A::@constructor::new
+                    substitution: {T: int Function(String)}
+                argumentList: ArgumentList
+                  leftParenthesis: ( @55
+                  rightParenthesis: ) @56
+                staticType: A<int Function(String)>
+              name: SimpleIdentifier
+                token: A @30
+                element: <testLibrary>::@class::A
+                staticType: null
+              typeArguments: TypeArgumentList
+                leftBracket: < @31
+                arguments
+                  GenericFunctionType
+                    returnType: NamedType
+                      name: int @32
+                      element: dart:core::@class::int
+                      type: int
+                    functionKeyword: Function @36
+                    parameters: FormalParameterList
+                      leftParenthesis: ( @44
+                      parameter: RegularFormalParameter
+                        type: NamedType
+                          name: String @45
+                          element: dart:core::@class::String
+                          type: String
+                        name: a @52
+                        declaredFragment: <testLibraryFragment> a@52
+                          element: isPublic
+                            type: String
+                      rightParenthesis: ) @53
+                    declaredFragment: GenericFunctionTypeElement
+                      parameters
+                        a
+                          kind: required positional
+                          element:
+                            type: String
+                      returnType: int
+                      type: int Function(String)
+                    type: int Function(String)
+                rightBracket: > @54
+              arguments: ArgumentList
+                leftParenthesis: ( @55
+                rightParenthesis: ) @56
+              element: SubstitutedConstructorElementImpl
+                baseElement: <testLibrary>::@class::A::@constructor::new
+                substitution: {T: int Function(String)}
           constructors
             #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
               element: <testLibrary>::@class::B::@constructor::new
@@ -354,6 +455,107 @@ library
     isSimplyBounded class B
       reference: <testLibrary>::@class::B
       firstFragment: #F4
+      metadata
+        Annotation
+          atSign: @ @29
+          expression: ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                name: A @30
+                typeArguments: TypeArgumentList
+                  leftBracket: < @31
+                  arguments
+                    GenericFunctionType
+                      returnType: NamedType
+                        name: int @32
+                        element: dart:core::@class::int
+                        type: int
+                      functionKeyword: Function @36
+                      parameters: FormalParameterList
+                        leftParenthesis: ( @44
+                        requiredPositionalFormalParameters
+                          RegularFormalParameter
+                            type: NamedType
+                              name: String @45
+                              element: dart:core::@class::String
+                              type: String
+                            name: a @52
+                            declaredFragment: <testLibraryFragment> a@52
+                              element: isPublic
+                                type: String
+                        rightParenthesis: ) @53
+                      parameters(v1): FormalParameterList
+                        leftParenthesis: ( @44
+                        parameter: RegularFormalParameter
+                          type: NamedType
+                            name: String @45
+                            element: dart:core::@class::String
+                            type: String
+                          name: a @52
+                          declaredFragment: <testLibraryFragment> a@52
+                            element: isPublic
+                              type: String
+                        rightParenthesis: ) @53
+                      declaredFragment: GenericFunctionTypeElement
+                        parameters
+                          a
+                            kind: required positional
+                            element:
+                              type: String
+                        returnType: int
+                        type: int Function(String)
+                      type: int Function(String)
+                  rightBracket: > @54
+                element: <testLibrary>::@class::A
+                type: A<int Function(String)>
+              element: SubstitutedConstructorElementImpl
+                baseElement: <testLibrary>::@class::A::@constructor::new
+                substitution: {T: int Function(String)}
+            argumentList: ArgumentList
+              leftParenthesis: ( @55
+              rightParenthesis: ) @56
+            staticType: A<int Function(String)>
+          name: SimpleIdentifier
+            token: A @30
+            element: <testLibrary>::@class::A
+            staticType: null
+          typeArguments: TypeArgumentList
+            leftBracket: < @31
+            arguments
+              GenericFunctionType
+                returnType: NamedType
+                  name: int @32
+                  element: dart:core::@class::int
+                  type: int
+                functionKeyword: Function @36
+                parameters: FormalParameterList
+                  leftParenthesis: ( @44
+                  parameter: RegularFormalParameter
+                    type: NamedType
+                      name: String @45
+                      element: dart:core::@class::String
+                      type: String
+                    name: a @52
+                    declaredFragment: <testLibraryFragment> a@52
+                      element: isPublic
+                        type: String
+                  rightParenthesis: ) @53
+                declaredFragment: GenericFunctionTypeElement
+                  parameters
+                    a
+                      kind: required positional
+                      element:
+                        type: String
+                  returnType: int
+                  type: int Function(String)
+                type: int Function(String)
+            rightBracket: > @54
+          arguments: ArgumentList
+            leftParenthesis: ( @55
+            rightParenthesis: ) @56
+          element: SubstitutedConstructorElementImpl
+            baseElement: <testLibrary>::@class::A::@constructor::new
+            substitution: {T: int Function(String)}
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::B::@constructor::new
