@@ -86,7 +86,9 @@ final class ProdWasmInstructionLowerer
       JoinBlock() => true,
       Parameter() => true,
       Phi() => true,
-      Constant() => true,
+      Constant() =>
+        !gen.isUndefined(instr) ||
+            instr.inputUses.every((u) => u.getInstruction(gen.graph) is Phi),
       Return() => true,
       Unreachable() => true,
       Branch() => true,

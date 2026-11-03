@@ -20,6 +20,7 @@ import 'package:kernel/library_index.dart';
 import 'package:kernel/type_environment.dart';
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
+import '../cfg/passes/lower_irreducible_control_flow.dart';
 import '../target.dart';
 import 'cfg/to_wasm.dart';
 import 'runtime.dart';
@@ -159,7 +160,7 @@ class ModuleCompiler {
       typeParametersStyle: .separateFunctionAndClassTypeParameters,
       scopes: ComputedScopes(cFunction.member, enableAsserts: false),
     ).buildFlowGraph();
-    Pipeline([SSAComputation()]).run(graph);
+    Pipeline([SSAComputation(), LowerIrreducibleControlFlow()]).run(graph);
     return graph;
   }
 

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:cfg/ir/constant_value.dart';
 import 'package:cfg/ir/flow_graph.dart';
 import 'package:cfg/ir/instructions.dart';
 import 'package:cfg/ir/ir_to_text.dart';
@@ -13,6 +14,7 @@ import 'package:meta/meta.dart';
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
 import 'ir_log.dart';
+import 'utils.dart';
 
 /// Translates a [FlowGraph] (CFG IR) to WebAssembly bytecode.
 abstract base class CfgToWasm {
@@ -37,9 +39,10 @@ abstract base class CfgToWasm {
   void generate() {
     _textPositions = cfgLog?.append(member, graph);
 
-    // TODO(dart2wasm): The following translation currently assumes reducible
-    // control flow graph. To add support irreducable control flow we can use
-    // node splitting / block duplication.
+    assert(
+      graph.isReducible,
+      'CFG should have been lowered to reducible control flow',
+    );
     _generateSubtree(graph.entryBlock, lowerer);
 
     b.end();
@@ -97,10 +100,16 @@ abstract base class CfgToWasm {
       for (final phi in to.phis) {
         setDebugPosition(phi, inputIndex: predIndex);
         final inputDef = phi.inputDefAt(predIndex);
-        final inputLocal = getLocal(inputDef);
         final phiLocal = getLocal(phi);
-        b.local_get(inputLocal);
-        convertType(inputLocal.type, phiLocal.type);
+        if (isUndefined(inputDef)) {
+          // This value will never be observed. Reset value to default to not
+          // retain stale references.
+          _pushDefaultValue(phiLocal.type);
+        } else {
+          final inputLocal = getLocal(inputDef);
+          b.local_get(inputLocal);
+          convertType(inputLocal.type, phiLocal.type);
+        }
         lastPhi = phi;
       }
 
@@ -112,6 +121,31 @@ abstract base class CfgToWasm {
       setDebugPosition(from.lastInstruction);
     }
   }
+
+  void _pushDefaultValue(w.ValueType type) {
+    switch (type) {
+      case w.NumType.i32:
+        b.i32_const(0);
+      case w.NumType.i64:
+        b.i64_const(0);
+      case w.NumType.f32:
+        b.f32_const(0);
+      case w.NumType.f64:
+        b.f64_const(0);
+      case w.NumType.v128:
+        b.v128_const_i32x4(0, 0, 0, 0);
+      case w.RefType(:final heapType, nullable: true):
+        b.ref_null(heapType.bottomType);
+      default:
+        throw StateError('Non-defaultable phi local type: $type');
+    }
+  }
+
+  /// Whether [def] is the undefined constant, i.e. a placeholder for a value
+  /// which is never observed on the given path.
+  @nonVirtual
+  bool isUndefined(Definition def) =>
+      def is Constant && def.value.constant is UndefinedConstant;
 
   /// Updates the current debug position in the emitted wasm bytecode stream.
   ///
@@ -233,6 +267,14 @@ abstract base class WasmInstructionLowerer<T extends CfgToWasm>
       // to a generic function invocation.
       // => So there's no need to try to materialize an object in a wasm local
       // for a [TypeArgumentsConstant] here.
+      return;
+    }
+    if (gen.isUndefined(instr)) {
+      // The undefined value can only be used as inputs on `Phi`s and we have a
+      // guarantee the value will not be observed. The `Phi` block's
+      // predecessors will populate it to the default value of the wasm local in
+      // `assignPhis`.
+      assert(instr.inputUses.every((u) => u.getInstruction(gen.graph) is Phi));
       return;
     }
     final local = gen.getLocal(instr);
