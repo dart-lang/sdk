@@ -8,15 +8,14 @@ import 'dart:io';
 
 import 'package:expect/config.dart';
 import 'package:native_stack_traces/native_stack_traces.dart';
-import 'package:path/path.dart' as path;
 
 import 'dwarf_stack_trace_test.dart' as dwarf_stack_trace_test;
 
-const int LINE_A = 24;
-const int LINE_B = 30;
-const int LINE_C = 37;
-const int LINE_D = 45;
-const int LINE_E = 57;
+const int LINE_A = 23;
+const int LINE_B = 29;
+const int LINE_C = 36;
+const int LINE_D = 44;
+const int LINE_E = 56;
 
 @pragma("vm:prefer-inline")
 bar() {
@@ -67,16 +66,9 @@ Future<void> main() async {
     return; // Generated dwarf.so not available on the test device.
   }
 
-  if (Platform.script.toString().endsWith(".dll")) {
-    return; // DWARF not available in DLLs.
-  }
-
-  final dwarf = Dwarf.fromFile(
-    path.join(
-      Platform.environment["TEST_COMPILATION_DIR"]!,
-      "dwarf_invisible_functions.so",
-    ),
-  )!;
+  final dwarf = dwarf_stack_trace_test.debugInfo(
+    "dwarf_invisible_functions.so",
+  );
 
   await dwarf_stack_trace_test.checkStackTrace(
     rawStack,
