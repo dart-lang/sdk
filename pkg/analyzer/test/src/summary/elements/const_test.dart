@@ -1566,78 +1566,82 @@ library
 extension E<T> on T {}
 const value = E<int>(0) ??= 1;
 ''');
-    assertResolvedNodeText(
-      library.getTopLevelVariable('value')!.constantInitializer2!,
-      r'''
-IfNullAssignment
-  target: InvalidExtensionOverrideAssignmentTarget
-    extensionOverride: ExtensionOverride2
-      name: E
-      typeArguments: TypeArgumentList
-        leftBracket: <
-        arguments
-          NamedType
-            name: int
-            element: dart:core::@class::int
-            type: int
-        rightBracket: >
-      argumentList: ArgumentList
-        leftParenthesis: (
-        arguments2
-          IntegerLiteral
-            literal: 0
-            correspondingParameter: <null>
-            staticType: int
-        rightParenthesis: )
-      element: <testLibrary>::@extension::E
-      extendedType: int
-      typeArgumentTypes
-        int
-    read: InvalidReadResolution
-    write: InvalidWriteResolution
-  operator: ??=
-  value: IntegerLiteral
-    literal: 1
-    correspondingParameter: <null>
-    staticType: int
-  staticType: dynamic
-V1: AssignmentExpression
-  leftHandSide: ExtensionOverride
-    name: E
-    typeArguments: TypeArgumentList
-      leftBracket: <
-      arguments
-        NamedType
-          name: int
-          element: dart:core::@class::int
-          type: int
-      rightBracket: >
-    argumentList: ArgumentList
-      leftParenthesis: (
-      arguments
-        IntegerLiteral
-          literal: 0
-          correspondingParameter: <null>
-          staticType: int
-      rightParenthesis: )
-    element: <testLibrary>::@extension::E
-    extendedType: int
-    staticType: dynamic
-    typeArgumentTypes
-      int
-  operator: ??=
-  rightHandSide: IntegerLiteral
-    literal: 1
-    correspondingParameter: <null>
-    staticType: int
-  readElement: <null>
-  readType: dynamic
-  writeElement: <null>
-  writeType: InvalidType
-  element: <null>
-  staticType: dynamic
-''',
-    );
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      extensions
+        #F1 extension E (nameOffset:10) (firstTokenOffset:0) (offset:10)
+          element: <testLibrary>::@extension::E
+          typeParameters
+            #F2 T (nameOffset:12) (firstTokenOffset:12) (offset:12)
+              element: #E0 T
+      topLevelVariables
+        #F3 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic value (nameOffset:29) (firstTokenOffset:29) (offset:29)
+          element: <testLibrary>::@topLevelVariable::value
+          initializer: expression_0
+            IfNullAssignment
+              target: InvalidExtensionOverrideAssignmentTarget
+                extensionOverride: ExtensionOverride2
+                  name: E @37
+                  typeArguments: TypeArgumentList
+                    leftBracket: < @38
+                    arguments
+                      NamedType
+                        name: int @39
+                        element: dart:core::@class::int
+                        type: int
+                    rightBracket: > @42
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @43
+                    arguments2
+                      IntegerLiteral
+                        literal: 0 @44
+                        staticType: int
+                    rightParenthesis: ) @45
+                  element: <testLibrary>::@extension::E
+                  extendedType: int
+                  typeArgumentTypes
+                    int
+                read: InvalidReadResolution
+                write: InvalidWriteResolution
+              operator: ??= @47
+              value: IntegerLiteral
+                literal: 1 @51
+                staticType: int
+              staticType: dynamic
+          inducedGetter: #F4
+      getters
+        #F4 isComplete isOriginVariable isStatic value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
+          element: <testLibrary>::@getter::value
+          inducingVariable: #F3
+  extensions
+    extension E
+      reference: <testLibrary>::@extension::E
+      firstFragment: #F1
+      typeParameters
+        #E0 T
+          firstFragment: #F2
+      extendedType: T
+      onDeclaration: <null>
+  topLevelVariables
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer value
+      reference: <testLibrary>::@topLevelVariable::value
+      firstFragment: #F3
+      type: dynamic
+      constantInitializer
+        fragment: #F3
+        expression: expression_0
+      getter: <testLibrary>::@getter::value
+  getters
+    isOriginVariable isStatic value
+      reference: <testLibrary>::@getter::value
+      firstFragment: #F4
+      returnType: dynamic
+      variable: <testLibrary>::@topLevelVariable::value
+''');
   }
 
   test_const_extensionOverride_cascade() async {
@@ -1647,81 +1651,138 @@ extension E<T> on T {
 }
 const value = E<int>(0)..value;
 ''');
-    assertResolvedNodeText(
-      library.getTopLevelVariable('value')!.constantInitializer2!,
-      r'''
-CascadeExpression
-  target2: InvalidExtensionOverrideExpression
-    extensionOverride: ExtensionOverride2
-      name: E
-      typeArguments: TypeArgumentList
-        leftBracket: <
-        arguments
-          NamedType
-            name: int
-            element: dart:core::@class::int
-            type: int
-        rightBracket: >
-      argumentList: ArgumentList
-        leftParenthesis: (
-        arguments2
-          IntegerLiteral
-            literal: 0
-            correspondingParameter: <null>
-            staticType: int
-        rightParenthesis: )
-      element: <testLibrary>::@extension::E
-      extendedType: int
-      typeArgumentTypes
-        int
-    staticType: InvalidType
-  target(v1): ExtensionOverride
-    name: E
-    typeArguments: TypeArgumentList
-      leftBracket: <
-      arguments
-        NamedType
-          name: int
-          element: dart:core::@class::int
-          type: int
-      rightBracket: >
-    argumentList: ArgumentList
-      leftParenthesis: (
-      arguments
-        IntegerLiteral
-          literal: 0
-          correspondingParameter: <null>
-          staticType: int
-      rightParenthesis: )
-    element: <testLibrary>::@extension::E
-    extendedType: int
-    staticType: dynamic
-    typeArgumentTypes
-      int
-  sections
-    CascadeSection
-      operator: ..
-      body: CascadePropertyExtraction
-        name: value
-        resolution: GetterInvocationResolution
-          element: SubstitutedGetterElementImpl
-            baseElement: <testLibrary>::@extension::E::@getter::value
-            substitution: {T: int}
-          type: int
-        staticType: int
-  cascadeSections
-    PropertyAccess
-      operator: ..
-      propertyName: SimpleIdentifier
-        token: value
-        element: SubstitutedGetterElementImpl
-          baseElement: <testLibrary>::@extension::E::@getter::value
-          substitution: {T: int}
-        staticType: int
-      staticType: int
-  staticType: InvalidType
-''',
-    );
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      extensions
+        #F1 extension E (nameOffset:10) (firstTokenOffset:0) (offset:10)
+          element: <testLibrary>::@extension::E
+          typeParameters
+            #F2 T (nameOffset:12) (firstTokenOffset:12) (offset:12)
+              element: #E0 T
+          fields
+            #F3 isOriginGetterSetter value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
+              element: <testLibrary>::@extension::E::@field::value
+          getters
+            #F4 isComplete isOriginDeclaration value (nameOffset:30) (firstTokenOffset:24) (offset:30)
+              element: <testLibrary>::@extension::E::@getter::value
+      topLevelVariables
+        #F5 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic value (nameOffset:53) (firstTokenOffset:53) (offset:53)
+          element: <testLibrary>::@topLevelVariable::value
+          initializer: expression_0
+            CascadeExpression
+              target2: InvalidExtensionOverrideExpression
+                extensionOverride: ExtensionOverride2
+                  name: E @61
+                  typeArguments: TypeArgumentList
+                    leftBracket: < @62
+                    arguments
+                      NamedType
+                        name: int @63
+                        element: dart:core::@class::int
+                        type: int
+                    rightBracket: > @66
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @67
+                    arguments2
+                      IntegerLiteral
+                        literal: 0 @68
+                        staticType: int
+                    rightParenthesis: ) @69
+                  element: <testLibrary>::@extension::E
+                  extendedType: int
+                  typeArgumentTypes
+                    int
+                staticType: InvalidType
+              target(v1): ExtensionOverride
+                name: E @61
+                typeArguments: TypeArgumentList
+                  leftBracket: < @62
+                  arguments
+                    NamedType
+                      name: int @63
+                      element: dart:core::@class::int
+                      type: int
+                  rightBracket: > @66
+                argumentList: ArgumentList
+                  leftParenthesis: ( @67
+                  arguments
+                    IntegerLiteral
+                      literal: 0 @68
+                      staticType: int
+                  rightParenthesis: ) @69
+                element: <testLibrary>::@extension::E
+                extendedType: int
+                staticType: dynamic
+                typeArgumentTypes
+                  int
+              sections
+                CascadeSection
+                  operator: .. @70
+                  body: CascadePropertyExtraction
+                    name: value @72
+                    resolution: GetterInvocationResolution
+                      element: SubstitutedGetterElementImpl
+                        baseElement: <testLibrary>::@extension::E::@getter::value
+                        substitution: {T: int}
+                      type: int
+                    staticType: int
+              cascadeSections
+                PropertyAccess
+                  operator: .. @70
+                  propertyName: SimpleIdentifier
+                    token: value @72
+                    element: SubstitutedGetterElementImpl
+                      baseElement: <testLibrary>::@extension::E::@getter::value
+                      substitution: {T: int}
+                    staticType: int
+                  staticType: int
+              staticType: InvalidType
+          inducedGetter: #F6
+      getters
+        #F6 isComplete isOriginVariable isStatic value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
+          element: <testLibrary>::@getter::value
+          inducingVariable: #F5
+  extensions
+    extension E
+      reference: <testLibrary>::@extension::E
+      firstFragment: #F1
+      typeParameters
+        #E0 T
+          firstFragment: #F2
+      extendedType: T
+      onDeclaration: <null>
+      fields
+        hasEnclosingTypeParameterReference isOriginGetterSetter value
+          reference: <testLibrary>::@extension::E::@field::value
+          firstFragment: #F3
+          type: T
+          getter: <testLibrary>::@extension::E::@getter::value
+      getters
+        hasEnclosingTypeParameterReference isOriginDeclaration value
+          reference: <testLibrary>::@extension::E::@getter::value
+          firstFragment: #F4
+          returnType: T
+          variable: <testLibrary>::@extension::E::@field::value
+  topLevelVariables
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer value
+      reference: <testLibrary>::@topLevelVariable::value
+      firstFragment: #F5
+      type: InvalidType
+      constantInitializer
+        fragment: #F5
+        expression: expression_0
+      getter: <testLibrary>::@getter::value
+  getters
+    isOriginVariable isStatic value
+      reference: <testLibrary>::@getter::value
+      firstFragment: #F6
+      returnType: InvalidType
+      variable: <testLibrary>::@topLevelVariable::value
+''');
   }
 
   test_const_extensionOverride_value() async {
@@ -1729,58 +1790,148 @@ CascadeExpression
 extension E<T> on T {}
 const value = E<int>(0);
 ''');
-    assertResolvedNodeText(
-      library.getTopLevelVariable('value')!.constantInitializer2!,
-      r'''
-InvalidExtensionOverrideExpression
-  extensionOverride: ExtensionOverride2
-    name: E
-    typeArguments: TypeArgumentList
-      leftBracket: <
-      arguments
-        NamedType
-          name: int
-          element: dart:core::@class::int
-          type: int
-      rightBracket: >
-    argumentList: ArgumentList
-      leftParenthesis: (
-      arguments2
-        IntegerLiteral
-          literal: 0
-          correspondingParameter: <null>
-          staticType: int
-      rightParenthesis: )
-    element: <testLibrary>::@extension::E
-    extendedType: int
-    typeArgumentTypes
-      int
-  staticType: InvalidType
-V1: ExtensionOverride
-  name: E
-  typeArguments: TypeArgumentList
-    leftBracket: <
-    arguments
-      NamedType
-        name: int
-        element: dart:core::@class::int
-        type: int
-    rightBracket: >
-  argumentList: ArgumentList
-    leftParenthesis: (
-    arguments
-      IntegerLiteral
-        literal: 0
-        correspondingParameter: <null>
-        staticType: int
-    rightParenthesis: )
-  element: <testLibrary>::@extension::E
-  extendedType: int
-  staticType: dynamic
-  typeArgumentTypes
-    int
-''',
-    );
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      extensions
+        #F1 extension E (nameOffset:10) (firstTokenOffset:0) (offset:10)
+          element: <testLibrary>::@extension::E
+          typeParameters
+            #F2 T (nameOffset:12) (firstTokenOffset:12) (offset:12)
+              element: #E0 T
+      topLevelVariables
+        #F3 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic value (nameOffset:29) (firstTokenOffset:29) (offset:29)
+          element: <testLibrary>::@topLevelVariable::value
+          initializer: expression_0
+            InvalidExtensionOverrideExpression
+              extensionOverride: ExtensionOverride2
+                name: E @37
+                typeArguments: TypeArgumentList
+                  leftBracket: < @38
+                  arguments
+                    NamedType
+                      name: int @39
+                      element: dart:core::@class::int
+                      type: int
+                  rightBracket: > @42
+                argumentList: ArgumentList
+                  leftParenthesis: ( @43
+                  arguments2
+                    IntegerLiteral
+                      literal: 0 @44
+                      staticType: int
+                  rightParenthesis: ) @45
+                element: <testLibrary>::@extension::E
+                extendedType: int
+                typeArgumentTypes
+                  int
+              staticType: InvalidType
+          inducedGetter: #F4
+      getters
+        #F4 isComplete isOriginVariable isStatic value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
+          element: <testLibrary>::@getter::value
+          inducingVariable: #F3
+  extensions
+    extension E
+      reference: <testLibrary>::@extension::E
+      firstFragment: #F1
+      typeParameters
+        #E0 T
+          firstFragment: #F2
+      extendedType: T
+      onDeclaration: <null>
+  topLevelVariables
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer value
+      reference: <testLibrary>::@topLevelVariable::value
+      firstFragment: #F3
+      type: InvalidType
+      constantInitializer
+        fragment: #F3
+        expression: expression_0
+      getter: <testLibrary>::@getter::value
+  getters
+    isOriginVariable isStatic value
+      reference: <testLibrary>::@getter::value
+      firstFragment: #F4
+      returnType: InvalidType
+      variable: <testLibrary>::@topLevelVariable::value
+''');
+  }
+
+  test_const_extensionOverride_value_importPrefixed() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+extension E<T> on T {}
+''');
+    var library = await buildLibrary(r'''
+import 'a.dart' as p;
+const value = p.E<int>(0);
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      libraryImports
+        package:test/a.dart as p (nameOffset:19) (firstTokenOffset:<null>) (offset:19)
+      prefixes
+        <testLibraryFragment>::@prefix::p
+          fragments: @19
+      topLevelVariables
+        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic value (nameOffset:28) (firstTokenOffset:28) (offset:28)
+          element: <testLibrary>::@topLevelVariable::value
+          initializer: expression_0
+            InvalidExtensionOverrideExpression
+              extensionOverride: ExtensionOverride2
+                importPrefix: ImportPrefixReference
+                  name: p @36
+                  period: . @37
+                  element: <testLibraryFragment>::@prefix::p
+                name: E @38
+                typeArguments: TypeArgumentList
+                  leftBracket: < @39
+                  arguments
+                    NamedType
+                      name: int @40
+                      element: dart:core::@class::int
+                      type: int
+                  rightBracket: > @43
+                argumentList: ArgumentList
+                  leftParenthesis: ( @44
+                  arguments2
+                    IntegerLiteral
+                      literal: 0 @45
+                      staticType: int
+                  rightParenthesis: ) @46
+                element: package:test/a.dart::@extension::E
+                extendedType: int
+                typeArgumentTypes
+                  int
+              staticType: InvalidType
+          inducedGetter: #F2
+      getters
+        #F2 isComplete isOriginVariable isStatic value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
+          element: <testLibrary>::@getter::value
+          inducingVariable: #F1
+  topLevelVariables
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer value
+      reference: <testLibrary>::@topLevelVariable::value
+      firstFragment: #F1
+      type: InvalidType
+      constantInitializer
+        fragment: #F1
+        expression: expression_0
+      getter: <testLibrary>::@getter::value
+  getters
+    isOriginVariable isStatic value
+      reference: <testLibrary>::@getter::value
+      firstFragment: #F2
+      returnType: InvalidType
+      variable: <testLibrary>::@topLevelVariable::value
+''');
   }
 
   test_const_finalField_hasConstConstructor() async {
