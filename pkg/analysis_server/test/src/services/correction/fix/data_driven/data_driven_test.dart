@@ -10,6 +10,7 @@ import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analysis_server_plugin/src/correction/fix_generators.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -18,6 +19,7 @@ import '../fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(ConstWithNonTypeTest);
     defineReflectiveTests(ExtendsNonClassTest);
     defineReflectiveTests(ExtraPositionalArgumentsCouldBeNamedTest);
     defineReflectiveTests(ExtraPositionalArgumentsTest);
@@ -25,10 +27,14 @@ void main() {
     defineReflectiveTests(InvalidOverrideTest);
     defineReflectiveTests(MissingRequiredArgumentTest);
     defineReflectiveTests(MixinOfNonClassTest);
+    defineReflectiveTests(MixinWithNonClassSuperclassTest);
+    defineReflectiveTests(NewWithNonTypeTest);
     defineReflectiveTests(NewWithUndefinedConstructorDefaultTest);
     defineReflectiveTests(NonBulkFixTest);
+    defineReflectiveTests(NonTypeInCatchClauseTest);
     defineReflectiveTests(NotEnoughArgumentsTest);
     defineReflectiveTests(OverrideOnNonOverridingMethodTest);
+    defineReflectiveTests(TypeTestWithUndefinedNameTest);
     defineReflectiveTests(UndefinedClassTest);
     defineReflectiveTests(UndefinedFunctionTest);
     defineReflectiveTests(UndefinedGetterTest);
@@ -44,6 +50,99 @@ void main() {
     defineReflectiveTests(WrongNumberOfTypeArgumentsTest);
     defineReflectiveTests(NoProducerOverlapsTest);
   });
+}
+
+@reflectiveTest
+class ConstWithNonTypeTest extends _DataDrivenTest {
+  Future<void> test_rename_removed() async {
+    setPackageContent('''
+class New {
+  const New();
+  const New.named();
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Rename to New'
+  date: 2026-01-01
+  element:
+    uris: ['$importUri']
+    class: 'Old'
+  changes:
+    - kind: 'rename'
+      newName: 'New'
+''');
+    await resolveTestCode('''
+import '$importUri';
+import '$importUri' as p;
+
+@Old()
+@p.Old.named()
+void f() {
+  const Old();
+  const p.Old.named();
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+import '$importUri' as p;
+
+@New()
+@p.New.named()
+void f() {
+  const New();
+  const p.New.named();
+}
+''');
+  }
+
+  Future<void> test_replacedBy_removed() async {
+    setPackageContent('');
+    newFile('$workspaceRootPath/p/lib/sub.dart', '''
+class New<T> {
+  const New();
+  const New.named();
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Move Old to sub.dart as New'
+  date: 2026-01-01
+  element:
+    uris: ['$importUri']
+    class: 'Old'
+  changes:
+    - kind: 'replacedBy'
+      newElement:
+        uris: ['package:p/sub.dart']
+        class: 'New'
+''');
+    await resolveTestCode('''
+import '$importUri';
+import '$importUri' as p;
+
+@Old()
+@p.Old.named()
+void f() {
+  const Old<int>();
+  const p.Old.named();
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+import '$importUri' as p;
+import 'package:p/sub.dart';
+
+@New()
+@New.named()
+void f() {
+  const New<int>();
+  const New.named();
+}
+''');
+  }
 }
 
 @reflectiveTest
@@ -488,6 +587,163 @@ class B with New {}
 }
 
 @reflectiveTest
+class MixinWithNonClassSuperclassTest extends _DataDrivenTest {
+  Future<void> test_rename_removed() async {
+    setPackageContent('''
+class New {}
+mixin M {}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Rename to New'
+  date: 2026-01-01
+  element:
+    uris: ['$importUri']
+    class: 'Old'
+  changes:
+    - kind: 'rename'
+      newName: 'New'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+class A extends Old with M {}
+class B = Old with M;
+''');
+    await assertHasFix('''
+import '$importUri';
+
+class A extends New with M {}
+class B = New with M;
+''');
+  }
+
+  Future<void> test_replacedBy_removed() async {
+    setPackageContent('''
+mixin M {}
+''');
+    newFile('$workspaceRootPath/p/lib/sub.dart', '''
+class New<T> {}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Move Old to sub.dart as New'
+  date: 2026-01-01
+  element:
+    uris: ['$importUri']
+    class: 'Old'
+  changes:
+    - kind: 'replacedBy'
+      newElement:
+        uris: ['package:p/sub.dart']
+        class: 'New'
+''');
+    await resolveTestCode('''
+import '$importUri';
+import '$importUri' as p;
+
+class A<T> extends Old<T> with M {}
+class B<T> = p.Old<T> with M;
+''');
+    await assertHasFix('''
+import '$importUri';
+import '$importUri' as p;
+import 'package:p/sub.dart';
+
+class A<T> extends New<T> with M {}
+class B<T> = New<T> with M;
+''');
+  }
+}
+
+@reflectiveTest
+class NewWithNonTypeTest extends _DataDrivenTest {
+  Future<void> test_rename_removed() async {
+    setPackageContent('''
+class New {
+  New();
+  New.named();
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Rename to New'
+  date: 2026-01-01
+  element:
+    uris: ['$importUri']
+    class: 'Old'
+  changes:
+    - kind: 'rename'
+      newName: 'New'
+''');
+    await resolveTestCode('''
+import '$importUri';
+import '$importUri' as p;
+
+void f() {
+  new Old();
+  new p.Old.named();
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+import '$importUri' as p;
+
+void f() {
+  new New();
+  new p.New.named();
+}
+''');
+  }
+
+  Future<void> test_replacedBy_removed() async {
+    setPackageContent('');
+    newFile('$workspaceRootPath/p/lib/sub.dart', '''
+class New<T> {
+  New();
+  New.named();
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Move Old to sub.dart as New'
+  date: 2026-01-01
+  element:
+    uris: ['$importUri']
+    class: 'Old'
+  changes:
+    - kind: 'replacedBy'
+      newElement:
+        uris: ['package:p/sub.dart']
+        class: 'New'
+''');
+    await resolveTestCode('''
+import '$importUri';
+import '$importUri' as p;
+
+void f() {
+  new Old<int>();
+  new p.Old.named();
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+import '$importUri' as p;
+import 'package:p/sub.dart';
+
+void f() {
+  new New<int>();
+  new New.named();
+}
+''');
+  }
+}
+
+@reflectiveTest
 class NewWithUndefinedConstructorDefaultTest extends _DataDrivenTest {
   Future<void> test_rename_deprecated() async {
     setPackageContent('''
@@ -641,6 +897,89 @@ class A extends Old {}
 class B extends Old {}
 ''');
     await assertNoFix();
+  }
+}
+
+@reflectiveTest
+class NonTypeInCatchClauseTest extends _DataDrivenTest {
+  Future<void> test_rename_removed() async {
+    setPackageContent('''
+class NewError implements Exception {}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Rename to NewError'
+  date: 2026-01-01
+  element:
+    uris: ['$importUri']
+    class: 'OldError'
+  changes:
+    - kind: 'rename'
+      newName: 'NewError'
+''');
+    await resolveTestCode('''
+import '$importUri';
+import '$importUri' as p;
+
+void f() {
+  try {} on OldError {}
+  try {} on p.OldError {}
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+import '$importUri' as p;
+
+void f() {
+  try {} on NewError {}
+  try {} on p.NewError {}
+}
+''');
+  }
+
+  Future<void> test_replacedBy_removed() async {
+    setPackageContent('');
+    newFile('$workspaceRootPath/p/lib/sub.dart', '''
+class NewError implements Exception {}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Move OldError to sub.dart as NewError'
+  date: 2026-01-01
+  element:
+    uris: ['$importUri']
+    class: 'OldError'
+  changes:
+    - kind: 'replacedBy'
+      newElement:
+        uris: ['package:p/sub.dart']
+        class: 'NewError'
+''');
+    await resolveTestCode('''
+import '$importUri';
+import '$importUri' as p;
+
+void f() {
+  try {} on OldError catch (e) {
+    print(e);
+  }
+  try {} on p.OldError {}
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+import '$importUri' as p;
+import 'package:p/sub.dart';
+
+void f() {
+  try {} on NewError catch (e) {
+    print(e);
+  }
+  try {} on NewError {}
+}
+''');
   }
 }
 
@@ -990,6 +1329,117 @@ class E extends C {
   @override
   int new(int x) => x + 3;
 }
+''');
+  }
+}
+
+@reflectiveTest
+class TypeTestWithUndefinedNameTest extends _DataDrivenTest {
+  Future<void> test_rename_removed() async {
+    setPackageContent('''
+class New {}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Rename to New'
+  date: 2026-01-01
+  element:
+    uris: ['$importUri']
+    class: 'Old'
+  changes:
+    - kind: 'rename'
+      newName: 'New'
+''');
+    await resolveTestCode('''
+import '$importUri';
+import '$importUri' as p;
+
+bool f(Object x) => x is Old || x is! p.Old;
+''');
+    await assertHasFix('''
+import '$importUri';
+import '$importUri' as p;
+
+bool f(Object x) => x is New || x is! p.New;
+''');
+  }
+
+  Future<void>
+  test_replacedBy_removed_prefixed_preservesAnchorImportInFirstPass() async {
+    setPackageContent('');
+    newFile('$workspaceRootPath/p/lib/sub.dart', '''
+class NewType<T> {}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Move MovedType to sub.dart as NewType'
+  date: 2026-01-01
+  element:
+    uris: ['$importUri']
+    class: 'MovedType'
+  changes:
+    - kind: 'replacedBy'
+      newElement:
+        uris: ['package:p/sub.dart']
+        class: 'NewType'
+''');
+    await resolveTestCode('''
+import '$importUri' as p;
+
+bool check(Object x) => x is! p.MovedType<int>;
+''');
+    await assertHasFix('''
+import '$importUri' as p;
+import 'package:p/sub.dart';
+
+bool check(Object x) => x is! NewType<int>;
+''');
+
+    await assertSecondPassFix('''
+import 'package:p/sub.dart';
+
+bool check(Object x) => x is! NewType<int>;
+''');
+  }
+
+  Future<void>
+  test_replacedBy_removed_preservesAnchorImportInFirstPass() async {
+    setPackageContent('');
+    newFile('$workspaceRootPath/p/lib/sub.dart', '''
+class NewType {}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Move MovedType to sub.dart as NewType'
+  date: 2026-01-01
+  element:
+    uris: ['$importUri']
+    class: 'MovedType'
+  changes:
+    - kind: 'replacedBy'
+      newElement:
+        uris: ['package:p/sub.dart']
+        class: 'NewType'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+bool check(Object x) => x is MovedType || x is! MovedType;
+''');
+    await assertHasFix('''
+import '$importUri';
+import 'package:p/sub.dart';
+
+bool check(Object x) => x is NewType || x is! NewType;
+''');
+
+    await assertSecondPassFix('''
+import 'package:p/sub.dart';
+
+bool check(Object x) => x is NewType || x is! NewType;
 ''');
   }
 }
@@ -2837,6 +3287,20 @@ class _DataDrivenTest extends BulkFixProcessorTest {
       '$workspaceRootPath/p/lib/${TransformSetManager.dataFileName}',
       content,
     );
+  }
+
+  /// Applies [resultCode] from the first bulk-fix pass and asserts the second
+  /// bulk-fix pass produces [expected].
+  Future<void> assertSecondPassFix(String expected) async {
+    newFile(testFile.path, resultCode);
+    var analysisContext = contextFor2(testFile);
+    analysisContext.changeFile(testFile.path);
+    await analysisContext.applyPendingFileChanges();
+    processor = await computeFixes();
+    var fileEdits = processor.builder.sourceChange.edits;
+    expect(fileEdits, hasLength(1));
+    resultCode = SourceEdit.applySequence(resultCode, fileEdits[0].edits);
+    expect(resultCode, normalizeSource(expected));
   }
 
   /// Set the content of the library that defines the element referenced by the
