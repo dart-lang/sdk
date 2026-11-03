@@ -163,10 +163,10 @@ class BinaryWriter {
     required void Function(V value) writeValue,
   }) {
     writeUint30(map.length);
-    for (var entry in map.entries) {
-      writeKey(entry.key);
-      writeValue(entry.value);
-    }
+    map.forEach((key, value) {
+      writeKey(key);
+      writeValue(value);
+    });
   }
 
   void writeOptionalInt64(int? value) {
