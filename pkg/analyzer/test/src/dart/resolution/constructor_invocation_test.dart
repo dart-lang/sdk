@@ -1302,26 +1302,26 @@ ConstructorInvocation
         period: .
         element: <testLibraryFragment>::@prefix::p
       name: Foo
-      typeArguments: TypeArgumentList
-        leftBracket: <
-        arguments
-          NamedType
-            name: int
-            element: dart:core::@class::int
-            type: int
-        rightBracket: >
       element: package:test/a.dart::@class::Foo
-      type: Foo<int>
+      type: Foo<dynamic>
     selector: ConstructorSelector
       period: .
       name2: bar
     element: SubstitutedConstructorElementImpl
       baseElement: package:test/a.dart::@class::Foo::@constructor::bar
-      substitution: {X: int}
+      substitution: {X: dynamic}
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  staticType: Foo<int>
+  staticType: Foo<dynamic>
 V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
@@ -1330,30 +1330,30 @@ V1: InstanceCreationExpression
         period: .
         element: <testLibraryFragment>::@prefix::p
       name: Foo
-      typeArguments: TypeArgumentList
-        leftBracket: <
-        arguments
-          NamedType
-            name: int
-            element: dart:core::@class::int
-            type: int
-        rightBracket: >
       element: package:test/a.dart::@class::Foo
-      type: Foo<int>
+      type: Foo<dynamic>
     period: .
     name: SimpleIdentifier
       token: bar
       element: SubstitutedConstructorElementImpl
         baseElement: package:test/a.dart::@class::Foo::@constructor::bar
-        substitution: {X: int}
+        substitution: {X: dynamic}
       staticType: null
     element: SubstitutedConstructorElementImpl
       baseElement: package:test/a.dart::@class::Foo::@constructor::bar
-      substitution: {X: int}
+      substitution: {X: dynamic}
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  staticType: Foo<int>
+  staticType: Foo<dynamic>
 ''');
   }
 

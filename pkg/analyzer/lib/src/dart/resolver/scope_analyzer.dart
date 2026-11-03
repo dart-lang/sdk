@@ -1902,10 +1902,8 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
       var constructor = interface?.getNamedConstructor(selector.name.lexeme);
       if (interface != null &&
           (constructor != null || selector.name.lexeme == 'new')) {
-        // Type arguments after the constructor name are an error. For
-        // recovery, `p.C.n<T>()` applies them to `C`, as `p.C<T>.n()` would,
-        // while `C.n<T>()` keeps them on the invocation, where they are not
-        // used.
+        // Type arguments after the constructor name are an error. They stay
+        // on the invocation, where they are written, and do not apply to `C`.
         if (typeArguments != null) {
           _diagnosticReporter.report(
             diag.wrongNumberOfTypeArgumentsConstructor
@@ -1922,16 +1920,14 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
             typeReference: ConstructorTypeReferenceImpl(
               importPrefix: receiver.importPrefix,
               name: receiver.name,
-              typeArguments: receiver.importPrefix != null
-                  ? typeArguments
-                  : null,
+              typeArguments: null,
             ),
             selector: ConstructorSelectorImpl.v2(
               period: selector.operator,
               name2: selector.name,
             ),
           ),
-          typeArguments: receiver.importPrefix == null ? typeArguments : null,
+          typeArguments: typeArguments,
           argumentList: node.argumentList,
         );
         node.replaceWith(expression);

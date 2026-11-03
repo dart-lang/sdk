@@ -103,6 +103,30 @@ class C<E> {
 ''');
   }
 
+  Future<void> test_implicitConst_importPrefixed() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class C<E> {
+  const C.named();
+}
+''');
+    await resolveTestCode('''
+import 'a.dart' as p;
+
+void f() {
+  const p.C c = p.C.named<int>();
+  print(c);
+}
+''');
+    await assertHasFix('''
+import 'a.dart' as p;
+
+void f() {
+  const p.C c = p.C<int>.named();
+  print(c);
+}
+''');
+  }
+
   Future<void> test_implicitNew() async {
     await resolveTestCode('''
 void f() {
@@ -118,6 +142,28 @@ void f() {
 }
 class C<E> {
   C.named();
+}
+''');
+  }
+
+  Future<void> test_implicitNew_importPrefixed() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class C<E> {
+  C.named();
+}
+''');
+    await resolveTestCode('''
+import 'a.dart' as p;
+
+void f() {
+  p.C.named<int>();
+}
+''');
+    await assertHasFix('''
+import 'a.dart' as p;
+
+void f() {
+  p.C<int>.named();
 }
 ''');
   }
