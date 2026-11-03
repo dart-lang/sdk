@@ -18,7 +18,6 @@ load(
     "js_engines",
     "no_caches",
 )
-load("//lib/priority.star", "priority")
 
 lucicfg.check_version("1.43.13")
 
@@ -142,13 +141,6 @@ exec("//ddc.star")
 exec("//analyzer.star")
 
 # misc
-dart.ci_sandbox_builder(
-    "gclient",
-    recipe = "dart/gclient",
-    category = "misc|g",
-    priority = priority.low,
-)
-
 dart.ci_sandbox_builder(
     "ci-test-data",
     channels = [],
