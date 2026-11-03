@@ -36,6 +36,96 @@ import "dart:core" as core;
     }
 [-1]  }
 }
+[365]static method [377] [489] withContinue([395, -1] core::List<(core::int, core::int)> list) → void {
+[-1]  {
+[426]    [426, -1] synthesized core::Iterator<(core::int, core::int)> :sync-for-iterator = [426] [426] [426] [426] list.{core::Iterable::iterator}{core::Iterator<(core::int, core::int)>};
+[405]    for (; [426] [426] [-1] [-1] :sync-for-iterator.{core::Iterator::moveNext}[-1](){() → core::bool}; ) {
+[405]      [405, -1] final(core::int, core::int) #t8 = [432] [432] [-1] [-1] :sync-for-iterator.{core::Iterator::current}{(core::int, core::int)};
+[423]      {
+[417]        [417, -1] final hoisted core::int x;
+[420]        [420, -1] final hoisted core::int y;
+[423]        {
+[423]          [423, -1] final synthesized(core::int, core::int) #0#0 = [423] [423] #t8;
+[417]          [417] [417] x = [417] [417] [-1] [-1] #0#0.$1{core::int};
+[420]          [420] [420] y = [420] [420] [-1] [-1] #0#0.$2{core::int};
+[423]        }
+[405]        #L1:
+[432]        {
+[438]          if([444] [444] [442] [442] x =={core::num::==}{(core::Object) → core::bool} [447] [447] 0)
+[450]            break #L1;
+[464]          [464] [464] core::print [469]([472] [470] [470] x.{core::num::+}[472]([474] y){(core::num) → core::int});
+[487]        }
+[405]      }
+    }
+[-1]  }
+}
+[497]static method [516] [678] withLabeledContinue([534, -1] core::List<(core::int, core::int)> list) → void {
+[-1]  {
+[574]    [574, -1] synthesized core::Iterator<(core::int, core::int)> :sync-for-iterator = [574] [574] [574] [574] list.{core::Iterable::iterator}{core::Iterator<(core::int, core::int)>};
+[553]    for (; [574] [574] [-1] [-1] :sync-for-iterator.{core::Iterator::moveNext}[-1](){() → core::bool}; ) {
+[553]      [553, -1] final(core::int, core::int) #t9 = [580] [580] [-1] [-1] :sync-for-iterator.{core::Iterator::current}{(core::int, core::int)};
+[571]      {
+[565]        [565, -1] final hoisted core::int x;
+[568]        [568, -1] final hoisted core::int y;
+[571]        {
+[571]          [571, -1] final synthesized(core::int, core::int) #0#0 = [571] [571] #t9;
+[565]          [565] [565] x = [565] [565] [-1] [-1] #0#0.$1{core::int};
+[568]          [568] [568] y = [568] [568] [-1] [-1] #0#0.$2{core::int};
+[571]        }
+[553]        #L2:
+[580]        {
+[-1]          {
+[602]            [602, -1] synthesized core::Iterator<(core::int, core::int)> :sync-for-iterator##1 = [602] [602] [602] [602] list.{core::Iterable::iterator}{core::Iterator<(core::int, core::int)>};
+[586]            for (; [602] [602] [-1] [-1] :sync-for-iterator##1.{core::Iterator::moveNext}[-1](){() → core::bool}; ) {
+[597]              [597, -1] final(core::int, core::int) z = [608] [608] [-1] [-1] :sync-for-iterator##1.{core::Iterator::current}{(core::int, core::int)};
+[608]              {
+[616]                if([625] [625] [622] [622] [620] [620] z.$1{core::int} =={core::num::==}{(core::Object) → core::bool} [628] [628] x)
+[631]                  break #L2;
+[651]              }
+            }
+[-1]          }
+[657]          [657] [657] core::print [662]([663] y);
+[676]        }
+[553]      }
+    }
+[-1]  }
+}
+[686]static method [701] [780] withoutContinue([719, -1] core::List<(core::int, core::int)> list) → void {
+[-1]  {
+[750]    [750, -1] synthesized core::Iterator<(core::int, core::int)> :sync-for-iterator = [750] [750] [750] [750] list.{core::Iterable::iterator}{core::Iterator<(core::int, core::int)>};
+[729]    for (; [750] [750] [-1] [-1] :sync-for-iterator.{core::Iterator::moveNext}[-1](){() → core::bool}; ) {
+[729]      [729, -1] final(core::int, core::int) #t10 = [756] [756] [-1] [-1] :sync-for-iterator.{core::Iterator::current}{(core::int, core::int)};
+[756]      {
+[741]        [741, -1] final hoisted core::int x;
+[744]        [744, -1] final hoisted core::int y;
+[747]        {
+[747]          [747, -1] final synthesized(core::int, core::int) #0#0 = [747] [747] #t10;
+[741]          [741] [741] x = [741] [741] [-1] [-1] #0#0.$1{core::int};
+[744]          [744] [744] y = [744] [744] [-1] [-1] #0#0.$2{core::int};
+[747]        }
+[762]        [762] [762] core::print [767]([770] [768] [768] x.{core::num::+}[770]([772] y){(core::num) → core::int});
+[778]      }
+    }
+[-1]  }
+}
+[788]static method [806] [875] withExpressionBody([824, -1] core::List<(core::int, core::int)> list) → void {
+[-1]  {
+[855]    [855, -1] synthesized core::Iterator<(core::int, core::int)> :sync-for-iterator = [855] [855] [855] [855] list.{core::Iterable::iterator}{core::Iterator<(core::int, core::int)>};
+[834]    for (; [855] [855] [-1] [-1] :sync-for-iterator.{core::Iterator::moveNext}[-1](){() → core::bool}; ) {
+[834]      [834, -1] final(core::int, core::int) #t11 = [873] [873] [-1] [-1] :sync-for-iterator.{core::Iterator::current}{(core::int, core::int)};
+[852]      {
+[846]        [846, -1] final hoisted core::int x;
+[849]        [849, -1] final hoisted core::int y;
+[852]        {
+[852]          [852, -1] final synthesized(core::int, core::int) #0#0 = [852] [852] #t11;
+[846]          [846] [846] x = [846] [846] [-1] [-1] #0#0.$1{core::int};
+[849]          [849] [849] y = [849] [849] [-1] [-1] #0#0.$2{core::int};
+[852]        }
+[861]        [861] [861] core::print [866]([869] [867] [867] x.{core::num::+}[869]([871] y){(core::num) → core::int});
+[861]      }
+    }
+[-1]  }
+}
 
 constants  {
   #C1 = 2

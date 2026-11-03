@@ -4,3 +4,11 @@ import "dart:core" as core;
 
 [217]static method [223] [357] method([229, -1] core::List<dynamic> list) → dynamic
 [-1]  ;
+[365]static method [377] [489] withContinue([395, -1] core::List<(core::int, core::int)> list) → void
+[-1]  ;
+[497]static method [516] [678] withLabeledContinue([534, -1] core::List<(core::int, core::int)> list) → void
+[-1]  ;
+[686]static method [701] [780] withoutContinue([719, -1] core::List<(core::int, core::int)> list) → void
+[-1]  ;
+[788]static method [806] [875] withExpressionBody([824, -1] core::List<(core::int, core::int)> list) → void
+[-1]  ;

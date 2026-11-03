@@ -1,1 +1,9 @@
 method(List list) {}
+
+void withContinue(List<(int, int)> list) {}
+
+void withExpressionBody(List<(int, int)> list) {}
+
+void withLabeledContinue(List<(int, int)> list) {}
+
+void withoutContinue(List<(int, int)> list) {}
