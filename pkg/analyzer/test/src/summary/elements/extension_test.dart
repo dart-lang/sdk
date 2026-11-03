@@ -401,7 +401,7 @@ library
         #F3 extension E (nameOffset:52) (firstTokenOffset:29) (offset:52)
           element: <testLibrary>::@extension::E
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @29
               expression: UnqualifiedNameExpression
                 name: a @30
@@ -414,7 +414,7 @@ library
                 element: <testLibrary>::@getter::a
                 staticType: null
               element: <testLibrary>::@getter::a
-            Annotation
+            annotation_1: Annotation
               atSign: @ @32
               expression: ConstructorInvocation
                 constructorReference: ConstructorReference2
@@ -460,40 +460,8 @@ library
       reference: <testLibrary>::@extension::E
       firstFragment: #F3
       metadata
-        Annotation
-          atSign: @ @29
-          expression: UnqualifiedNameExpression
-            name: a @30
-            resolution: GetterInvocationResolution
-              element: <testLibrary>::@getter::a
-              type: dynamic
-            staticType: dynamic
-          name: SimpleIdentifier
-            token: a @30
-            element: <testLibrary>::@getter::a
-            staticType: null
-          element: <testLibrary>::@getter::a
-        Annotation
-          atSign: @ @32
-          expression: ConstructorInvocation
-            constructorReference: ConstructorReference2
-              typeReference: ConstructorTypeReference
-                name: Object @33
-                element: dart:core::@class::Object
-                type: Object
-              element: dart:core::@class::Object::@constructor::new
-            argumentList: ArgumentList
-              leftParenthesis: ( @39
-              rightParenthesis: ) @40
-            staticType: Object
-          name: SimpleIdentifier
-            token: Object @33
-            element: dart:core::@class::Object
-            staticType: null
-          arguments: ArgumentList
-            leftParenthesis: ( @39
-            rightParenthesis: ) @40
-          element: dart:core::@class::Object::@constructor::new
+        annotation_0
+        annotation_1
       extendedType: A
       onDeclaration: <testLibrary>::@class::A
   topLevelVariables
@@ -533,7 +501,7 @@ library
         #F1 extension E (nameOffset:31) (firstTokenOffset:16) (offset:31)
           element: <testLibrary>::@extension::E
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @16
               expression: UnqualifiedNameExpression
                 name: foo @17
@@ -550,7 +518,7 @@ library
             #F2 T (nameOffset:38) (firstTokenOffset:33) (offset:38)
               element: #E0 T
               metadata
-                Annotation
+                annotation_1: Annotation
                   atSign: @ @33
                   expression: UnqualifiedNameExpression
                     name: foo @34
@@ -579,7 +547,7 @@ library
             #F5 isComplete isOriginDeclaration bar (nameOffset:88) (firstTokenOffset:76) (offset:88)
               element: <testLibrary>::@extension::E::@method::bar
               metadata
-                Annotation
+                annotation_2: Annotation
                   atSign: @ @76
                   expression: UnqualifiedNameExpression
                     name: foo @77
@@ -609,36 +577,12 @@ library
       reference: <testLibrary>::@extension::E
       firstFragment: #F1
       metadata
-        Annotation
-          atSign: @ @16
-          expression: UnqualifiedNameExpression
-            name: foo @17
-            resolution: GetterInvocationResolution
-              element: <testLibrary>::@getter::foo
-              type: int
-            staticType: int
-          name: SimpleIdentifier
-            token: foo @17
-            element: <testLibrary>::@getter::foo
-            staticType: null
-          element: <testLibrary>::@getter::foo
+        annotation_0
       typeParameters
         #E0 T
           firstFragment: #F2
           metadata
-            Annotation
-              atSign: @ @33
-              expression: UnqualifiedNameExpression
-                name: foo @34
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@getter::foo
-                  type: int
-                staticType: int
-              name: SimpleIdentifier
-                token: foo @34
-                element: <testLibrary>::@getter::foo
-                staticType: null
-              element: <testLibrary>::@getter::foo
+            annotation_1
       extendedType: int
       onDeclaration: dart:core::@class::int
       fields
@@ -659,19 +603,7 @@ library
           reference: <testLibrary>::@extension::E::@method::bar
           firstFragment: #F5
           metadata
-            Annotation
-              atSign: @ @76
-              expression: UnqualifiedNameExpression
-                name: foo @77
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@extension::E::@getter::foo
-                  type: int
-                staticType: int
-              name: SimpleIdentifier
-                token: foo @77
-                element: <testLibrary>::@extension::E::@getter::foo
-                staticType: null
-              element: <testLibrary>::@extension::E::@getter::foo
+            annotation_2
           returnType: void
   topLevelVariables
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer foo

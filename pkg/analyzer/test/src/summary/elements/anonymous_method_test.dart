@@ -62,7 +62,7 @@ library
         #F4 isComplete isOriginDeclaration isStatic f (nameOffset:50) (firstTokenOffset:34) (offset:50)
           element: <testLibrary>::@function::f
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @34
               expression: ConstructorInvocation
                 constructorReference: ConstructorReference2
@@ -115,42 +115,7 @@ library
       reference: <testLibrary>::@function::f
       firstFragment: #F4
       metadata
-        Annotation
-          atSign: @ @34
-          expression: ConstructorInvocation
-            constructorReference: ConstructorReference2
-              typeReference: ConstructorTypeReference
-                name: A @35
-                element: <testLibrary>::@class::A
-                type: A
-              element: <testLibrary>::@class::A::@constructor::new
-            argumentList: ArgumentList
-              leftParenthesis: ( @36
-              arguments2
-                UnqualifiedNameExpression
-                  name: _notSerializableExpression @-1
-                  resolution: <null>
-                  staticType: null
-              arguments(v1)
-                SimpleIdentifier
-                  token: _notSerializableExpression @-1
-                  element: <null>
-                  staticType: null
-              rightParenthesis: ) @43
-            staticType: A
-          name: SimpleIdentifier
-            token: A @35
-            element: <testLibrary>::@class::A
-            staticType: null
-          arguments: ArgumentList
-            leftParenthesis: ( @36
-            arguments
-              SimpleIdentifier
-                token: _notSerializableExpression @-1
-                element: <null>
-                staticType: null
-            rightParenthesis: ) @43
-          element: <testLibrary>::@class::A::@constructor::new
+        annotation_0
       returnType: void
 ''');
   }

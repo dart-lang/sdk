@@ -2977,7 +2977,7 @@ library
               element: <testLibrary>::@enum::E::@field::a
               documentationComment: /**\n   * aaa\n   */
               metadata
-                Annotation
+                annotation_0: Annotation
                   atSign: @ @32
                   expression: UnqualifiedNameExpression
                     name: annotation @33
@@ -3019,7 +3019,7 @@ library
               element: <testLibrary>::@enum::E::@field::b
               documentationComment: /// bbb
               metadata
-                Annotation
+                annotation_1: Annotation
                   atSign: @ @62
                   expression: UnqualifiedNameExpression
                     name: annotation @63
@@ -3124,19 +3124,7 @@ library
           firstFragment: #F2
           documentationComment: /**\n   * aaa\n   */
           metadata
-            Annotation
-              atSign: @ @32
-              expression: UnqualifiedNameExpression
-                name: annotation @33
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@getter::annotation
-                  type: int
-                staticType: int
-              name: SimpleIdentifier
-                token: annotation @33
-                element: <testLibrary>::@getter::annotation
-                staticType: null
-              element: <testLibrary>::@getter::annotation
+            annotation_0
           type: E
           constantInitializer2: expression_0
           constantInitializer: expression_1
@@ -3146,19 +3134,7 @@ library
           firstFragment: #F4
           documentationComment: /// bbb
           metadata
-            Annotation
-              atSign: @ @62
-              expression: UnqualifiedNameExpression
-                name: annotation @63
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@getter::annotation
-                  type: int
-                staticType: int
-              name: SimpleIdentifier
-                token: annotation @63
-                element: <testLibrary>::@getter::annotation
-                staticType: null
-              element: <testLibrary>::@getter::annotation
+            annotation_1
           type: E
           constantInitializer2: expression_2
           constantInitializer: expression_3
@@ -3431,7 +3407,7 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:31) (firstTokenOffset:26) (offset:31)
               element: <testLibrary>::@enum::E::@field::v
               metadata
-                Annotation
+                annotation_0: Annotation
                   atSign: @ @26
                   expression: UnqualifiedNameExpression
                     name: a @27
@@ -3522,19 +3498,7 @@ library
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           metadata
-            Annotation
-              atSign: @ @26
-              expression: UnqualifiedNameExpression
-                name: a @27
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@getter::a
-                  type: int
-                staticType: int
-              name: SimpleIdentifier
-                token: a @27
-                element: <testLibrary>::@getter::a
-                staticType: null
-              element: <testLibrary>::@getter::a
+            annotation_0
           type: E
           constantInitializer2: expression_0
           constantInitializer: expression_1
@@ -3624,7 +3588,7 @@ library
             #F7 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic a (nameOffset:80) (firstTokenOffset:70) (offset:80)
               element: <testLibrary>::@enum::E::@field::a
               metadata
-                Annotation
+                annotation_0: Annotation
                   atSign: @ @70
                   expression: ConstructorInvocation
                     constructorReference: ConstructorReference2
@@ -3708,7 +3672,7 @@ library
             #F11 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic c (nameOffset:100) (firstTokenOffset:90) (offset:100)
               element: <testLibrary>::@enum::E::@field::c
               metadata
-                Annotation
+                annotation_1: Annotation
                   atSign: @ @90
                   expression: ConstructorInvocation
                     constructorReference: ConstructorReference2
@@ -3854,35 +3818,7 @@ library
           reference: <testLibrary>::@enum::E::@field::a
           firstFragment: #F7
           metadata
-            Annotation
-              atSign: @ @70
-              expression: ConstructorInvocation
-                constructorReference: ConstructorReference2
-                  typeReference: ConstructorTypeReference
-                    name: A @71
-                    element: <testLibrary>::@class::A
-                    type: A
-                  element: <testLibrary>::@class::A::@constructor::new
-                argumentList: ArgumentList
-                  leftParenthesis: ( @72
-                  arguments2
-                    IntegerLiteral
-                      literal: 100 @73
-                      staticType: int
-                  rightParenthesis: ) @76
-                staticType: A
-              name: SimpleIdentifier
-                token: A @71
-                element: <testLibrary>::@class::A
-                staticType: null
-              arguments: ArgumentList
-                leftParenthesis: ( @72
-                arguments
-                  IntegerLiteral
-                    literal: 100 @73
-                    staticType: int
-                rightParenthesis: ) @76
-              element: <testLibrary>::@class::A::@constructor::new
+            annotation_0
           type: E
           constantInitializer2: expression_0
           constantInitializer: expression_1
@@ -3898,35 +3834,7 @@ library
           reference: <testLibrary>::@enum::E::@field::c
           firstFragment: #F11
           metadata
-            Annotation
-              atSign: @ @90
-              expression: ConstructorInvocation
-                constructorReference: ConstructorReference2
-                  typeReference: ConstructorTypeReference
-                    name: A @91
-                    element: <testLibrary>::@class::A
-                    type: A
-                  element: <testLibrary>::@class::A::@constructor::new
-                argumentList: ArgumentList
-                  leftParenthesis: ( @92
-                  arguments2
-                    IntegerLiteral
-                      literal: 300 @93
-                      staticType: int
-                  rightParenthesis: ) @96
-                staticType: A
-              name: SimpleIdentifier
-                token: A @91
-                element: <testLibrary>::@class::A
-                staticType: null
-              arguments: ArgumentList
-                leftParenthesis: ( @92
-                arguments
-                  IntegerLiteral
-                    literal: 300 @93
-                    staticType: int
-                rightParenthesis: ) @96
-              element: <testLibrary>::@class::A::@constructor::new
+            annotation_1
           type: E
           constantInitializer2: expression_4
           constantInitializer: expression_5
@@ -3986,7 +3894,7 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:16) (firstTokenOffset:11) (offset:16)
               element: <testLibrary>::@enum::E::@field::v
               metadata
-                Annotation
+                annotation_0: Annotation
                   atSign: @ @11
                   expression: UnqualifiedNameExpression
                     name: v @12
@@ -4065,19 +3973,7 @@ library
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           metadata
-            Annotation
-              atSign: @ @11
-              expression: UnqualifiedNameExpression
-                name: v @12
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@enum::E::@getter::v
-                  type: E
-                staticType: E
-              name: SimpleIdentifier
-                token: v @12
-                element: <testLibrary>::@enum::E::@getter::v
-                staticType: null
-              element: <testLibrary>::@enum::E::@getter::v
+            annotation_0
           type: E
           constantInitializer2: expression_0
           constantInitializer: expression_1
@@ -5126,7 +5022,7 @@ library
             #F8 isComplete isConst isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
               element: <testLibrary>::@enum::E::@constructor::new
               metadata
-                Annotation
+                annotation_0: Annotation
                   atSign: @ @34
                   expression: ConstructorInvocation
                     constructorReference: ConstructorReference2
@@ -5197,33 +5093,7 @@ library
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F8
           metadata
-            Annotation
-              atSign: @ @34
-              expression: ConstructorInvocation
-                constructorReference: ConstructorReference2
-                  typeReference: ConstructorTypeReference
-                    name: Deprecated @35
-                    element: dart:core::@class::Deprecated
-                    type: Deprecated
-                  element: dart:core::@class::Deprecated::@constructor::new
-                argumentList: ArgumentList
-                  leftParenthesis: ( @45
-                  arguments2
-                    SimpleStringLiteral
-                      literal: '0' @46
-                  rightParenthesis: ) @49
-                staticType: Deprecated
-              name: SimpleIdentifier
-                token: Deprecated @35
-                element: dart:core::@class::Deprecated
-                staticType: null
-              arguments: ArgumentList
-                leftParenthesis: ( @45
-                arguments
-                  SimpleStringLiteral
-                    literal: '0' @46
-                rightParenthesis: ) @49
-              element: dart:core::@class::Deprecated::@constructor::new
+            annotation_0
           constantInitializers
             ConstructorFieldInitializer
               fieldName2: y @60
@@ -5334,7 +5204,7 @@ library
             #F6 isConst isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
               element: <testLibrary>::@enum::E::@constructor::new
               metadata
-                Annotation
+                annotation_0: Annotation
                   atSign: @ @27
                   expression: UnqualifiedNameExpression
                     name: deprecated @28
@@ -5386,19 +5256,7 @@ library
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F6
           metadata
-            Annotation
-              atSign: @ @27
-              expression: UnqualifiedNameExpression
-                name: deprecated @28
-                resolution: GetterInvocationResolution
-                  element: dart:core::@getter::deprecated
-                  type: Deprecated
-                staticType: Deprecated
-              name: SimpleIdentifier
-                token: deprecated @28
-                element: dart:core::@getter::deprecated
-                staticType: null
-              element: dart:core::@getter::deprecated
+            annotation_0
           formalParameters
             #E0 requiredPositional x
               firstFragment: #F7
@@ -6491,7 +6349,7 @@ library
                   element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
                   documentationComment: /// first\n/// second
                   metadata
-                    Annotation
+                    annotation_0: Annotation
                       atSign: @ @35
                       expression: UnqualifiedNameExpression
                         name: deprecated @36
@@ -6538,7 +6396,7 @@ library
           firstFragment: #F6
           documentationComment: /// first\n/// second
           metadata
-            Annotation
+            annotation_1: Annotation
               atSign: @ @35
               expression: UnqualifiedNameExpression
                 name: deprecated @36
@@ -6564,19 +6422,7 @@ library
               type: void Function()
               documentationComment: /// first\n/// second
               metadata
-                Annotation
-                  atSign: @ @35
-                  expression: UnqualifiedNameExpression
-                    name: deprecated @36
-                    resolution: GetterInvocationResolution
-                      element: dart:core::@getter::deprecated
-                      type: Deprecated
-                    staticType: Deprecated
-                  name: SimpleIdentifier
-                    token: deprecated @36
-                    element: dart:core::@getter::deprecated
-                    staticType: null
-                  element: dart:core::@getter::deprecated
+                annotation_0
               field: <testLibrary>::@enum::A::@field::foo
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
@@ -6687,7 +6533,7 @@ library
                   element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
                   documentationComment: /// first\n/// second
                   metadata
-                    Annotation
+                    annotation_0: Annotation
                       atSign: @ @35
                       expression: UnqualifiedNameExpression
                         name: deprecated @36
@@ -6734,7 +6580,7 @@ library
           firstFragment: #F6
           documentationComment: /// first\n/// second
           metadata
-            Annotation
+            annotation_1: Annotation
               atSign: @ @35
               expression: UnqualifiedNameExpression
                 name: deprecated @36
@@ -6760,19 +6606,7 @@ library
               type: int
               documentationComment: /// first\n/// second
               metadata
-                Annotation
-                  atSign: @ @35
-                  expression: UnqualifiedNameExpression
-                    name: deprecated @36
-                    resolution: GetterInvocationResolution
-                      element: dart:core::@getter::deprecated
-                      type: Deprecated
-                    staticType: Deprecated
-                  name: SimpleIdentifier
-                    token: deprecated @36
-                    element: dart:core::@getter::deprecated
-                    staticType: null
-                  element: dart:core::@getter::deprecated
+                annotation_0
               field: <testLibrary>::@enum::A::@field::foo
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
@@ -7978,7 +7812,7 @@ library
             #F2 T (nameOffset:28) (firstTokenOffset:23) (offset:28)
               element: #E0 T
               metadata
-                Annotation
+                annotation_0: Annotation
                   atSign: @ @23
                   expression: UnqualifiedNameExpression
                     name: foo @24
@@ -8060,7 +7894,7 @@ library
                 #F10 optionalPositional isOriginDeclaration x (nameOffset:41) (firstTokenOffset:32) (offset:41)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::x
                   metadata
-                    Annotation
+                    annotation_1: Annotation
                       atSign: @ @32
                       expression: UnqualifiedNameExpression
                         name: foo @33
@@ -8115,19 +7949,7 @@ library
         #E0 T
           firstFragment: #F2
           metadata
-            Annotation
-              atSign: @ @23
-              expression: UnqualifiedNameExpression
-                name: foo @24
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@getter::foo
-                  type: int
-                staticType: int
-              name: SimpleIdentifier
-                token: foo @24
-                element: <testLibrary>::@getter::foo
-                staticType: null
-              element: <testLibrary>::@getter::foo
+            annotation_0
       supertype: Enum
       fields
         hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
@@ -8158,19 +7980,7 @@ library
               firstFragment: #F10
               type: int
               metadata
-                Annotation
-                  atSign: @ @32
-                  expression: UnqualifiedNameExpression
-                    name: foo @33
-                    resolution: GetterInvocationResolution
-                      element: <testLibrary>::@enum::E::@getter::foo
-                      type: int
-                    staticType: int
-                  name: SimpleIdentifier
-                    token: foo @33
-                    element: <testLibrary>::@enum::E::@getter::foo
-                    staticType: null
-                  element: <testLibrary>::@enum::E::@getter::foo
+                annotation_1
               constantInitializer2: expression_4
               constantInitializer: expression_5
           superConstructor: dart:core::@class::Enum::@constructor::new
@@ -11493,7 +11303,7 @@ library
             #F6 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:32) (offset:43)
               element: <testLibrary>::@enum::E::@constructor::new
               metadata
-                Annotation
+                annotation_0: Annotation
                   atSign: @ @32
                   expression: UnqualifiedNameExpression
                     name: a @33
@@ -11551,19 +11361,7 @@ library
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F6
           metadata
-            Annotation
-              atSign: @ @32
-              expression: UnqualifiedNameExpression
-                name: a @33
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@getter::a
-                  type: int
-                staticType: int
-              name: SimpleIdentifier
-                token: a @33
-                element: <testLibrary>::@getter::a
-                staticType: null
-              element: <testLibrary>::@getter::a
+            annotation_0
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         isOriginVariable isStatic v
@@ -15622,7 +15420,7 @@ library
         #F1 enum E (nameOffset:23) (firstTokenOffset:15) (offset:23)
           element: <testLibrary>::@enum::E
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @15
               expression: UnqualifiedNameExpression
                 name: a @16
@@ -15711,19 +15509,7 @@ library
       reference: <testLibrary>::@enum::E
       firstFragment: #F1
       metadata
-        Annotation
-          atSign: @ @15
-          expression: UnqualifiedNameExpression
-            name: a @16
-            resolution: GetterInvocationResolution
-              element: <testLibrary>::@getter::a
-              type: int
-            staticType: int
-          name: SimpleIdentifier
-            token: a @16
-            element: <testLibrary>::@getter::a
-            staticType: null
-          element: <testLibrary>::@getter::a
+        annotation_0
       supertype: Enum
       fields
         hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
@@ -15794,7 +15580,7 @@ library
         #F1 enum E (nameOffset:26) (firstTokenOffset:16) (offset:26)
           element: <testLibrary>::@enum::E
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @16
               expression: UnqualifiedNameExpression
                 name: foo @17
@@ -15811,7 +15597,7 @@ library
             #F2 T (nameOffset:33) (firstTokenOffset:28) (offset:33)
               element: #E0 T
               metadata
-                Annotation
+                annotation_1: Annotation
                   atSign: @ @28
                   expression: UnqualifiedNameExpression
                     name: foo @29
@@ -15901,7 +15687,7 @@ library
             #F10 isComplete isOriginDeclaration bar (nameOffset:82) (firstTokenOffset:70) (offset:82)
               element: <testLibrary>::@enum::E::@method::bar
               metadata
-                Annotation
+                annotation_2: Annotation
                   atSign: @ @70
                   expression: UnqualifiedNameExpression
                     name: foo @71
@@ -15931,36 +15717,12 @@ library
       reference: <testLibrary>::@enum::E
       firstFragment: #F1
       metadata
-        Annotation
-          atSign: @ @16
-          expression: UnqualifiedNameExpression
-            name: foo @17
-            resolution: GetterInvocationResolution
-              element: <testLibrary>::@getter::foo
-              type: int
-            staticType: int
-          name: SimpleIdentifier
-            token: foo @17
-            element: <testLibrary>::@getter::foo
-            staticType: null
-          element: <testLibrary>::@getter::foo
+        annotation_0
       typeParameters
         #E0 T
           firstFragment: #F2
           metadata
-            Annotation
-              atSign: @ @28
-              expression: UnqualifiedNameExpression
-                name: foo @29
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@getter::foo
-                  type: int
-                staticType: int
-              name: SimpleIdentifier
-                token: foo @29
-                element: <testLibrary>::@getter::foo
-                staticType: null
-              element: <testLibrary>::@getter::foo
+            annotation_1
       supertype: Enum
       fields
         hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
@@ -16008,19 +15770,7 @@ library
           reference: <testLibrary>::@enum::E::@method::bar
           firstFragment: #F10
           metadata
-            Annotation
-              atSign: @ @70
-              expression: UnqualifiedNameExpression
-                name: foo @71
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@enum::E::@getter::foo
-                  type: int
-                staticType: int
-              name: SimpleIdentifier
-                token: foo @71
-                element: <testLibrary>::@enum::E::@getter::foo
-                staticType: null
-              element: <testLibrary>::@enum::E::@getter::foo
+            annotation_2
           returnType: void
   topLevelVariables
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer foo
@@ -18163,7 +17913,7 @@ library
             #F2 T (nameOffset:25) (firstTokenOffset:22) (offset:25)
               element: #E0 T
               metadata
-                Annotation
+                annotation_0: Annotation
                   atSign: @ @22
                   expression: UnqualifiedNameExpression
                     name: a @23
@@ -18259,19 +18009,7 @@ library
         #E0 T
           firstFragment: #F2
           metadata
-            Annotation
-              atSign: @ @22
-              expression: UnqualifiedNameExpression
-                name: a @23
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@getter::a
-                  type: int
-                staticType: int
-              name: SimpleIdentifier
-                token: a @23
-                element: <testLibrary>::@getter::a
-                staticType: null
-              element: <testLibrary>::@getter::a
+            annotation_0
       supertype: Enum
       fields
         hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
@@ -24589,7 +24327,7 @@ library
             #F7 isComplete isOriginDeclaration foo (nameOffset:42) (firstTokenOffset:32) (offset:42)
               element: <testLibrary>::@enum::E::@method::foo
               metadata
-                Annotation
+                annotation_0: Annotation
                   atSign: @ @32
                   expression: UnqualifiedNameExpression
                     name: a @33
@@ -24654,19 +24392,7 @@ library
           reference: <testLibrary>::@enum::E::@method::foo
           firstFragment: #F7
           metadata
-            Annotation
-              atSign: @ @32
-              expression: UnqualifiedNameExpression
-                name: a @33
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@getter::a
-                  type: int
-                staticType: int
-              name: SimpleIdentifier
-                token: a @33
-                element: <testLibrary>::@getter::a
-                staticType: null
-              element: <testLibrary>::@getter::a
+            annotation_0
           returnType: void
   topLevelVariables
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer a

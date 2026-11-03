@@ -140,7 +140,7 @@ library
             #F4 isComplete isConst isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:21)
               element: <testLibrary>::@extensionType::E::@constructor::new
               metadata
-                Annotation
+                annotation_0: Annotation
                   atSign: @ @35
                   expression: ConstructorInvocation
                     constructorReference: ConstructorReference2
@@ -198,33 +198,7 @@ library
           reference: <testLibrary>::@extensionType::E::@constructor::new
           firstFragment: #F4
           metadata
-            Annotation
-              atSign: @ @35
-              expression: ConstructorInvocation
-                constructorReference: ConstructorReference2
-                  typeReference: ConstructorTypeReference
-                    name: Deprecated @36
-                    element: dart:core::@class::Deprecated
-                    type: Deprecated
-                  element: dart:core::@class::Deprecated::@constructor::new
-                argumentList: ArgumentList
-                  leftParenthesis: ( @46
-                  arguments2
-                    SimpleStringLiteral
-                      literal: '0' @47
-                  rightParenthesis: ) @50
-                staticType: Deprecated
-              name: SimpleIdentifier
-                token: Deprecated @36
-                element: dart:core::@class::Deprecated
-                staticType: null
-              arguments: ArgumentList
-                leftParenthesis: ( @46
-                arguments
-                  SimpleStringLiteral
-                    literal: '0' @47
-                rightParenthesis: ) @50
-              element: dart:core::@class::Deprecated::@constructor::new
+            annotation_0
           formalParameters
             #E0 requiredPositional isDeclaring isFinal this.it
               firstFragment: #F5
@@ -294,7 +268,7 @@ library
             #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::E::@constructor::new
               metadata
-                Annotation
+                annotation_0: Annotation
                   atSign: @ @29
                   expression: UnqualifiedNameExpression
                     name: deprecated @30
@@ -338,19 +312,7 @@ library
           reference: <testLibrary>::@extensionType::E::@constructor::new
           firstFragment: #F4
           metadata
-            Annotation
-              atSign: @ @29
-              expression: UnqualifiedNameExpression
-                name: deprecated @30
-                resolution: GetterInvocationResolution
-                  element: dart:core::@getter::deprecated
-                  type: Deprecated
-                staticType: Deprecated
-              name: SimpleIdentifier
-                token: deprecated @30
-                element: dart:core::@getter::deprecated
-                staticType: null
-              element: dart:core::@getter::deprecated
+            annotation_0
           formalParameters
             #E0 requiredPositional isDeclaring isFinal this.it
               firstFragment: #F5
@@ -2507,7 +2469,7 @@ library
                 #F5 requiredPositional hasImplicitType isDeclaring isFinal isOriginDeclaration this.it (nameOffset:29) (firstTokenOffset:17) (offset:29)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   metadata
-                    Annotation
+                    annotation_0: Annotation
                       atSign: @ @17
                       expression: UnqualifiedNameExpression
                         name: deprecated @18
@@ -2536,7 +2498,7 @@ library
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F2
           metadata
-            Annotation
+            annotation_1: Annotation
               atSign: @ @17
               expression: UnqualifiedNameExpression
                 name: deprecated @18
@@ -2561,19 +2523,7 @@ library
               firstFragment: #F5
               type: Object?
               metadata
-                Annotation
-                  atSign: @ @17
-                  expression: UnqualifiedNameExpression
-                    name: deprecated @18
-                    resolution: GetterInvocationResolution
-                      element: dart:core::@getter::deprecated
-                      type: Deprecated
-                    staticType: Deprecated
-                  name: SimpleIdentifier
-                    token: deprecated @18
-                    element: dart:core::@getter::deprecated
-                    staticType: null
-                  element: dart:core::@getter::deprecated
+                annotation_0
               field: <testLibrary>::@extensionType::A::@field::it
       getters
         isExtensionTypeMember isOriginVariable it
@@ -2616,7 +2566,7 @@ library
                 #F5 requiredPositional hasImplicitType isDeclaring isFinal isOriginDeclaration this.it (nameOffset:45) (firstTokenOffset:33) (offset:45)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   metadata
-                    Annotation
+                    annotation_0: Annotation
                       atSign: @ @33
                       expression: UnqualifiedNameExpression
                         name: deprecated @34
@@ -2645,7 +2595,7 @@ library
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F2
           metadata
-            Annotation
+            annotation_1: Annotation
               atSign: @ @33
               expression: UnqualifiedNameExpression
                 name: deprecated @34
@@ -2670,19 +2620,7 @@ library
               firstFragment: #F5
               type: Object?
               metadata
-                Annotation
-                  atSign: @ @33
-                  expression: UnqualifiedNameExpression
-                    name: deprecated @34
-                    resolution: GetterInvocationResolution
-                      element: dart:core::@getter::deprecated
-                      type: Deprecated
-                    staticType: Deprecated
-                  name: SimpleIdentifier
-                    token: deprecated @34
-                    element: dart:core::@getter::deprecated
-                    staticType: null
-                  element: dart:core::@getter::deprecated
+                annotation_0
               field: <testLibrary>::@extensionType::A::@field::it
       getters
         isExtensionTypeMember isOriginVariable it
@@ -3122,7 +3060,7 @@ library
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:33) (firstTokenOffset:17) (offset:33)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   metadata
-                    Annotation
+                    annotation_0: Annotation
                       atSign: @ @17
                       expression: UnqualifiedNameExpression
                         name: deprecated @18
@@ -3151,7 +3089,7 @@ library
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F2
           metadata
-            Annotation
+            annotation_1: Annotation
               atSign: @ @17
               expression: UnqualifiedNameExpression
                 name: deprecated @18
@@ -3176,19 +3114,7 @@ library
               firstFragment: #F5
               type: int
               metadata
-                Annotation
-                  atSign: @ @17
-                  expression: UnqualifiedNameExpression
-                    name: deprecated @18
-                    resolution: GetterInvocationResolution
-                      element: dart:core::@getter::deprecated
-                      type: Deprecated
-                    staticType: Deprecated
-                  name: SimpleIdentifier
-                    token: deprecated @18
-                    element: dart:core::@getter::deprecated
-                    staticType: null
-                  element: dart:core::@getter::deprecated
+                annotation_0
               field: <testLibrary>::@extensionType::A::@field::it
       getters
         isExtensionTypeMember isOriginVariable it
@@ -4984,7 +4910,7 @@ library
             #F2 T (nameOffset:38) (firstTokenOffset:33) (offset:38)
               element: #E0 T
               metadata
-                Annotation
+                annotation_0: Annotation
                   atSign: @ @33
                   expression: UnqualifiedNameExpression
                     name: foo @34
@@ -5018,7 +4944,7 @@ library
                 #F8 optionalPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:51) (firstTokenOffset:42) (offset:51)
                   element: <testLibrary>::@extensionType::E::@constructor::new::@formalParameter::it
                   metadata
-                    Annotation
+                    annotation_1: Annotation
                       atSign: @ @42
                       expression: UnqualifiedNameExpression
                         name: foo @43
@@ -5070,19 +4996,7 @@ library
         #E0 T
           firstFragment: #F2
           metadata
-            Annotation
-              atSign: @ @33
-              expression: UnqualifiedNameExpression
-                name: foo @34
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@getter::foo
-                  type: int
-                staticType: int
-              name: SimpleIdentifier
-                token: foo @34
-                element: <testLibrary>::@getter::foo
-                staticType: null
-              element: <testLibrary>::@getter::foo
+            annotation_0
       representation: <testLibrary>::@extensionType::E::@field::it
       primaryConstructor: <testLibrary>::@extensionType::E::@constructor::new
       typeErasure: int
@@ -5091,7 +5005,7 @@ library
           reference: <testLibrary>::@extensionType::E::@field::it
           firstFragment: #F3
           metadata
-            Annotation
+            annotation_2: Annotation
               atSign: @ @42
               expression: UnqualifiedNameExpression
                 name: foo @43
@@ -5122,19 +5036,7 @@ library
               firstFragment: #F8
               type: int
               metadata
-                Annotation
-                  atSign: @ @42
-                  expression: UnqualifiedNameExpression
-                    name: foo @43
-                    resolution: GetterInvocationResolution
-                      element: <testLibrary>::@extensionType::E::@getter::foo
-                      type: int
-                    staticType: int
-                  name: SimpleIdentifier
-                    token: foo @43
-                    element: <testLibrary>::@extensionType::E::@getter::foo
-                    staticType: null
-                  element: <testLibrary>::@extensionType::E::@getter::foo
+                annotation_1
               constantInitializer2: expression_1
               constantInitializer: expression_2
               field: <testLibrary>::@extensionType::E::@field::it
@@ -9412,7 +9314,7 @@ library
         #F1 extension type A (nameOffset:38) (firstTokenOffset:18) (offset:38)
           element: <testLibrary>::@extensionType::A
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @18
               expression: UnqualifiedNameExpression
                 name: foo @19
@@ -9447,19 +9349,7 @@ library
       reference: <testLibrary>::@extensionType::A
       firstFragment: #F1
       metadata
-        Annotation
-          atSign: @ @18
-          expression: UnqualifiedNameExpression
-            name: foo @19
-            resolution: GetterInvocationResolution
-              element: package:test/a.dart::@getter::foo
-              type: int
-            staticType: int
-          name: SimpleIdentifier
-            token: foo @19
-            element: package:test/a.dart::@getter::foo
-            staticType: null
-          element: package:test/a.dart::@getter::foo
+        annotation_0
       representation: <testLibrary>::@extensionType::A::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int

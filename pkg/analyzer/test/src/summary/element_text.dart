@@ -253,6 +253,16 @@ abstract class _AbstractElementWriter {
 
 /// Writes the canonical text presentation of elements.
 class _Element2Writer extends _AbstractElementWriter {
+  /// The ids of the written annotations, for each owner: an element with its
+  /// fragments, or a directive.
+  ///
+  /// An element combines the annotations of its fragments, so each annotation
+  /// is written once, and then referenced by its id. Owners don't share ids:
+  /// linking can give one annotation to several owners, such as the variables
+  /// of one declaration, but summaries have a copy for each of them.
+  final Map<Object, Map<ElementAnnotation, String>> _annotationIds =
+      Map.identity();
+
   new({
     required super.sink,
     required super.elementPrinter,
@@ -266,32 +276,6 @@ class _Element2Writer extends _AbstractElementWriter {
       _idMap[fragment];
     }
 
-    // The element combines the annotations of its fragments, so each
-    // annotation is written once, and then referenced by its id.
-    var annotationIds = Map<ElementAnnotation, String>.identity();
-    void writeMetadata(Metadata metadata) {
-      var annotations = metadata.annotations;
-      if (annotations.isEmpty) {
-        return;
-      }
-      _sink.writelnWithIndent('metadata');
-      _sink.withIndent(() {
-        for (var annotation in annotations) {
-          if (annotationIds[annotation] case var id?) {
-            _sink.writelnWithIndent(id);
-          } else {
-            var id = annotationIds[annotation] =
-                'annotation_${annotationIds.length}';
-            _sink.writelnWithIndent(id);
-            _sink.withIndent(() {
-              annotation as ElementAnnotationImpl;
-              _writeAnnotationAst(annotation.annotationAst);
-            });
-          }
-        }
-      });
-    }
-
     _sink.writelnWithIndent('combinedFragmentData');
     _sink.withIndent(() {
       _elementPrinter.writeNamedElement2('element', e);
@@ -301,7 +285,7 @@ class _Element2Writer extends _AbstractElementWriter {
           case CombinedFragmentData.constantInitializer:
             _writeVariableElementConstantInitializer(e as VariableElementImpl);
           case CombinedFragmentData.metadata:
-            writeMetadata(e.metadata);
+            _writeElementMetadata(e);
         }
       });
 
@@ -316,7 +300,7 @@ class _Element2Writer extends _AbstractElementWriter {
                   fragment as VariableFragmentImpl,
                 );
               case CombinedFragmentData.metadata:
-                writeMetadata(fragment.metadata);
+                _writeFragmentMetadata(fragment);
             }
           });
         }
@@ -337,7 +321,7 @@ class _Element2Writer extends _AbstractElementWriter {
       }
 
       _writeDocumentation(e.documentationComment);
-      _writeMetadata(e.metadata);
+      _writeElementMetadata(e);
       _writeSinceSdkVersion(e);
 
       // _writeList(
@@ -418,6 +402,7 @@ class _Element2Writer extends _AbstractElementWriter {
     expect(flags.where((flag) => flag).length, 1);
   }
 
+  /// Writes [node], after the indent and the id that the caller wrote.
   void _writeAnnotationAst(Annotation node) {
     expect(
       node.parent2,
@@ -425,7 +410,7 @@ class _Element2Writer extends _AbstractElementWriter {
       reason: 'Element annotations must be detached.',
     );
 
-    _writeNode(node);
+    _createAstPrinter().writeNode(node);
   }
 
   /// Writes [expression], the V2 initializer, and then the V1 initializer
@@ -514,7 +499,7 @@ class _Element2Writer extends _AbstractElementWriter {
         e.previousFragmentOfDifferentKind,
       );
       _writeDocumentation(e.documentationComment);
-      _writeMetadata(e.metadata);
+      _writeElementMetadata(e);
       _writeSinceSdkVersion(e);
       // _writeDisplayName(e);
 
@@ -571,7 +556,7 @@ class _Element2Writer extends _AbstractElementWriter {
     _sink.withIndent(() {
       _writeElementReference('element', f.element);
       _writeDocumentation(f.documentationComment);
-      _writeMetadata(f.metadata);
+      _writeFragmentMetadata(f);
 
       if (configuration.withCodeRanges) {
         if (f.isOriginDeclaration) {
@@ -629,6 +614,10 @@ class _Element2Writer extends _AbstractElementWriter {
     expect(f.isGenerator, isFalse);
   }
 
+  void _writeDirectiveMetadata(ElementDirectiveImpl directive) {
+    _writeMetadata(directive.metadata, owner: directive);
+  }
+
   void _writeDocumentation(String? documentation) {
     if (documentation != null) {
       var str = documentation;
@@ -654,6 +643,10 @@ class _Element2Writer extends _AbstractElementWriter {
         }
       });
     }
+  }
+
+  void _writeElementMetadata(Element element) {
+    _writeMetadata(element.metadata, owner: element);
   }
 
   void _writeElementName(Element e) {
@@ -735,7 +728,7 @@ class _Element2Writer extends _AbstractElementWriter {
         e.previousFragmentOfDifferentKind,
       );
       _writeDocumentation(e.documentationComment);
-      _writeMetadata(e.metadata);
+      _writeElementMetadata(e);
       _writeSinceSdkVersion(e);
       // _writeCodeRange(e);
       _writeTypeInferenceError(e.typeInferenceError);
@@ -785,7 +778,7 @@ class _Element2Writer extends _AbstractElementWriter {
     _sink.withIndent(() {
       _writeElementReference('element', f.element);
       _writeDocumentation(f.documentationComment);
-      _writeMetadata(f.metadata);
+      _writeFragmentMetadata(f);
       // _writeSinceSdkVersion(f.sinceSdkVersion);
       // _writeCodeRange(f);
       // _writeType('type', f.type);
@@ -831,7 +824,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeFragmentReference('firstFragment', e.firstFragment);
       _writeType('type', e.type);
       _writeDocumentation(e.documentationComment);
-      _writeMetadata(e.metadata);
+      _writeElementMetadata(e);
       _writeSinceSdkVersion(e);
       _writeVariableElementConstantInitializer(e);
 
@@ -879,7 +872,7 @@ class _Element2Writer extends _AbstractElementWriter {
     _sink.withIndent(() {
       _writeElementReference('element', f.element);
       _writeDocumentation(f.documentationComment);
-      _writeMetadata(f.metadata);
+      _writeFragmentMetadata(f);
       // _writeCodeRange(f);
       _writeVariableFragmentInitializer(f);
       _writeFragmentReference('previousFragment', f.previousFragment);
@@ -919,6 +912,10 @@ class _Element2Writer extends _AbstractElementWriter {
         }
       });
     }
+  }
+
+  void _writeFragmentMetadata(Fragment fragment) {
+    _writeMetadata(fragment.metadata, owner: fragment.element);
   }
 
   void _writeFragmentName(FragmentImpl f) {
@@ -996,7 +993,7 @@ class _Element2Writer extends _AbstractElementWriter {
         e.previousFragmentOfDifferentKind,
       );
       _writeDocumentation(e.documentationComment);
-      _writeMetadata(e.metadata);
+      _writeElementMetadata(e);
       _writeSinceSdkVersion(e);
 
       expect(e.typeParameters, isEmpty);
@@ -1035,7 +1032,7 @@ class _Element2Writer extends _AbstractElementWriter {
     _sink.withIndent(() {
       _writeElementReference('element', f.element);
       _writeDocumentation(f.documentationComment);
-      _writeMetadata(f.metadata);
+      _writeFragmentMetadata(f);
       // _writeCodeRange(f);
       _writeFragmentReference('inducingVariable', f.inducingVariable);
 
@@ -1095,7 +1092,7 @@ class _Element2Writer extends _AbstractElementWriter {
         e.previousFragmentOfDifferentKind,
       );
       _writeDocumentation(e.documentationComment);
-      _writeMetadata(e.metadata);
+      _writeElementMetadata(e);
       _writeSinceSdkVersion(e);
       _writeElementList(
         'typeParameters',
@@ -1195,7 +1192,7 @@ class _Element2Writer extends _AbstractElementWriter {
     });
     _sink.withIndent(() {
       _writeElementReference('element', f.element);
-      _writeMetadata(f.metadata);
+      _writeFragmentMetadata(f);
       _writeFragmentReference('previousFragment', f.previousFragment);
       _writeFragmentReference('nextFragment', f.nextFragment);
       if (f is InterfaceFragmentImpl && f.withClauseMixinStartIndex != 0) {
@@ -1238,7 +1235,7 @@ class _Element2Writer extends _AbstractElementWriter {
     });
 
     _sink.withIndent(() {
-      _writeMetadata(e.metadata);
+      _writeDirectiveMetadata(e);
       _writeNamespaceCombinators(e.combinators);
     });
   }
@@ -1316,7 +1313,7 @@ class _Element2Writer extends _AbstractElementWriter {
     });
 
     _sink.withIndent(() {
-      _writeMetadata(e.metadata);
+      _writeDirectiveMetadata(e);
       _writeNamespaceCombinators(e.combinators);
     });
   }
@@ -1337,19 +1334,35 @@ class _Element2Writer extends _AbstractElementWriter {
     }
   }
 
-  void _writeMetadata(Metadata metadata) {
-    if (configuration.withMetadata) {
-      var annotations = metadata.annotations;
-      if (annotations.isNotEmpty) {
-        _sink.writelnWithIndent('metadata');
-        _sink.withIndent(() {
-          for (var annotation in annotations) {
-            annotation as ElementAnnotationImpl;
-            _writeAnnotationAst(annotation.annotationAst);
-          }
-        });
-      }
+  /// Writes the annotations of [metadata], with the ids scoped to [owner].
+  ///
+  /// See [_annotationIds].
+  void _writeMetadata(Metadata metadata, {required Object owner}) {
+    if (!configuration.withMetadata) {
+      return;
     }
+
+    var annotations = metadata.annotations;
+    if (annotations.isEmpty) {
+      return;
+    }
+
+    var ids = _annotationIds.putIfAbsent(owner, Map.identity);
+    _sink.writelnWithIndent('metadata');
+    _sink.withIndent(() {
+      for (var annotation in annotations) {
+        if (ids[annotation] case var id?) {
+          _sink.writelnWithIndent(id);
+        } else {
+          var count = _annotationIds.values.fold(0, (sum, e) => sum + e.length);
+          var id = ids[annotation] = 'annotation_$count';
+          _sink.writeIndent();
+          _sink.write('$id: ');
+          annotation as ElementAnnotationImpl;
+          _writeAnnotationAst(annotation.annotationAst);
+        }
+      }
+    });
   }
 
   void _writeMethodElement(MethodElementImpl e) {
@@ -1369,7 +1382,7 @@ class _Element2Writer extends _AbstractElementWriter {
       );
       // _writeElementReference(e.enclosingElement, label: 'enclosingElement');
       _writeDocumentation(e.documentationComment);
-      _writeMetadata(e.metadata);
+      _writeElementMetadata(e);
       _writeSinceSdkVersion(e);
       _writeTypeInferenceError(e.typeInferenceError);
 
@@ -1411,7 +1424,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeFragmentReference('previousFragment', f.previousFragment);
       _writeFragmentReference('nextFragment', f.nextFragment);
       _writeDocumentation(f.documentationComment);
-      _writeMetadata(f.metadata);
+      _writeFragmentMetadata(f);
 
       if (configuration.withCodeRanges) {
         _sink.writelnWithIndent('codeOffset: ${f.codeOffset}');
@@ -1469,7 +1482,7 @@ class _Element2Writer extends _AbstractElementWriter {
       });
       _sink.writelnWithIndent('partKeywordOffset: ${e.partKeywordOffset}');
 
-      _writeMetadata(e.metadata);
+      _writeDirectiveMetadata(e);
 
       if (uri is DirectiveUriWithUnitImpl) {
         _elementPrinter.writeNamedFragment('unit', uri.libraryFragment);
@@ -1543,7 +1556,7 @@ class _Element2Writer extends _AbstractElementWriter {
         e.previousFragmentOfDifferentKind,
       );
       _writeDocumentation(e.documentationComment);
-      _writeMetadata(e.metadata);
+      _writeElementMetadata(e);
       _writeSinceSdkVersion(e);
 
       expect(e.typeParameters, isEmpty);
@@ -1582,7 +1595,7 @@ class _Element2Writer extends _AbstractElementWriter {
     _sink.withIndent(() {
       _writeElementReference('element', f.element);
       _writeDocumentation(f.documentationComment);
-      _writeMetadata(f.metadata);
+      _writeFragmentMetadata(f);
       // _writeCodeRange(f);
       _writeFragmentReference('inducingVariable', f.inducingVariable);
 
@@ -1626,7 +1639,7 @@ class _Element2Writer extends _AbstractElementWriter {
         e.previousFragmentOfDifferentKind,
       );
       _writeDocumentation(e.documentationComment);
-      _writeMetadata(e.metadata);
+      _writeElementMetadata(e);
       _writeSinceSdkVersion(e);
       // _writeCodeRange(e);
       _writeElementList(
@@ -1664,7 +1677,7 @@ class _Element2Writer extends _AbstractElementWriter {
     _sink.withIndent(() {
       _writeElementReference('element', f.element);
       _writeDocumentation(f.documentationComment);
-      _writeMetadata(f.metadata);
+      _writeFragmentMetadata(f);
       _writeFragmentReference('previousFragment', f.previousFragment);
       _writeFragmentReference('nextFragment', f.nextFragment);
       // _writeCodeRange(e);
@@ -1707,7 +1720,7 @@ class _Element2Writer extends _AbstractElementWriter {
         e.previousFragmentOfDifferentKind,
       );
       _writeDocumentation(e.documentationComment);
-      _writeMetadata(e.metadata);
+      _writeElementMetadata(e);
       _writeSinceSdkVersion(e);
       _writeTypeInferenceError(e.typeInferenceError);
       _writeType('type', e.type);
@@ -1745,7 +1758,7 @@ class _Element2Writer extends _AbstractElementWriter {
     _sink.withIndent(() {
       _writeElementReference('element', f.element);
       _writeDocumentation(f.documentationComment);
-      _writeMetadata(f.metadata);
+      _writeFragmentMetadata(f);
       // _writeCodeRange(f);
       // _writeType('type', f.type);
       // _writeShouldUseTypeForInitializerInference(f);
@@ -1782,7 +1795,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeReference(e);
       _writeFragmentReference('firstFragment', e.firstFragment);
       _writeDocumentation(e.documentationComment);
-      _writeMetadata(e.metadata);
+      _writeElementMetadata(e);
       _writeSinceSdkVersion(e);
       // _writeCodeRange(e);
       _writeElementList(
@@ -1823,7 +1836,7 @@ class _Element2Writer extends _AbstractElementWriter {
     _sink.withIndent(() {
       _writeElementReference('element', f.element);
       _writeDocumentation(f.documentationComment);
-      _writeMetadata(f.metadata);
+      _writeFragmentMetadata(f);
       // _writeCodeRange(e);
       _writeFragmentList(
         'typeParameters',
@@ -1900,7 +1913,7 @@ class _Element2Writer extends _AbstractElementWriter {
         }
       }
 
-      _writeMetadata(e.metadata);
+      _writeElementMetadata(e);
     });
   }
 
@@ -1927,7 +1940,7 @@ class _Element2Writer extends _AbstractElementWriter {
       //   _writeType('defaultType', defaultType);
       // }
 
-      _writeMetadata(f.metadata);
+      _writeFragmentMetadata(f);
     });
 
     // _assertNonSyntheticElementSelf(f);

@@ -448,7 +448,7 @@ import 'ht:';
 library
   reference: <testLibrary>
   metadata
-    Annotation
+    annotation_0: Annotation
       atSign: @ @0
       expression: UnqualifiedNameExpression
         name: foo @1
@@ -466,7 +466,7 @@ library
       libraryImports
         relativeUri 'ht:'
           metadata
-            Annotation
+            annotation_1: Annotation
               atSign: @ @0
               expression: UnqualifiedNameExpression
                 name: foo @1
@@ -1095,7 +1095,7 @@ const a = 0;
 library
   reference: <testLibrary>
   metadata
-    Annotation
+    annotation_0: Annotation
       atSign: @ @0
       expression: UnqualifiedNameExpression
         name: a @1
@@ -1114,7 +1114,7 @@ library
       libraryImports
         dart:math
           metadata
-            Annotation
+            annotation_1: Annotation
               atSign: @ @0
               expression: UnqualifiedNameExpression
                 name: a @1
@@ -1166,7 +1166,7 @@ const a = 0;
 library
   reference: <testLibrary>
   metadata
-    Annotation
+    annotation_0: Annotation
       atSign: @ @0
       expression: UnqualifiedNameExpression
         name: a @1
@@ -1185,7 +1185,7 @@ library
       libraryImports
         dart:math
           metadata
-            Annotation
+            annotation_1: Annotation
               atSign: @ @0
               expression: UnqualifiedNameExpression
                 name: a @1

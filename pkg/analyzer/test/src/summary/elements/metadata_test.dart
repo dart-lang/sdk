@@ -48,7 +48,7 @@ library
         #F4 isComplete isOriginDeclaration isStatic f (nameOffset:66) (firstTokenOffset:35) (offset:66)
           element: <testLibrary>::@function::f
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @35
               expression: ConstructorInvocation
                 constructorReference: ConstructorReference2
@@ -101,42 +101,7 @@ library
       reference: <testLibrary>::@function::f
       firstFragment: #F4
       metadata
-        Annotation
-          atSign: @ @35
-          expression: ConstructorInvocation
-            constructorReference: ConstructorReference2
-              typeReference: ConstructorTypeReference
-                name: A @36
-                element: <testLibrary>::@class::A
-                type: A
-              element: <testLibrary>::@class::A::@constructor::new
-            argumentList: ArgumentList
-              leftParenthesis: ( @37
-              arguments2
-                UnqualifiedNameExpression
-                  name: _notSerializableExpression @-1
-                  resolution: <null>
-                  staticType: null
-              arguments(v1)
-                SimpleIdentifier
-                  token: _notSerializableExpression @-1
-                  element: <null>
-                  staticType: null
-              rightParenthesis: ) @59
-            staticType: A
-          name: SimpleIdentifier
-            token: A @36
-            element: <testLibrary>::@class::A
-            staticType: null
-          arguments: ArgumentList
-            leftParenthesis: ( @37
-            arguments
-              SimpleIdentifier
-                token: _notSerializableExpression @-1
-                element: <null>
-                staticType: null
-            rightParenthesis: ) @59
-          element: <testLibrary>::@class::A::@constructor::new
+        annotation_0
       returnType: void
 ''');
   }
@@ -171,7 +136,7 @@ library
         #F4 isComplete isOriginDeclaration isStatic f (nameOffset:50) (firstTokenOffset:35) (offset:50)
           element: <testLibrary>::@function::f
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @35
               expression: ConstructorInvocation
                 constructorReference: ConstructorReference2
@@ -224,42 +189,7 @@ library
       reference: <testLibrary>::@function::f
       firstFragment: #F4
       metadata
-        Annotation
-          atSign: @ @35
-          expression: ConstructorInvocation
-            constructorReference: ConstructorReference2
-              typeReference: ConstructorTypeReference
-                name: A @36
-                element: <testLibrary>::@class::A
-                type: A
-              element: <testLibrary>::@class::A::@constructor::new
-            argumentList: ArgumentList
-              leftParenthesis: ( @37
-              arguments2
-                UnqualifiedNameExpression
-                  name: _notSerializableExpression @-1
-                  resolution: <null>
-                  staticType: null
-              arguments(v1)
-                SimpleIdentifier
-                  token: _notSerializableExpression @-1
-                  element: <null>
-                  staticType: null
-              rightParenthesis: ) @43
-            staticType: A
-          name: SimpleIdentifier
-            token: A @36
-            element: <testLibrary>::@class::A
-            staticType: null
-          arguments: ArgumentList
-            leftParenthesis: ( @37
-            arguments
-              SimpleIdentifier
-                token: _notSerializableExpression @-1
-                element: <null>
-                staticType: null
-            rightParenthesis: ) @43
-          element: <testLibrary>::@class::A::@constructor::new
+        annotation_0
       returnType: void
 ''');
   }
@@ -351,7 +281,7 @@ library
         #F5 isComplete isOriginDeclaration isStatic f (nameOffset:64) (firstTokenOffset:46) (offset:64)
           element: <testLibrary>::@function::f
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @46
               expression: ConstructorInvocation
                 constructorReference: ConstructorReference2
@@ -416,51 +346,7 @@ library
       reference: <testLibrary>::@function::f
       firstFragment: #F5
       metadata
-        Annotation
-          atSign: @ @46
-          expression: ConstructorInvocation
-            constructorReference: ConstructorReference2
-              typeReference: ConstructorTypeReference
-                name: A @47
-                element: <testLibrary>::@class::A
-                type: A
-              element: <testLibrary>::@class::A::@constructor::new
-            argumentList: ArgumentList
-              leftParenthesis: ( @48
-              arguments2
-                UnqualifiedNameExpression
-                  name: _notSerializableExpression @-1
-                  resolution: <null>
-                  staticType: null
-                IntegerLiteral
-                  literal: 1 @56
-                  staticType: int
-              arguments(v1)
-                SimpleIdentifier
-                  token: _notSerializableExpression @-1
-                  element: <null>
-                  staticType: null
-                IntegerLiteral
-                  literal: 1 @56
-                  staticType: int
-              rightParenthesis: ) @57
-            staticType: A
-          name: SimpleIdentifier
-            token: A @47
-            element: <testLibrary>::@class::A
-            staticType: null
-          arguments: ArgumentList
-            leftParenthesis: ( @48
-            arguments
-              SimpleIdentifier
-                token: _notSerializableExpression @-1
-                element: <null>
-                staticType: null
-              IntegerLiteral
-                literal: 1 @56
-                staticType: int
-            rightParenthesis: ) @57
-          element: <testLibrary>::@class::A::@constructor::new
+        annotation_0
       returnType: void
 ''');
   }
@@ -497,7 +383,7 @@ library
         #F5 isComplete isOriginDeclaration isStatic f (nameOffset:72) (firstTokenOffset:48) (offset:72)
           element: <testLibrary>::@function::f
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @48
               expression: ConstructorInvocation
                 constructorReference: ConstructorReference2
@@ -570,59 +456,7 @@ library
       reference: <testLibrary>::@function::f
       firstFragment: #F5
       metadata
-        Annotation
-          atSign: @ @48
-          expression: ConstructorInvocation
-            constructorReference: ConstructorReference2
-              typeReference: ConstructorTypeReference
-                name: A @49
-                element: <testLibrary>::@class::A
-                type: A
-              element: <testLibrary>::@class::A::@constructor::new
-            argumentList: ArgumentList
-              leftParenthesis: ( @50
-              arguments2
-                NamedArgument
-                  name: a @51
-                  colon: : @52
-                  argumentExpression2: UnqualifiedNameExpression
-                    name: _notSerializableExpression @-1
-                    resolution: <null>
-                    staticType: null
-                  argumentExpression(v1): SimpleIdentifier
-                    token: _notSerializableExpression @-1
-                    element: <null>
-                    staticType: null
-                NamedArgument
-                  name: b @61
-                  colon: : @62
-                  argumentExpression2: IntegerLiteral
-                    literal: 1 @64
-                    staticType: int
-              rightParenthesis: ) @65
-            staticType: A
-          name: SimpleIdentifier
-            token: A @49
-            element: <testLibrary>::@class::A
-            staticType: null
-          arguments: ArgumentList
-            leftParenthesis: ( @50
-            arguments
-              NamedArgument
-                name: a @51
-                colon: : @52
-                argumentExpression: SimpleIdentifier
-                  token: _notSerializableExpression @-1
-                  element: <null>
-                  staticType: null
-              NamedArgument
-                name: b @61
-                colon: : @62
-                argumentExpression: IntegerLiteral
-                  literal: 1 @64
-                  staticType: int
-            rightParenthesis: ) @65
-          element: <testLibrary>::@class::A::@constructor::new
+        annotation_0
       returnType: void
 ''');
   }
@@ -658,7 +492,7 @@ library
             #F5 T (nameOffset:53) (firstTokenOffset:43) (offset:53)
               element: #E0 T
               metadata
-                Annotation
+                annotation_0: Annotation
                   atSign: @ @43
                   expression: ConstructorInvocation
                     constructorReference: ConstructorReference2
@@ -717,42 +551,7 @@ library
         #E0 T
           firstFragment: #F5
           metadata
-            Annotation
-              atSign: @ @43
-              expression: ConstructorInvocation
-                constructorReference: ConstructorReference2
-                  typeReference: ConstructorTypeReference
-                    name: A @44
-                    element: <testLibrary>::@class::A
-                    type: A
-                  element: <testLibrary>::@class::A::@constructor::new
-                argumentList: ArgumentList
-                  leftParenthesis: ( @45
-                  arguments2
-                    UnqualifiedNameExpression
-                      name: _notSerializableExpression @-1
-                      resolution: <null>
-                      staticType: null
-                  arguments(v1)
-                    SimpleIdentifier
-                      token: _notSerializableExpression @-1
-                      element: <null>
-                      staticType: null
-                  rightParenthesis: ) @51
-                staticType: A
-              name: SimpleIdentifier
-                token: A @44
-                element: <testLibrary>::@class::A
-                staticType: null
-              arguments: ArgumentList
-                leftParenthesis: ( @45
-                arguments
-                  SimpleIdentifier
-                    token: _notSerializableExpression @-1
-                    element: <null>
-                    staticType: null
-                rightParenthesis: ) @51
-              element: <testLibrary>::@class::A::@constructor::new
+            annotation_0
       constructors
         hasEnclosingTypeParameterReference isOriginImplicitDefault new
           reference: <testLibrary>::@class::B::@constructor::new
@@ -792,7 +591,7 @@ library
             #F5 T (nameOffset:55) (firstTokenOffset:45) (offset:55)
               element: #E0 T
               metadata
-                Annotation
+                annotation_0: Annotation
                   atSign: @ @45
                   expression: ConstructorInvocation
                     constructorReference: ConstructorReference2
@@ -848,42 +647,7 @@ library
         #E0 T
           firstFragment: #F5
           metadata
-            Annotation
-              atSign: @ @45
-              expression: ConstructorInvocation
-                constructorReference: ConstructorReference2
-                  typeReference: ConstructorTypeReference
-                    name: A @46
-                    element: <testLibrary>::@class::A
-                    type: A
-                  element: <testLibrary>::@class::A::@constructor::new
-                argumentList: ArgumentList
-                  leftParenthesis: ( @47
-                  arguments2
-                    UnqualifiedNameExpression
-                      name: _notSerializableExpression @-1
-                      resolution: <null>
-                      staticType: null
-                  arguments(v1)
-                    SimpleIdentifier
-                      token: _notSerializableExpression @-1
-                      element: <null>
-                      staticType: null
-                  rightParenthesis: ) @53
-                staticType: A
-              name: SimpleIdentifier
-                token: A @46
-                element: <testLibrary>::@class::A
-                staticType: null
-              arguments: ArgumentList
-                leftParenthesis: ( @47
-                arguments
-                  SimpleIdentifier
-                    token: _notSerializableExpression @-1
-                    element: <null>
-                    staticType: null
-                rightParenthesis: ) @53
-              element: <testLibrary>::@class::A::@constructor::new
+            annotation_0
       aliasedType: void Function()
 ''');
   }
@@ -907,7 +671,7 @@ library
         #F1 class C (nameOffset:20) (firstTokenOffset:0) (offset:20)
           element: <testLibrary>::@class::C
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @0
               expression: ConstructorInvocation
                 constructorReference: ConstructorReference2
@@ -977,57 +741,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       metadata
-        Annotation
-          atSign: @ @0
-          expression: ConstructorInvocation
-            constructorReference: ConstructorReference2
-              typeReference: ConstructorTypeReference
-                name: A @1
-                element: <testLibrary>::@class::A
-                type: A
-              element: <testLibrary>::@class::A::@constructor::new
-            argumentList: ArgumentList
-              leftParenthesis: ( @2
-              arguments2
-                RecordLiteral
-                  leftParenthesis: ( @3
-                  fields2
-                    IntegerLiteral
-                      literal: 2 @4
-                      staticType: int
-                    RecordLiteralNamedField
-                      name: a @7
-                      colon: : @8
-                      fieldExpression2: IntegerLiteral
-                        literal: 3 @10
-                        staticType: int
-                  rightParenthesis: ) @11
-                  staticType: (int, {int a})
-              rightParenthesis: ) @12
-            staticType: A
-          name: SimpleIdentifier
-            token: A @1
-            element: <testLibrary>::@class::A
-            staticType: null
-          arguments: ArgumentList
-            leftParenthesis: ( @2
-            arguments
-              RecordLiteral
-                leftParenthesis: ( @3
-                fields
-                  IntegerLiteral
-                    literal: 2 @4
-                    staticType: int
-                  RecordLiteralNamedField
-                    name: a @7
-                    colon: : @8
-                    fieldExpression: IntegerLiteral
-                      literal: 3 @10
-                      staticType: int
-                rightParenthesis: ) @11
-                staticType: (int, {int a})
-            rightParenthesis: ) @12
-          element: <testLibrary>::@class::A::@constructor::new
+        annotation_0
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -1065,7 +779,7 @@ library
         #F1 class C (nameOffset:22) (firstTokenOffset:0) (offset:22)
           element: <testLibrary>::@class::C
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @0
               expression: ConstructorInvocation
                 constructorReference: ConstructorReference2
@@ -1123,45 +837,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       metadata
-        Annotation
-          atSign: @ @0
-          expression: ConstructorInvocation
-            constructorReference: ConstructorReference2
-              typeReference: ConstructorTypeReference
-                name: A @1
-                element: <testLibrary>::@class::A
-                type: A
-              element: <testLibrary>::@class::A::@constructor::new
-            argumentList: ArgumentList
-              leftParenthesis: ( @2
-              arguments2
-                RecordLiteral
-                  constKeyword: const @3
-                  leftParenthesis: ( @9
-                  fields2
-                    SimpleStringLiteral
-                      literal: '' @10
-                  rightParenthesis: ) @13
-                  staticType: (String,)
-              rightParenthesis: ) @14
-            staticType: A
-          name: SimpleIdentifier
-            token: A @1
-            element: <testLibrary>::@class::A
-            staticType: null
-          arguments: ArgumentList
-            leftParenthesis: ( @2
-            arguments
-              RecordLiteral
-                constKeyword: const @3
-                leftParenthesis: ( @9
-                fields
-                  SimpleStringLiteral
-                    literal: '' @10
-                rightParenthesis: ) @13
-                staticType: (String,)
-            rightParenthesis: ) @14
-          element: <testLibrary>::@class::A::@constructor::new
+        annotation_0
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -1212,7 +888,7 @@ library
         #F5 isComplete isOriginDeclaration isStatic f (nameOffset:80) (firstTokenOffset:46) (offset:80)
           element: <testLibrary>::@function::f
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @46
               expression: ConstructorInvocation
                 constructorReference: ConstructorReference2
@@ -1277,51 +953,7 @@ library
       reference: <testLibrary>::@function::f
       firstFragment: #F5
       metadata
-        Annotation
-          atSign: @ @46
-          expression: ConstructorInvocation
-            constructorReference: ConstructorReference2
-              typeReference: ConstructorTypeReference
-                name: A @47
-                element: <testLibrary>::@class::A
-                type: A
-              element: <testLibrary>::@class::A::@constructor::new
-            argumentList: ArgumentList
-              leftParenthesis: ( @48
-              arguments2
-                UnqualifiedNameExpression
-                  name: _notSerializableExpression @-1
-                  resolution: <null>
-                  staticType: null
-                IntegerLiteral
-                  literal: 1 @72
-                  staticType: int
-              arguments(v1)
-                SimpleIdentifier
-                  token: _notSerializableExpression @-1
-                  element: <null>
-                  staticType: null
-                IntegerLiteral
-                  literal: 1 @72
-                  staticType: int
-              rightParenthesis: ) @73
-            staticType: A
-          name: SimpleIdentifier
-            token: A @47
-            element: <testLibrary>::@class::A
-            staticType: null
-          arguments: ArgumentList
-            leftParenthesis: ( @48
-            arguments
-              SimpleIdentifier
-                token: _notSerializableExpression @-1
-                element: <null>
-                staticType: null
-              IntegerLiteral
-                literal: 1 @72
-                staticType: int
-            rightParenthesis: ) @73
-          element: <testLibrary>::@class::A::@constructor::new
+        annotation_0
       returnType: void
 ''');
   }
@@ -1353,7 +985,7 @@ library
         #F1 class C (nameOffset:40) (firstTokenOffset:23) (offset:40)
           element: <testLibrary>::@class::C
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @23
               expression: ConstructorTearOff
                 typeReference: ConstructorTypeReference
@@ -1396,40 +1028,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       metadata
-        Annotation
-          atSign: @ @23
-          expression: ConstructorTearOff
-            typeReference: ConstructorTypeReference
-              importPrefix: ImportPrefixReference
-                name: a @24
-                period: . @25
-                element: <testLibraryFragment>::@prefix::a
-              name: A @26
-              element: package:test/a.dart::@class::A
-              type: A
-            selector: ConstructorSelector
-              period: . @27
-              name2: named @28
-            element: package:test/a.dart::@class::A::@constructor::named
-            staticType: A Function()
-          name: PrefixedIdentifier
-            prefix: SimpleIdentifier
-              token: a @24
-              element: <testLibraryFragment>::@prefix::a
-              staticType: null
-            period: . @25
-            identifier: SimpleIdentifier
-              token: A @26
-              element: package:test/a.dart::@class::A
-              staticType: null
-            element: package:test/a.dart::@class::A
-            staticType: null
-          period: . @27
-          constructorName: SimpleIdentifier
-            token: named @28
-            element: package:test/a.dart::@class::A::@constructor::named
-            staticType: null
-          element: package:test/a.dart::@class::A::@constructor::named
+        annotation_0
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -1461,7 +1060,7 @@ library
         #F1 class C (nameOffset:33) (firstTokenOffset:18) (offset:33)
           element: <testLibrary>::@class::C
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @18
               expression: ConstructorTearOff
                 typeReference: ConstructorTypeReference
@@ -1495,31 +1094,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       metadata
-        Annotation
-          atSign: @ @18
-          expression: ConstructorTearOff
-            typeReference: ConstructorTypeReference
-              name: A @19
-              element: package:test/a.dart::@class::A
-              type: A
-            selector: ConstructorSelector
-              period: . @20
-              name2: named @21
-            element: package:test/a.dart::@class::A::@constructor::named
-            staticType: A Function()
-          name: PrefixedIdentifier
-            prefix: SimpleIdentifier
-              token: A @19
-              element: package:test/a.dart::@class::A
-              staticType: null
-            period: . @20
-            identifier: SimpleIdentifier
-              token: named @21
-              element: package:test/a.dart::@class::A::@constructor::named
-              staticType: null
-            element: package:test/a.dart::@class::A::@constructor::named
-            staticType: null
-          element: package:test/a.dart::@class::A::@constructor::named
+        annotation_0
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -1541,20 +1116,19 @@ combinedFragmentData
   element: <testLibrary>::@class::A::@field::foo
   combined
     metadata
-      annotation_0
-        Annotation
-          atSign: @ @22
-          expression: UnqualifiedNameExpression
-            name: a @23
-            resolution: GetterInvocationResolution
-              element: <testLibrary>::@getter::a
-              type: int
-            staticType: int
-          name: SimpleIdentifier
-            token: a @23
+      annotation_0: Annotation
+        atSign: @ @22
+        expression: UnqualifiedNameExpression
+          name: a @23
+          resolution: GetterInvocationResolution
             element: <testLibrary>::@getter::a
-            staticType: null
+            type: int
+          staticType: int
+        name: SimpleIdentifier
+          token: a @23
           element: <testLibrary>::@getter::a
+          staticType: null
+        element: <testLibrary>::@getter::a
   fragments
     #F0
 library
@@ -1579,7 +1153,7 @@ library
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:35) (firstTokenOffset:22) (offset:35)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
                   metadata
-                    Annotation
+                    annotation_1: Annotation
                       atSign: @ @22
                       expression: UnqualifiedNameExpression
                         name: a @23
@@ -1617,19 +1191,7 @@ library
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F0
           metadata
-            Annotation
-              atSign: @ @22
-              expression: UnqualifiedNameExpression
-                name: a @23
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@getter::a
-                  type: int
-                staticType: int
-              name: SimpleIdentifier
-                token: a @23
-                element: <testLibrary>::@getter::a
-                staticType: null
-              element: <testLibrary>::@getter::a
+            annotation_0
           type: int
           getter: <testLibrary>::@class::A::@getter::foo
           declaringFormalParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
@@ -1642,19 +1204,7 @@ library
               firstFragment: #F5
               type: int
               metadata
-                Annotation
-                  atSign: @ @22
-                  expression: UnqualifiedNameExpression
-                    name: a @23
-                    resolution: GetterInvocationResolution
-                      element: <testLibrary>::@getter::a
-                      type: int
-                    staticType: int
-                  name: SimpleIdentifier
-                    token: a @23
-                    element: <testLibrary>::@getter::a
-                    staticType: null
-                  element: <testLibrary>::@getter::a
+                annotation_1
               field: <testLibrary>::@class::A::@field::foo
       getters
         isOriginVariable foo
@@ -1704,7 +1254,7 @@ library
             #F2 hasInitializer isOriginDeclaration x (nameOffset:35) (firstTokenOffset:35) (offset:35)
               element: <testLibrary>::@class::C::@field::x
               metadata
-                Annotation
+                annotation_0: Annotation
                   atSign: @ @26
                   expression: UnqualifiedNameExpression
                     name: a @27
@@ -1755,19 +1305,7 @@ library
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           metadata
-            Annotation
-              atSign: @ @26
-              expression: UnqualifiedNameExpression
-                name: a @27
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@getter::a
-                  type: int
-                staticType: int
-              name: SimpleIdentifier
-                token: a @27
-                element: <testLibrary>::@getter::a
-                staticType: null
-              element: <testLibrary>::@getter::a
+            annotation_0
           type: int
           getter: <testLibrary>::@class::C::@getter::x
           setter: <testLibrary>::@class::C::@setter::x
@@ -1828,7 +1366,7 @@ library
         #F1 class C (nameOffset:27) (firstTokenOffset:16) (offset:27)
           element: <testLibrary>::@class::C
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @16
               expression: UnqualifiedNameExpression
                 name: foo @17
@@ -1845,7 +1383,7 @@ library
             #F2 T (nameOffset:34) (firstTokenOffset:29) (offset:34)
               element: #E0 T
               metadata
-                Annotation
+                annotation_1: Annotation
                   atSign: @ @29
                   expression: UnqualifiedNameExpression
                     name: foo @30
@@ -1878,7 +1416,7 @@ library
             #F6 isComplete isOriginDeclaration bar (nameOffset:77) (firstTokenOffset:65) (offset:77)
               element: <testLibrary>::@class::C::@method::bar
               metadata
-                Annotation
+                annotation_2: Annotation
                   atSign: @ @65
                   expression: UnqualifiedNameExpression
                     name: foo @66
@@ -1908,36 +1446,12 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       metadata
-        Annotation
-          atSign: @ @16
-          expression: UnqualifiedNameExpression
-            name: foo @17
-            resolution: GetterInvocationResolution
-              element: <testLibrary>::@getter::foo
-              type: int
-            staticType: int
-          name: SimpleIdentifier
-            token: foo @17
-            element: <testLibrary>::@getter::foo
-            staticType: null
-          element: <testLibrary>::@getter::foo
+        annotation_0
       typeParameters
         #E0 T
           firstFragment: #F2
           metadata
-            Annotation
-              atSign: @ @29
-              expression: UnqualifiedNameExpression
-                name: foo @30
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@getter::foo
-                  type: int
-                staticType: int
-              name: SimpleIdentifier
-                token: foo @30
-                element: <testLibrary>::@getter::foo
-                staticType: null
-              element: <testLibrary>::@getter::foo
+            annotation_1
       fields
         hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer foo
           reference: <testLibrary>::@class::C::@field::foo
@@ -1960,19 +1474,7 @@ library
           reference: <testLibrary>::@class::C::@method::bar
           firstFragment: #F6
           metadata
-            Annotation
-              atSign: @ @65
-              expression: UnqualifiedNameExpression
-                name: foo @66
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@class::C::@getter::foo
-                  type: int
-                staticType: int
-              name: SimpleIdentifier
-                token: foo @66
-                element: <testLibrary>::@class::C::@getter::foo
-                staticType: null
-              element: <testLibrary>::@class::C::@getter::foo
+            annotation_2
           returnType: void
   topLevelVariables
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer foo
@@ -2009,7 +1511,7 @@ library
         #F1 class C (nameOffset:45) (firstTokenOffset:33) (offset:45)
           element: <testLibrary>::@class::C
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @33
               expression: UnqualifiedNameExpression
                 name: a @34
@@ -2022,7 +1524,7 @@ library
                 element: <testLibrary>::@getter::a
                 staticType: null
               element: <testLibrary>::@getter::a
-            Annotation
+            annotation_1: Annotation
               atSign: @ @36
               expression: UnqualifiedNameExpression
                 name: b @37
@@ -2066,32 +1568,8 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       metadata
-        Annotation
-          atSign: @ @33
-          expression: UnqualifiedNameExpression
-            name: a @34
-            resolution: GetterInvocationResolution
-              element: <testLibrary>::@getter::a
-              type: dynamic
-            staticType: dynamic
-          name: SimpleIdentifier
-            token: a @34
-            element: <testLibrary>::@getter::a
-            staticType: null
-          element: <testLibrary>::@getter::a
-        Annotation
-          atSign: @ @36
-          expression: UnqualifiedNameExpression
-            name: b @37
-            resolution: GetterInvocationResolution
-              element: <testLibrary>::@getter::b
-              type: dynamic
-            staticType: dynamic
-          name: SimpleIdentifier
-            token: b @37
-            element: <testLibrary>::@getter::b
-            staticType: null
-          element: <testLibrary>::@getter::b
+        annotation_0
+        annotation_1
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -2143,7 +1621,7 @@ library
         #F1 isMixinApplication class C (nameOffset:25) (firstTokenOffset:16) (offset:25)
           element: <testLibrary>::@class::C
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @16
               expression: UnqualifiedNameExpression
                 name: a @17
@@ -2189,19 +1667,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       metadata
-        Annotation
-          atSign: @ @16
-          expression: UnqualifiedNameExpression
-            name: a @17
-            resolution: GetterInvocationResolution
-              element: <testLibrary>::@getter::a
-              type: dynamic
-            staticType: dynamic
-          name: SimpleIdentifier
-            token: a @17
-            element: <testLibrary>::@getter::a
-            staticType: null
-          element: <testLibrary>::@getter::a
+        annotation_0
       supertype: D
       mixins
         E
@@ -2277,7 +1743,7 @@ library
         #F4 class C (nameOffset:55) (firstTokenOffset:37) (offset:55)
           element: <testLibrary>::@class::C
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @37
               expression: ConstructorInvocation
                 constructorReference: ConstructorReference2
@@ -2337,46 +1803,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F4
       metadata
-        Annotation
-          atSign: @ @37
-          expression: ConstructorInvocation
-            constructorReference: ConstructorReference2
-              typeReference: ConstructorTypeReference
-                name: A @38
-                element: <testLibrary>::@class::A
-                type: A
-              selector: ConstructorSelector
-                period: . @39
-                name2: named @40
-              element: <testLibrary>::@class::A::@constructor::named
-            argumentList: ArgumentList
-              leftParenthesis: ( @45
-              arguments2
-                IntegerLiteral
-                  literal: 0 @46
-                  staticType: int
-              rightParenthesis: ) @47
-            staticType: A
-          name: PrefixedIdentifier
-            prefix: SimpleIdentifier
-              token: A @38
-              element: <testLibrary>::@class::A
-              staticType: null
-            period: . @39
-            identifier: SimpleIdentifier
-              token: named @40
-              element: <testLibrary>::@class::A::@constructor::named
-              staticType: null
-            element: <testLibrary>::@class::A::@constructor::named
-            staticType: null
-          arguments: ArgumentList
-            leftParenthesis: ( @45
-            arguments
-              IntegerLiteral
-                literal: 0 @46
-                staticType: int
-            rightParenthesis: ) @47
-          element: <testLibrary>::@class::A::@constructor::named
+        annotation_0
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -2417,7 +1844,7 @@ library
         #F5 class C (nameOffset:56) (firstTokenOffset:38) (offset:56)
           element: <testLibrary>::@class::C
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @38
               expression: ConstructorInvocation
                 constructorReference: ConstructorReference2
@@ -2488,54 +1915,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F5
       metadata
-        Annotation
-          atSign: @ @38
-          expression: ConstructorInvocation
-            constructorReference: ConstructorReference2
-              typeReference: ConstructorTypeReference
-                name: A @39
-                element: <testLibrary>::@class::A
-                type: A<int>
-              selector: ConstructorSelector
-                period: . @40
-                name2: named @41
-              element: SubstitutedConstructorElementImpl
-                baseElement: <testLibrary>::@class::A::@constructor::named
-                substitution: {T: int}
-            argumentList: ArgumentList
-              leftParenthesis: ( @46
-              arguments2
-                IntegerLiteral
-                  literal: 0 @47
-                  staticType: int
-              rightParenthesis: ) @48
-            staticType: A<int>
-          name: PrefixedIdentifier
-            prefix: SimpleIdentifier
-              token: A @39
-              element: <testLibrary>::@class::A
-              staticType: null
-            period: . @40
-            identifier: SimpleIdentifier
-              token: named @41
-              element: SubstitutedConstructorElementImpl
-                baseElement: <testLibrary>::@class::A::@constructor::named
-                substitution: {T: int}
-              staticType: null
-            element: SubstitutedConstructorElementImpl
-              baseElement: <testLibrary>::@class::A::@constructor::named
-              substitution: {T: int}
-            staticType: null
-          arguments: ArgumentList
-            leftParenthesis: ( @46
-            arguments
-              IntegerLiteral
-                literal: 0 @47
-                staticType: int
-            rightParenthesis: ) @48
-          element: SubstitutedConstructorElementImpl
-            baseElement: <testLibrary>::@class::A::@constructor::named
-            substitution: {T: int}
+        annotation_0
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -2573,7 +1953,7 @@ library
         #F4 class C (nameOffset:57) (firstTokenOffset:35) (offset:57)
           element: <testLibrary>::@class::C
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @35
               expression: ConstructorInvocation
                 constructorReference: ConstructorReference2
@@ -2643,57 +2023,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F4
       metadata
-        Annotation
-          atSign: @ @35
-          expression: ConstructorInvocation
-            constructorReference: ConstructorReference2
-              typeReference: ConstructorTypeReference
-                name: A @36
-                typeArguments: TypeArgumentList
-                  leftBracket: < @37
-                  arguments
-                    NamedType
-                      name: int @38
-                      element: dart:core::@class::int
-                      type: int
-                  rightBracket: > @41
-                element: <testLibrary>::@class::A
-                type: A<int>
-              selector: ConstructorSelector
-                period: . @42
-                name2: named @43
-              element: SubstitutedConstructorElementImpl
-                baseElement: <testLibrary>::@class::A::@constructor::named
-                substitution: {T: int}
-            argumentList: ArgumentList
-              leftParenthesis: ( @48
-              rightParenthesis: ) @49
-            staticType: A<int>
-          name: SimpleIdentifier
-            token: A @36
-            element: <testLibrary>::@class::A
-            staticType: null
-          typeArguments: TypeArgumentList
-            leftBracket: < @37
-            arguments
-              NamedType
-                name: int @38
-                element: dart:core::@class::int
-                type: int
-            rightBracket: > @41
-          period: . @42
-          constructorName: SimpleIdentifier
-            token: named @43
-            element: SubstitutedConstructorElementImpl
-              baseElement: <testLibrary>::@class::A::@constructor::named
-              substitution: {T: int}
-            staticType: null
-          arguments: ArgumentList
-            leftParenthesis: ( @48
-            rightParenthesis: ) @49
-          element: SubstitutedConstructorElementImpl
-            baseElement: <testLibrary>::@class::A::@constructor::named
-            substitution: {T: int}
+        annotation_0
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -2731,7 +2061,7 @@ library
         #F4 class C (nameOffset:57) (firstTokenOffset:35) (offset:57)
           element: <testLibrary>::@class::C
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @35
               expression: ConstructorInvocation
                 constructorReference: ConstructorReference2
@@ -2801,57 +2131,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F4
       metadata
-        Annotation
-          atSign: @ @35
-          expression: ConstructorInvocation
-            constructorReference: ConstructorReference2
-              typeReference: ConstructorTypeReference
-                name: A @36
-                typeArguments: TypeArgumentList
-                  leftBracket: < @37
-                  arguments
-                    NamedType
-                      name: int @38
-                      element: dart:core::@class::int
-                      type: int
-                  rightBracket: > @41
-                element: <testLibrary>::@class::A
-                type: A<int>
-              selector: ConstructorSelector
-                period: . @42
-                name2: named @43
-              element: SubstitutedConstructorElementImpl
-                baseElement: <testLibrary>::@class::A::@constructor::named
-                substitution: {T: int}
-            argumentList: ArgumentList
-              leftParenthesis: ( @48
-              rightParenthesis: ) @49
-            staticType: A<int>
-          name: SimpleIdentifier
-            token: A @36
-            element: <testLibrary>::@class::A
-            staticType: null
-          typeArguments: TypeArgumentList
-            leftBracket: < @37
-            arguments
-              NamedType
-                name: int @38
-                element: dart:core::@class::int
-                type: int
-            rightBracket: > @41
-          period: . @42
-          constructorName: SimpleIdentifier
-            token: named @43
-            element: SubstitutedConstructorElementImpl
-              baseElement: <testLibrary>::@class::A::@constructor::named
-              substitution: {T: int}
-            staticType: null
-          arguments: ArgumentList
-            leftParenthesis: ( @48
-            rightParenthesis: ) @49
-          element: SubstitutedConstructorElementImpl
-            baseElement: <testLibrary>::@class::A::@constructor::named
-            substitution: {T: int}
+        annotation_0
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -2886,7 +2166,7 @@ library
         #F1 class C (nameOffset:49) (firstTokenOffset:27) (offset:49)
           element: <testLibrary>::@class::C
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @27
               expression: ConstructorInvocation
                 constructorReference: ConstructorReference2
@@ -2944,55 +2224,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       metadata
-        Annotation
-          atSign: @ @27
-          expression: ConstructorInvocation
-            constructorReference: ConstructorReference2
-              typeReference: ConstructorTypeReference
-                importPrefix: ImportPrefixReference
-                  name: foo @28
-                  period: . @31
-                  element: <testLibraryFragment>::@prefix::foo
-                name: A @32
-                element: package:test/foo.dart::@class::A
-                type: A
-              selector: ConstructorSelector
-                period: . @33
-                name2: named @34
-              element: package:test/foo.dart::@class::A::@constructor::named
-            argumentList: ArgumentList
-              leftParenthesis: ( @39
-              arguments2
-                IntegerLiteral
-                  literal: 0 @40
-                  staticType: int
-              rightParenthesis: ) @41
-            staticType: A
-          name: PrefixedIdentifier
-            prefix: SimpleIdentifier
-              token: foo @28
-              element: <testLibraryFragment>::@prefix::foo
-              staticType: null
-            period: . @31
-            identifier: SimpleIdentifier
-              token: A @32
-              element: package:test/foo.dart::@class::A
-              staticType: null
-            element: package:test/foo.dart::@class::A
-            staticType: null
-          period: . @33
-          constructorName: SimpleIdentifier
-            token: named @34
-            element: package:test/foo.dart::@class::A::@constructor::named
-            staticType: null
-          arguments: ArgumentList
-            leftParenthesis: ( @39
-            arguments
-              IntegerLiteral
-                literal: 0 @40
-                staticType: int
-            rightParenthesis: ) @41
-          element: package:test/foo.dart::@class::A::@constructor::named
+        annotation_0
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -3027,7 +2259,7 @@ library
         #F1 class C (nameOffset:49) (firstTokenOffset:27) (offset:49)
           element: <testLibrary>::@class::C
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @27
               expression: ConstructorInvocation
                 constructorReference: ConstructorReference2
@@ -3091,61 +2323,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       metadata
-        Annotation
-          atSign: @ @27
-          expression: ConstructorInvocation
-            constructorReference: ConstructorReference2
-              typeReference: ConstructorTypeReference
-                importPrefix: ImportPrefixReference
-                  name: foo @28
-                  period: . @31
-                  element: <testLibraryFragment>::@prefix::foo
-                name: A @32
-                element: package:test/foo.dart::@class::A
-                type: A<int>
-              selector: ConstructorSelector
-                period: . @33
-                name2: named @34
-              element: SubstitutedConstructorElementImpl
-                baseElement: package:test/foo.dart::@class::A::@constructor::named
-                substitution: {T: int}
-            argumentList: ArgumentList
-              leftParenthesis: ( @39
-              arguments2
-                IntegerLiteral
-                  literal: 0 @40
-                  staticType: int
-              rightParenthesis: ) @41
-            staticType: A<int>
-          name: PrefixedIdentifier
-            prefix: SimpleIdentifier
-              token: foo @28
-              element: <testLibraryFragment>::@prefix::foo
-              staticType: null
-            period: . @31
-            identifier: SimpleIdentifier
-              token: A @32
-              element: package:test/foo.dart::@class::A
-              staticType: null
-            element: package:test/foo.dart::@class::A
-            staticType: null
-          period: . @33
-          constructorName: SimpleIdentifier
-            token: named @34
-            element: SubstitutedConstructorElementImpl
-              baseElement: package:test/foo.dart::@class::A::@constructor::named
-              substitution: {T: int}
-            staticType: null
-          arguments: ArgumentList
-            leftParenthesis: ( @39
-            arguments
-              IntegerLiteral
-                literal: 0 @40
-                staticType: int
-            rightParenthesis: ) @41
-          element: SubstitutedConstructorElementImpl
-            baseElement: package:test/foo.dart::@class::A::@constructor::named
-            substitution: {T: int}
+        annotation_0
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -3180,7 +2358,7 @@ library
         #F1 class C (nameOffset:53) (firstTokenOffset:27) (offset:53)
           element: <testLibrary>::@class::C
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @27
               expression: ConstructorInvocation
                 constructorReference: ConstructorReference2
@@ -3252,69 +2430,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       metadata
-        Annotation
-          atSign: @ @27
-          expression: ConstructorInvocation
-            constructorReference: ConstructorReference2
-              typeReference: ConstructorTypeReference
-                importPrefix: ImportPrefixReference
-                  name: foo @28
-                  period: . @31
-                  element: <testLibraryFragment>::@prefix::foo
-                name: A @32
-                typeArguments: TypeArgumentList
-                  leftBracket: < @33
-                  arguments
-                    NamedType
-                      name: int @34
-                      element: dart:core::@class::int
-                      type: int
-                  rightBracket: > @37
-                element: package:test/foo.dart::@class::A
-                type: A<int>
-              selector: ConstructorSelector
-                period: . @38
-                name2: named @39
-              element: SubstitutedConstructorElementImpl
-                baseElement: package:test/foo.dart::@class::A::@constructor::named
-                substitution: {T: int}
-            argumentList: ArgumentList
-              leftParenthesis: ( @44
-              rightParenthesis: ) @45
-            staticType: A<int>
-          name: PrefixedIdentifier
-            prefix: SimpleIdentifier
-              token: foo @28
-              element: <testLibraryFragment>::@prefix::foo
-              staticType: null
-            period: . @31
-            identifier: SimpleIdentifier
-              token: A @32
-              element: package:test/foo.dart::@class::A
-              staticType: null
-            element: package:test/foo.dart::@class::A
-            staticType: null
-          typeArguments: TypeArgumentList
-            leftBracket: < @33
-            arguments
-              NamedType
-                name: int @34
-                element: dart:core::@class::int
-                type: int
-            rightBracket: > @37
-          period: . @38
-          constructorName: SimpleIdentifier
-            token: named @39
-            element: SubstitutedConstructorElementImpl
-              baseElement: package:test/foo.dart::@class::A::@constructor::named
-              substitution: {T: int}
-            staticType: null
-          arguments: ArgumentList
-            leftParenthesis: ( @44
-            rightParenthesis: ) @45
-          element: SubstitutedConstructorElementImpl
-            baseElement: package:test/foo.dart::@class::A::@constructor::named
-            substitution: {T: int}
+        annotation_0
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -3362,7 +2478,7 @@ library
         #F6 class D (nameOffset:85) (firstTokenOffset:68) (offset:85)
           element: <testLibrary>::@class::D
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @68
               expression: ConstructorInvocation
                 constructorReference: ConstructorReference2
@@ -3450,46 +2566,7 @@ library
       reference: <testLibrary>::@class::D
       firstFragment: #F6
       metadata
-        Annotation
-          atSign: @ @68
-          expression: ConstructorInvocation
-            constructorReference: ConstructorReference2
-              typeReference: ConstructorTypeReference
-                name: C @69
-                element: <testLibrary>::@class::C
-                type: C<dynamic>
-              selector: ConstructorSelector
-                period: . @70
-                name2: named @71
-              element: SubstitutedConstructorElementImpl
-                baseElement: <testLibrary>::@class::C::@constructor::named
-                substitution: {T: dynamic}
-            argumentList: ArgumentList
-              leftParenthesis: ( @76
-              rightParenthesis: ) @77
-            staticType: C<dynamic>
-          name: PrefixedIdentifier
-            prefix: SimpleIdentifier
-              token: C @69
-              element: <testLibrary>::@class::C
-              staticType: null
-            period: . @70
-            identifier: SimpleIdentifier
-              token: named @71
-              element: SubstitutedConstructorElementImpl
-                baseElement: <testLibrary>::@class::C::@constructor::named
-                substitution: {T: dynamic}
-              staticType: null
-            element: SubstitutedConstructorElementImpl
-              baseElement: <testLibrary>::@class::C::@constructor::named
-              substitution: {T: dynamic}
-            staticType: null
-          arguments: ArgumentList
-            leftParenthesis: ( @76
-            rightParenthesis: ) @77
-          element: SubstitutedConstructorElementImpl
-            baseElement: <testLibrary>::@class::C::@constructor::named
-            substitution: {T: dynamic}
+        annotation_0
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::D::@constructor::new
@@ -3532,7 +2609,7 @@ library
         #F4 class C (nameOffset:43) (firstTokenOffset:31) (offset:43)
           element: <testLibrary>::@class::C
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @31
               expression: ConstructorInvocation
                 constructorReference: ConstructorReference2
@@ -3581,35 +2658,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F4
       metadata
-        Annotation
-          atSign: @ @31
-          expression: ConstructorInvocation
-            constructorReference: ConstructorReference2
-              typeReference: ConstructorTypeReference
-                name: A @32
-                element: <testLibrary>::@class::A
-                type: A
-              element: <testLibrary>::@class::A::@constructor::new
-            argumentList: ArgumentList
-              leftParenthesis: ( @33
-              arguments2
-                IntegerLiteral
-                  literal: 0 @34
-                  staticType: int
-              rightParenthesis: ) @35
-            staticType: A
-          name: SimpleIdentifier
-            token: A @32
-            element: <testLibrary>::@class::A
-            staticType: null
-          arguments: ArgumentList
-            leftParenthesis: ( @33
-            arguments
-              IntegerLiteral
-                literal: 0 @34
-                staticType: int
-            rightParenthesis: ) @35
-          element: <testLibrary>::@class::A::@constructor::new
+        annotation_0
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -3648,7 +2697,7 @@ library
         #F4 isComplete isOriginDeclaration isStatic f (nameOffset:54) (firstTokenOffset:34) (offset:54)
           element: <testLibrary>::@function::f
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @34
               expression: ConstructorInvocation
                 constructorReference: ConstructorReference2
@@ -3677,7 +2726,7 @@ library
                     staticType: double
                 rightParenthesis: ) @39
               element: <testLibrary>::@class::A::@constructor::new
-            Annotation
+            annotation_1: Annotation
               atSign: @ @41
               expression: ConstructorInvocation
                 constructorReference: ConstructorReference2
@@ -3723,64 +2772,8 @@ library
       reference: <testLibrary>::@function::f
       firstFragment: #F4
       metadata
-        Annotation
-          atSign: @ @34
-          expression: ConstructorInvocation
-            constructorReference: ConstructorReference2
-              typeReference: ConstructorTypeReference
-                name: A @35
-                element: <testLibrary>::@class::A
-                type: A
-              element: <testLibrary>::@class::A::@constructor::new
-            argumentList: ArgumentList
-              leftParenthesis: ( @36
-              arguments2
-                DoubleLiteral
-                  literal: .5 @37
-                  staticType: double
-              rightParenthesis: ) @39
-            staticType: A
-          name: SimpleIdentifier
-            token: A @35
-            element: <testLibrary>::@class::A
-            staticType: null
-          arguments: ArgumentList
-            leftParenthesis: ( @36
-            arguments
-              DoubleLiteral
-                literal: .5 @37
-                staticType: double
-            rightParenthesis: ) @39
-          element: <testLibrary>::@class::A::@constructor::new
-        Annotation
-          atSign: @ @41
-          expression: ConstructorInvocation
-            constructorReference: ConstructorReference2
-              typeReference: ConstructorTypeReference
-                name: A @42
-                element: <testLibrary>::@class::A
-                type: A
-              element: <testLibrary>::@class::A::@constructor::new
-            argumentList: ArgumentList
-              leftParenthesis: ( @43
-              arguments2
-                DoubleLiteral
-                  literal: 1e3 @44
-                  staticType: double
-              rightParenthesis: ) @47
-            staticType: A
-          name: SimpleIdentifier
-            token: A @42
-            element: <testLibrary>::@class::A
-            staticType: null
-          arguments: ArgumentList
-            leftParenthesis: ( @43
-            arguments
-              DoubleLiteral
-                literal: 1e3 @44
-                staticType: double
-            rightParenthesis: ) @47
-          element: <testLibrary>::@class::A::@constructor::new
+        annotation_0
+        annotation_1
       returnType: void
 ''');
   }
@@ -3817,7 +2810,7 @@ library
         #F5 class C (nameOffset:44) (firstTokenOffset:32) (offset:44)
           element: <testLibrary>::@class::C
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @32
               expression: ConstructorInvocation
                 constructorReference: ConstructorReference2
@@ -3873,39 +2866,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F5
       metadata
-        Annotation
-          atSign: @ @32
-          expression: ConstructorInvocation
-            constructorReference: ConstructorReference2
-              typeReference: ConstructorTypeReference
-                name: A @33
-                element: <testLibrary>::@class::A
-                type: A<int>
-              element: SubstitutedConstructorElementImpl
-                baseElement: <testLibrary>::@class::A::@constructor::new
-                substitution: {T: int}
-            argumentList: ArgumentList
-              leftParenthesis: ( @34
-              arguments2
-                IntegerLiteral
-                  literal: 0 @35
-                  staticType: int
-              rightParenthesis: ) @36
-            staticType: A<int>
-          name: SimpleIdentifier
-            token: A @33
-            element: <testLibrary>::@class::A
-            staticType: null
-          arguments: ArgumentList
-            leftParenthesis: ( @34
-            arguments
-              IntegerLiteral
-                literal: 0 @35
-                staticType: int
-            rightParenthesis: ) @36
-          element: SubstitutedConstructorElementImpl
-            baseElement: <testLibrary>::@class::A::@constructor::new
-            substitution: {T: int}
+        annotation_0
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -3942,7 +2903,7 @@ library
         #F4 class C (nameOffset:45) (firstTokenOffset:29) (offset:45)
           element: <testLibrary>::@class::C
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @29
               expression: ConstructorInvocation
                 constructorReference: ConstructorReference2
@@ -4002,47 +2963,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F4
       metadata
-        Annotation
-          atSign: @ @29
-          expression: ConstructorInvocation
-            constructorReference: ConstructorReference2
-              typeReference: ConstructorTypeReference
-                name: A @30
-                typeArguments: TypeArgumentList
-                  leftBracket: < @31
-                  arguments
-                    NamedType
-                      name: int @32
-                      element: dart:core::@class::int
-                      type: int
-                  rightBracket: > @35
-                element: <testLibrary>::@class::A
-                type: A<int>
-              element: SubstitutedConstructorElementImpl
-                baseElement: <testLibrary>::@class::A::@constructor::new
-                substitution: {T: int}
-            argumentList: ArgumentList
-              leftParenthesis: ( @36
-              rightParenthesis: ) @37
-            staticType: A<int>
-          name: SimpleIdentifier
-            token: A @30
-            element: <testLibrary>::@class::A
-            staticType: null
-          typeArguments: TypeArgumentList
-            leftBracket: < @31
-            arguments
-              NamedType
-                name: int @32
-                element: dart:core::@class::int
-                type: int
-            rightBracket: > @35
-          arguments: ArgumentList
-            leftParenthesis: ( @36
-            rightParenthesis: ) @37
-          element: SubstitutedConstructorElementImpl
-            baseElement: <testLibrary>::@class::A::@constructor::new
-            substitution: {T: int}
+        annotation_0
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -4077,7 +2998,7 @@ library
         #F1 class C (nameOffset:43) (firstTokenOffset:27) (offset:43)
           element: <testLibrary>::@class::C
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @27
               expression: ConstructorInvocation
                 constructorReference: ConstructorReference2
@@ -4127,47 +3048,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       metadata
-        Annotation
-          atSign: @ @27
-          expression: ConstructorInvocation
-            constructorReference: ConstructorReference2
-              typeReference: ConstructorTypeReference
-                importPrefix: ImportPrefixReference
-                  name: foo @28
-                  period: . @31
-                  element: <testLibraryFragment>::@prefix::foo
-                name: A @32
-                element: package:test/foo.dart::@class::A
-                type: A
-              element: package:test/foo.dart::@class::A::@constructor::new
-            argumentList: ArgumentList
-              leftParenthesis: ( @33
-              arguments2
-                IntegerLiteral
-                  literal: 0 @34
-                  staticType: int
-              rightParenthesis: ) @35
-            staticType: A
-          name: PrefixedIdentifier
-            prefix: SimpleIdentifier
-              token: foo @28
-              element: <testLibraryFragment>::@prefix::foo
-              staticType: null
-            period: . @31
-            identifier: SimpleIdentifier
-              token: A @32
-              element: package:test/foo.dart::@class::A
-              staticType: null
-            element: package:test/foo.dart::@class::A
-            staticType: null
-          arguments: ArgumentList
-            leftParenthesis: ( @33
-            arguments
-              IntegerLiteral
-                literal: 0 @34
-                staticType: int
-            rightParenthesis: ) @35
-          element: package:test/foo.dart::@class::A::@constructor::new
+        annotation_0
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -4202,7 +3083,7 @@ library
         #F1 class C (nameOffset:43) (firstTokenOffset:27) (offset:43)
           element: <testLibrary>::@class::C
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @27
               expression: ConstructorInvocation
                 constructorReference: ConstructorReference2
@@ -4256,51 +3137,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       metadata
-        Annotation
-          atSign: @ @27
-          expression: ConstructorInvocation
-            constructorReference: ConstructorReference2
-              typeReference: ConstructorTypeReference
-                importPrefix: ImportPrefixReference
-                  name: foo @28
-                  period: . @31
-                  element: <testLibraryFragment>::@prefix::foo
-                name: A @32
-                element: package:test/foo.dart::@class::A
-                type: A<int>
-              element: SubstitutedConstructorElementImpl
-                baseElement: package:test/foo.dart::@class::A::@constructor::new
-                substitution: {T: int}
-            argumentList: ArgumentList
-              leftParenthesis: ( @33
-              arguments2
-                IntegerLiteral
-                  literal: 0 @34
-                  staticType: int
-              rightParenthesis: ) @35
-            staticType: A<int>
-          name: PrefixedIdentifier
-            prefix: SimpleIdentifier
-              token: foo @28
-              element: <testLibraryFragment>::@prefix::foo
-              staticType: null
-            period: . @31
-            identifier: SimpleIdentifier
-              token: A @32
-              element: package:test/foo.dart::@class::A
-              staticType: null
-            element: package:test/foo.dart::@class::A
-            staticType: null
-          arguments: ArgumentList
-            leftParenthesis: ( @33
-            arguments
-              IntegerLiteral
-                literal: 0 @34
-                staticType: int
-            rightParenthesis: ) @35
-          element: SubstitutedConstructorElementImpl
-            baseElement: package:test/foo.dart::@class::A::@constructor::new
-            substitution: {T: int}
+        annotation_0
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -4335,7 +3172,7 @@ library
         #F1 class C (nameOffset:47) (firstTokenOffset:27) (offset:47)
           element: <testLibrary>::@class::C
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @27
               expression: ConstructorInvocation
                 constructorReference: ConstructorReference2
@@ -4397,59 +3234,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       metadata
-        Annotation
-          atSign: @ @27
-          expression: ConstructorInvocation
-            constructorReference: ConstructorReference2
-              typeReference: ConstructorTypeReference
-                importPrefix: ImportPrefixReference
-                  name: foo @28
-                  period: . @31
-                  element: <testLibraryFragment>::@prefix::foo
-                name: A @32
-                typeArguments: TypeArgumentList
-                  leftBracket: < @33
-                  arguments
-                    NamedType
-                      name: int @34
-                      element: dart:core::@class::int
-                      type: int
-                  rightBracket: > @37
-                element: package:test/foo.dart::@class::A
-                type: A<int>
-              element: SubstitutedConstructorElementImpl
-                baseElement: package:test/foo.dart::@class::A::@constructor::new
-                substitution: {T: int}
-            argumentList: ArgumentList
-              leftParenthesis: ( @38
-              rightParenthesis: ) @39
-            staticType: A<int>
-          name: PrefixedIdentifier
-            prefix: SimpleIdentifier
-              token: foo @28
-              element: <testLibraryFragment>::@prefix::foo
-              staticType: null
-            period: . @31
-            identifier: SimpleIdentifier
-              token: A @32
-              element: package:test/foo.dart::@class::A
-              staticType: null
-            element: package:test/foo.dart::@class::A
-            staticType: null
-          typeArguments: TypeArgumentList
-            leftBracket: < @33
-            arguments
-              NamedType
-                name: int @34
-                element: dart:core::@class::int
-                type: int
-            rightBracket: > @37
-          arguments: ArgumentList
-            leftParenthesis: ( @38
-            rightParenthesis: ) @39
-          element: SubstitutedConstructorElementImpl
-            baseElement: package:test/foo.dart::@class::A::@constructor::new
-            substitution: {T: int}
+        annotation_0
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -4496,7 +3281,7 @@ library
         #F6 class D (nameOffset:73) (firstTokenOffset:62) (offset:73)
           element: <testLibrary>::@class::D
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @62
               expression: ConstructorInvocation
                 constructorReference: ConstructorReference2
@@ -4561,31 +3346,7 @@ library
       reference: <testLibrary>::@class::D
       firstFragment: #F6
       metadata
-        Annotation
-          atSign: @ @62
-          expression: ConstructorInvocation
-            constructorReference: ConstructorReference2
-              typeReference: ConstructorTypeReference
-                name: C @63
-                element: <testLibrary>::@class::C
-                type: C<dynamic>
-              element: SubstitutedConstructorElementImpl
-                baseElement: <testLibrary>::@class::C::@constructor::new
-                substitution: {T: dynamic}
-            argumentList: ArgumentList
-              leftParenthesis: ( @64
-              rightParenthesis: ) @65
-            staticType: C<dynamic>
-          name: SimpleIdentifier
-            token: C @63
-            element: <testLibrary>::@class::C
-            staticType: null
-          arguments: ArgumentList
-            leftParenthesis: ( @64
-            rightParenthesis: ) @65
-          element: SubstitutedConstructorElementImpl
-            baseElement: <testLibrary>::@class::C::@constructor::new
-            substitution: {T: dynamic}
+        annotation_0
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::D::@constructor::new
@@ -4628,7 +3389,7 @@ library
         #F4 class C (nameOffset:42) (firstTokenOffset:27) (offset:42)
           element: <testLibrary>::@class::C
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @27
               expression: ConstructorInvocation
                 constructorReference: ConstructorReference2
@@ -4677,35 +3438,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F4
       metadata
-        Annotation
-          atSign: @ @27
-          expression: ConstructorInvocation
-            constructorReference: ConstructorReference2
-              typeReference: ConstructorTypeReference
-                name: A @28
-                element: <testLibrary>::@class::A
-                type: A
-              element: <testLibrary>::@class::A::@constructor::new
-            argumentList: ArgumentList
-              leftParenthesis: ( @29
-              arguments2
-                NullLiteral
-                  literal: null @30
-                  staticType: Null
-              rightParenthesis: ) @34
-            staticType: A
-          name: SimpleIdentifier
-            token: A @28
-            element: <testLibrary>::@class::A
-            staticType: null
-          arguments: ArgumentList
-            leftParenthesis: ( @29
-            arguments
-              NullLiteral
-                literal: null @30
-                staticType: Null
-            rightParenthesis: ) @34
-          element: <testLibrary>::@class::A::@constructor::new
+        annotation_0
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -4738,7 +3471,7 @@ library
         #F1 isComplete isOriginDeclaration isStatic f (nameOffset:37) (firstTokenOffset:18) (offset:37)
           element: <testLibrary>::@function::f
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @18
               expression: ConstructorInvocation
                 constructorReference: ConstructorReference2
@@ -4778,41 +3511,7 @@ library
       reference: <testLibrary>::@function::f
       firstFragment: #F1
       metadata
-        Annotation
-          atSign: @ @18
-          expression: ConstructorInvocation
-            constructorReference: ConstructorReference2
-              typeReference: ConstructorTypeReference
-                name: A @19
-                element: package:test/a.dart::@class::A
-                type: A
-              element: package:test/a.dart::@class::A::@constructor::new
-            argumentList: ArgumentList
-              leftParenthesis: ( @20
-              arguments2
-                NamedArgument
-                  name: value @21
-                  colon: : @26
-                  argumentExpression2: IntegerLiteral
-                    literal: 42 @28
-                    staticType: int
-              rightParenthesis: ) @30
-            staticType: A
-          name: SimpleIdentifier
-            token: A @19
-            element: package:test/a.dart::@class::A
-            staticType: null
-          arguments: ArgumentList
-            leftParenthesis: ( @20
-            arguments
-              NamedArgument
-                name: value @21
-                colon: : @26
-                argumentExpression: IntegerLiteral
-                  literal: 42 @28
-                  staticType: int
-            rightParenthesis: ) @30
-          element: package:test/a.dart::@class::A::@constructor::new
+        annotation_0
       returnType: void
 ''');
   }
@@ -4839,7 +3538,7 @@ library
             #F2 isOriginDeclaration named (nameOffset:36) (firstTokenOffset:29) (offset:36)
               element: <testLibrary>::@class::C::@constructor::named
               metadata
-                Annotation
+                annotation_0: Annotation
                   atSign: @ @29
                   expression: UnqualifiedNameExpression
                     name: a @30
@@ -4876,19 +3575,7 @@ library
           reference: <testLibrary>::@class::C::@constructor::named
           firstFragment: #F2
           metadata
-            Annotation
-              atSign: @ @29
-              expression: UnqualifiedNameExpression
-                name: a @30
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@getter::a
-                  type: dynamic
-                staticType: dynamic
-              name: SimpleIdentifier
-                token: a @30
-                element: <testLibrary>::@getter::a
-                staticType: null
-              element: <testLibrary>::@getter::a
+            annotation_0
   topLevelVariables
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -4927,7 +3614,7 @@ library
             #F2 isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:29) (offset:34)
               element: <testLibrary>::@class::C::@constructor::new
               metadata
-                Annotation
+                annotation_0: Annotation
                   atSign: @ @29
                   expression: UnqualifiedNameExpression
                     name: a @30
@@ -4963,19 +3650,7 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F2
           metadata
-            Annotation
-              atSign: @ @29
-              expression: UnqualifiedNameExpression
-                name: a @30
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@getter::a
-                  type: dynamic
-                staticType: dynamic
-              name: SimpleIdentifier
-                token: a @30
-                element: <testLibrary>::@getter::a
-                staticType: null
-              element: <testLibrary>::@getter::a
+            annotation_0
   topLevelVariables
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -5007,7 +3682,7 @@ const a = 0;
 library
   reference: <testLibrary>
   metadata
-    Annotation
+    annotation_0: Annotation
       atSign: @ @0
       expression: UnqualifiedNameExpression
         name: a @1
@@ -5026,7 +3701,7 @@ library
       libraryExports
         package:test/foo.dart
           metadata
-            Annotation
+            annotation_1: Annotation
               atSign: @ @0
               expression: UnqualifiedNameExpression
                 name: a @1
@@ -5081,7 +3756,7 @@ const b = 1;
 library
   reference: <testLibrary>
   metadata
-    Annotation
+    annotation_0: Annotation
       atSign: @ @0
       expression: UnqualifiedNameExpression
         name: a @1
@@ -5100,7 +3775,7 @@ library
       libraryExports
         dart:math
           metadata
-            Annotation
+            annotation_1: Annotation
               atSign: @ @12
               expression: UnqualifiedNameExpression
                 name: b @13
@@ -5184,7 +3859,7 @@ library
             #F2 isOriginDeclaration x (nameOffset:38) (firstTokenOffset:38) (offset:38)
               element: <testLibrary>::@class::C::@field::x
               metadata
-                Annotation
+                annotation_0: Annotation
                   atSign: @ @29
                   expression: UnqualifiedNameExpression
                     name: a @30
@@ -5235,19 +3910,7 @@ library
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           metadata
-            Annotation
-              atSign: @ @29
-              expression: UnqualifiedNameExpression
-                name: a @30
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@getter::a
-                  type: dynamic
-                staticType: dynamic
-              name: SimpleIdentifier
-                token: a @30
-                element: <testLibrary>::@getter::a
-                staticType: null
-              element: <testLibrary>::@getter::a
+            annotation_0
           type: int
           getter: <testLibrary>::@class::C::@getter::x
           setter: <testLibrary>::@class::C::@setter::x
@@ -5319,7 +3982,7 @@ library
                 #F6 requiredPositional hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:48) (firstTokenOffset:40) (offset:48)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
                   metadata
-                    Annotation
+                    annotation_0: Annotation
                       atSign: @ @40
                       expression: UnqualifiedNameExpression
                         name: a @41
@@ -5375,19 +4038,7 @@ library
               firstFragment: #F6
               type: dynamic
               metadata
-                Annotation
-                  atSign: @ @40
-                  expression: UnqualifiedNameExpression
-                    name: a @41
-                    resolution: GetterInvocationResolution
-                      element: <testLibrary>::@getter::a
-                      type: dynamic
-                    staticType: dynamic
-                  name: SimpleIdentifier
-                    token: a @41
-                    element: <testLibrary>::@getter::a
-                    staticType: null
-                  element: <testLibrary>::@getter::a
+                annotation_0
               field: <testLibrary>::@class::C::@field::x
       getters
         isOriginVariable x
@@ -5453,7 +4104,7 @@ library
                 #F6 optionalPositional hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:49) (firstTokenOffset:41) (offset:49)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
                   metadata
-                    Annotation
+                    annotation_0: Annotation
                       atSign: @ @41
                       expression: UnqualifiedNameExpression
                         name: a @42
@@ -5513,19 +4164,7 @@ library
               firstFragment: #F6
               type: dynamic
               metadata
-                Annotation
-                  atSign: @ @41
-                  expression: UnqualifiedNameExpression
-                    name: a @42
-                    resolution: GetterInvocationResolution
-                      element: <testLibrary>::@getter::a
-                      type: dynamic
-                    staticType: dynamic
-                  name: SimpleIdentifier
-                    token: a @42
-                    element: <testLibrary>::@getter::a
-                    staticType: null
-                  element: <testLibrary>::@getter::a
+                annotation_0
               constantInitializer2: expression_0
               field: <testLibrary>::@class::C::@field::x
       getters
@@ -5588,7 +4227,7 @@ library
         #F3 hasImplicitReturnType isComplete isOriginDeclaration isStatic f (nameOffset:19) (firstTokenOffset:16) (offset:19)
           element: <testLibrary>::@function::f
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @16
               expression: UnqualifiedNameExpression
                 name: a @17
@@ -5619,19 +4258,7 @@ library
       reference: <testLibrary>::@function::f
       firstFragment: #F3
       metadata
-        Annotation
-          atSign: @ @16
-          expression: UnqualifiedNameExpression
-            name: a @17
-            resolution: GetterInvocationResolution
-              element: <testLibrary>::@getter::a
-              type: dynamic
-            staticType: dynamic
-          name: SimpleIdentifier
-            token: a @17
-            element: <testLibrary>::@getter::a
-            staticType: null
-          element: <testLibrary>::@getter::a
+        annotation_0
       returnType: dynamic
 ''');
   }
@@ -5665,7 +4292,7 @@ library
         #F4 hasImplicitReturnType isComplete isOriginDeclaration isStatic f (nameOffset:23) (firstTokenOffset:16) (offset:23)
           element: <testLibrary>::@getter::f
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @16
               expression: UnqualifiedNameExpression
                 name: a @17
@@ -5700,19 +4327,7 @@ library
       reference: <testLibrary>::@getter::f
       firstFragment: #F4
       metadata
-        Annotation
-          atSign: @ @16
-          expression: UnqualifiedNameExpression
-            name: a @17
-            resolution: GetterInvocationResolution
-              element: <testLibrary>::@getter::a
-              type: dynamic
-            staticType: dynamic
-          name: SimpleIdentifier
-            token: a @17
-            element: <testLibrary>::@getter::a
-            staticType: null
-          element: <testLibrary>::@getter::a
+        annotation_0
       returnType: dynamic
       variable: <testLibrary>::@topLevelVariable::f
 ''');
@@ -5748,7 +4363,7 @@ library
         #F4 hasImplicitReturnType isComplete isOriginDeclaration isStatic f (nameOffset:23) (firstTokenOffset:16) (offset:23)
           element: <testLibrary>::@setter::f
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @16
               expression: UnqualifiedNameExpression
                 name: a @17
@@ -5787,19 +4402,7 @@ library
       reference: <testLibrary>::@setter::f
       firstFragment: #F4
       metadata
-        Annotation
-          atSign: @ @16
-          expression: UnqualifiedNameExpression
-            name: a @17
-            resolution: GetterInvocationResolution
-              element: <testLibrary>::@getter::a
-              type: dynamic
-            staticType: dynamic
-          name: SimpleIdentifier
-            token: a @17
-            element: <testLibrary>::@getter::a
-            staticType: null
-          element: <testLibrary>::@getter::a
+        annotation_0
       formalParameters
         #E0 requiredPositional hasImplicitType value
           firstFragment: #F5
@@ -5825,7 +4428,7 @@ library
         #F1 F (nameOffset:27) (firstTokenOffset:16) (offset:27)
           element: <testLibrary>::@typeAlias::F
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @16
               expression: UnqualifiedNameExpression
                 name: a @17
@@ -5855,19 +4458,7 @@ library
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       metadata
-        Annotation
-          atSign: @ @16
-          expression: UnqualifiedNameExpression
-            name: a @17
-            resolution: GetterInvocationResolution
-              element: <testLibrary>::@getter::a
-              type: dynamic
-            staticType: dynamic
-          name: SimpleIdentifier
-            token: a @17
-            element: <testLibrary>::@getter::a
-            staticType: null
-          element: <testLibrary>::@getter::a
+        annotation_0
       aliasedType: dynamic Function()
   topLevelVariables
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer a
@@ -5915,7 +4506,7 @@ library
             #F4 requiredPositional isOriginDeclaration g (nameOffset:21) (firstTokenOffset:18) (offset:21)
               element: <testLibrary>::@function::f::@formalParameter::g
               metadata
-                Annotation
+                annotation_0: Annotation
                   atSign: @ @18
                   expression: UnqualifiedNameExpression
                     name: a @19
@@ -5950,19 +4541,7 @@ library
           firstFragment: #F4
           type: dynamic Function()
           metadata
-            Annotation
-              atSign: @ @18
-              expression: UnqualifiedNameExpression
-                name: a @19
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@getter::a
-                  type: dynamic
-                staticType: dynamic
-              name: SimpleIdentifier
-                token: a @19
-                element: <testLibrary>::@getter::a
-                staticType: null
-              element: <testLibrary>::@getter::a
+            annotation_0
       returnType: dynamic
 ''');
   }
@@ -5997,7 +4576,7 @@ library
             #F4 optionalPositional isOriginDeclaration g (nameOffset:22) (firstTokenOffset:19) (offset:22)
               element: <testLibrary>::@function::f::@formalParameter::g
               metadata
-                Annotation
+                annotation_0: Annotation
                   atSign: @ @19
                   expression: UnqualifiedNameExpression
                     name: a @20
@@ -6036,19 +4615,7 @@ library
           firstFragment: #F4
           type: dynamic Function()
           metadata
-            Annotation
-              atSign: @ @19
-              expression: UnqualifiedNameExpression
-                name: a @20
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@getter::a
-                  type: dynamic
-                staticType: dynamic
-              name: SimpleIdentifier
-                token: a @20
-                element: <testLibrary>::@getter::a
-                staticType: null
-              element: <testLibrary>::@getter::a
+            annotation_0
           constantInitializer2: expression_1
       returnType: dynamic
 ''');
@@ -6072,7 +4639,7 @@ library
         #F1 F (nameOffset:46) (firstTokenOffset:32) (offset:46)
           element: <testLibrary>::@typeAlias::F
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @32
               expression: UnqualifiedNameExpression
                 name: a @33
@@ -6085,7 +4652,7 @@ library
                 element: <testLibrary>::@getter::a
                 staticType: null
               element: <testLibrary>::@getter::a
-            Annotation
+            annotation_1: Annotation
               atSign: @ @35
               expression: UnqualifiedNameExpression
                 name: b @36
@@ -6125,32 +4692,8 @@ library
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       metadata
-        Annotation
-          atSign: @ @32
-          expression: UnqualifiedNameExpression
-            name: a @33
-            resolution: GetterInvocationResolution
-              element: <testLibrary>::@getter::a
-              type: dynamic
-            staticType: dynamic
-          name: SimpleIdentifier
-            token: a @33
-            element: <testLibrary>::@getter::a
-            staticType: null
-          element: <testLibrary>::@getter::a
-        Annotation
-          atSign: @ @35
-          expression: UnqualifiedNameExpression
-            name: b @36
-            resolution: GetterInvocationResolution
-              element: <testLibrary>::@getter::b
-              type: dynamic
-            staticType: dynamic
-          name: SimpleIdentifier
-            token: b @36
-            element: <testLibrary>::@getter::b
-            staticType: null
-          element: <testLibrary>::@getter::b
+        annotation_0
+        annotation_1
       aliasedType: void Function()
   topLevelVariables
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer a
@@ -6194,7 +4737,7 @@ const a = 0;
 library
   reference: <testLibrary>
   metadata
-    Annotation
+    annotation_0: Annotation
       atSign: @ @0
       expression: UnqualifiedNameExpression
         name: a @1
@@ -6213,7 +4756,7 @@ library
       libraryImports
         package:test/foo.dart
           metadata
-            Annotation
+            annotation_1: Annotation
               atSign: @ @0
               expression: UnqualifiedNameExpression
                 name: a @1
@@ -6268,7 +4811,7 @@ const b = 1;
 library
   reference: <testLibrary>
   metadata
-    Annotation
+    annotation_0: Annotation
       atSign: @ @0
       expression: UnqualifiedNameExpression
         name: a @1
@@ -6287,7 +4830,7 @@ library
       libraryImports
         dart:math
           metadata
-            Annotation
+            annotation_1: Annotation
               atSign: @ @0
               expression: UnqualifiedNameExpression
                 name: a @1
@@ -6302,7 +4845,7 @@ library
               element: <testLibrary>::@getter::a
         dart:async
           metadata
-            Annotation
+            annotation_2: Annotation
               atSign: @ @23
               expression: UnqualifiedNameExpression
                 name: b @24
@@ -6378,7 +4921,7 @@ const b = 1;
 library
   reference: <testLibrary>
   metadata
-    Annotation
+    annotation_0: Annotation
       atSign: @ @0
       expression: UnqualifiedNameExpression
         name: a @1
@@ -6397,7 +4940,7 @@ library
       libraryImports
         dart:math
           metadata
-            Annotation
+            annotation_1: Annotation
               atSign: @ @12
               expression: UnqualifiedNameExpression
                 name: b @13
@@ -6514,7 +5057,7 @@ library
       libraryImports
         dart:math
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @24
               expression: UnqualifiedNameExpression
                 name: b @25
@@ -6712,7 +5255,7 @@ library
         #F1 class C (nameOffset:22) (firstTokenOffset:9) (offset:22)
           element: <testLibrary>::@class::C
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @9
               expression: ConstructorInvocation
                 constructorReference: ConstructorReference2
@@ -6756,35 +5299,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       metadata
-        Annotation
-          atSign: @ @9
-          expression: ConstructorInvocation
-            constructorReference: ConstructorReference2
-              typeReference: ConstructorTypeReference
-                name: f @10
-                element: <testLibrary>::@function::f
-                type: InvalidType
-              element: <null>
-            argumentList: ArgumentList
-              leftParenthesis: ( @11
-              arguments2
-                IntegerLiteral
-                  literal: 42 @12
-                  staticType: int
-              rightParenthesis: ) @14
-            staticType: InvalidType
-          name: SimpleIdentifier
-            token: f @10
-            element: <testLibrary>::@function::f
-            staticType: null
-          arguments: ArgumentList
-            leftParenthesis: ( @11
-            arguments
-              IntegerLiteral
-                literal: 42 @12
-                staticType: int
-            rightParenthesis: ) @14
-          element: <null>
+        annotation_0
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -6813,7 +5328,7 @@ part 'a.dart';
 library
   reference: <testLibrary>
   metadata
-    Annotation
+    annotation_0: Annotation
       atSign: @ @0
       expression: UnqualifiedNameExpression
         name: deprecated @1
@@ -6835,7 +5350,7 @@ library
           uri: package:test/a.dart
           partKeywordOffset: 12
           metadata
-            Annotation
+            annotation_1: Annotation
               atSign: @ @0
               expression: UnqualifiedNameExpression
                 name: deprecated @1
@@ -6866,7 +5381,7 @@ part 'dart:math';
 library
   reference: <testLibrary>
   metadata
-    Annotation
+    annotation_0: Annotation
       atSign: @ @0
       expression: UnqualifiedNameExpression
         name: deprecated @1
@@ -6887,7 +5402,7 @@ library
           uri: source 'dart:math'
           partKeywordOffset: 12
           metadata
-            Annotation
+            annotation_1: Annotation
               atSign: @ @0
               expression: UnqualifiedNameExpression
                 name: deprecated @1
@@ -6915,7 +5430,7 @@ library
   reference: <testLibrary>
   name: L
   metadata
-    Annotation
+    annotation_0: Annotation
       atSign: @ @0
       expression: UnqualifiedNameExpression
         name: a @1
@@ -6988,7 +5503,7 @@ library
             #F4 hasImplicitReturnType isComplete isOriginDeclaration m (nameOffset:38) (firstTokenOffset:29) (offset:38)
               element: <testLibrary>::@class::C::@getter::m
               metadata
-                Annotation
+                annotation_0: Annotation
                   atSign: @ @29
                   expression: UnqualifiedNameExpression
                     name: a @30
@@ -7032,19 +5547,7 @@ library
           reference: <testLibrary>::@class::C::@getter::m
           firstFragment: #F4
           metadata
-            Annotation
-              atSign: @ @29
-              expression: UnqualifiedNameExpression
-                name: a @30
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@getter::a
-                  type: dynamic
-                staticType: dynamic
-              name: SimpleIdentifier
-                token: a @30
-                element: <testLibrary>::@getter::a
-                staticType: null
-              element: <testLibrary>::@getter::a
+            annotation_0
           returnType: dynamic
           variable: <testLibrary>::@class::C::@field::m
   topLevelVariables
@@ -7091,7 +5594,7 @@ library
             #F3 hasImplicitReturnType isComplete isOriginDeclaration m (nameOffset:55) (firstTokenOffset:45) (offset:55)
               element: <testLibrary>::@class::C::@method::m
               metadata
-                Annotation
+                annotation_0: Annotation
                   atSign: @ @45
                   expression: UnqualifiedNameExpression
                     name: a @46
@@ -7104,7 +5607,7 @@ library
                     element: <testLibrary>::@getter::a
                     staticType: null
                   element: <testLibrary>::@getter::a
-                Annotation
+                annotation_1: Annotation
                   atSign: @ @50
                   expression: UnqualifiedNameExpression
                     name: b @51
@@ -7152,32 +5655,8 @@ library
           reference: <testLibrary>::@class::C::@method::m
           firstFragment: #F3
           metadata
-            Annotation
-              atSign: @ @45
-              expression: UnqualifiedNameExpression
-                name: a @46
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@getter::a
-                  type: dynamic
-                staticType: dynamic
-              name: SimpleIdentifier
-                token: a @46
-                element: <testLibrary>::@getter::a
-                staticType: null
-              element: <testLibrary>::@getter::a
-            Annotation
-              atSign: @ @50
-              expression: UnqualifiedNameExpression
-                name: b @51
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@getter::b
-                  type: dynamic
-                staticType: dynamic
-              name: SimpleIdentifier
-                token: b @51
-                element: <testLibrary>::@getter::b
-                staticType: null
-              element: <testLibrary>::@getter::b
+            annotation_0
+            annotation_1
           returnType: dynamic
   topLevelVariables
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer a
@@ -7230,7 +5709,7 @@ library
             #F2 hasImplicitReturnType isComplete isOriginDeclaration m (nameOffset:55) (firstTokenOffset:45) (offset:55)
               element: <testLibrary>::@mixin::M::@method::m
               metadata
-                Annotation
+                annotation_0: Annotation
                   atSign: @ @45
                   expression: UnqualifiedNameExpression
                     name: a @46
@@ -7243,7 +5722,7 @@ library
                     element: <testLibrary>::@getter::a
                     staticType: null
                   element: <testLibrary>::@getter::a
-                Annotation
+                annotation_1: Annotation
                   atSign: @ @50
                   expression: UnqualifiedNameExpression
                     name: b @51
@@ -7289,32 +5768,8 @@ library
           reference: <testLibrary>::@mixin::M::@method::m
           firstFragment: #F2
           metadata
-            Annotation
-              atSign: @ @45
-              expression: UnqualifiedNameExpression
-                name: a @46
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@getter::a
-                  type: dynamic
-                staticType: dynamic
-              name: SimpleIdentifier
-                token: a @46
-                element: <testLibrary>::@getter::a
-                staticType: null
-              element: <testLibrary>::@getter::a
-            Annotation
-              atSign: @ @50
-              expression: UnqualifiedNameExpression
-                name: b @51
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@getter::b
-                  type: dynamic
-                staticType: dynamic
-              name: SimpleIdentifier
-                token: b @51
-                element: <testLibrary>::@getter::b
-                staticType: null
-              element: <testLibrary>::@getter::b
+            annotation_0
+            annotation_1
           returnType: dynamic
   topLevelVariables
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer a
@@ -7372,7 +5827,7 @@ library
             #F4 hasImplicitReturnType isComplete isOriginDeclaration m (nameOffset:38) (firstTokenOffset:29) (offset:38)
               element: <testLibrary>::@class::C::@setter::m
               metadata
-                Annotation
+                annotation_0: Annotation
                   atSign: @ @29
                   expression: UnqualifiedNameExpression
                     name: a @30
@@ -7419,19 +5874,7 @@ library
           reference: <testLibrary>::@class::C::@setter::m
           firstFragment: #F4
           metadata
-            Annotation
-              atSign: @ @29
-              expression: UnqualifiedNameExpression
-                name: a @30
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@getter::a
-                  type: dynamic
-                staticType: dynamic
-              name: SimpleIdentifier
-                token: a @30
-                element: <testLibrary>::@getter::a
-                staticType: null
-              element: <testLibrary>::@getter::a
+            annotation_0
           formalParameters
             #E0 requiredPositional hasImplicitType value
               firstFragment: #F5
@@ -7475,7 +5918,7 @@ library
         #F1 mixin M (nameOffset:27) (firstTokenOffset:16) (offset:27)
           element: <testLibrary>::@mixin::M
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @16
               expression: UnqualifiedNameExpression
                 name: foo @17
@@ -7492,7 +5935,7 @@ library
             #F2 T (nameOffset:34) (firstTokenOffset:29) (offset:34)
               element: #E0 T
               metadata
-                Annotation
+                annotation_1: Annotation
                   atSign: @ @29
                   expression: UnqualifiedNameExpression
                     name: foo @30
@@ -7521,7 +5964,7 @@ library
             #F5 isComplete isOriginDeclaration bar (nameOffset:77) (firstTokenOffset:65) (offset:77)
               element: <testLibrary>::@mixin::M::@method::bar
               metadata
-                Annotation
+                annotation_2: Annotation
                   atSign: @ @65
                   expression: UnqualifiedNameExpression
                     name: foo @66
@@ -7551,36 +5994,12 @@ library
       reference: <testLibrary>::@mixin::M
       firstFragment: #F1
       metadata
-        Annotation
-          atSign: @ @16
-          expression: UnqualifiedNameExpression
-            name: foo @17
-            resolution: GetterInvocationResolution
-              element: <testLibrary>::@getter::foo
-              type: int
-            staticType: int
-          name: SimpleIdentifier
-            token: foo @17
-            element: <testLibrary>::@getter::foo
-            staticType: null
-          element: <testLibrary>::@getter::foo
+        annotation_0
       typeParameters
         #E0 T
           firstFragment: #F2
           metadata
-            Annotation
-              atSign: @ @29
-              expression: UnqualifiedNameExpression
-                name: foo @30
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@getter::foo
-                  type: int
-                staticType: int
-              name: SimpleIdentifier
-                token: foo @30
-                element: <testLibrary>::@getter::foo
-                staticType: null
-              element: <testLibrary>::@getter::foo
+            annotation_1
       superclassConstraints
         Object
       fields
@@ -7601,19 +6020,7 @@ library
           reference: <testLibrary>::@mixin::M::@method::bar
           firstFragment: #F5
           metadata
-            Annotation
-              atSign: @ @65
-              expression: UnqualifiedNameExpression
-                name: foo @66
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@mixin::M::@getter::foo
-                  type: int
-                staticType: int
-              name: SimpleIdentifier
-                token: foo @66
-                element: <testLibrary>::@mixin::M::@getter::foo
-                staticType: null
-              element: <testLibrary>::@mixin::M::@getter::foo
+            annotation_2
           returnType: void
   topLevelVariables
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer foo
@@ -7650,7 +6057,7 @@ library
         #F1 mixin M (nameOffset:45) (firstTokenOffset:33) (offset:45)
           element: <testLibrary>::@mixin::M
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @33
               expression: UnqualifiedNameExpression
                 name: a @34
@@ -7663,7 +6070,7 @@ library
                 element: <testLibrary>::@getter::a
                 staticType: null
               element: <testLibrary>::@getter::a
-            Annotation
+            annotation_1: Annotation
               atSign: @ @36
               expression: UnqualifiedNameExpression
                 name: b @37
@@ -7703,32 +6110,8 @@ library
       reference: <testLibrary>::@mixin::M
       firstFragment: #F1
       metadata
-        Annotation
-          atSign: @ @33
-          expression: UnqualifiedNameExpression
-            name: a @34
-            resolution: GetterInvocationResolution
-              element: <testLibrary>::@getter::a
-              type: dynamic
-            staticType: dynamic
-          name: SimpleIdentifier
-            token: a @34
-            element: <testLibrary>::@getter::a
-            staticType: null
-          element: <testLibrary>::@getter::a
-        Annotation
-          atSign: @ @36
-          expression: UnqualifiedNameExpression
-            name: b @37
-            resolution: GetterInvocationResolution
-              element: <testLibrary>::@getter::b
-              type: dynamic
-            staticType: dynamic
-          name: SimpleIdentifier
-            token: b @37
-            element: <testLibrary>::@getter::b
-            staticType: null
-          element: <testLibrary>::@getter::b
+        annotation_0
+        annotation_1
       superclassConstraints
         Object
   topLevelVariables
@@ -7775,7 +6158,7 @@ library
         #F1 class A (nameOffset:27) (firstTokenOffset:16) (offset:27)
           element: <testLibrary>::@class::A
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @16
               expression: UnqualifiedNameExpression
                 name: foo @17
@@ -7792,7 +6175,7 @@ library
             #F2 T (nameOffset:34) (firstTokenOffset:29) (offset:34)
               element: #E0 T
               metadata
-                Annotation
+                annotation_1: Annotation
                   atSign: @ @29
                   expression: UnqualifiedNameExpression
                     name: foo @30
@@ -7826,36 +6209,12 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       metadata
-        Annotation
-          atSign: @ @16
-          expression: UnqualifiedNameExpression
-            name: foo @17
-            resolution: GetterInvocationResolution
-              element: <testLibrary>::@getter::foo
-              type: int
-            staticType: int
-          name: SimpleIdentifier
-            token: foo @17
-            element: <testLibrary>::@getter::foo
-            staticType: null
-          element: <testLibrary>::@getter::foo
+        annotation_0
       typeParameters
         #E0 T
           firstFragment: #F2
           metadata
-            Annotation
-              atSign: @ @29
-              expression: UnqualifiedNameExpression
-                name: foo @30
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@getter::foo
-                  type: int
-                staticType: int
-              name: SimpleIdentifier
-                token: foo @30
-                element: <testLibrary>::@getter::foo
-                staticType: null
-              element: <testLibrary>::@getter::foo
+            annotation_1
       constructors
         hasEnclosingTypeParameterReference isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
@@ -7898,7 +6257,7 @@ library
             #F2 isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:28) (offset:35)
               element: <testLibrary>::@class::A::@constructor::new
               metadata
-                Annotation
+                annotation_0: Annotation
                   atSign: @ @28
                   expression: UnqualifiedNameExpression
                     name: foo @29
@@ -7917,7 +6276,7 @@ library
                 #F3 requiredPositional isOriginDeclaration a (nameOffset:46) (firstTokenOffset:37) (offset:46)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
                   metadata
-                    Annotation
+                    annotation_1: Annotation
                       atSign: @ @37
                       expression: UnqualifiedNameExpression
                         name: foo @38
@@ -7951,37 +6310,13 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
           metadata
-            Annotation
-              atSign: @ @28
-              expression: UnqualifiedNameExpression
-                name: foo @29
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@getter::foo
-                  type: int
-                staticType: int
-              name: SimpleIdentifier
-                token: foo @29
-                element: <testLibrary>::@getter::foo
-                staticType: null
-              element: <testLibrary>::@getter::foo
+            annotation_0
           formalParameters
             #E0 requiredPositional a
               firstFragment: #F3
               type: int
               metadata
-                Annotation
-                  atSign: @ @37
-                  expression: UnqualifiedNameExpression
-                    name: foo @38
-                    resolution: GetterInvocationResolution
-                      element: <testLibrary>::@getter::foo
-                      type: int
-                    staticType: int
-                  name: SimpleIdentifier
-                    token: foo @38
-                    element: <testLibrary>::@getter::foo
-                    staticType: null
-                  element: <testLibrary>::@getter::foo
+                annotation_1
   topLevelVariables
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer foo
       reference: <testLibrary>::@topLevelVariable::foo
@@ -8027,7 +6362,7 @@ library
             #F4 isComplete isOriginDeclaration getter (nameOffset:43) (firstTokenOffset:28) (offset:43)
               element: <testLibrary>::@class::A::@getter::getter
               metadata
-                Annotation
+                annotation_0: Annotation
                   atSign: @ @28
                   expression: UnqualifiedNameExpression
                     name: foo @29
@@ -8071,19 +6406,7 @@ library
           reference: <testLibrary>::@class::A::@getter::getter
           firstFragment: #F4
           metadata
-            Annotation
-              atSign: @ @28
-              expression: UnqualifiedNameExpression
-                name: foo @29
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@getter::foo
-                  type: int
-                staticType: int
-              name: SimpleIdentifier
-                token: foo @29
-                element: <testLibrary>::@getter::foo
-                staticType: null
-              element: <testLibrary>::@getter::foo
+            annotation_0
           returnType: int
           variable: <testLibrary>::@class::A::@field::getter
   topLevelVariables
@@ -8128,7 +6451,7 @@ library
             #F3 isComplete isOriginDeclaration method (nameOffset:40) (firstTokenOffset:28) (offset:40)
               element: <testLibrary>::@class::A::@method::method
               metadata
-                Annotation
+                annotation_0: Annotation
                   atSign: @ @28
                   expression: UnqualifiedNameExpression
                     name: foo @29
@@ -8145,7 +6468,7 @@ library
                 #F4 T (nameOffset:52) (firstTokenOffset:47) (offset:52)
                   element: #E0 T
                   metadata
-                    Annotation
+                    annotation_1: Annotation
                       atSign: @ @47
                       expression: UnqualifiedNameExpression
                         name: foo @48
@@ -8162,7 +6485,7 @@ library
                 #F5 requiredPositional isOriginDeclaration a (nameOffset:64) (firstTokenOffset:55) (offset:64)
                   element: <testLibrary>::@class::A::@method::method::@formalParameter::a
                   metadata
-                    Annotation
+                    annotation_2: Annotation
                       atSign: @ @55
                       expression: UnqualifiedNameExpression
                         name: foo @56
@@ -8200,54 +6523,18 @@ library
           reference: <testLibrary>::@class::A::@method::method
           firstFragment: #F3
           metadata
-            Annotation
-              atSign: @ @28
-              expression: UnqualifiedNameExpression
-                name: foo @29
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@getter::foo
-                  type: int
-                staticType: int
-              name: SimpleIdentifier
-                token: foo @29
-                element: <testLibrary>::@getter::foo
-                staticType: null
-              element: <testLibrary>::@getter::foo
+            annotation_0
           typeParameters
             #E0 T
               firstFragment: #F4
               metadata
-                Annotation
-                  atSign: @ @47
-                  expression: UnqualifiedNameExpression
-                    name: foo @48
-                    resolution: GetterInvocationResolution
-                      element: <testLibrary>::@getter::foo
-                      type: int
-                    staticType: int
-                  name: SimpleIdentifier
-                    token: foo @48
-                    element: <testLibrary>::@getter::foo
-                    staticType: null
-                  element: <testLibrary>::@getter::foo
+                annotation_1
           formalParameters
             #E1 requiredPositional a
               firstFragment: #F5
               type: int
               metadata
-                Annotation
-                  atSign: @ @55
-                  expression: UnqualifiedNameExpression
-                    name: foo @56
-                    resolution: GetterInvocationResolution
-                      element: <testLibrary>::@getter::foo
-                      type: int
-                    staticType: int
-                  name: SimpleIdentifier
-                    token: foo @56
-                    element: <testLibrary>::@getter::foo
-                    staticType: null
-                  element: <testLibrary>::@getter::foo
+                annotation_2
           returnType: void
   topLevelVariables
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer foo
@@ -8294,7 +6581,7 @@ library
             #F4 hasImplicitReturnType isComplete isOriginDeclaration setter (nameOffset:39) (firstTokenOffset:28) (offset:39)
               element: <testLibrary>::@class::A::@setter::setter
               metadata
-                Annotation
+                annotation_0: Annotation
                   atSign: @ @28
                   expression: UnqualifiedNameExpression
                     name: foo @29
@@ -8311,7 +6598,7 @@ library
                 #F5 requiredPositional isOriginDeclaration a (nameOffset:55) (firstTokenOffset:46) (offset:55)
                   element: <testLibrary>::@class::A::@setter::setter::@formalParameter::a
                   metadata
-                    Annotation
+                    annotation_1: Annotation
                       atSign: @ @46
                       expression: UnqualifiedNameExpression
                         name: foo @47
@@ -8355,37 +6642,13 @@ library
           reference: <testLibrary>::@class::A::@setter::setter
           firstFragment: #F4
           metadata
-            Annotation
-              atSign: @ @28
-              expression: UnqualifiedNameExpression
-                name: foo @29
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@getter::foo
-                  type: int
-                staticType: int
-              name: SimpleIdentifier
-                token: foo @29
-                element: <testLibrary>::@getter::foo
-                staticType: null
-              element: <testLibrary>::@getter::foo
+            annotation_0
           formalParameters
             #E0 requiredPositional a
               firstFragment: #F5
               type: int
               metadata
-                Annotation
-                  atSign: @ @46
-                  expression: UnqualifiedNameExpression
-                    name: foo @47
-                    resolution: GetterInvocationResolution
-                      element: <testLibrary>::@getter::foo
-                      type: int
-                    staticType: int
-                  name: SimpleIdentifier
-                    token: foo @47
-                    element: <testLibrary>::@getter::foo
-                    staticType: null
-                  element: <testLibrary>::@getter::foo
+                annotation_1
           returnType: void
           variable: <testLibrary>::@class::A::@field::setter
   topLevelVariables
@@ -8431,7 +6694,7 @@ library
         #F3 isMixinApplication class B (nameOffset:51) (firstTokenOffset:40) (offset:51)
           element: <testLibrary>::@class::B
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @40
               expression: UnqualifiedNameExpression
                 name: foo @41
@@ -8448,7 +6711,7 @@ library
             #F4 T (nameOffset:58) (firstTokenOffset:53) (offset:58)
               element: #E0 T
               metadata
-                Annotation
+                annotation_1: Annotation
                   atSign: @ @53
                   expression: UnqualifiedNameExpression
                     name: foo @54
@@ -8492,36 +6755,12 @@ library
       reference: <testLibrary>::@class::B
       firstFragment: #F3
       metadata
-        Annotation
-          atSign: @ @40
-          expression: UnqualifiedNameExpression
-            name: foo @41
-            resolution: GetterInvocationResolution
-              element: <testLibrary>::@getter::foo
-              type: int
-            staticType: int
-          name: SimpleIdentifier
-            token: foo @41
-            element: <testLibrary>::@getter::foo
-            staticType: null
-          element: <testLibrary>::@getter::foo
+        annotation_0
       typeParameters
         #E0 T
           firstFragment: #F4
           metadata
-            Annotation
-              atSign: @ @53
-              expression: UnqualifiedNameExpression
-                name: foo @54
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@getter::foo
-                  type: int
-                staticType: int
-              name: SimpleIdentifier
-                token: foo @54
-                element: <testLibrary>::@getter::foo
-                staticType: null
-              element: <testLibrary>::@getter::foo
+            annotation_1
       supertype: A
       mixins
         M
@@ -8582,7 +6821,7 @@ library
         #F1 enum E (nameOffset:26) (firstTokenOffset:16) (offset:26)
           element: <testLibrary>::@enum::E
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @16
               expression: UnqualifiedNameExpression
                 name: foo @17
@@ -8599,7 +6838,7 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic e1 (nameOffset:39) (firstTokenOffset:32) (offset:39)
               element: <testLibrary>::@enum::E::@field::e1
               metadata
-                Annotation
+                annotation_1: Annotation
                   atSign: @ @32
                   expression: UnqualifiedNameExpression
                     name: foo @33
@@ -8667,7 +6906,7 @@ library
             #F6 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic e3 (nameOffset:58) (firstTokenOffset:51) (offset:58)
               element: <testLibrary>::@enum::E::@field::e3
               metadata
-                Annotation
+                annotation_2: Annotation
                   atSign: @ @51
                   expression: UnqualifiedNameExpression
                     name: foo @52
@@ -8779,38 +7018,14 @@ library
       reference: <testLibrary>::@enum::E
       firstFragment: #F1
       metadata
-        Annotation
-          atSign: @ @16
-          expression: UnqualifiedNameExpression
-            name: foo @17
-            resolution: GetterInvocationResolution
-              element: <testLibrary>::@getter::foo
-              type: int
-            staticType: int
-          name: SimpleIdentifier
-            token: foo @17
-            element: <testLibrary>::@getter::foo
-            staticType: null
-          element: <testLibrary>::@getter::foo
+        annotation_0
       supertype: Enum
       fields
         hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer e1
           reference: <testLibrary>::@enum::E::@field::e1
           firstFragment: #F2
           metadata
-            Annotation
-              atSign: @ @32
-              expression: UnqualifiedNameExpression
-                name: foo @33
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@getter::foo
-                  type: int
-                staticType: int
-              name: SimpleIdentifier
-                token: foo @33
-                element: <testLibrary>::@getter::foo
-                staticType: null
-              element: <testLibrary>::@getter::foo
+            annotation_1
           type: E
           constantInitializer2: expression_0
           constantInitializer: expression_1
@@ -8826,19 +7041,7 @@ library
           reference: <testLibrary>::@enum::E::@field::e3
           firstFragment: #F6
           metadata
-            Annotation
-              atSign: @ @51
-              expression: UnqualifiedNameExpression
-                name: foo @52
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@getter::foo
-                  type: int
-                staticType: int
-              name: SimpleIdentifier
-                token: foo @52
-                element: <testLibrary>::@getter::foo
-                staticType: null
-              element: <testLibrary>::@getter::foo
+            annotation_2
           type: E
           constantInitializer2: expression_4
           constantInitializer: expression_5
@@ -8908,7 +7111,7 @@ library
         #F1 extension E (nameOffset:31) (firstTokenOffset:16) (offset:31)
           element: <testLibrary>::@extension::E
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @16
               expression: UnqualifiedNameExpression
                 name: foo @17
@@ -8925,7 +7128,7 @@ library
             #F2 T (nameOffset:38) (firstTokenOffset:33) (offset:38)
               element: #E0 T
               metadata
-                Annotation
+                annotation_1: Annotation
                   atSign: @ @33
                   expression: UnqualifiedNameExpression
                     name: foo @34
@@ -8955,36 +7158,12 @@ library
       reference: <testLibrary>::@extension::E
       firstFragment: #F1
       metadata
-        Annotation
-          atSign: @ @16
-          expression: UnqualifiedNameExpression
-            name: foo @17
-            resolution: GetterInvocationResolution
-              element: <testLibrary>::@getter::foo
-              type: int
-            staticType: int
-          name: SimpleIdentifier
-            token: foo @17
-            element: <testLibrary>::@getter::foo
-            staticType: null
-          element: <testLibrary>::@getter::foo
+        annotation_0
       typeParameters
         #E0 T
           firstFragment: #F2
           metadata
-            Annotation
-              atSign: @ @33
-              expression: UnqualifiedNameExpression
-                name: foo @34
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@getter::foo
-                  type: int
-                staticType: int
-              name: SimpleIdentifier
-                token: foo @34
-                element: <testLibrary>::@getter::foo
-                staticType: null
-              element: <testLibrary>::@getter::foo
+            annotation_1
       extendedType: List<T>
       onDeclaration: dart:core::@class::List
   topLevelVariables
@@ -9031,7 +7210,7 @@ library
             #F2 hasImplicitType hasInitializer isOriginDeclaration isStatic isStatic (nameOffset:42) (firstTokenOffset:42) (offset:42)
               element: <testLibrary>::@class::A::@field::isStatic
               metadata
-                Annotation
+                annotation_0: Annotation
                   atSign: @ @28
                   expression: UnqualifiedNameExpression
                     name: foo @29
@@ -9049,7 +7228,7 @@ library
             #F5 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isStaticConst (nameOffset:79) (firstTokenOffset:79) (offset:79)
               element: <testLibrary>::@class::A::@field::isStaticConst
               metadata
-                Annotation
+                annotation_1: Annotation
                   atSign: @ @59
                   expression: UnqualifiedNameExpression
                     name: foo @60
@@ -9070,7 +7249,7 @@ library
             #F7 hasImplicitType hasInitializer isOriginDeclaration isInstance (nameOffset:112) (firstTokenOffset:112) (offset:112)
               element: <testLibrary>::@class::A::@field::isInstance
               metadata
-                Annotation
+                annotation_2: Annotation
                   atSign: @ @101
                   expression: UnqualifiedNameExpression
                     name: foo @102
@@ -9133,19 +7312,7 @@ library
           reference: <testLibrary>::@class::A::@field::isStatic
           firstFragment: #F2
           metadata
-            Annotation
-              atSign: @ @28
-              expression: UnqualifiedNameExpression
-                name: foo @29
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@getter::foo
-                  type: int
-                staticType: int
-              name: SimpleIdentifier
-                token: foo @29
-                element: <testLibrary>::@getter::foo
-                staticType: null
-              element: <testLibrary>::@getter::foo
+            annotation_0
           type: int
           getter: <testLibrary>::@class::A::@getter::isStatic
           setter: <testLibrary>::@class::A::@setter::isStatic
@@ -9153,19 +7320,7 @@ library
           reference: <testLibrary>::@class::A::@field::isStaticConst
           firstFragment: #F5
           metadata
-            Annotation
-              atSign: @ @59
-              expression: UnqualifiedNameExpression
-                name: foo @60
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@getter::foo
-                  type: int
-                staticType: int
-              name: SimpleIdentifier
-                token: foo @60
-                element: <testLibrary>::@getter::foo
-                staticType: null
-              element: <testLibrary>::@getter::foo
+            annotation_1
           type: int
           constantInitializer2: expression_0
           getter: <testLibrary>::@class::A::@getter::isStaticConst
@@ -9173,19 +7328,7 @@ library
           reference: <testLibrary>::@class::A::@field::isInstance
           firstFragment: #F7
           metadata
-            Annotation
-              atSign: @ @101
-              expression: UnqualifiedNameExpression
-                name: foo @102
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@getter::foo
-                  type: int
-                staticType: int
-              name: SimpleIdentifier
-                token: foo @102
-                element: <testLibrary>::@getter::foo
-                staticType: null
-              element: <testLibrary>::@getter::foo
+            annotation_2
           type: int
           getter: <testLibrary>::@class::A::@getter::isInstance
           setter: <testLibrary>::@class::A::@setter::isInstance
@@ -9258,7 +7401,7 @@ library
   name: my.lib
   documentationComment: /// Some documentation.
   metadata
-    Annotation
+    annotation_0: Annotation
       atSign: @ @24
       expression: UnqualifiedNameExpression
         name: foo @25
@@ -9319,7 +7462,7 @@ library
         #F1 mixin A (nameOffset:27) (firstTokenOffset:16) (offset:27)
           element: <testLibrary>::@mixin::A
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @16
               expression: UnqualifiedNameExpression
                 name: foo @17
@@ -9336,7 +7479,7 @@ library
             #F2 T (nameOffset:34) (firstTokenOffset:29) (offset:34)
               element: #E0 T
               metadata
-                Annotation
+                annotation_1: Annotation
                   atSign: @ @29
                   expression: UnqualifiedNameExpression
                     name: foo @30
@@ -9366,36 +7509,12 @@ library
       reference: <testLibrary>::@mixin::A
       firstFragment: #F1
       metadata
-        Annotation
-          atSign: @ @16
-          expression: UnqualifiedNameExpression
-            name: foo @17
-            resolution: GetterInvocationResolution
-              element: <testLibrary>::@getter::foo
-              type: int
-            staticType: int
-          name: SimpleIdentifier
-            token: foo @17
-            element: <testLibrary>::@getter::foo
-            staticType: null
-          element: <testLibrary>::@getter::foo
+        annotation_0
       typeParameters
         #E0 T
           firstFragment: #F2
           metadata
-            Annotation
-              atSign: @ @29
-              expression: UnqualifiedNameExpression
-                name: foo @30
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@getter::foo
-                  type: int
-                staticType: int
-              name: SimpleIdentifier
-                token: foo @30
-                element: <testLibrary>::@getter::foo
-                staticType: null
-              element: <testLibrary>::@getter::foo
+            annotation_1
       superclassConstraints
         Object
   topLevelVariables
@@ -9431,7 +7550,7 @@ library
         #F1 F (nameOffset:34) (firstTokenOffset:16) (offset:34)
           element: <testLibrary>::@typeAlias::F
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @16
               expression: UnqualifiedNameExpression
                 name: foo @17
@@ -9448,7 +7567,7 @@ library
             #F2 T (nameOffset:41) (firstTokenOffset:36) (offset:41)
               element: #E0 T
               metadata
-                Annotation
+                annotation_1: Annotation
                   atSign: @ @36
                   expression: UnqualifiedNameExpression
                     name: foo @37
@@ -9478,36 +7597,12 @@ library
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       metadata
-        Annotation
-          atSign: @ @16
-          expression: UnqualifiedNameExpression
-            name: foo @17
-            resolution: GetterInvocationResolution
-              element: <testLibrary>::@getter::foo
-              type: int
-            staticType: int
-          name: SimpleIdentifier
-            token: foo @17
-            element: <testLibrary>::@getter::foo
-            staticType: null
-          element: <testLibrary>::@getter::foo
+        annotation_0
       typeParameters
         #E0 T
           firstFragment: #F2
           metadata
-            Annotation
-              atSign: @ @36
-              expression: UnqualifiedNameExpression
-                name: foo @37
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@getter::foo
-                  type: int
-                staticType: int
-              name: SimpleIdentifier
-                token: foo @37
-                element: <testLibrary>::@getter::foo
-                staticType: null
-              element: <testLibrary>::@getter::foo
+            annotation_1
       aliasedType: void Function(int)
   topLevelVariables
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer foo
@@ -9542,7 +7637,7 @@ library
         #F1 A (nameOffset:29) (firstTokenOffset:16) (offset:29)
           element: <testLibrary>::@typeAlias::A
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @16
               expression: UnqualifiedNameExpression
                 name: foo @17
@@ -9559,7 +7654,7 @@ library
             #F2 T (nameOffset:36) (firstTokenOffset:31) (offset:36)
               element: #E0 T
               metadata
-                Annotation
+                annotation_1: Annotation
                   atSign: @ @31
                   expression: UnqualifiedNameExpression
                     name: foo @32
@@ -9589,36 +7684,12 @@ library
       reference: <testLibrary>::@typeAlias::A
       firstFragment: #F1
       metadata
-        Annotation
-          atSign: @ @16
-          expression: UnqualifiedNameExpression
-            name: foo @17
-            resolution: GetterInvocationResolution
-              element: <testLibrary>::@getter::foo
-              type: int
-            staticType: int
-          name: SimpleIdentifier
-            token: foo @17
-            element: <testLibrary>::@getter::foo
-            staticType: null
-          element: <testLibrary>::@getter::foo
+        annotation_0
       typeParameters
         #E0 T
           firstFragment: #F2
           metadata
-            Annotation
-              atSign: @ @31
-              expression: UnqualifiedNameExpression
-                name: foo @32
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@getter::foo
-                  type: int
-                staticType: int
-              name: SimpleIdentifier
-                token: foo @32
-                element: <testLibrary>::@getter::foo
-                staticType: null
-              element: <testLibrary>::@getter::foo
+            annotation_1
       aliasedType: void Function<U>(int)
   topLevelVariables
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer foo
@@ -9669,7 +7740,7 @@ library
           uri: package:test/a.dart
           partKeywordOffset: 22
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @17
               expression: UnqualifiedNameExpression
                 name: foo @18
@@ -9687,7 +7758,7 @@ library
           uri: package:test/b.dart
           partKeywordOffset: 43
           metadata
-            Annotation
+            annotation_1: Annotation
               atSign: @ @38
               expression: UnqualifiedNameExpression
                 name: foo @39
@@ -9767,7 +7838,7 @@ library
         #F3 isComplete isOriginDeclaration isStatic f (nameOffset:26) (firstTokenOffset:16) (offset:26)
           element: <testLibrary>::@function::f
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @16
               expression: UnqualifiedNameExpression
                 name: foo @17
@@ -9784,7 +7855,7 @@ library
             #F4 T (nameOffset:33) (firstTokenOffset:28) (offset:33)
               element: #E0 T
               metadata
-                Annotation
+                annotation_1: Annotation
                   atSign: @ @28
                   expression: UnqualifiedNameExpression
                     name: foo @29
@@ -9801,7 +7872,7 @@ library
             #F5 optionalNamed isOriginDeclaration a (nameOffset:47) (firstTokenOffset:37) (offset:47)
               element: <testLibrary>::@function::f::@formalParameter::a
               metadata
-                Annotation
+                annotation_2: Annotation
                   atSign: @ @37
                   expression: UnqualifiedNameExpression
                     name: foo @38
@@ -9836,54 +7907,18 @@ library
       reference: <testLibrary>::@function::f
       firstFragment: #F3
       metadata
-        Annotation
-          atSign: @ @16
-          expression: UnqualifiedNameExpression
-            name: foo @17
-            resolution: GetterInvocationResolution
-              element: <testLibrary>::@getter::foo
-              type: int
-            staticType: int
-          name: SimpleIdentifier
-            token: foo @17
-            element: <testLibrary>::@getter::foo
-            staticType: null
-          element: <testLibrary>::@getter::foo
+        annotation_0
       typeParameters
         #E0 T
           firstFragment: #F4
           metadata
-            Annotation
-              atSign: @ @28
-              expression: UnqualifiedNameExpression
-                name: foo @29
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@getter::foo
-                  type: int
-                staticType: int
-              name: SimpleIdentifier
-                token: foo @29
-                element: <testLibrary>::@getter::foo
-                staticType: null
-              element: <testLibrary>::@getter::foo
+            annotation_1
       formalParameters
         #E1 optionalNamed hasDefaultValue a
           firstFragment: #F5
           type: int?
           metadata
-            Annotation
-              atSign: @ @37
-              expression: UnqualifiedNameExpression
-                name: foo @38
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@getter::foo
-                  type: int
-                staticType: int
-              name: SimpleIdentifier
-                token: foo @38
-                element: <testLibrary>::@getter::foo
-                staticType: null
-              element: <testLibrary>::@getter::foo
+            annotation_2
           constantInitializer2: expression_1
       returnType: void
 ''');
@@ -9919,7 +7954,7 @@ library
         #F4 isComplete isOriginDeclaration isStatic getter (nameOffset:29) (firstTokenOffset:16) (offset:29)
           element: <testLibrary>::@getter::getter
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @16
               expression: UnqualifiedNameExpression
                 name: foo @17
@@ -9954,19 +7989,7 @@ library
       reference: <testLibrary>::@getter::getter
       firstFragment: #F4
       metadata
-        Annotation
-          atSign: @ @16
-          expression: UnqualifiedNameExpression
-            name: foo @17
-            resolution: GetterInvocationResolution
-              element: <testLibrary>::@getter::foo
-              type: int
-            staticType: int
-          name: SimpleIdentifier
-            token: foo @17
-            element: <testLibrary>::@getter::foo
-            staticType: null
-          element: <testLibrary>::@getter::foo
+        annotation_0
       returnType: int
       variable: <testLibrary>::@topLevelVariable::getter
 ''');
@@ -10003,7 +8026,7 @@ library
         #F4 hasImplicitReturnType isComplete isOriginDeclaration isStatic setter (nameOffset:25) (firstTokenOffset:16) (offset:25)
           element: <testLibrary>::@setter::setter
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @16
               expression: UnqualifiedNameExpression
                 name: foo @17
@@ -10020,7 +8043,7 @@ library
             #F5 requiredPositional isOriginDeclaration a (nameOffset:41) (firstTokenOffset:32) (offset:41)
               element: <testLibrary>::@setter::setter::@formalParameter::a
               metadata
-                Annotation
+                annotation_1: Annotation
                   atSign: @ @32
                   expression: UnqualifiedNameExpression
                     name: foo @33
@@ -10056,37 +8079,13 @@ library
       reference: <testLibrary>::@setter::setter
       firstFragment: #F4
       metadata
-        Annotation
-          atSign: @ @16
-          expression: UnqualifiedNameExpression
-            name: foo @17
-            resolution: GetterInvocationResolution
-              element: <testLibrary>::@getter::foo
-              type: int
-            staticType: int
-          name: SimpleIdentifier
-            token: foo @17
-            element: <testLibrary>::@getter::foo
-            staticType: null
-          element: <testLibrary>::@getter::foo
+        annotation_0
       formalParameters
         #E0 requiredPositional a
           firstFragment: #F5
           type: int
           metadata
-            Annotation
-              atSign: @ @32
-              expression: UnqualifiedNameExpression
-                name: foo @33
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@getter::foo
-                  type: int
-                staticType: int
-              name: SimpleIdentifier
-                token: foo @33
-                element: <testLibrary>::@getter::foo
-                staticType: null
-              element: <testLibrary>::@getter::foo
+            annotation_1
       returnType: void
       variable: <testLibrary>::@topLevelVariable::setter
 ''');
@@ -10119,7 +8118,7 @@ library
         #F3 hasImplicitType hasInitializer isOriginDeclaration isStatic isNotConst (nameOffset:25) (firstTokenOffset:25) (offset:25)
           element: <testLibrary>::@topLevelVariable::isNotConst
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @16
               expression: UnqualifiedNameExpression
                 name: foo @17
@@ -10137,7 +8136,7 @@ library
         #F6 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isConst (nameOffset:53) (firstTokenOffset:53) (offset:53)
           element: <testLibrary>::@topLevelVariable::isConst
           metadata
-            Annotation
+            annotation_1: Annotation
               atSign: @ @42
               expression: UnqualifiedNameExpression
                 name: foo @43
@@ -10183,19 +8182,7 @@ library
       reference: <testLibrary>::@topLevelVariable::isNotConst
       firstFragment: #F3
       metadata
-        Annotation
-          atSign: @ @16
-          expression: UnqualifiedNameExpression
-            name: foo @17
-            resolution: GetterInvocationResolution
-              element: <testLibrary>::@getter::foo
-              type: int
-            staticType: int
-          name: SimpleIdentifier
-            token: foo @17
-            element: <testLibrary>::@getter::foo
-            staticType: null
-          element: <testLibrary>::@getter::foo
+        annotation_0
       type: int
       getter: <testLibrary>::@getter::isNotConst
       setter: <testLibrary>::@setter::isNotConst
@@ -10203,19 +8190,7 @@ library
       reference: <testLibrary>::@topLevelVariable::isConst
       firstFragment: #F6
       metadata
-        Annotation
-          atSign: @ @42
-          expression: UnqualifiedNameExpression
-            name: foo @43
-            resolution: GetterInvocationResolution
-              element: <testLibrary>::@getter::foo
-              type: int
-            staticType: int
-          name: SimpleIdentifier
-            token: foo @43
-            element: <testLibrary>::@getter::foo
-            staticType: null
-          element: <testLibrary>::@getter::foo
+        annotation_1
       type: int
       constantInitializer2: expression_1
       getter: <testLibrary>::@getter::isConst
@@ -10264,7 +8239,7 @@ const a = 0;
 library
   reference: <testLibrary>
   metadata
-    Annotation
+    annotation_0: Annotation
       atSign: @ @0
       expression: UnqualifiedNameExpression
         name: a @1
@@ -10286,7 +8261,7 @@ library
           uri: package:test/foo.dart
           partKeywordOffset: 3
           metadata
-            Annotation
+            annotation_1: Annotation
               atSign: @ @0
               expression: UnqualifiedNameExpression
                 name: a @1
@@ -10357,7 +8332,7 @@ library
           uri: package:test/foo.dart
           partKeywordOffset: 15
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @12
               expression: UnqualifiedNameExpression
                 name: a @13
@@ -10438,7 +8413,7 @@ const b = 1;
 library
   reference: <testLibrary>
   metadata
-    Annotation
+    annotation_0: Annotation
       atSign: @ @0
       expression: UnqualifiedNameExpression
         name: a @1
@@ -10460,7 +8435,7 @@ library
           uri: package:test/a.dart
           partKeywordOffset: 15
           metadata
-            Annotation
+            annotation_1: Annotation
               atSign: @ @12
               expression: UnqualifiedNameExpression
                 name: b @13
@@ -10556,7 +8531,7 @@ library
         #F2 class A (nameOffset:39) (firstTokenOffset:21) (offset:39)
           element: <testLibrary>::@class::A
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @21
               expression: UnqualifiedNameExpression
                 name: deprecated @22
@@ -10578,19 +8553,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F2
       metadata
-        Annotation
-          atSign: @ @21
-          expression: UnqualifiedNameExpression
-            name: deprecated @22
-            resolution: GetterInvocationResolution
-              element: dart:core::@getter::deprecated
-              type: Deprecated
-            staticType: Deprecated
-          name: SimpleIdentifier
-            token: deprecated @22
-            element: dart:core::@getter::deprecated
-            staticType: null
-          element: dart:core::@getter::deprecated
+        annotation_0
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
@@ -10626,7 +8589,7 @@ library
       libraryExports
         dart:math
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @21
               expression: UnqualifiedNameExpression
                 name: deprecated @22
@@ -10670,7 +8633,7 @@ library
       libraryImports
         dart:math
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @21
               expression: UnqualifiedNameExpression
                 name: deprecated @22
@@ -10723,7 +8686,7 @@ library
           uri: package:test/a.dart
           partKeywordOffset: 33
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @21
               expression: UnqualifiedNameExpression
                 name: deprecated @22
@@ -10769,7 +8732,7 @@ library
         #F1 class C (nameOffset:34) (firstTokenOffset:23) (offset:34)
           element: <testLibrary>::@class::C
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @23
               expression: ImportPrefixedNameExpression
                 importPrefix: ImportPrefixReference
@@ -10803,31 +8766,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       metadata
-        Annotation
-          atSign: @ @23
-          expression: ImportPrefixedNameExpression
-            importPrefix: ImportPrefixReference
-              name: a @24
-              period: . @25
-              element: <testLibraryFragment>::@prefix::a
-            name: b @26
-            resolution: GetterInvocationResolution
-              element: package:test/a.dart::@getter::b
-              type: dynamic
-            staticType: dynamic
-          name: PrefixedIdentifier
-            prefix: SimpleIdentifier
-              token: a @24
-              element: <testLibraryFragment>::@prefix::a
-              staticType: null
-            period: . @25
-            identifier: SimpleIdentifier
-              token: b @26
-              element: package:test/a.dart::@getter::b
-              staticType: null
-            element: package:test/a.dart::@getter::b
-            staticType: null
-          element: package:test/a.dart::@getter::b
+        annotation_0
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -10865,7 +8804,7 @@ library
             #F4 requiredPositional hasImplicitType isOriginDeclaration x (nameOffset:21) (firstTokenOffset:18) (offset:21)
               element: <testLibrary>::@function::f::@formalParameter::x
               metadata
-                Annotation
+                annotation_0: Annotation
                   atSign: @ @18
                   expression: UnqualifiedNameExpression
                     name: a @19
@@ -10900,19 +8839,7 @@ library
           firstFragment: #F4
           type: dynamic
           metadata
-            Annotation
-              atSign: @ @18
-              expression: UnqualifiedNameExpression
-                name: a @19
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@getter::a
-                  type: dynamic
-                staticType: dynamic
-              name: SimpleIdentifier
-                token: a @19
-                element: <testLibrary>::@getter::a
-                staticType: null
-              element: <testLibrary>::@getter::a
+            annotation_0
       returnType: dynamic
 ''');
   }
@@ -10937,20 +8864,19 @@ combinedFragmentData
   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
   combined
     metadata
-      annotation_0
-        Annotation
-          atSign: @ @69
-          expression: UnqualifiedNameExpression
-            name: a @70
-            resolution: GetterInvocationResolution
-              element: <testLibrary>::@getter::a
-              type: int
-            staticType: int
-          name: SimpleIdentifier
-            token: a @70
+      annotation_0: Annotation
+        atSign: @ @69
+        expression: UnqualifiedNameExpression
+          name: a @70
+          resolution: GetterInvocationResolution
             element: <testLibrary>::@getter::a
-            staticType: null
+            type: int
+          staticType: int
+        name: SimpleIdentifier
+          token: a @70
           element: <testLibrary>::@getter::a
+          staticType: null
+        element: <testLibrary>::@getter::a
   fragments
     #F0
     #F1
@@ -10987,19 +8913,7 @@ library
                 #F1 requiredPositional isOriginDeclaration x (nameOffset:76) (firstTokenOffset:69) (offset:76)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
                   metadata
-                    Annotation
-                      atSign: @ @69
-                      expression: UnqualifiedNameExpression
-                        name: a @70
-                        resolution: GetterInvocationResolution
-                          element: <testLibrary>::@getter::a
-                          type: int
-                        staticType: int
-                      name: SimpleIdentifier
-                        token: a @70
-                        element: <testLibrary>::@getter::a
-                        staticType: null
-                      element: <testLibrary>::@getter::a
+                    annotation_0
                   previousFragment: #F0
               previousFragment: #F5
       topLevelVariables
@@ -11027,19 +8941,7 @@ library
               firstFragment: #F0
               type: int
               metadata
-                Annotation
-                  atSign: @ @69
-                  expression: UnqualifiedNameExpression
-                    name: a @70
-                    resolution: GetterInvocationResolution
-                      element: <testLibrary>::@getter::a
-                      type: int
-                    staticType: int
-                  name: SimpleIdentifier
-                    token: a @70
-                    element: <testLibrary>::@getter::a
-                    staticType: null
-                  element: <testLibrary>::@getter::a
+                annotation_0
   topLevelVariables
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -11100,7 +9002,7 @@ library
                 #F5 optionalPositional isOriginDeclaration x (nameOffset:73) (firstTokenOffset:65) (offset:73)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
                   metadata
-                    Annotation
+                    annotation_0: Annotation
                       atSign: @ @65
                       expression: UnqualifiedNameExpression
                         name: a @66
@@ -11172,34 +9074,32 @@ combinedFragmentData
   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
   combined
     metadata
-      annotation_0
-        Annotation
-          atSign: @ @41
-          expression: UnqualifiedNameExpression
-            name: a @42
-            resolution: GetterInvocationResolution
-              element: <testLibrary>::@getter::a
-              type: int
-            staticType: int
-          name: SimpleIdentifier
-            token: a @42
+      annotation_0: Annotation
+        atSign: @ @41
+        expression: UnqualifiedNameExpression
+          name: a @42
+          resolution: GetterInvocationResolution
             element: <testLibrary>::@getter::a
-            staticType: null
+            type: int
+          staticType: int
+        name: SimpleIdentifier
+          token: a @42
           element: <testLibrary>::@getter::a
-      annotation_1
-        Annotation
-          atSign: @ @85
-          expression: UnqualifiedNameExpression
-            name: b @86
-            resolution: GetterInvocationResolution
-              element: <testLibrary>::@getter::b
-              type: int
-            staticType: int
-          name: SimpleIdentifier
-            token: b @86
+          staticType: null
+        element: <testLibrary>::@getter::a
+      annotation_1: Annotation
+        atSign: @ @85
+        expression: UnqualifiedNameExpression
+          name: b @86
+          resolution: GetterInvocationResolution
             element: <testLibrary>::@getter::b
-            staticType: null
+            type: int
+          staticType: int
+        name: SimpleIdentifier
+          token: b @86
           element: <testLibrary>::@getter::b
+          staticType: null
+        element: <testLibrary>::@getter::b
   fragments
     #F0
       metadata
@@ -11225,19 +9125,7 @@ library
                 #F0 requiredPositional isOriginDeclaration x (nameOffset:48) (firstTokenOffset:41) (offset:48)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
                   metadata
-                    Annotation
-                      atSign: @ @41
-                      expression: UnqualifiedNameExpression
-                        name: a @42
-                        resolution: GetterInvocationResolution
-                          element: <testLibrary>::@getter::a
-                          type: int
-                        staticType: int
-                      name: SimpleIdentifier
-                        token: a @42
-                        element: <testLibrary>::@getter::a
-                        staticType: null
-                      element: <testLibrary>::@getter::a
+                    annotation_0
                   nextFragment: #F1
               nextFragment: #F6
         #F4 isAugmentation class A (nameOffset:69) (firstTokenOffset:55) (offset:69)
@@ -11252,19 +9140,7 @@ library
                 #F1 requiredPositional isOriginDeclaration x (nameOffset:92) (firstTokenOffset:85) (offset:92)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
                   metadata
-                    Annotation
-                      atSign: @ @85
-                      expression: UnqualifiedNameExpression
-                        name: b @86
-                        resolution: GetterInvocationResolution
-                          element: <testLibrary>::@getter::b
-                          type: int
-                        staticType: int
-                      name: SimpleIdentifier
-                        token: b @86
-                        element: <testLibrary>::@getter::b
-                        staticType: null
-                      element: <testLibrary>::@getter::b
+                    annotation_1
                   previousFragment: #F0
               previousFragment: #F5
       topLevelVariables
@@ -11302,32 +9178,8 @@ library
               firstFragment: #F0
               type: int
               metadata
-                Annotation
-                  atSign: @ @41
-                  expression: UnqualifiedNameExpression
-                    name: a @42
-                    resolution: GetterInvocationResolution
-                      element: <testLibrary>::@getter::a
-                      type: int
-                    staticType: int
-                  name: SimpleIdentifier
-                    token: a @42
-                    element: <testLibrary>::@getter::a
-                    staticType: null
-                  element: <testLibrary>::@getter::a
-                Annotation
-                  atSign: @ @85
-                  expression: UnqualifiedNameExpression
-                    name: b @86
-                    resolution: GetterInvocationResolution
-                      element: <testLibrary>::@getter::b
-                      type: int
-                    staticType: int
-                  name: SimpleIdentifier
-                    token: b @86
-                    element: <testLibrary>::@getter::b
-                    staticType: null
-                  element: <testLibrary>::@getter::b
+                annotation_0
+                annotation_1
   topLevelVariables
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -11378,20 +9230,19 @@ combinedFragmentData
   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
   combined
     metadata
-      annotation_0
-        Annotation
-          atSign: @ @28
-          expression: UnqualifiedNameExpression
-            name: a @29
-            resolution: GetterInvocationResolution
-              element: <testLibrary>::@getter::a
-              type: int
-            staticType: int
-          name: SimpleIdentifier
-            token: a @29
+      annotation_0: Annotation
+        atSign: @ @28
+        expression: UnqualifiedNameExpression
+          name: a @29
+          resolution: GetterInvocationResolution
             element: <testLibrary>::@getter::a
-            staticType: null
+            type: int
+          staticType: int
+        name: SimpleIdentifier
+          token: a @29
           element: <testLibrary>::@getter::a
+          staticType: null
+        element: <testLibrary>::@getter::a
   fragments
     #F0
       metadata
@@ -11415,19 +9266,7 @@ library
                 #F0 requiredPositional isOriginDeclaration x (nameOffset:35) (firstTokenOffset:28) (offset:35)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
                   metadata
-                    Annotation
-                      atSign: @ @28
-                      expression: UnqualifiedNameExpression
-                        name: a @29
-                        resolution: GetterInvocationResolution
-                          element: <testLibrary>::@getter::a
-                          type: int
-                        staticType: int
-                      name: SimpleIdentifier
-                        token: a @29
-                        element: <testLibrary>::@getter::a
-                        staticType: null
-                      element: <testLibrary>::@getter::a
+                    annotation_0
                   nextFragment: #F1
               nextFragment: #F6
         #F4 isAugmentation class A (nameOffset:56) (firstTokenOffset:42) (offset:56)
@@ -11468,19 +9307,7 @@ library
               firstFragment: #F0
               type: int
               metadata
-                Annotation
-                  atSign: @ @28
-                  expression: UnqualifiedNameExpression
-                    name: a @29
-                    resolution: GetterInvocationResolution
-                      element: <testLibrary>::@getter::a
-                      type: int
-                    staticType: int
-                  name: SimpleIdentifier
-                    token: a @29
-                    element: <testLibrary>::@getter::a
-                    staticType: null
-                  element: <testLibrary>::@getter::a
+                annotation_0
   topLevelVariables
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -11513,20 +9340,19 @@ combinedFragmentData
   element: x@30
   combined
     metadata
-      annotation_0
-        Annotation
-          atSign: @ @55
-          expression: UnqualifiedNameExpression
-            name: a @56
-            resolution: GetterInvocationResolution
-              element: <testLibrary>::@getter::a
-              type: int
-            staticType: int
-          name: SimpleIdentifier
-            token: a @56
+      annotation_0: Annotation
+        atSign: @ @55
+        expression: UnqualifiedNameExpression
+          name: a @56
+          resolution: GetterInvocationResolution
             element: <testLibrary>::@getter::a
-            staticType: null
+            type: int
+          staticType: int
+        name: SimpleIdentifier
+          token: a @56
           element: <testLibrary>::@getter::a
+          staticType: null
+        element: <testLibrary>::@getter::a
   fragments
     #F0
     #F1
@@ -11564,19 +9390,7 @@ library
             #F1 requiredPositional isOriginDeclaration x (nameOffset:62) (firstTokenOffset:55) (offset:62)
               element: x@30
               metadata
-                Annotation
-                  atSign: @ @55
-                  expression: UnqualifiedNameExpression
-                    name: a @56
-                    resolution: GetterInvocationResolution
-                      element: <testLibrary>::@getter::a
-                      type: int
-                    staticType: int
-                  name: SimpleIdentifier
-                    token: a @56
-                    element: <testLibrary>::@getter::a
-                    staticType: null
-                  element: <testLibrary>::@getter::a
+                annotation_0
               previousFragment: #F0
           previousFragment: #F6
   topLevelVariables
@@ -11605,19 +9419,7 @@ library
           firstFragment: #F0
           type: int
           metadata
-            Annotation
-              atSign: @ @55
-              expression: UnqualifiedNameExpression
-                name: a @56
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@getter::a
-                  type: int
-                staticType: int
-              name: SimpleIdentifier
-                token: a @56
-                element: <testLibrary>::@getter::a
-                staticType: null
-              element: <testLibrary>::@getter::a
+            annotation_0
       returnType: int
       variable: <testLibrary>::@topLevelVariable::foo
 ''');
@@ -11664,7 +9466,7 @@ library
             #F6 optionalPositional isOriginDeclaration x (nameOffset:62) (firstTokenOffset:54) (offset:62)
               element: x@null
               metadata
-                Annotation
+                annotation_0: Annotation
                   atSign: @ @54
                   expression: UnqualifiedNameExpression
                     name: a @55
@@ -11722,34 +9524,32 @@ combinedFragmentData
   element: x@46
   combined
     metadata
-      annotation_0
-        Annotation
-          atSign: @ @39
-          expression: UnqualifiedNameExpression
-            name: a @40
-            resolution: GetterInvocationResolution
-              element: <testLibrary>::@getter::a
-              type: int
-            staticType: int
-          name: SimpleIdentifier
-            token: a @40
+      annotation_0: Annotation
+        atSign: @ @39
+        expression: UnqualifiedNameExpression
+          name: a @40
+          resolution: GetterInvocationResolution
             element: <testLibrary>::@getter::a
-            staticType: null
+            type: int
+          staticType: int
+        name: SimpleIdentifier
+          token: a @40
           element: <testLibrary>::@getter::a
-      annotation_1
-        Annotation
-          atSign: @ @71
-          expression: UnqualifiedNameExpression
-            name: b @72
-            resolution: GetterInvocationResolution
-              element: <testLibrary>::@getter::b
-              type: int
-            staticType: int
-          name: SimpleIdentifier
-            token: b @72
+          staticType: null
+        element: <testLibrary>::@getter::a
+      annotation_1: Annotation
+        atSign: @ @71
+        expression: UnqualifiedNameExpression
+          name: b @72
+          resolution: GetterInvocationResolution
             element: <testLibrary>::@getter::b
-            staticType: null
+            type: int
+          staticType: int
+        name: SimpleIdentifier
+          token: b @72
           element: <testLibrary>::@getter::b
+          staticType: null
+        element: <testLibrary>::@getter::b
   fragments
     #F0
       metadata
@@ -11792,19 +9592,7 @@ library
             #F0 requiredPositional isOriginDeclaration x (nameOffset:46) (firstTokenOffset:39) (offset:46)
               element: x@46
               metadata
-                Annotation
-                  atSign: @ @39
-                  expression: UnqualifiedNameExpression
-                    name: a @40
-                    resolution: GetterInvocationResolution
-                      element: <testLibrary>::@getter::a
-                      type: int
-                    staticType: int
-                  name: SimpleIdentifier
-                    token: a @40
-                    element: <testLibrary>::@getter::a
-                    staticType: null
-                  element: <testLibrary>::@getter::a
+                annotation_0
               nextFragment: #F1
           nextFragment: #F9
         #F9 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:67) (firstTokenOffset:51) (offset:67)
@@ -11813,19 +9601,7 @@ library
             #F1 requiredPositional isOriginDeclaration x (nameOffset:78) (firstTokenOffset:71) (offset:78)
               element: x@46
               metadata
-                Annotation
-                  atSign: @ @71
-                  expression: UnqualifiedNameExpression
-                    name: b @72
-                    resolution: GetterInvocationResolution
-                      element: <testLibrary>::@getter::b
-                      type: int
-                    staticType: int
-                  name: SimpleIdentifier
-                    token: b @72
-                    element: <testLibrary>::@getter::b
-                    staticType: null
-                  element: <testLibrary>::@getter::b
+                annotation_1
               previousFragment: #F0
           previousFragment: #F8
   topLevelVariables
@@ -11865,32 +9641,8 @@ library
           firstFragment: #F0
           type: int
           metadata
-            Annotation
-              atSign: @ @39
-              expression: UnqualifiedNameExpression
-                name: a @40
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@getter::a
-                  type: int
-                staticType: int
-              name: SimpleIdentifier
-                token: a @40
-                element: <testLibrary>::@getter::a
-                staticType: null
-              element: <testLibrary>::@getter::a
-            Annotation
-              atSign: @ @71
-              expression: UnqualifiedNameExpression
-                name: b @72
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@getter::b
-                  type: int
-                staticType: int
-              name: SimpleIdentifier
-                token: b @72
-                element: <testLibrary>::@getter::b
-                staticType: null
-              element: <testLibrary>::@getter::b
+            annotation_0
+            annotation_1
       returnType: int
       variable: <testLibrary>::@topLevelVariable::foo
 ''');
@@ -11915,20 +9667,19 @@ combinedFragmentData
   element: x@33
   combined
     metadata
-      annotation_0
-        Annotation
-          atSign: @ @26
-          expression: UnqualifiedNameExpression
-            name: a @27
-            resolution: GetterInvocationResolution
-              element: <testLibrary>::@getter::a
-              type: int
-            staticType: int
-          name: SimpleIdentifier
-            token: a @27
+      annotation_0: Annotation
+        atSign: @ @26
+        expression: UnqualifiedNameExpression
+          name: a @27
+          resolution: GetterInvocationResolution
             element: <testLibrary>::@getter::a
-            staticType: null
+            type: int
+          staticType: int
+        name: SimpleIdentifier
+          token: a @27
           element: <testLibrary>::@getter::a
+          staticType: null
+        element: <testLibrary>::@getter::a
   fragments
     #F0
       metadata
@@ -11959,19 +9710,7 @@ library
             #F0 requiredPositional isOriginDeclaration x (nameOffset:33) (firstTokenOffset:26) (offset:33)
               element: x@33
               metadata
-                Annotation
-                  atSign: @ @26
-                  expression: UnqualifiedNameExpression
-                    name: a @27
-                    resolution: GetterInvocationResolution
-                      element: <testLibrary>::@getter::a
-                      type: int
-                    staticType: int
-                  name: SimpleIdentifier
-                    token: a @27
-                    element: <testLibrary>::@getter::a
-                    staticType: null
-                  element: <testLibrary>::@getter::a
+                annotation_0
               nextFragment: #F1
           nextFragment: #F7
         #F7 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:54) (firstTokenOffset:38) (offset:54)
@@ -12007,19 +9746,7 @@ library
           firstFragment: #F0
           type: int
           metadata
-            Annotation
-              atSign: @ @26
-              expression: UnqualifiedNameExpression
-                name: a @27
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@getter::a
-                  type: int
-                staticType: int
-              name: SimpleIdentifier
-                token: a @27
-                element: <testLibrary>::@getter::a
-                staticType: null
-              element: <testLibrary>::@getter::a
+            annotation_0
       returnType: int
       variable: <testLibrary>::@topLevelVariable::foo
 ''');
@@ -12045,20 +9772,19 @@ combinedFragmentData
   element: <testLibrary>::@class::A::@method::foo::@formalParameter::x
   combined
     metadata
-      annotation_0
-        Annotation
-          atSign: @ @83
-          expression: UnqualifiedNameExpression
-            name: a @84
-            resolution: GetterInvocationResolution
-              element: <testLibrary>::@getter::a
-              type: int
-            staticType: int
-          name: SimpleIdentifier
-            token: a @84
+      annotation_0: Annotation
+        atSign: @ @83
+        expression: UnqualifiedNameExpression
+          name: a @84
+          resolution: GetterInvocationResolution
             element: <testLibrary>::@getter::a
-            staticType: null
+            type: int
+          staticType: int
+        name: SimpleIdentifier
+          token: a @84
           element: <testLibrary>::@getter::a
+          staticType: null
+        element: <testLibrary>::@getter::a
   fragments
     #F0
     #F1
@@ -12096,19 +9822,7 @@ library
                 #F1 requiredPositional isOriginDeclaration x (nameOffset:90) (firstTokenOffset:83) (offset:90)
                   element: <testLibrary>::@class::A::@method::foo::@formalParameter::x
                   metadata
-                    Annotation
-                      atSign: @ @83
-                      expression: UnqualifiedNameExpression
-                        name: a @84
-                        resolution: GetterInvocationResolution
-                          element: <testLibrary>::@getter::a
-                          type: int
-                        staticType: int
-                      name: SimpleIdentifier
-                        token: a @84
-                        element: <testLibrary>::@getter::a
-                        staticType: null
-                      element: <testLibrary>::@getter::a
+                    annotation_0
                   previousFragment: #F0
       topLevelVariables
         #F8 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:6) (firstTokenOffset:6) (offset:6)
@@ -12139,19 +9853,7 @@ library
               firstFragment: #F0
               type: int
               metadata
-                Annotation
-                  atSign: @ @83
-                  expression: UnqualifiedNameExpression
-                    name: a @84
-                    resolution: GetterInvocationResolution
-                      element: <testLibrary>::@getter::a
-                      type: int
-                    staticType: int
-                  name: SimpleIdentifier
-                    token: a @84
-                    element: <testLibrary>::@getter::a
-                    staticType: null
-                  element: <testLibrary>::@getter::a
+                annotation_0
           returnType: void
   topLevelVariables
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer a
@@ -12214,7 +9916,7 @@ library
                 #F7 optionalPositional isOriginDeclaration x (nameOffset:89) (firstTokenOffset:81) (offset:89)
                   element: <testLibrary>::@class::A::@method::foo::@formalParameter::x
                   metadata
-                    Annotation
+                    annotation_0: Annotation
                       atSign: @ @81
                       expression: UnqualifiedNameExpression
                         name: a @82
@@ -12290,34 +9992,32 @@ combinedFragmentData
   element: <testLibrary>::@class::A::@method::foo::@formalParameter::x
   combined
     metadata
-      annotation_0
-        Annotation
-          atSign: @ @48
-          expression: UnqualifiedNameExpression
-            name: a @49
-            resolution: GetterInvocationResolution
-              element: <testLibrary>::@getter::a
-              type: int
-            staticType: int
-          name: SimpleIdentifier
-            token: a @49
+      annotation_0: Annotation
+        atSign: @ @48
+        expression: UnqualifiedNameExpression
+          name: a @49
+          resolution: GetterInvocationResolution
             element: <testLibrary>::@getter::a
-            staticType: null
+            type: int
+          staticType: int
+        name: SimpleIdentifier
+          token: a @49
           element: <testLibrary>::@getter::a
-      annotation_1
-        Annotation
-          atSign: @ @99
-          expression: UnqualifiedNameExpression
-            name: b @100
-            resolution: GetterInvocationResolution
-              element: <testLibrary>::@getter::b
-              type: int
-            staticType: int
-          name: SimpleIdentifier
-            token: b @100
+          staticType: null
+        element: <testLibrary>::@getter::a
+      annotation_1: Annotation
+        atSign: @ @99
+        expression: UnqualifiedNameExpression
+          name: b @100
+          resolution: GetterInvocationResolution
             element: <testLibrary>::@getter::b
-            staticType: null
+            type: int
+          staticType: int
+        name: SimpleIdentifier
+          token: b @100
           element: <testLibrary>::@getter::b
+          staticType: null
+        element: <testLibrary>::@getter::b
   fragments
     #F0
       metadata
@@ -12346,19 +10046,7 @@ library
                 #F0 requiredPositional isOriginDeclaration x (nameOffset:55) (firstTokenOffset:48) (offset:55)
                   element: <testLibrary>::@class::A::@method::foo::@formalParameter::x
                   metadata
-                    Annotation
-                      atSign: @ @48
-                      expression: UnqualifiedNameExpression
-                        name: a @49
-                        resolution: GetterInvocationResolution
-                          element: <testLibrary>::@getter::a
-                          type: int
-                        staticType: int
-                      name: SimpleIdentifier
-                        token: a @49
-                        element: <testLibrary>::@getter::a
-                        staticType: null
-                      element: <testLibrary>::@getter::a
+                    annotation_0
                   nextFragment: #F1
         #F4 isAugmentation class A (nameOffset:76) (firstTokenOffset:62) (offset:76)
           element: <testLibrary>::@class::A
@@ -12371,19 +10059,7 @@ library
                 #F1 requiredPositional isOriginDeclaration x (nameOffset:106) (firstTokenOffset:99) (offset:106)
                   element: <testLibrary>::@class::A::@method::foo::@formalParameter::x
                   metadata
-                    Annotation
-                      atSign: @ @99
-                      expression: UnqualifiedNameExpression
-                        name: b @100
-                        resolution: GetterInvocationResolution
-                          element: <testLibrary>::@getter::b
-                          type: int
-                        staticType: int
-                      name: SimpleIdentifier
-                        token: b @100
-                        element: <testLibrary>::@getter::b
-                        staticType: null
-                      element: <testLibrary>::@getter::b
+                    annotation_1
                   previousFragment: #F0
       topLevelVariables
         #F8 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:6) (firstTokenOffset:6) (offset:6)
@@ -12424,32 +10100,8 @@ library
               firstFragment: #F0
               type: int
               metadata
-                Annotation
-                  atSign: @ @48
-                  expression: UnqualifiedNameExpression
-                    name: a @49
-                    resolution: GetterInvocationResolution
-                      element: <testLibrary>::@getter::a
-                      type: int
-                    staticType: int
-                  name: SimpleIdentifier
-                    token: a @49
-                    element: <testLibrary>::@getter::a
-                    staticType: null
-                  element: <testLibrary>::@getter::a
-                Annotation
-                  atSign: @ @99
-                  expression: UnqualifiedNameExpression
-                    name: b @100
-                    resolution: GetterInvocationResolution
-                      element: <testLibrary>::@getter::b
-                      type: int
-                    staticType: int
-                  name: SimpleIdentifier
-                    token: b @100
-                    element: <testLibrary>::@getter::b
-                    staticType: null
-                  element: <testLibrary>::@getter::b
+                annotation_0
+                annotation_1
           returnType: void
   topLevelVariables
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer a
@@ -12501,20 +10153,19 @@ combinedFragmentData
   element: <testLibrary>::@class::A::@method::foo::@formalParameter::x
   combined
     metadata
-      annotation_0
-        Annotation
-          atSign: @ @35
-          expression: UnqualifiedNameExpression
-            name: a @36
-            resolution: GetterInvocationResolution
-              element: <testLibrary>::@getter::a
-              type: int
-            staticType: int
-          name: SimpleIdentifier
-            token: a @36
+      annotation_0: Annotation
+        atSign: @ @35
+        expression: UnqualifiedNameExpression
+          name: a @36
+          resolution: GetterInvocationResolution
             element: <testLibrary>::@getter::a
-            staticType: null
+            type: int
+          staticType: int
+        name: SimpleIdentifier
+          token: a @36
           element: <testLibrary>::@getter::a
+          staticType: null
+        element: <testLibrary>::@getter::a
   fragments
     #F0
       metadata
@@ -12541,19 +10192,7 @@ library
                 #F0 requiredPositional isOriginDeclaration x (nameOffset:42) (firstTokenOffset:35) (offset:42)
                   element: <testLibrary>::@class::A::@method::foo::@formalParameter::x
                   metadata
-                    Annotation
-                      atSign: @ @35
-                      expression: UnqualifiedNameExpression
-                        name: a @36
-                        resolution: GetterInvocationResolution
-                          element: <testLibrary>::@getter::a
-                          type: int
-                        staticType: int
-                      name: SimpleIdentifier
-                        token: a @36
-                        element: <testLibrary>::@getter::a
-                        staticType: null
-                      element: <testLibrary>::@getter::a
+                    annotation_0
                   nextFragment: #F1
         #F4 isAugmentation class A (nameOffset:63) (firstTokenOffset:49) (offset:63)
           element: <testLibrary>::@class::A
@@ -12595,19 +10234,7 @@ library
               firstFragment: #F0
               type: int
               metadata
-                Annotation
-                  atSign: @ @35
-                  expression: UnqualifiedNameExpression
-                    name: a @36
-                    resolution: GetterInvocationResolution
-                      element: <testLibrary>::@getter::a
-                      type: int
-                    staticType: int
-                  name: SimpleIdentifier
-                    token: a @36
-                    element: <testLibrary>::@getter::a
-                    staticType: null
-                  element: <testLibrary>::@getter::a
+                annotation_0
           returnType: void
   topLevelVariables
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer a
@@ -12641,20 +10268,19 @@ combinedFragmentData
   element: <testLibrary>::@setter::foo::@formalParameter::x
   combined
     metadata
-      annotation_0
-        Annotation
-          atSign: @ @47
-          expression: UnqualifiedNameExpression
-            name: a @48
-            resolution: GetterInvocationResolution
-              element: <testLibrary>::@getter::a
-              type: int
-            staticType: int
-          name: SimpleIdentifier
-            token: a @48
+      annotation_0: Annotation
+        atSign: @ @47
+        expression: UnqualifiedNameExpression
+          name: a @48
+          resolution: GetterInvocationResolution
             element: <testLibrary>::@getter::a
-            staticType: null
+            type: int
+          staticType: int
+        name: SimpleIdentifier
+          token: a @48
           element: <testLibrary>::@getter::a
+          staticType: null
+        element: <testLibrary>::@getter::a
   fragments
     #F0
     #F1
@@ -12693,19 +10319,7 @@ library
             #F1 requiredPositional isOriginDeclaration x (nameOffset:54) (firstTokenOffset:47) (offset:54)
               element: <testLibrary>::@setter::foo::@formalParameter::x
               metadata
-                Annotation
-                  atSign: @ @47
-                  expression: UnqualifiedNameExpression
-                    name: a @48
-                    resolution: GetterInvocationResolution
-                      element: <testLibrary>::@getter::a
-                      type: int
-                    staticType: int
-                  name: SimpleIdentifier
-                    token: a @48
-                    element: <testLibrary>::@getter::a
-                    staticType: null
-                  element: <testLibrary>::@getter::a
+                annotation_0
               previousFragment: #F0
           previousFragment: #F6
   topLevelVariables
@@ -12735,19 +10349,7 @@ library
           firstFragment: #F0
           type: int
           metadata
-            Annotation
-              atSign: @ @47
-              expression: UnqualifiedNameExpression
-                name: a @48
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@getter::a
-                  type: int
-                staticType: int
-              name: SimpleIdentifier
-                token: a @48
-                element: <testLibrary>::@getter::a
-                staticType: null
-              element: <testLibrary>::@getter::a
+            annotation_0
       returnType: void
       variable: <testLibrary>::@topLevelVariable::foo
 ''');
@@ -12770,34 +10372,32 @@ combinedFragmentData
   element: <testLibrary>::@setter::foo::@formalParameter::x
   combined
     metadata
-      annotation_0
-        Annotation
-          atSign: @ @35
-          expression: UnqualifiedNameExpression
-            name: a @36
-            resolution: GetterInvocationResolution
-              element: <testLibrary>::@getter::a
-              type: int
-            staticType: int
-          name: SimpleIdentifier
-            token: a @36
+      annotation_0: Annotation
+        atSign: @ @35
+        expression: UnqualifiedNameExpression
+          name: a @36
+          resolution: GetterInvocationResolution
             element: <testLibrary>::@getter::a
-            staticType: null
+            type: int
+          staticType: int
+        name: SimpleIdentifier
+          token: a @36
           element: <testLibrary>::@getter::a
-      annotation_1
-        Annotation
-          atSign: @ @63
-          expression: UnqualifiedNameExpression
-            name: b @64
-            resolution: GetterInvocationResolution
-              element: <testLibrary>::@getter::b
-              type: int
-            staticType: int
-          name: SimpleIdentifier
-            token: b @64
+          staticType: null
+        element: <testLibrary>::@getter::a
+      annotation_1: Annotation
+        atSign: @ @63
+        expression: UnqualifiedNameExpression
+          name: b @64
+          resolution: GetterInvocationResolution
             element: <testLibrary>::@getter::b
-            staticType: null
+            type: int
+          staticType: int
+        name: SimpleIdentifier
+          token: b @64
           element: <testLibrary>::@getter::b
+          staticType: null
+        element: <testLibrary>::@getter::b
   fragments
     #F0
       metadata
@@ -12841,19 +10441,7 @@ library
             #F0 requiredPositional isOriginDeclaration x (nameOffset:42) (firstTokenOffset:35) (offset:42)
               element: <testLibrary>::@setter::foo::@formalParameter::x
               metadata
-                Annotation
-                  atSign: @ @35
-                  expression: UnqualifiedNameExpression
-                    name: a @36
-                    resolution: GetterInvocationResolution
-                      element: <testLibrary>::@getter::a
-                      type: int
-                    staticType: int
-                  name: SimpleIdentifier
-                    token: a @36
-                    element: <testLibrary>::@getter::a
-                    staticType: null
-                  element: <testLibrary>::@getter::a
+                annotation_0
               nextFragment: #F1
           nextFragment: #F9
         #F9 hasImplicitReturnType isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:59) (firstTokenOffset:47) (offset:59)
@@ -12862,19 +10450,7 @@ library
             #F1 requiredPositional isOriginDeclaration x (nameOffset:70) (firstTokenOffset:63) (offset:70)
               element: <testLibrary>::@setter::foo::@formalParameter::x
               metadata
-                Annotation
-                  atSign: @ @63
-                  expression: UnqualifiedNameExpression
-                    name: b @64
-                    resolution: GetterInvocationResolution
-                      element: <testLibrary>::@getter::b
-                      type: int
-                    staticType: int
-                  name: SimpleIdentifier
-                    token: b @64
-                    element: <testLibrary>::@getter::b
-                    staticType: null
-                  element: <testLibrary>::@getter::b
+                annotation_1
               previousFragment: #F0
           previousFragment: #F8
   topLevelVariables
@@ -12915,32 +10491,8 @@ library
           firstFragment: #F0
           type: int
           metadata
-            Annotation
-              atSign: @ @35
-              expression: UnqualifiedNameExpression
-                name: a @36
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@getter::a
-                  type: int
-                staticType: int
-              name: SimpleIdentifier
-                token: a @36
-                element: <testLibrary>::@getter::a
-                staticType: null
-              element: <testLibrary>::@getter::a
-            Annotation
-              atSign: @ @63
-              expression: UnqualifiedNameExpression
-                name: b @64
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@getter::b
-                  type: int
-                staticType: int
-              name: SimpleIdentifier
-                token: b @64
-                element: <testLibrary>::@getter::b
-                staticType: null
-              element: <testLibrary>::@getter::b
+            annotation_0
+            annotation_1
       returnType: void
       variable: <testLibrary>::@topLevelVariable::foo
 ''');
@@ -12965,20 +10517,19 @@ combinedFragmentData
   element: <testLibrary>::@setter::foo::@formalParameter::x
   combined
     metadata
-      annotation_0
-        Annotation
-          atSign: @ @22
-          expression: UnqualifiedNameExpression
-            name: a @23
-            resolution: GetterInvocationResolution
-              element: <testLibrary>::@getter::a
-              type: int
-            staticType: int
-          name: SimpleIdentifier
-            token: a @23
+      annotation_0: Annotation
+        atSign: @ @22
+        expression: UnqualifiedNameExpression
+          name: a @23
+          resolution: GetterInvocationResolution
             element: <testLibrary>::@getter::a
-            staticType: null
+            type: int
+          staticType: int
+        name: SimpleIdentifier
+          token: a @23
           element: <testLibrary>::@getter::a
+          staticType: null
+        element: <testLibrary>::@getter::a
   fragments
     #F0
       metadata
@@ -13010,19 +10561,7 @@ library
             #F0 requiredPositional isOriginDeclaration x (nameOffset:29) (firstTokenOffset:22) (offset:29)
               element: <testLibrary>::@setter::foo::@formalParameter::x
               metadata
-                Annotation
-                  atSign: @ @22
-                  expression: UnqualifiedNameExpression
-                    name: a @23
-                    resolution: GetterInvocationResolution
-                      element: <testLibrary>::@getter::a
-                      type: int
-                    staticType: int
-                  name: SimpleIdentifier
-                    token: a @23
-                    element: <testLibrary>::@getter::a
-                    staticType: null
-                  element: <testLibrary>::@getter::a
+                annotation_0
               nextFragment: #F1
           nextFragment: #F7
         #F7 hasImplicitReturnType isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:46) (firstTokenOffset:34) (offset:46)
@@ -13059,19 +10598,7 @@ library
           firstFragment: #F0
           type: int
           metadata
-            Annotation
-              atSign: @ @22
-              expression: UnqualifiedNameExpression
-                name: a @23
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@getter::a
-                  type: int
-                staticType: int
-              name: SimpleIdentifier
-                token: a @23
-                element: <testLibrary>::@getter::a
-                staticType: null
-              element: <testLibrary>::@getter::a
+            annotation_0
       returnType: void
       variable: <testLibrary>::@topLevelVariable::foo
 ''');
@@ -13093,20 +10620,19 @@ combinedFragmentData
   element: <testLibrary>::@function::foo::@formalParameter::x
   combined
     metadata
-      annotation_0
-        Annotation
-          atSign: @ @52
-          expression: UnqualifiedNameExpression
-            name: a @53
-            resolution: GetterInvocationResolution
-              element: <testLibrary>::@getter::a
-              type: dynamic
-            staticType: dynamic
-          name: SimpleIdentifier
-            token: a @53
+      annotation_0: Annotation
+        atSign: @ @52
+        expression: UnqualifiedNameExpression
+          name: a @53
+          resolution: GetterInvocationResolution
             element: <testLibrary>::@getter::a
-            staticType: null
+            type: dynamic
+          staticType: dynamic
+        name: SimpleIdentifier
+          token: a @53
           element: <testLibrary>::@getter::a
+          staticType: null
+        element: <testLibrary>::@getter::a
   fragments
     #F0
     #F1
@@ -13144,19 +10670,7 @@ library
             #F1 requiredPositional isOriginDeclaration x (nameOffset:59) (firstTokenOffset:52) (offset:59)
               element: <testLibrary>::@function::foo::@formalParameter::x
               metadata
-                Annotation
-                  atSign: @ @52
-                  expression: UnqualifiedNameExpression
-                    name: a @53
-                    resolution: GetterInvocationResolution
-                      element: <testLibrary>::@getter::a
-                      type: dynamic
-                    staticType: dynamic
-                  name: SimpleIdentifier
-                    token: a @53
-                    element: <testLibrary>::@getter::a
-                    staticType: null
-                  element: <testLibrary>::@getter::a
+                annotation_0
               previousFragment: #F0
   topLevelVariables
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer a
@@ -13180,19 +10694,7 @@ library
           firstFragment: #F0
           type: int
           metadata
-            Annotation
-              atSign: @ @52
-              expression: UnqualifiedNameExpression
-                name: a @53
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@getter::a
-                  type: dynamic
-                staticType: dynamic
-              name: SimpleIdentifier
-                token: a @53
-                element: <testLibrary>::@getter::a
-                staticType: null
-              element: <testLibrary>::@getter::a
+            annotation_0
       returnType: void
 ''');
   }
@@ -13238,7 +10740,7 @@ library
             #F6 optionalPositional isOriginDeclaration x (nameOffset:55) (firstTokenOffset:47) (offset:55)
               element: <testLibrary>::@function::foo::@formalParameter::x
               metadata
-                Annotation
+                annotation_0: Annotation
                   atSign: @ @47
                   expression: UnqualifiedNameExpression
                     name: a @48
@@ -13290,34 +10792,32 @@ combinedFragmentData
   element: <testLibrary>::@function::foo::@formalParameter::x
   combined
     metadata
-      annotation_0
-        Annotation
-          atSign: @ @36
-          expression: UnqualifiedNameExpression
-            name: a @37
-            resolution: GetterInvocationResolution
-              element: <testLibrary>::@getter::a
-              type: int
-            staticType: int
-          name: SimpleIdentifier
-            token: a @37
+      annotation_0: Annotation
+        atSign: @ @36
+        expression: UnqualifiedNameExpression
+          name: a @37
+          resolution: GetterInvocationResolution
             element: <testLibrary>::@getter::a
-            staticType: null
+            type: int
+          staticType: int
+        name: SimpleIdentifier
+          token: a @37
           element: <testLibrary>::@getter::a
-      annotation_1
-        Annotation
-          atSign: @ @65
-          expression: UnqualifiedNameExpression
-            name: b @66
-            resolution: GetterInvocationResolution
-              element: <testLibrary>::@getter::b
-              type: int
-            staticType: int
-          name: SimpleIdentifier
-            token: b @66
+          staticType: null
+        element: <testLibrary>::@getter::a
+      annotation_1: Annotation
+        atSign: @ @65
+        expression: UnqualifiedNameExpression
+          name: b @66
+          resolution: GetterInvocationResolution
             element: <testLibrary>::@getter::b
-            staticType: null
+            type: int
+          staticType: int
+        name: SimpleIdentifier
+          token: b @66
           element: <testLibrary>::@getter::b
+          staticType: null
+        element: <testLibrary>::@getter::b
   fragments
     #F0
       metadata
@@ -13360,19 +10860,7 @@ library
             #F0 requiredPositional isOriginDeclaration x (nameOffset:43) (firstTokenOffset:36) (offset:43)
               element: <testLibrary>::@function::foo::@formalParameter::x
               metadata
-                Annotation
-                  atSign: @ @36
-                  expression: UnqualifiedNameExpression
-                    name: a @37
-                    resolution: GetterInvocationResolution
-                      element: <testLibrary>::@getter::a
-                      type: int
-                    staticType: int
-                  name: SimpleIdentifier
-                    token: a @37
-                    element: <testLibrary>::@getter::a
-                    staticType: null
-                  element: <testLibrary>::@getter::a
+                annotation_0
               nextFragment: #F1
         #F8 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:61) (firstTokenOffset:48) (offset:61)
           element: <testLibrary>::@function::foo
@@ -13381,19 +10869,7 @@ library
             #F1 requiredPositional isOriginDeclaration x (nameOffset:72) (firstTokenOffset:65) (offset:72)
               element: <testLibrary>::@function::foo::@formalParameter::x
               metadata
-                Annotation
-                  atSign: @ @65
-                  expression: UnqualifiedNameExpression
-                    name: b @66
-                    resolution: GetterInvocationResolution
-                      element: <testLibrary>::@getter::b
-                      type: int
-                    staticType: int
-                  name: SimpleIdentifier
-                    token: b @66
-                    element: <testLibrary>::@getter::b
-                    staticType: null
-                  element: <testLibrary>::@getter::b
+                annotation_1
               previousFragment: #F0
   topLevelVariables
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer a
@@ -13428,32 +10904,8 @@ library
           firstFragment: #F0
           type: int
           metadata
-            Annotation
-              atSign: @ @36
-              expression: UnqualifiedNameExpression
-                name: a @37
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@getter::a
-                  type: int
-                staticType: int
-              name: SimpleIdentifier
-                token: a @37
-                element: <testLibrary>::@getter::a
-                staticType: null
-              element: <testLibrary>::@getter::a
-            Annotation
-              atSign: @ @65
-              expression: UnqualifiedNameExpression
-                name: b @66
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@getter::b
-                  type: int
-                staticType: int
-              name: SimpleIdentifier
-                token: b @66
-                element: <testLibrary>::@getter::b
-                staticType: null
-              element: <testLibrary>::@getter::b
+            annotation_0
+            annotation_1
       returnType: void
 ''');
   }
@@ -13476,20 +10928,19 @@ combinedFragmentData
   element: <testLibrary>::@function::foo::@formalParameter::x
   combined
     metadata
-      annotation_0
-        Annotation
-          atSign: @ @26
-          expression: UnqualifiedNameExpression
-            name: a @27
-            resolution: GetterInvocationResolution
-              element: <testLibrary>::@getter::a
-              type: dynamic
-            staticType: dynamic
-          name: SimpleIdentifier
-            token: a @27
+      annotation_0: Annotation
+        atSign: @ @26
+        expression: UnqualifiedNameExpression
+          name: a @27
+          resolution: GetterInvocationResolution
             element: <testLibrary>::@getter::a
-            staticType: null
+            type: dynamic
+          staticType: dynamic
+        name: SimpleIdentifier
+          token: a @27
           element: <testLibrary>::@getter::a
+          staticType: null
+        element: <testLibrary>::@getter::a
   fragments
     #F0
       metadata
@@ -13520,19 +10971,7 @@ library
             #F0 requiredPositional isOriginDeclaration x (nameOffset:33) (firstTokenOffset:26) (offset:33)
               element: <testLibrary>::@function::foo::@formalParameter::x
               metadata
-                Annotation
-                  atSign: @ @26
-                  expression: UnqualifiedNameExpression
-                    name: a @27
-                    resolution: GetterInvocationResolution
-                      element: <testLibrary>::@getter::a
-                      type: dynamic
-                    staticType: dynamic
-                  name: SimpleIdentifier
-                    token: a @27
-                    element: <testLibrary>::@getter::a
-                    staticType: null
-                  element: <testLibrary>::@getter::a
+                annotation_0
               nextFragment: #F1
         #F6 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:51) (firstTokenOffset:38) (offset:51)
           element: <testLibrary>::@function::foo
@@ -13563,19 +11002,7 @@ library
           firstFragment: #F0
           type: int
           metadata
-            Annotation
-              atSign: @ @26
-              expression: UnqualifiedNameExpression
-                name: a @27
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@getter::a
-                  type: dynamic
-                staticType: dynamic
-              name: SimpleIdentifier
-                token: a @27
-                element: <testLibrary>::@getter::a
-                staticType: null
-              element: <testLibrary>::@getter::a
+            annotation_0
       returnType: void
 ''');
   }
@@ -13608,7 +11035,7 @@ library
                 #F4 requiredPositional hasImplicitType isOriginDeclaration x (nameOffset:34) (firstTokenOffset:31) (offset:34)
                   element: <testLibrary>::@class::C::@method::m::@formalParameter::x
                   metadata
-                    Annotation
+                    annotation_0: Annotation
                       atSign: @ @31
                       expression: UnqualifiedNameExpression
                         name: a @32
@@ -13650,19 +11077,7 @@ library
               firstFragment: #F4
               type: dynamic
               metadata
-                Annotation
-                  atSign: @ @31
-                  expression: UnqualifiedNameExpression
-                    name: a @32
-                    resolution: GetterInvocationResolution
-                      element: <testLibrary>::@getter::a
-                      type: dynamic
-                    staticType: dynamic
-                  name: SimpleIdentifier
-                    token: a @32
-                    element: <testLibrary>::@getter::a
-                    staticType: null
-                  element: <testLibrary>::@getter::a
+                annotation_0
           returnType: dynamic
   topLevelVariables
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer a
@@ -13713,7 +11128,7 @@ library
             #F5 requiredPositional isOriginDeclaration x (nameOffset:32) (firstTokenOffset:25) (offset:32)
               element: <testLibrary>::@setter::foo::@formalParameter::x
               metadata
-                Annotation
+                annotation_0: Annotation
                   atSign: @ @25
                   expression: UnqualifiedNameExpression
                     name: a @26
@@ -13753,19 +11168,7 @@ library
           firstFragment: #F5
           type: int
           metadata
-            Annotation
-              atSign: @ @25
-              expression: UnqualifiedNameExpression
-                name: a @26
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@getter::a
-                  type: dynamic
-                staticType: dynamic
-              name: SimpleIdentifier
-                token: a @26
-                element: <testLibrary>::@getter::a
-                staticType: null
-              element: <testLibrary>::@getter::a
+            annotation_0
       returnType: void
       variable: <testLibrary>::@topLevelVariable::foo
 ''');
@@ -13801,7 +11204,7 @@ library
             #F4 optionalPositional hasImplicitType isOriginDeclaration x (nameOffset:22) (firstTokenOffset:19) (offset:22)
               element: <testLibrary>::@function::f::@formalParameter::x
               metadata
-                Annotation
+                annotation_0: Annotation
                   atSign: @ @19
                   expression: UnqualifiedNameExpression
                     name: a @20
@@ -13840,19 +11243,7 @@ library
           firstFragment: #F4
           type: dynamic
           metadata
-            Annotation
-              atSign: @ @19
-              expression: UnqualifiedNameExpression
-                name: a @20
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@getter::a
-                  type: dynamic
-                staticType: dynamic
-              name: SimpleIdentifier
-                token: a @20
-                element: <testLibrary>::@getter::a
-                staticType: null
-              element: <testLibrary>::@getter::a
+            annotation_0
           constantInitializer2: expression_1
       returnType: dynamic
 ''');
@@ -13898,7 +11289,7 @@ library
                 #F6 requiredPositional hasImplicitType isFinal isOriginDeclaration super.x (nameOffset:75) (firstTokenOffset:66) (offset:75)
                   element: <testLibrary>::@class::B::@constructor::new::@formalParameter::x
                   metadata
-                    Annotation
+                    annotation_0: Annotation
                       atSign: @ @66
                       expression: UnqualifiedNameExpression
                         name: a @67
@@ -13948,19 +11339,7 @@ library
               firstFragment: #F6
               type: int
               metadata
-                Annotation
-                  atSign: @ @66
-                  expression: UnqualifiedNameExpression
-                    name: a @67
-                    resolution: GetterInvocationResolution
-                      element: <testLibrary>::@getter::a
-                      type: dynamic
-                    staticType: dynamic
-                  name: SimpleIdentifier
-                    token: a @67
-                    element: <testLibrary>::@getter::a
-                    staticType: null
-                  element: <testLibrary>::@getter::a
+                annotation_0
               superConstructorParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
           superConstructor: <testLibrary>::@class::A::@constructor::new
   topLevelVariables
@@ -14002,7 +11381,7 @@ library
         #F3 isOriginDeclaration isStatic v (nameOffset:23) (firstTokenOffset:23) (offset:23)
           element: <testLibrary>::@topLevelVariable::v
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @16
               expression: UnqualifiedNameExpression
                 name: a @17
@@ -14042,19 +11421,7 @@ library
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: #F3
       metadata
-        Annotation
-          atSign: @ @16
-          expression: UnqualifiedNameExpression
-            name: a @17
-            resolution: GetterInvocationResolution
-              element: <testLibrary>::@getter::a
-              type: dynamic
-            staticType: dynamic
-          name: SimpleIdentifier
-            token: a @17
-            element: <testLibrary>::@getter::a
-            staticType: null
-          element: <testLibrary>::@getter::a
+        annotation_0
       type: int
       getter: <testLibrary>::@getter::v
       setter: <testLibrary>::@setter::v
@@ -14101,7 +11468,7 @@ library
             #F2 T (nameOffset:28) (firstTokenOffset:25) (offset:28)
               element: #E0 T
               metadata
-                Annotation
+                annotation_0: Annotation
                   atSign: @ @25
                   expression: UnqualifiedNameExpression
                     name: a @26
@@ -14138,19 +11505,7 @@ library
         #E0 T
           firstFragment: #F2
           metadata
-            Annotation
-              atSign: @ @25
-              expression: UnqualifiedNameExpression
-                name: a @26
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@getter::a
-                  type: dynamic
-                staticType: dynamic
-              name: SimpleIdentifier
-                token: a @26
-                element: <testLibrary>::@getter::a
-                staticType: null
-              element: <testLibrary>::@getter::a
+            annotation_0
       constructors
         hasEnclosingTypeParameterReference isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -14193,7 +11548,7 @@ library
             #F2 T (nameOffset:27) (firstTokenOffset:24) (offset:27)
               element: #E0 T
               metadata
-                Annotation
+                annotation_0: Annotation
                   atSign: @ @24
                   expression: UnqualifiedNameExpression
                     name: a @25
@@ -14242,19 +11597,7 @@ library
         #E0 T
           firstFragment: #F2
           metadata
-            Annotation
-              atSign: @ @24
-              expression: UnqualifiedNameExpression
-                name: a @25
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@getter::a
-                  type: dynamic
-                staticType: dynamic
-              name: SimpleIdentifier
-                token: a @25
-                element: <testLibrary>::@getter::a
-                staticType: null
-              element: <testLibrary>::@getter::a
+            annotation_0
       supertype: D
       mixins
         E
@@ -14330,7 +11673,7 @@ library
             #F4 T (nameOffset:21) (firstTokenOffset:18) (offset:21)
               element: #E0 T
               metadata
-                Annotation
+                annotation_0: Annotation
                   atSign: @ @18
                   expression: UnqualifiedNameExpression
                     name: a @19
@@ -14364,19 +11707,7 @@ library
         #E0 T
           firstFragment: #F4
           metadata
-            Annotation
-              atSign: @ @18
-              expression: UnqualifiedNameExpression
-                name: a @19
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@getter::a
-                  type: dynamic
-                staticType: dynamic
-              name: SimpleIdentifier
-                token: a @19
-                element: <testLibrary>::@getter::a
-                staticType: null
-              element: <testLibrary>::@getter::a
+            annotation_0
       returnType: dynamic
 ''');
   }
@@ -14399,7 +11730,7 @@ library
             #F2 T (nameOffset:29) (firstTokenOffset:26) (offset:29)
               element: #E0 T
               metadata
-                Annotation
+                annotation_0: Annotation
                   atSign: @ @26
                   expression: UnqualifiedNameExpression
                     name: a @27
@@ -14432,19 +11763,7 @@ library
         #E0 T
           firstFragment: #F2
           metadata
-            Annotation
-              atSign: @ @26
-              expression: UnqualifiedNameExpression
-                name: a @27
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@getter::a
-                  type: dynamic
-                staticType: dynamic
-              name: SimpleIdentifier
-                token: a @27
-                element: <testLibrary>::@getter::a
-                staticType: null
-              element: <testLibrary>::@getter::a
+            annotation_0
       aliasedType: dynamic Function()
   topLevelVariables
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer a
@@ -14489,7 +11808,7 @@ library
         #F3 hasInitializer isOriginDeclaration isStatic x (nameOffset:20) (firstTokenOffset:20) (offset:20)
           element: <testLibrary>::@topLevelVariable::x
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @13
               expression: UnqualifiedNameExpression
                 name: a @14
@@ -14529,19 +11848,7 @@ library
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F3
       metadata
-        Annotation
-          atSign: @ @13
-          expression: UnqualifiedNameExpression
-            name: a @14
-            resolution: GetterInvocationResolution
-              element: <testLibrary>::@getter::a
-              type: int
-            staticType: int
-          name: SimpleIdentifier
-            token: a @14
-            element: <testLibrary>::@getter::a
-            staticType: null
-          element: <testLibrary>::@getter::a
+        annotation_0
       type: int
       getter: <testLibrary>::@getter::x
       setter: <testLibrary>::@setter::x
@@ -14606,7 +11913,7 @@ library
         #F5 class C (nameOffset:46) (firstTokenOffset:35) (offset:46)
           element: <testLibrary>::@class::C
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @35
               expression: ReceiverPropertyExtraction
                 receiver: StaticQualifier
@@ -14660,31 +11967,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F5
       metadata
-        Annotation
-          atSign: @ @35
-          expression: ReceiverPropertyExtraction
-            receiver: StaticQualifier
-              name: A @36
-              element: <testLibrary>::@class::A
-            operator: . @37
-            name: x @38
-            resolution: GetterInvocationResolution
-              element: <testLibrary>::@class::A::@getter::x
-              type: int
-            staticType: int
-          name: PrefixedIdentifier
-            prefix: SimpleIdentifier
-              token: A @36
-              element: <testLibrary>::@class::A
-              staticType: null
-            period: . @37
-            identifier: SimpleIdentifier
-              token: x @38
-              element: <testLibrary>::@class::A::@getter::x
-              staticType: null
-            element: <testLibrary>::@class::A::@getter::x
-            staticType: null
-          element: <testLibrary>::@class::A::@getter::x
+        annotation_0
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -14709,7 +11992,7 @@ library
         #F1 class C (nameOffset:31) (firstTokenOffset:20) (offset:31)
           element: <testLibrary>::@class::C
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @20
               expression: ReceiverPropertyExtraction
                 receiver: StaticQualifier
@@ -14885,31 +12168,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       metadata
-        Annotation
-          atSign: @ @20
-          expression: ReceiverPropertyExtraction
-            receiver: StaticQualifier
-              name: E @21
-              element: <testLibrary>::@enum::E
-            operator: . @22
-            name: b @23
-            resolution: GetterInvocationResolution
-              element: <testLibrary>::@enum::E::@getter::b
-              type: E
-            staticType: E
-          name: PrefixedIdentifier
-            prefix: SimpleIdentifier
-              token: E @21
-              element: <testLibrary>::@enum::E
-              staticType: null
-            period: . @22
-            identifier: SimpleIdentifier
-              token: b @23
-              element: <testLibrary>::@enum::E::@getter::b
-              staticType: null
-            element: <testLibrary>::@enum::E::@getter::b
-            staticType: null
-          element: <testLibrary>::@enum::E::@getter::b
+        annotation_0
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -14995,7 +12254,7 @@ library
         #F1 class C (nameOffset:57) (firstTokenOffset:46) (offset:57)
           element: <testLibrary>::@class::C
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @46
               expression: ReceiverPropertyExtraction
                 receiver: StaticQualifier
@@ -15044,31 +12303,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       metadata
-        Annotation
-          atSign: @ @46
-          expression: ReceiverPropertyExtraction
-            receiver: StaticQualifier
-              name: E @47
-              element: <testLibrary>::@extension::E
-            operator: . @48
-            name: x @49
-            resolution: GetterInvocationResolution
-              element: <testLibrary>::@extension::E::@getter::x
-              type: int
-            staticType: int
-          name: PrefixedIdentifier
-            prefix: SimpleIdentifier
-              token: E @47
-              element: <testLibrary>::@extension::E
-              staticType: null
-            period: . @48
-            identifier: SimpleIdentifier
-              token: x @49
-              element: <testLibrary>::@extension::E::@getter::x
-              staticType: null
-            element: <testLibrary>::@extension::E::@getter::x
-            staticType: null
-          element: <testLibrary>::@extension::E::@getter::x
+        annotation_0
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -15115,7 +12350,7 @@ library
             #F2 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic foo (nameOffset:44) (firstTokenOffset:44) (offset:44)
               element: <testLibrary>::@extension::#0::@field::foo
               metadata
-                Annotation
+                annotation_0: Annotation
                   atSign: @ @24
                   expression: UnqualifiedNameExpression
                     name: foo @25
@@ -15148,19 +12383,7 @@ library
           reference: <testLibrary>::@extension::#0::@field::foo
           firstFragment: #F2
           metadata
-            Annotation
-              atSign: @ @24
-              expression: UnqualifiedNameExpression
-                name: foo @25
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@extension::#0::@getter::foo
-                  type: int
-                staticType: int
-              name: SimpleIdentifier
-                token: foo @25
-                element: <testLibrary>::@extension::#0::@getter::foo
-                staticType: null
-              element: <testLibrary>::@extension::#0::@getter::foo
+            annotation_0
           type: int
           constantInitializer2: expression_0
           getter: <testLibrary>::@extension::#0::@getter::foo
@@ -15200,7 +12423,7 @@ library
         #F1 class C (nameOffset:42) (firstTokenOffset:27) (offset:42)
           element: <testLibrary>::@class::C
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @27
               expression: ReceiverPropertyExtraction
                 receiver: StaticQualifier
@@ -15243,40 +12466,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       metadata
-        Annotation
-          atSign: @ @27
-          expression: ReceiverPropertyExtraction
-            receiver: StaticQualifier
-              importPrefix: ImportPrefixReference
-                name: foo @28
-                period: . @31
-                element: <testLibraryFragment>::@prefix::foo
-              name: E @32
-              element: package:test/foo.dart::@extension::E
-            operator: . @33
-            name: x @34
-            resolution: GetterInvocationResolution
-              element: package:test/foo.dart::@extension::E::@getter::x
-              type: int
-            staticType: int
-          name: PrefixedIdentifier
-            prefix: SimpleIdentifier
-              token: foo @28
-              element: <testLibraryFragment>::@prefix::foo
-              staticType: null
-            period: . @31
-            identifier: SimpleIdentifier
-              token: E @32
-              element: package:test/foo.dart::@extension::E
-              staticType: null
-            element: package:test/foo.dart::@extension::E
-            staticType: null
-          period: . @33
-          constructorName: SimpleIdentifier
-            token: x @34
-            element: package:test/foo.dart::@extension::E::@getter::x
-            staticType: null
-          element: package:test/foo.dart::@extension::E::@getter::x
+        annotation_0
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -15313,7 +12503,7 @@ library
         #F4 class C (nameOffset:43) (firstTokenOffset:27) (offset:43)
           element: <testLibrary>::@class::C
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @27
               expression: ConstructorInvocation
                 constructorReference: ConstructorReference2
@@ -15367,40 +12557,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F4
       metadata
-        Annotation
-          atSign: @ @27
-          expression: ConstructorInvocation
-            constructorReference: ConstructorReference2
-              typeReference: ConstructorTypeReference
-                name: A @28
-                element: <testLibrary>::@class::A
-                type: A
-              element: <testLibrary>::@class::A::@constructor::new
-            argumentList: ArgumentList
-              leftParenthesis: ( @29
-              arguments2
-                InvalidSuperExpression
-                  superReference: SuperReference
-                    superKeyword: super @30
-                  staticType: InvalidType
-              arguments(v1)
-                SuperExpression
-                  superKeyword: super @30
-                  staticType: InvalidType
-              rightParenthesis: ) @35
-            staticType: A
-          name: SimpleIdentifier
-            token: A @28
-            element: <testLibrary>::@class::A
-            staticType: null
-          arguments: ArgumentList
-            leftParenthesis: ( @29
-            arguments
-              SuperExpression
-                superKeyword: super @30
-                staticType: InvalidType
-            rightParenthesis: ) @35
-          element: <testLibrary>::@class::A::@constructor::new
+        annotation_0
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -15437,7 +12594,7 @@ library
         #F4 class C (nameOffset:42) (firstTokenOffset:27) (offset:42)
           element: <testLibrary>::@class::C
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @27
               expression: ConstructorInvocation
                 constructorReference: ConstructorReference2
@@ -15486,35 +12643,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F4
       metadata
-        Annotation
-          atSign: @ @27
-          expression: ConstructorInvocation
-            constructorReference: ConstructorReference2
-              typeReference: ConstructorTypeReference
-                name: A @28
-                element: <testLibrary>::@class::A
-                type: A
-              element: <testLibrary>::@class::A::@constructor::new
-            argumentList: ArgumentList
-              leftParenthesis: ( @29
-              arguments2
-                ThisExpression
-                  thisKeyword: this @30
-                  staticType: InvalidType
-              rightParenthesis: ) @34
-            staticType: A
-          name: SimpleIdentifier
-            token: A @28
-            element: <testLibrary>::@class::A
-            staticType: null
-          arguments: ArgumentList
-            leftParenthesis: ( @29
-            arguments
-              ThisExpression
-                thisKeyword: this @30
-                staticType: InvalidType
-            rightParenthesis: ) @34
-          element: <testLibrary>::@class::A::@constructor::new
+        annotation_0
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -15537,7 +12666,7 @@ library
         #F1 class C (nameOffset:17) (firstTokenOffset:0) (offset:17)
           element: <testLibrary>::@class::C
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @0
               expression: ConstructorInvocation
                 constructorReference: ConstructorReference2
@@ -15579,39 +12708,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       metadata
-        Annotation
-          atSign: @ @0
-          expression: ConstructorInvocation
-            constructorReference: ConstructorReference2
-              typeReference: ConstructorTypeReference
-                importPrefix: ImportPrefixReference
-                  name: foo @1
-                  period: . @4
-                  element: <null>
-                name: bar @5
-                element: <null>
-                type: InvalidType
-              element: <null>
-            argumentList: ArgumentList
-              leftParenthesis: ( @8
-              rightParenthesis: ) @9
-            staticType: InvalidType
-          name: PrefixedIdentifier
-            prefix: SimpleIdentifier
-              token: foo @1
-              element: <null>
-              staticType: null
-            period: . @4
-            identifier: SimpleIdentifier
-              token: bar @5
-              element: <null>
-              staticType: null
-            element: <null>
-            staticType: null
-          arguments: ArgumentList
-            leftParenthesis: ( @8
-            rightParenthesis: ) @9
-          element: <null>
+        annotation_0
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -15634,7 +12731,7 @@ library
         #F1 class C (nameOffset:20) (firstTokenOffset:0) (offset:20)
           element: <testLibrary>::@class::C
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @0
               expression: ConstructorInvocation
                 constructorReference: ConstructorReference2
@@ -15675,38 +12772,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       metadata
-        Annotation
-          atSign: @ @0
-          expression: ConstructorInvocation
-            constructorReference: ConstructorReference2
-              typeReference: ConstructorTypeReference
-                name: String @1
-                element: dart:core::@class::String
-                type: String
-              selector: ConstructorSelector
-                period: . @7
-                name2: foo @8
-              element: <null>
-            argumentList: ArgumentList
-              leftParenthesis: ( @11
-              rightParenthesis: ) @12
-            staticType: String
-          name: PrefixedIdentifier
-            prefix: SimpleIdentifier
-              token: String @1
-              element: dart:core::@class::String
-              staticType: null
-            period: . @7
-            identifier: SimpleIdentifier
-              token: foo @8
-              element: <null>
-              staticType: null
-            element: <null>
-            staticType: null
-          arguments: ArgumentList
-            leftParenthesis: ( @11
-            rightParenthesis: ) @12
-          element: <null>
+        annotation_0
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -15729,7 +12795,7 @@ library
         #F1 class C (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@class::C
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @0
               expression: ReceiverPropertyExtraction
                 receiver: UnqualifiedNameExpression
@@ -15764,32 +12830,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       metadata
-        Annotation
-          atSign: @ @0
-          expression: ReceiverPropertyExtraction
-            receiver: UnqualifiedNameExpression
-              name: foo @1
-              resolution: InvalidNamedReadResolution
-                recoveryElement: <null>
-              staticType: InvalidType
-            operator: . @4
-            name: bar @5
-            resolution: InvalidNamedReadResolution
-              recoveryElement: <null>
-            staticType: InvalidType
-          name: PrefixedIdentifier
-            prefix: SimpleIdentifier
-              token: foo @1
-              element: <null>
-              staticType: null
-            period: . @4
-            identifier: SimpleIdentifier
-              token: bar @5
-              element: <null>
-              staticType: null
-            element: <null>
-            staticType: null
-          element: <null>
+        annotation_0
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -15819,7 +12860,7 @@ library
         #F1 class C (nameOffset:44) (firstTokenOffset:29) (offset:44)
           element: <testLibrary>::@class::C
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @29
               expression: ImportPrefixedNameExpression
                 importPrefix: ImportPrefixReference
@@ -15852,30 +12893,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       metadata
-        Annotation
-          atSign: @ @29
-          expression: ImportPrefixedNameExpression
-            importPrefix: ImportPrefixReference
-              name: foo @30
-              period: . @33
-              element: <testLibraryFragment>::@prefix::foo
-            name: bar @34
-            resolution: InvalidNamedReadResolution
-              recoveryElement: <null>
-            staticType: InvalidType
-          name: PrefixedIdentifier
-            prefix: SimpleIdentifier
-              token: foo @30
-              element: <testLibraryFragment>::@prefix::foo
-              staticType: null
-            period: . @33
-            identifier: SimpleIdentifier
-              token: bar @34
-              element: <null>
-              staticType: null
-            element: <null>
-            staticType: null
-          element: <null>
+        annotation_0
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -15898,7 +12916,7 @@ library
         #F1 class C (nameOffset:21) (firstTokenOffset:0) (offset:21)
           element: <testLibrary>::@class::C
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @0
               expression: ConstructorInvocation
                 constructorReference: ConstructorReference2
@@ -15948,47 +12966,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       metadata
-        Annotation
-          atSign: @ @0
-          expression: ConstructorInvocation
-            constructorReference: ConstructorReference2
-              typeReference: ConstructorTypeReference
-                importPrefix: ImportPrefixReference
-                  name: foo @1
-                  period: . @4
-                  element: <null>
-                name: bar @5
-                element: <null>
-                type: InvalidType
-              selector: ConstructorSelector
-                period: . @8
-                name2: baz @9
-              element: <null>
-            argumentList: ArgumentList
-              leftParenthesis: ( @12
-              rightParenthesis: ) @13
-            staticType: InvalidType
-          name: PrefixedIdentifier
-            prefix: SimpleIdentifier
-              token: foo @1
-              element: <null>
-              staticType: null
-            period: . @4
-            identifier: SimpleIdentifier
-              token: bar @5
-              element: <null>
-              staticType: null
-            element: <null>
-            staticType: null
-          period: . @8
-          constructorName: SimpleIdentifier
-            token: baz @9
-            element: <null>
-            staticType: null
-          arguments: ArgumentList
-            leftParenthesis: ( @12
-            rightParenthesis: ) @13
-          element: <null>
+        annotation_0
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -16018,7 +12996,7 @@ library
         #F1 class C (nameOffset:50) (firstTokenOffset:29) (offset:50)
           element: <testLibrary>::@class::C
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @29
               expression: ConstructorInvocation
                 constructorReference: ConstructorReference2
@@ -16068,47 +13046,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       metadata
-        Annotation
-          atSign: @ @29
-          expression: ConstructorInvocation
-            constructorReference: ConstructorReference2
-              typeReference: ConstructorTypeReference
-                importPrefix: ImportPrefixReference
-                  name: foo @30
-                  period: . @33
-                  element: <testLibraryFragment>::@prefix::foo
-                name: bar @34
-                element: <null>
-                type: InvalidType
-              selector: ConstructorSelector
-                period: . @37
-                name2: baz @38
-              element: <null>
-            argumentList: ArgumentList
-              leftParenthesis: ( @41
-              rightParenthesis: ) @42
-            staticType: InvalidType
-          name: PrefixedIdentifier
-            prefix: SimpleIdentifier
-              token: foo @30
-              element: <testLibraryFragment>::@prefix::foo
-              staticType: null
-            period: . @33
-            identifier: SimpleIdentifier
-              token: bar @34
-              element: <null>
-              staticType: null
-            element: <null>
-            staticType: null
-          period: . @37
-          constructorName: SimpleIdentifier
-            token: baz @38
-            element: <null>
-            staticType: null
-          arguments: ArgumentList
-            leftParenthesis: ( @41
-            rightParenthesis: ) @42
-          element: <null>
+        annotation_0
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -16138,7 +13076,7 @@ library
         #F1 class C (nameOffset:53) (firstTokenOffset:29) (offset:53)
           element: <testLibrary>::@class::C
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @29
               expression: ConstructorInvocation
                 constructorReference: ConstructorReference2
@@ -16188,47 +13126,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       metadata
-        Annotation
-          atSign: @ @29
-          expression: ConstructorInvocation
-            constructorReference: ConstructorReference2
-              typeReference: ConstructorTypeReference
-                importPrefix: ImportPrefixReference
-                  name: foo @30
-                  period: . @33
-                  element: <testLibraryFragment>::@prefix::foo
-                name: Future @34
-                element: dart:async::@class::Future
-                type: Future<dynamic>
-              selector: ConstructorSelector
-                period: . @40
-                name2: bar @41
-              element: <null>
-            argumentList: ArgumentList
-              leftParenthesis: ( @44
-              rightParenthesis: ) @45
-            staticType: Future<dynamic>
-          name: PrefixedIdentifier
-            prefix: SimpleIdentifier
-              token: foo @30
-              element: <testLibraryFragment>::@prefix::foo
-              staticType: null
-            period: . @33
-            identifier: SimpleIdentifier
-              token: Future @34
-              element: dart:async::@class::Future
-              staticType: null
-            element: dart:async::@class::Future
-            staticType: null
-          period: . @40
-          constructorName: SimpleIdentifier
-            token: bar @41
-            element: <null>
-            staticType: null
-          arguments: ArgumentList
-            leftParenthesis: ( @44
-            rightParenthesis: ) @45
-          element: <null>
+        annotation_0
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -16251,7 +13149,7 @@ library
         #F1 class C (nameOffset:17) (firstTokenOffset:0) (offset:17)
           element: <testLibrary>::@class::C
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @0
               expression: ConstructorInvocation
                 constructorReference: ConstructorReference2
@@ -16293,39 +13191,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       metadata
-        Annotation
-          atSign: @ @0
-          expression: ConstructorInvocation
-            constructorReference: ConstructorReference2
-              typeReference: ConstructorTypeReference
-                importPrefix: ImportPrefixReference
-                  name: foo @1
-                  period: . @4
-                  element: <null>
-                name: bar @5
-                element: <null>
-                type: InvalidType
-              element: <null>
-            argumentList: ArgumentList
-              leftParenthesis: ( @8
-              rightParenthesis: ) @9
-            staticType: InvalidType
-          name: PrefixedIdentifier
-            prefix: SimpleIdentifier
-              token: foo @1
-              element: <null>
-              staticType: null
-            period: . @4
-            identifier: SimpleIdentifier
-              token: bar @5
-              element: <null>
-              staticType: null
-            element: <null>
-            staticType: null
-          arguments: ArgumentList
-            leftParenthesis: ( @8
-            rightParenthesis: ) @9
-          element: <null>
+        annotation_0
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -16355,7 +13221,7 @@ library
         #F1 class C (nameOffset:46) (firstTokenOffset:29) (offset:46)
           element: <testLibrary>::@class::C
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @29
               expression: ConstructorInvocation
                 constructorReference: ConstructorReference2
@@ -16397,39 +13263,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       metadata
-        Annotation
-          atSign: @ @29
-          expression: ConstructorInvocation
-            constructorReference: ConstructorReference2
-              typeReference: ConstructorTypeReference
-                importPrefix: ImportPrefixReference
-                  name: foo @30
-                  period: . @33
-                  element: <testLibraryFragment>::@prefix::foo
-                name: bar @34
-                element: <null>
-                type: InvalidType
-              element: <null>
-            argumentList: ArgumentList
-              leftParenthesis: ( @37
-              rightParenthesis: ) @38
-            staticType: InvalidType
-          name: PrefixedIdentifier
-            prefix: SimpleIdentifier
-              token: foo @30
-              element: <testLibraryFragment>::@prefix::foo
-              staticType: null
-            period: . @33
-            identifier: SimpleIdentifier
-              token: bar @34
-              element: <null>
-              staticType: null
-            element: <null>
-            staticType: null
-          arguments: ArgumentList
-            leftParenthesis: ( @37
-            rightParenthesis: ) @38
-          element: <null>
+        annotation_0
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -16452,7 +13286,7 @@ library
         #F1 class C (nameOffset:11) (firstTokenOffset:0) (offset:11)
           element: <testLibrary>::@class::C
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @0
               expression: UnqualifiedNameExpression
                 name: foo @1
@@ -16473,18 +13307,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       metadata
-        Annotation
-          atSign: @ @0
-          expression: UnqualifiedNameExpression
-            name: foo @1
-            resolution: InvalidNamedReadResolution
-              recoveryElement: <null>
-            staticType: InvalidType
-          name: SimpleIdentifier
-            token: foo @1
-            element: <null>
-            staticType: null
-          element: <null>
+        annotation_0
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -16521,7 +13344,7 @@ library
         #F1 class C (nameOffset:44) (firstTokenOffset:35) (offset:44)
           element: <testLibrary>::@class::C
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @35
               expression: UnqualifiedNameExpression
                 name: v @36
@@ -16548,24 +13371,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       metadata
-        Annotation
-          atSign: @ @35
-          expression: UnqualifiedNameExpression
-            name: v @36
-            resolution: InvalidNamedReadResolution
-              recoveryElement: multiplyDefinedElement
-                package:test/a.dart::@getter::v
-                package:test/b.dart::@getter::v
-            staticType: InvalidType
-          name: SimpleIdentifier
-            token: v @36
-            element: multiplyDefinedElement
-              package:test/a.dart::@getter::v
-              package:test/b.dart::@getter::v
-            staticType: null
-          element: multiplyDefinedElement
-            package:test/a.dart::@getter::v
-            package:test/b.dart::@getter::v
+        annotation_0
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
@@ -16588,7 +13394,7 @@ library
         #F1 class C (nameOffset:13) (firstTokenOffset:0) (offset:13)
           element: <testLibrary>::@class::C
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @0
               expression: ConstructorInvocation
                 constructorReference: ConstructorReference2
@@ -16618,27 +13424,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       metadata
-        Annotation
-          atSign: @ @0
-          expression: ConstructorInvocation
-            constructorReference: ConstructorReference2
-              typeReference: ConstructorTypeReference
-                name: foo @1
-                element: <null>
-                type: InvalidType
-              element: <null>
-            argumentList: ArgumentList
-              leftParenthesis: ( @4
-              rightParenthesis: ) @5
-            staticType: InvalidType
-          name: SimpleIdentifier
-            token: foo @1
-            element: <null>
-            staticType: null
-          arguments: ArgumentList
-            leftParenthesis: ( @4
-            rightParenthesis: ) @5
-          element: <null>
+        annotation_0
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new

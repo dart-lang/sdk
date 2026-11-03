@@ -982,7 +982,7 @@ library
         #F1 class BeforeMeta (nameOffset:48) (firstTokenOffset:0) (offset:48)
           element: <testLibrary>::@class::BeforeMeta
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @28
               expression: ConstructorInvocation
                 constructorReference: ConstructorReference2
@@ -1010,7 +1010,7 @@ library
         #F3 class BeforeMetaNamed (nameOffset:117) (firstTokenOffset:63) (offset:117)
           element: <testLibrary>::@class::BeforeMetaNamed
           metadata
-            Annotation
+            annotation_1: Annotation
               atSign: @ @91
               expression: ConstructorInvocation
                 constructorReference: ConstructorReference2
@@ -1049,7 +1049,7 @@ library
         #F5 class AfterMeta (nameOffset:185) (firstTokenOffset:137) (offset:185)
           element: <testLibrary>::@class::AfterMeta
           metadata
-            Annotation
+            annotation_2: Annotation
               atSign: @ @137
               expression: ConstructorInvocation
                 constructorReference: ConstructorReference2
@@ -1077,7 +1077,7 @@ library
         #F7 class AroundMeta (nameOffset:247) (firstTokenOffset:213) (offset:247)
           element: <testLibrary>::@class::AroundMeta
           metadata
-            Annotation
+            annotation_3: Annotation
               atSign: @ @213
               expression: ConstructorInvocation
                 constructorReference: ConstructorReference2
@@ -1105,7 +1105,7 @@ library
         #F9 class DocBeforeMetaNotDocAfter (nameOffset:319) (firstTokenOffset:262) (offset:319)
           element: <testLibrary>::@class::DocBeforeMetaNotDocAfter
           metadata
-            Annotation
+            annotation_4: Annotation
               atSign: @ @279
               expression: ConstructorInvocation
                 constructorReference: ConstructorReference2
@@ -1148,27 +1148,7 @@ library
       firstFragment: #F1
       documentationComment: /// Comment 1\n/// Comment 2
       metadata
-        Annotation
-          atSign: @ @28
-          expression: ConstructorInvocation
-            constructorReference: ConstructorReference2
-              typeReference: ConstructorTypeReference
-                name: Annotation @29
-                element: <testLibrary>::@class::Annotation
-                type: Annotation
-              element: <testLibrary>::@class::Annotation::@constructor::new
-            argumentList: ArgumentList
-              leftParenthesis: ( @39
-              rightParenthesis: ) @40
-            staticType: Annotation
-          name: SimpleIdentifier
-            token: Annotation @29
-            element: <testLibrary>::@class::Annotation
-            staticType: null
-          arguments: ArgumentList
-            leftParenthesis: ( @39
-            rightParenthesis: ) @40
-          element: <testLibrary>::@class::Annotation::@constructor::new
+        annotation_0
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::BeforeMeta::@constructor::new
@@ -1178,38 +1158,7 @@ library
       firstFragment: #F3
       documentationComment: /// Comment 1\n/// Comment 2
       metadata
-        Annotation
-          atSign: @ @91
-          expression: ConstructorInvocation
-            constructorReference: ConstructorReference2
-              typeReference: ConstructorTypeReference
-                name: Annotation @92
-                element: <testLibrary>::@class::Annotation
-                type: Annotation
-              selector: ConstructorSelector
-                period: . @102
-                name2: named @103
-              element: <testLibrary>::@class::Annotation::@constructor::named
-            argumentList: ArgumentList
-              leftParenthesis: ( @108
-              rightParenthesis: ) @109
-            staticType: Annotation
-          name: PrefixedIdentifier
-            prefix: SimpleIdentifier
-              token: Annotation @92
-              element: <testLibrary>::@class::Annotation
-              staticType: null
-            period: . @102
-            identifier: SimpleIdentifier
-              token: named @103
-              element: <testLibrary>::@class::Annotation::@constructor::named
-              staticType: null
-            element: <testLibrary>::@class::Annotation::@constructor::named
-            staticType: null
-          arguments: ArgumentList
-            leftParenthesis: ( @108
-            rightParenthesis: ) @109
-          element: <testLibrary>::@class::Annotation::@constructor::named
+        annotation_1
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::BeforeMetaNamed::@constructor::new
@@ -1219,27 +1168,7 @@ library
       firstFragment: #F5
       documentationComment: /// Comment 1\n/// Comment 2
       metadata
-        Annotation
-          atSign: @ @137
-          expression: ConstructorInvocation
-            constructorReference: ConstructorReference2
-              typeReference: ConstructorTypeReference
-                name: Annotation @138
-                element: <testLibrary>::@class::Annotation
-                type: Annotation
-              element: <testLibrary>::@class::Annotation::@constructor::new
-            argumentList: ArgumentList
-              leftParenthesis: ( @148
-              rightParenthesis: ) @149
-            staticType: Annotation
-          name: SimpleIdentifier
-            token: Annotation @138
-            element: <testLibrary>::@class::Annotation
-            staticType: null
-          arguments: ArgumentList
-            leftParenthesis: ( @148
-            rightParenthesis: ) @149
-          element: <testLibrary>::@class::Annotation::@constructor::new
+        annotation_2
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::AfterMeta::@constructor::new
@@ -1249,27 +1178,7 @@ library
       firstFragment: #F7
       documentationComment: /// Comment 2
       metadata
-        Annotation
-          atSign: @ @213
-          expression: ConstructorInvocation
-            constructorReference: ConstructorReference2
-              typeReference: ConstructorTypeReference
-                name: Annotation @214
-                element: <testLibrary>::@class::Annotation
-                type: Annotation
-              element: <testLibrary>::@class::Annotation::@constructor::new
-            argumentList: ArgumentList
-              leftParenthesis: ( @224
-              rightParenthesis: ) @225
-            staticType: Annotation
-          name: SimpleIdentifier
-            token: Annotation @214
-            element: <testLibrary>::@class::Annotation
-            staticType: null
-          arguments: ArgumentList
-            leftParenthesis: ( @224
-            rightParenthesis: ) @225
-          element: <testLibrary>::@class::Annotation::@constructor::new
+        annotation_3
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::AroundMeta::@constructor::new
@@ -1279,27 +1188,7 @@ library
       firstFragment: #F9
       documentationComment: /// Doc comment.
       metadata
-        Annotation
-          atSign: @ @279
-          expression: ConstructorInvocation
-            constructorReference: ConstructorReference2
-              typeReference: ConstructorTypeReference
-                name: Annotation @280
-                element: <testLibrary>::@class::Annotation
-                type: Annotation
-              element: <testLibrary>::@class::Annotation::@constructor::new
-            argumentList: ArgumentList
-              leftParenthesis: ( @290
-              rightParenthesis: ) @291
-            staticType: Annotation
-          name: SimpleIdentifier
-            token: Annotation @280
-            element: <testLibrary>::@class::Annotation
-            staticType: null
-          arguments: ArgumentList
-            leftParenthesis: ( @290
-            rightParenthesis: ) @291
-          element: <testLibrary>::@class::Annotation::@constructor::new
+        annotation_4
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::DocBeforeMetaNotDocAfter::@constructor::new
@@ -10203,7 +10092,7 @@ library
             #F4 isComplete isConst isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:12)
               element: <testLibrary>::@class::A::@constructor::new
               metadata
-                Annotation
+                annotation_0: Annotation
                   atSign: @ @35
                   expression: ConstructorInvocation
                     constructorReference: ConstructorReference2
@@ -10254,33 +10143,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F4
           metadata
-            Annotation
-              atSign: @ @35
-              expression: ConstructorInvocation
-                constructorReference: ConstructorReference2
-                  typeReference: ConstructorTypeReference
-                    name: Deprecated @36
-                    element: dart:core::@class::Deprecated
-                    type: Deprecated
-                  element: dart:core::@class::Deprecated::@constructor::new
-                argumentList: ArgumentList
-                  leftParenthesis: ( @46
-                  arguments2
-                    SimpleStringLiteral
-                      literal: '0' @47
-                  rightParenthesis: ) @50
-                staticType: Deprecated
-              name: SimpleIdentifier
-                token: Deprecated @36
-                element: dart:core::@class::Deprecated
-                staticType: null
-              arguments: ArgumentList
-                leftParenthesis: ( @46
-                arguments
-                  SimpleStringLiteral
-                    literal: '0' @47
-                rightParenthesis: ) @50
-              element: dart:core::@class::Deprecated::@constructor::new
+            annotation_0
           constantInitializers
             ConstructorFieldInitializer
               fieldName2: x @61
@@ -10326,7 +10189,7 @@ library
             #F4 isComplete isConst isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:12)
               element: <testLibrary>::@class::A::@constructor::new
               metadata
-                Annotation
+                annotation_0: Annotation
                   atSign: @ @31
                   expression: UnqualifiedNameExpression
                     name: deprecated @32
@@ -10367,19 +10230,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F4
           metadata
-            Annotation
-              atSign: @ @31
-              expression: UnqualifiedNameExpression
-                name: deprecated @32
-                resolution: GetterInvocationResolution
-                  element: dart:core::@getter::deprecated
-                  type: Deprecated
-                staticType: Deprecated
-              name: SimpleIdentifier
-                token: deprecated @32
-                element: dart:core::@getter::deprecated
-                staticType: null
-              element: dart:core::@getter::deprecated
+            annotation_0
           formalParameters
             #E0 requiredPositional isDeclaring isFinal this.x
               firstFragment: #F5
@@ -11603,7 +11454,7 @@ library
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
                   documentationComment: /// first\n/// second
                   metadata
-                    Annotation
+                    annotation_0: Annotation
                       atSign: @ @36
                       expression: UnqualifiedNameExpression
                         name: deprecated @37
@@ -11630,7 +11481,7 @@ library
           firstFragment: #F2
           documentationComment: /// first\n/// second
           metadata
-            Annotation
+            annotation_1: Annotation
               atSign: @ @36
               expression: UnqualifiedNameExpression
                 name: deprecated @37
@@ -11656,19 +11507,7 @@ library
               type: int Function()
               documentationComment: /// first\n/// second
               metadata
-                Annotation
-                  atSign: @ @36
-                  expression: UnqualifiedNameExpression
-                    name: deprecated @37
-                    resolution: GetterInvocationResolution
-                      element: dart:core::@getter::deprecated
-                      type: Deprecated
-                    staticType: Deprecated
-                  name: SimpleIdentifier
-                    token: deprecated @37
-                    element: dart:core::@getter::deprecated
-                    staticType: null
-                  element: dart:core::@getter::deprecated
+                annotation_0
               field: <testLibrary>::@class::A::@field::foo
       getters
         isOriginVariable foo
@@ -11867,7 +11706,7 @@ library
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
                   documentationComment: /// first\n/// second
                   metadata
-                    Annotation
+                    annotation_0: Annotation
                       atSign: @ @36
                       expression: UnqualifiedNameExpression
                         name: deprecated @37
@@ -11894,7 +11733,7 @@ library
           firstFragment: #F2
           documentationComment: /// first\n/// second
           metadata
-            Annotation
+            annotation_1: Annotation
               atSign: @ @36
               expression: UnqualifiedNameExpression
                 name: deprecated @37
@@ -11920,19 +11759,7 @@ library
               type: int
               documentationComment: /// first\n/// second
               metadata
-                Annotation
-                  atSign: @ @36
-                  expression: UnqualifiedNameExpression
-                    name: deprecated @37
-                    resolution: GetterInvocationResolution
-                      element: dart:core::@getter::deprecated
-                      type: Deprecated
-                    staticType: Deprecated
-                  name: SimpleIdentifier
-                    token: deprecated @37
-                    element: dart:core::@getter::deprecated
-                    staticType: null
-                  element: dart:core::@getter::deprecated
+                annotation_0
               field: <testLibrary>::@class::A::@field::foo
       getters
         isOriginVariable foo
@@ -13213,7 +13040,7 @@ library
             #F2 T (nameOffset:29) (firstTokenOffset:24) (offset:29)
               element: #E0 T
               metadata
-                Annotation
+                annotation_0: Annotation
                   atSign: @ @24
                   expression: UnqualifiedNameExpression
                     name: foo @25
@@ -13244,7 +13071,7 @@ library
                 #F6 optionalPositional isOriginDeclaration x (nameOffset:42) (firstTokenOffset:33) (offset:42)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
                   metadata
-                    Annotation
+                    annotation_1: Annotation
                       atSign: @ @33
                       expression: UnqualifiedNameExpression
                         name: foo @34
@@ -13293,19 +13120,7 @@ library
         #E0 T
           firstFragment: #F2
           metadata
-            Annotation
-              atSign: @ @24
-              expression: UnqualifiedNameExpression
-                name: foo @25
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@getter::foo
-                  type: int
-                staticType: int
-              name: SimpleIdentifier
-                token: foo @25
-                element: <testLibrary>::@getter::foo
-                staticType: null
-              element: <testLibrary>::@getter::foo
+            annotation_0
       fields
         hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer foo
           reference: <testLibrary>::@class::A::@field::foo
@@ -13322,19 +13137,7 @@ library
               firstFragment: #F6
               type: int
               metadata
-                Annotation
-                  atSign: @ @33
-                  expression: UnqualifiedNameExpression
-                    name: foo @34
-                    resolution: GetterInvocationResolution
-                      element: <testLibrary>::@class::A::@getter::foo
-                      type: int
-                    staticType: int
-                  name: SimpleIdentifier
-                    token: foo @34
-                    element: <testLibrary>::@class::A::@getter::foo
-                    staticType: null
-                  element: <testLibrary>::@class::A::@getter::foo
+                annotation_1
               constantInitializer2: expression_1
               constantInitializer: expression_2
       getters
