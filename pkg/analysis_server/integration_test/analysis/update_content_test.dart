@@ -69,9 +69,7 @@ void f() {
 }
 ''');
     await standardAnalysisSetup();
-    await analysisFinished;
-    expect(currentAnalysisErrors[pathname], isList);
-    var errors1 = existingErrorsForFile(pathname);
+    var errors1 = await waitForFileErrors(pathname);
     expect(errors1, hasLength(1));
     expect(errors1[0].location.file, equals(pathname));
 
@@ -90,9 +88,7 @@ void f() {
 }
 '''),
     });
-    await analysisFinished;
-    expect(currentAnalysisErrors[pathname], isList);
-    var errors2 = existingErrorsForFile(pathname);
+    var errors2 = await waitForFileErrors(pathname);
     expect(errors2, hasLength(1));
     expect(errors2[0].location.file, equals(pathname));
   }
