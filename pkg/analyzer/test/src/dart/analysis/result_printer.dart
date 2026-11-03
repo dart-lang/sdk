@@ -80,7 +80,7 @@ class BundleRequirementsPrinter extends ManifestPrinter {
             var idStr = idProvider.manifestId(id);
             sink.writelnWithIndent('libraryMetadataId: $idStr');
           }
-          _writeExportMap(libraryRequirements);
+          _writeExportMap(requirements, libraryUri, libraryRequirements);
           _writeLibraryDeclaredItems(libraryRequirements);
           _writeInstanceItems(libraryRequirements);
           _writeInterfaceItems(libraryRequirements);
@@ -123,12 +123,27 @@ class BundleRequirementsPrinter extends ManifestPrinter {
     }
   }
 
-  void _writeExportMap(LibraryRequirements requirements) {
+  void _writeExportMap(
+    RequirementsManifest manifest,
+    Uri libraryUri,
+    LibraryRequirements requirements,
+  ) {
     _writelnIdField('exportMapId', requirements.exportMapId);
+
+    // Print the implied not exported names as `null`, as before.
+    var exportMap = {...requirements.exportMap};
+    for (var requirement in manifest.notExportedNames) {
+      if (requirement.libraryUris.contains(libraryUri)) {
+        for (var id in requirement.names) {
+          exportMap.putIfAbsent(id.asLookupName, () => null);
+          exportMap.putIfAbsent('$id='.asLookupName, () => null);
+        }
+      }
+    }
 
     sink.writeElements(
       'exportMap',
-      requirements.exportMap.sorted,
+      exportMap.sorted,
       _writelnIdLookupNameEntry,
     );
 
