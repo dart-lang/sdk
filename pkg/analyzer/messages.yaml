@@ -28059,8 +28059,9 @@ WarningCode:
       #### Description
 
       The analyzer produces this diagnostic when an export directive is found
-      that is the same as an export before it in the file. The second export
-      doesn't add value and should be removed.
+      that is the same as an export before it in the file, or in an enclosing
+      file in the part hierarchy. The second export doesn't add value and should
+      be removed.
 
       #### Example
 
@@ -28079,6 +28080,16 @@ WarningCode:
       ```dart
       export 'package:meta/meta.dart';
       ```
+  duplicateExportInPart:
+    type: staticWarning
+    parameters:
+      String fileName: the name of the file containing the duplicated export
+    sharedName: duplicateExport
+    problemMessage: "Duplicate of export in '#fileName'."
+    correctionMessage: Try removing all but one export of the library.
+    hasPublishedDocs: true
+    comment: |-
+      Duplicate exports.
   duplicateHiddenName:
     type: staticWarning
     parameters: none

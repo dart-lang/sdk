@@ -2110,6 +2110,64 @@ sealed class ElementDirectiveImpl implements ElementDirective {
   String toString() {
     return displayString();
   }
+
+  /// Returns `true` if the non-URI components of the two directives are
+  /// identical.
+  ///
+  /// Note: Configurations are not checked.
+  ///
+  /// URIs should be checked outside to see if they resolve to the same absolute
+  /// URI, so to the same library, regardless of the used syntax (absolute,
+  /// relative, not normalized).
+  static bool areIdenticalExceptUri(
+    ElementDirectiveImpl directive1,
+    ElementDirectiveImpl directive2,
+  ) {
+    List<NamespaceCombinator> combinators1;
+    List<NamespaceCombinator> combinators2;
+    if (directive1 is LibraryImportImpl && directive2 is LibraryImportImpl) {
+      if (directive1.prefix?.name != directive2.prefix?.name) {
+        return false;
+      }
+      combinators1 = directive1.combinators;
+      combinators2 = directive2.combinators;
+    } else if (directive1 is LibraryExportImpl &&
+        directive2 is LibraryExportImpl) {
+      combinators1 = directive1.combinators;
+      combinators2 = directive2.combinators;
+    } else {
+      return false;
+    }
+
+    if (combinators1.length != combinators2.length) {
+      return false;
+    }
+    for (var i = 0; i < combinators1.length; i++) {
+      var combinator1 = combinators1[i];
+      var combinator2 = combinators2[i];
+      if (combinator1 is HideElementCombinator &&
+          combinator2 is HideElementCombinator) {
+        if (!const ListEquality<String>().equals(
+          combinator1.hiddenNames,
+          combinator2.hiddenNames,
+        )) {
+          return false;
+        }
+      } else if (combinator1 is ShowElementCombinator &&
+          combinator2 is ShowElementCombinator) {
+        if (!const ListEquality<String>().equals(
+          combinator1.shownNames,
+          combinator2.shownNames,
+        )) {
+          return false;
+        }
+      } else {
+        return false;
+      }
+    }
+
+    return true;
+  }
 }
 
 @elementClass

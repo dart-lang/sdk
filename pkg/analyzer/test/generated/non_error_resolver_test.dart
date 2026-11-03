@@ -80,9 +80,10 @@ class N {}
     await resolveTestCodeWithDiagnostics(r'''
 library L;
 export 'lib.dart';
+// [context 1][column 1][length 6] The previous export that is being duplicated.
 export 'lib.dart';
 //     ^^^^^^^^^^
-// [diag.duplicateExport] Duplicate export.
+// [diag.duplicateExport][context 1] Duplicate export.
 ''');
   }
 

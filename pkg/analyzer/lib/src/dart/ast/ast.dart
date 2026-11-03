@@ -32173,62 +32173,6 @@ final class ImportDirectiveImpl extends NamespaceDirectiveImpl
     }
     return null;
   }
-
-  /// Returns `true` if the non-URI components of the two directives are
-  /// syntactically identical.
-  ///
-  /// URIs are checked outside to see if they resolve to the same absolute URI,
-  /// so to the same library, regardless of the used syntax (absolute, relative,
-  /// not normalized).
-  static bool areSyntacticallyIdenticalExceptUri(
-    NamespaceDirective node1,
-    NamespaceDirective node2,
-  ) {
-    if (node1 is ImportDirective &&
-        node2 is ImportDirective &&
-        node1.prefixName?.lexeme != node2.prefixName?.lexeme) {
-      return false;
-    }
-
-    bool areSameNames(
-      List<CombinatorName> names1,
-      List<CombinatorName> names2,
-    ) {
-      if (names1.length != names2.length) {
-        return false;
-      }
-      for (var i = 0; i < names1.length; i++) {
-        if (names1[i].name.lexeme != names2[i].name.lexeme) {
-          return false;
-        }
-      }
-      return true;
-    }
-
-    var combinators1 = node1.combinators;
-    var combinators2 = node2.combinators;
-    if (combinators1.length != combinators2.length) {
-      return false;
-    }
-    for (var i = 0; i < combinators1.length; i++) {
-      var combinator1 = combinators1[i];
-      var combinator2 = combinators2[i];
-      if (combinator1 is HideCombinator && combinator2 is HideCombinator) {
-        if (!areSameNames(combinator1.names, combinator2.names)) {
-          return false;
-        }
-      } else if (combinator1 is ShowCombinator &&
-          combinator2 is ShowCombinator) {
-        if (!areSameNames(combinator1.names, combinator2.names)) {
-          return false;
-        }
-      } else {
-        return false;
-      }
-    }
-
-    return true;
-  }
 }
 
 /// An assignment target selected through an import prefix.
