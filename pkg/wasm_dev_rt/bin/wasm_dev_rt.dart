@@ -75,3 +75,7 @@ WasmVoid endInstanceMemberDefinitions(WasmI32 classId) {
 @pragma('wasm:export', 'findTarget')
 WasmFuncRef findTarget(WasmI32 classId, WasmI32 instanceMemberId) =>
     rt.findTarget(classId.toIntSigned(), instanceMemberId.toIntSigned());
+
+@pragma('wasm:export', 'defaultValueSentinel')
+WasmEqRef defaultValueSentinel(WasmEqRef sentinel) =>
+    rt.defaultValueSentinel(sentinel);

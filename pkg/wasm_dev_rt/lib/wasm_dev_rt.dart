@@ -208,3 +208,20 @@ final class FunctionInfo {
 
   FunctionInfo(this.ref);
 }
+
+/// Returns the sentinel callers pass for omitted optional parameters.
+///
+/// Every module calls this on startup with its own [sentinel] and gets the
+/// first module's, so callees in any module can recognize it with `ref.eq`.
+// TODO(dart2wasm): Move to an SDK module after dart:core is compiled.
+WasmEqRef defaultValueSentinel(WasmEqRef sentinel) =>
+    (_defaultValueSentinel ??= EqRefInfo(sentinel)).ref;
+
+EqRefInfo? _defaultValueSentinel;
+
+/// Wraps a [WasmEqRef], which dart2wasm can't null-check.
+final class EqRefInfo {
+  final WasmEqRef ref;
+
+  EqRefInfo(this.ref);
+}

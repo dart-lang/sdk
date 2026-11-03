@@ -27,6 +27,15 @@ import 'runtime.dart';
 
 const w.ValueType _jsString = w.RefType.extern(nullable: false);
 
+/// Maps a boxed Wasm type to its boxed class's label.
+// TODO(dart2wasm): Remove once dart:core is compiled.
+final Map<w.ValueType, String> _boxLabels = {
+  w.NumType.i64: 'dart:_boxed_int::BoxedInt',
+  w.NumType.f64: 'dart:_boxed_double::BoxedDouble',
+  w.NumType.i32: 'dart:_boxed_bool::BoxedBool',
+  _jsString: 'dart:_string::JSStringImpl',
+};
+
 /// Compiles a Dart file into a Wasm dev module.
 ///
 /// It assumes that either
@@ -90,6 +99,43 @@ class ModuleCompiler {
     brand: false,
   );
 
+  /// The Wasm type of parameters and return types.
+  late final w.RefType topType = w.RefType.def(objectStruct, nullable: true);
+
+  /// The Wasm type of `this` in instance members and constructors.
+  late final w.RefType receiverType = w.RefType.def(
+    objectStruct,
+    nullable: false,
+  );
+
+  static const int sentinelClassId = -1;
+
+  /// A placeholder for omitted optional parameters.
+  ///
+  /// Replaced on startup with the runtime's shared defaultValueSentinel.
+  // TODO(dart2wasm): Replace with a shared object once dart:core is compiled.
+  late final w.Global defaultValueSentinel = () {
+    final type = w.RefType.def(objectStruct, nullable: false);
+    final globalBuilder = module.globals.define(
+      w.GlobalType(type, mutable: true),
+      'defaultValueSentinel',
+    );
+    globalBuilder.initializer
+      ..i32_const(sentinelClassId)
+      ..struct_new(objectStruct)
+      ..end();
+    final global = globalBuilder.build();
+    _start
+      ..global_get(global)
+      ..call(runtime.defaultValueSentinel)
+      ..ref_cast(type)
+      ..global_set(global);
+    return global;
+  }();
+
+  /// Maps a boxed Wasm type to its box struct.
+  final Map<w.ValueType, w.StructType> _boxStructs = {};
+
   /// Maps a static's label to the global holding its ID.
   final Map<String, w.Global> _staticIds = {};
 
@@ -132,9 +178,17 @@ class ModuleCompiler {
     if (procedure.isInstanceMember) {
       defineInstanceMember(procedure, function);
     } else {
-      if (isMain) module.exports.export('main', function);
+      if (isMain) _exportMain(function);
       defineStatic(memberLabel(procedure), function);
     }
+  }
+
+  // TODO(dart2wasm): Remove once dart:core is compiled.
+  void _exportMain(w.BaseFunction main) {
+    if (main.type.inputs.isNotEmpty) {
+      throw UnimplementedError('Unsupported parameters in main');
+    }
+    module.exports.export('main', main);
   }
 
   /// Compiles [constructor] as a static that takes the new object.
@@ -172,34 +226,62 @@ class ModuleCompiler {
     // TODO(dart2wasm): Lower String to a Dart object (Wasm struct).
     StringType() => _jsString,
     NullType() || NeverType() => const w.RefType.none(nullable: true),
-    StaticType(dartType: ast.InterfaceType()) => w.RefType.def(
-      objectStruct,
-      nullable: type.isNullable,
-    ),
+    TopType() || ObjectType() || StaticType(dartType: ast.InterfaceType()) =>
+      w.RefType.def(objectStruct, nullable: type.isNullable),
     _ => throw UnimplementedError('Unsupported type: $type'),
   };
 
+  /// Returns [cFunction]'s Wasm type.
   w.FunctionType functionTypeFor(CFunction cFunction) {
     final functionNode = cFunction.functionNode!;
-    // TODO(dart2wasm): Support optional, named, and type parameters.
-    if (functionNode.requiredParameterCount !=
-            functionNode.positionalParameters.length ||
-        functionNode.namedParameters.isNotEmpty ||
-        functionNode.typeParameters.isNotEmpty) {
-      throw UnimplementedError('Unsupported parameters in ${cFunction.member}');
+    // TODO(dart2wasm): Support type parameters.
+    if (functionNode.typeParameters.isNotEmpty) {
+      throw UnimplementedError(
+        'Unsupported type parameters in ${cFunction.member}',
+      );
     }
-    final inputs = <w.ValueType>[
-      if (cFunction.hasReceiverParameter)
-        w.RefType.def(objectStruct, nullable: false),
-      for (final param in functionNode.positionalParameters)
-        translateType(CType.fromStaticType(param.type)),
-    ];
-    final returnType = cFunction.returnType;
-    final outputs =
-        (returnType.dartType is ast.VoidType || returnType is NeverType)
-        ? const <w.ValueType>[]
-        : <w.ValueType>[translateType(returnType)];
-    return module.types.defineFunction(inputs, outputs);
+    final parameterCount =
+        functionNode.positionalParameters.length +
+        functionNode.namedParameters.length;
+    return module.types.defineFunction(
+      [
+        if (cFunction.hasReceiverParameter) receiverType,
+        for (var i = 0; i < parameterCount; i++) topType,
+      ],
+      [topType],
+    );
+  }
+
+  /// Converts the value on the stack from [from] to [to].
+  ///
+  /// ints, doubles, bools, and strings are boxed/unboxed if needed.
+  void convertType(w.InstructionsBuilder b, w.ValueType from, w.ValueType to) {
+    if (from.isSubtypeOf(to)) return;
+    final nonNullFrom = from.withNullability(false);
+    final nonNullTo = to.withNullability(false);
+    final fromIsUnboxed = _boxLabels.containsKey(nonNullFrom);
+    final toIsUnboxed = _boxLabels.containsKey(nonNullTo);
+    final onlyNullabilityDiffers = !to.nullable && nonNullFrom.isSubtypeOf(to);
+    switch ((fromIsUnboxed, toIsUnboxed)) {
+      case (true, true):
+        if (!onlyNullabilityDiffers) {
+          throw UnimplementedError(
+            'Unsupported type conversion from $from to $to',
+          );
+        }
+        b.ref_as_non_null();
+      case (true, false):
+        if (from.nullable) b.ref_as_non_null();
+        _box(b, nonNullFrom);
+      case (false, true):
+        _unbox(b, nonNullTo);
+      case (false, false):
+        if (onlyNullabilityDiffers) {
+          b.ref_as_non_null();
+        } else {
+          b.ref_cast(to as w.RefType);
+        }
+    }
   }
 
   /// Defines static [label] as [function] in the runtime.
@@ -286,6 +368,31 @@ class ModuleCompiler {
     module.elements.declarativeSegmentBuilder.declare(function);
     return function;
   }
+
+  /// Boxes the [type] value on the stack.
+  void _box(w.InstructionsBuilder b, w.ValueType type) {
+    final value = b.addLocal(type);
+    b.local_set(value);
+    b.global_get(_classId(_boxLabels[type]!));
+    b.local_get(value);
+    b.struct_new(_boxStructFor(type));
+  }
+
+  /// Unboxes the [type] value from the box on the stack.
+  void _unbox(w.InstructionsBuilder b, w.ValueType type) {
+    final struct = _boxStructFor(type);
+    b.ref_cast(w.RefType.def(struct, nullable: false));
+    b.struct_get(struct, 1);
+  }
+
+  /// Returns [type]'s box struct.
+  w.StructType _boxStructFor(w.ValueType type) =>
+      _boxStructs[type] ??= module.types.defineStruct(
+        _boxLabels[type]!.split('::').last,
+        fields: [objectStruct.fields.single, w.FieldType(type, mutable: false)],
+        superType: objectStruct,
+        brand: false,
+      );
 
   /// Returns the global holding static [label]'s ID.
   w.Global _staticId(String label) => _id(_staticIds, label, runtime.staticId);
