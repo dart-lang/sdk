@@ -531,6 +531,37 @@ workspaces
     );
   }
 
+  void test_contextRoots_excludedByPaths_file() {
+    var rootFolder = newFolder('/home/test');
+    newPackageConfigJsonFile(rootFolder.path, '');
+    newFile('/home/test/lib/a.dart', '');
+    var bFile = newFile('/home/test/lib/b.dart', '');
+
+    _assertContextRootsText(
+      included: [rootFolder],
+      excluded: [bFile],
+      expected: r'''
+contexts
+  /home/test
+    includedPaths
+      /home/test
+    excludedPaths
+      /home/test/lib/b.dart
+    packagesFile: /home/test/.dart_tool/package_config.json
+    workspace: workspace_0
+    analyzedFiles
+      /home/test/lib/a.dart
+        workspacePackage_0_0
+workspaces
+  workspace_0: PackageConfigWorkspace
+    root: /home/test
+    pubPackages
+      workspacePackage_0_0: BasicWorkspacePackage
+        root: /home/test
+''',
+    );
+  }
+
   void test_contextRoots_excludedByPaths_folder() {
     var rootFolder = newFolder('/home/test');
     newPackageConfigJsonFile(rootFolder.path, '');
@@ -715,6 +746,111 @@ workspaces
       included: [rootFolder],
       excluded: [rootFolder],
       expected: '',
+    );
+  }
+
+  void test_contextRoots_excludedByPaths_notExisting() {
+    var rootFolder = newFolder('/home/test');
+    newPackageConfigJsonFile(rootFolder.path, '');
+    newFile('/home/test/lib/a.dart', '');
+
+    _assertContextRootsText(
+      included: [rootFolder],
+      excluded: [getFolder('/home/test/build')],
+      expected: r'''
+contexts
+  /home/test
+    includedPaths
+      /home/test
+    excludedPaths
+      /home/test/build
+    packagesFile: /home/test/.dart_tool/package_config.json
+    workspace: workspace_0
+    analyzedFiles
+      /home/test/lib/a.dart
+        workspacePackage_0_0
+workspaces
+  workspace_0: PackageConfigWorkspace
+    root: /home/test
+    pubPackages
+      workspacePackage_0_0: BasicWorkspacePackage
+        root: /home/test
+''',
+    );
+  }
+
+  void test_contextRoots_excludedByPaths_notExisting_inNestedPackage() {
+    var rootFolder = newFolder('/home/test');
+    newPackageConfigJsonFile(rootFolder.path, '');
+    newFile('/home/test/lib/a.dart', '');
+    newPackageConfigJsonFile('/home/test/inner', '');
+    newFile('/home/test/inner/lib/b.dart', '');
+
+    _assertContextRootsText(
+      included: [rootFolder],
+      excluded: [getFolder('/home/test/inner/build')],
+      expected: r'''
+contexts
+  /home/test
+    includedPaths
+      /home/test
+    excludedPaths
+      /home/test/inner
+    packagesFile: /home/test/.dart_tool/package_config.json
+    workspace: workspace_0
+    analyzedFiles
+      /home/test/lib/a.dart
+        workspacePackage_0_0
+  /home/test/inner
+    includedPaths
+      /home/test/inner
+    excludedPaths
+      /home/test/inner/build
+    packagesFile: /home/test/inner/.dart_tool/package_config.json
+    workspace: workspace_1
+    analyzedFiles
+      /home/test/inner/lib/b.dart
+        workspacePackage_1_0
+workspaces
+  workspace_0: PackageConfigWorkspace
+    root: /home/test
+    pubPackages
+      workspacePackage_0_0: BasicWorkspacePackage
+        root: /home/test
+  workspace_1: PackageConfigWorkspace
+    root: /home/test/inner
+    pubPackages
+      workspacePackage_1_0: BasicWorkspacePackage
+        root: /home/test/inner
+''',
+    );
+  }
+
+  void test_contextRoots_excludedByPaths_notExisting_notIncluded() {
+    var rootFolder = newFolder('/home/test');
+    newPackageConfigJsonFile(rootFolder.path, '');
+    newFile('/home/test/lib/a.dart', '');
+
+    _assertContextRootsText(
+      included: [rootFolder],
+      excluded: [getFolder('/home/other/build')],
+      expected: r'''
+contexts
+  /home/test
+    includedPaths
+      /home/test
+    packagesFile: /home/test/.dart_tool/package_config.json
+    workspace: workspace_0
+    analyzedFiles
+      /home/test/lib/a.dart
+        workspacePackage_0_0
+workspaces
+  workspace_0: PackageConfigWorkspace
+    root: /home/test
+    pubPackages
+      workspacePackage_0_0: BasicWorkspacePackage
+        root: /home/test
+''',
     );
   }
 
