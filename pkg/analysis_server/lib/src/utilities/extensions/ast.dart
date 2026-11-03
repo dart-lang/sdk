@@ -16,6 +16,19 @@ import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 
+/// Returns the names referenced without a prefix, and the names of the
+/// variables declared, in the [Block] enclosing [node].
+Set<String> _namesReferencedInEnclosingBlock(AstNode node) {
+  var enclosingBlock = node.thisOrAncestorOfType<Block>();
+  if (enclosingBlock == null) {
+    return {};
+  }
+
+  var visitor = _ReferencedUnprefixedNamesCollector();
+  enclosingBlock.accept(visitor);
+  return visitor.names;
+}
+
 class ThrowStatement {
   final ExpressionStatement statement;
   final ThrowExpression expression;
@@ -225,6 +238,28 @@ extension AstNodeExtension on AstNode {
     }
     return element;
   }
+
+  /// Returns a predicate that tells whether a new local variable with a given
+  /// name, declared in the scope of this node, would conflict with existing
+  /// code.
+  ///
+  /// The name conflicts if it is the name of a local variable, parameter, or
+  /// local function in scope here, including one declared later in the same
+  /// block. It also conflicts if it is referenced without a prefix in the
+  /// enclosing block, because the new variable would capture the reference.
+  bool Function(String name) nameConflictPredicateForNewLocal() {
+    var scope = enclosingNameScope;
+    var referencedNames = _namesReferencedInEnclosingBlock(this);
+    return (name) {
+      if (referencedNames.contains(name)) {
+        return true;
+      }
+      var element = scope?.lookup(name).getter;
+      return element is LocalVariableElement ||
+          element is FormalParameterElement ||
+          element is LocalFunctionElement;
+    };
+  }
 }
 
 extension BinaryExpressionExtension on BinaryExpression {
@@ -283,14 +318,7 @@ extension CompilationUnitExtension on CompilationUnit {
   /// declared at [offset].
   Set<String> findPossibleLocalVariableConflicts(int offset) {
     var enclosingNode = nodeCovering(offset: offset)!;
-    var enclosingBlock = enclosingNode.thisOrAncestorOfType<Block>();
-    if (enclosingBlock == null) {
-      return {};
-    }
-
-    var visitor = _ReferencedUnprefixedNamesCollector();
-    enclosingBlock.accept(visitor);
-    return visitor.names;
+    return _namesReferencedInEnclosingBlock(enclosingNode);
   }
 }
 

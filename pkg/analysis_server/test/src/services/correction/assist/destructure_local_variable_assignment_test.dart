@@ -144,6 +144,37 @@ m(c) {
 ''');
   }
 
+  Future<void> test_object_referenced_nameConflict_atReference() async {
+    await resolveTestCode('''
+class A {
+  String get a => '';
+}
+
+A f() => A();
+
+m() {
+  var ^obj = f();
+  [0].forEach((a) {
+    print(obj.a);
+  });
+}
+''');
+    await assertHasAssist(r'''
+class A {
+  String get a => '';
+}
+
+A f() => A();
+
+m() {
+  var A(a: a2) = f();
+  [0].forEach((a) {
+    print(a2);
+  });
+}
+''');
+  }
+
   Future<void> test_object_referenced_noAssist() async {
     await resolveTestCode('''
 class A { }
@@ -201,6 +232,48 @@ m(int n) {
     assertLinkedGroup(0, [
       'n2',
     ], expectedSuggestions(LinkedEditSuggestionKind.VARIABLE, ['n2', '_']));
+  }
+
+  Future<void> test_namedFields_nameConflict_laterDeclaration() async {
+    await resolveTestCode('''
+({int n, String s}) f() => (n: 1, s: '');
+
+m() {
+  var ^rec = f();
+  var (n, _) = (0, 0);
+}
+''');
+    await assertHasAssist(r'''
+({int n, String s}) f() => (n: 1, s: '');
+
+m() {
+  var (n: n2, :s) = f();
+  var (n, _) = (0, 0);
+}
+''');
+  }
+
+  Future<void> test_namedFields_nameConflict_referenced() async {
+    await resolveTestCode('''
+({int n, String s}) f() => (n: 1, s: '');
+
+int get n => 0;
+
+m() {
+  var ^rec = f();
+  print(n);
+}
+''');
+    await assertHasAssist(r'''
+({int n, String s}) f() => (n: 1, s: '');
+
+int get n => 0;
+
+m() {
+  var (n: n2, :s) = f();
+  print(n);
+}
+''');
   }
 
   Future<void> test_positionalAndNamedFields() async {
