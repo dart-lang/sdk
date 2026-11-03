@@ -27,6 +27,9 @@ part of "dart:async";
 ///
 /// See also:
 /// * [Stopwatch] for measuring elapsed time.
+///
+/// Timers cannot be sent to other isolates unless they are constants
+/// (see `SendPort.send` in `dart:isolate`).
 @vmIsolateUnsendable
 abstract interface class Timer {
   /// Creates a new timer.

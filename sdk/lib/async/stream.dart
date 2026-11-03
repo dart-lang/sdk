@@ -133,6 +133,9 @@ typedef _TimerCallback = void Function();
 /// A broadcast stream inheriting from [Stream] must override [isBroadcast]
 /// to return `true` if it wants to signal that it behaves like a broadcast
 /// stream.
+///
+/// Streams cannot be sent to other isolates unless they are constants
+/// (see `SendPort.send` in `dart:isolate`).
 @vmIsolateUnsendable
 abstract mixin class Stream<T> {
   const Stream();
