@@ -16,7 +16,6 @@ void main() {
 
 @reflectiveTest
 class GetStatementCompletionTest extends AbstractAnalysisServerIntegrationTest {
-  @TestTimeout(Timeout.factor(2))
   Future<void> test_statement_completion() async {
     var pathname = sourcePath('test.dart');
     var text = r'''
@@ -25,8 +24,7 @@ void foo() { }''';
     writeFile(pathname, text);
     await standardAnalysisSetup();
 
-    await analysisFinished;
-    expect(currentAnalysisErrors[pathname], isNotEmpty);
+    expect(await waitForFileErrors(pathname), isNotEmpty);
 
     // expect a statement completion result
     var result = await sendEditGetStatementCompletion(
@@ -46,9 +44,11 @@ void bar() { foo(); } // missing semi-colon
 
 void foo() { }''');
 
+    // Clear the cached errors so `waitForFileErrors` waits for the next ones.
+    currentAnalysisErrors.remove(pathname);
+
     await sendAnalysisUpdateContent({pathname: AddContentOverlay(text)});
 
-    await analysisFinished;
-    expect(currentAnalysisErrors[pathname], isEmpty);
+    expect(await waitForFileErrors(pathname), isEmpty);
   }
 }

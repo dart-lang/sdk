@@ -22,7 +22,6 @@ import '../summary/resolved_ast_printer.dart';
 class ParserDiagnosticsTest {
   FeatureSet get testFeatureSet => FeatureSets.latestWithExperiments;
 
-  // TODO(scheglov): Enable [withCheckingLinking] everywhere.
   void assertParsedNodeText(
     AstNode node,
     String expected, {

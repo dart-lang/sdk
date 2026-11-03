@@ -293,8 +293,6 @@ config("dart_config") {
       "-Wvla",
       "-Woverloaded-virtual",
       "-Wno-comments",  # Conflicts with clang-format.
-      "-g3",
-      "-ggdb3",
       "-fno-rtti",
       "-fno-exceptions",
     ]

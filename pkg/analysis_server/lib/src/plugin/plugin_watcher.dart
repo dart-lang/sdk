@@ -56,6 +56,18 @@ class PluginWatcher implements DriverWatcher {
 
   final PluginTrust _pluginTrust;
 
+  /// Returns the paths explicitly requested for analysis (for example, the
+  /// target directories passed to `dart analyze <dir>`).
+  ///
+  /// When persisting trust ([_trust], [_alwaysTrust], or [_neverTrust]), only
+  /// plugins configured in these exact directories have their trust state
+  /// updated; plugins configured in subdirectories or nested context roots are
+  /// not automatically trusted or untrusted.
+  ///
+  /// This is a callback because the analysis server's `ContextManager` is
+  /// populated with included paths after [PluginWatcher] is constructed.
+  final Iterable<String> Function()? _includedPaths;
+
   final void Function(String message)? _onUnseenUntrustedPluginDirectory;
 
   final Set<String> _notifiedUnseenDirectories = {};
@@ -69,6 +81,7 @@ class PluginWatcher implements DriverWatcher {
     this._alwaysTrust = false,
     this._neverTrust = false,
     PluginTrust? pluginTrust,
+    this._includedPaths,
     this._onUnseenUntrustedPluginDirectory,
   }) : _pluginTrust = pluginTrust ?? PluginTrust(resourceProvider),
        _locator = PluginLocator(resourceProvider);
@@ -386,6 +399,19 @@ class PluginWatcher implements DriverWatcher {
     return false;
   }
 
+  /// Returns whether [dirPath] is one of the target directories explicitly
+  /// being analyzed (or the driver's context root directory if no explicit
+  /// included paths were provided).
+  bool _isTargetDirectory(AnalysisDriver driver, String dirPath) {
+    var pathContext = resourceProvider.pathContext;
+    var includedPaths = _includedPaths?.call();
+    if (includedPaths != null && includedPaths.isNotEmpty) {
+      return includedPaths.any((p) => pathContext.equals(p, dirPath));
+    }
+    var contextRootPath = driver.analysisContext!.contextRoot.root.path;
+    return pathContext.equals(contextRootPath, dirPath);
+  }
+
   /// Resolves the root package folders for [configurations] on disk.
   Map<String, Folder> _locatePluginFolders(
     AnalysisDriver driver,
@@ -474,20 +500,27 @@ class PluginWatcher implements DriverWatcher {
   }
 
   void _persistContentTrust(AnalysisDriver driver) {
-    for (var hostPackageName in driver.enabledLegacyPluginNames) {
-      var resolved = _resolveLegacyPlugin(driver, hostPackageName);
-      if (resolved != null) {
-        _pluginTrust.setContentTrust(
-          hostPackageName,
-          PathPluginSource(path: resolved.packageRoot),
-          resourceProvider.getFolder(resolved.packageRoot),
-        );
+    var contextRoot = driver.analysisContext!.contextRoot;
+    var legacyOptionsDirPath =
+        contextRoot.optionsFile?.parent.path ?? contextRoot.root.path;
+    if (_isTargetDirectory(driver, legacyOptionsDirPath)) {
+      for (var hostPackageName in driver.enabledLegacyPluginNames) {
+        var resolved = _resolveLegacyPlugin(driver, hostPackageName);
+        if (resolved != null) {
+          _pluginTrust.setContentTrust(
+            hostPackageName,
+            PathPluginSource(path: resolved.packageRoot),
+            resourceProvider.getFolder(resolved.packageRoot),
+          );
+        }
       }
     }
 
     for (var options in _optionsForDriver(driver)) {
       var file = options.file;
-      if (file == null || options.pluginConfigurations.isEmpty) {
+      if (file == null ||
+          options.pluginConfigurations.isEmpty ||
+          !_isTargetDirectory(driver, file.parent.path)) {
         continue;
       }
       var folders = _locatePluginFolders(
@@ -508,20 +541,25 @@ class PluginWatcher implements DriverWatcher {
   }
 
   void _persistSourceTrust(AnalysisDriver driver, {required bool trusted}) {
-    for (var hostPackageName in driver.enabledLegacyPluginNames) {
-      var resolved = _resolveLegacyPlugin(driver, hostPackageName);
-      if (resolved != null) {
-        _pluginTrust.setSourceTrust(
-          hostPackageName,
-          PathPluginSource(path: resolved.packageRoot),
-          trusted: trusted,
-        );
+    var contextRoot = driver.analysisContext!.contextRoot;
+    var legacyOptionsDirPath =
+        contextRoot.optionsFile?.parent.path ?? contextRoot.root.path;
+    if (_isTargetDirectory(driver, legacyOptionsDirPath)) {
+      for (var hostPackageName in driver.enabledLegacyPluginNames) {
+        var resolved = _resolveLegacyPlugin(driver, hostPackageName);
+        if (resolved != null) {
+          _pluginTrust.setSourceTrust(
+            hostPackageName,
+            PathPluginSource(path: resolved.packageRoot),
+            trusted: trusted,
+          );
+        }
       }
     }
 
     for (var options in _optionsForDriver(driver)) {
       var file = options.file;
-      if (file == null) {
+      if (file == null || !_isTargetDirectory(driver, file.parent.path)) {
         continue;
       }
       for (var config in options.pluginConfigurations) {

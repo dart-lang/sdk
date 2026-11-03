@@ -269,6 +269,8 @@ final class FlowGraphChecker extends Pass implements InstructionVisitor<void> {
     assert(instr.block!.successors.length == 2);
     assert(instr.block!.successors[0] == tryBody);
     assert(instr.block!.successors[1] == catchBlock);
+    assert(tryBody.exceptionHandler == catchBlock);
+    assert(catchBlock.exceptionHandler == instr.block!.exceptionHandler);
   }
 
   @override

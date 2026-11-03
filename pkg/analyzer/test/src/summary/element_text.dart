@@ -164,6 +164,7 @@ abstract class _AbstractElementWriter {
       sink: _sink,
       elementPrinter: _elementPrinter,
       configuration: ResolvedNodeTextConfiguration()
+        ..withCheckingTokenStream = false
         // TODO(scheglov): https://github.com/dart-lang/sdk/issues/49101
         ..withParameterElements = false,
       withOffsets: true,

@@ -81,7 +81,8 @@ base class Client<BE extends DartRuntimeServiceBackend> {
   /// The logger to be used when handling requests from this client.
   Logger get logger => Logger(toString());
 
-  /// A [Future] that completes when [close] is invoked.
+  /// A [Future] that completes when the client disconnects and [cleanup]
+  /// finishes.
   late final Future<void> done;
 
   Future<void> initialize({required String namespace}) {
@@ -102,11 +103,12 @@ base class Client<BE extends DartRuntimeServiceBackend> {
   /// Returned future completes when the peer is closed.
   Future<void> _listen() => _clientPeer.listen();
 
-  /// Called if the connection to the client should be closed.
+  /// Closes the connection to the client and waits for [cleanup] to finish.
   @mustCallSuper
   Future<void> close() async {
     logger.info('Cleaning up.');
     await _clientPeer.close();
+    await done;
   }
 
   @protected

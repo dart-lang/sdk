@@ -4273,8 +4273,15 @@ class FlowModel {
   ///
   /// Preconditions:
   /// - [info] should be the result of calling [infoFor] on the reference.
-  /// - [promotedType] should be a subtype of the currently-promoted type (i.e.
-  ///   no redundant or side-promotions)
+  /// - [promotedType] should be a subtype of the reference's current type
+  ///   (i.e. no side-promotions), and if
+  ///   [TypeAnalyzerOptions.soundFlowAnalysisEnabled] is `true`, a strict
+  ///   subtype (i.e. no redundant promotions). For a variable, the current
+  ///   type is the last type in its promotion chain (if any). For a property,
+  ///   it is the type of the property get, which is the last type in the
+  ///   property's promotion chain if that type is a subtype of the property
+  ///   get's unpromoted type, and the unpromoted type otherwise (see
+  ///   [_filterPropertyPromotionChain]).
   /// - If the reference is a variable, it should not be write-captured.
   FlowModel _finishTypeTest(
     FlowModelHelper helper,
@@ -4290,8 +4297,24 @@ class FlowModel {
 
     List<SharedTypeView> newPromotedTypes = info.promotedTypes;
     if (promotedType != null) {
+      List<SharedTypeView> basePromotedTypes = info.promotedTypes;
+      if (reference is _PropertyReference &&
+          helper.typeAnalyzerOptions.promotionChainIntersectionJoinEnabled &&
+          basePromotedTypes.isNotEmpty &&
+          !helper.typeOperations.isSubtypeOf(
+            basePromotedTypes.last,
+            reference.unpromotedType,
+          )) {
+        // The last type in the promotion chain was ignored by the property
+        // get, so `promotedType` might not be related to it.
+        basePromotedTypes = _filterPropertyPromotionChain(
+          helper,
+          basePromotedTypes,
+          promotedType,
+        );
+      }
       newPromotedTypes = PromotionModel._addToPromotedTypes(
-        info.promotedTypes,
+        basePromotedTypes,
         promotedType,
       );
     }
@@ -4311,6 +4334,62 @@ class FlowModel {
               nonPromotionHistory: info.nonPromotionHistory,
             ),
           );
+  }
+
+  /// Prepares the promotion chain [promotedTypes] of a property for the
+  /// addition of [newType], by removing every type `T` such that [newType] is
+  /// not a strict subtype of `T`. The caller appends [newType] to the result.
+  ///
+  /// This is necessary because the unpromoted type of a property get depends
+  /// on the static type of its target, which may change between reads (e.g. if
+  /// the target is a local variable that gets promoted). When reading a
+  /// property, [_FlowAnalysisImpl._handleProperty] ignores the property's
+  /// promotion chain if its last type isn't a subtype of the read's unpromoted
+  /// type, and so a promotion based on that read might not be a subtype of the
+  /// last type in the chain. For example:
+  ///
+  ///     class C<T> { final T? _f; ... }
+  ///     void f(C<Object?> x) {
+  ///       if (x._f is num) {         // `x._f` promoted to `num`
+  ///         if (x is C<String>) {    // reads of `x._f` now have type
+  ///                                  // `String?`, so `num` is ignored
+  ///           if (x._f != null) {    // `x._f` promoted to `String`
+  ///             ...
+  ///
+  /// Simply appending `String` to the chain `[num]` would produce
+  /// `[num, String]`, which is not a valid promotion chain (each type must be a
+  /// strict subtype of the previous one). The join and rebase algorithms rely
+  /// on promotion chains being valid (e.g. [PromotionModel.joinPromotedTypes]
+  /// could produce a result that depends on the order of its arguments). So
+  /// instead, `num` is removed, and the resulting chain is `[String]`.
+  ///
+  /// The caller only calls this method if the last type in the chain isn't a
+  /// subtype of the unpromoted type of the property get that [newType] was
+  /// computed from (i.e., if the property get ignored the promotion chain).
+  /// Otherwise, [newType] is simply appended to the chain, as it was before
+  /// this filtering was introduced. Note that in that case, [newType] isn't
+  /// necessarily a strict subtype of the last type in the chain, because the
+  /// references used to promote the scrutinee of a pattern don't account for
+  /// promotions performed by earlier subpatterns or `switch` cases; that's a
+  /// separate problem, which this method doesn't attempt to address (see
+  /// https://github.com/dart-lang/sdk/issues/64812).
+  ///
+  /// Since the chain is valid, the types that are kept form a prefix of the
+  /// chain, so it suffices to walk backward from the end of the chain until a
+  /// type that should be kept is found.
+  static List<SharedTypeView> _filterPropertyPromotionChain(
+    FlowModelHelper helper,
+    List<SharedTypeView> promotedTypes,
+    SharedTypeView newType,
+  ) {
+    for (int i = promotedTypes.length - 1; i >= 0; i--) {
+      if (helper._isStrictSubtype(newType, promotedTypes[i])) {
+        return i == promotedTypes.length - 1
+            ? promotedTypes
+            : promotedTypes.sublist(0, i + 1);
+      }
+    }
+    return const <SharedTypeView>[];
   }
 
   /// Forms a new state to reflect a control flow path that might have come from
@@ -4441,6 +4520,12 @@ mixin FlowModelHelper {
     required SharedTypeView previousType,
     required SharedTypeView newType,
   });
+
+  /// Whether [subtype] is a strict subtype of [supertype]; that is, whether
+  /// `subtype <: supertype` and not `supertype <: subtype`.
+  bool _isStrictSubtype(SharedTypeView subtype, SharedTypeView supertype) =>
+      typeOperations.isSubtypeOf(subtype, supertype) &&
+      !typeOperations.isSubtypeOf(supertype, subtype);
 }
 
 /// Documentation links that might be presented to the user to accompany a "why
@@ -7797,6 +7882,7 @@ class _FlowAnalysisImpl<
       promotionKey: propertyVersion.promotionKey,
       model: _current,
       type: promotedType ?? unpromotedType,
+      unpromotedType: unpromotedType,
       version: propertyVersion,
     );
     return (promotedType: promotedType, expressionInfo: propertyReference);
@@ -7856,6 +7942,7 @@ class _FlowAnalysisImpl<
       promotionKey: propertyVersion.promotionKey,
       model: _current,
       type: promotedType ?? unpromotedType,
+      unpromotedType: unpromotedType,
       version: propertyVersion,
     );
     _stack.add(
@@ -9768,12 +9855,21 @@ class _PropertyReference extends _Reference {
   /// value that was passed to [FlowAnalysis.propertyGet].
   final Object? propertyMember;
 
+  /// The unpromoted type of the property get (that is, the static type it
+  /// would have if the property were not promoted).
+  ///
+  /// This is used by [FlowModel._finishTypeTest] to determine whether the
+  /// property get ignored the last type in the property's promotion chain (see
+  /// [FlowModel._filterPropertyPromotionChain]).
+  final SharedTypeView unpromotedType;
+
   new({
     required super.type,
     required super.model,
     required this.propertyName,
     required this.propertyMember,
     required super.promotionKey,
+    required this.unpromotedType,
     required super.version,
   }) : super.trivial(isThisOrSuper: false);
 
@@ -9781,7 +9877,8 @@ class _PropertyReference extends _Reference {
   String toString() =>
       '_PropertyReference('
       'type: $_type, propertyName: $propertyName, '
-      'propertyMember: $propertyMember, promotionKey: $promotionKey)';
+      'propertyMember: $propertyMember, promotionKey: $promotionKey, '
+      'unpromotedType: $unpromotedType)';
 }
 
 /// Data structure representing a unique value returned by the invocation of a

@@ -306,9 +306,12 @@ intptr_t ZLibDeflateFilter::Processed(uint8_t* buffer,
       error = true;
   }
 
+  // Either 0 Byte processed or error. The stream must not keep pointing into
+  // the freed input: a later call could read it.
   delete[] current_buffer_;
   current_buffer_ = nullptr;
-  // Either 0 Byte processed or error
+  stream_.next_in = Z_NULL;
+  stream_.avail_in = 0;
   return error ? -1 : 0;
 }
 
@@ -353,34 +356,42 @@ intptr_t ZLibInflateFilter::Processed(uint8_t* buffer,
   stream_.next_out = buffer;
   bool error = false;
   int v;
-  switch (v = inflate(&stream_, end     ? Z_FINISH
+  while ((v = inflate(&stream_, end     ? Z_FINISH
                                 : flush ? Z_SYNC_FLUSH
-                                        : Z_NO_FLUSH)) {
+                                        : Z_NO_FLUSH)) == Z_STREAM_END &&
+         gzip_) {
+    // Allow for concatenated compressed data sets. For example:
+    // final data = [
+    //  ...gzip.encode([1, 2, 3]),
+    //  ...gzip.encode([4, 5, 6]),
+    // ];
+    // final decoded = gzip.decode(data);  // [1, 2, 3, 4, 5, 6]
+    //
+    // This is only supported for gzip data because RFC-1950 says:
+    // > Any data which may appear after ADLER32 are not part of the zlib
+    // > stream.
+    // while RFC-1952 says:
+    // > A gzip file consists of a series of "members" (compressed data
+    // > sets)... The members simply appear one after another in the file,
+    // > with no additional information before, between, or after them.
+
+    // The return code for `inflateReset` can be ignored because, if the
+    // result is an error, the same error will be returned in the next
+    // call to `inflate`.
+    inflateReset(&stream_);
+    // A member can end without adding any output in this call: it is empty,
+    // or only its end was left to read. Go on with the next member while
+    // input remains: returning 0 here would free the input buffer below and
+    // tell the caller that all of it was consumed.
+    if (stream_.next_out != buffer || stream_.avail_in == 0) {
+      break;
+    }
+  }
+  switch (v) {
     case Z_OK:
     case Z_STREAM_END:
     case Z_BUF_ERROR: {
       intptr_t processed = length - stream_.avail_out;
-      if (v == Z_STREAM_END && gzip_) {
-        // Allow for concatenated compressed data sets. For example:
-        // final data = [
-        //  ...gzip.encode([1, 2, 3]),
-        //  ...gzip.encode([4, 5, 6]),
-        // ];
-        // final decoded = gzip.decode(data);  // [1, 2, 3, 4, 5, 6]
-        //
-        // This is only supported for gzip data because RFC-1950 says:
-        // > Any data which may appear after ADLER32 are not part of the zlib
-        // > stream.
-        // while RFC-1952 says:
-        // > A gzip file consists of a series of "members" (compressed data
-        // > sets)... The members simply appear one after another in the file,
-        // > with no additional information before, between, or after them.
-
-        // The return code for `inflateReset` can be ignored because, if the
-        // result is an error, the same error will be returned in the next
-        // call to `inflate`.
-        inflateReset(&stream_);
-      }
       if (processed == 0) {
         break;
       }
@@ -409,9 +420,12 @@ intptr_t ZLibInflateFilter::Processed(uint8_t* buffer,
       error = true;
   }
 
+  // Either 0 Byte processed or error. The stream must not keep pointing into
+  // the freed input: a later call could read it.
   delete[] current_buffer_;
   current_buffer_ = nullptr;
-  // Either 0 Byte processed or error
+  stream_.next_in = Z_NULL;
+  stream_.avail_in = 0;
   return error ? -1 : 0;
 }
 

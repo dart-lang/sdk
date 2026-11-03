@@ -65,6 +65,46 @@ FormalParameterList(v1)
 ''');
   }
 
+  void test_fieldFormalParameter_requiredNamed_final_ordering() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class A {
+  A({final required this.x});
+//   ^^^^^
+// [diag.extraneousModifier] Can't have modifier 'final' here.
+//         ^^^^^^^^
+// [diag.modifierOutOfOrder] The modifier 'required' should be before the modifier 'final'.
+}
+''');
+
+    var node = parseResult.findNode.singleFormalParameterList;
+    assertParsedNodeText(node, r'''
+FormalParameterList
+  leftParenthesis: (
+  delimitedFormalParameters: DelimitedFormalParameters
+    leftDelimiter: {
+    formalParameters
+      FieldFormalParameter
+        requiredKeyword: required
+        constFinalOrVarKeyword: final
+        thisKeyword: this
+        period: .
+        name: x
+    rightDelimiter: }
+  rightParenthesis: )
+FormalParameterList(v1)
+  leftParenthesis: (
+  leftDelimiter: {
+  parameter: FieldFormalParameter
+    requiredKeyword: required
+    constFinalOrVarKeyword: final
+    thisKeyword: this
+    period: .
+    name: x
+  rightDelimiter: }
+  rightParenthesis: )
+''');
+  }
+
   void test_fieldFormalParameter_requiredNamed_noType() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 class A {
@@ -3256,6 +3296,46 @@ SuperFormalParameter
     separator: =
     value2: IntegerLiteral
       literal: 0
+''');
+  }
+
+  void test_superFormalParameter_requiredNamed_final_ordering() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class B extends A {
+  B({final required super.x});
+//   ^^^^^
+// [diag.extraneousModifier] Can't have modifier 'final' here.
+//         ^^^^^^^^
+// [diag.modifierOutOfOrder] The modifier 'required' should be before the modifier 'final'.
+}
+''');
+
+    var node = parseResult.findNode.singleFormalParameterList;
+    assertParsedNodeText(node, r'''
+FormalParameterList
+  leftParenthesis: (
+  delimitedFormalParameters: DelimitedFormalParameters
+    leftDelimiter: {
+    formalParameters
+      SuperFormalParameter
+        requiredKeyword: required
+        constFinalOrVarKeyword: final
+        superKeyword: super
+        period: .
+        name: x
+    rightDelimiter: }
+  rightParenthesis: )
+FormalParameterList(v1)
+  leftParenthesis: (
+  leftDelimiter: {
+  parameter: SuperFormalParameter
+    requiredKeyword: required
+    constFinalOrVarKeyword: final
+    superKeyword: super
+    period: .
+    name: x
+  rightDelimiter: }
+  rightParenthesis: )
 ''');
   }
 

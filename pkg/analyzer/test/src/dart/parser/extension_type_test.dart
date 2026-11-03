@@ -1193,6 +1193,45 @@ V1: ExtensionTypeDeclaration
     );
   }
 
+  test_members_field_final_static() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+extension type E(int it) {
+  final static int x = 0;
+//      ^^^^^^
+// [diag.modifierOutOfOrder] The modifier 'static' should be before the modifier 'final'.
+}
+''');
+
+    var node = parseResult.findNode.singleFieldsDeclaration;
+    assertParsedNodeText(node, r'''
+FieldsDeclaration
+  staticKeyword: static
+  constFinalOrVarKeyword: final
+  type: NamedType
+    name: int
+  fields
+    Field
+      name: x
+      equals: =
+      initializer: IntegerLiteral
+        literal: 0
+  semicolon: ;
+V1: FieldDeclaration
+  staticKeyword: static
+  fields: VariableDeclarationList
+    keyword: final
+    type: NamedType
+      name: int
+    variables
+      VariableDeclaration
+        name: x
+        equals: =
+        initializer: IntegerLiteral
+          literal: 0
+  semicolon: ;
+''');
+  }
+
   test_members_field_instance() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type A(int it) {
@@ -1326,6 +1365,47 @@ V1: ExtensionTypeDeclaration
                 literal: 0
         semicolon: ;
     rightBracket: }
+''');
+  }
+
+  test_members_field_static_final_late() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+extension type E(int it) {
+  static final late int x = 0;
+//             ^^^^
+// [diag.modifierOutOfOrder] The modifier 'late' should be before the modifier 'final'.
+}
+''');
+
+    var node = parseResult.findNode.singleFieldsDeclaration;
+    assertParsedNodeText(node, r'''
+FieldsDeclaration
+  staticKeyword: static
+  lateKeyword: late
+  constFinalOrVarKeyword: final
+  type: NamedType
+    name: int
+  fields
+    Field
+      name: x
+      equals: =
+      initializer: IntegerLiteral
+        literal: 0
+  semicolon: ;
+V1: FieldDeclaration
+  staticKeyword: static
+  fields: VariableDeclarationList
+    lateKeyword: late
+    keyword: final
+    type: NamedType
+      name: int
+    variables
+      VariableDeclaration
+        name: x
+        equals: =
+        initializer: IntegerLiteral
+          literal: 0
+  semicolon: ;
 ''');
   }
 
