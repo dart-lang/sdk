@@ -152,12 +152,32 @@ extension AstNodeExtension on AstNode {
   ///
   /// Name scopes are recorded during resolution, so this is `null` for
   /// unresolved nodes.
+  ///
+  /// A few recorded scopes don't match the subtree of their node: the case
+  /// scope of an if-case also encloses the `then` branch, its sibling; and the
+  /// scope of a for-each loop does not enclose its parts, because the iterable
+  /// is resolved before the loop variables are declared.
   @V1Ast('The V2 counterpart is enclosingNameScope2.')
   Scope? get enclosingNameScope {
+    AstNode? child;
     for (var node in withAncestors) {
-      if (node is AstNodeWithNameScopeMixin && node.nameScope != null) {
-        return node.nameScope;
+      switch (node) {
+        case IfElementImpl(:var caseClause?)
+            when identical(child, node.thenElement):
+          return caseClause.guardedPattern.nameScope;
+        case IfStatementImpl(:var caseClause?)
+            when identical(child, node.thenStatement):
+          return caseClause.guardedPattern.nameScope;
+        case ForElementImpl() when child is ForEachParts:
+        case ForStatementImpl() when child is ForEachParts:
+          // The iterable is resolved before the loop variables are declared,
+          // so the parts of a for-each loop are outside of the loop scope
+          // recorded on it.
+          break;
+        case AstNodeWithNameScopeMixin(:var nameScope?):
+          return nameScope;
       }
+      child = node;
     }
     return null;
   }
@@ -166,11 +186,31 @@ extension AstNodeExtension on AstNode {
   ///
   /// Name scopes are recorded during resolution, so this is `null` for
   /// unresolved nodes.
+  ///
+  /// A few recorded scopes don't match the subtree of their node: the case
+  /// scope of an if-case also encloses the `then` branch, its sibling; and the
+  /// scope of a for-each loop does not enclose its parts, because the iterable
+  /// is resolved before the loop variables are declared.
   Scope? get enclosingNameScope2 {
+    AstNode? child;
     for (var node in withAncestors2) {
-      if (node is AstNodeWithNameScopeMixin && node.nameScope != null) {
-        return node.nameScope;
+      switch (node) {
+        case IfElementImpl(:var caseClause?)
+            when identical(child, node.thenElement2):
+          return caseClause.guardedPattern.nameScope;
+        case IfStatementImpl(:var caseClause?)
+            when identical(child, node.thenStatement2):
+          return caseClause.guardedPattern.nameScope;
+        case ForElementImpl() when child is ForEachParts:
+        case ForStatementImpl() when child is ForEachParts:
+          // The iterable is resolved before the loop variables are declared,
+          // so the parts of a for-each loop are outside of the loop scope
+          // recorded on it.
+          break;
+        case AstNodeWithNameScopeMixin(:var nameScope?):
+          return nameScope;
       }
+      child = node;
     }
     return null;
   }

@@ -590,7 +590,6 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
       _resolveGuardedPattern(
         caseClause.guardedPattern,
         then: () {
-          caseClause.nameScope = nameScope;
           node.ifTrue2.accept2(this);
         },
       );
@@ -607,7 +606,6 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
       _resolveGuardedPattern(
         caseClause.guardedPattern,
         then: () {
-          caseClause.nameScope = nameScope;
           _visitStatementInScope(node.ifTrue2);
         },
       );
@@ -1605,6 +1603,7 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
     // Matched variables are available in `whenClause`.
     _scopeContext.withLocalScope((scope) {
       scope.addAll(variables.values);
+      guardedPattern.nameScope = scope;
       guardedPattern.variables = variables;
       guardedPattern.pattern.accept2(this);
 
