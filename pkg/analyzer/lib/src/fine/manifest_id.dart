@@ -8,18 +8,34 @@ import 'package:analyzer/src/binary/binary_reader.dart';
 import 'package:analyzer/src/binary/binary_writer.dart';
 import 'package:collection/collection.dart';
 
+/// The table of [ManifestItemId]s written by a [BinaryWriter].
+///
+/// IDs are deduplicated by identity, not by value, to avoid hash lookups.
+/// So the table can contain equal values more than once.
 class ManifestIdTableBuilder {
-  final Map<ManifestItemId, int> _map = {};
+  static int _nextStamp = 0;
+
+  /// Unique for each builder, never `0`.
+  final int _stamp = ++_nextStamp;
+
+  final List<ManifestItemId> _ids = [];
 
   int operator [](ManifestItemId id) {
-    return _map[id] ??= _map.length;
+    if (id._tableStamp == _stamp) {
+      return id._tableIndex;
+    }
+    var index = _ids.length;
+    _ids.add(id);
+    id._tableStamp = _stamp;
+    id._tableIndex = index;
+    return index;
   }
 
   int write(BinaryWriter writer) {
     var offset = writer.offset;
-    writer.writeUint30(_map.length);
-    for (var entry in _map.entries) {
-      var id = entry.key;
+    writer.writeUint30(_ids.length);
+    for (var i = 0; i < _ids.length; i++) {
+      var id = _ids[i];
       writer.writeUint32(id.hi32);
       writer.writeUint32(id.lo32);
     }
@@ -53,6 +69,14 @@ class ManifestItemId implements Comparable<ManifestItemId> {
 
   final int hi32;
   final int lo32;
+
+  /// The stamp of the last [ManifestIdTableBuilder] that this object was
+  /// added to, or `0` if none.
+  int _tableStamp = 0;
+
+  /// The index of this object in the table of [ManifestIdTableBuilder] with
+  /// the stamp [_tableStamp].
+  int _tableIndex = 0;
 
   factory generate() {
     _nextLo32 = (_nextLo32 + 1) & _mask32;
