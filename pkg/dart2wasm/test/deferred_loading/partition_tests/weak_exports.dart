@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:_wasm';
+
 import '' deferred as D0;
 
 void main() async {
@@ -14,13 +16,15 @@ void main() async {
 }
 
 @pragma('wasm:export', 'd0_export')
-void d0_export() {
+WasmVoid d0_export() {
   print('Strong export');
+  return WasmVoid();
 }
 
 @pragma('wasm:weak-export', 'd0_weakExport')
-void d0_weakExport() {
+WasmVoid d0_weakExport() {
   print('Weak export');
+  return WasmVoid();
 }
 
 void d0_noExport() {

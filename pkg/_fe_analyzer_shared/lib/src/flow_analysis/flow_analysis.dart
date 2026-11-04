@@ -41,7 +41,7 @@ class CascadePropertyTarget extends PropertyTarget<Never> {
   static const CascadePropertyTarget singleton =
       const CascadePropertyTarget._();
 
-  const CascadePropertyTarget._() : super._();
+  const new _() : super._();
 
   @override
   String toString() => 'CascadePropertyTarget()';
@@ -63,7 +63,7 @@ class DemoteViaExplicitWrite<Variable extends Object, Node extends Object>
   /// passed to [FlowAnalysis.write].
   final Node node;
 
-  DemoteViaExplicitWrite(this.variable, this.node);
+  new(this.variable, this.node);
 
   @override
   NonPromotionDocumentationLink get documentationLink =>
@@ -97,7 +97,7 @@ class DemoteViaSuspension<Variable extends Object, Node extends Object>
   /// This is the node that was passed to [FlowAnalysis.suspension].
   final Node node;
 
-  DemoteViaSuspension(this.variable, this.node);
+  new(this.variable, this.node);
 
   @override
   NonPromotionDocumentationLink get documentationLink =>
@@ -138,7 +138,7 @@ class ExpressionInfo {
   /// flow model (e.g. an `!= null` or `is Type` check applied to a promotable
   /// target, which causes a promotion if it evaluates to `true`).
   @visibleForTesting
-  ExpressionInfo({
+  new({
     required SharedTypeView type,
     required this.ifTrue,
     required this.ifFalse,
@@ -147,12 +147,10 @@ class ExpressionInfo {
   /// Creates an [ExpressionInfo] for an expression whose value doesn't
   /// influence the flow model.
   @visibleForTesting
-  ExpressionInfo.trivial({
-    required SharedTypeView type,
-    required FlowModel model,
-  }) : _type = type,
-       ifTrue = model,
-       ifFalse = model;
+  new trivial({required SharedTypeView type, required FlowModel model})
+    : _type = type,
+      ifTrue = model,
+      ifFalse = model;
 
   /// Determines if the value of the expression represented by `this` influences
   /// the flow model.
@@ -184,7 +182,7 @@ class ExpressionPropertyTarget<Expression extends Object>
   /// The expression info for the expression whose property is being accessed.
   final ExpressionInfo? expressionInfo;
 
-  ExpressionPropertyTarget(this.expressionInfo) : super._();
+  new(this.expressionInfo) : super._();
 
   @override
   String toString() => 'ExpressionPropertyTarget($expressionInfo)';
@@ -259,7 +257,7 @@ abstract class FlowAnalysis<
   Variable extends Object
 >
     implements FlowAnalysisNullShortingInterface<Expression, Variable> {
-  factory FlowAnalysis(
+  factory(
     FlowAnalysisOperations<Variable> operations,
     AssignedVariables<Node, Variable> assignedVariables, {
     required TypeAnalyzerOptions typeAnalyzerOptions,
@@ -807,8 +805,14 @@ abstract class FlowAnalysis<
   /// The order of visiting a "for-in" statement or collection element should
   /// be:
   /// - Visit the iterable expression.
-  /// - Call [forEach_bodyBegin] or [patternForIn_bodyBegin] (depending whether
-  ///   the loop is a pattern for-in or an ordinary for-in).
+  /// - If the loop is a pattern for-in, call [patternForIn_beforePattern],
+  ///   visit the pattern (declaring the pattern variables), and then call
+  ///   [patternForIn_bodyBegin]. Otherwise, call [forEach_bodyBegin], and
+  ///   then:
+  ///   - If the loop declares a loop variable (`for (var x in ...)`), call
+  ///     [declare] for it.
+  ///   - If the loop assigns to an existing variable (`for (x in ...)`), call
+  ///     [write] for it (or visit an equivalent synthetic assignment).
   /// - Visit the body.
   /// - Call [forEach_end].
   ///
@@ -2109,7 +2113,7 @@ class FlowAnalysisDebug<
 
   bool _exceptionOccurred = false;
 
-  factory FlowAnalysisDebug(
+  factory(
     FlowAnalysisOperations<Variable> operations,
     AssignedVariables<Node, Variable> assignedVariables, {
     required TypeAnalyzerOptions typeAnalyzerOptions,
@@ -2126,7 +2130,7 @@ class FlowAnalysisDebug<
     );
   }
 
-  FlowAnalysisDebug._(this._wrapped);
+  new _(this._wrapped);
 
   @override
   bool get isReachable =>
@@ -3758,10 +3762,10 @@ class FlowModel {
   /// Creates a state object with the given [reachable] status.  All variables
   /// are assumed to be unpromoted and already assigned, so joining another
   /// state with this one will have no effect on it.
-  FlowModel(Reachability reachable) : this.withInfo(reachable, null);
+  new(Reachability reachable) : this.withInfo(reachable, null);
 
   @visibleForTesting
-  FlowModel.withInfo(this.reachable, this.promotionInfo);
+  new withInfo(this.reachable, this.promotionInfo);
 
   /// Updates the state to indicate that the given [writtenVariables] are no
   /// longer promoted and are no longer definitely unassigned, and the given
@@ -4269,8 +4273,15 @@ class FlowModel {
   ///
   /// Preconditions:
   /// - [info] should be the result of calling [infoFor] on the reference.
-  /// - [promotedType] should be a subtype of the currently-promoted type (i.e.
-  ///   no redundant or side-promotions)
+  /// - [promotedType] should be a subtype of the reference's current type
+  ///   (i.e. no side-promotions), and if
+  ///   [TypeAnalyzerOptions.soundFlowAnalysisEnabled] is `true`, a strict
+  ///   subtype (i.e. no redundant promotions). For a variable, the current
+  ///   type is the last type in its promotion chain (if any). For a property,
+  ///   it is the type of the property get, which is the last type in the
+  ///   property's promotion chain if that type is a subtype of the property
+  ///   get's unpromoted type, and the unpromoted type otherwise (see
+  ///   [_filterPropertyPromotionChain]).
   /// - If the reference is a variable, it should not be write-captured.
   FlowModel _finishTypeTest(
     FlowModelHelper helper,
@@ -4286,8 +4297,24 @@ class FlowModel {
 
     List<SharedTypeView> newPromotedTypes = info.promotedTypes;
     if (promotedType != null) {
+      List<SharedTypeView> basePromotedTypes = info.promotedTypes;
+      if (reference is _PropertyReference &&
+          helper.typeAnalyzerOptions.promotionChainIntersectionJoinEnabled &&
+          basePromotedTypes.isNotEmpty &&
+          !helper.typeOperations.isSubtypeOf(
+            basePromotedTypes.last,
+            reference.unpromotedType,
+          )) {
+        // The last type in the promotion chain was ignored by the property
+        // get, so `promotedType` might not be related to it.
+        basePromotedTypes = _filterPropertyPromotionChain(
+          helper,
+          basePromotedTypes,
+          promotedType,
+        );
+      }
       newPromotedTypes = PromotionModel._addToPromotedTypes(
-        info.promotedTypes,
+        basePromotedTypes,
         promotedType,
       );
     }
@@ -4307,6 +4334,62 @@ class FlowModel {
               nonPromotionHistory: info.nonPromotionHistory,
             ),
           );
+  }
+
+  /// Prepares the promotion chain [promotedTypes] of a property for the
+  /// addition of [newType], by removing every type `T` such that [newType] is
+  /// not a strict subtype of `T`. The caller appends [newType] to the result.
+  ///
+  /// This is necessary because the unpromoted type of a property get depends
+  /// on the static type of its target, which may change between reads (e.g. if
+  /// the target is a local variable that gets promoted). When reading a
+  /// property, [_FlowAnalysisImpl._handleProperty] ignores the property's
+  /// promotion chain if its last type isn't a subtype of the read's unpromoted
+  /// type, and so a promotion based on that read might not be a subtype of the
+  /// last type in the chain. For example:
+  ///
+  ///     class C<T> { final T? _f; ... }
+  ///     void f(C<Object?> x) {
+  ///       if (x._f is num) {         // `x._f` promoted to `num`
+  ///         if (x is C<String>) {    // reads of `x._f` now have type
+  ///                                  // `String?`, so `num` is ignored
+  ///           if (x._f != null) {    // `x._f` promoted to `String`
+  ///             ...
+  ///
+  /// Simply appending `String` to the chain `[num]` would produce
+  /// `[num, String]`, which is not a valid promotion chain (each type must be a
+  /// strict subtype of the previous one). The join and rebase algorithms rely
+  /// on promotion chains being valid (e.g. [PromotionModel.joinPromotedTypes]
+  /// could produce a result that depends on the order of its arguments). So
+  /// instead, `num` is removed, and the resulting chain is `[String]`.
+  ///
+  /// The caller only calls this method if the last type in the chain isn't a
+  /// subtype of the unpromoted type of the property get that [newType] was
+  /// computed from (i.e., if the property get ignored the promotion chain).
+  /// Otherwise, [newType] is simply appended to the chain, as it was before
+  /// this filtering was introduced. Note that in that case, [newType] isn't
+  /// necessarily a strict subtype of the last type in the chain, because the
+  /// references used to promote the scrutinee of a pattern don't account for
+  /// promotions performed by earlier subpatterns or `switch` cases; that's a
+  /// separate problem, which this method doesn't attempt to address (see
+  /// https://github.com/dart-lang/sdk/issues/64812).
+  ///
+  /// Since the chain is valid, the types that are kept form a prefix of the
+  /// chain, so it suffices to walk backward from the end of the chain until a
+  /// type that should be kept is found.
+  static List<SharedTypeView> _filterPropertyPromotionChain(
+    FlowModelHelper helper,
+    List<SharedTypeView> promotedTypes,
+    SharedTypeView newType,
+  ) {
+    for (int i = promotedTypes.length - 1; i >= 0; i--) {
+      if (helper._isStrictSubtype(newType, promotedTypes[i])) {
+        return i == promotedTypes.length - 1
+            ? promotedTypes
+            : promotedTypes.sublist(0, i + 1);
+      }
+    }
+    return const <SharedTypeView>[];
   }
 
   /// Forms a new state to reflect a control flow path that might have come from
@@ -4437,6 +4520,12 @@ mixin FlowModelHelper {
     required SharedTypeView previousType,
     required SharedTypeView newType,
   });
+
+  /// Whether [subtype] is a strict subtype of [supertype]; that is, whether
+  /// `subtype <: supertype` and not `supertype <: subtype`.
+  bool _isStrictSubtype(SharedTypeView subtype, SharedTypeView supertype) =>
+      typeOperations.isSubtypeOf(subtype, supertype) &&
+      !typeOperations.isSubtypeOf(supertype, subtype);
 }
 
 /// Documentation links that might be presented to the user to accompany a "why
@@ -4514,7 +4603,7 @@ enum NonPromotionDocumentationLink {
   /// The link URL, as a text string.
   final String url;
 
-  const NonPromotionDocumentationLink(this.url);
+  new(this.url);
 
   @override
   String toString() => url;
@@ -4536,7 +4625,7 @@ class NonPromotionHistory {
   /// The previous link in the list.
   final NonPromotionHistory? previous;
 
-  NonPromotionHistory(this.type, this.nonPromotionReason, this.previous);
+  new(this.type, this.nonPromotionReason, this.previous);
 
   @override
   String toString() {
@@ -4575,7 +4664,7 @@ abstract class NonPromotionReasonVisitor<
   Node extends Object,
   Variable extends Object
 > {
-  NonPromotionReasonVisitor._() : assert(false, 'Do not extend this class');
+  new _() : assert(false, 'Do not extend this class');
 
   R visitDemoteViaExplicitWrite(DemoteViaExplicitWrite<Variable, Node> reason);
 
@@ -4630,7 +4719,7 @@ base class PromotionInfo extends FlowLink<PromotionInfo> {
   /// The [PromotionModel] associated with [key].
   final PromotionModel model;
 
-  PromotionInfo._(
+  new _(
     this.model, {
     required super.key,
     required super.previous,
@@ -4685,7 +4774,7 @@ class PromotionModel {
   /// Non-promotion history of this variable. Not relevant for properties.
   final NonPromotionHistory? nonPromotionHistory;
 
-  PromotionModel({
+  new({
     required this.promotedTypes,
     required this.tested,
     required this.assigned,
@@ -4711,7 +4800,7 @@ class PromotionModel {
 
   /// Creates a [PromotionModel] representing a variable or property that's
   /// never been seen before.
-  PromotionModel.fresh({this.assigned = false, required this.version})
+  new fresh({this.assigned = false, required this.version})
     : promotedTypes = const [],
       tested = const [],
       unassigned = !assigned,
@@ -5161,7 +5250,7 @@ class PromotionModel {
     List<SharedTypeView> chain1,
     List<SharedTypeView> chain2,
     FlowAnalysisTypeOperations typeOperations, {
-    bool promotionChainIntersectionJoinEnabled = false,
+    bool promotionChainIntersectionJoinEnabled = true,
   }) {
     if (!promotionChainIntersectionJoinEnabled) {
       return _legacyJoinPromotedTypes(chain1, chain2, typeOperations);
@@ -5440,7 +5529,7 @@ abstract base class PropertyNotPromoted extends NonPromotionReason {
   /// Whether field promotion is enabled for the current library.
   final bool fieldPromotionEnabled;
 
-  PropertyNotPromoted(
+  new(
     this.propertyName,
     this.propertyMember, {
     required this.fieldPromotionEnabled,
@@ -5454,7 +5543,7 @@ final class PropertyNotPromotedForInherentReason extends PropertyNotPromoted {
   /// The reason why the property isn't promotable.
   final PropertyNonPromotabilityReason whyNotPromotable;
 
-  PropertyNotPromotedForInherentReason(
+  new(
     super.propertyName,
     super.propertyMember,
     this.whyNotPromotable, {
@@ -5502,7 +5591,7 @@ final class PropertyNotPromotedForInherentReason extends PropertyNotPromoted {
 /// user.
 final class PropertyNotPromotedForNonInherentReason
     extends PropertyNotPromoted {
-  PropertyNotPromotedForNonInherentReason(
+  new(
     super.propertyName,
     super.propertyMember, {
     required super.fieldPromotionEnabled,
@@ -5522,7 +5611,7 @@ final class PropertyNotPromotedForNonInherentReason
 
 /// Target for a property access that might undergo promotion.
 sealed class PropertyTarget<Expression extends Object> {
-  const PropertyTarget._();
+  const new _();
 
   /// Retrieves the value version of the value accessed by this property target.
   ValueVersion? _getVersion(_PropertyTargetHelper<Object> helper);
@@ -5556,7 +5645,7 @@ class Reachability {
   /// The number of `parent` links between this node and [initial].
   final int depth;
 
-  Reachability._(this.parent, this.locallyReachable, this.overallReachable)
+  new _(this.parent, this.locallyReachable, this.overallReachable)
     : depth = parent == null ? 0 : parent.depth + 1 {
     assert(
       overallReachable ==
@@ -5564,7 +5653,7 @@ class Reachability {
     );
   }
 
-  const Reachability._initial()
+  const new _initial()
     : parent = null,
       locallyReachable = true,
       overallReachable = true,
@@ -5683,7 +5772,7 @@ class ValueVersion {
   /// user why type promotion failed.
   final Map<String, _PropertyValueVersion> _nonPromotableProperties = {};
 
-  ValueVersion({this.conditionVariableState});
+  new({this.conditionVariableState});
 
   /// Gets a value version representing the property named [propertyName] of
   /// the value represented by `this`, creating it if necessary.
@@ -5947,7 +6036,7 @@ class ValueVersion {
 class SuperPropertyTarget extends PropertyTarget<Never> {
   static const SuperPropertyTarget singleton = const SuperPropertyTarget._();
 
-  const SuperPropertyTarget._() : super._();
+  const new _() : super._();
 
   @override
   String toString() => 'SuperPropertyTarget()';
@@ -5977,7 +6066,7 @@ class ThisNotPromoted extends NonPromotionReason {
 class ThisPropertyTarget extends PropertyTarget<Never> {
   static const ThisPropertyTarget singleton = const ThisPropertyTarget._();
 
-  const ThisPropertyTarget._() : super._();
+  const new _() : super._();
 
   @override
   String toString() => 'ThisPropertyTarget()';
@@ -5993,7 +6082,7 @@ class ThisPropertyTarget extends PropertyTarget<Never> {
 /// [ifFalse] models are the same).
 @visibleForTesting
 class TrivialVariableReference extends _Reference {
-  TrivialVariableReference({
+  new({
     required super.type,
     required super.model,
     required super.promotionKey,
@@ -6114,7 +6203,7 @@ class _AnonymousBlockContext extends _FlowContext {
   /// anonymous method.
   final _AnonymousBlockContext? _previousAnonymousBlockContext;
 
-  _AnonymousBlockContext(this._checkpoint, this._previousAnonymousBlockContext);
+  new(this._checkpoint, this._previousAnonymousBlockContext);
 
   @override
   Map<String, Object?> get _debugFields => super._debugFields
@@ -6131,7 +6220,7 @@ class _AssertContext extends _SimpleContext {
   /// Flow model if the condition being asserted is true.
   FlowModel? _conditionTrue;
 
-  _AssertContext(super.previous);
+  new(super.previous);
 
   @override
   Map<String, Object?> get _debugFields =>
@@ -6148,7 +6237,7 @@ class _BranchContext extends _FlowContext {
   /// Flow model if the branch is taken.
   final FlowModel _branchModel;
 
-  _BranchContext(this._branchModel);
+  new(this._branchModel);
 
   @override
   Map<String, Object?> get _debugFields =>
@@ -6175,7 +6264,7 @@ class _BranchTargetContext extends _FlowContext {
   /// flow paths for the loop or switch.
   final Reachability _checkpoint;
 
-  _BranchTargetContext(this._checkpoint);
+  new(this._checkpoint);
 
   @override
   Map<String, Object?> get _debugFields => super._debugFields
@@ -6206,7 +6295,7 @@ class _ConditionalContext extends _BranchContext {
   /// as whether anything is promoted after the "then" expression executes.
   FlowModel? _thenModel;
 
-  _ConditionalContext(super._branchModel);
+  new(super._branchModel);
 
   @override
   Map<String, Object?> get _debugFields => super._debugFields
@@ -6227,7 +6316,7 @@ class _DemotionResult {
   /// no longer promoted to).
   final NonPromotionHistory? nonPromotionHistory;
 
-  _DemotionResult(this.promotedTypes, this.nonPromotionHistory);
+  new(this.promotedTypes, this.nonPromotionHistory);
 }
 
 /// Specialization of [_EqualityCheckResult] used as the return value for
@@ -6247,7 +6336,7 @@ class _EqualityCheckHasKnownResult extends _EqualityCheckResult {
   /// Whether the two operands are guaranteed to be equal to one another.
   final bool areEqual;
 
-  const _EqualityCheckHasKnownResult({required this.areEqual}) : super._();
+  const new({required this.areEqual}) : super._();
 }
 
 /// Specialization of [_EqualityCheckResult] used as the return value for
@@ -6269,14 +6358,13 @@ class _EqualityCheckIsNullCheck extends _EqualityCheckResult {
   /// `leftOperandInfo` argument.
   final bool isReferenceOnRight;
 
-  _EqualityCheckIsNullCheck(this.reference, {required this.isReferenceOnRight})
-    : super._();
+  new(this.reference, {required this.isReferenceOnRight}) : super._();
 }
 
 /// Result of performing equality check.  This class is used as the return value
 /// for [_FlowAnalysisImpl._equalityCheck].
 sealed class _EqualityCheckResult {
-  const _EqualityCheckResult._();
+  const new _();
 }
 
 class _FlowAnalysisImpl<
@@ -6377,7 +6465,7 @@ class _FlowAnalysisImpl<
 
   final FlowAnalysisLogBuilder? _logBuilder;
 
-  _FlowAnalysisImpl(
+  new(
     this.operations,
     this._assignedVariables, {
     required this.typeAnalyzerOptions,
@@ -7794,6 +7882,7 @@ class _FlowAnalysisImpl<
       promotionKey: propertyVersion.promotionKey,
       model: _current,
       type: promotedType ?? unpromotedType,
+      unpromotedType: unpromotedType,
       version: propertyVersion,
     );
     return (promotedType: promotedType, expressionInfo: propertyReference);
@@ -7853,6 +7942,7 @@ class _FlowAnalysisImpl<
       promotionKey: propertyVersion.promotionKey,
       model: _current,
       type: promotedType ?? unpromotedType,
+      unpromotedType: unpromotedType,
       version: propertyVersion,
     );
     _stack.add(
@@ -9559,7 +9649,7 @@ class _FlowAnalysisImpl<
 /// Base class for objects representing constructs in the Dart programming
 /// language for which flow analysis information needs to be tracked.
 abstract class _FlowContext {
-  _FlowContext() {
+  new() {
     assert(() {
       // Check that `_debugType` has been overridden in a way that reflects the
       // class name.  Note that this assumes the behavior of `runtimeType` in
@@ -9605,10 +9695,7 @@ class _FunctionExpressionContext extends _SimpleContext {
   /// anonymous method.
   final _AnonymousBlockContext? _previousAnonymousBlockContext;
 
-  _FunctionExpressionContext(
-    super.previous,
-    this._previousAnonymousBlockContext,
-  );
+  new(super.previous, this._previousAnonymousBlockContext);
 
   @override
   Map<String, Object?> get _debugFields =>
@@ -9625,7 +9712,7 @@ class _IfContext extends _BranchContext {
   /// statement executes, in the circumstance where the "then" branch is taken.
   FlowModel? _afterThen;
 
-  _IfContext(super._branchModel);
+  new(super._branchModel);
 
   @override
   Map<String, Object?> get _debugFields =>
@@ -9641,7 +9728,7 @@ class _IfNullExpressionContext extends _FlowContext {
   /// `??` was non-`null`).
   final FlowModel _shortcutState;
 
-  _IfNullExpressionContext(this._shortcutState);
+  new(this._shortcutState);
 
   @override
   Map<String, Object?> get _debugFields =>
@@ -9657,12 +9744,12 @@ class _IfNullExpressionContext extends _FlowContext {
 /// words, regardless of whether the equality check matches or not, the
 /// resulting code path is reachable and no promotions can be done.
 class _NoEqualityInformation extends _EqualityCheckResult {
-  const _NoEqualityInformation() : super._();
+  const new() : super._();
 }
 
 /// [_FlowContext] representing a null aware access (`?.`).
 class _NullAwareAccessContext extends _SimpleContext {
-  _NullAwareAccessContext(super.previous);
+  new(super.previous);
 
   @override
   String get _debugType => '_NullAwareAccessContext';
@@ -9677,7 +9764,7 @@ class _NullAwareMapEntryContext extends _FlowContext {
   /// `null`.
   final FlowModel _shortcutState;
 
-  _NullAwareMapEntryContext(this._shortcutState);
+  new(this._shortcutState);
 
   @override
   Map<String, Object?> get _debugFields =>
@@ -9690,7 +9777,7 @@ class _NullAwareMapEntryContext extends _FlowContext {
 /// Specialization of [ExpressionInfo] for the case where the expression is a
 /// `null` literal.
 class _NullInfo extends ExpressionInfo {
-  _NullInfo({required super.type, required super.model}) : super.trivial();
+  new({required super.type, required super.model}) : super.trivial();
 
   @override
   bool get isNull => true;
@@ -9711,7 +9798,7 @@ class _OrPatternContext extends _PatternContext {
   /// side matched.
   FlowModel? _lhsMatched;
 
-  _OrPatternContext(super._matchedValueInfo, this._previousUnmatched);
+  new(super._matchedValueInfo, this._previousUnmatched);
 
   @override
   Map<String, Object?> get _debugFields => super._debugFields
@@ -9727,7 +9814,7 @@ class _PatternContext extends _FlowContext {
   /// [ExpressionInfo] for the value being matched.
   final _Reference _matchedValueInfo;
 
-  _PatternContext(this._matchedValueInfo);
+  new(this._matchedValueInfo);
 
   @override
   Map<String, Object?> get _debugFields =>
@@ -9752,7 +9839,7 @@ class _PatternContext extends _FlowContext {
 /// [_FlowContext] representing a subpattern of an object pattern, which is
 /// being matched against a property of the object pattern's target.
 class _PropertyPatternContext extends _SubpatternContext {
-  _PropertyPatternContext(super._matchedValueInfo, super._previousScrutinee);
+  new(super._matchedValueInfo, super._previousScrutinee);
 
   @override
   String get _debugType => '_PropertyPatternContext';
@@ -9768,12 +9855,21 @@ class _PropertyReference extends _Reference {
   /// value that was passed to [FlowAnalysis.propertyGet].
   final Object? propertyMember;
 
-  _PropertyReference({
+  /// The unpromoted type of the property get (that is, the static type it
+  /// would have if the property were not promoted).
+  ///
+  /// This is used by [FlowModel._finishTypeTest] to determine whether the
+  /// property get ignored the last type in the property's promotion chain (see
+  /// [FlowModel._filterPropertyPromotionChain]).
+  final SharedTypeView unpromotedType;
+
+  new({
     required super.type,
     required super.model,
     required this.propertyName,
     required this.propertyMember,
     required super.promotionKey,
+    required this.unpromotedType,
     required super.version,
   }) : super.trivial(isThisOrSuper: false);
 
@@ -9781,7 +9877,8 @@ class _PropertyReference extends _Reference {
   String toString() =>
       '_PropertyReference('
       'type: $_type, propertyName: $propertyName, '
-      'propertyMember: $propertyMember, promotionKey: $promotionKey)';
+      'propertyMember: $propertyMember, promotionKey: $promotionKey, '
+      'unpromotedType: $unpromotedType)';
 }
 
 /// Data structure representing a unique value returned by the invocation of a
@@ -9798,7 +9895,7 @@ class _PropertyValueVersion extends ValueVersion {
   /// promotions *would* have occurred if the property had been promotable.
   final _PropertyValueVersion? previousVersion;
 
-  _PropertyValueVersion(this.promotionKey, {this.previousVersion});
+  new(this.promotionKey, {this.previousVersion});
 }
 
 /// Interface used by the classes derived from [PropertyTarget] to access the
@@ -9833,7 +9930,7 @@ class _Reference extends ExpressionInfo {
   /// The value version representing the value of this expression.
   final ValueVersion version;
 
-  _Reference({
+  new({
     required super.type,
     required super.ifTrue,
     required super.ifFalse,
@@ -9842,7 +9939,7 @@ class _Reference extends ExpressionInfo {
     required this.version,
   });
 
-  _Reference.trivial({
+  new trivial({
     required super.type,
     required super.model,
     required this.promotionKey,
@@ -9862,7 +9959,7 @@ class _Reference extends ExpressionInfo {
 class _ScrutineeContext extends _FlowContext {
   final _Reference? previousCorrespondingScrutineeReference;
 
-  _ScrutineeContext({required this.previousCorrespondingScrutineeReference});
+  new({required this.previousCorrespondingScrutineeReference});
 
   @override
   Map<String, Object?> get _debugFields => super._debugFields
@@ -9882,7 +9979,7 @@ abstract class _SimpleContext extends _FlowContext {
   /// state at the point the function expression was created.
   final FlowModel _previous;
 
-  _SimpleContext(this._previous);
+  new(this._previous);
 
   @override
   Map<String, Object?> get _debugFields =>
@@ -9899,7 +9996,7 @@ class _SimpleStatementContext extends _BranchTargetContext {
   /// after evaluation of the switch expression.
   final FlowModel _previous;
 
-  _SimpleStatementContext(super.checkpoint, this._previous);
+  new(super.checkpoint, this._previous);
 
   @override
   Map<String, Object?> get _debugFields =>
@@ -9915,10 +10012,7 @@ class _SubpatternContext extends _PatternContext {
   /// in effect prior to visiting the subpattern.
   final _Reference? _previousCorrespondingScrutinee;
 
-  _SubpatternContext(
-    super._matchedValueInfo,
-    this._previousCorrespondingScrutinee,
-  );
+  new(super._matchedValueInfo, this._previousCorrespondingScrutinee);
 
   @override
   Map<String, Object?> get _debugFields =>
@@ -9940,7 +10034,7 @@ class _SwitchAlternativesContext<Variable extends Object> extends _FlowContext {
 
   FlowModel? _combinedModel;
 
-  _SwitchAlternativesContext(this._switchContext);
+  new(this._switchContext);
 
   @override
   Map<String, Object?> get _debugFields =>
@@ -9960,7 +10054,7 @@ class _SwitchContext extends _SimpleStatementContext {
   /// this is the flow state on entry to the next `if`.
   FlowModel _unmatched;
 
-  _SwitchContext(super.checkpoint, super._previous, this._matchedValueInfo)
+  new(super.checkpoint, super._previous, this._matchedValueInfo)
     : _unmatched = _previous;
 
   @override
@@ -9976,7 +10070,7 @@ class _SwitchContext extends _SimpleStatementContext {
 class _TopPatternContext extends _PatternContext {
   final FlowModel? _previousUnmatched;
 
-  _TopPatternContext(super.matchedValueInfo, this._previousUnmatched);
+  new(super.matchedValueInfo, this._previousUnmatched);
 
   @override
   Map<String, Object?> get _debugFields =>
@@ -9999,7 +10093,7 @@ class _TryContext extends _SimpleContext {
   /// has finished executing.
   FlowModel? _afterBodyAndCatches;
 
-  _TryContext(super.previous);
+  new(super.previous);
 
   @override
   Map<String, Object?> get _debugFields => super._debugFields
@@ -10022,7 +10116,7 @@ class _TryFinallyContext extends _FlowContext {
   /// block.
   FlowModel? _beforeFinally;
 
-  _TryFinallyContext(this._beforeTry);
+  new(this._beforeTry);
 
   @override
   Map<String, Object?> get _debugFields => super._debugFields
@@ -10045,7 +10139,7 @@ class _WhileContext extends _BranchTargetContext {
   /// offset at which that region should end. Otherwise `null`.
   int? _updaterEndOffset;
 
-  _WhileContext(super.checkpoint, this._conditionFalse);
+  new(super.checkpoint, this._conditionFalse);
 
   @override
   Map<String, Object?> get _debugFields =>

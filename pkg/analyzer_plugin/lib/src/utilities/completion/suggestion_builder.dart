@@ -21,7 +21,7 @@ class SuggestionBuilderImpl implements SuggestionBuilder {
   final AnalyzerConverter converter = AnalyzerConverter();
 
   /// Initialize a newly created suggestion builder.
-  SuggestionBuilderImpl(this.resourceProvider);
+  new(this.resourceProvider);
 
   /// Add default argument list text and ranges based on the given
   /// [requiredParams] and [namedParams].

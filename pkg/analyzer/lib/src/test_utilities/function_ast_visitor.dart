@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 
 /// [RecursiveAstVisitor2] that delegates visit methods to functions.
 class FunctionAstVisitor extends RecursiveAstVisitor2<void> {
@@ -13,15 +13,14 @@ class FunctionAstVisitor extends RecursiveAstVisitor2<void> {
   final void Function(DeclaredVariablePattern)? declaredVariablePattern;
   final void Function(ForElement)? forElement;
   final void Function(ForStatement)? forStatement;
-  final void Function(FunctionDeclaration)? functionDeclaration;
-  final void Function(FunctionDeclarationStatement)?
-  functionDeclarationStatement;
-  final void Function(FunctionExpression, bool)? functionExpression;
+  final void Function(FunctionExpression)? functionExpression;
   final void Function(GuardedPattern)? guardedPattern;
   final void Function(IfElement)? ifElement;
   final void Function(IfStatement)? ifStatement;
   final void Function(Label)? label;
-  final void Function(MethodDeclaration)? methodDeclaration;
+  final void Function(LocalFunctionDeclaration)? localFunctionDeclaration;
+  final void Function(LocalVariable)? localVariable;
+  final void Function(MethodDeclarationV1OriginImpl)? methodDeclaration;
   final void Function(PatternAssignment)? patternAssignment;
   final void Function(PatternVariableDeclaration)? patternVariableDeclaration;
   final void Function(PatternVariableDeclarationStatement)?
@@ -29,25 +28,25 @@ class FunctionAstVisitor extends RecursiveAstVisitor2<void> {
   final void Function(SwitchExpression)? switchExpression;
   final void Function(SwitchExpressionCase)? switchExpressionCase;
   final void Function(SwitchPatternCase)? switchPatternCase;
+  final void Function(TopLevelFunctionDeclaration)? topLevelFunctionDeclaration;
   final void Function(TypeParameter)? typeParameter;
   final void Function(UnqualifiedFunctionInvocation)?
   unqualifiedFunctionInvocation;
-  final void Function(VariableDeclaration)? variableDeclaration;
 
-  FunctionAstVisitor({
+  new({
     this.block,
     this.catchClauseParameter,
     this.declaredIdentifier,
     this.declaredVariablePattern,
     this.forElement,
     this.forStatement,
-    this.functionDeclaration,
-    this.functionDeclarationStatement,
     this.functionExpression,
     this.guardedPattern,
     this.ifElement,
     this.ifStatement,
     this.label,
+    this.localFunctionDeclaration,
+    this.localVariable,
     this.methodDeclaration,
     this.patternAssignment,
     this.patternVariableDeclaration,
@@ -55,9 +54,9 @@ class FunctionAstVisitor extends RecursiveAstVisitor2<void> {
     this.switchExpression,
     this.switchExpressionCase,
     this.switchPatternCase,
+    this.topLevelFunctionDeclaration,
     this.typeParameter,
     this.unqualifiedFunctionInvocation,
-    this.variableDeclaration,
   });
 
   @override
@@ -103,28 +102,14 @@ class FunctionAstVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitFunctionDeclaration(FunctionDeclaration node) {
-    functionDeclaration?.call(node);
-    super.visitFunctionDeclaration(node);
-  }
-
-  @override
-  void visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
-    if (functionDeclarationStatement != null) {
-      functionDeclarationStatement!(node);
-    }
-    super.visitFunctionDeclarationStatement(node);
-  }
-
-  @override
   void visitFunctionExpression(FunctionExpression node) {
-    if (functionExpression != null) {
-      var local =
-          node.parent2 is! FunctionDeclaration ||
-          node.parent2!.parent2 is FunctionDeclarationStatement;
-      functionExpression!(node, local);
-    }
+    functionExpression?.call(node);
     super.visitFunctionExpression(node);
+  }
+
+  @override
+  void visitGetterDeclaration(covariant GetterDeclarationImpl node) {
+    _visitMethodDeclaration(node, () => super.visitGetterDeclaration(node));
   }
 
   @override
@@ -154,9 +139,25 @@ class FunctionAstVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitMethodDeclaration(MethodDeclaration node) {
-    methodDeclaration?.call(node);
-    super.visitMethodDeclaration(node);
+  void visitLocalFunctionDeclaration(LocalFunctionDeclaration node) {
+    localFunctionDeclaration?.call(node);
+    super.visitLocalFunctionDeclaration(node);
+  }
+
+  @override
+  void visitLocalVariable(LocalVariable node) {
+    localVariable?.call(node);
+    super.visitLocalVariable(node);
+  }
+
+  @override
+  void visitMethodDeclaration2(covariant MethodDeclaration2Impl node) {
+    _visitMethodDeclaration(node, () => super.visitMethodDeclaration2(node));
+  }
+
+  @override
+  void visitOperatorDeclaration(covariant OperatorDeclarationImpl node) {
+    _visitMethodDeclaration(node, () => super.visitOperatorDeclaration(node));
   }
 
   @override
@@ -180,6 +181,11 @@ class FunctionAstVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitSetterDeclaration(covariant SetterDeclarationImpl node) {
+    _visitMethodDeclaration(node, () => super.visitSetterDeclaration(node));
+  }
+
+  @override
   void visitSwitchExpression(SwitchExpression node) {
     switchExpression?.call(node);
     super.visitSwitchExpression(node);
@@ -198,6 +204,12 @@ class FunctionAstVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitTopLevelFunctionDeclaration(TopLevelFunctionDeclaration node) {
+    topLevelFunctionDeclaration?.call(node);
+    super.visitTopLevelFunctionDeclaration(node);
+  }
+
+  @override
   void visitTypeParameter(TypeParameter node) {
     typeParameter?.call(node);
     super.visitTypeParameter(node);
@@ -209,11 +221,11 @@ class FunctionAstVisitor extends RecursiveAstVisitor2<void> {
     super.visitUnqualifiedFunctionInvocation(node);
   }
 
-  @override
-  void visitVariableDeclaration(VariableDeclaration node) {
-    if (variableDeclaration != null) {
-      variableDeclaration!(node);
-    }
-    super.visitVariableDeclaration(node);
+  void _visitMethodDeclaration(
+    MethodDeclarationV1OriginImpl node,
+    void Function() visitSuper,
+  ) {
+    methodDeclaration?.call(node);
+    visitSuper();
   }
 }

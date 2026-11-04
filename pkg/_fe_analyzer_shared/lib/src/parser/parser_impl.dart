@@ -353,7 +353,7 @@ class Parser {
   /// `true` if the 'single-combinators' feature is enabled.
   final bool _isSingleCombinatorsFeatureEnabled;
 
-  Parser(
+  new(
     this.listener, {
     this.useImplicitCreationExpression = true,
     required this.experimentalFeatures,
@@ -2364,6 +2364,15 @@ class Parser {
         beforeInlineFunctionType == null) {
       nameToken = token.next!;
       listener.handleNoName(nameToken);
+    } else if (identical(token, beforeInlineFunctionType)) {
+      // The name is missing before the inline function type, as in
+      // `f(<T>())`; [ensureIdentifier] would insert it after the `<`.
+      nameToken = token = insertSyntheticIdentifier(
+        token,
+        nameContext,
+        message: diag.expectedIdentifier.withArguments(lexeme: token.next!),
+      );
+      listener.handleIdentifier(nameToken, nameContext);
     } else {
       nameToken = token = ensureIdentifier(token, nameContext);
     }
@@ -5005,15 +5014,10 @@ class Parser {
 
   Token insertBlock(Token token) {
     Token next = token.next!;
-    BeginToken beginGroup =
-        rewriter.insertToken(
-              token,
-              new SyntheticBeginToken(
-                TokenType.OPEN_CURLY_BRACKET,
-                next.offset,
-              ),
-            )
-            as BeginToken;
+    BeginToken beginGroup = rewriter.insertToken(
+      token,
+      new SyntheticBeginToken(TokenType.OPEN_CURLY_BRACKET, next.offset),
+    ) as BeginToken;
     Token endGroup = rewriter.insertToken(
       beginGroup,
       new SyntheticToken(TokenType.CLOSE_CURLY_BRACKET, next.offset),
@@ -9947,9 +9951,8 @@ class Parser {
           listener.beginMetadataStar(start.next!);
           listener.endMetadataStar(/* count = */ 0);
         }
-        Token beforeFormals = computeTypeParamOrArg(
-          next,
-        ).parseVariables(next, this);
+        Token beforeFormals = computeTypeParamOrArg(next)
+            .parseVariables(next, this);
         listener.beginLocalFunctionDeclaration(start.next!);
         token = typeInfo.parseType(beforeType, this);
         return parseNamedFunctionRest(
@@ -9988,9 +9991,8 @@ class Parser {
         UndoableTokenStreamRewriter undoableTokenStreamRewriter =
             new UndoableTokenStreamRewriter();
         cachedRewriter = undoableTokenStreamRewriter;
-        Token afterExpression = parseExpressionWithoutCascade(
-          afterIdentifier,
-        ).next!;
+        Token afterExpression = parseExpressionWithoutCascade(afterIdentifier)
+            .next!;
         // Undo all changes and reset.
         undoableTokenStreamRewriter.undo();
         listener = originalListener;
@@ -10230,15 +10232,10 @@ class Parser {
         diag.expectedButGot.withArguments(expected: '('),
       );
 
-      BeginToken openParen =
-          rewriter.insertToken(
-                forToken,
-                new SyntheticBeginToken(
-                  TokenType.OPEN_PAREN,
-                  leftParenthesis.offset,
-                ),
-              )
-              as BeginToken;
+      BeginToken openParen = rewriter.insertToken(
+        forToken,
+        new SyntheticBeginToken(TokenType.OPEN_PAREN, leftParenthesis.offset),
+      ) as BeginToken;
 
       Token token;
       if (awaitToken != null) {
@@ -10910,12 +10907,13 @@ class Parser {
     Token beginSwitch = token = ensureBlock(token, BlockKind.switchStatement);
     listener.beginSwitchBlock(beginSwitch);
     int caseCount = 0;
-    Token? defaultKeyword = null;
-    Token? colonAfterDefault = null;
+    bool hasDefault = false;
     while (notEofOrType(TokenType.CLOSE_CURLY_BRACKET, token.next!)) {
       Token beginCase = token.next!;
       int expressionCount = 0;
       int labelCount = 0;
+      Token? defaultKeyword = null;
+      Token? colonAfterDefault = null;
       Token peek = peekPastLabels(beginCase);
       while (true) {
         // Loop until we find something that can't be part of a switch case.
@@ -10925,9 +10923,10 @@ class Parser {
             token = parseLabel(token);
             labelCount++;
           }
-          if (defaultKeyword != null) {
+          if (hasDefault) {
             reportRecoverableError(token.next!, diag.switchHasMultipleDefaults);
           }
+          hasDefault = true;
           defaultKeyword = token.next!;
           colonAfterDefault = token = ensureColon(defaultKeyword);
           peek = token.next!;
@@ -10938,7 +10937,7 @@ class Parser {
             labelCount++;
           }
           Token caseKeyword = token.next!;
-          if (defaultKeyword != null) {
+          if (hasDefault) {
             reportRecoverableError(caseKeyword, diag.switchHasCaseAfterDefault);
           }
           listener.beginCaseExpression(caseKeyword);
@@ -12589,7 +12588,7 @@ enum PatternContext {
 
   final bool isRefutable;
 
-  const PatternContext({required this.isRefutable});
+  new({required this.isRefutable});
 }
 
 /// Enum describing the different contexts in which a constant pattern is

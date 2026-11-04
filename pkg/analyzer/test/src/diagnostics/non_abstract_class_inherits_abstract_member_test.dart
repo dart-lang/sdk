@@ -172,6 +172,22 @@ abstract class B implements A {}
 ''');
   }
 
+  test_class_concrete_implementsClause_getter_combinedSignature_mergedType() async {
+    await resolveTestCodeWithDiagnostics(r'''
+abstract class A {
+  Future<void> get foo;
+}
+
+abstract class B {
+  Future<dynamic> get foo;
+}
+
+class C implements A, B {}
+//    ^
+// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'getter C.foo'.
+''');
+  }
+
   test_class_concrete_implementsClause_method() async {
     await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
@@ -181,6 +197,54 @@ abstract class A {
 class B implements A {}
 //    ^
 // [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'A.foo'.
+''');
+  }
+
+  test_class_concrete_implementsClause_method_combinedSignature_covariance() async {
+    await resolveTestCodeWithDiagnostics(r'''
+abstract class A {
+  void foo(covariant int x);
+}
+
+abstract class B {
+  void foo(num x);
+}
+
+class C implements A, B {}
+//    ^
+// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'C.foo'.
+''');
+  }
+
+  test_class_concrete_implementsClause_method_combinedSignature_covariance_mergedType() async {
+    await resolveTestCodeWithDiagnostics(r'''
+abstract class A {
+  Future<void> foo(covariant int x);
+}
+
+abstract class B {
+  Future<dynamic> foo(int x);
+}
+
+class C implements A, B {}
+//    ^
+// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'C.foo'.
+''');
+  }
+
+  test_class_concrete_implementsClause_method_combinedSignature_mergedType() async {
+    await resolveTestCodeWithDiagnostics(r'''
+abstract class A {
+  Future<void> foo();
+}
+
+abstract class B {
+  Future<dynamic> foo();
+}
+
+class C implements A, B {}
+//    ^
+// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'C.foo'.
 ''');
   }
 
@@ -212,6 +276,22 @@ augment class B implements A {}
 ''');
   }
 
+  test_class_concrete_implementsClause_setter_combinedSignature_covariance() async {
+    await resolveTestCodeWithDiagnostics(r'''
+abstract class A {
+  set foo(covariant int x);
+}
+
+abstract class B {
+  set foo(num x);
+}
+
+class C implements A, B {}
+//    ^
+// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'setter C.foo'.
+''');
+  }
+
   test_class_notAbstract_hasConcreteSubtype_method() async {
     await resolveTestCodeWithDiagnostics('''
 abstract class A {
@@ -225,6 +305,42 @@ class B extends A {}
 class C extends B {}
 
 class D extends C {}
+''');
+  }
+
+  test_classTypeAlias_concrete_implementsClause_method_combinedSignature_covariance() async {
+    await resolveTestCodeWithDiagnostics(r'''
+abstract class A {
+  void foo(covariant int x);
+}
+
+abstract class B {
+  void foo(num x);
+}
+
+mixin M {}
+
+class C = Object with M implements A, B;
+//    ^
+// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'C.foo'.
+''');
+  }
+
+  test_classTypeAlias_concrete_implementsClause_method_combinedSignature_mergedType() async {
+    await resolveTestCodeWithDiagnostics(r'''
+abstract class A {
+  Future<void> foo();
+}
+
+abstract class B {
+  Future<dynamic> foo();
+}
+
+mixin M {}
+
+class C = Object with M implements A, B;
+//    ^
+// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'C.foo'.
 ''');
   }
 
@@ -302,6 +418,42 @@ abstract class A {
 enum B implements A {
 //   ^
 // [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'A.foo'.
+  v;
+}
+''');
+  }
+
+  test_enum_implementsClause_method_combinedSignature_covariance() async {
+    await resolveTestCodeWithDiagnostics(r'''
+abstract class A {
+  void foo(covariant int x);
+}
+
+abstract class B {
+  void foo(num x);
+}
+
+enum E implements A, B {
+//   ^
+// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'E.foo'.
+  v;
+}
+''');
+  }
+
+  test_enum_implementsClause_method_combinedSignature_mergedType() async {
+    await resolveTestCodeWithDiagnostics(r'''
+abstract class A {
+  Future<void> foo();
+}
+
+abstract class B {
+  Future<dynamic> foo();
+}
+
+enum E implements A, B {
+//   ^
+// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'E.foo'.
   v;
 }
 ''');

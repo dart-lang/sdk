@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // VMOptions=--optimization-counter-threshold=10 --no-background-compilation
+// VMOptions=--deoptimize-on-runtime-call-every=1
 
 import 'dart:typed_data';
 

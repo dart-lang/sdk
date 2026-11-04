@@ -479,6 +479,118 @@ class C<NoBound,
   }
 }
 
+ISOLATE_UNIT_TEST_CASE(CompileType_Union) {
+  CompilerState S(thread, /*is_aot=*/false, /*is_optimizing=*/true);
+
+  const char* script_chars = R"(
+class NonGenericBase {}
+class NonGenericSub1 extends NonGenericBase {}
+class NonGenericSub2 extends NonGenericBase {}
+
+class Base<T> {}
+class Sub1<T> extends Base<T> {}
+class Sub2<T> extends Base<T> {}
+class IntSub extends Sub1<int> {}
+
+class BoundedBase<T extends num> {}
+class BoundedSub1<T extends num> extends BoundedBase<T> {}
+class BoundedSub2<T extends num> extends BoundedBase<T> {}
+
+class Base2<A, B> {}
+class Sub2Normal<X, Y> extends Base2<X, Y> {}
+class Sub2Permuted<X, Y> extends Base2<Y, X> {}
+class Sub2Fixed<X> extends Base2<int, X> {}
+
+class UnionTestCases {
+  // Non-generic common superclass.
+  late NonGenericSub1 case1_a;
+  late NonGenericSub2 case1_b;
+  late NonGenericBase case1_union;
+
+  // Generic common superclass (same type arguments).
+  late Sub1<int> case2_a;
+  late Sub2<int> case2_b;
+  late Base<int> case2_union;
+
+  // Generic common superclass (subtype type arguments).
+  late Sub1<num> case3_a;
+  late Sub2<double> case3_b;
+  late Base<num> case3_union;
+
+  // Subclass fixing type arguments in supertype clause.
+  late IntSub case4_a;
+  late Sub2<int> case4_b;
+  late Base<int> case4_union;
+
+  // Subclass partially fixing type arguments in supertype clause.
+  late Sub2Fixed<String> case5_a;
+  late Sub2Normal<int, String> case5_b;
+  late Base2<int, String> case5_union;
+
+  // Nullable operand preserves generic union and propagates nullability.
+  late Sub1<int> case6_a;
+  late Sub2<int>? case6_b;
+  late Base<int>? case6_union;
+
+  // Incompatible type arguments fall back to RareType().
+  late Sub1<int> case7_a;
+  late Sub2<String> case7_b;
+  late Base case7_union;
+
+  // Incompatible bounded type arguments fall back to RareType().
+  late BoundedSub1<int> case8_a;
+  late BoundedSub2<double> case8_b;
+  late BoundedBase case8_union;
+
+  // Permuted type parameters fall back to RareType().
+  late Sub2Permuted<String, int> case9_a;
+  late Sub2Normal<int, String> case9_b;
+  late Base2 case9_union;
+}
+)";
+
+  const auto& lib = Library::Handle(LoadTestScript(script_chars));
+  const auto& cls = Class::Handle(GetClass(lib, "UnionTestCases"));
+  const auto& err = Error::Handle(cls.EnsureIsFinalized(thread));
+  EXPECT(err.IsNull());
+
+  const auto& fields = Array::Handle(cls.fields());
+  EXPECT_EQ(0, fields.Length() % 3);
+
+  auto& field_a = Field::Handle();
+  auto& field_b = Field::Handle();
+  auto& field_union = Field::Handle();
+  for (intptr_t i = 0; i < fields.Length(); i += 3) {
+    field_a ^= fields.At(i);
+    field_b ^= fields.At(i + 1);
+    field_union ^= fields.At(i + 2);
+
+    const auto& type_a = AbstractType::ZoneHandle(field_a.type());
+    const auto& type_b = AbstractType::ZoneHandle(field_b.type());
+    const auto& type_union = AbstractType::ZoneHandle(field_union.type());
+    const bool expected_nullable = type_union.IsNullable();
+    const auto& expected_type = AbstractType::Handle(
+        Type::Cast(type_union)
+            .ToNullability(Nullability::kNonNullable, Heap::kOld));
+
+    auto ct_a = CompileType::FromAbstractType(type_a, CompileType::kCanBeNull,
+                                              CompileType::kCannotBeSentinel);
+    auto ct_b = CompileType::FromAbstractType(type_b, CompileType::kCanBeNull,
+                                              CompileType::kCannotBeSentinel);
+    ct_a.Union(&ct_b);
+
+    if (!ct_a.ToAbstractType()->Equals(expected_type) ||
+        ct_a.is_nullable() != expected_nullable) {
+      dart::Expect(__FILE__, __LINE__)
+          .Fail("expected Union(%s, %s) to be %s (nullable=%s), got %s\n",
+                String::Handle(field_a.name()).ToCString(),
+                String::Handle(field_b.name()).ToCString(),
+                expected_type.ToCString(), expected_nullable ? "true" : "false",
+                ct_a.ToCString());
+    }
+  }
+}
+
 // Verifies that Propagate does not crash when running in AOT mode on a graph
 // which contains both AssertAssignable and a CheckClass/Smi after
 // EliminateEnvironments was called.

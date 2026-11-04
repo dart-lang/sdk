@@ -15,7 +15,7 @@ final class ExportCountMismatch extends ExportFailure {
   final int expectedCount;
   final int actualCount;
 
-  ExportCountMismatch({
+  new({
     required this.fragmentUri,
     required this.exportedUri,
     required this.expectedCount,
@@ -41,7 +41,7 @@ class ExportedExtensionsMismatch extends RequirementFailure {
   final ManifestItemIdList expectedIds;
   final ManifestItemIdList actualIds;
 
-  ExportedExtensionsMismatch({
+  new({
     required this.libraryUri,
     required this.expectedIds,
     required this.actualIds,
@@ -68,7 +68,7 @@ final class ExportIdMismatch extends ExportFailure {
   final ManifestItemId? expectedId;
   final ManifestItemId actualId;
 
-  ExportIdMismatch({
+  new({
     required this.fragmentUri,
     required this.exportedUri,
     required this.name,
@@ -94,7 +94,7 @@ final class ExportIdMismatch extends ExportFailure {
 final class ExportLibraryMissing extends ExportFailure {
   final Uri uri;
 
-  ExportLibraryMissing({required this.uri});
+  new({required this.uri});
 
   @override
   RequirementFailureKindId get kindId {
@@ -114,7 +114,7 @@ class ImplementedMethodIdMismatch extends RequirementFailure {
   final ManifestItemId? expectedId;
   final ManifestItemId? actualId;
 
-  ImplementedMethodIdMismatch({
+  new({
     required this.libraryUri,
     required this.interfaceName,
     required this.methodName,
@@ -143,7 +143,7 @@ class InstanceChildrenIdsMismatch extends RequirementFailure {
   final ManifestItemIdList expectedIds;
   final ManifestItemIdList actualIds;
 
-  InstanceChildrenIdsMismatch({
+  new({
     required this.libraryUri,
     required this.instanceName,
     required this.childrenPropertyName,
@@ -175,7 +175,7 @@ class InstanceFieldIdMismatch extends RequirementFailure {
   final ManifestItemId? expectedId;
   final ManifestItemId? actualId;
 
-  InstanceFieldIdMismatch({
+  new({
     required this.libraryUri,
     required this.interfaceName,
     required this.fieldName,
@@ -205,7 +205,7 @@ class InstanceMethodIdMismatch extends RequirementFailure {
   final ManifestItemId? expectedId;
   final ManifestItemId? actualId;
 
-  InstanceMethodIdMismatch({
+  new({
     required this.libraryUri,
     required this.interfaceName,
     required this.methodName,
@@ -234,7 +234,7 @@ class InterfaceChildrenIdsMismatch extends RequirementFailure {
   final ManifestItemIdList? expectedIds;
   final ManifestItemIdList? actualIds;
 
-  InterfaceChildrenIdsMismatch({
+  new({
     required this.libraryUri,
     required this.interfaceName,
     required this.childrenPropertyName,
@@ -266,7 +266,7 @@ class InterfaceConstructorIdMismatch extends RequirementFailure {
   final ManifestItemId? expectedId;
   final ManifestItemId? actualId;
 
-  InterfaceConstructorIdMismatch({
+  new({
     required this.libraryUri,
     required this.interfaceName,
     required this.constructorName,
@@ -295,7 +295,7 @@ class InterfaceHasNonFinalFieldMismatch extends RequirementFailure {
   final bool expected;
   final bool actual;
 
-  InterfaceHasNonFinalFieldMismatch({
+  new({
     required this.libraryUri,
     required this.interfaceName,
     required this.expected,
@@ -322,7 +322,7 @@ class InterfaceIdMismatch extends RequirementFailure {
   final ManifestItemId expectedId;
   final ManifestItemId actualId;
 
-  InterfaceIdMismatch({
+  new({
     required this.libraryUri,
     required this.interfaceName,
     required this.expectedId,
@@ -349,7 +349,7 @@ class LibraryChildrenIdsMismatch extends RequirementFailure {
   final ManifestItemIdList expectedIds;
   final ManifestItemIdList actualIds;
 
-  LibraryChildrenIdsMismatch({
+  new({
     required this.libraryUri,
     required this.childrenPropertyName,
     required this.expectedIds,
@@ -377,11 +377,7 @@ class LibraryExportedUrisMismatch extends RequirementFailure {
   final List<Uri> expected;
   final List<Uri> actual;
 
-  LibraryExportedUrisMismatch({
-    required this.libraryUri,
-    required this.expected,
-    required this.actual,
-  });
+  new({required this.libraryUri, required this.expected, required this.actual});
 
   @override
   RequirementFailureKindId get kindId {
@@ -400,11 +396,7 @@ class LibraryFeatureSetMismatch extends RequirementFailure {
   final Uint8List? expected;
   final Uint8List? actual;
 
-  LibraryFeatureSetMismatch({
-    required this.libraryUri,
-    required this.expected,
-    required this.actual,
-  });
+  new({required this.libraryUri, required this.expected, required this.actual});
 
   @override
   RequirementFailureKindId get kindId {
@@ -423,11 +415,7 @@ class LibraryIsOriginNotExistingFileMismatch extends RequirementFailure {
   final bool expected;
   final bool actual;
 
-  LibraryIsOriginNotExistingFileMismatch({
-    required this.libraryUri,
-    required this.expected,
-    required this.actual,
-  });
+  new({required this.libraryUri, required this.expected, required this.actual});
 
   @override
   RequirementFailureKindId get kindId {
@@ -446,11 +434,7 @@ class LibraryIsSyntheticMismatch extends RequirementFailure {
   final bool expected;
   final bool actual;
 
-  LibraryIsSyntheticMismatch({
-    required this.libraryUri,
-    required this.expected,
-    required this.actual,
-  });
+  new({required this.libraryUri, required this.expected, required this.actual});
 
   @override
   RequirementFailureKindId get kindId {
@@ -469,11 +453,7 @@ class LibraryLanguageVersionMismatch extends RequirementFailure {
   final ManifestLibraryLanguageVersion expected;
   final ManifestLibraryLanguageVersion actual;
 
-  LibraryLanguageVersionMismatch({
-    required this.libraryUri,
-    required this.expected,
-    required this.actual,
-  });
+  new({required this.libraryUri, required this.expected, required this.actual});
 
   @override
   RequirementFailureKindId get kindId {
@@ -490,7 +470,7 @@ class LibraryLanguageVersionMismatch extends RequirementFailure {
 class LibraryMetadataMismatch extends RequirementFailure {
   final Uri libraryUri;
 
-  LibraryMetadataMismatch({required this.libraryUri});
+  new({required this.libraryUri});
 
   @override
   RequirementFailureKindId get kindId {
@@ -504,7 +484,7 @@ class LibraryMetadataMismatch extends RequirementFailure {
 class LibraryMissing extends RequirementFailure {
   final Uri uri;
 
-  LibraryMissing({required this.uri});
+  new({required this.uri});
 
   @override
   RequirementFailureKindId get kindId {
@@ -522,11 +502,7 @@ class LibraryNameMismatch extends RequirementFailure {
   final String? expected;
   final String? actual;
 
-  LibraryNameMismatch({
-    required this.libraryUri,
-    required this.expected,
-    required this.actual,
-  });
+  new({required this.libraryUri, required this.expected, required this.actual});
 
   @override
   RequirementFailureKindId get kindId {
@@ -546,7 +522,7 @@ final class OpaqueApiUseFailure extends RequirementFailure {
 
   final List<OpaqueApiUse> uses;
 
-  OpaqueApiUseFailure({required this.kindId, required this.uses});
+  new({required this.kindId, required this.uses});
 
   @override
   String get statisticKey {
@@ -566,7 +542,7 @@ class ReExportDeprecatedOnlyMismatch extends RequirementFailure {
   final bool expected;
   final bool actual;
 
-  ReExportDeprecatedOnlyMismatch({
+  new({
     required this.libraryUri,
     required this.name,
     required this.expected,
@@ -643,7 +619,7 @@ enum RequirementFailureKindId {
 
   final int id;
 
-  const RequirementFailureKindId(this.id);
+  new(this.id);
 }
 
 class SuperImplementedMethodIdMismatch extends RequirementFailure {
@@ -654,7 +630,7 @@ class SuperImplementedMethodIdMismatch extends RequirementFailure {
   final ManifestItemId? expectedId;
   final ManifestItemId? actualId;
 
-  SuperImplementedMethodIdMismatch({
+  new({
     required this.libraryUri,
     required this.interfaceName,
     required this.superIndex,
@@ -682,14 +658,14 @@ sealed class TopLevelFailure extends RequirementFailure {
   final Uri libraryUri;
   final LookupName name;
 
-  TopLevelFailure({required this.libraryUri, required this.name});
+  new({required this.libraryUri, required this.name});
 }
 
 class TopLevelIdMismatch extends TopLevelFailure {
   final ManifestItemId? expectedId;
   final ManifestItemId? actualId;
 
-  TopLevelIdMismatch({
+  new({
     required super.libraryUri,
     required super.name,
     required this.expectedId,
@@ -713,7 +689,7 @@ class TopLevelIdMismatch extends TopLevelFailure {
 class TopLevelNotInstance extends TopLevelFailure {
   final Object? actualItem;
 
-  TopLevelNotInstance({
+  new({
     required super.libraryUri,
     required super.name,
     required this.actualItem,
@@ -732,7 +708,7 @@ class TopLevelNotInstance extends TopLevelFailure {
 }
 
 class TopLevelNotInterface extends TopLevelFailure {
-  TopLevelNotInterface({required super.libraryUri, required super.name});
+  new({required super.libraryUri, required super.name});
 
   @override
   RequirementFailureKindId get kindId {

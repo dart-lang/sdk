@@ -17,7 +17,7 @@ class DartOutlineRequestImpl implements DartOutlineRequest {
   final ResolvedUnitResult result;
 
   /// Initialize a newly create request with the given data.
-  DartOutlineRequestImpl(this.resourceProvider, this.result);
+  new(this.resourceProvider, this.result);
 
   @override
   String get path => result.path;

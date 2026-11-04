@@ -80,9 +80,10 @@ class N {}
     await resolveTestCodeWithDiagnostics(r'''
 library L;
 export 'lib.dart';
+// [context 1][column 1][length 6] The previous export that is being duplicated.
 export 'lib.dart';
 //     ^^^^^^^^^^
-// [diag.duplicateExport] Duplicate export.
+// [diag.duplicateExport][context 1] Duplicate export.
 ''');
   }
 
@@ -3235,32 +3236,6 @@ import 'lib.dart' as p;
 f(Type t) {}
 main() {
   f(p.F);
-}
-''');
-  }
-
-  test_undefinedSuperMethod_field() async {
-    await resolveTestCodeWithDiagnostics(r'''
-class A {
-  var m;
-}
-class B extends A {
-  f() {
-    super.m();
-  }
-}
-''');
-  }
-
-  test_undefinedSuperMethod_method() async {
-    await resolveTestCodeWithDiagnostics(r'''
-class A {
-  m() {}
-}
-class B extends A {
-  f() {
-    super.m();
-  }
 }
 ''');
   }

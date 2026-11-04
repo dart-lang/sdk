@@ -25,9 +25,7 @@ typedef GetTypeParameterNodeFunction = AstNode? Function(FragmentImpl fragment);
 class DefaultTypesBuilder {
   final GetTypeParameterNodeFunction _getTypeParameterNode;
 
-  DefaultTypesBuilder({
-    required GetTypeParameterNodeFunction getTypeParameterNode,
-  }) : _getTypeParameterNode = getTypeParameterNode;
+  new({required this._getTypeParameterNode});
 
   void build(List<AstNode> nodes) {
     _computeDefaultTypes(nodes);
@@ -294,62 +292,62 @@ class DefaultTypesBuilder {
 
   _FragmentTypeParameters? _fragmentTypeParameters(AstNode node) {
     switch (node) {
-      case ClassDeclarationImpl():
+      case ClassDeclaration2Impl():
         return _FragmentTypeParameters(
           node.declaredFragment!,
           node.namePart.typeParameters,
         );
-      case ClassTypeAliasImpl():
+      case ClassTypeAlias2Impl():
         return _FragmentTypeParameters(
           node.declaredFragment!,
           node.typeParameters,
         );
-      case EnumDeclarationImpl():
+      case EnumDeclaration2Impl():
         return _FragmentTypeParameters(
           node.declaredFragment!,
           node.namePart.typeParameters,
         );
-      case ExtensionDeclarationImpl():
+      case ExtensionDeclaration2Impl():
         return _FragmentTypeParameters(
           node.declaredFragment!,
           node.typeParameters,
         );
-      case ExtensionTypeDeclarationImpl():
+      case ExtensionTypeDeclaration2Impl():
         return _FragmentTypeParameters(
           node.declaredFragment!,
           node.namePart.typeParameters,
         );
-      case FunctionTypeAliasImpl():
+      case FunctionTypeAlias2Impl():
         return _FragmentTypeParameters(
           node.declaredFragment!,
           node.typeParameters,
         );
-      case GenericTypeAliasImpl():
+      case GenericTypeAlias2Impl():
         return _FragmentTypeParameters(
           node.declaredFragment!,
           node.typeParameters,
         );
-      case MixinDeclarationImpl():
+      case MixinDeclaration2Impl():
         return _FragmentTypeParameters(
           node.declaredFragment!,
           node.typeParameters,
         );
-      case MethodDeclarationImpl():
+      case MethodDeclarationV1OriginImpl():
         return _FragmentTypeParameters(
           node.declaredFragment!,
-          node.typeParameters,
-        );
-      case FunctionDeclarationImpl():
-        return _FragmentTypeParameters(
-          node.declaredFragment!,
-          node.functionExpression.typeParameters,
-        );
-      case TopLevelGetterDeclarationImpl():
-        return _FragmentTypeParameters(
-          node.declaredFragment!,
-          node.recoveryTypeParameters,
+          node.writtenTypeParameters,
         );
       case FunctionExpressionImpl():
+        return _FragmentTypeParameters(
+          node.declaredFragment!,
+          node.typeParameters,
+        );
+      case LocalFunctionDeclarationImpl():
+        return _FragmentTypeParameters(
+          node.declaredFragment!,
+          node.typeParameters,
+        );
+      case TopLevelFunctionDeclarationImpl():
         return _FragmentTypeParameters(
           node.declaredFragment!,
           node.typeParameters,
@@ -364,14 +362,14 @@ class _CycleElement {
   final TypeParameter parameter;
   final DartType type;
 
-  _CycleElement(this.parameter, this.type);
+  new(this.parameter, this.type);
 }
 
 class _FragmentTypeParameters {
   final FragmentImpl fragment;
   final TypeParameterListImpl? typeParameters;
 
-  _FragmentTypeParameters(this.fragment, this.typeParameters);
+  new(this.fragment, this.typeParameters);
 }
 
 /// Graph of mutual dependencies of type parameters from the same declaration.
@@ -387,10 +385,7 @@ class _TypeParametersGraph implements Graph<int> {
 
   final Map<TypeParameterElement, int> _parameterToIndex = Map.identity();
 
-  _TypeParametersGraph(
-    List<TypeParameterElement> parameters,
-    List<DartType> bounds,
-  ) {
+  new(List<TypeParameterElement> parameters, List<DartType> bounds) {
     assert(parameters.length == bounds.length);
 
     for (int i = 0; i < parameters.length; i++) {
@@ -438,13 +433,7 @@ class _UpperLowerReplacementVisitor extends ReplacementVisitor {
   final Map<TypeParameterElement, TypeImpl> _lower;
   Variance _variance;
 
-  _UpperLowerReplacementVisitor({
-    required Map<TypeParameterElement, TypeImpl> upper,
-    required Map<TypeParameterElement, TypeImpl> lower,
-    required Variance variance,
-  }) : _upper = upper,
-       _lower = lower,
-       _variance = variance;
+  new({required this._upper, required this._lower, required this._variance});
 
   @override
   void changeVariance() {

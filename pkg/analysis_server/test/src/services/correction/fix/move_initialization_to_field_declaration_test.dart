@@ -15,7 +15,8 @@ void main() {
 }
 
 @reflectiveTest
-class MoveInitializationToFieldDeclarationTest extends FixProcessorLintTest {
+class MoveInitializationToFieldDeclarationTest
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.moveInitializationToFieldDeclaration;
 

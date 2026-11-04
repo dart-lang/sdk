@@ -66,6 +66,7 @@ import 'instance_member_inference_class_test.dart'
     as instance_member_inference_class;
 import 'instance_member_inference_mixin_test.dart'
     as instance_member_inference_mixin;
+import 'integer_literal_test.dart' as integer_literal;
 import 'interpolation_string_test.dart' as interpolation_string;
 import 'is_expression_test.dart' as is_expression;
 import 'library_directive_test.dart' as library_directive;
@@ -185,6 +186,7 @@ main() {
     constructor_invocation.main();
     instance_member_inference_class.main();
     instance_member_inference_mixin.main();
+    integer_literal.main();
     interpolation_string.main();
     is_expression.main();
     library_directive.main();

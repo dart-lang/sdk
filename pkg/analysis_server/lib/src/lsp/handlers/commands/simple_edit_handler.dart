@@ -57,7 +57,7 @@ abstract class SimpleEditCommandHandler<S extends AnalysisServer>
       ),
     ]);
 
-    return sendWorkspaceEditToClient(workspaceEdit);
+    return await sendWorkspaceEditToClient(workspaceEdit);
   }
 
   Future<ErrorOr<void>> sendWorkspaceEditToClient(

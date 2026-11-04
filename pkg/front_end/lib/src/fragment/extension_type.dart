@@ -6,10 +6,7 @@ part of 'fragment.dart';
 
 class ExtensionTypeFragment extends DeclarationFragmentImpl
     implements Fragment {
-  @override
-  final String name;
-
-  final int nameOffset;
+  final UriOffsetName _uriOffsetName;
 
   late final List<MetadataBuilder>? metadata;
   late final List<TypeBuilder>? interfaces;
@@ -20,23 +17,25 @@ class ExtensionTypeFragment extends DeclarationFragmentImpl
 
   SourceExtensionTypeDeclarationBuilder? _builder;
 
-  @override
-  late final UriOffsetLength uriOffset = new UriOffsetLength(
-    fileUri,
-    nameOffset,
-    name.length,
-  );
-
   new({
-    required this.name,
-    required super.fileUri,
-    required this.nameOffset,
+    required this._uriOffsetName,
     required super.typeParameters,
     required super.enclosingScope,
     required super.typeParameterScope,
     required super.nominalParameterNameSpace,
     required super.enclosingCompilationUnit,
   });
+
+  @override
+  String get name => _uriOffsetName.name;
+
+  int get nameOffset => _uriOffsetName.nameOffset;
+
+  @override
+  Uri get fileUri => _uriOffsetName.fileUri;
+
+  @override
+  UriOffsetLength get uriOffset => _uriOffsetName;
 
   @override
   // Coverage-ignore(suite): Not run.

@@ -38,6 +38,7 @@ class Uint8ListCopyViaFromListBenchmark extends Uint8ListCopyBenchmark {
   Uint8ListCopyViaFromListBenchmark(int size) : super('fromList', size);
 
   @override
+  @pragma('vm:align-loops')
   void run() {
     result = Uint8List.fromList(input);
   }
@@ -47,6 +48,7 @@ class Uint8ListCopyViaLoopBenchmark extends Uint8ListCopyBenchmark {
   Uint8ListCopyViaLoopBenchmark(int size) : super('loop', size);
 
   @override
+  @pragma('vm:align-loops')
   void run() {
     final input = this.input;
     final result = Uint8List(input.length);
@@ -87,6 +89,7 @@ class Float64ListCopyViaFromListBenchmark extends Float64ListCopyBenchmark {
   Float64ListCopyViaFromListBenchmark(int size) : super('fromList', size);
 
   @override
+  @pragma('vm:align-loops')
   void run() {
     result = Float64List.fromList(input);
   }
@@ -96,6 +99,7 @@ class Float64ListCopyViaLoopBenchmark extends Float64ListCopyBenchmark {
   Float64ListCopyViaLoopBenchmark(int size) : super('loop', size);
 
   @override
+  @pragma('vm:align-loops')
   void run() {
     final input = this.input;
     final result = Float64List(input.length);

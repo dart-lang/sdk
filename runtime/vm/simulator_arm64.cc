@@ -3338,6 +3338,12 @@ void Simulator::DecodeSIMDThreeSame(Instr* instr) {
       } else if ((U == 1) && (opcode == 0x11)) {
         // Format(instr, "vceq'vsz 'vd, 'vn, 'vm");
         res = (vn_val == vm_val) ? 0xffffffff : 0;
+      } else if ((U == 0) && (opcode == 0x6)) {
+        // Format(instr, "vcgt'vsz 'vd, 'vn, 'vm");
+        res = (vn_val > vm_val) ? 0xffffffff : 0;
+      } else if ((U == 0) && (opcode == 0x7)) {
+        // Format(instr, "vcge'vsz 'vd, 'vn, 'vm");
+        res = (vn_val >= vm_val) ? 0xffffffff : 0;
       } else if ((U == 0) && (opcode == 0x8)) {
         // Format(instr, "vsshl'vsz 'vd, 'vn, 'vm");
         const int8_t shift = static_cast<int8_t>(vm_val & 0xff);
@@ -3350,6 +3356,17 @@ void Simulator::DecodeSIMDThreeSame(Instr* instr) {
           // An arithmetic right shift saturates at the element width, leaving
           // a copy of the sign bit in every position.
           res = vn_val >> (-shift >= 32 ? 31 : -shift);
+        }
+      } else if ((U == 1) && (opcode == 0x8)) {
+        // Format(instr, "vushl'vsz 'vd, 'vn, 'vm");
+        const int8_t shift = static_cast<int8_t>(vm_val & 0xff);
+        const uint32_t vn_bits = static_cast<uint32_t>(vn_val);
+        // A shift of the element width or more, in either direction, shifts
+        // every bit out.
+        if (shift >= 0) {
+          res = shift >= 32 ? 0 : static_cast<int32_t>(vn_bits << shift);
+        } else {
+          res = -shift >= 32 ? 0 : static_cast<int32_t>(vn_bits >> -shift);
         }
       } else if ((U == 0) && (opcode == 0x10)) {
         // Format(instr, "vadd'vsz 'vd, 'vn, 'vm");
@@ -3759,6 +3776,57 @@ void Simulator::DecodeDPSimd1(Instr* instr) {
     for (int i = 0; i < 4; i++) {
       set_vregisters(vd, i, static_cast<int32_t>(res[i]));
     }
+    return;
+  }
+
+  // REV64 Vd.4S, Vn.4S: swaps the two 32-bit lanes in each 64-bit half.
+  if ((instr->InstructionBits() & 0xFFFFFC00) == 0x4EA00800) {
+    const VRegister vd = instr->VdField();
+    const VRegister vn = instr->VnField();
+    const int32_t res[4] = {get_vregisters(vn, 1), get_vregisters(vn, 0),
+                            get_vregisters(vn, 3), get_vregisters(vn, 2)};
+    for (int i = 0; i < 4; i++) {
+      set_vregisters(vd, i, res[i]);
+    }
+    return;
+  }
+
+  // EXT Vd.16B, Vn.16B, Vm.16B, #index: the 16 bytes that start at byte
+  // `index` of Vn followed by Vm.
+  if ((instr->InstructionBits() & 0xFFE08400) == 0x6E000000) {
+    const VRegister vd = instr->VdField();
+    const VRegister vn = instr->VnField();
+    const VRegister vm = instr->VmField();
+    const int index = instr->Bits(11, 4);
+    int64_t in_bits[4] = {get_vregisterd(vn, 0), get_vregisterd(vn, 1),
+                          get_vregisterd(vm, 0), get_vregisterd(vm, 1)};
+    const uint8_t* in = reinterpret_cast<const uint8_t*>(&in_bits[0]);
+    int64_t result_bits[2];
+    uint8_t* result = reinterpret_cast<uint8_t*>(&result_bits[0]);
+    for (int i = 0; i < 16; i++) {
+      result[i] = in[index + i];
+    }
+    set_vregisterd(vd, 0, result_bits[0]);
+    set_vregisterd(vd, 1, result_bits[1]);
+    return;
+  }
+
+  // TBL Vd.16B, {Vn.16B}, Vm.16B: byte-wise table lookup.
+  if ((instr->InstructionBits() & 0xFFE0FC00) == 0x4E000000) {
+    const VRegister vd = instr->VdField();
+    const VRegister vn = instr->VnField();
+    const VRegister vm = instr->VmField();
+    int64_t table_bits[2] = {get_vregisterd(vn, 0), get_vregisterd(vn, 1)};
+    int64_t index_bits[2] = {get_vregisterd(vm, 0), get_vregisterd(vm, 1)};
+    const uint8_t* table = reinterpret_cast<const uint8_t*>(&table_bits[0]);
+    const uint8_t* index = reinterpret_cast<const uint8_t*>(&index_bits[0]);
+    int64_t result_bits[2];
+    uint8_t* result = reinterpret_cast<uint8_t*>(&result_bits[0]);
+    for (int i = 0; i < 16; i++) {
+      result[i] = index[i] < 16 ? table[index[i]] : 0;
+    }
+    set_vregisterd(vd, 0, result_bits[0]);
+    set_vregisterd(vd, 1, result_bits[1]);
     return;
   }
 

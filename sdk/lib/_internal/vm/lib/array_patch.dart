@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:_internal'
-    show makeFixedListUnmodifiable, makeListFixedLength, patch;
+import 'dart:_internal' show patch, unsafeCast;
 
 @patch
 class List<E> {
@@ -25,12 +24,12 @@ class List<E> {
     if (elements is Iterable<E>) {
       return List.of(elements, growable: growable);
     }
-    List<E> list = _GrowableList<E>(0);
+    _GrowableList<E> list = _GrowableList<E>(0);
     for (E e in elements) {
       list.add(e);
     }
     if (growable) return list;
-    return makeListFixedLength(list);
+    return list._mutateIntoFixedLengthList();
   }
 
   @patch
@@ -42,7 +41,7 @@ class List<E> {
   @pragma("vm:prefer-inline")
   factory List.generate(
     int length,
-    E generator(int index), {
+    E Function(int index) generator, {
     bool growable = true,
   }) => growable
       ? _GrowableList<E>.generate(length, generator)
@@ -50,8 +49,10 @@ class List<E> {
 
   @patch
   factory List.unmodifiable(Iterable elements) {
-    final result = List<E>.from(elements, growable: false);
-    return makeFixedListUnmodifiable(result);
+    final result = unsafeCast<_List<E>>(
+      List<E>.from(elements, growable: false),
+    );
+    return result._mutateIntoUnmodifiableList();
   }
 }
 

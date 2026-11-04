@@ -15,7 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class RemoveUnusedFieldTest extends FixProcessorTest {
+class RemoveUnusedFieldTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeUnusedField;
 

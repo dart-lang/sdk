@@ -14,7 +14,7 @@ const int dummyOffset = -1;
 class StackCheckerTester with StackChecker {
   final List<Object?> stack;
 
-  StackCheckerTester(List<Object?> stack) : stack = stack.reversed.toList();
+  new(List<Object?> stack) : stack = stack.reversed.toList();
 
   @override
   Never internalProblem(Message message, int charOffset, Uri uri) {

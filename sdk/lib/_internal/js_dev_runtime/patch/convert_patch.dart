@@ -25,7 +25,7 @@ import 'dart:collection' show LinkedHashMap, MapBase;
 ///
 /// Throws [FormatException] if the input is not valid JSON text.
 @patch
-_parseJson(String source, reviver(key, value)?) {
+_parseJson(String source, Function(dynamic key, dynamic value)? reviver) {
   if (source is! String) throw argumentErrorValue(source);
 
   var parsed;
@@ -49,7 +49,7 @@ _parseJson(String source, reviver(key, value)?) {
 /// Walks the raw JavaScript value [json], replacing JavaScript Objects with
 /// Maps. [json] is expected to be freshly allocated so elements can be replaced
 /// in-place.
-_convertJsonToDart(json, reviver(Object? key, Object? value)) {
+_convertJsonToDart(json, Function(Object? key, Object? value) reviver) {
   walk(e) {
     // JavaScript null, string, number, bool are in the correct representation.
     if (JS<bool>('!', '# == null', e) ||
@@ -196,7 +196,7 @@ class _JsonMap extends MapBase<String, dynamic> {
     return _hasProperty(_original, key);
   }
 
-  putIfAbsent(key, ifAbsent()) {
+  putIfAbsent(key, Function() ifAbsent) {
     if (containsKey(key)) return this[key];
     var value = ifAbsent();
     this[key] = value;
@@ -223,7 +223,7 @@ class _JsonMap extends MapBase<String, dynamic> {
     }
   }
 
-  void forEach(void f(String key, value)) {
+  void forEach(void Function(String key, dynamic value) f) {
     if (_isUpgraded) return _upgradedMap.forEach(f);
     List<String> keys = _computeKeys();
     for (int i = 0; i < keys.length; i++) {

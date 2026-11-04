@@ -28,12 +28,12 @@ class BoxedInt {
 String _jsBigIntToString(int i, int radix) {
   final upperBits = (i >> 31);
   final result = (upperBits == -1 || upperBits == 0)
-      ? JS<WasmExternRef?>(
+      ? JS<WasmExternRef>(
           'Function.prototype.call.bind(Number.prototype.toString)',
           WasmI32.fromInt(i),
           WasmI32.fromInt(radix),
         )
-      : JS<WasmExternRef?>(
+      : JS<WasmExternRef>(
           'Function.prototype.call.bind(BigInt.prototype.toString)',
           WasmI64.fromInt(i),
           WasmI32.fromInt(radix),

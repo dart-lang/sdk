@@ -9,6 +9,7 @@ import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/plugin/plugin_locator.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/utilities/extensions/file_system.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -334,6 +335,53 @@ class A {}
 AnalysisErrors
   file: /home/test/lib/b.dart
   errors: empty
+''');
+  }
+
+  Future<void>
+  test_fileSystem_addFile_dart_inExcludedFolder_notExisting() async {
+    configuration.withState = true;
+
+    var aPath = '$testPackageLibPath/a.dart';
+    var excludedPath = '$testPackageRootPath/build';
+    var bPath = '$excludedPath/b.dart';
+
+    _createFilesWithErrors([aPath]);
+
+    await setRoots(included: [workspaceRootPath], excluded: [excludedPath]);
+    await server.onAnalysisComplete;
+
+    assertNotificationsText(r'''
+AnalysisErrors
+  file: /home/test/pubspec.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/analysis_options.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/lib/a.dart
+  errors: notEmpty
+State
+  contexts
+    /home
+    /home/test
+      addedFiles
+        /home/test/lib/a.dart
+''');
+
+    _createFilesWithErrors([bPath]);
+    await pumpEventQueue(times: 5000);
+    await server.onAnalysisComplete;
+
+    // The excluded folder did not exist when roots were set, but 'b.dart'
+    // created in it later is still excluded, so not added.
+    assertNotificationsText(r'''
+State
+  contexts
+    /home
+    /home/test
+      addedFiles
+        /home/test/lib/a.dart
 ''');
   }
 
@@ -1702,6 +1750,43 @@ AnalysisErrors
     await server.onAnalysisComplete;
 
     // a.dart is analyzed, but b.dart is in the excluded folder.
+    expect(server.isAnalyzed(convertPath(aPath)), isTrue);
+    expect(server.isAnalyzed(convertPath(excluded_path)), isFalse);
+    assertNotificationsText(r'''
+AnalysisErrors
+  file: /home/test/pubspec.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/analysis_options.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/lib/a.dart
+  errors: notEmpty
+''');
+  }
+
+  Future<void> test_setRoots_includedFolder_excludedFolder_hasPackage() async {
+    var aPath = '$testPackageLibPath/a.dart';
+    var excludedPath = '$testPackageRootPath/excluded';
+    var bPath = '$excludedPath/inner/lib/b.dart';
+
+    newPackageConfigJsonFile('$excludedPath/inner', '');
+    _createFilesWithErrors([aPath, bPath]);
+
+    await setRoots(included: [workspaceRootPath], excluded: [excludedPath]);
+    await server.onAnalysisComplete;
+
+    // The package in the excluded folder does not get a context.
+    var contextRootPaths = server.contextManager.analysisContexts
+        .map((context) => context.contextRoot.root.path)
+        .toList();
+    expect(
+      contextRootPaths,
+      isNot(contains(convertPath('$excludedPath/inner'))),
+    );
+
+    expect(server.isAnalyzed(convertPath(aPath)), isTrue);
+    expect(server.isAnalyzed(convertPath(bPath)), isFalse);
     assertNotificationsText(r'''
 AnalysisErrors
   file: /home/test/pubspec.yaml
@@ -2623,12 +2708,19 @@ class _AnalysisDomainTest extends PubPackageAnalysisServerTest {
   void assertNotificationsText(String expected) {
     var buffer = StringBuffer();
     var sink = TreeStringSink(sink: buffer, indent: '');
-    _NotificationPrinter(
+    var printer = _NotificationPrinter(
       configuration: configuration,
       resourceProvider: resourceProvider,
       sink: sink,
-    ).writeNotifications(notifications);
+    );
+    printer.writeNotifications(notifications);
     notifications.clear();
+    if (configuration.withState) {
+      printer.writeState(
+        server.contextManager.analysisContexts
+            .cast<DriverBasedAnalysisContext>(),
+      );
+    }
 
     var actual = buffer.toString();
     if (actual != expected) {
@@ -2682,6 +2774,24 @@ class _NotificationPrinter {
     }
   }
 
+  /// Writes the current state of the server, not the changes since the last
+  /// check, so that the expectation shows the complete state.
+  void writeState(List<DriverBasedAnalysisContext> contexts) {
+    sink.writelnWithIndent('State');
+    sink.withIndent(() {
+      var sortedContexts = contexts.sortedBy(
+        (context) => context.contextRoot.root.path,
+      );
+      sink.writeElements('contexts', sortedContexts, (context) {
+        sink.writelnWithIndent(context.contextRoot.root.posixPath);
+        sink.withIndent(() {
+          var addedFiles = context.driver.addedFiles.sorted();
+          sink.writeElements('addedFiles', addedFiles, _writelnFile);
+        });
+      });
+    });
+  }
+
   void _writelnFile(String path, {String? name}) {
     sink.writeIndentedLine(() {
       if (name != null) {
@@ -2717,4 +2827,7 @@ class _NotificationPrinter {
 
 class _NotificationPrinterConfiguration {
   bool withAnalysisErrorDetails = false;
+
+  /// Whether to write the `State` section after the notifications.
+  bool withState = false;
 }

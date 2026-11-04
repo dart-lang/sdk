@@ -23,7 +23,8 @@ abstract class DataDrivenBulkFixProcessorTest extends BulkFixProcessorTest
 
 /// A base class defining support for writing fix processor tests for
 /// data-driven fixes.
-abstract class DataDrivenFixProcessorTest extends FixProcessorTest
+abstract class DataDrivenFixProcessorTest
+    extends FixProcessorForBuiltInDiagnosticTest
     with DataDrivenFixProcessorTestMixin {}
 
 mixin DataDrivenFixProcessorTestMixin on SingleUnitTest {

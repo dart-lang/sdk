@@ -17,7 +17,7 @@ class IgnoredDiagnosticComment implements IgnoredElement {
 
   final int offset;
 
-  IgnoredDiagnosticComment(this.text, this.offset);
+  new(this.text, this.offset);
 
   @override
   bool _matches(DiagnosticCode diagnosticCode, {String? pluginName}) => false;
@@ -32,8 +32,7 @@ class IgnoredDiagnosticName implements IgnoredElement {
 
   final int offset;
 
-  IgnoredDiagnosticName(String name, this.offset, {this.pluginName})
-    : name = name.toLowerCase();
+  new(String name, this.offset, {this.pluginName}) : name = name.toLowerCase();
 
   @override
   bool _matches(DiagnosticCode diagnosticCode, {String? pluginName}) {
@@ -60,8 +59,7 @@ class IgnoredDiagnosticType implements IgnoredElement {
 
   final int length;
 
-  IgnoredDiagnosticType(String type, this.offset, this.length)
-    : type = type.toLowerCase();
+  new(String type, this.offset, this.length) : type = type.toLowerCase();
 
   @override
   bool _matches(DiagnosticCode diagnosticCode, {String? pluginName}) {
@@ -111,11 +109,11 @@ class IgnoreInfo {
 
   final LineInfo _lineInfo;
 
-  IgnoreInfo.empty() : _lineInfo = LineInfo([]);
+  new empty() : _lineInfo = LineInfo([]);
 
   /// Initializes a newly created instance of this class to represent the ignore
   /// comments in the given compilation [unit].
-  IgnoreInfo.forDart(CompilationUnit unit, String content)
+  new forDart(CompilationUnit unit, String content)
     : _lineInfo = unit.lineInfo {
     for (var comment in unit.ignoreComments) {
       var lexeme = comment.lexeme;
@@ -142,7 +140,7 @@ class IgnoreInfo {
 
   /// Initializes a newly created instance of this class to represent the ignore
   /// comments in the given YAML file.
-  IgnoreInfo.forYaml(String content, this._lineInfo) {
+  new forYaml(String content, this._lineInfo) {
     Iterable<IgnoredDiagnosticName> diagnosticNamesInMatch(RegExpMatch match) {
       var ignored = match.namedGroup('ignored')!;
       var offset = match.start;

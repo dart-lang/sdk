@@ -54,7 +54,8 @@ var b = 'aid';
 }
 
 @reflectiveTest
-class RemoveUnnecessaryRawStringTest extends FixProcessorLintTest {
+class RemoveUnnecessaryRawStringTest
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.removeUnnecessaryRawString;
 

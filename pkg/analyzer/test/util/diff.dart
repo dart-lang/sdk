@@ -152,7 +152,7 @@ class _DiffResult {
   final _DiffType type;
   final String line;
 
-  _DiffResult(this.type, this.line);
+  new(this.type, this.line);
 }
 
 enum _DiffType { added, removed, common }

@@ -274,11 +274,9 @@ class _DeclarationBuilderRegistry implements BuilderRegistry {
       // TODO(johnniwinther): Check these closer to the member declaration to
       // better specialize the message.
       if (declarationBuilder.isEnum && name == 'values') {
-        problemReporting.addProblem(
+        problemReporting.addProblem2(
           diag.enumWithNameValues,
-          declarationBuilder.fileOffset,
-          name.length,
-          declarationBuilder.fileUri,
+          declarationBuilder.uriOffset,
         );
       } else {
         problemReporting.addProblem2(diag.memberWithSameNameAsClass, uriOffset);

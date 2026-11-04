@@ -12,7 +12,7 @@ main() {
   // Illegal, can't change a top level method.
   method = () {
     // [error column 3, length 6]
-    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FUNCTION
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_WRITE
     // [cfe] Setter not found: 'method'.
     return 1;
   };

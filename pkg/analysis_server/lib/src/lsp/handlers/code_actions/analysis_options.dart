@@ -27,6 +27,7 @@ class AnalysisOptionsCodeActionsProducer extends AbstractCodeActionsProducer {
     required super.allowCommands,
     required super.analysisOptions,
     required super.allowSnippets,
+    required super.token,
   });
 
   @override
@@ -48,7 +49,7 @@ class AnalysisOptionsCodeActionsProducer extends AbstractCodeActionsProducer {
     }
 
     var session = await server.getAnalysisSession(path);
-    if (session == null) {
+    if (session == null || token.isCancellationRequested) {
       return [];
     }
 
@@ -89,6 +90,7 @@ class AnalysisOptionsCodeActionsProducer extends AbstractCodeActionsProducer {
         yamlMap,
       );
       var fixes = await generator.computeFixes();
+      if (token.isCancellationRequested) return [];
       if (fixes.isEmpty) {
         continue;
       }

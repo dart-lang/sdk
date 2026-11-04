@@ -82,6 +82,31 @@ void main() {
       expect(firstEvent, testEvent);
     });
   });
+
+  group(
+      '${UnifiedAnalyticsServiceConstants.serviceName} with '
+      'DASH__SUPPRESS_ANALYTICS=true', () {
+    setUp(() async {
+      toolingDaemonProcess = ToolingDaemonTestProcess(suppressAnalytics: true);
+      await toolingDaemonProcess.start();
+      client = await DartToolingDaemon.connect(toolingDaemonProcess.uri);
+    });
+
+    tearDown(() async {
+      toolingDaemonProcess.kill();
+    });
+
+    test('send does not send events', () async {
+      final response = await client.analyticsSend(
+        tool,
+        Event.hotReloadTime(timeMs: 10),
+      );
+      expect(response.value, null);
+
+      final eventsResponse = await client.listFakeAnalyticsSentEvents(tool);
+      expect(eventsResponse.value, isEmpty);
+    });
+  });
 }
 
 extension on DartToolingDaemon {

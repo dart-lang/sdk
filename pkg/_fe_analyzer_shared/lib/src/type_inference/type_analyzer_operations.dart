@@ -1434,27 +1434,24 @@ mixin TypeAnalyzerOperationsMixin<
 
   @override
   SharedTypeView? matchIterableType(SharedTypeView type) {
-    return matchIterableTypeInternal(
-      type.unwrapTypeView(),
-    )?.wrapSharedTypeView();
+    return matchIterableTypeInternal(type.unwrapTypeView())
+        ?.wrapSharedTypeView();
   }
 
   @override
   SharedTypeSchemaView? matchIterableTypeSchema(
     SharedTypeSchemaView typeSchema,
   ) {
-    return matchIterableTypeInternal(
-      typeSchema.unwrapTypeSchemaView(),
-    )?.wrapSharedTypeSchemaView();
+    return matchIterableTypeInternal(typeSchema.unwrapTypeSchemaView())
+        ?.wrapSharedTypeSchemaView();
   }
 
   @override
   SharedTypeSchemaView? matchTypeSchemaFutureOr(
     SharedTypeSchemaView typeSchema,
   ) {
-    return matchFutureOrInternal(
-      typeSchema.unwrapTypeSchemaView(),
-    )?.wrapSharedTypeSchemaView();
+    return matchFutureOrInternal(typeSchema.unwrapTypeSchemaView())
+        ?.wrapSharedTypeSchemaView();
   }
 
   @override
@@ -1659,7 +1656,7 @@ abstract class TypeConstraintGenerator<
   /// True if the language feature inference-using-bounds is enabled.
   final bool inferenceUsingBoundsIsEnabled;
 
-  TypeConstraintGenerator({required this.inferenceUsingBoundsIsEnabled});
+  new({required this.inferenceUsingBoundsIsEnabled});
 
   /// The current sate of the constraint generator.
   ///
@@ -2909,7 +2906,7 @@ class TypeDeclarationMatchResult<
   /// If [typeDeclaration] is not generic, [typeArguments] is an empty list.
   final List<SharedType> typeArguments;
 
-  TypeDeclarationMatchResult({
+  new({
     required this.typeDeclarationKind,
     required this.typeDeclarationType,
     required this.typeDeclaration,

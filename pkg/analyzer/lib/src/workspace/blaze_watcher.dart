@@ -42,7 +42,7 @@ class BlazeFilePoller {
   /// path.
   String? _validPath;
 
-  BlazeFilePoller(this._provider, this._candidates);
+  new(this._provider, this._candidates);
 
   /// Checks if the file corresponding to the watched path has changed and
   /// returns the event or `null` if nothing changed.
@@ -163,7 +163,7 @@ class BlazeFileWatcherIsolate {
 
   final _hasFinished = Completer<void>();
 
-  BlazeFileWatcherIsolate(
+  new(
     this._fromMainIsolate,
     this._toMainIsolate,
     this._provider, {
@@ -305,7 +305,7 @@ class BlazeFileWatcherService {
   /// True if the isolate is ready to watch files.
   final _isolateHasStarted = Completer<void>();
 
-  BlazeFileWatcherService(this._instrumentation);
+  new(this._instrumentation);
 
   Stream<List<WatchEvent>> get events => _events.stream;
 
@@ -393,26 +393,26 @@ class BlazeSearchInfo {
   /// `BlazeWorkspace.findFile` for details.
   final String requestedPath;
 
-  BlazeSearchInfo(this.requestedPath, this.candidatePaths);
+  new(this.requestedPath, this.candidatePaths);
 }
 
 class BlazeWatcherError implements BlazeWatcherMessage {
   final String message;
 
-  BlazeWatcherError(this.message);
+  new(this.message);
 }
 
 class BlazeWatcherEvents implements BlazeWatcherMessage {
   final List<WatchEvent> events;
 
-  BlazeWatcherEvents(this.events);
+  new(this.events);
 }
 
 /// Sent by the watcher isolate to transfer the [SendPort] to the main isolate.
 class BlazeWatcherIsolateStarted implements BlazeWatcherMessage {
   final SendPort sendPort;
 
-  BlazeWatcherIsolateStarted(this.sendPort);
+  new(this.sendPort);
 }
 
 abstract class BlazeWatcherMessage {}
@@ -423,21 +423,21 @@ class BlazeWatcherStartWatching implements BlazeWatcherMessage {
   final String workspace;
   final BlazeSearchInfo info;
 
-  BlazeWatcherStartWatching(this.workspace, this.info);
+  new(this.workspace, this.info);
 }
 
 class BlazeWatcherStopWatching implements BlazeWatcherMessage {
   final String workspace;
   final String requestedPath;
 
-  BlazeWatcherStopWatching(this.workspace, this.requestedPath);
+  new(this.workspace, this.requestedPath);
 }
 
 class FileInfo {
   String path;
   _ModifiedInfo modified;
 
-  FileInfo(this.path, this.modified);
+  new(this.path, this.modified);
 }
 
 /// Triggers polling every time something appears in the [stream].
@@ -487,7 +487,7 @@ class _BlazeInvocationWatcher implements PollTrigger {
   BlazeFilePoller? _poller;
   String? _commandLogPath;
 
-  _BlazeInvocationWatcher(this._provider, this._workspacePath) {
+  new(this._provider, this._workspacePath) {
     _timer = Timer.periodic(_pollInterval, _poll);
   }
 
@@ -561,7 +561,7 @@ class _ModifiedInfo {
   /// files.
   final String symlinkTarget;
 
-  _ModifiedInfo(this.timestamp, this.length, this.symlinkTarget);
+  new(this.timestamp, this.length, this.symlinkTarget);
 
   @override
   int get hashCode =>
@@ -622,5 +622,5 @@ class _PerWorkspaceData {
   /// Subscription of [trigger].
   final StreamSubscription<Object> pollSubscription;
 
-  _PerWorkspaceData(this.trigger, this.pollSubscription);
+  new(this.trigger, this.pollSubscription);
 }

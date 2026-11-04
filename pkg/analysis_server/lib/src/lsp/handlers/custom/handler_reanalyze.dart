@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
@@ -31,7 +32,7 @@ class ReanalyzeHandler extends SharedMessageHandler<void, void> {
   ) async {
     // This command just starts a refresh, it does not wait for it to
     // complete before responding to the client.
-    unawaited(server.reanalyze());
+    unawaited(server.reanalyze(ContextRebuildReasons.reanalyzeRequest));
     return success(null);
   }
 }

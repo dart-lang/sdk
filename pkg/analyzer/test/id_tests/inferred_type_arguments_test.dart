@@ -33,7 +33,7 @@ main(List<String> args) {
 }
 
 class _InferredTypeArgumentsDataComputer extends DataComputer<List<DartType>> {
-  const _InferredTypeArgumentsDataComputer();
+  const new();
 
   @override
   DataInterpreter<List<DartType>> get dataValidator =>
@@ -55,7 +55,7 @@ class _InferredTypeArgumentsDataComputer extends DataComputer<List<DartType>> {
 
 class _InferredTypeArgumentsDataExtractor
     extends AstDataExtractor<List<DartType>> {
-  _InferredTypeArgumentsDataExtractor(super.uri, super.actualMap);
+  new(super.uri, super.actualMap);
 
   @override
   List<DartType>? computeNodeValue(Id id, AstNode node) {
@@ -85,7 +85,7 @@ class _InferredTypeArgumentsDataExtractor
 
 class _InferredTypeArgumentsDataInterpreter
     implements DataInterpreter<List<DartType>> {
-  const _InferredTypeArgumentsDataInterpreter();
+  const new();
 
   @override
   String getText(List<DartType> actualData, [String? indentation]) {

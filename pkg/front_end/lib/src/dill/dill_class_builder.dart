@@ -10,6 +10,7 @@ import '../base/loader.dart';
 import '../base/lookup_result.dart';
 import '../base/name_space.dart';
 import '../base/scope.dart';
+import '../base/uri_offset.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
@@ -225,6 +226,12 @@ class DillClassBuilder extends ClassBuilderImpl {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
+  UriOffsetLength get uriOffset => cls.isAnonymousMixin
+      ? new UriOffset(fileUri, fileOffset)
+      : new UriOffsetLength(fileUri, fileOffset, name.length);
+
+  @override
   int get fileOffset => cls.fileOffset;
 
   @override
@@ -333,17 +340,13 @@ class DillClassBuilder extends ClassBuilderImpl {
     // [cls.typeParameters].
     if (arguments == null) {
       // TODO(johnniwinther): Use i2b here when needed.
-      return new DartTypeList.generate(
-        cls.typeParameters.length,
-        (int i) => cls.typeParameters[i].defaultType,
-      );
+      return DartTypeList.mapped(cls.typeParameters, (t) => t.defaultType);
     }
 
     // [arguments] != null
-    return new DartTypeList.generate(
-      arguments.length,
-      (int i) =>
-          arguments[i].buildAliased(library, TypeUse.typeArgument, hierarchy),
+    return DartTypeList.mapped(
+      arguments,
+      (a) => a.buildAliased(library, TypeUse.typeArgument, hierarchy),
     );
   }
 

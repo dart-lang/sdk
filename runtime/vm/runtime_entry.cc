@@ -56,11 +56,6 @@ DEFINE_FLAG(
     max_subtype_cache_entries,
     kDefaultMaxSubtypeCacheEntries,
     "Maximum number of subtype cache entries (number of checks cached).");
-DEFINE_FLAG(
-    int,
-    regexp_optimization_counter_threshold,
-    1000,
-    "RegExp's usage-counter value before it is optimized, -1 means never");
 DEFINE_FLAG(int,
             reoptimization_counter_threshold,
             4000,
@@ -1856,10 +1851,10 @@ DEFINE_RUNTIME_ENTRY(FfiCall, 2) {
       zone, function, first_argument_parameter_offset, c_signature, &error);
   // AbiSpecificTypes can have an incomplete mapping.
   if (error != nullptr) {
-    const auto& language_error = Error::Handle(
+    const auto& language_error = LanguageError::Handle(
         LanguageError::New(String::Handle(String::New(error, Heap::kOld)),
                            Report::kError, Heap::kOld));
-    Report::LongJump(language_error);
+    Exceptions::ThrowCompileTimeError(language_error);
   }
 
   RELEASE_ASSERT(marshaller_ptr != nullptr);
@@ -2189,10 +2184,10 @@ extern "C" void DLRT_DoInterpretedFfiCallback(
       compiler::ffi::CallbackMarshaller::FromFunction(zone, function, &error);
   // AbiSpecificTypes can have an incomplete mapping.
   if (error != nullptr) {
-    const auto& language_error = Error::Handle(
+    const auto& language_error = LanguageError::Handle(
         LanguageError::New(String::Handle(String::New(error, Heap::kOld)),
                            Report::kError, Heap::kOld));
-    Report::LongJump(language_error);
+    Exceptions::ThrowCompileTimeError(language_error);
   }
   RELEASE_ASSERT(marshaller_ptr != nullptr);
   const auto& marshaller = *marshaller_ptr;
@@ -5241,6 +5236,7 @@ void DeoptimizeAt(Thread* mutator_thread,
 // and unoptimized code has the kDeoptAfter.
 void DeoptimizeFunctionsOnStack() {
   auto thread = Thread::Current();
+  ASSERT_EQUAL(thread->execution_state(), Thread::kThreadInVM);
   // Have to grab program_lock before stopping everybody else.
   SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
 

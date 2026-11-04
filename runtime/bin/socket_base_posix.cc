@@ -426,7 +426,7 @@ bool SocketBase::GetNoDelay(intptr_t fd, bool* enabled) {
   int err = NO_RETRY_EXPECTED(getsockopt(fd, IPPROTO_TCP, TCP_NODELAY,
                                          reinterpret_cast<void*>(&on), &len));
   if (err == 0) {
-    *enabled = (on == 1);
+    *enabled = (on != 0);
   }
   return (err == 0);
 }
@@ -448,7 +448,7 @@ bool SocketBase::GetMulticastLoop(intptr_t fd,
                                                      : IPV6_MULTICAST_LOOP;
   if (NO_RETRY_EXPECTED(getsockopt(fd, level, optname,
                                    reinterpret_cast<char*>(&on), &len)) == 0) {
-    *enabled = (on == 1);
+    *enabled = (on != 0);
     return true;
   }
   return false;
@@ -483,7 +483,7 @@ bool SocketBase::GetBroadcast(intptr_t fd, bool* enabled) {
   int err = NO_RETRY_EXPECTED(getsockopt(fd, SOL_SOCKET, SO_BROADCAST,
                                          reinterpret_cast<char*>(&on), &len));
   if (err == 0) {
-    *enabled = (on == 1);
+    *enabled = (on != 0);
   }
   return (err == 0);
 }

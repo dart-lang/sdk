@@ -35,6 +35,7 @@ throw_half_surrogate_pair_test/*: Skip # Issue http://dartbug.com/42094
 [ $simulator ]
 bigint_parse_radix_test: Skip # Issue 31659
 bigint_test: Skip # Issue 31659
+int_parse_radix_character_test: Pass, Slow
 
 [ $arch == x64 && $system == windows ]
 stopwatch_test: Skip # Flaky test due to expected performance behaviour.

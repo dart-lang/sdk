@@ -47,15 +47,15 @@ static extension-member method Extension|readGetter() → dynamic
   ;
 static extension-member method Extension|writeSetterRequired(dynamic value) → dynamic
   ;
-static extension-member method Extension|writeSetterOptional([dynamic value]) → dynamic
+static extension-member method Extension|writeSetterOptional([dynamic value = null]) → dynamic
   ;
-static extension-member method Extension|writeSetterNamed({dynamic value}) → dynamic
+static extension-member method Extension|writeSetterNamed({dynamic value = null}) → dynamic
   ;
 static extension-member method Extension|genericWriteSetterRequired<S extends core::Object? = dynamic>(self::Extension|genericWriteSetterRequired::S% value) → dynamic
   ;
-static extension-member method Extension|genericWriteSetterOptional<S extends core::Object? = dynamic>([self::Extension|genericWriteSetterOptional::S? value]) → dynamic
+static extension-member method Extension|genericWriteSetterOptional<S extends core::Object? = dynamic>([self::Extension|genericWriteSetterOptional::S? value = null]) → dynamic
   ;
-static extension-member method Extension|genericWriteSetterNamed<S extends core::Object? = dynamic>({self::Extension|genericWriteSetterNamed::S? value}) → dynamic
+static extension-member method Extension|genericWriteSetterNamed<S extends core::Object? = dynamic>({self::Extension|genericWriteSetterNamed::S? value = null}) → dynamic
   ;
 static extension-member get Extension|tearOffGetterNoArgs() → dynamic
   ;

@@ -113,14 +113,14 @@ class IncompatibleInterfacesClassHierarchyError extends ClassHierarchyError {
   final InterfaceTypeImpl first;
   final InterfaceTypeImpl second;
 
-  IncompatibleInterfacesClassHierarchyError(this.first, this.second);
+  new(this.first, this.second);
 }
 
 class InterfacesMerger {
   final TypeSystemImpl _typeSystem;
   final Map<InterfaceElementImpl, _ClassInterfaceType> _map = {};
 
-  InterfacesMerger(this._typeSystem);
+  new(this._typeSystem);
 
   List<InterfaceTypeImpl> get typeList {
     return _map.values.map((e) => e.type).toList();
@@ -158,7 +158,7 @@ class _ClassInterfaceType {
   InterfaceTypeImpl? _singleType;
   InterfaceTypeImpl? _currentResult;
 
-  _ClassInterfaceType(this._typeSystem, this._isDartCoreObject);
+  new(this._typeSystem, this._isDartCoreObject);
 
   InterfaceTypeImpl get type => (_currentResult ?? _singleType)!;
 
@@ -208,5 +208,5 @@ class _Hierarchy {
   List<ClassHierarchyError> errors;
   List<InterfaceTypeImpl> interfaces;
 
-  _Hierarchy({required this.errors, required this.interfaces});
+  new({required this.errors, required this.interfaces});
 }

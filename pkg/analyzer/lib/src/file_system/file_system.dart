@@ -15,7 +15,7 @@ class ResourceUriResolver extends UriResolver {
 
   final ResourceProvider _provider;
 
-  ResourceUriResolver(this._provider);
+  new(this._provider);
 
   ResourceProvider get provider => _provider;
 

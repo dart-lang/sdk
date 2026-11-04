@@ -502,10 +502,10 @@ void ClassFinalizer::FinalizeMemberTypes(const Class& cls) {
           StaticTypeExactnessState::Uninitialized());
     }
 #if !defined(DART_PRECOMPILED_RUNTIME)
-    type = field.exact_type();
+    type = field.inferred_type();
     if (!type.IsNull()) {
       type = FinalizeType(type);
-      field.set_exact_type(type);
+      field.set_inferred_type(type);
     }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
     function = field.InitializerFunction();

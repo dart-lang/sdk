@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// @docImport 'package:analyzer/src/generated/resolver.dart';
+/// @docImport 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 library;
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis_log.dart';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis_operations.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
-import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
+    show TypeAnalyzerOptions;
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
@@ -120,7 +121,7 @@ class FlowAnalysisHelper {
   /// source code offsets.
   final bool enableLog;
 
-  FlowAnalysisHelper(
+  new(
     bool retainDataForTesting, {
     required TypeSystemOperations typeSystemOperations,
     required TypeAnalyzerOptions typeAnalyzerOptions,
@@ -132,7 +133,7 @@ class FlowAnalysisHelper {
          enableLog: enableLog,
        );
 
-  FlowAnalysisHelper._(
+  new _(
     this.typeOperations,
     this.dataForTesting, {
     required this.typeAnalyzerOptions,
@@ -230,7 +231,7 @@ class FlowAnalysisHelper {
     }
   }
 
-  /// This method is called whenever the [ResolverVisitor] enters a *flow
+  /// This method is called whenever the [TypeAnalyzer] enters a *flow
   /// analysis root* (see [FlowAnalysisRootImpl]).
   ///
   /// It causes flow analysis to be initialized.
@@ -281,7 +282,7 @@ class FlowAnalysisHelper {
           ..checkOffset(offset);
   }
 
-  /// This method is called whenever the [ResolverVisitor] leaves a *flow
+  /// This method is called whenever the [TypeAnalyzer] leaves a *flow
   /// analysis root* (see [FlowAnalysisRootImpl]).
   ///
   /// The [FlowAnalysisLog] that was collected by flow analysis during
@@ -380,7 +381,23 @@ class FlowAnalysisHelper {
   void labeledStatement_exit(LabeledStatement node) {
     if (flow == null) return;
 
-    flow!.labeledStatement_end(offset: node.statement.endToken.offset);
+    flow!.labeledStatement_end(offset: node.statement2.endToken.offset);
+  }
+
+  void localVariablesDeclaration(LocalVariablesDeclarationImpl node) {
+    if (flow != null) {
+      var variables = node.variables;
+      for (var i = 0; i < variables.length; ++i) {
+        var variable = variables[i];
+        var declaredElement = variable.declaredFragment!.element;
+        flow!.declare(
+          declaredElement,
+          SharedTypeView(declaredElement.type),
+          initialized: variable.initializer2 != null,
+          offset: node.offset,
+        );
+      }
+    }
   }
 
   /// Associates [expression] with the given [expressionInfo] object, for later
@@ -411,24 +428,6 @@ class FlowAnalysisHelper {
       var oldNonPromotionReasons = dataForTesting.nonPromotionReasons[oldNode];
       if (oldNonPromotionReasons != null) {
         dataForTesting.nonPromotionReasons[newNode] = oldNonPromotionReasons;
-      }
-    }
-  }
-
-  void variableDeclarationList(VariableDeclarationListImpl node) {
-    if (flow != null) {
-      var variables = node.variables;
-      for (var i = 0; i < variables.length; ++i) {
-        var variable = variables[i];
-        var declaredFragment =
-            variable.declaredFragment as LocalVariableFragmentImpl;
-        var declaredElement = declaredFragment.element;
-        flow!.declare(
-          declaredElement,
-          SharedTypeView(declaredElement.type),
-          initialized: variable.initializer2 != null,
-          offset: node.offset,
-        );
       }
     }
   }
@@ -503,7 +502,7 @@ class FlowAnalysisHelper {
       } else {
         if (node is LabeledStatementImpl) {
           if (_hasLabel(node.labels, element)) {
-            var statement = node.statement;
+            var statement = node.statement2;
             // The inner statement is returned for labeled loops and
             // switch statements, while the LabeledStatement is returned
             // for the other known targets. This could be possibly changed
@@ -558,7 +557,7 @@ class TypeSystemOperations
   final bool strictCasts;
   final TypeSystemImpl typeSystem;
 
-  TypeSystemOperations(this.typeSystem, {required this.strictCasts});
+  new(this.typeSystem, {required this.strictCasts});
 
   @override
   SharedTypeView get boolType {
@@ -1096,7 +1095,7 @@ class TypeSystemOperations
 class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
   final AssignedVariables<AstNode, PromotableElementImpl> assignedVariables;
 
-  _AssignedVariablesVisitor(this.assignedVariables);
+  new(this.assignedVariables);
 
   @override
   void visitAnonymousMethodInvocation(AnonymousMethodInvocation node) {
@@ -1154,7 +1153,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitConstructorDeclaration(ConstructorDeclaration node) {
+  void visitConstructorDeclaration2(ConstructorDeclaration2 node) {
     throw StateError('Should not visit top level declarations');
   }
 
@@ -1172,40 +1171,32 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitField2(Field2 node) {
+    throw StateError('Should not visit field declarations');
+  }
+
+  @override
   void visitForElement(covariant ForElementImpl node) {
     _handleFor(node, node.forLoopParts, node.body2);
   }
 
   @override
   void visitForStatement(covariant ForStatementImpl node) {
-    _handleFor(node, node.forLoopParts, node.body);
-  }
-
-  @override
-  void visitFunctionDeclaration(covariant FunctionDeclarationImpl node) {
-    if (node.parent2 is CompilationUnit) {
-      throw StateError('Should not visit top level declarations');
-    }
-    assignedVariables.beginNode();
-    var element = node.declaredFragment!.element;
-    _declareParameters(element.formalParameters);
-    super.visitFunctionDeclaration(node);
-    assignedVariables.endNode(node, isClosureOrLateVariableInitializer: true);
+    _handleFor(node, node.forLoopParts, node.body2);
   }
 
   @override
   void visitFunctionExpression(covariant FunctionExpressionImpl node) {
-    if (node.parent2 is FunctionDeclaration) {
-      // A FunctionExpression just inside a FunctionDeclaration is an analyzer
-      // artifact--it doesn't correspond to a separate closure.  So skip our
-      // usual processing.
-      return super.visitFunctionExpression(node);
-    }
     assignedVariables.beginNode();
     var element = node.declaredFragment!.element;
     _declareParameters(element.formalParameters);
     super.visitFunctionExpression(node);
     assignedVariables.endNode(node, isClosureOrLateVariableInitializer: true);
+  }
+
+  @override
+  void visitGetterDeclaration(GetterDeclaration node) {
+    throw StateError('Should not visit top level declarations');
   }
 
   @override
@@ -1245,6 +1236,30 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitLocalFunctionDeclaration(
+    covariant LocalFunctionDeclarationImpl node,
+  ) {
+    assignedVariables.beginNode();
+    var element = node.declaredFragment!.element;
+    _declareParameters(element.formalParameters);
+    super.visitLocalFunctionDeclaration(node);
+    assignedVariables.endNode(node, isClosureOrLateVariableInitializer: true);
+  }
+
+  @override
+  void visitLocalVariable(covariant LocalVariableImpl node) {
+    var declaredElement = node.declaredFragment!.element;
+    assignedVariables.declare(declaredElement);
+    if (declaredElement.isLate && node.initializer != null) {
+      assignedVariables.beginNode();
+      super.visitLocalVariable(node);
+      assignedVariables.endNode(node, isClosureOrLateVariableInitializer: true);
+    } else {
+      super.visitLocalVariable(node);
+    }
+  }
+
+  @override
   void visitLogicalAnd(LogicalAnd node) {
     node.leftOperand.accept2(this);
     assignedVariables.beginNode();
@@ -1253,7 +1268,12 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitMethodDeclaration(MethodDeclaration node) {
+  void visitMethodDeclaration2(MethodDeclaration2 node) {
+    throw StateError('Should not visit top level declarations');
+  }
+
+  @override
+  void visitOperatorDeclaration(OperatorDeclaration node) {
     throw StateError('Should not visit top level declarations');
   }
 
@@ -1265,6 +1285,11 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
       assignedVariables.declare(variable);
     }
     super.visitPatternVariableDeclaration(node);
+  }
+
+  @override
+  void visitSetterDeclaration(SetterDeclaration node) {
+    throw StateError('Should not visit top level declarations');
   }
 
   @override
@@ -1311,6 +1336,11 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitTopLevelVariable2(TopLevelVariable2 node) {
+    throw StateError('Should not visit top level declarations');
+  }
+
+  @override
   void visitTryStatement(TryStatement node) {
     var finallyBlock = node.finallyBlock;
     assignedVariables.beginNode(); // Begin info for [node].
@@ -1334,25 +1364,6 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitVariableDeclaration(VariableDeclaration node) {
-    var grandParent = node.parent2!.parent2;
-    if (grandParent is TopLevelVariableDeclaration ||
-        grandParent is FieldDeclaration) {
-      throw StateError('Should not visit top level declarations');
-    }
-    var declaredElement =
-        node.declaredFragment?.element as PromotableElementImpl;
-    assignedVariables.declare(declaredElement);
-    if (declaredElement.isLate && node.initializer2 != null) {
-      assignedVariables.beginNode();
-      super.visitVariableDeclaration(node);
-      assignedVariables.endNode(node, isClosureOrLateVariableInitializer: true);
-    } else {
-      super.visitVariableDeclaration(node);
-    }
-  }
-
-  @override
   void visitWhileStatement(WhileStatement node) {
     assignedVariables.beginNode();
     super.visitWhileStatement(node);
@@ -1367,57 +1378,54 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
   }
 
   void _handleFor(AstNode node, ForLoopPartsImpl forLoopParts, AstNode body) {
-    if (forLoopParts is ForPartsImpl) {
-      if (forLoopParts is ForPartsWithExpressionImpl) {
-        forLoopParts.initialization2?.accept2(this);
-      } else if (forLoopParts is ForPartsWithDeclarationsImpl) {
-        forLoopParts.variables.accept2(this);
-      } else if (forLoopParts is ForPartsWithPatternImpl) {
-        forLoopParts.variables.accept2(this);
-      } else {
-        throw StateError('Unrecognized for loop parts');
-      }
-
-      assignedVariables.beginNode();
-      forLoopParts.condition2?.accept2(this);
-      body.accept2(this);
-      forLoopParts.updaters2.accept2(this);
-      assignedVariables.endNode(node);
-    } else if (forLoopParts is ForEachPartsImpl) {
-      var iterable = forLoopParts.iterable2;
-
-      iterable.accept2(this);
-
-      if (forLoopParts is ForEachPartsWithIdentifierImpl) {
-        // Assigned-variable collection runs before expression resolution fills
-        // in the write resolution. [ResolutionVisitor] has already recorded
-        // the scope lookup used by this prepass.
-        var element = forLoopParts.scopeLookupResult?.getter;
-        if (element is PromotableElementImpl) {
-          assignedVariables.write(element);
+    switch (forLoopParts) {
+      case ForPartsImpl():
+        switch (forLoopParts) {
+          case ForPartsWithExpressionImpl():
+            forLoopParts.initialization2?.accept2(this);
+          case ForPartsWithDeclarationsImpl():
+            forLoopParts.variables2.accept2(this);
+          case ForPartsWithPatternImpl():
+            forLoopParts.variables.accept2(this);
         }
-      } else if (forLoopParts is ForEachPartsWithDeclarationImpl) {
-        var variable = forLoopParts.loopVariable.declaredFragment!.element;
-        assignedVariables.declare(variable);
-      } else if (forLoopParts is ForEachPartsWithPatternImpl) {
-        for (var variable in forLoopParts.variables) {
-          assignedVariables.declare(variable);
+
+        assignedVariables.beginNode();
+        forLoopParts.condition2?.accept2(this);
+        body.accept2(this);
+        forLoopParts.updaters2.accept2(this);
+        assignedVariables.endNode(node);
+      case ForEachPartsImpl():
+        var iterable = forLoopParts.iterable2;
+
+        iterable.accept2(this);
+
+        switch (forLoopParts) {
+          case ForEachPartsWithIdentifierImpl():
+            // Assigned-variable collection runs before expression resolution
+            // fills in the write resolution. [ScopeAnalyzer] has already
+            // recorded the scope lookup used by this prepass.
+            var element = forLoopParts.target.scopeLookupResult?.getter;
+            if (element is PromotableElementImpl) {
+              assignedVariables.write(element);
+            }
+          case ForEachPartsWithDeclarationImpl():
+            var variable = forLoopParts.loopVariable.declaredFragment!.element;
+            assignedVariables.declare(variable);
+          case ForEachPartsWithPatternImpl():
+            for (var variable in forLoopParts.variables) {
+              assignedVariables.declare(variable);
+            }
         }
-      } else {
-        throw StateError('Unrecognized for loop parts');
-      }
-      assignedVariables.beginNode();
-      body.accept2(this);
-      assignedVariables.endNode(node);
-    } else {
-      throw StateError('Unrecognized for loop parts');
+        assignedVariables.beginNode();
+        body.accept2(this);
+        assignedVariables.endNode(node);
     }
   }
 
   void _readAssignmentTarget(AssignmentTarget target) {
     if (target is UnqualifiedNameAssignmentTargetImpl) {
       // Assigned-variable collection runs before expression resolution fills
-      // in the target's read resolution. [ResolutionVisitor] has already
+      // in the target's read resolution. [ScopeAnalyzer] has already
       // recorded the scope lookup used by this prepass.
       var element = target.scopeLookupResult?.getter;
       if (element is PromotableElementImpl) {
@@ -1451,7 +1459,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
   void _writeAssignmentTarget(AssignmentTarget target) {
     if (target is UnqualifiedNameAssignmentTargetImpl) {
       // Assigned-variable collection runs before expression resolution fills
-      // in the target's write resolution. [ResolutionVisitor] has already
+      // in the target's write resolution. [ScopeAnalyzer] has already
       // recorded the scope lookup used by this prepass.
       var element = target.scopeLookupResult?.getter;
       if (element is PromotableElementImpl) {
@@ -1465,7 +1473,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
 class _LocalVariableTypeProvider implements LocalVariableTypeProvider {
   final FlowAnalysisHelper _manager;
 
-  _LocalVariableTypeProvider(this._manager);
+  new(this._manager);
 
   @override
   TypeImpl getWriteType(InternalVariableElement element) {

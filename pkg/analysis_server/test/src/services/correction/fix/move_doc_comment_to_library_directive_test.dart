@@ -15,7 +15,8 @@ void main() {
 }
 
 @reflectiveTest
-class MoveDocCommentToLibraryDirectiveTest extends FixProcessorLintTest {
+class MoveDocCommentToLibraryDirectiveTest
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.moveDocCommentToLibraryDirective;
 

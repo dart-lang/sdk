@@ -1,3 +1,163 @@
+## 3.15.0
+
+**Released on:** Unreleased
+
+### Language
+
+Dart 3.15 allows [`this` to be type promoted][this-promotion-issue], just like
+a local variable, and [preserves more type promotions][#4757] at control flow
+join points. To use these features, set your package's
+[SDK constraint][language version] lower bound to 3.15 or greater
+(`sdk: '^3.15.0'`).
+
+#### Type promotion of `this`
+
+Previously, a type test or null check on `this` had no effect on its static
+type, so code that wanted to take advantage of one had to copy `this` into a
+local variable first:
+
+```dart
+class Shape {
+  void describe() {
+    var self = this;
+    if (self is Circle) print('radius ${self.radius}');
+  }
+}
+
+class Circle extends Shape {
+  final double radius;
+  Circle(this.radius);
+}
+
+extension on int? {
+  bool get isEvenOrNull {
+    var self = this;
+    if (self == null) return true;
+    return self.isEven;
+  }
+}
+```
+
+Now `this` is promoted directly, and so is an implicit `this` in a member
+access:
+
+```dart
+class Shape {
+  void describe() {
+    if (this is Circle) print('radius $radius');
+  }
+}
+
+extension on int? {
+  bool get isEvenOrNull {
+    if (this == null) return true;
+    return isEven;
+  }
+}
+```
+
+The new [`unnecessary_this_alias`][unnecessary_this_alias] lint flags local
+variables that only exist to work around the old behavior, and `dart fix` can
+remove them.
+
+#### Improved type promotion at join points
+
+Previously, if two branches of the control flow promoted a variable to the same
+type, but did so by way of different intermediate types, all promotions were
+discarded after the branches joined:
+
+```dart
+class B {}
+class C {}
+class D implements B, C {
+  void f() {}
+}
+
+void test(Object o, bool condition) {
+  if (condition) {
+    o as B;
+    o as D;
+  } else {
+    o as C;
+    o as D;
+  }
+  o.f(); // Previously an error: `o` was demoted to `Object`.
+}
+```
+
+Now, the promotions that are common to both branches are preserved, so after
+the `if` statement above, `o` has type `D`.
+
+#### Restriction on `show` and `hide` clauses per import/export
+
+Import and export directives now only allow at most one `show` or `hide`
+combinator per directive. Specifying multiple combinators was previously
+deprecated and is now a compile-time error in libraries with a language version
+of 3.15 or greater. For more details, see
+[issue #2824][single-combinators-issue].
+
+[single-combinators-issue]: https://github.com/dart-lang/language/issues/2824
+[this-promotion-issue]: https://github.com/dart-lang/language/issues/1397
+[#4757]: https://github.com/dart-lang/language/issues/4757
+[language version]: https://dart.dev/to/language-version
+[unnecessary_this_alias]: https://dart.dev/lints/unnecessary_this_alias
+
+### Libraries
+
+#### `dart:core`
+
+- Added `double.maxSafeInteger` (`9007199254740991`, `2^53 - 1`) and
+  `double.minSafeInteger` (`-9007199254740991`, `-(2^53 - 1)`).
+  For more details, see SDK issue [#64491][].
+
+#### `dart:math`
+
+- Added `imul32(int a, int b)` for 32-bit signed wrapping multiplication.
+  For more details, see SDK issue [#64491][].
+
+[#64491]: https://github.com/dart-lang/sdk/issues/64491
+
+### Tools
+
+#### Analyzer
+
+- When the value assigned through `operator []=` (in `a[i] = v`, `a[i] op= v`,
+  `a[i] ??= v`, `a[i]++`, and so on) isn't assignable to the parameter type,
+  the analyzer now reports `argument_type_not_assignable` instead of
+  `invalid_assignment`, consistent with how it reports a non-assignable index.
+  For more details, see SDK issue [#64561][].
+
+[#64561]: https://github.com/dart-lang/sdk/issues/64561
+
+#### Dart CLI
+
+- `dart build cli` now supports a `--define` option. Run
+  `dart build cli --help` for more details.
+
+#### Dart Development Compiler (dartdevc)
+
+- Fixed a bug where a type parameter from an enclosing scope could be
+  incorrectly captured by a generic function type with a type parameter of the
+  same name, producing the wrong runtime type.
+  For more details, see SDK issue [#64517][].
+
+[#64517]: https://github.com/dart-lang/sdk/issues/64517
+
+#### Pub
+
+- `dart pub publish` now creates reproducible `.tar.gz` package archives with
+  deterministic entry ordering, zeroed modification timestamps, and normalized
+  permissions ([dart-lang/pub#4885][]).
+- On Windows, `dart pub` now requires `git.exe` on `PATH` and no longer invokes
+  `git.cmd` or `git.bat` batch wrappers ([dart-lang/pub#4941][]).
+- Deprecated the `--[no-]precompile` flag on `dart pub get`, `upgrade`, `add`,
+  and `remove` ([dart-lang/pub#4910][]). `dart run` and `dart test` now cache
+  precompiled executables directly in `.dart_tool/dartdev/bin/`.
+
+[dart-lang/pub#4885]: https://github.com/dart-lang/pub/pull/4885
+[dart-lang/pub#4910]: https://github.com/dart-lang/pub/pull/4910
+[dart-lang/pub#4941]: https://github.com/dart-lang/pub/pull/4941
+
 ## 3.14.0
 
 **Released on:** Unreleased
@@ -9,7 +169,11 @@
 - Added `NativeFinalizer.callback`, which returns the finalization callback the
   finalizer was created with.
   For more details, see SDK issue [#63811][]
+- Added `Abi.iosArm64e` and `Abi.macosArm64e` for the `arm64e` architecture
+  with pointer authentication on iOS and macOS.
+  For more details, see SDK issue [#63420][].
 
+[#63420]: https://github.com/dart-lang/sdk/issues/63420
 [#63811]: https://github.com/dart-lang/sdk/issues/63811
 
 #### `dart:io`
@@ -131,6 +295,8 @@
   Function(T, JSArray<E>).toJSCaptureThisVarArgs` which capture JS function
   arguments as an array rather than as separate arguments to the Dart function.
 
+- Added the `JSError` type to represent the JavaScript `Error` class.
+
 - `Function.toJS` and `Function.toJSCaptureThis` now support functions without
   optional positional parameters that return `Future<T>` (where `T` is `void` or
   a subtype of `JSAny?`), automatically converting the returned `Future` to a
@@ -164,6 +330,15 @@
   For more details, see SDK issue [#54366][].
 
 [#54366]: https://github.com/dart-lang/sdk/issues/54366
+
+#### Linter
+
+- Added the `future_sync_value` lint rule, which recommends using
+  `Future.syncValue` instead of `Future.sync` when the callback returns a
+  synchronous (non-`Future`) value.
+  For more details, see SDK issue [#61740][].
+
+[#61740]: https://github.com/dart-lang/sdk/issues/61740
 
 #### Dart CLI
 
@@ -201,21 +376,43 @@
 
   For more details, see SDK issue [#63240][].
 
+- Added `-e` / `--eval` to `dart run` to evaluate inline Dart code snippets
+  without creating a script file. Package imports are resolved from the current
+  package configuration if present, or ephemerally on demand using `-P` /
+  `--package-constraint` (for example, `dart run -P http:^1.0.0 -e '...'`) and
+  `--offline`.
+  For more details, see SDK issue [#64298][].
+
 [#63240]: https://github.com/dart-lang/sdk/issues/63240
+[#64298]: https://github.com/dart-lang/sdk/issues/64298
 
 #### Formatter
 
-The following bug fixes are *not* language versioned and apply also when
-formatting Dart 3.13 code:
+- Enable experiments specified by surrounding `analysis_options.yaml` file when
+  parsing code ([#1886][dart_style #1886]).
 
-- Don't crash when formatting an enum with a primary constructor when trailing
+- Fix crash when formatting an enum with a primary constructor when trailing
   commas are preserved ([#1885][dart_style #1885]).
 
 - Fix missing trailing comma on enum values when an enum has a primary
-  constructor ([#1888][dart_style #1888]).
+  constructor ([#1888][dart_style #1888]). Note that this style change is *not*
+  language-versioned and also applies when formatting Dart 3.13 code.
+
+- Fix crash when attempting to write a line with exactly 128 spaces of
+  indentation.
 
 [dart_style #1885]: https://github.com/dart-lang/dart_style/issues/1885
+[dart_style #1886]: https://github.com/dart-lang/dart_style/issues/1886
 [dart_style #1888]: https://github.com/dart-lang/dart_style/issues/1888
+
+#### Pub
+
+- `dart pub upgrade` now accepts `<package>@<constraint>`, `<package>@latest`,
+  and `<package>@resolvable` targets to upgrade specific dependencies within a
+  version constraint or inspect why a newer version cannot be selected
+  (issue [dart-lang/pub#4569][]).
+
+[dart-lang/pub#4569]: https://github.com/dart-lang/pub/issues/4569
 
 #### dart2js
 

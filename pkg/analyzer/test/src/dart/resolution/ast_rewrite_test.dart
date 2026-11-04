@@ -63,7 +63,6 @@ ImplicitCallTearOff
         element: SubstitutedMethodElementImpl
           baseElement: dart:core::@class::Map::@method::[]=
           substitution: {K: int, V: C}
-        invokeType: void Function(int, C)
         acceptedType: C
     operator: =
     value: UnqualifiedNameExpression
@@ -600,7 +599,6 @@ ImplicitCallTearOff
     name: c
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::c
-      invokeType: C Function()
       type: C
     staticType: C
   element: <testLibrary>::@class::C::@method::call
@@ -650,14 +648,12 @@ ImplicitCallTearOff
       name: c
       resolution: GetterInvocationResolution
         element: <testLibrary>::@class::C::@getter::c
-        invokeType: C Function()
         type: C
       staticType: C
     operator: .
     name: c
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::c
-      invokeType: C Function()
       type: C
     staticType: C
   element: <testLibrary>::@class::C::@method::call
@@ -1405,22 +1401,22 @@ ConstructorInvocation
         period: .
         element: <testLibraryFragment>::@prefix::prefix
       name: A
-      typeArguments: TypeArgumentList
-        leftBracket: <
-        arguments
-          NamedType
-            name: int
-            element: dart:core::@class::int
-            type: int
-        rightBracket: >
       element: package:test/a.dart::@class::A
-      type: A<int>
+      type: A<dynamic>
     selector: ConstructorSelector
       period: .
       name2: named
     element: SubstitutedConstructorElementImpl
       baseElement: package:test/a.dart::@class::A::@constructor::named
-      substitution: {T: int}
+      substitution: {T: dynamic}
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
@@ -1428,10 +1424,10 @@ ConstructorInvocation
         literal: 0
         correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: package:test/a.dart::@class::A::@constructor::named::@formalParameter::a
-          substitution: {T: int}
+          substitution: {T: dynamic}
         staticType: int
     rightParenthesis: )
-  staticType: A<int>
+  staticType: A<dynamic>
 V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
@@ -1440,26 +1436,26 @@ V1: InstanceCreationExpression
         period: .
         element: <testLibraryFragment>::@prefix::prefix
       name: A
-      typeArguments: TypeArgumentList
-        leftBracket: <
-        arguments
-          NamedType
-            name: int
-            element: dart:core::@class::int
-            type: int
-        rightBracket: >
       element: package:test/a.dart::@class::A
-      type: A<int>
+      type: A<dynamic>
     period: .
     name: SimpleIdentifier
       token: named
       element: SubstitutedConstructorElementImpl
         baseElement: package:test/a.dart::@class::A::@constructor::named
-        substitution: {T: int}
+        substitution: {T: dynamic}
       staticType: null
     element: SubstitutedConstructorElementImpl
       baseElement: package:test/a.dart::@class::A::@constructor::named
-      substitution: {T: int}
+      substitution: {T: dynamic}
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
@@ -1467,10 +1463,10 @@ V1: InstanceCreationExpression
         literal: 0
         correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: package:test/a.dart::@class::A::@constructor::named::@formalParameter::a
-          substitution: {T: int}
+          substitution: {T: dynamic}
         staticType: int
     rightParenthesis: )
-  staticType: A<int>
+  staticType: A<dynamic>
 ''');
   }
 
@@ -1500,22 +1496,22 @@ ConstructorInvocation
         period: .
         element: <testLibraryFragment>::@prefix::prefix
       name: A
-      typeArguments: TypeArgumentList
-        leftBracket: <
-        arguments
-          NamedType
-            name: int
-            element: dart:core::@class::int
-            type: int
-        rightBracket: >
       element: package:test/a.dart::@class::A
-      type: A<int>
+      type: A<dynamic>
     selector: ConstructorSelector
       period: .
       name2: new
     element: SubstitutedConstructorElementImpl
       baseElement: package:test/a.dart::@class::A::@constructor::new
-      substitution: {T: int}
+      substitution: {T: dynamic}
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
@@ -1523,10 +1519,10 @@ ConstructorInvocation
         literal: 0
         correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: package:test/a.dart::@class::A::@constructor::new::@formalParameter::a
-          substitution: {T: int}
+          substitution: {T: dynamic}
         staticType: int
     rightParenthesis: )
-  staticType: A<int>
+  staticType: A<dynamic>
 V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
@@ -1535,26 +1531,26 @@ V1: InstanceCreationExpression
         period: .
         element: <testLibraryFragment>::@prefix::prefix
       name: A
-      typeArguments: TypeArgumentList
-        leftBracket: <
-        arguments
-          NamedType
-            name: int
-            element: dart:core::@class::int
-            type: int
-        rightBracket: >
       element: package:test/a.dart::@class::A
-      type: A<int>
+      type: A<dynamic>
     period: .
     name: SimpleIdentifier
       token: new
       element: SubstitutedConstructorElementImpl
         baseElement: package:test/a.dart::@class::A::@constructor::new
-        substitution: {T: int}
+        substitution: {T: dynamic}
       staticType: null
     element: SubstitutedConstructorElementImpl
       baseElement: package:test/a.dart::@class::A::@constructor::new
-      substitution: {T: int}
+      substitution: {T: dynamic}
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
@@ -1562,10 +1558,10 @@ V1: InstanceCreationExpression
         literal: 0
         correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: package:test/a.dart::@class::A::@constructor::new::@formalParameter::a
-          substitution: {T: int}
+          substitution: {T: dynamic}
         staticType: int
     rightParenthesis: )
-  staticType: A<int>
+  staticType: A<dynamic>
 ''');
   }
 
@@ -1727,7 +1723,6 @@ f() {
 }
 ''');
 
-    // TODO(scheglov): Move type arguments
     var node = result.findNode.constructorInvocation('named<int, String>(0);');
     assertResolvedNodeText(node, r'''
 ConstructorInvocation
@@ -1820,7 +1815,6 @@ f() {
 }
 ''');
 
-    // TODO(scheglov): Move type arguments
     var node = result.findNode.constructorInvocation('new<int, String>(0);');
     assertResolvedNodeText(node, r'''
 ConstructorInvocation
@@ -2218,7 +2212,7 @@ class C {}
 void f() {
   C.new = 1;
 //  ^^^
-// [diag.undefinedSetter] The setter 'new' isn't defined for the type 'C'.
+// [diag.undefinedStaticMemberWriteNotFound] The class 'C' doesn't have a static setter named 'new'.
 }
 ''');
 

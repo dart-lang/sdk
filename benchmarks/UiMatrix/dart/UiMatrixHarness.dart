@@ -63,6 +63,7 @@ class InstantiateIdentityMatrix4 extends BenchmarkBase {
   InstantiateIdentityMatrix4() : super('UiMatrix.Instantiate_Identity_Matrix4');
 
   @override
+  @pragma('vm:align-loops')
   void run() {
     double total = 0;
     for (int i = 0; i < N; i++) {
@@ -77,6 +78,7 @@ class InstantiateIdentityUiMatrix extends BenchmarkBase {
     : super('UiMatrix.Instantiate_Identity_UiMatrix');
 
   @override
+  @pragma('vm:align-loops')
   void run() {
     double total = 0;
     for (int i = 0; i < N; i++) {
@@ -91,6 +93,7 @@ class Instantiate2DTranslationMatrix4 extends BenchmarkBase {
     : super('UiMatrix.Instantiate_2DTranslation_Matrix4');
 
   @override
+  @pragma('vm:align-loops')
   void run() {
     double total = 0;
     for (int i = 0; i < N; i++) {
@@ -105,6 +108,7 @@ class Instantiate2DTranslationUiMatrix extends BenchmarkBase {
     : super('UiMatrix.Instantiate_2DTranslation_UiMatrix');
 
   @override
+  @pragma('vm:align-loops')
   void run() {
     double total = 0;
     for (int i = 0; i < N; i++) {
@@ -118,6 +122,7 @@ class InstantiateSimple2DMatrix4 extends BenchmarkBase {
   InstantiateSimple2DMatrix4() : super('UiMatrix.Instantiate_Simple2D_Matrix4');
 
   @override
+  @pragma('vm:align-loops')
   void run() {
     double total = 0;
     for (int i = 0; i < N; i++) {
@@ -136,6 +141,7 @@ class InstantiateSimple2DUiMatrix extends BenchmarkBase {
     : super('UiMatrix.Instantiate_Simple2D_UiMatrix');
 
   @override
+  @pragma('vm:align-loops')
   void run() {
     double total = 0;
     for (int i = 0; i < N; i++) {
@@ -154,6 +160,7 @@ class InstantiateComplexMatrix4 extends BenchmarkBase {
   InstantiateComplexMatrix4() : super('UiMatrix.Instantiate_Complex_Matrix4');
 
   @override
+  @pragma('vm:align-loops')
   void run() {
     double total = 0;
     for (int i = 0; i < N; i++) {
@@ -171,6 +178,7 @@ class InstantiateComplexUiMatrix extends BenchmarkBase {
   InstantiateComplexUiMatrix() : super('UiMatrix.Instantiate_Complex_UiMatrix');
 
   @override
+  @pragma('vm:align-loops')
   void run() {
     double total = 0;
     for (int i = 0; i < N; i++) {
@@ -202,6 +210,7 @@ class MultiplyIdentityByIdentityMatrix4 extends BenchmarkBase {
   }
 
   @override
+  @pragma('vm:align-loops')
   void run() {
     double total = 0;
     for (int i = 0; i < N; i++) {
@@ -219,6 +228,7 @@ class MultiplyIdentityByIdentityUiMatrix extends BenchmarkBase {
   }
 
   @override
+  @pragma('vm:align-loops')
   void run() {
     double total = 0;
     for (int i = 0; i < N; i++) {
@@ -238,6 +248,7 @@ class MultiplySimply2DByIdentityMatrix4 extends BenchmarkBase {
   }
 
   @override
+  @pragma('vm:align-loops')
   void run() {
     double total = 0;
     for (int i = 0; i < N; i++) {
@@ -255,6 +266,7 @@ class MultiplySimply2DByIdentityUiMatrix extends BenchmarkBase {
   }
 
   @override
+  @pragma('vm:align-loops')
   void run() {
     double total = 0;
     for (int i = 0; i < N; i++) {
@@ -275,6 +287,7 @@ class MultiplySimple2DBySimple2DMatrix4 extends BenchmarkBase {
       ..scale(1.7, 2.8);
   }
   @override
+  @pragma('vm:align-loops')
   void run() {
     double total = 0;
     for (int i = 0; i < N; i++) {
@@ -291,6 +304,7 @@ class MultiplySimple2DBySimple2DUiMatrix extends BenchmarkBase {
     b = UiMatrix.simple2d(scaleX: 1.3, scaleY: 2.4, dx: 0.5, dy: 3.46);
   }
   @override
+  @pragma('vm:align-loops')
   void run() {
     double total = 0;
     for (int i = 0; i < N; i++) {
@@ -311,6 +325,7 @@ class MultiplyComplexByComplexMatrix4 extends BenchmarkBase {
       ..translate(0.3, 3.44);
   }
   @override
+  @pragma('vm:align-loops')
   void run() {
     double total = 0;
     for (int i = 0; i < N; i++) {
@@ -341,6 +356,7 @@ class MultiplyComplexByComplexUiMatrix extends BenchmarkBase {
     );
   }
   @override
+  @pragma('vm:align-loops')
   void run() {
     double total = 0;
     for (int i = 0; i < N; i++) {
@@ -357,6 +373,7 @@ class AddIdentityPlusIdentityMatrix4 extends BenchmarkBase {
     b4 = Matrix4.identity();
   }
   @override
+  @pragma('vm:align-loops')
   void run() {
     double total = 0;
     for (int i = 0; i < N; i++) {
@@ -373,6 +390,7 @@ class AddIdentityPlusIdentityUiMatrix extends BenchmarkBase {
     b = UiMatrix.identity;
   }
   @override
+  @pragma('vm:align-loops')
   void run() {
     double total = 0;
     for (int i = 0; i < N; i++) {
@@ -391,6 +409,7 @@ class AddSimple2DPlusIdentityMatrix4 extends BenchmarkBase {
     b4 = Matrix4.identity();
   }
   @override
+  @pragma('vm:align-loops')
   void run() {
     double total = 0;
     for (int i = 0; i < N; i++) {
@@ -407,6 +426,7 @@ class AddSimple2DPlusIdentityUiMatrix extends BenchmarkBase {
     b = UiMatrix.identity;
   }
   @override
+  @pragma('vm:align-loops')
   void run() {
     double total = 0;
     for (int i = 0; i < N; i++) {
@@ -427,6 +447,7 @@ class AddSimple2DPlusSimple2DMatrix4 extends BenchmarkBase {
       ..scale(1.7, 2.8);
   }
   @override
+  @pragma('vm:align-loops')
   void run() {
     double total = 0;
     for (int i = 0; i < N; i++) {
@@ -443,6 +464,7 @@ class AddSimple2DPlusSimple2DUiMatrix extends BenchmarkBase {
     b = UiMatrix.simple2d(scaleX: 1.3, scaleY: 2.4, dx: 0.5, dy: 3.46);
   }
   @override
+  @pragma('vm:align-loops')
   void run() {
     double total = 0;
     for (int i = 0; i < N; i++) {
@@ -463,6 +485,7 @@ class AddComplexPlusComplexMatrix4 extends BenchmarkBase {
       ..translate(0.3, 3.44);
   }
   @override
+  @pragma('vm:align-loops')
   void run() {
     double total = 0;
     for (int i = 0; i < N; i++) {
@@ -493,6 +516,7 @@ class AddComplexPlusComplexUiMatrix extends BenchmarkBase {
     );
   }
   @override
+  @pragma('vm:align-loops')
   void run() {
     double total = 0;
     for (int i = 0; i < N; i++) {
@@ -508,6 +532,7 @@ class InversionIdentityMatrix4 extends BenchmarkBase {
   }
 
   @override
+  @pragma('vm:align-loops')
   void run() {
     double total = 0;
     for (int i = 0; i < N; i++) {
@@ -524,6 +549,7 @@ class InversionIdentityUiMatrix extends BenchmarkBase {
   }
 
   @override
+  @pragma('vm:align-loops')
   void run() {
     double total = 0;
     for (int i = 0; i < N; i++) {
@@ -541,6 +567,7 @@ class InversionSimple2DMatrix4 extends BenchmarkBase {
   }
 
   @override
+  @pragma('vm:align-loops')
   void run() {
     double total = 0;
     for (int i = 0; i < N; i++) {
@@ -557,6 +584,7 @@ class InversionSimple2DUiMatrix extends BenchmarkBase {
   }
 
   @override
+  @pragma('vm:align-loops')
   void run() {
     double total = 0;
     for (int i = 0; i < N; i++) {
@@ -574,6 +602,7 @@ class InversionComplexMatrix4 extends BenchmarkBase {
   }
 
   @override
+  @pragma('vm:align-loops')
   void run() {
     double total = 0;
     for (int i = 0; i < N; i++) {
@@ -597,6 +626,7 @@ class InversionComplexUiMatrix extends BenchmarkBase {
   }
 
   @override
+  @pragma('vm:align-loops')
   void run() {
     double total = 0;
     for (int i = 0; i < N; i++) {
@@ -612,6 +642,7 @@ class DeterminantIdentityMatrix4 extends BenchmarkBase {
     a4 = Matrix4.identity();
   }
   @override
+  @pragma('vm:align-loops')
   void run() {
     double total = 0;
     for (int i = 0; i < N; i++) {
@@ -627,6 +658,7 @@ class DeterminantIdentityUiMatrix extends BenchmarkBase {
     a = UiMatrix.identity;
   }
   @override
+  @pragma('vm:align-loops')
   void run() {
     double total = 0;
     for (int i = 0; i < N; i++) {
@@ -644,6 +676,7 @@ class DeterminantSimple2DMatrix4 extends BenchmarkBase {
       ..scale(1.2, 2.3);
   }
   @override
+  @pragma('vm:align-loops')
   void run() {
     double total = 0;
     for (int i = 0; i < N; i++) {
@@ -659,6 +692,7 @@ class DeterminantSimple2DUiMatrix extends BenchmarkBase {
     a = UiMatrix.simple2d(scaleX: 1.2, scaleY: 2.3, dx: 0.4, dy: 3.45);
   }
   @override
+  @pragma('vm:align-loops')
   void run() {
     double total = 0;
     for (int i = 0; i < N; i++) {
@@ -675,6 +709,7 @@ class DeterminantComplexMatrix4 extends BenchmarkBase {
       ..translate(0.4, 3.45);
   }
   @override
+  @pragma('vm:align-loops')
   void run() {
     double total = 0;
     for (int i = 0; i < N; i++) {
@@ -697,6 +732,7 @@ class DeterminantComplexUiMatrix extends BenchmarkBase {
     );
   }
   @override
+  @pragma('vm:align-loops')
   void run() {
     double total = 0;
     for (int i = 0; i < N; i++) {

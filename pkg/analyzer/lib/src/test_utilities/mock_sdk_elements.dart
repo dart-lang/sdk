@@ -79,7 +79,7 @@ class MockSdkElements {
   final LibraryElementImpl coreLibrary;
   final LibraryElementImpl asyncLibrary;
 
-  factory MockSdkElements(
+  factory(
     engine.AnalysisContext analysisContext,
     RootReference rootReference,
     AnalysisSessionImpl analysisSession,
@@ -96,5 +96,5 @@ class MockSdkElements {
     );
   }
 
-  MockSdkElements._({required this.coreLibrary, required this.asyncLibrary});
+  new _({required this.coreLibrary, required this.asyncLibrary});
 }

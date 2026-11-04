@@ -89,7 +89,6 @@ V1: AssignmentExpression
   }
 
   test_compound_topLevelGetter_ambiguous_missingSetter() async {
-    // TODO(scheglov): Report the missing setter instead of an undefined prefixed name.
     newFile('$testPackageLibPath/a.dart', 'int get foo => 0;');
     newFile('$testPackageLibPath/b.dart', 'int get foo => 1;');
 
@@ -100,7 +99,6 @@ import 'b.dart' as p;
 void f() {
   p.foo += 1;
 //  ^^^
-// [diag.undefinedPrefixedName] The name 'foo' is being referenced through the prefix 'p', but it isn't defined in any of the libraries imported using that prefix.
 // [diag.ambiguousImport] The getter 'foo' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
 }
 ''');
@@ -163,7 +161,6 @@ V1: AssignmentExpression
   }
 
   test_compound_topLevelGetterFunction_ambiguous_missingSetter() async {
-    // TODO(scheglov): Report the missing setter instead of an undefined prefixed name.
     newFile('$testPackageLibPath/a.dart', 'int get foo => 0;');
     newFile('$testPackageLibPath/b.dart', 'int foo() => 1;');
 
@@ -174,7 +171,6 @@ import 'b.dart' as p;
 void f() {
   p.foo += 1;
 //  ^^^
-// [diag.undefinedPrefixedName] The name 'foo' is being referenced through the prefix 'p', but it isn't defined in any of the libraries imported using that prefix.
 // [diag.ambiguousImport] The name 'foo' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
 }
 ''');
@@ -492,7 +488,6 @@ CompoundAssignment
     name: foo
     read: GetterInvocationResolution
       element: package:test/a.dart::@getter::foo
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: package:test/a.dart::@setter::foo
@@ -561,7 +556,6 @@ CompoundAssignment
     name: foo
     read: GetterInvocationResolution
       element: package:test/a.dart::@getter::foo
-      invokeType: int Function()
       type: int
     write: InvalidNamedWriteResolution
       recoveryElement: multiplyDefinedElement
@@ -606,7 +600,6 @@ V1: AssignmentExpression
   }
 
   test_compound_topLevelSetter_ambiguous_missingGetter() async {
-    // TODO(scheglov): Report the missing getter instead of an undefined prefixed name.
     newFile('$testPackageLibPath/a.dart', 'set foo(int value) {}');
     newFile('$testPackageLibPath/b.dart', 'set foo(int value) {}');
 
@@ -617,7 +610,7 @@ import 'b.dart' as p;
 void f() {
   p.foo += 1;
 //  ^^^
-// [diag.undefinedPrefixedName] The name 'foo' is being referenced through the prefix 'p', but it isn't defined in any of the libraries imported using that prefix.
+// [diag.undefinedPrefixedNameReadSetterOnly] There's a setter 'foo' in the libraries imported with the prefix 'p', but no getter.
 // [diag.ambiguousImport] The setter 'foo' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
 }
 ''');
@@ -818,7 +811,6 @@ V1: AssignmentExpression
   }
 
   test_direct_topLevelGetter_ambiguous_missingSetter() async {
-    // TODO(scheglov): Report the missing setter instead of an undefined prefixed name.
     newFile('$testPackageLibPath/a.dart', 'int get foo => 0;');
     newFile('$testPackageLibPath/b.dart', 'int get foo => 1;');
 
@@ -829,7 +821,7 @@ import 'b.dart' as p;
 void f() {
   p.foo = 0;
 //  ^^^
-// [diag.undefinedPrefixedName] The name 'foo' is being referenced through the prefix 'p', but it isn't defined in any of the libraries imported using that prefix.
+// [diag.undefinedPrefixedNameWriteNotFound] The setter 'foo' isn't defined in the libraries imported with the prefix 'p'.
 }
 ''');
 
@@ -1263,14 +1255,13 @@ V1: AssignmentExpression
   }
 
   test_direct_topLevelVariable_final() async {
-    // TODO(scheglov): Report assignment to final instead of an undefined prefixed name.
     newFile('$testPackageLibPath/a.dart', 'final foo = 0;');
     var result = await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as p;
 void f() {
   p.foo = 1;
 //  ^^^
-// [diag.undefinedPrefixedName] The name 'foo' is being referenced through the prefix 'p', but it isn't defined in any of the libraries imported using that prefix.
+// [diag.undefinedPrefixedNameWriteFinal] The variable 'foo' imported with the prefix 'p' is final, so it can't be assigned to.
 }
 ''');
 
@@ -1326,7 +1317,7 @@ import 'a.dart' as p;
 void f() {
   p.foo = 1;
 //  ^^^
-// [diag.undefinedPrefixedName] The name 'foo' is being referenced through the prefix 'p', but it isn't defined in any of the libraries imported using that prefix.
+// [diag.undefinedPrefixedNameWriteNotFound] The setter 'foo' isn't defined in the libraries imported with the prefix 'p'.
 }
 ''');
 
@@ -1444,7 +1435,6 @@ V1: AssignmentExpression
   }
 
   test_ifNull_topLevelGetter_ambiguous_missingSetter() async {
-    // TODO(scheglov): Report the missing setter instead of an undefined prefixed name.
     newFile('$testPackageLibPath/a.dart', 'int get foo => 0;');
     newFile('$testPackageLibPath/b.dart', 'int get foo => 1;');
 
@@ -1455,7 +1445,6 @@ import 'b.dart' as p;
 void f() {
   p.foo ??= 1;
 //  ^^^
-// [diag.undefinedPrefixedName] The name 'foo' is being referenced through the prefix 'p', but it isn't defined in any of the libraries imported using that prefix.
 // [diag.ambiguousImport] The getter 'foo' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
 }
 ''');
@@ -1515,14 +1504,13 @@ V1: AssignmentExpression
   }
 
   test_ifNull_topLevelGetter_missingSetter() async {
-    // TODO(scheglov): Report the missing setter instead of an undefined prefixed name.
     newFile('$testPackageLibPath/a.dart', 'int? get foo => null;');
     var result = await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as p;
 void f() {
   p.foo ??= 1;
 //  ^^^
-// [diag.undefinedPrefixedName] The name 'foo' is being referenced through the prefix 'p', but it isn't defined in any of the libraries imported using that prefix.
+// [diag.undefinedPrefixedNameWriteGetterOnly] There's a getter 'foo' in the libraries imported with the prefix 'p', but no setter.
 }
 ''');
 
@@ -1537,7 +1525,6 @@ IfNullAssignment
     name: foo
     read: GetterInvocationResolution
       element: package:test/a.dart::@getter::foo
-      invokeType: int? Function()
       type: int?
     write: InvalidNamedWriteResolution
       recoveryElement: package:test/a.dart::@getter::foo
@@ -1747,7 +1734,6 @@ IfNullAssignment
     name: foo
     read: GetterInvocationResolution
       element: package:test/a.dart::@getter::foo
-      invokeType: int? Function()
       type: int?
     write: SetterInvocationResolution
       element: package:test/a.dart::@setter::foo
@@ -1813,7 +1799,6 @@ IfNullAssignment
     name: foo
     read: GetterInvocationResolution
       element: package:test/a.dart::@getter::foo
-      invokeType: int? Function()
       type: int?
     write: InvalidNamedWriteResolution
       recoveryElement: multiplyDefinedElement
@@ -1855,14 +1840,13 @@ V1: AssignmentExpression
   }
 
   test_ifNull_topLevelSetter_missingGetter() async {
-    // TODO(scheglov): Report the missing getter instead of an undefined prefixed name.
     newFile('$testPackageLibPath/a.dart', 'set foo(int value) {}');
     var result = await resolveTestCodeWithDiagnostics('''
 import 'a.dart' as p;
 void f() {
   p.foo ??= 1;
 //  ^^^
-// [diag.undefinedPrefixedName] The name 'foo' is being referenced through the prefix 'p', but it isn't defined in any of the libraries imported using that prefix.
+// [diag.undefinedPrefixedNameReadSetterOnly] There's a setter 'foo' in the libraries imported with the prefix 'p', but no getter.
 }
 ''');
 
@@ -1936,7 +1920,6 @@ IncrementOrDecrementExpression
     name: foo
     read: GetterInvocationResolution
       element: package:test/a.dart::@getter::foo
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: package:test/a.dart::@setter::foo
@@ -2035,7 +2018,6 @@ V1: PostfixExpression
   }
 
   test_postfixIncrement_topLevelGetter_ambiguous_missingSetter() async {
-    // TODO(scheglov): Report the missing setter instead of an undefined prefixed name.
     newFile('$testPackageLibPath/a.dart', 'int get foo => 0;');
     newFile('$testPackageLibPath/b.dart', 'int get foo => 1;');
 
@@ -2046,7 +2028,6 @@ import 'b.dart' as p;
 void f() {
   p.foo++;
 //  ^^^
-// [diag.undefinedPrefixedName] The name 'foo' is being referenced through the prefix 'p', but it isn't defined in any of the libraries imported using that prefix.
 // [diag.ambiguousImport] The getter 'foo' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
 }
 ''');
@@ -2271,7 +2252,6 @@ IncrementOrDecrementExpression
     name: foo
     read: GetterInvocationResolution
       element: package:test/a.dart::@getter::foo
-      invokeType: int Function()
       type: int
     write: InvalidNamedWriteResolution
       recoveryElement: multiplyDefinedElement
@@ -2439,7 +2419,6 @@ V1: PrefixExpression
   }
 
   test_prefixIncrement_topLevelGetter_ambiguous_missingSetter() async {
-    // TODO(scheglov): Report the missing setter instead of an undefined prefixed name.
     newFile('$testPackageLibPath/a.dart', 'int get foo => 0;');
     newFile('$testPackageLibPath/b.dart', 'int get foo => 1;');
 
@@ -2450,7 +2429,6 @@ import 'b.dart' as p;
 void f() {
   ++p.foo;
 //    ^^^
-// [diag.undefinedPrefixedName] The name 'foo' is being referenced through the prefix 'p', but it isn't defined in any of the libraries imported using that prefix.
 // [diag.ambiguousImport] The getter 'foo' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
 }
 ''');
@@ -2671,7 +2649,6 @@ IncrementOrDecrementExpression
     name: foo
     read: GetterInvocationResolution
       element: package:test/a.dart::@getter::foo
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: package:test/a.dart::@setter::foo
@@ -2733,7 +2710,6 @@ IncrementOrDecrementExpression
     name: foo
     read: GetterInvocationResolution
       element: package:test/a.dart::@getter::foo
-      invokeType: int Function()
       type: int
     write: InvalidNamedWriteResolution
       recoveryElement: multiplyDefinedElement

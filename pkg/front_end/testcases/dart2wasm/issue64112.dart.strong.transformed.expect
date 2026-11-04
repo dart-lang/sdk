@@ -4,7 +4,7 @@ import "dart:async" as asy;
 import "dart:core" as core;
 
 static method applyState() → asy::Future<core::bool> /* emittedValueType= core::bool */ /* originally async */ 
-  return asy::Future::value<core::bool>(true);
+  return asy::Future::syncValue<core::bool>(true);
 static method test() → asy::Future<core::bool> async /* emittedValueType= core::bool */ {
   core::bool :async_temporary_0;
   core::bool :async_temporary_1;

@@ -673,19 +673,6 @@ class VMKernelCompilationCommand extends CompilationCommand {
   int get maxNumRetries => 1;
 }
 
-/// This is just a Pair(String, Map) class with hashCode and operator ==
-class AddFlagsKey {
-  final String flags;
-  final Map env;
-  AddFlagsKey(this.flags, this.env);
-  // Just use object identity for environment map
-  @override
-  bool operator ==(Object other) =>
-      other is AddFlagsKey && flags == other.flags && env == other.env;
-  @override
-  int get hashCode => flags.hashCode ^ env.hashCode;
-}
-
 class BrowserTestCommand extends Command {
   Runtime get browser => configuration.runtime;
   final String url;
@@ -789,49 +776,6 @@ class AnalysisCommand extends ProcessCommand {
           other.commonAnalyzerCliArguments,
         );
   }
-}
-
-class CompareAnalyzerCfeCommand extends ProcessCommand {
-  CompareAnalyzerCfeCommand(
-    String executable,
-    List<String> arguments,
-    Map<String, String> environmentOverrides, {
-    int index = 0,
-  }) : super(
-         'compare_analyzer_cfe',
-         executable,
-         arguments,
-         environmentOverrides,
-         null,
-         index,
-       );
-
-  @override
-  CompareAnalyzerCfeCommand indexedCopy(int index) => CompareAnalyzerCfeCommand(
-    executable,
-    arguments,
-    environmentOverrides,
-    index: index,
-  );
-
-  @override
-  CompareAnalyzerCfeCommandOutput createOutput(
-    int exitCode,
-    bool timedOut,
-    List<int> stdout,
-    List<int> stderr,
-    Duration time,
-    bool compilationSkipped, [
-    int? pid = 0,
-  ]) => CompareAnalyzerCfeCommandOutput(
-    this,
-    exitCode,
-    timedOut,
-    stdout,
-    stderr,
-    time,
-    compilationSkipped,
-  );
 }
 
 class SpecParseCommand extends ProcessCommand {

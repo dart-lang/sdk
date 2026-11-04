@@ -60,7 +60,7 @@ class NotCancelableToken extends CancellationToken {
 class _WrappedCancelableToken extends CancelableToken {
   final CancellationToken _child;
 
-  _WrappedCancelableToken(this._child);
+  new(this._child);
 
   @override
   bool get isCancellationRequested =>

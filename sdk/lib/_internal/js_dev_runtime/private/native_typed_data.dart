@@ -66,6 +66,7 @@ abstract final class NativeByteBuffer extends JavaScriptObject
   }
 
   Int32x4List asInt32x4List([int offsetInBytes = 0, int? length]) {
+    _checkViewAlignment(offsetInBytes, Int32x4List.bytesPerElement);
     length ??= (lengthInBytes - offsetInBytes) ~/ Int32x4List.bytesPerElement;
     var storage = this.asInt32List(offsetInBytes, length * 4);
     return NativeInt32x4List._externalStorage(storage);
@@ -80,12 +81,14 @@ abstract final class NativeByteBuffer extends JavaScriptObject
   }
 
   Float32x4List asFloat32x4List([int offsetInBytes = 0, int? length]) {
+    _checkViewAlignment(offsetInBytes, Float32x4List.bytesPerElement);
     length ??= (lengthInBytes - offsetInBytes) ~/ Float32x4List.bytesPerElement;
     var storage = this.asFloat32List(offsetInBytes, length * 4);
     return NativeFloat32x4List._externalStorage(storage);
   }
 
   Float64x2List asFloat64x2List([int offsetInBytes = 0, int? length]) {
+    _checkViewAlignment(offsetInBytes, Float64x2List.bytesPerElement);
     length ??= (lengthInBytes - offsetInBytes) ~/ Float64x2List.bytesPerElement;
     var storage = this.asFloat64List(offsetInBytes, length * 2);
     return NativeFloat64x2List._externalStorage(storage);
@@ -400,6 +403,16 @@ final class NativeTypedData extends JavaScriptObject implements TypedData {
 int _checkLength(length) {
   if (length is! int) throw ArgumentError('Invalid length $length');
   return length;
+}
+
+// Validates that a SIMD list view starts at a multiple of its element size.
+void _checkViewAlignment(int offsetInBytes, int alignment) {
+  if (offsetInBytes % alignment != 0) {
+    throw RangeError(
+      'Offset ($offsetInBytes) must be a multiple of '
+      'BYTES_PER_ELEMENT ($alignment)',
+    );
+  }
 }
 
 // Validates `.view` constructor arguments.  Checking is necessary because
@@ -1425,30 +1438,8 @@ final class NativeFloat32x4 implements Float32x4 {
   }
 
   /// Clamps this [Float32x4] to be in the range [lowerLimit]-[upperLimit].
-  Float32x4 clamp(Float32x4 lowerLimit, Float32x4 upperLimit) {
-    double _lx = lowerLimit.x;
-    double _ly = lowerLimit.y;
-    double _lz = lowerLimit.z;
-    double _lw = lowerLimit.w;
-    double _ux = upperLimit.x;
-    double _uy = upperLimit.y;
-    double _uz = upperLimit.z;
-    double _uw = upperLimit.w;
-    double _x = x;
-    double _y = y;
-    double _z = z;
-    double _w = w;
-    // MAX(MIN(self, upper), lower).
-    _x = _x > _ux ? _ux : _x;
-    _y = _y > _uy ? _uy : _y;
-    _z = _z > _uz ? _uz : _z;
-    _w = _w > _uw ? _uw : _w;
-    _x = _x < _lx ? _lx : _x;
-    _y = _y < _ly ? _ly : _y;
-    _z = _z < _lz ? _lz : _z;
-    _w = _w < _lw ? _lw : _w;
-    return NativeFloat32x4._truncated(_x, _y, _z, _w);
-  }
+  Float32x4 clamp(Float32x4 lowerLimit, Float32x4 upperLimit) =>
+      min(upperLimit).max(lowerLimit);
 
   /// Extract the sign bit from each lane return them in the first 4 bits.
   int get signMask {
@@ -2046,20 +2037,8 @@ final class NativeFloat64x2 implements Float64x2 {
   }
 
   /// Clamps this [Float64x2] to be in the range [lowerLimit]-[upperLimit].
-  Float64x2 clamp(Float64x2 lowerLimit, Float64x2 upperLimit) {
-    double _lx = lowerLimit.x;
-    double _ly = lowerLimit.y;
-    double _ux = upperLimit.x;
-    double _uy = upperLimit.y;
-    double _x = x;
-    double _y = y;
-    // MAX(MIN(self, upper), lower).
-    _x = _x > _ux ? _ux : _x;
-    _y = _y > _uy ? _uy : _y;
-    _x = _x < _lx ? _lx : _x;
-    _y = _y < _ly ? _ly : _y;
-    return NativeFloat64x2._doubles(_x, _y);
-  }
+  Float64x2 clamp(Float64x2 lowerLimit, Float64x2 upperLimit) =>
+      min(upperLimit).max(lowerLimit);
 
   /// Extract the sign bits from each lane return them in the first 2 bits.
   int get signMask {

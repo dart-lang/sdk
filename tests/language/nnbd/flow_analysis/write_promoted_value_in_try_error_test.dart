@@ -18,7 +18,7 @@ void tryCatchAssignInBody(Object x) {
       // account for RHS types)
       print(x.isEven);
       //      ^^^^^^
-      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
       // [cfe] The getter 'isEven' isn't defined for the type 'Object'.
     }
   }
@@ -36,7 +36,7 @@ void tryFinallyAssignInBody(Object x) {
       // account for RHS types)
       print(x.isEven);
       //      ^^^^^^
-      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
       // [cfe] The getter 'isEven' isn't defined for the type 'Object'.
     }
   }

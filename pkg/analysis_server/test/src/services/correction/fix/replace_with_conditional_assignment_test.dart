@@ -52,7 +52,8 @@ class Person {
 }
 
 @reflectiveTest
-class ReplaceWithConditionalAssignmentTest extends FixProcessorLintTest {
+class ReplaceWithConditionalAssignmentTest
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.replaceWithConditionalAssignment;
 

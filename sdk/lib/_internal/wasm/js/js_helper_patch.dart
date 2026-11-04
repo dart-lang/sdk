@@ -296,7 +296,7 @@ WasmExternRef jsInt8ArrayFromDartInt8List(Int8List l) {
 
 @patch
 @pragma('wasm:prefer-inline')
-WasmExternRef? jsUint8ArrayFromDartUint8List(Uint8List l) {
+WasmExternRef jsUint8ArrayFromDartUint8List(Uint8List l) {
   assert(l is! JSArrayBase);
   final length = l.length;
 
@@ -313,7 +313,7 @@ WasmExternRef? jsUint8ArrayFromDartUint8List(Uint8List l) {
 
 @patch
 @pragma('wasm:prefer-inline')
-WasmExternRef? jsUint8ClampedArrayFromDartUint8ClampedList(Uint8ClampedList l) {
+WasmExternRef jsUint8ClampedArrayFromDartUint8ClampedList(Uint8ClampedList l) {
   assert(l is! JSArrayBase);
   final length = l.length;
 

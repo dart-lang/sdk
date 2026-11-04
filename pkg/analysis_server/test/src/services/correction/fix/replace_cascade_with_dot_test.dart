@@ -15,7 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class ReplaceCascadeWithDotTest extends FixProcessorLintTest {
+class ReplaceCascadeWithDotTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.replaceCascadeWithDot;
 
@@ -181,6 +181,56 @@ void f(String? s) {
     await assertHasFix('''
 void f(String? s) {
   s?[0];
+}
+''');
+  }
+
+  Future<void> test_method_awaitTarget_normalCascade() async {
+    await resolveTestCode('''
+class C {
+  void m() {}
+}
+
+Future<C> getC() => Future.value(C());
+
+void f() async {
+  await getC()..m();
+}
+''');
+    await assertHasFix('''
+class C {
+  void m() {}
+}
+
+Future<C> getC() => Future.value(C());
+
+void f() async {
+  (await getC()).m();
+}
+''');
+  }
+
+  Future<void> test_method_awaitTarget_nullAwareCascade() async {
+    await resolveTestCode('''
+class C {
+  void m() {}
+}
+
+Future<C?> getC() => Future.value(C());
+
+void f() async {
+  await getC()?..m();
+}
+''');
+    await assertHasFix('''
+class C {
+  void m() {}
+}
+
+Future<C?> getC() => Future.value(C());
+
+void f() async {
+  (await getC())?.m();
 }
 ''');
   }

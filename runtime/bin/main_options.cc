@@ -26,7 +26,6 @@
 #include "include/dart_api.h"
 #include "platform/assert.h"
 #include "platform/globals.h"
-#include "platform/hashmap.h"
 
 namespace dart {
 namespace bin {
@@ -321,18 +320,16 @@ void Options::PrintUsage() {
 }
 // clang-format on
 
-dart::SimpleHashMap* Options::environment_ = nullptr;
 bool Options::ProcessEnvironmentOption(const char* arg,
                                        CommandLineOptions* vm_options) {
-  return OptionProcessor::ProcessEnvironmentOption(arg, vm_options,
-                                                   &Options::environment_);
+  return OptionProcessor::ProcessEnvironmentOption(arg, vm_options);
 }
 
 void Options::Cleanup() {
 #if defined(DART_PRECOMPILED_RUNTIME)
   DestroyEnvArgv();
 #endif
-  DestroyEnvironment();
+  OptionProcessor::DestroyEnvironment();
 
 #define STRING_LIST_OPTION_CLEANUP(flag, variable)                             \
   for (intptr_t i = 0; i < OPTION_FIELD(variable).length(); i++) {             \
@@ -341,18 +338,6 @@ void Options::Cleanup() {
   OPTION_FIELD(variable).Clear();
   STRING_LIST_OPTIONS_LIST(STRING_LIST_OPTION_CLEANUP)
 #undef STRING_LIST_OPTION_CLEANUP
-}
-
-void Options::DestroyEnvironment() {
-  if (environment_ != nullptr) {
-    for (SimpleHashMap::Entry* p = environment_->Start(); p != nullptr;
-         p = environment_->Next(p)) {
-      free(p->key);
-      free(p->value);
-    }
-    delete environment_;
-    environment_ = nullptr;
-  }
 }
 
 #if defined(DART_PRECOMPILED_RUNTIME)

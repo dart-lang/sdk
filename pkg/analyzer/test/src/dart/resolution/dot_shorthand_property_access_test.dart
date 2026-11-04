@@ -42,7 +42,6 @@ ReceiverMethodInvocation
         lookupType: C
       resolution: GetterInvocationResolution
         element: <testLibrary>::@class::C::@getter::instances
-        invokeType: List<C> Function()
         type: List<C>
       staticType: List<C>
     leftBracket: [
@@ -57,7 +56,6 @@ ReceiverMethodInvocation
       element: SubstitutedMethodElementImpl
         baseElement: dart:core::@class::List::@method::[]
         substitution: {E: C}
-      invokeType: C Function(int)
       type: C
     staticType: C
   operator: .
@@ -129,7 +127,6 @@ ReceiverPropertyExtraction
         lookupType: C
       resolution: GetterInvocationResolution
         element: <testLibrary>::@class::C::@getter::instances
-        invokeType: List<C> Function()
         type: List<C>
       staticType: List<C>
     leftBracket: [
@@ -144,14 +141,12 @@ ReceiverPropertyExtraction
       element: SubstitutedMethodElementImpl
         baseElement: dart:core::@class::List::@method::[]
         substitution: {E: C}
-      invokeType: C Function(int)
       type: C
     staticType: C
   operator: .
   name: self
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::self
-    invokeType: C Function()
     type: C
   staticType: C
 V1: PropertyAccess
@@ -210,7 +205,6 @@ ReceiverMethodInvocation
       lookupType: C
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::member
-      invokeType: C Function()
       type: C
     staticType: C
   operator: .
@@ -266,7 +260,6 @@ ReceiverPropertyExtraction
         lookupType: C?
       resolution: GetterInvocationResolution
         element: <testLibrary>::@class::C::@getter::nullable
-        invokeType: C? Function()
         type: C?
       staticType: C?
     operator: ?.
@@ -283,7 +276,6 @@ ReceiverPropertyExtraction
   name: self
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::self
-    invokeType: C Function()
     type: C
   staticType: C?
 V1: PropertyAccess
@@ -340,14 +332,12 @@ ReceiverPropertyExtraction
       lookupType: C
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::member
-      invokeType: C Function()
       type: C
     staticType: C
   operator: .
   name: property
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::property
-    invokeType: C Function()
     type: C
   staticType: C
 V1: PropertyAccess
@@ -484,7 +474,6 @@ DotShorthandNameExpression
     lookupType: C
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::member
-    invokeType: C Function()
     type: C
   staticType: C
 V1: DotShorthandPropertyAccess
@@ -521,7 +510,6 @@ DotShorthandNameExpression
     lookupType: Integer
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::Integer::@getter::one
-    invokeType: Integer Function()
     type: Integer
   correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
   staticType: Integer
@@ -555,7 +543,6 @@ DotShorthandNameExpression
     lookupType: Color
   resolution: GetterInvocationResolution
     element: <testLibrary>::@enum::Color::@getter::blue
-    invokeType: Color Function()
     type: Color
   correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
   staticType: Color
@@ -595,7 +582,6 @@ DotShorthandNameExpression
     lookupType: C
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::member
-    invokeType: C Function()
     type: C
   staticType: C
 V1: DotShorthandPropertyAccess
@@ -628,7 +614,6 @@ DotShorthandNameExpression
     lookupType: Color
   resolution: GetterInvocationResolution
     element: <testLibrary>::@enum::Color::@getter::blue
-    invokeType: Color Function()
     type: Color
   staticType: Color
 V1: DotShorthandPropertyAccess
@@ -664,7 +649,6 @@ DotShorthandNameExpression
     lookupType: C
   resolution: GetterInvocationResolution
     element: <testLibrary>::@extensionType::C::@getter::member
-    invokeType: C Function()
     type: C
   staticType: C
 V1: DotShorthandPropertyAccess
@@ -697,7 +681,6 @@ DotShorthandNameExpression
     lookupType: C
   resolution: GetterInvocationResolution
     element: <testLibrary>::@enum::C::@getter::red
-    invokeType: C Function()
     type: C
   staticType: C
 V1: DotShorthandPropertyAccess
@@ -735,7 +718,6 @@ DotShorthandNameExpression
     lookupType: C
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::member
-    invokeType: C Function()
     type: C
   correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
   staticType: C
@@ -768,8 +750,7 @@ void f() {
 DotShorthandNameExpression
   period: .
   name: member
-  shorthandContext: InvalidDotShorthandContextResolution
-    contextType: null
+  shorthandContext: MissingDotShorthandContextResolution
   resolution: InvalidNamedReadResolution
     recoveryElement: <null>
   correspondingParameter: <null>
@@ -803,8 +784,7 @@ void f() {
 DotShorthandNameExpression
   period: .
   name: member
-  shorthandContext: InvalidDotShorthandContextResolution
-    contextType: null
+  shorthandContext: MissingDotShorthandContextResolution
   resolution: InvalidNamedReadResolution
     recoveryElement: <null>
   correspondingParameter: <null>
@@ -843,7 +823,6 @@ DotShorthandNameExpression
     lookupType: C
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::instances
-    invokeType: List<C> Function()
     type: List<C>
   staticType: List<C>
 V1: DotShorthandPropertyAccess
@@ -879,7 +858,6 @@ DotShorthandNameExpression
     lookupType: C
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::nullable
-    invokeType: C? Function()
     type: C?
   staticType: C?
 V1: DotShorthandPropertyAccess
@@ -916,7 +894,6 @@ DotShorthandNameExpression
     lookupType: C
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::nullable
-    invokeType: C? Function()
     type: C?
   staticType: C?
 V1: DotShorthandPropertyAccess
@@ -949,7 +926,6 @@ DotShorthandNameExpression
     lookupType: Color
   resolution: GetterInvocationResolution
     element: <testLibrary>::@enum::Color::@getter::blue
-    invokeType: Color Function()
     type: Color
   staticType: Color
 V1: DotShorthandPropertyAccess
@@ -982,8 +958,7 @@ class B extends A {
 DotShorthandNameExpression
   period: .
   name: member
-  shorthandContext: InvalidDotShorthandContextResolution
-    contextType: null
+  shorthandContext: MissingDotShorthandContextResolution
   resolution: InvalidNamedReadResolution
     recoveryElement: <null>
   correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
@@ -1019,8 +994,7 @@ class B extends A {
 DotShorthandNameExpression
   period: .
   name: member
-  shorthandContext: InvalidDotShorthandContextResolution
-    contextType: null
+  shorthandContext: MissingDotShorthandContextResolution
   resolution: InvalidNamedReadResolution
     recoveryElement: <null>
   correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
@@ -1042,8 +1016,8 @@ class C { }
 
 void main() {
   C Function() c = .member;
-//                 ^^^^^^^
-// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
+//                  ^^^^^^
+// [diag.undefinedStaticMemberReadNoStaticMembersDotShorthand] The context type 'C Function()' doesn't have static members or constructors.
   print(c);
 }
 ''');
@@ -1055,6 +1029,39 @@ DotShorthandNameExpression
   name: member
   shorthandContext: InvalidDotShorthandContextResolution
     contextType: C Function()
+    lookupType: C Function()
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: DotShorthandPropertyAccess
+  period: .
+  propertyName: SimpleIdentifier
+    token: member
+    element: <null>
+    staticType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_error_context_invalid_futureOr() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+import 'dart:async';
+
+class C {}
+
+FutureOr<C Function()> f() => .member;
+//                             ^^^^^^
+// [diag.undefinedStaticMemberReadNoStaticMembersDotShorthand] The context type 'FutureOr<C Function()>' doesn't have static members or constructors.
+''');
+
+    var node = result.findNode.singleDotShorthandNameExpression;
+    assertResolvedNodeText(node, r'''
+DotShorthandNameExpression
+  period: .
+  name: member
+  shorthandContext: InvalidDotShorthandContextResolution
+    contextType: FutureOr<C Function()>
+    lookupType: C Function()
   resolution: InvalidNamedReadResolution
     recoveryElement: <null>
   staticType: InvalidType
@@ -1083,8 +1090,7 @@ void main() {
 DotShorthandNameExpression
   period: .
   name: member
-  shorthandContext: InvalidDotShorthandContextResolution
-    contextType: null
+  shorthandContext: MissingDotShorthandContextResolution
   resolution: InvalidNamedReadResolution
     recoveryElement: <null>
   staticType: InvalidType
@@ -1105,7 +1111,7 @@ class C { }
 void main() {
   C c = .getter;
 //       ^^^^^^
-// [diag.dotShorthandUndefinedGetter] The static getter 'getter' isn't defined for the context type 'C'.
+// [diag.undefinedStaticMemberReadNotFoundDotShorthand] The context type 'C' doesn't have a static member or constructor named 'getter'.
   print(c);
 }
 ''');
@@ -1140,7 +1146,7 @@ class C {
 void main() {
   C c = .new;
 //       ^^^
-// [diag.dotShorthandUndefinedGetter] The static getter 'new' isn't defined for the context type 'C'.
+// [diag.undefinedStaticMemberReadNotFoundDotShorthand] The context type 'C' doesn't have a static member or constructor named 'new'.
   print(c);
 }
 ''');
@@ -1175,7 +1181,7 @@ class C {
 void main() {
   C c = .value;
 //       ^^^^^
-// [diag.dotShorthandUndefinedGetter] The static getter 'value' isn't defined for the context type 'C'.
+// [diag.undefinedStaticMemberReadSetterOnly] There's a static setter 'value' in the class 'C', but no getter.
   print(c);
 }
 ''');
@@ -1223,7 +1229,6 @@ DotShorthandNameExpression
     lookupType: C
   resolution: GetterInvocationResolution
     element: <testLibrary>::@extensionType::C::@getter::one
-    invokeType: C Function()
     type: C
   staticType: C
 V1: DotShorthandPropertyAccess
@@ -1259,7 +1264,6 @@ CallInvocation
       lookupType: C
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::field
-      invokeType: C Function()
       type: C
     staticType: C
   argumentList: ArgumentList
@@ -1323,7 +1327,6 @@ CallInvocation
       lookupType: C
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::field
-      invokeType: C Function()
       type: C
     staticType: C
   argumentList: ArgumentList
@@ -1377,7 +1380,6 @@ CallInvocation
       lookupType: C
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::getter
-      invokeType: C Function()
       type: C
     staticType: C
   argumentList: ArgumentList
@@ -1428,7 +1430,6 @@ CallInvocation
       lookupType: C
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::field
-      invokeType: C Function()
       type: C
     staticType: C
   argumentList: ArgumentList
@@ -1479,7 +1480,6 @@ CallInvocation
       lookupType: C
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::field
-      invokeType: C Function()
       type: C
     staticType: C
   typeArguments: TypeArgumentList
@@ -1564,7 +1564,6 @@ CallInvocation
       lookupType: C
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::getter
-      invokeType: C Function()
       type: C
     staticType: C
   argumentList: ArgumentList
@@ -1615,7 +1614,6 @@ DotShorthandNameExpression
     lookupType: C
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::field
-    invokeType: C Function()
     type: C
   staticType: C
 V1: DotShorthandPropertyAccess
@@ -1651,7 +1649,6 @@ DotShorthandNameExpression
     lookupType: C
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::getter
-    invokeType: C Function()
     type: C
   staticType: C
 V1: DotShorthandPropertyAccess
@@ -1728,7 +1725,6 @@ DotShorthandNameExpression
     lookupType: C
   resolution: GetterInvocationResolution
     element: <testLibrary>::@enum::C::@getter::red
-    invokeType: C Function()
     type: C
   staticType: C
 V1: DotShorthandPropertyAccess
@@ -1763,7 +1759,6 @@ DotShorthandNameExpression
     lookupType: C
   resolution: GetterInvocationResolution
     element: <testLibrary>::@enum::C::@getter::red
-    invokeType: C Function()
     type: C
   staticType: C
 V1: DotShorthandPropertyAccess
@@ -1808,7 +1803,6 @@ DotShorthandNameExpression
     lookupType: CMixin
   resolution: GetterInvocationResolution
     element: <testLibrary>::@mixin::CMixin::@getter::mixinOne
-    invokeType: CMixin Function()
     type: CMixin
   staticType: CMixin
 V1: DotShorthandPropertyAccess
@@ -1844,8 +1838,7 @@ IncrementOrDecrementExpression
       receiver: DotShorthandNameExpression
         period: .
         name: values
-        shorthandContext: InvalidDotShorthandContextResolution
-          contextType: null
+        shorthandContext: MissingDotShorthandContextResolution
         resolution: InvalidNamedReadResolution
           recoveryElement: <null>
         staticType: InvalidType
@@ -1918,8 +1911,7 @@ void main() {
 DotShorthandNameExpression
   period: .
   name: member
-  shorthandContext: InvalidDotShorthandContextResolution
-    contextType: null
+  shorthandContext: MissingDotShorthandContextResolution
   resolution: InvalidNamedReadResolution
     recoveryElement: <null>
   staticType: InvalidType
@@ -1957,8 +1949,7 @@ IncrementOrDecrementExpression
       receiver: DotShorthandNameExpression
         period: .
         name: values
-        shorthandContext: InvalidDotShorthandContextResolution
-          contextType: null
+        shorthandContext: MissingDotShorthandContextResolution
         resolution: InvalidNamedReadResolution
           recoveryElement: <null>
         staticType: InvalidType
@@ -2030,8 +2021,7 @@ void main() {
 DotShorthandNameExpression
   period: .
   name: member
-  shorthandContext: InvalidDotShorthandContextResolution
-    contextType: null
+  shorthandContext: MissingDotShorthandContextResolution
   resolution: InvalidNamedReadResolution
     recoveryElement: <null>
   staticType: InvalidType
@@ -2060,8 +2050,8 @@ import 'a.dart';
 void main() {
   var x = p;
   x = .getter;
-//    ^^^^^^^
-// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
+//     ^^^^^^
+// [diag.undefinedStaticMemberReadPrivateDotShorthand] The context type '_Private' is declared in 'package:test/a.dart', but private names are visible only in their own library.
   print(x);
 }
 ''');
@@ -2074,6 +2064,8 @@ DotShorthandNameExpression
   shorthandContext: InvalidDotShorthandContextResolution
     contextType: _Private
       alias: package:test/a.dart::@typeAlias::Public
+    lookupType: _Private
+      alias: package:test/a.dart::@typeAlias::Public
   resolution: InvalidNamedReadResolution
     recoveryElement: <null>
   correspondingParameter: <null>
@@ -2085,6 +2077,46 @@ V1: DotShorthandPropertyAccess
     element: <null>
     staticType: InvalidType
   correspondingParameter: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_privateClass_otherLibrary_futureOr() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class _Private {
+  static _Private get getter => _Private();
+}
+
+typedef Public = _Private;
+''');
+
+    var result = await resolveTestCodeWithDiagnostics(r'''
+import 'dart:async';
+import 'a.dart';
+
+FutureOr<Public> f() => .getter;
+//                       ^^^^^^
+// [diag.undefinedStaticMemberReadPrivateDotShorthand] The context type '_Private' is declared in 'package:test/a.dart', but private names are visible only in their own library.
+''');
+
+    var node = result.findNode.singleDotShorthandNameExpression;
+    assertResolvedNodeText(node, r'''
+DotShorthandNameExpression
+  period: .
+  name: getter
+  shorthandContext: InvalidDotShorthandContextResolution
+    contextType: FutureOr<_Private>
+    lookupType: _Private
+      alias: package:test/a.dart::@typeAlias::Public
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: DotShorthandPropertyAccess
+  period: .
+  propertyName: SimpleIdentifier
+    token: getter
+    element: <null>
+    staticType: InvalidType
   staticType: InvalidType
 ''');
   }
@@ -2117,7 +2149,6 @@ DotShorthandNameExpression
       alias: <testLibrary>::@typeAlias::Public
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::_Private::@getter::getter
-    invokeType: _Private Function()
     type: _Private
   correspondingParameter: <null>
   staticType: _Private
@@ -2145,8 +2176,8 @@ import 'a.dart';
 void main() {
   var x = p;
   x = .two;
-//    ^^^^
-// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
+//     ^^^
+// [diag.undefinedStaticMemberReadPrivateDotShorthand] The context type '_Private' is declared in 'package:test/a.dart', but private names are visible only in their own library.
   print(x);
 }
 ''');
@@ -2158,6 +2189,8 @@ DotShorthandNameExpression
   name: two
   shorthandContext: InvalidDotShorthandContextResolution
     contextType: _Private
+      alias: package:test/a.dart::@typeAlias::Public
+    lookupType: _Private
       alias: package:test/a.dart::@typeAlias::Public
   resolution: InvalidNamedReadResolution
     recoveryElement: <null>
@@ -2200,7 +2233,6 @@ DotShorthandNameExpression
       alias: <testLibrary>::@typeAlias::Public
   resolution: GetterInvocationResolution
     element: <testLibrary>::@enum::_Private::@getter::two
-    invokeType: _Private Function()
     type: _Private
   correspondingParameter: <null>
   staticType: _Private
@@ -2230,8 +2262,8 @@ import 'a.dart';
 void main() {
   var x = p;
   x = .getter;
-//    ^^^^^^^
-// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
+//     ^^^^^^
+// [diag.undefinedStaticMemberReadPrivateDotShorthand] The context type '_Private' is declared in 'package:test/a.dart', but private names are visible only in their own library.
   print(x);
 }
 ''');
@@ -2243,6 +2275,8 @@ DotShorthandNameExpression
   name: getter
   shorthandContext: InvalidDotShorthandContextResolution
     contextType: _Private
+      alias: package:test/a.dart::@typeAlias::Public
+    lookupType: _Private
       alias: package:test/a.dart::@typeAlias::Public
   resolution: InvalidNamedReadResolution
     recoveryElement: <null>
@@ -2287,7 +2321,6 @@ DotShorthandNameExpression
       alias: <testLibrary>::@typeAlias::Public
   resolution: GetterInvocationResolution
     element: <testLibrary>::@extensionType::_Private::@getter::getter
-    invokeType: _Private Function()
     type: _Private
   correspondingParameter: <null>
   staticType: _Private
@@ -2318,8 +2351,8 @@ import 'a.dart';
 void main() {
   var x = p;
   x = .getter;
-//    ^^^^^^^
-// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
+//     ^^^^^^
+// [diag.undefinedStaticMemberReadPrivateDotShorthand] The context type '_Private' is declared in 'package:test/a.dart', but private names are visible only in their own library.
   print(x);
 }
 ''');
@@ -2331,6 +2364,8 @@ DotShorthandNameExpression
   name: getter
   shorthandContext: InvalidDotShorthandContextResolution
     contextType: _Private
+      alias: package:test/a.dart::@typeAlias::Public
+    lookupType: _Private
       alias: package:test/a.dart::@typeAlias::Public
   resolution: InvalidNamedReadResolution
     recoveryElement: <null>
@@ -2376,7 +2411,6 @@ DotShorthandNameExpression
       alias: <testLibrary>::@typeAlias::Public
   resolution: GetterInvocationResolution
     element: <testLibrary>::@mixin::_Private::@getter::getter
-    invokeType: _Private Function()
     type: _Private
   correspondingParameter: <null>
   staticType: _Private
@@ -2594,8 +2628,9 @@ class C {}
 
 C Function() f() => .new<int>;
 //                  ^^^^
-// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
 // [diag.disallowedTypeInstantiationExpression] Only a generic type, generic function, generic instance method, or generic constructor can have type arguments.
+//                   ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembersDotShorthand] The context type 'C Function()' doesn't have static members or constructors.
 ''');
     var node = result.findNode.singleFunctionInstantiation;
     assertResolvedNodeText(node, r'''
@@ -2605,6 +2640,7 @@ FunctionInstantiation
     name: new
     shorthandContext: InvalidDotShorthandContextResolution
       contextType: C Function()
+      lookupType: C Function()
     resolution: InvalidNamedReadResolution
       recoveryElement: <null>
     staticType: InvalidType
@@ -2707,7 +2743,7 @@ V1: FunctionReference
     var result = await resolveTestCodeWithDiagnostics(r'''
 int f() => .foo;
 //          ^^^
-// [diag.dotShorthandUndefinedGetter] The static getter 'foo' isn't defined for the context type 'int'.
+// [diag.undefinedStaticMemberReadNotFoundDotShorthand] The context type 'int' doesn't have a static member or constructor named 'foo'.
 ''');
 
     var node = result.findNode.singleDotShorthandNameExpression;
@@ -2735,7 +2771,7 @@ V1: DotShorthandPropertyAccess
     var result = await resolveTestCodeWithDiagnostics(r'''
 bool f(int x) => x == .foo;
 //                     ^^^
-// [diag.dotShorthandUndefinedGetter] The static getter 'foo' isn't defined for the context type 'int'.
+// [diag.undefinedStaticMemberReadNotFoundDotShorthand] The context type 'int' doesn't have a static member or constructor named 'foo'.
 ''');
 
     var node = result.findNode.singleDotShorthandNameExpression;

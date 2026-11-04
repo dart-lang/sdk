@@ -16,7 +16,8 @@ void main() {
 }
 
 @reflectiveTest
-class WrapDiscardedFutureInUnawaitedTest extends FixProcessorLintTest {
+class WrapDiscardedFutureInUnawaitedTest
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.wrapInUnawaited;
 
@@ -80,7 +81,7 @@ void f() {
 }
 
 @reflectiveTest
-class WrapInUnawaitedTest extends FixProcessorLintTest {
+class WrapInUnawaitedTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.wrapInUnawaited;
 

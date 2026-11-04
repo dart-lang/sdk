@@ -1946,6 +1946,107 @@ void main() {
       });
     });
 
+    test('fldp', () {
+      asm.fldp(V0, V1, RegOffsetAddress(R2, -512));
+      asm.fldp(V0, V1, RegOffsetAddress(R2, 16), .s32);
+      asm.fldp(V0, V1, RegOffsetAddress(R2, 512), .simd128);
+      asm.fldp(V3, V1, RegOffsetAddress(SP, 256));
+      asm.fldp(V2, V0, WritebackRegOffsetAddress(R1, 16, isPostIndexed: true));
+      asm.fldp(V0, V4, WritebackRegOffsetAddress(R1, -8, isPostIndexed: false));
+      expectDisassembly(
+        'fldpd v0, v1, [r2, #-512]\n'
+        'fldps v0, v1, [r2, #16]\n'
+        'fldpq v0, v1, [r2, #512]\n'
+        'fldpd v3, v1, [csp, #256]\n'
+        'fldpd v2, v0, [r1], #16 !\n'
+        'fldpd v0, v4, [r1, #-8]!\n',
+      );
+      expectThrows(() {
+        asm.fldp(V0, V0, RegOffsetAddress(SP, 16));
+      });
+      expectThrows(() {
+        asm.fldp(V0, V1, RegOffsetAddress(R2, 1));
+      });
+      expectThrows(() {
+        asm.fldp(V0, V1, RegOffsetAddress(R2, 512));
+      });
+      expectThrows(() {
+        asm.fldp(V0, V1, RegOffsetAddress(R2, -520));
+      });
+      expectThrows(() {
+        asm.fldp(V0, V1, RegOffsetAddress(R2, 256), .s32);
+      });
+      expectThrows(() {
+        asm.fldp(V0, V1, RegOffsetAddress(R2, -1040), .simd128);
+      });
+      expectThrows(() {
+        asm.fldp(V0, V1, RegOffsetAddress(R2, 16), .s16);
+      });
+      expectThrows(() {
+        asm.fldp(V0, V1, WritebackRegOffsetAddress(ZR, 8, isPostIndexed: true));
+      });
+      expectThrows(() {
+        asm.fldp(
+          V0,
+          V1,
+          WritebackRegOffsetAddress(R2, 512, isPostIndexed: true),
+        );
+      });
+      expectThrows(() {
+        asm.fldp(
+          V0,
+          V1,
+          WritebackRegOffsetAddress(R2, -520, isPostIndexed: false),
+        );
+      });
+    });
+
+    test('fstp', () {
+      asm.fstp(V0, V0, RegOffsetAddress(R2, 16));
+      asm.fstp(V0, V1, RegOffsetAddress(R2, 4), .s32);
+      asm.fstp(V0, V1, RegOffsetAddress(R2, -1024), .simd128);
+      asm.fstp(V3, V1, RegOffsetAddress(SP, 256));
+      asm.fstp(V2, V0, WritebackRegOffsetAddress(R1, 16, isPostIndexed: true));
+      asm.fstp(V0, V4, WritebackRegOffsetAddress(R1, -8, isPostIndexed: false));
+      expectDisassembly(
+        'fstpd v0, v0, [r2, #16]\n'
+        'fstps v0, v1, [r2, #4]\n'
+        'fstpq v0, v1, [r2, #-1024]\n'
+        'fstpd v3, v1, [csp, #256]\n'
+        'fstpd v2, v0, [r1], #16 !\n'
+        'fstpd v0, v4, [r1, #-8]!\n',
+      );
+      expectThrows(() {
+        asm.fstp(V0, V1, RegOffsetAddress(R2, 4));
+      });
+      expectThrows(() {
+        asm.fstp(V0, V1, RegOffsetAddress(R2, 512));
+      });
+      expectThrows(() {
+        asm.fstp(V0, V1, RegOffsetAddress(R2, -520));
+      });
+      expectThrows(() {
+        asm.fstp(V0, V1, RegOffsetAddress(R2, 16), .s16);
+      });
+      expectThrows(() {
+        asm.fstp(V0, V1, WritebackRegOffsetAddress(ZR, 8, isPostIndexed: true));
+      });
+      expectThrows(() {
+        asm.fstp(
+          V0,
+          V1,
+          WritebackRegOffsetAddress(R2, 512, isPostIndexed: true),
+        );
+      });
+      expectThrows(() {
+        asm.fstp(
+          V0,
+          V1,
+          WritebackRegOffsetAddress(R2, -520, isPostIndexed: false),
+        );
+      });
+    });
+
     test('nop', () {
       asm.nop();
       expectDisassembly('nop\n');
@@ -2282,6 +2383,73 @@ void main() {
       });
       expectThrows(() {
         asm.fmov(SP, V0);
+      });
+    });
+
+    test('smov', () {
+      asm.smov(R3, VectorElement(V5, 1, .s32));
+      asm.smov(R0, VectorElement(V0, 5, .s8));
+      asm.smov(R1, VectorElement(V31, 0, .s16), .s32);
+      expectDisassembly(
+        'smovrd r3, v5[1]\n'
+        'smovrd r0, v0[5]\n'
+        'smovrs r1, v31[0]\n',
+      );
+      expectThrows(() {
+        asm.smov(SP, VectorElement(V5, 1, .s32));
+      });
+      expectThrows(() {
+        asm.smov(R3, VectorElement(V5, 1, .s8), .s16);
+      });
+      expectThrows(() {
+        asm.smov(R3, VectorElement(V5, 1, .s64));
+      });
+    });
+
+    test('ins', () {
+      asm.ins(VectorElement(V0, 0, .s64), VectorElement(V0, 1, .s64));
+      asm.ins(VectorElement(V1, 3, .s32), VectorElement(V0, 2, .s32));
+      asm.ins(VectorElement(V2, 0, .s32), R0);
+      asm.ins(VectorElement(V3, 1, .s64), ZR);
+      expectDisassembly(
+        'vinsd v0[0], v0[1]\n'
+        'vinss v1[3], v0[2]\n'
+        'vinss v2[0], r0\n'
+        'vinsd v3[1], zr\n',
+      );
+      expectThrows(() {
+        asm.ins(VectorElement(V0, 0, .s64), VectorElement(V0, 1, .s32));
+      });
+      expectThrows(() {
+        asm.ins(VectorElement(V0, 2, .s64), VectorElement(V0, 1, .s64));
+      });
+      expectThrows(() {
+        asm.ins(VectorElement(V0, 0, .simd128), VectorElement(V0, 0, .simd128));
+      });
+      expectThrows(() {
+        asm.ins(VectorElement(V0, 0, .s64), SP);
+      });
+    });
+
+    test('vorr', () {
+      asm.vorr(V0, V1, V2);
+      asm.vorr(V4, V0, V0);
+      // TODO: extend disassembler to handle 64-bit variant.
+      expectDisassembly(
+        'vorr v0, v1, v2\n'
+        'vorr v4, v0, v0\n',
+      );
+      expectThrows(() {
+        asm.vorr(V0, V1, V2, .s32);
+      });
+    });
+
+    test('vmov', () {
+      asm.vmov(V0, V31);
+      // TODO: extend disassembler to handle 64-bit variant.
+      expectDisassembly('vorr v0, v31, v31\n');
+      expectThrows(() {
+        asm.vmov(V0, V1, .s16);
       });
     });
 

@@ -55,6 +55,9 @@ class Safepoint {
         assert(!isObjectPointer);
         _liveFPRegs = _liveFPRegs.add(loc);
         break;
+      case SimdSpillSlot():
+        assert(!isObjectPointer);
+        break;
       case SpillSlot():
         if (isObjectPointer) {
           final bit = loc.stackSlotIndex;

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=3.14
+
 // Dart test program importing with show/hide combinators.
 
 // Show "hide" and "show", hide "ugly".
@@ -14,6 +16,6 @@ main() {
   // Ugly is hidden.
   print(ugly);
   //    ^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
   // [cfe] Undefined name 'ugly'.
 }

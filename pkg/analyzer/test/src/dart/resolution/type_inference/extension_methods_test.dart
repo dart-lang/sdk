@@ -44,7 +44,6 @@ ReceiverPropertyExtraction
     element: SubstitutedGetterElementImpl
       baseElement: <testLibrary>::@extension::E::@getter::foo
       substitution: {T: int}
-    invokeType: List<int> Function()
     type: List<int>
   staticType: List<int>
 V1: PrefixedIdentifier
@@ -457,7 +456,6 @@ ReceiverPropertyExtraction
     element: SubstitutedGetterElementImpl
       baseElement: <testLibrary>::@extension::Test::@getter::test
       substitution: {T: S}
-    invokeType: S Function(S) Function()
     type: S Function(S)
   staticType: S Function(S)
 V1: PropertyAccess
@@ -666,7 +664,6 @@ ReceiverPropertyExtraction
     element: SubstitutedGetterElementImpl
       baseElement: <testLibrary>::@extension::E::@getter::foo
       substitution: {T: num}
-    invokeType: List<num> Function()
     type: List<num>
   staticType: List<num>
 V1: PropertyAccess
@@ -1065,7 +1062,6 @@ ReceiverPropertyExtraction
     element: SubstitutedGetterElementImpl
       baseElement: <testLibrary>::@extension::E::@getter::foo
       substitution: {T: int}
-    invokeType: List<int> Function()
     type: List<int>
   staticType: List<int>
 V1: PropertyAccess

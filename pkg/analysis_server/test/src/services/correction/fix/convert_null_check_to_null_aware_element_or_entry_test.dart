@@ -100,7 +100,7 @@ Set<int> f(int? x, int? y) {
 
 @reflectiveTest
 class ConvertNullCheckToNullAwareElementOrEntryTest
-    extends FixProcessorLintTest {
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.convertNullCheckToNullAwareElementOrEntry;
 

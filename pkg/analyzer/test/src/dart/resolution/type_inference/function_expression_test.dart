@@ -59,7 +59,7 @@ FunctionExpression
     keyword: async
     block: Block
       leftBracket: {
-      statements
+      statements2
         ReturnStatement
           returnKeyword: return
           expression2: UnqualifiedFunctionInvocation
@@ -290,7 +290,7 @@ FunctionExpression
     star: *
     block: Block
       leftBracket: {
-      statements
+      statements2
         YieldStatement
           yieldKeyword: yield
           expression2: UnqualifiedFunctionInvocation
@@ -353,7 +353,7 @@ FunctionExpression
   body: BlockFunctionBody
     block: Block
       leftBracket: {
-      statements
+      statements2
         ReturnStatement
           returnKeyword: return
           expression2: UnqualifiedFunctionInvocation
@@ -482,7 +482,7 @@ FunctionExpression
     star: *
     block: Block
       leftBracket: {
-      statements
+      statements2
         YieldStatement
           yieldKeyword: yield
           expression2: UnqualifiedFunctionInvocation
@@ -550,7 +550,7 @@ FunctionExpression
   body: BlockFunctionBody
     block: Block
       leftBracket: {
-      statements
+      statements2
         ExpressionStatement
           expression2: UnqualifiedNameExpression
             name: item

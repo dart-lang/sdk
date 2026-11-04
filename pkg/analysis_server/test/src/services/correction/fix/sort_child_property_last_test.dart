@@ -68,7 +68,7 @@ void f() {
 }
 
 @reflectiveTest
-class SortChildPropertyLastTest extends FixProcessorLintTest {
+class SortChildPropertyLastTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   bool get addFlutterPackageDep => true;
 

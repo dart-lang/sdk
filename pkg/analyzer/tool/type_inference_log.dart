@@ -6,7 +6,7 @@ import 'dart:io';
 
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 import 'package:args/args.dart';
 import 'package:path/path.dart';
 

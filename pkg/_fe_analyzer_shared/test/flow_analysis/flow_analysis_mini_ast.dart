@@ -68,7 +68,7 @@ class FlowAnalysisTestHarness extends Harness with FlowModelHelper {
 class ValueVersionHarness {
   final FlowAnalysis<Node, Statement, Expression, Var> _flow;
 
-  ValueVersionHarness(this._flow);
+  new(this._flow);
 
   /// Gets the value version associated with [variable] at the current point in
   /// control flow, or `null` if the variable has been write captured.
@@ -80,7 +80,7 @@ class _GetExpressionInfo extends Expression {
 
   final void Function(ExpressionInfo?) callback;
 
-  _GetExpressionInfo(this.target, this.callback, {required super.location});
+  new(this.target, this.callback, {required super.location});
 
   @override
   void preVisitInternal(PreVisitor visitor) {
@@ -101,7 +101,7 @@ class _GetExpressionInfo extends Expression {
 class _GetVersions extends Expression {
   final void Function(ValueVersionHarness) callback;
 
-  _GetVersions(this.callback, {required super.location});
+  new(this.callback, {required super.location});
 
   @override
   void preVisitInternal(PreVisitor visitor) {}
@@ -121,7 +121,7 @@ class _WhyNotPromoted extends Expression {
 
   final void Function(Map<SharedTypeView, NonPromotionReason>) callback;
 
-  _WhyNotPromoted(this.target, this.callback, {required super.location});
+  new(this.target, this.callback, {required super.location});
 
   @override
   void preVisitInternal(PreVisitor visitor) {
@@ -145,7 +145,7 @@ class _WhyNotPromoted extends Expression {
 class _WhyNotPromoted_ImplicitThis extends Expression {
   final void Function(Map<SharedTypeView, NonPromotionReason>) callback;
 
-  _WhyNotPromoted_ImplicitThis(this.callback, {required super.location});
+  new(this.callback, {required super.location});
 
   @override
   void preVisitInternal(PreVisitor visitor) {}

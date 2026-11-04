@@ -1,8 +1,8 @@
 // Copyright (c) 2022, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-//
-// VMOptions=--new_gen_semi_max_size=1
+
+// VMOptions=--new_gen_semi_max_size=2
 
 import 'dart:_internal' show VMInternalsForTesting;
 import 'dart:developer';

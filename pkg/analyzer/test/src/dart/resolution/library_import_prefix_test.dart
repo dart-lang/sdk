@@ -144,7 +144,7 @@ ForStatement
       element: <testLibraryFragment>::@prefix::p
       staticType: InvalidType
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
     rightBracket: }
 ''');
@@ -219,7 +219,7 @@ f() {
   ''.stringExt2;
   _.a;
 //^
-// [diag.undefinedIdentifier] Undefined name '_'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name '_'.
 }
 ''');
   }
@@ -263,7 +263,6 @@ ImportPrefixedNameExpression
   name: a
   resolution: GetterInvocationResolution
     element: package:test/a.dart::@getter::a
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PrefixedIdentifier

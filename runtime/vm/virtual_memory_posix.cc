@@ -131,6 +131,23 @@ static void* GenericMapAligned(void* hint,
     return reinterpret_cast<void*>(address);
   }
 #endif
+
+#if (defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)) &&          \
+    defined(ARCH_IS_64_BIT)
+  // Usually. Might be larger on some arm64 configurations.
+  constexpr intptr_t kSuperPageSize = 2 * MB;
+  if (alignment == kSuperPageSize) {
+    void* address = Map(nullptr, size, prot, map_flags, -1, 0);
+    if (address != MAP_FAILED) {
+      if (Utils::IsAligned(address, alignment)) [[likely]] {
+        madvise(address, size, MADV_HUGEPAGE);
+        return address;
+      }
+      munmap(address, size);
+    }
+  }
+#endif
+
   void* address = Map(hint, allocated_size, prot, map_flags, -1, 0);
   if (address == MAP_FAILED) {
     return nullptr;
@@ -572,25 +589,6 @@ void VirtualMemory::Init() {
         "due to OS restrictions");
   }
 #endif
-#endif
-
-#if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)
-  FILE* fp = fopen("/proc/sys/vm/max_map_count", "r");
-  if (fp != nullptr) {
-    size_t max_map_count = 0;
-    int count = fscanf(fp, "%zu", &max_map_count);
-    fclose(fp);
-    if (count == 1) {
-      size_t max_heap_pages = FLAG_old_gen_heap_size * MB / Page::kPageSize;
-      if (max_map_count < max_heap_pages) {
-        OS::PrintErr(
-            "warning: vm.max_map_count (%zu) is not large enough to support "
-            "--old_gen_heap_size=%d. Consider increasing it with `sysctl -w "
-            "vm.max_map_count=%zu`\n",
-            max_map_count, FLAG_old_gen_heap_size, max_heap_pages);
-      }
-    }
-  }
 #endif
 }
 

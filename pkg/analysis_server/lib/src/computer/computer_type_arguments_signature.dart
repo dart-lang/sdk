@@ -56,7 +56,9 @@ class DartTypeArgumentsSignatureComputer {
     _argumentList = argumentList;
 
     var label = element.displayString();
-    var documentation = _documentationComputer.compute(element)?.full;
+    var documentation = _documentationComputer
+        .compute(element, includeFull: true, includeSummary: false)
+        ?.full;
 
     return _toSignatureHelp(
       label,

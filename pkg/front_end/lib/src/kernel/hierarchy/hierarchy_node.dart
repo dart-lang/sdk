@@ -8,11 +8,11 @@ import 'package:kernel/src/nnbd_top_merge.dart';
 import 'package:kernel/src/norm.dart';
 import 'package:kernel/type_algebra.dart';
 
+import '../../base/uri_offset.dart';
 import '../../builder/builder.dart';
 import '../../builder/declaration_builders.dart';
 import '../../builder/library_builder.dart';
 import '../../builder/type_builder.dart';
-import '../../codes/cfe_codes.dart';
 import '../../source/source_class_builder.dart';
 import '../../source/source_library_builder.dart';
 import '../../testing/id_testing_utils.dart' show typeToText;
@@ -29,9 +29,7 @@ abstract class HierarchyNodeBuilder {
 
   String get _name;
 
-  int get _fileOffset;
-
-  Uri get _fileUri;
+  UriOffsetLength get _uriOffset;
 
   Supertype _resolveSupertypeConflict(Supertype type, Supertype superclass) {
     Supertype? merge = nnbdTopMergeSupertype(
@@ -44,15 +42,13 @@ abstract class HierarchyNodeBuilder {
     }
     LibraryBuilder libraryBuilder = _libraryBuilder;
     if (libraryBuilder is SourceLibraryBuilder) {
-      libraryBuilder.addProblem(
+      libraryBuilder.addProblem2(
         diag.ambiguousSupertypes.withArguments(
           name: _name,
           type1: superclass.asInterfaceType,
           type2: type.asInterfaceType,
         ),
-        _fileOffset,
-        noLength,
-        _fileUri,
+        _uriOffset,
       );
     }
     return superclass;
@@ -120,10 +116,7 @@ class ClassHierarchyNodeBuilder extends HierarchyNodeBuilder {
   String get _name => _classBuilder.name;
 
   @override
-  int get _fileOffset => _classBuilder.fileOffset;
-
-  @override
-  Uri get _fileUri => _classBuilder.fileUri;
+  UriOffsetLength get _uriOffset => _classBuilder.uriOffset;
 
   ClassHierarchyNode build() {
     ClassHierarchyNode? supernode;
@@ -427,10 +420,7 @@ class ExtensionTypeHierarchyNodeBuilder extends HierarchyNodeBuilder {
   String get _name => _extensionTypeBuilder.name;
 
   @override
-  int get _fileOffset => _extensionTypeBuilder.fileOffset;
-
-  @override
-  Uri get _fileUri => _extensionTypeBuilder.fileUri;
+  UriOffsetLength get _uriOffset => _extensionTypeBuilder.uriOffset;
 
   ExtensionTypeHierarchyNode build() {
     Map<Class, Supertype> superclasses = {};
@@ -546,15 +536,13 @@ class ExtensionTypeHierarchyNodeBuilder extends HierarchyNodeBuilder {
     }
     LibraryBuilder libraryBuilder = _libraryBuilder;
     if (libraryBuilder is SourceLibraryBuilder) {
-      libraryBuilder.addProblem(
+      libraryBuilder.addProblem2(
         diag.ambiguousSupertypes.withArguments(
           name: _name,
           type1: superclass,
           type2: type,
         ),
-        _fileOffset,
-        noLength,
-        _fileUri,
+        _uriOffset,
       );
     }
     return superclass;

@@ -7,7 +7,7 @@ import 'dart:io';
 import 'package:analyzer/src/util/platform_info.dart';
 
 final class PlatformInfoImpl extends PlatformInfo {
-  const PlatformInfoImpl();
+  const new();
 
   @override
   Map<String, String> get environment => Platform.environment;

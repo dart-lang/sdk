@@ -5,6 +5,7 @@
 import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart'
     show FormalParameterKind;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
+import 'package:front_end/src/base/uri_offset.dart';
 import 'package:kernel/ast.dart'
     show DartType, DynamicType, Expression, InvalidExpression;
 import 'package:kernel/class_hierarchy.dart';
@@ -26,7 +27,6 @@ import '../kernel/resolver.dart';
 import '../kernel/wildcard_lowering.dart';
 import '../source/fragment_factory.dart';
 import '../source/source_constructor_builder.dart';
-import '../source/source_factory_builder.dart';
 import '../source/source_library_builder.dart';
 import '../source/source_member_builder.dart';
 import '../source/source_property_builder.dart';
@@ -276,9 +276,6 @@ class CatchParameterBuilder extends NamedBuilderImpl
 class FormalParameterBuilder extends NamedBuilderImpl
     with LookupResultMixin
     implements ParameterVariableBuilder, InferredTypeListener {
-  @override
-  final int fileOffset;
-
   List<MetadataBuilder>? _metadata;
 
   final Modifiers modifiers;
@@ -302,9 +299,6 @@ class FormalParameterBuilder extends NamedBuilderImpl
   /// Here, [publicName] for `_x` will be `x`. If the formal parameter isn't a
   /// private named parameter that refers to a field, then this is `null`.
   final String? publicName;
-
-  @override
-  final Uri fileUri;
 
   @override
   final FormalParameterKind kind;
@@ -338,20 +332,21 @@ class FormalParameterBuilder extends NamedBuilderImpl
   @override
   final bool isPrimaryConstructorParameter;
 
+  final UriOffsetLength uriOffset;
+
   new({
     required this.kind,
     this._metadata,
     required this.modifiers,
     required this.type,
     required this.name,
-    required this.fileOffset,
-    required this.fileUri,
     this.isExtensionThis = false,
     Token? defaultValueToken,
     required this.hasImmediatelyDeclaredDefaultValue,
     int? wildcardIndex,
     this.publicName,
     required this.nameOffset,
+    required this.uriOffset,
     this.isPrimaryConstructorParameter = false,
     InternalFunctionParameter? variable,
   }) : this.hasDeclaredDefaultValue = hasImmediatelyDeclaredDefaultValue,
@@ -360,6 +355,12 @@ class FormalParameterBuilder extends NamedBuilderImpl
        this._variable = variable {
     type.registerInferredTypeListener(this);
   }
+
+  @override
+  Uri get fileUri => uriOffset.fileUri;
+
+  @override
+  int get fileOffset => uriOffset.fileOffset;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -488,37 +489,35 @@ class FormalParameterBuilder extends NamedBuilderImpl
     // buildOutlineExpressions to clear defaultValueToken to prevent
     // consuming too much memory.
     Token? defaultValueToken = _takeDefaultValueToken();
-    if (_needsDefaultValuesBuiltAsOutlineExpressions(memberBuilder)) {
-      if (defaultValueToken != null) {
-        BodyBuilderContext bodyBuilderContext = new ParameterBodyBuilderContext(
-          libraryBuilder,
-          declarationBuilder,
-          this,
-        );
-        assert(!defaultValueWasInferred);
-        Resolver resolver = libraryBuilder.loader.createResolver();
-        Expression defaultValue = resolver.buildParameterDefaultValue(
-          libraryBuilder: libraryBuilder,
-          bodyBuilderContext: bodyBuilderContext,
-          extensionScope: extensionScope,
-          scope: scope,
-          fileUri: fileUri,
-          defaultValueToken: defaultValueToken,
-          declaredType: variable.type,
-          hasDeclaredDefaultValue: hasDeclaredDefaultValue,
-        );
-        variable.setInferredDefaultValue(defaultValue);
-        if (defaultValue is InvalidExpression) {
-          variable.hasErroneousDefaultValue = true;
-        }
-      } else if (kind.isOptional) {
-        // As done by BodyBuilder.endFormalParameter.
-        variable.setInferredDefaultValue(
-          extern.createNullLiteral(fileOffset: fileOffset),
-        );
+    if (defaultValueToken != null) {
+      BodyBuilderContext bodyBuilderContext = new ParameterBodyBuilderContext(
+        libraryBuilder,
+        declarationBuilder,
+        this,
+      );
+      assert(!defaultValueWasInferred);
+      Resolver resolver = libraryBuilder.loader.createResolver();
+      Expression defaultValue = resolver.buildParameterDefaultValue(
+        libraryBuilder: libraryBuilder,
+        bodyBuilderContext: bodyBuilderContext,
+        extensionScope: extensionScope,
+        scope: scope,
+        fileUri: fileUri,
+        defaultValueToken: defaultValueToken,
+        declaredType: variable.type,
+        hasDeclaredDefaultValue: hasDeclaredDefaultValue,
+      );
+      variable.setInferredDefaultValue(defaultValue);
+      if (defaultValue is InvalidExpression) {
+        variable.hasErroneousDefaultValue = true;
       }
-      defaultValueWasInferred = true;
+    } else if (kind.isOptional) {
+      // As done by BodyBuilder.endFormalParameter.
+      variable.setInferredDefaultValue(
+        extern.createNullLiteral(fileOffset: fileOffset),
+      );
     }
+    defaultValueWasInferred = true;
   }
 
   /// Returns the [_defaultValueToken] field and without clearing it.
@@ -568,24 +567,27 @@ class FormalParameterBuilder extends NamedBuilderImpl
   }) {
     assert(_variable == null);
     return new FormalParameterBuilder(
-      kind: kind,
-      modifiers: isDeclaring
-          ? (modifiers | Modifiers.InitializingFormal)
-          : modifiers,
-      type: isDeclaring
-          ? builderFactory.addInferableType(InferenceDefaultType.NullableObject)
-          : type,
-      name: name,
-      fileOffset: fileOffset,
-      nameOffset: nameOffset,
-      fileUri: fileUri,
-      isExtensionThis: isExtensionThis,
-      defaultValueToken: copyDefaultValueToken(),
-      hasImmediatelyDeclaredDefaultValue: hasImmediatelyDeclaredDefaultValue,
-      publicName: publicName,
-      wildcardIndex: _wildcardIndex,
-      isPrimaryConstructorParameter: !isDeclaring,
-    );
+        kind: kind,
+        modifiers: isDeclaring
+            ? (modifiers | Modifiers.InitializingFormal)
+            : modifiers,
+        type: isDeclaring
+            ? builderFactory.addInferableType(
+                InferenceDefaultType.NullableObject,
+              )
+            : type,
+        name: name,
+        nameOffset: nameOffset,
+        uriOffset: uriOffset,
+        isExtensionThis: isExtensionThis,
+        defaultValueToken: copyDefaultValueToken(),
+        hasImmediatelyDeclaredDefaultValue: hasImmediatelyDeclaredDefaultValue,
+        publicName: publicName,
+        wildcardIndex: _wildcardIndex,
+        isPrimaryConstructorParameter: !isDeclaring,
+      )
+      // Mark the new parameter as duplicate if this is a duplicate.
+      ..next = next;
   }
 
   @override
@@ -605,27 +607,6 @@ class FormalParameterBuilder extends NamedBuilderImpl
     Token? initializerToken = _defaultValueToken;
     _defaultValueToken = null;
     return initializerToken;
-  }
-
-  static bool _needsDefaultValuesBuiltAsOutlineExpressions(
-    SourceMemberBuilder memberBuilder,
-  ) {
-    // For modular compilation we need to include default values for optional
-    // and named parameters in several cases:
-    // * for const constructors to enable constant evaluation,
-    // * for instance methods because these might be needed to generated
-    //   noSuchMethod forwarders,
-    // * for generative constructors to support forwarding constructors
-    //   in mixin applications, and
-    // * for factories, to uphold the invariant that optional parameters always
-    //   have default values, even during modular compilation.
-    if (memberBuilder is SourceConstructorBuilder) {
-      return true;
-    } else if (memberBuilder is SourceFactoryBuilder) {
-      return true;
-    } else {
-      return memberBuilder.isClassInstanceMember;
-    }
   }
 }
 

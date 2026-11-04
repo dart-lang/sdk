@@ -24,6 +24,7 @@ Various process pages include:
 - [Dart SDK breaking change process](process/breaking-changes.md)
 - [Dart SDK process for changes behind experimental flags](process/experimental-flags.md)
 - [Language Versioning and Experiments](process/language-versions-and-experiments.md)
+- [Publishing SDK packages](Publishing-SDK-packages.md)
 
 ## Contributing
 

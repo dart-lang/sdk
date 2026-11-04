@@ -466,7 +466,7 @@ PatternAssignment
     // sure that error recovery produces an AST that can be analyzed without
     // crashing.
     // The reference doesn't resolve so the errors include UNUSED_LOCAL_VARIABLE
-    // and UNDEFINED_IDENTIFIER.
+    // and UNDEFINED_UNQUALIFIED_NAME_READ.
     await resolveTestCodeWithDiagnostics(r'''
 void f(a, y) {
   [a, var d] = y;
@@ -475,7 +475,7 @@ void f(a, y) {
 // [diag.unusedLocalVariable] The value of the local variable 'd' isn't used.
   d;
 //^
-// [diag.undefinedIdentifier] Undefined name 'd'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'd'.
 }
 ''');
   }

@@ -19,7 +19,8 @@ import 'calls.dart'
 import 'native_code.dart'
     show EntryPointsListener, NativeCodeOracle, PragmaEntryPointsVisitor;
 import 'protobuf_handler.dart' show ProtobufHandler;
-import 'types.dart' show Closure, ConcreteType, RecordShape, TFClass, Type;
+import 'types.dart'
+    show Closure, ConcreteType, RecordConcreteType, RecordShape, TFClass, Type;
 import 'utils.dart' show combineHashes;
 import 'package:vm/modular/transformations/pragma.dart'
     show ConstantPragmaAnnotationParser;
@@ -624,6 +625,10 @@ class _EntryPointsListenerImpl implements EntryPointsListener {
 
   @override
   ConcreteType addAllocatedClass(Class c) => rta.addAllocatedClass(c);
+
+  @override
+  RecordConcreteType addAllocatedRecord(RecordShape shape) =>
+      throw 'Unsupported operation';
 
   @override
   void addDynamicallyExtendableClass(Class c) {}

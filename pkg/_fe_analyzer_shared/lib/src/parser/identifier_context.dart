@@ -293,7 +293,7 @@ abstract class IdentifierContext {
 
   final Template<Message Function({required Token lexeme})> recoveryTemplate;
 
-  const IdentifierContext(
+  const new(
     this._name, {
     this.inDeclaration = false,
     this.inLibraryOrPartOfDeclaration = false,

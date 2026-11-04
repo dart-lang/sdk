@@ -140,7 +140,7 @@ const Set<Register> allRegisters = {
 const List<Register> abiArgumentRegisters = [R0, R1, R2, R3, R4, R5, R6, R7];
 
 /// Registers preserved by a call according to C ABI.
-const List<Register> abiPreservedRegisters = [
+const List<Register> abiCalleeSaveRegisters = [
   R19,
   R20,
   R21,
@@ -184,6 +184,10 @@ final prologueScratchRegisters = allocatableRegisters
       (r) =>
           r != argumentsDescriptorReg && r.index > argumentRegisters.last.index,
     )
+    .toList();
+
+final calleeSaveAllocatableRegisters = abiCalleeSaveRegisters
+    .where((r) => !reservedRegisters.contains(r))
     .toList();
 
 /// Floating-point registers.
@@ -263,6 +267,19 @@ const Set<FPRegister> allFPRegisters = {
 
 const Set<FPRegister> reservedFPRegisters = {fpTempReg};
 
+/// Floating-point registers preserved by a call according to C ABI
+/// (only the bottom 64 bits are preserved).
+const List<FPRegister> abiCalleeSaveFPRegisters = [
+  V8,
+  V9,
+  V10,
+  V11,
+  V12,
+  V13,
+  V14,
+  V15,
+];
+
 final allocatableFPRegisters = allFPRegisters
     .where((r) => !reservedFPRegisters.contains(r))
     .toList();
@@ -313,6 +330,15 @@ class WritebackRegOffsetAddress(
   final int offset, {
   required final bool isPostIndexed,
 }) implements Address;
+
+/// `<Vreg>.<Tsz>[<index>]` vector element operand.
+class VectorElement(final FPRegister reg, final int index, final OperandSize sz)
+    implements Operand {
+  this
+    : assert(
+        index >= 0 && index < (16 >> sz.log2sizeInBytes) && sz != .simd128,
+      );
+}
 
 // Bits to simplify encoding of the instructions.
 const int B0 = (1 << 0);
@@ -394,6 +420,13 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
       return RegOffsetAddress(scratch, low);
     }
   }
+
+  @override
+  Address fieldAddress(
+    Register obj,
+    int offset, [
+    OperandSize sz = OperandSize.s64,
+  ]) => address(obj, offset - heapObjectTag, sz);
 
   /// Create a [base + offset] address for arbitrary offset,
   /// generating extra code if necessary.
@@ -803,9 +836,24 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
 
   @override
   void callLeafRuntime(LeafRuntimeEntry entry) {
-    final savedSP = abiPreservedRegisters.first;
-    mov(savedSP, SP);
-    mov(SP, stackPointerReg);
+    // Save SP and stackPointerReg, other reserved registers are callee-save.
+    assert(
+      [
+        poolPointerReg,
+        dispatchTableReg,
+        threadReg,
+        heapBitsReg,
+        nullReg,
+      ].every(abiCalleeSaveRegisters.contains),
+    );
+    final calleeSave1 = calleeSaveAllocatableRegisters[0];
+    final calleeSave2 = calleeSaveAllocatableRegisters[1];
+    mov(calleeSave1, SP);
+    mov(calleeSave2, stackPointerReg);
+
+    // TODO: align stack on entry to Dart code and remove this stack alignment.
+    const stackAlignment = 16;
+    and(SP, stackPointerReg, Immediate(~(stackAlignment - 1)));
 
     ldr(
       LR,
@@ -821,7 +869,8 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
     loadImmediate(LR, vmOffsets.VMTag_kDartTagId);
     str(LR, address(threadReg, vmOffsets.Thread_vm_tag_offset));
 
-    mov(SP, savedSP);
+    mov(SP, calleeSave1);
+    mov(stackPointerReg, calleeSave2);
   }
 
   @override
@@ -1235,7 +1284,7 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
               (sz.is64 ? B31 : 0),
         );
       default:
-        throw 'Unexpect operand ${o.runtimeType}';
+        throw 'Unexpected operand ${o.runtimeType}';
     }
   }
 
@@ -1897,7 +1946,7 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
               (sz.is64 ? B31 : 0),
         );
       default:
-        throw 'Unexpect operand ${o.runtimeType}';
+        throw 'Unexpected operand ${o.runtimeType}';
     }
   }
 
@@ -1991,7 +2040,7 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
               (sz.log2sizeInBytes << 30),
         );
       default:
-        throw 'Unexpect address ${a.runtimeType}';
+        throw 'Unexpected address ${a.runtimeType}';
     }
   }
 
@@ -2118,7 +2167,7 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
               ((sz.log2sizeInBytes & 3) << 30),
         );
       default:
-        throw 'Unexpect address ${a.runtimeType}';
+        throw 'Unexpected address ${a.runtimeType}';
     }
   }
 
@@ -2182,7 +2231,56 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
               (sz.is64 ? B31 : 0),
         );
       default:
-        throw 'Unexpect address ${a.runtimeType}';
+        throw 'Unexpected address ${a.runtimeType}';
+    }
+  }
+
+  void fldp(
+    FPRegister low,
+    FPRegister high,
+    Address a, [
+    OperandSize sz = OperandSize.s64,
+  ]) {
+    assert(low != high);
+    _emitFPLoadStorePair(B22 | B26 | B27 | B29, low, high, a, sz);
+  }
+
+  void fstp(
+    FPRegister low,
+    FPRegister high,
+    Address a, [
+    OperandSize sz = OperandSize.s64,
+  ]) {
+    _emitFPLoadStorePair(B26 | B27 | B29, low, high, a, sz);
+  }
+
+  void _emitFPLoadStorePair(
+    int opcode,
+    FPRegister rt,
+    FPRegister rt2,
+    Address a,
+    OperandSize sz,
+  ) {
+    assert(sz.is32or64 || sz.is128);
+    switch (a) {
+      case RegOffsetAddress():
+        emit(
+          opcode |
+              rt.encodingRt |
+              rt2.encodingRt2 |
+              a.encodingPair(sz) |
+              (sz.is64 ? B30 : (sz.is128 ? B31 : 0)),
+        );
+      case WritebackRegOffsetAddress():
+        emit(
+          opcode |
+              rt.encodingRt |
+              rt2.encodingRt2 |
+              a.encodingPair(sz) |
+              (sz.is64 ? B30 : (sz.is128 ? B31 : 0)),
+        );
+      default:
+        throw 'Unexpected address ${a.runtimeType}';
     }
   }
 
@@ -2466,7 +2564,7 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
             );
             break;
           default:
-            throw 'Unexpect operand ${o.runtimeType}';
+            throw 'Unexpected operand ${o.runtimeType}';
         }
       case Register():
         switch (o) {
@@ -2486,11 +2584,98 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
             );
             break;
           default:
-            throw 'Unexpect operand ${o.runtimeType}';
+            throw 'Unexpected operand ${o.runtimeType}';
         }
       default:
-        throw 'Unexpect destination register ${rd.runtimeType}';
+        throw 'Unexpected destination register ${rd.runtimeType}';
     }
+  }
+
+  void smov(Register rd, VectorElement vn, [OperandSize sz = .s64]) {
+    assert(sz.is32or64);
+    assert(vn.sz.sizeInBytes < sz.sizeInBytes);
+    emit(
+      B10 |
+          B11 |
+          B13 |
+          B25 |
+          B26 |
+          B27 |
+          rd.encodingRd() |
+          vn.reg.encodingRn |
+          (vn.encodingImm5 << 16) |
+          (sz.is64 ? B30 : 0),
+    );
+  }
+
+  void ins(VectorElement vd, Operand o) {
+    final sz = vd.sz;
+    switch (o) {
+      case VectorElement():
+        assert(sz == o.sz);
+        emit(
+          B10 |
+              B25 |
+              B26 |
+              B27 |
+              B29 |
+              B30 |
+              vd.reg.encodingRd |
+              o.reg.encodingRn |
+              (o.encodingImm4 << 11) |
+              (vd.encodingImm5 << 16),
+        );
+      case Register():
+        emit(
+          B10 |
+              B11 |
+              B12 |
+              B25 |
+              B26 |
+              B27 |
+              B30 |
+              vd.reg.encodingRd |
+              o.encodingRn() |
+              (vd.encodingImm5 << 16),
+        );
+      default:
+        throw 'Unexpected operand ${o.runtimeType}';
+    }
+  }
+
+  void vorr(
+    FPRegister vd,
+    FPRegister vn,
+    FPRegister vm, [
+    OperandSize sz = .simd128,
+  ]) {
+    _emitAdvancedSIMDThreeSame(B11 | B12 | B23, vd, vn, vm, sz);
+  }
+
+  void vmov(FPRegister vd, FPRegister vn, [OperandSize sz = .simd128]) {
+    vorr(vd, vn, vn, sz);
+  }
+
+  void _emitAdvancedSIMDThreeSame(
+    int opcode,
+    FPRegister vd,
+    FPRegister vn,
+    FPRegister vm,
+    OperandSize sz,
+  ) {
+    assert(sz.is64or128);
+    emit(
+      B10 |
+          B21 |
+          B25 |
+          B26 |
+          B27 |
+          opcode |
+          vd.encodingRd |
+          vn.encodingRn |
+          vm.encodingRm |
+          (sz.is128 ? B30 : 0),
+    );
   }
 
   void fabs(FPRegister rd, FPRegister rn, [OperandSize sz = OperandSize.s64]) {
@@ -2652,7 +2837,7 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
         );
 
       default:
-        throw 'Unexpect operand ${o.runtimeType} $o';
+        throw 'Unexpected operand ${o.runtimeType} $o';
     }
   }
 }
@@ -2686,6 +2871,7 @@ extension on Register {
 extension on FPRegister {
   int get encodingRd => index;
   int get encodingRt => index;
+  int get encodingRt2 => index << 10;
   int get encodingRn => index << 5;
   int get encodingRm => index << 16;
 }
@@ -2896,6 +3082,11 @@ extension on RegExtRegAddress {
         (ext.index << 13) |
         reg.encodingRm();
   }
+}
+
+extension on VectorElement {
+  int get encodingImm4 => index << sz.log2sizeInBytes;
+  int get encodingImm5 => ((index << 1) | 1) << sz.log2sizeInBytes;
 }
 
 extension on Label {

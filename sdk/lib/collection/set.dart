@@ -72,7 +72,7 @@ abstract mixin class SetBase<E> implements Set<E> {
     removeAll(toRemove);
   }
 
-  void removeWhere(bool test(E element)) {
+  void removeWhere(bool Function(E element) test) {
     List<Object?> toRemove = [];
     for (E element in this) {
       if (test(element)) toRemove.add(element);
@@ -80,7 +80,7 @@ abstract mixin class SetBase<E> implements Set<E> {
     removeAll(toRemove);
   }
 
-  void retainWhere(bool test(E element)) {
+  void retainWhere(bool Function(E element) test) {
     List<Object?> toRemove = [];
     for (E element in this) {
       if (!test(element)) toRemove.add(element);
@@ -118,7 +118,7 @@ abstract mixin class SetBase<E> implements Set<E> {
   List<E> toList({bool growable = true}) =>
       List<E>.of(this, growable: growable);
 
-  Iterable<T> map<T>(T f(E element)) =>
+  Iterable<T> map<T>(T Function(E element) f) =>
       EfficientLengthMappedIterable<E, T>(this, f);
 
   E get single {
@@ -134,16 +134,16 @@ abstract mixin class SetBase<E> implements Set<E> {
   // Copied from Iterable.
   // Should be inherited if we had multi-level mixins.
 
-  Iterable<E> where(bool f(E element)) => WhereIterable<E>(this, f);
+  Iterable<E> where(bool Function(E element) f) => WhereIterable<E>(this, f);
 
-  Iterable<T> expand<T>(Iterable<T> f(E element)) =>
+  Iterable<T> expand<T>(Iterable<T> Function(E element) f) =>
       ExpandIterable<E, T>(this, f);
 
-  void forEach(void f(E element)) {
+  void forEach(void Function(E element) f) {
     for (E element in this) f(element);
   }
 
-  E reduce(E combine(E value, E element)) {
+  E reduce(E Function(E value, E element) combine) {
     Iterator<E> iterator = this.iterator;
     if (!iterator.moveNext()) {
       throw IterableElementError.noElement();
@@ -155,13 +155,13 @@ abstract mixin class SetBase<E> implements Set<E> {
     return value;
   }
 
-  T fold<T>(T initialValue, T combine(T previousValue, E element)) {
+  T fold<T>(T initialValue, T Function(T previousValue, E element) combine) {
     var value = initialValue;
     for (E element in this) value = combine(value, element);
     return value;
   }
 
-  bool every(bool f(E element)) {
+  bool every(bool Function(E element) f) {
     for (E element in this) {
       if (!f(element)) return false;
     }
@@ -189,7 +189,7 @@ abstract mixin class SetBase<E> implements Set<E> {
     return buffer.toString();
   }
 
-  bool any(bool test(E element)) {
+  bool any(bool Function(E element) test) {
     for (E element in this) {
       if (test(element)) return true;
     }
@@ -200,7 +200,7 @@ abstract mixin class SetBase<E> implements Set<E> {
     return TakeIterable<E>(this, n);
   }
 
-  Iterable<E> takeWhile(bool test(E value)) {
+  Iterable<E> takeWhile(bool Function(E value) test) {
     return TakeWhileIterable<E>(this, test);
   }
 
@@ -208,7 +208,7 @@ abstract mixin class SetBase<E> implements Set<E> {
     return SkipIterable<E>(this, n);
   }
 
-  Iterable<E> skipWhile(bool test(E value)) {
+  Iterable<E> skipWhile(bool Function(E value) test) {
     return SkipWhileIterable<E>(this, test);
   }
 
@@ -232,7 +232,7 @@ abstract mixin class SetBase<E> implements Set<E> {
     return result;
   }
 
-  E firstWhere(bool test(E value), {E Function()? orElse}) {
+  E firstWhere(bool Function(E value) test, {E Function()? orElse}) {
     for (E element in this) {
       if (test(element)) return element;
     }
@@ -240,7 +240,7 @@ abstract mixin class SetBase<E> implements Set<E> {
     throw IterableElementError.noElement();
   }
 
-  E lastWhere(bool test(E value), {E Function()? orElse}) {
+  E lastWhere(bool Function(E value) test, {E Function()? orElse}) {
     var iterator = this.iterator;
     E result;
     do {
@@ -257,7 +257,7 @@ abstract mixin class SetBase<E> implements Set<E> {
     return result;
   }
 
-  E singleWhere(bool test(E value), {E Function()? orElse}) {
+  E singleWhere(bool Function(E value) test, {E Function()? orElse}) {
     var iterator = this.iterator;
     E result;
     do {
@@ -375,10 +375,10 @@ mixin _UnmodifiableSetMixin<E> implements Set<E> {
   void retainAll(Iterable<Object?> elements) => _throwUnmodifiable();
 
   /// This operation is not supported by an unmodifiable set.
-  void removeWhere(bool test(E element)) => _throwUnmodifiable();
+  void removeWhere(bool Function(E element) test) => _throwUnmodifiable();
 
   /// This operation is not supported by an unmodifiable set.
-  void retainWhere(bool test(E element)) => _throwUnmodifiable();
+  void retainWhere(bool Function(E element) test) => _throwUnmodifiable();
 
   /// This operation is not supported by an unmodifiable set.
   bool remove(Object? value) => _throwUnmodifiable();

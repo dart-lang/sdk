@@ -24,7 +24,7 @@ abstract class SimpleWorkspace extends Workspace {
   @override
   final String root;
 
-  SimpleWorkspace(this.provider, this.packages, this.root);
+  new(this.provider, this.packages, this.root);
 
   // TODO(scheglov): Finish switching to [packages].
   Map<String, Folder> get packageMap {

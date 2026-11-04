@@ -139,7 +139,7 @@ class CompletionTarget {
 
   /// Compute the appropriate [CompletionTarget] for the given [offset] within
   /// the [entryPoint].
-  factory CompletionTarget.forOffset(AstNode entryPoint, int offset) {
+  factory forOffset(AstNode entryPoint, int offset) {
     // The precise algorithm is as follows. We perform a depth-first search of
     // all edges in the parse tree (both those that point to AST nodes and
     // those that point to tokens), visiting parents before children. The
@@ -286,12 +286,8 @@ class CompletionTarget {
 
   /// Create a [CompletionTarget] holding the given [containingNode] and
   /// [entity].
-  CompletionTarget._(
-    this.offset,
-    this.containingNode,
-    this.entity,
-    this.isCommentText,
-  ) : argIndex = _computeArgIndex(containingNode, entity),
+  new _(this.offset, this.containingNode, this.entity, this.isCommentText)
+    : argIndex = _computeArgIndex(containingNode, entity),
       droppedToken = _computeDroppedToken(containingNode, entity, offset);
 
   /// Return the expression to the left of the "dot" or "dot dot",

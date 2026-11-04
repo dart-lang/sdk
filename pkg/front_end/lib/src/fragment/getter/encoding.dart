@@ -11,7 +11,6 @@ import '../../api_prototype/experimental_flags.dart';
 import '../../base/local_scope.dart';
 import '../../base/messages.dart';
 import '../../base/scope.dart';
-import '../../base/uri_offset.dart';
 import '../../builder/declaration_builders.dart';
 import '../../builder/formal_parameter_builder.dart';
 import '../../builder/omitted_type_builder.dart';
@@ -139,6 +138,7 @@ sealed class GetterEncoding implements InferredTypeListener {
     required BodyBuilderContext bodyBuilderContext,
     required Annotatable annotatable,
     required Uri annotatableFileUri,
+    required bool includeBody,
   });
 
   void buildOutlineNode({
@@ -245,6 +245,7 @@ mixin _DirectGetterEncodingMixin implements GetterEncoding {
     required BodyBuilderContext bodyBuilderContext,
     required Annotatable annotatable,
     required Uri annotatableFileUri,
+    required bool includeBody,
   }) {
     buildMetadataForOutlineExpressions(
       libraryBuilder: libraryBuilder,
@@ -268,6 +269,7 @@ mixin _DirectGetterEncodingMixin implements GetterEncoding {
       extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
       scope: _fragment.typeParameterScope,
     );
+    _fragment.buildBodyForOutline(libraryBuilder, includeBody: includeBody);
   }
 
   @override
@@ -357,11 +359,7 @@ mixin _DirectGetterEncodingMixin implements GetterEncoding {
         typeEnvironment: typeEnvironment,
         getterType: getterType,
         getterName: _fragment.name,
-        getterUriOffset: new UriOffsetLength(
-          _fragment.fileUri,
-          _fragment.nameOffset,
-          _fragment.name.length,
-        ),
+        getterUriOffset: _fragment.uriOffset,
         setterType: setterType,
         setterName: setterBuilder.name,
         setterUriOffset: setterBuilder.setterUriOffset!,
@@ -385,6 +383,7 @@ mixin _DirectGetterEncodingMixin implements GetterEncoding {
     sourceClassBuilder.checkVarianceInReturnType(
       typeEnvironment,
       function.returnType,
+      uriOffset: _fragment.uriOffset,
       fileOffset: _fragment.nameOffset,
       fileUri: _fragment.fileUri,
     );
@@ -512,6 +511,7 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
     required BodyBuilderContext bodyBuilderContext,
     required Annotatable annotatable,
     required Uri annotatableFileUri,
+    required bool includeBody,
   }) {
     buildMetadataForOutlineExpressions(
       libraryBuilder: libraryBuilder,
@@ -549,6 +549,7 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
       extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
       scope: _fragment.typeParameterScope,
     );
+    _fragment.buildBodyForOutline(libraryBuilder, includeBody: includeBody);
   }
 
   @override
@@ -658,11 +659,7 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
         typeEnvironment: typeEnvironment,
         getterType: getterType,
         getterName: _fragment.name,
-        getterUriOffset: new UriOffsetLength(
-          _fragment.fileUri,
-          _fragment.nameOffset,
-          _fragment.name.length,
-        ),
+        getterUriOffset: _fragment.uriOffset,
         setterType: setterType,
         setterName: setterBuilder.name,
         setterUriOffset: setterBuilder.setterUriOffset!,
@@ -687,6 +684,7 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
     sourceClassBuilder.checkVarianceInReturnType(
       typeEnvironment,
       function.returnType,
+      uriOffset: _fragment.uriOffset,
       fileOffset: _fragment.nameOffset,
       fileUri: _fragment.fileUri,
     );

@@ -15,9 +15,9 @@ final class _EffectiveLinterRules {
   final Map<AbstractAnalysisRule, _RuleData> enabled = {};
   final Map<AbstractAnalysisRule, _RuleData> disabled = {};
 
-  _EffectiveLinterRules();
+  new();
 
-  _EffectiveLinterRules.from(_EffectiveLinterRules other) {
+  new from(_EffectiveLinterRules other) {
     enabled.addAll(other.enabled);
     disabled.addAll(other.disabled);
   }
@@ -58,7 +58,7 @@ final class _IncludedLinterRules {
   final YamlScalar includeNode;
   final _EffectiveLinterRules rules;
 
-  _IncludedLinterRules({required this.includeNode, required this.rules});
+  new({required this.includeNode, required this.rules});
 }
 
 /// An enabled rule together with the include entry that made it visible.
@@ -70,7 +70,7 @@ final class _IncludedRuleData {
   final YamlScalar includeNode;
   final _RuleData ruleData;
 
-  _IncludedRuleData({required this.includeNode, required this.ruleData});
+  new({required this.includeNode, required this.ruleData});
 }
 
 /// Reports linter-rule diagnostics whose meaning depends on included files.
@@ -237,7 +237,7 @@ final class _LocalLinterRules {
   final List<_RuleData> enabled;
   final List<_RuleData> disabled;
 
-  const _LocalLinterRules({required this.enabled, required this.disabled});
+  const new({required this.enabled, required this.disabled});
 }
 
 /// A source-preserving occurrence of a registered linter rule.
@@ -253,10 +253,5 @@ final class _RuleData {
   final File file;
   final bool isEnabled;
 
-  _RuleData(
-    this.rule,
-    this.node, {
-    required this.file,
-    required this.isEnabled,
-  });
+  new(this.rule, this.node, {required this.file, required this.isEnabled});
 }

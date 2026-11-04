@@ -8,7 +8,7 @@ import 'package:collection/collection.dart';
 
 /// The top-level type inference error.
 sealed class TopLevelInferenceError {
-  factory TopLevelInferenceError.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     switch (TopLevelInferenceErrorKind.values[reader.readByte()]) {
       case TopLevelInferenceErrorKind.dependencyCycle:
         return TopLevelInferenceErrorDependencyCycle(
@@ -37,7 +37,7 @@ class TopLevelInferenceErrorDependencyCycle implements TopLevelInferenceError {
   /// The names of the elements in the cycle (sorted).
   final List<String> cycle;
 
-  TopLevelInferenceErrorDependencyCycle({required this.cycle});
+  new({required this.cycle});
 
   @override
   bool operator ==(Object other) =>
@@ -59,10 +59,7 @@ class TopLevelInferenceErrorDifferentGetterAndSetterTypes
   /// The parameter type of the combined setter signature.
   final String setterType;
 
-  TopLevelInferenceErrorDifferentGetterAndSetterTypes({
-    required this.getterType,
-    required this.setterType,
-  });
+  new({required this.getterType, required this.setterType});
 
   @override
   bool operator ==(Object other) =>
@@ -90,9 +87,7 @@ class TopLevelInferenceErrorNoCombinedSuperSignature
   /// The list of candidate signatures which cannot be combined.
   final String candidateSignatures;
 
-  TopLevelInferenceErrorNoCombinedSuperSignature({
-    required this.candidateSignatures,
-  });
+  new({required this.candidateSignatures});
 
   @override
   bool operator ==(Object other) =>

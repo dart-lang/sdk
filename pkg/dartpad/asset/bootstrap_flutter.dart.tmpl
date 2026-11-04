@@ -2,16 +2,106 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:ui_web' as ui_web;
+import 'dart:async';
 import 'dart:js_interop';
+import 'dart:typed_data';
+import 'dart:ui_web' as ui_web;
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 //import 'package:flutter_web_plugins/flutter_web_plugins.dart';
 
 import '{{entrypoint}}' as entrypoint;
 
 @JS('console.error')
 external void _consoleError(JSString message);
+
+@JS(r'$dartpadWorkspace')
+external _DartPadWorkspace get _workspace;
+
+extension type _DartPadWorkspace._(JSObject _) implements JSObject {
+  external String? get packageRoot;
+  external JSPromise<JSUint8Array> readFileAsBytes(String path);
+  external JSPromise<_DartPadPackage?> resolvePackage(String package);
+}
+
+extension type _DartPadPackage._(JSObject _) implements JSObject {
+  external String get name;
+  external String get rootPath;
+  external String get packagePath;
+  external String get languageVersion;
+}
+
+final class _DartPadWidgetsFlutterBinding extends WidgetsFlutterBinding {
+  final _DartPadAssetBundle _bundle = _DartPadAssetBundle();
+
+  @override
+  void attachRootWidget(Widget rootWidget) {
+    super.attachRootWidget(
+      DefaultAssetBundle(bundle: _bundle, child: rootWidget),
+    );
+  }
+
+  @override
+  Future<void> performReassemble() {
+    _bundle.clear();
+    imageCache.clear();
+    imageCache.clearLiveImages();
+    return super.performReassemble();
+  }
+}
+
+final class _DartPadAssetBundle extends CachingAssetBundle {
+  @override
+  Future<ByteData> load(String key) async {
+    final bytes = await _readAssetFromWorkspace(key);
+    if (bytes != null) {
+      return ByteData.sublistView(bytes);
+    }
+    return await rootBundle.load(key);
+  }
+
+  Future<Uint8List?> _readAssetFromWorkspace(String key) async {
+    if (key.split('/') case [
+      'packages',
+      final pkgName,
+      ...final rest,
+    ] when pkgName.isNotEmpty && rest.isNotEmpty) {
+      final subPath = rest.join('/');
+      if (await _resolvePackage(pkgName) case final pkg?) {
+        final bytes =
+            await _readFileAsBytes('${pkg.rootPath}/$subPath') ??
+            await _readFileAsBytes('${pkg.packagePath}/$subPath');
+        if (bytes != null) {
+          return bytes;
+        }
+      }
+    }
+
+    if (_workspace.packageRoot case final rootPath?) {
+      return await _readFileAsBytes('$rootPath/$key');
+    }
+
+    return null;
+  }
+}
+
+Future<Uint8List?> _readFileAsBytes(String path) async {
+  try {
+    return (await _workspace.readFileAsBytes(path).toDart).toDart;
+  } catch (_, _) {
+    return null;
+  }
+}
+
+Future<_DartPadPackage?> _resolvePackage(String package) async {
+  try {
+    return await _workspace.resolvePackage(package).toDart;
+  } catch (_, _) {
+    return null;
+  }
+}
 
 Future<void> main() async {
   // Disable URL strategy to prevent SecurityError in srcdoc iframes
@@ -24,6 +114,7 @@ Future<void> main() async {
 
   await ui_web.bootstrapEngine(
     runApp: () {
+      _DartPadWidgetsFlutterBinding();
       entrypoint.main();
     },
     registerPlugins: () {

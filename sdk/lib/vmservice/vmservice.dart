@@ -180,10 +180,6 @@ typedef WebServerAcceptNewWebSocketConnectionsCallback = void Function(
   bool enable,
 );
 
-/// Called when we want to get the appropriate resident compiler info file for
-/// the current program execution.
-typedef getResidentCompilerInfoFileCallback = File? Function();
-
 /// Hooks that are setup by the embedder.
 class VMServiceEmbedderHooks {
   static DdsConnectedCallback? ddsConnected;
@@ -199,7 +195,6 @@ class VMServiceEmbedderHooks {
   static WebServerControlCallback? webServerControl;
   static WebServerAcceptNewWebSocketConnectionsCallback?
   acceptNewWebSocketConnections;
-  static getResidentCompilerInfoFileCallback? getResidentCompilerInfoFile;
 }
 
 class VMService extends MessageRouter {

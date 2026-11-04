@@ -65,6 +65,46 @@ FormalParameterList(v1)
 ''');
   }
 
+  void test_fieldFormalParameter_requiredNamed_final_ordering() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class A {
+  A({final required this.x});
+//   ^^^^^
+// [diag.extraneousModifier] Can't have modifier 'final' here.
+//         ^^^^^^^^
+// [diag.modifierOutOfOrder] The modifier 'required' should be before the modifier 'final'.
+}
+''');
+
+    var node = parseResult.findNode.singleFormalParameterList;
+    assertParsedNodeText(node, r'''
+FormalParameterList
+  leftParenthesis: (
+  delimitedFormalParameters: DelimitedFormalParameters
+    leftDelimiter: {
+    formalParameters
+      FieldFormalParameter
+        requiredKeyword: required
+        constFinalOrVarKeyword: final
+        thisKeyword: this
+        period: .
+        name: x
+    rightDelimiter: }
+  rightParenthesis: )
+FormalParameterList(v1)
+  leftParenthesis: (
+  leftDelimiter: {
+  parameter: FieldFormalParameter
+    requiredKeyword: required
+    constFinalOrVarKeyword: final
+    thisKeyword: this
+    period: .
+    name: x
+  rightDelimiter: }
+  rightParenthesis: )
+''');
+  }
+
   void test_fieldFormalParameter_requiredNamed_noType() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 class A {
@@ -340,6 +380,35 @@ FieldFormalParameter
         name: b
       rightParenthesis: )
 ''');
+  }
+
+  void
+  test_fieldFormalParameter_requiredPositional_functionTyped_noName_typeParameters() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class A {
+  A(this.<T>());
+//       ^
+// [diag.missingIdentifier] Expected an identifier.
+}
+''');
+
+    var node = parseResult.findNode.singleFormalParameter;
+    assertParsedNodeText(node, r'''
+FieldFormalParameter
+  thisKeyword: this @14
+  period: . @18
+  name: <empty> @19 <synthetic>
+  functionTypedSuffix: FunctionTypedFormalParameterSuffix
+    typeParameters: TypeParameterList
+      leftBracket: < @19
+      typeParameters
+        TypeParameter
+          name: T @20
+      rightBracket: > @21
+    formalParameters: FormalParameterList
+      leftParenthesis: ( @22
+      rightParenthesis: ) @23
+''', withOffsets: true);
   }
 
   void
@@ -1357,8 +1426,8 @@ FormalParameterList(v1)
 void f({a() = null}) {}
 ''');
 
-    var f = parseResult.findNode.singleFunctionDeclaration;
-    var node = f.functionExpression.parameters!;
+    var f = parseResult.findNode.singleTopLevelFunctionDeclaration;
+    var node = f.formalParameters;
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
@@ -1395,16 +1464,38 @@ FormalParameterList(v1)
 ''');
   }
 
+  void
+  test_regularFormalParameter_optionalNamed_functionTyped_noName_typeParameters() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+void f({<T>()}) {}
+//      ^
+// [diag.missingIdentifier] Expected an identifier.
+''');
+
+    var node = parseResult.findNode.singleFormalParameter;
+    assertParsedNodeText(node, r'''
+RegularFormalParameter
+  name: <empty> @8 <synthetic>
+  functionTypedSuffix: FunctionTypedFormalParameterSuffix
+    typeParameters: TypeParameterList
+      leftBracket: < @8
+      typeParameters
+        TypeParameter
+          name: T @9
+      rightBracket: > @10
+    formalParameters: FormalParameterList
+      leftParenthesis: ( @11
+      rightParenthesis: ) @12
+''', withOffsets: true);
+  }
+
   void test_regularFormalParameter_optionalNamed_functionTyped_nullable() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 void f({a()? : null}) {}
 ''');
 
-    var node = parseResult
-        .findNode
-        .singleFunctionDeclaration
-        .functionExpression
-        .parameters!;
+    var node =
+        parseResult.findNode.singleTopLevelFunctionDeclaration.formalParameters;
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
@@ -1449,11 +1540,8 @@ FormalParameterList(v1)
 void f({a<T>()? : null}) {}
 ''');
 
-    var node = parseResult
-        .findNode
-        .singleFunctionDeclaration
-        .functionExpression
-        .parameters!;
+    var node =
+        parseResult.findNode.singleTopLevelFunctionDeclaration.formalParameters;
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
@@ -1860,6 +1948,31 @@ FormalParameterList(v1)
   rightDelimiter: ]
   rightParenthesis: )
 ''');
+  }
+
+  void
+  test_regularFormalParameter_optionalPositional_functionTyped_noName_typeParameters() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+void f([<T>()]) {}
+//      ^
+// [diag.missingIdentifier] Expected an identifier.
+''');
+
+    var node = parseResult.findNode.singleFormalParameter;
+    assertParsedNodeText(node, r'''
+RegularFormalParameter
+  name: <empty> @8 <synthetic>
+  functionTypedSuffix: FunctionTypedFormalParameterSuffix
+    typeParameters: TypeParameterList
+      leftBracket: < @8
+      typeParameters
+        TypeParameter
+          name: T @9
+      rightBracket: > @10
+    formalParameters: FormalParameterList
+      leftParenthesis: ( @11
+      rightParenthesis: ) @12
+''', withOffsets: true);
   }
 
   void test_regularFormalParameter_optionalPositional_type() {
@@ -2387,7 +2500,7 @@ class C {
 }
 ''');
 
-    var node = parseResult.findNode.singleMethodDeclaration.parameters!;
+    var node = parseResult.findNode.singleMethodDeclaration.formalParameters;
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
@@ -2490,6 +2603,154 @@ RegularFormalParameter
 ''');
   }
 
+  void test_regularFormalParameter_requiredPositional_functionTyped_noName() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+void f(()) {}
+//     ^
+// [diag.missingIdentifier] Expected an identifier.
+''');
+
+    var node = parseResult.findNode.singleFormalParameter;
+    assertParsedNodeText(node, r'''
+RegularFormalParameter
+  name: <empty> @7 <synthetic>
+  functionTypedSuffix: FunctionTypedFormalParameterSuffix
+    formalParameters: FormalParameterList
+      leftParenthesis: ( @7
+      rightParenthesis: ) @8
+''', withOffsets: true);
+  }
+
+  void
+  test_regularFormalParameter_requiredPositional_functionTyped_noName_typeParameters() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+void f(<T>()) {}
+//     ^
+// [diag.missingIdentifier] Expected an identifier.
+''');
+
+    var node = parseResult.findNode.singleFormalParameter;
+    assertParsedNodeText(node, r'''
+RegularFormalParameter
+  name: <empty> @7 <synthetic>
+  functionTypedSuffix: FunctionTypedFormalParameterSuffix
+    typeParameters: TypeParameterList
+      leftBracket: < @7
+      typeParameters
+        TypeParameter
+          name: T @8
+      rightBracket: > @9
+    formalParameters: FormalParameterList
+      leftParenthesis: ( @10
+      rightParenthesis: ) @11
+''', withOffsets: true);
+  }
+
+  void
+  test_regularFormalParameter_requiredPositional_functionTyped_noName_typeParameters_constructor() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class A {
+  A(<T>());
+//  ^
+// [diag.missingIdentifier] Expected an identifier.
+}
+''');
+
+    var node = parseResult.findNode.singleFormalParameter;
+    assertParsedNodeText(node, r'''
+RegularFormalParameter
+  name: <empty> @14 <synthetic>
+  functionTypedSuffix: FunctionTypedFormalParameterSuffix
+    typeParameters: TypeParameterList
+      leftBracket: < @14
+      typeParameters
+        TypeParameter
+          name: T @15
+      rightBracket: > @16
+    formalParameters: FormalParameterList
+      leftParenthesis: ( @17
+      rightParenthesis: ) @18
+''', withOffsets: true);
+  }
+
+  void
+  test_regularFormalParameter_requiredPositional_functionTyped_noName_typeParameters_genericFunctionType() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+typedef F = void Function(<T>());
+//                        ^
+// [diag.invalidInlineFunctionType] Inline function types can't be used for parameters in a generic function type.
+// [diag.missingIdentifier] Expected an identifier.
+''');
+
+    var node = parseResult.findNode.singleFormalParameter;
+    assertParsedNodeText(node, r'''
+RegularFormalParameter
+  name: <empty> @26 <synthetic>
+  functionTypedSuffix: FunctionTypedFormalParameterSuffix
+    typeParameters: TypeParameterList
+      leftBracket: < @26
+      typeParameters
+        TypeParameter
+          name: T @27
+      rightBracket: > @28
+    formalParameters: FormalParameterList
+      leftParenthesis: ( @29
+      rightParenthesis: ) @30
+''', withOffsets: true);
+  }
+
+  void
+  test_regularFormalParameter_requiredPositional_functionTyped_noName_typeParameters_method() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class A {
+  void f(<T>()) {}
+//       ^
+// [diag.missingIdentifier] Expected an identifier.
+}
+''');
+
+    var node = parseResult.findNode.singleFormalParameter;
+    assertParsedNodeText(node, r'''
+RegularFormalParameter
+  name: <empty> @19 <synthetic>
+  functionTypedSuffix: FunctionTypedFormalParameterSuffix
+    typeParameters: TypeParameterList
+      leftBracket: < @19
+      typeParameters
+        TypeParameter
+          name: T @20
+      rightBracket: > @21
+    formalParameters: FormalParameterList
+      leftParenthesis: ( @22
+      rightParenthesis: ) @23
+''', withOffsets: true);
+  }
+
+  void
+  test_regularFormalParameter_requiredPositional_functionTyped_noName_typeParameters_primaryConstructor() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class A(<T>());
+//      ^
+// [diag.missingIdentifier] Expected an identifier.
+''');
+
+    var node = parseResult.findNode.singleFormalParameter;
+    assertParsedNodeText(node, r'''
+RegularFormalParameter
+  name: <empty> @8 <synthetic>
+  functionTypedSuffix: FunctionTypedFormalParameterSuffix
+    typeParameters: TypeParameterList
+      leftBracket: < @8
+      typeParameters
+        TypeParameter
+          name: T @9
+      rightBracket: > @10
+    formalParameters: FormalParameterList
+      leftParenthesis: ( @11
+      rightParenthesis: ) @12
+''', withOffsets: true);
+  }
+
   void test_regularFormalParameter_requiredPositional_functionTyped_noType() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 void f(a()) {}
@@ -2517,7 +2778,7 @@ class A {
     var node = parseResult
         .findNode
         .singleMethodDeclaration
-        .parameters!
+        .formalParameters
         .allFormalParameters
         .single;
     assertParsedNodeText(node, r'''
@@ -2745,10 +3006,9 @@ RegularFormalParameter
 void f(void g(a)) {}
 ''');
 
-    var f = parseResult.findNode.functionDeclaration('f');
+    var f = parseResult.findNode.topLevelFunctionDeclaration('f');
     var g =
-        f.functionExpression.parameters!.allFormalParameters.single
-            as RegularFormalParameter;
+        f.formalParameters.allFormalParameters.single as RegularFormalParameter;
     var node =
         g.functionTypedSuffix!.formalParameters.allFormalParameters.single;
     assertParsedNodeText(node, r'''
@@ -2938,11 +3198,8 @@ RegularFormalParameter
 void f(String Function(int) a) {}
 ''');
 
-    var node = parseResult
-        .findNode
-        .singleFunctionDeclaration
-        .functionExpression
-        .parameters!;
+    var node =
+        parseResult.findNode.singleTopLevelFunctionDeclaration.formalParameters;
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
@@ -3039,6 +3296,46 @@ SuperFormalParameter
     separator: =
     value2: IntegerLiteral
       literal: 0
+''');
+  }
+
+  void test_superFormalParameter_requiredNamed_final_ordering() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class B extends A {
+  B({final required super.x});
+//   ^^^^^
+// [diag.extraneousModifier] Can't have modifier 'final' here.
+//         ^^^^^^^^
+// [diag.modifierOutOfOrder] The modifier 'required' should be before the modifier 'final'.
+}
+''');
+
+    var node = parseResult.findNode.singleFormalParameterList;
+    assertParsedNodeText(node, r'''
+FormalParameterList
+  leftParenthesis: (
+  delimitedFormalParameters: DelimitedFormalParameters
+    leftDelimiter: {
+    formalParameters
+      SuperFormalParameter
+        requiredKeyword: required
+        constFinalOrVarKeyword: final
+        superKeyword: super
+        period: .
+        name: x
+    rightDelimiter: }
+  rightParenthesis: )
+FormalParameterList(v1)
+  leftParenthesis: (
+  leftDelimiter: {
+  parameter: SuperFormalParameter
+    requiredKeyword: required
+    constFinalOrVarKeyword: final
+    superKeyword: super
+    period: .
+    name: x
+  rightDelimiter: }
+  rightParenthesis: )
 ''');
   }
 
@@ -3158,6 +3455,35 @@ SuperFormalParameter
   period: .
   name: a
 ''');
+  }
+
+  void
+  test_superFormalParameter_requiredPositional_functionTyped_noName_typeParameters() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class A extends B {
+  A(super.<T>());
+//        ^
+// [diag.missingIdentifier] Expected an identifier.
+}
+''');
+
+    var node = parseResult.findNode.singleFormalParameter;
+    assertParsedNodeText(node, r'''
+SuperFormalParameter
+  superKeyword: super @24
+  period: . @29
+  name: <empty> @30 <synthetic>
+  functionTypedSuffix: FunctionTypedFormalParameterSuffix
+    typeParameters: TypeParameterList
+      leftBracket: < @30
+      typeParameters
+        TypeParameter
+          name: T @31
+      rightBracket: > @32
+    formalParameters: FormalParameterList
+      leftParenthesis: ( @33
+      rightParenthesis: ) @34
+''', withOffsets: true);
   }
 
   void

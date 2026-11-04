@@ -153,7 +153,7 @@ class Param {
   final List<String> argTypes;
   final List<String> retTypes;
 
-  Param(this.name, {this.argTypes = const [], this.retTypes = const []});
+  new(this.name, {this.argTypes = const [], this.retTypes = const []});
 
   @override
   String toString() => name;
@@ -165,7 +165,7 @@ class _TestFunctionLiteralDeps
   final List<Param> functionLiterals;
   final List<Param> undeferredParams;
 
-  _TestFunctionLiteralDeps({
+  new({
     required this.typeVars,
     required this.functionLiterals,
     this.undeferredParams = const [],

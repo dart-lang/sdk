@@ -35,6 +35,10 @@ class SemanticTokensTest extends LspOverLegacyTest
   Future<void> test_full() async {
     var code = TestCode.parseNormalized('''
 class A(final String x);
+
+extension Y on String {}
+
+mixin X {}
 ''');
 
     var expected = [
@@ -43,6 +47,12 @@ class A(final String x);
       Token('final', .keyword),
       Token('String', .class_),
       Token('x', .parameter, [.declaration]),
+      Token('extension', .keyword),
+      Token('Y', .class_, [.extension]),
+      Token('on', .keyword),
+      Token('String', .class_),
+      Token('mixin', .keyword),
+      Token('X', .class_, [.mixin]),
     ];
 
     await _initializeAndVerifyTokens(code, expected);

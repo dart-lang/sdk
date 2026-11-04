@@ -22,6 +22,37 @@ base class VMOffsets {
   int get CallbackMetadata_kCallRet4 => throw 'Unknown';
   int get Context_kMaxElements => throw 'Unknown';
   int get Class_kNoTypeArguments => throw 'Unknown';
+  int get Class_kConstBitPos => throw 'Unknown';
+  int get Class_kImplementedBitPos => throw 'Unknown';
+  int get Class_kClassFinalizedBitsPos => throw 'Unknown';
+  int get Class_kClassFinalizedBitsSize => throw 'Unknown';
+  int get Class_kClassLoadingBitsPos => throw 'Unknown';
+  int get Class_kClassLoadingBitsSize => throw 'Unknown';
+  int get Class_kAbstractBitPos => throw 'Unknown';
+  int get Class_kEnumBitPos => throw 'Unknown';
+  int get Class_kTransformedMixinApplicationBitPos => throw 'Unknown';
+  int get Class_kIsLoadedBitPos => throw 'Unknown';
+  int get Class_kHasPragmaBitPos => throw 'Unknown';
+  int get Class_kSealedBitPos => throw 'Unknown';
+  int get Class_kMixinClassBitPos => throw 'Unknown';
+  int get Class_kBaseClassBitPos => throw 'Unknown';
+  int get Class_kInterfaceClassBitPos => throw 'Unknown';
+  int get Class_kFinalBitPos => throw 'Unknown';
+  int get Class_kIsIsolateUnsendableBitPos => throw 'Unknown';
+  int get Class_kIsDeeplyImmutableBitPos => throw 'Unknown';
+  int get Field_kConstBitPos => throw 'Unknown';
+  int get Field_kStaticBitPos => throw 'Unknown';
+  int get Field_kFinalBitPos => throw 'Unknown';
+  int get Field_kHasNontrivialInitializerBitPos => throw 'Unknown';
+  int get Field_kUnboxedBitPos => throw 'Unknown';
+  int get Field_kHasPragmaBitPos => throw 'Unknown';
+  int get Field_kCovariantBitPos => throw 'Unknown';
+  int get Field_kGenericCovariantImplBitPos => throw 'Unknown';
+  int get Field_kIsLateBitPos => throw 'Unknown';
+  int get Field_kIsExtensionMemberBitPos => throw 'Unknown';
+  int get Field_kIsExtensionTypeMemberBitPos => throw 'Unknown';
+  int get Field_kHasInitializerBitPos => throw 'Unknown';
+  int get Field_kSharedBitPos => throw 'Unknown';
   int get Function_kKindBitsPos => throw 'Unknown';
   int get Function_kKindBitsSize => throw 'Unknown';
   int get Function_kRecognizedBitsPos => throw 'Unknown';
@@ -79,6 +110,8 @@ base class VMOffsets {
   int get SubtypeTestCache_kTestResult => throw 'Unknown';
   int get TypeArguments_kAllDynamicHash => throw 'Unknown';
   int get TypeArguments_kMaxElements => throw 'Unknown';
+  int get UntaggedClass_kFinalized => throw 'Unknown';
+  int get UntaggedClass_kTypeFinalized => throw 'Unknown';
   int get UntaggedClosure_kDelayedTypeArgumentsIndex => throw 'Unknown';
   int get UntaggedClosure_kInstantiatorTypeArgumentsIndexBitsPos =>
       throw 'Unknown';
@@ -92,6 +125,27 @@ base class VMOffsets {
       throw 'Unknown';
   int get UntaggedClosure_kLengthBitsPos => throw 'Unknown';
   int get UntaggedClosure_kLengthBitsSize => throw 'Unknown';
+  int get UntaggedFunction_kAsync => throw 'Unknown';
+  int get UntaggedFunction_kSyncGen => throw 'Unknown';
+  int get UntaggedFunction_kAsyncGen => throw 'Unknown';
+  int get UntaggedFunctionType_kPackedNumParentTypeArgumentsPos =>
+      throw 'Unknown';
+  int get UntaggedFunctionType_kPackedNumParentTypeArgumentsSize =>
+      throw 'Unknown';
+  int get UntaggedFunctionType_kPackedNumTypeParametersPos => throw 'Unknown';
+  int get UntaggedFunctionType_kPackedNumTypeParametersSize => throw 'Unknown';
+  int get UntaggedFunctionType_kPackedNumImplicitParametersPos =>
+      throw 'Unknown';
+  int get UntaggedFunctionType_kPackedNumImplicitParametersSize =>
+      throw 'Unknown';
+  int get UntaggedFunctionType_kPackedHasNamedOptionalParametersPos =>
+      throw 'Unknown';
+  int get UntaggedFunctionType_kPackedNumFixedParametersPos => throw 'Unknown';
+  int get UntaggedFunctionType_kPackedNumFixedParametersSize => throw 'Unknown';
+  int get UntaggedFunctionType_kPackedNumOptionalParametersPos =>
+      throw 'Unknown';
+  int get UntaggedFunctionType_kPackedNumOptionalParametersSize =>
+      throw 'Unknown';
   int get UntaggedObject_kCardRememberedBit => throw 'Unknown';
   int get UntaggedObject_kCanonicalBit => throw 'Unknown';
   int get UntaggedObject_kNotMarkedBit => throw 'Unknown';
@@ -178,8 +232,7 @@ base class VMOffsets {
   int get GrowableObjectArray_length_offset => throw 'Unknown';
   int get GrowableObjectArray_type_arguments_offset => throw 'Unknown';
   int get Page_card_table_offset => throw 'Unknown';
-  int get Page_original_top_offset => throw 'Unknown';
-  int get Page_original_end_offset => throw 'Unknown';
+  int get Page_survivor_end_offset => throw 'Unknown';
   int get CallSiteData_arguments_descriptor_offset => throw 'Unknown';
   int get ICData_NumArgsTestedMask => throw 'Unknown';
   int get ICData_NumArgsTestedShift => throw 'Unknown';
@@ -686,41 +739,103 @@ final class Arm64VMOffsets extends VMOffsets {
   @override
   int get Class_kNoTypeArguments => -1;
   @override
+  int get Class_kConstBitPos => 0x0;
+  @override
+  int get Class_kImplementedBitPos => 0x1;
+  @override
+  int get Class_kClassFinalizedBitsPos => 0x2;
+  @override
+  int get Class_kClassFinalizedBitsSize => 0x2;
+  @override
+  int get Class_kClassLoadingBitsPos => 0x4;
+  @override
+  int get Class_kClassLoadingBitsSize => 0x2;
+  @override
+  int get Class_kAbstractBitPos => 0x6;
+  @override
+  int get Class_kEnumBitPos => 0x8;
+  @override
+  int get Class_kTransformedMixinApplicationBitPos => 0x9;
+  @override
+  int get Class_kIsLoadedBitPos => 0xb;
+  @override
+  int get Class_kHasPragmaBitPos => 0xc;
+  @override
+  int get Class_kSealedBitPos => 0xd;
+  @override
+  int get Class_kMixinClassBitPos => 0xe;
+  @override
+  int get Class_kBaseClassBitPos => 0xf;
+  @override
+  int get Class_kInterfaceClassBitPos => 0x10;
+  @override
+  int get Class_kFinalBitPos => 0x11;
+  @override
+  int get Class_kIsIsolateUnsendableBitPos => 0x12;
+  @override
+  int get Class_kIsDeeplyImmutableBitPos => 0x14;
+  @override
+  int get Field_kConstBitPos => 0x0;
+  @override
+  int get Field_kStaticBitPos => 0x1;
+  @override
+  int get Field_kFinalBitPos => 0x2;
+  @override
+  int get Field_kHasNontrivialInitializerBitPos => 0x3;
+  @override
+  int get Field_kUnboxedBitPos => 0x4;
+  @override
+  int get Field_kHasPragmaBitPos => 0x7;
+  @override
+  int get Field_kCovariantBitPos => 0x8;
+  @override
+  int get Field_kGenericCovariantImplBitPos => 0x9;
+  @override
+  int get Field_kIsLateBitPos => 0xa;
+  @override
+  int get Field_kIsExtensionMemberBitPos => 0xb;
+  @override
+  int get Field_kIsExtensionTypeMemberBitPos => 0xc;
+  @override
+  int get Field_kHasInitializerBitPos => 0xe;
+  @override
+  int get Field_kSharedBitPos => 0xf;
+  @override
   int get Function_kKindBitsPos => 0x0;
   @override
-  int get Function_kKindBitsSize => 0x5;
+  int get Function_kKindBitsSize => 0x4;
   @override
-  int get Function_kRecognizedBitsPos => 0x5;
+  int get Function_kRecognizedBitsPos => 0x4;
   @override
   int get Function_kRecognizedBitsSize => 0x9;
   @override
-  int get Function_kModifierBitsPos => 0xe;
+  int get Function_kModifierBitsPos => 0xd;
   @override
   int get Function_kModifierBitsSize => 0x2;
   @override
-  int get Function_kStaticBitPos => 0x10;
+  int get Function_kStaticBitPos => 0xf;
   @override
-  int get Function_kConstBitPos => 0x11;
+  int get Function_kConstBitPos => 0x10;
   @override
-  int get Function_kAbstractBitPos => 0x12;
+  int get Function_kAbstractBitPos => 0x11;
   @override
-  int get Function_kReflectableBitPos => 0x13;
+  int get Function_kReflectableBitPos => 0x12;
   @override
-  int get Function_kVisibleBitPos => 0x14;
+  int get Function_kVisibleBitPos => 0x13;
   @override
-  int get Function_kDebuggableBitPos => 0x15;
+  int get Function_kDebuggableBitPos => 0x14;
   @override
-  int get Function_kNativeBitPos => 0x17;
+  int get Function_kNativeBitPos => 0x16;
   @override
-  int get Function_kExternalBitPos => 0x18;
+  int get Function_kExternalBitPos => 0x17;
   @override
-  int get Function_kHasPragmaBitPos => 0x1a;
+  int get Function_kHasPragmaBitPos => 0x19;
   @override
-  int get Function_kIsSyntheticBitPos => 0x1b;
+  int get Function_kIsSyntheticBitPos => 0x1a;
   @override
-  int get Function_kIsExtensionMemberBitPos => 0x1c;
+  int get Function_kIsExtensionMemberBitPos => 0x1b;
   @override
-  int get Function_kIsExtensionTypeMemberBitPos => 0x1d;
+  int get Function_kIsExtensionTypeMemberBitPos => 0x1c;
   @override
   int get Heap_kNewAllocatableSize => 0x40000;
   @override
@@ -748,7 +863,7 @@ final class Arm64VMOffsets extends VMOffsets {
   @override
   int get Page_kBytesPerCardLog2 => 0x8;
   @override
-  int get Page_kPageMask => -0x80000;
+  int get Page_kPageMask => -0x200000;
   @override
   int get Record_kMaxElements => 0xffff;
   @override
@@ -796,6 +911,10 @@ final class Arm64VMOffsets extends VMOffsets {
   @override
   int get TypeArguments_kMaxElements => 0x7ffffffffffffff;
   @override
+  int get UntaggedClass_kFinalized => 0x2;
+  @override
+  int get UntaggedClass_kTypeFinalized => 0x2;
+  @override
   int get UntaggedClosure_kDelayedTypeArgumentsIndex => 0x0;
   @override
   int get UntaggedClosure_kInstantiatorTypeArgumentsIndexBitsPos => 0x0;
@@ -815,6 +934,34 @@ final class Arm64VMOffsets extends VMOffsets {
   int get UntaggedClosure_kLengthBitsPos => 0x5;
   @override
   int get UntaggedClosure_kLengthBitsSize => 0x39;
+  @override
+  int get UntaggedFunction_kAsync => 0x1;
+  @override
+  int get UntaggedFunction_kSyncGen => 0x2;
+  @override
+  int get UntaggedFunction_kAsyncGen => 0x3;
+  @override
+  int get UntaggedFunctionType_kPackedNumParentTypeArgumentsPos => 0x0;
+  @override
+  int get UntaggedFunctionType_kPackedNumParentTypeArgumentsSize => 0x8;
+  @override
+  int get UntaggedFunctionType_kPackedNumTypeParametersPos => 0x8;
+  @override
+  int get UntaggedFunctionType_kPackedNumTypeParametersSize => 0x8;
+  @override
+  int get UntaggedFunctionType_kPackedNumImplicitParametersPos => 0x0;
+  @override
+  int get UntaggedFunctionType_kPackedNumImplicitParametersSize => 0x1;
+  @override
+  int get UntaggedFunctionType_kPackedHasNamedOptionalParametersPos => 0x1;
+  @override
+  int get UntaggedFunctionType_kPackedNumFixedParametersPos => 0x2;
+  @override
+  int get UntaggedFunctionType_kPackedNumFixedParametersSize => 0xe;
+  @override
+  int get UntaggedFunctionType_kPackedNumOptionalParametersPos => 0x10;
+  @override
+  int get UntaggedFunctionType_kPackedNumOptionalParametersSize => 0xe;
   @override
   int get UntaggedObject_kCardRememberedBit => 0x0;
   @override
@@ -988,9 +1135,7 @@ final class Arm64VMOffsets extends VMOffsets {
   @override
   int get Page_card_table_offset => 0x20;
   @override
-  int get Page_original_top_offset => 0x38;
-  @override
-  int get Page_original_end_offset => 0x40;
+  int get Page_survivor_end_offset => 0x40;
   @override
   int get CallSiteData_arguments_descriptor_offset => 0x10;
   @override
@@ -1765,41 +1910,103 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   @override
   int get Class_kNoTypeArguments => -1;
   @override
+  int get Class_kConstBitPos => 0x0;
+  @override
+  int get Class_kImplementedBitPos => 0x1;
+  @override
+  int get Class_kClassFinalizedBitsPos => 0x2;
+  @override
+  int get Class_kClassFinalizedBitsSize => 0x2;
+  @override
+  int get Class_kClassLoadingBitsPos => 0x4;
+  @override
+  int get Class_kClassLoadingBitsSize => 0x2;
+  @override
+  int get Class_kAbstractBitPos => 0x6;
+  @override
+  int get Class_kEnumBitPos => 0x8;
+  @override
+  int get Class_kTransformedMixinApplicationBitPos => 0x9;
+  @override
+  int get Class_kIsLoadedBitPos => 0xb;
+  @override
+  int get Class_kHasPragmaBitPos => 0xc;
+  @override
+  int get Class_kSealedBitPos => 0xd;
+  @override
+  int get Class_kMixinClassBitPos => 0xe;
+  @override
+  int get Class_kBaseClassBitPos => 0xf;
+  @override
+  int get Class_kInterfaceClassBitPos => 0x10;
+  @override
+  int get Class_kFinalBitPos => 0x11;
+  @override
+  int get Class_kIsIsolateUnsendableBitPos => 0x12;
+  @override
+  int get Class_kIsDeeplyImmutableBitPos => 0x14;
+  @override
+  int get Field_kConstBitPos => 0x0;
+  @override
+  int get Field_kStaticBitPos => 0x1;
+  @override
+  int get Field_kFinalBitPos => 0x2;
+  @override
+  int get Field_kHasNontrivialInitializerBitPos => 0x3;
+  @override
+  int get Field_kUnboxedBitPos => 0x4;
+  @override
+  int get Field_kHasPragmaBitPos => 0x7;
+  @override
+  int get Field_kCovariantBitPos => 0x8;
+  @override
+  int get Field_kGenericCovariantImplBitPos => 0x9;
+  @override
+  int get Field_kIsLateBitPos => 0xa;
+  @override
+  int get Field_kIsExtensionMemberBitPos => 0xb;
+  @override
+  int get Field_kIsExtensionTypeMemberBitPos => 0xc;
+  @override
+  int get Field_kHasInitializerBitPos => 0xe;
+  @override
+  int get Field_kSharedBitPos => 0xf;
+  @override
   int get Function_kKindBitsPos => 0x0;
   @override
-  int get Function_kKindBitsSize => 0x5;
+  int get Function_kKindBitsSize => 0x4;
   @override
-  int get Function_kRecognizedBitsPos => 0x5;
+  int get Function_kRecognizedBitsPos => 0x4;
   @override
   int get Function_kRecognizedBitsSize => 0x9;
   @override
-  int get Function_kModifierBitsPos => 0xe;
+  int get Function_kModifierBitsPos => 0xd;
   @override
   int get Function_kModifierBitsSize => 0x2;
   @override
-  int get Function_kStaticBitPos => 0x10;
+  int get Function_kStaticBitPos => 0xf;
   @override
-  int get Function_kConstBitPos => 0x11;
+  int get Function_kConstBitPos => 0x10;
   @override
-  int get Function_kAbstractBitPos => 0x12;
+  int get Function_kAbstractBitPos => 0x11;
   @override
-  int get Function_kReflectableBitPos => 0x13;
+  int get Function_kReflectableBitPos => 0x12;
   @override
-  int get Function_kVisibleBitPos => 0x14;
+  int get Function_kVisibleBitPos => 0x13;
   @override
-  int get Function_kDebuggableBitPos => 0x15;
+  int get Function_kDebuggableBitPos => 0x14;
   @override
-  int get Function_kNativeBitPos => 0x17;
+  int get Function_kNativeBitPos => 0x16;
   @override
-  int get Function_kExternalBitPos => 0x18;
+  int get Function_kExternalBitPos => 0x17;
   @override
-  int get Function_kHasPragmaBitPos => 0x1a;
+  int get Function_kHasPragmaBitPos => 0x19;
   @override
-  int get Function_kIsSyntheticBitPos => 0x1b;
+  int get Function_kIsSyntheticBitPos => 0x1a;
   @override
-  int get Function_kIsExtensionMemberBitPos => 0x1c;
+  int get Function_kIsExtensionMemberBitPos => 0x1b;
   @override
-  int get Function_kIsExtensionTypeMemberBitPos => 0x1d;
+  int get Function_kIsExtensionTypeMemberBitPos => 0x1c;
   @override
   int get Heap_kNewAllocatableSize => 0x40000;
   @override
@@ -1827,7 +2034,7 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   @override
   int get Page_kBytesPerCardLog2 => 0x8;
   @override
-  int get Page_kPageMask => -0x80000;
+  int get Page_kPageMask => -0x200000;
   @override
   int get Record_kMaxElements => 0xffff;
   @override
@@ -1875,6 +2082,10 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   @override
   int get TypeArguments_kMaxElements => 0x7ffffffffffffff;
   @override
+  int get UntaggedClass_kFinalized => 0x2;
+  @override
+  int get UntaggedClass_kTypeFinalized => 0x2;
+  @override
   int get UntaggedClosure_kDelayedTypeArgumentsIndex => 0x0;
   @override
   int get UntaggedClosure_kInstantiatorTypeArgumentsIndexBitsPos => 0x0;
@@ -1894,6 +2105,34 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   int get UntaggedClosure_kLengthBitsPos => 0x5;
   @override
   int get UntaggedClosure_kLengthBitsSize => 0x39;
+  @override
+  int get UntaggedFunction_kAsync => 0x1;
+  @override
+  int get UntaggedFunction_kSyncGen => 0x2;
+  @override
+  int get UntaggedFunction_kAsyncGen => 0x3;
+  @override
+  int get UntaggedFunctionType_kPackedNumParentTypeArgumentsPos => 0x0;
+  @override
+  int get UntaggedFunctionType_kPackedNumParentTypeArgumentsSize => 0x8;
+  @override
+  int get UntaggedFunctionType_kPackedNumTypeParametersPos => 0x8;
+  @override
+  int get UntaggedFunctionType_kPackedNumTypeParametersSize => 0x8;
+  @override
+  int get UntaggedFunctionType_kPackedNumImplicitParametersPos => 0x0;
+  @override
+  int get UntaggedFunctionType_kPackedNumImplicitParametersSize => 0x1;
+  @override
+  int get UntaggedFunctionType_kPackedHasNamedOptionalParametersPos => 0x1;
+  @override
+  int get UntaggedFunctionType_kPackedNumFixedParametersPos => 0x2;
+  @override
+  int get UntaggedFunctionType_kPackedNumFixedParametersSize => 0xe;
+  @override
+  int get UntaggedFunctionType_kPackedNumOptionalParametersPos => 0x10;
+  @override
+  int get UntaggedFunctionType_kPackedNumOptionalParametersSize => 0xe;
   @override
   int get UntaggedObject_kCardRememberedBit => 0x0;
   @override
@@ -2065,9 +2304,7 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   @override
   int get Page_card_table_offset => 0x20;
   @override
-  int get Page_original_top_offset => 0x38;
-  @override
-  int get Page_original_end_offset => 0x40;
+  int get Page_survivor_end_offset => 0x40;
   @override
   int get CallSiteData_arguments_descriptor_offset => 0x10;
   @override
@@ -2952,7 +3189,6 @@ enum FunctionKind {
   MethodExtractor,
   NoSuchMethodDispatcher,
   InvokeFieldDispatcher,
-  IrregexpFunction,
   DynamicInvocationForwarder,
   FfiTrampoline,
   RecordFieldGetter,

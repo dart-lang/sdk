@@ -155,6 +155,26 @@ import 'package:meta/meta.dart';
 ''');
   }
 
+  test_privateTopLevelGetter() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+@visibleForTesting int get _g => 0;
+// [diag.invalidVisibilityAnnotation][column 2][length 17] The member '_g' is annotated with 'visibleForTesting', but this annotation is only meaningful on declarations of public members.
+//                         ^^
+// [diag.unusedElement] The declaration '_g' isn't referenced.
+''');
+  }
+
+  test_privateTopLevelSetter() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+@visibleForTesting set _s(int _) {}
+// [diag.invalidVisibilityAnnotation][column 2][length 17] The member '_s' is annotated with 'visibleForTesting', but this annotation is only meaningful on declarations of public members.
+//                     ^^
+// [diag.unusedElement] The declaration '_s' isn't referenced.
+''');
+  }
+
   test_privateTopLevelVariable() async {
     await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';

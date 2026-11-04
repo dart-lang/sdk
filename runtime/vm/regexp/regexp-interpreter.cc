@@ -130,8 +130,11 @@ class BacktrackStack {
   BacktrackStack& operator=(const BacktrackStack&) = delete;
 
   V8_WARN_UNUSED_RESULT bool push(int v) {
+    if (static_cast<int>(data_.size()) >= kMaxSize) {
+      return false;
+    }
     data_.emplace_back(v);
-    return (static_cast<int>(data_.size()) <= kMaxSize);
+    return true;
   }
   int peek() const {
     SBXCHECK(!data_.empty());
@@ -212,26 +215,6 @@ class InterpreterRegisters {
   const int total_register_count_;
   const int output_register_count_;
 };
-
-IrregexpInterpreter::Result ThrowStackOverflow(
-    Thread* thread,
-    RegExpStatics::CallOrigin call_origin) {
-  CHECK(call_origin == RegExpStatics::CallOrigin::kFromRuntime);
-
-  Exceptions::ThrowStackOverflow();
-}
-
-// Only throws if called from the runtime, otherwise just returns the EXCEPTION
-// status code.
-IrregexpInterpreter::Result MaybeThrowStackOverflow(
-    Thread* thread,
-    RegExpStatics::CallOrigin call_origin) {
-  if (call_origin == RegExpStatics::CallOrigin::kFromRuntime) {
-    return ThrowStackOverflow(thread, call_origin);
-  } else {
-    return IrregexpInterpreter::EXCEPTION;
-  }
-}
 
 bool CheckBitInTable(const uint32_t current_char, const uint8_t* const table) {
   int mask = RegExpMacroAssembler::kTableMask;
@@ -512,14 +495,14 @@ IrregexpInterpreter::Result RawMatch(Thread* thread,
     BYTECODE(PushCurrentPosition) {
       ADVANCE();
       if (!backtrack_stack.push(current)) {
-        return MaybeThrowStackOverflow(thread, call_origin);
+        return IrregexpInterpreter::EXCEPTION;
       }
       DISPATCH();
     }
     BYTECODE(PushBacktrack, label) {
       ADVANCE();
       if (!backtrack_stack.push(label)) {
-        return MaybeThrowStackOverflow(thread, call_origin);
+        return IrregexpInterpreter::EXCEPTION;
       }
       DISPATCH();
     }
@@ -527,7 +510,7 @@ IrregexpInterpreter::Result RawMatch(Thread* thread,
       ADVANCE();
       USE(stack_check);  // Unused in interpreter.
       if (!backtrack_stack.push(registers[register_index])) {
-        return MaybeThrowStackOverflow(thread, call_origin);
+        return IrregexpInterpreter::EXCEPTION;
       }
       DISPATCH();
     }
@@ -657,7 +640,7 @@ IrregexpInterpreter::Result RawMatch(Thread* thread,
     }
     BYTECODE(Load2CurrentChars, cp_offset, on_failure) {
       int pos = current + cp_offset;
-      if (pos + 2 > subject.length() || pos < 0) {
+      if (pos > subject.length() - 2 || pos < 0) {
         SET_PC_FROM_OFFSET(on_failure);
       } else {
         ADVANCE();
@@ -674,7 +657,7 @@ IrregexpInterpreter::Result RawMatch(Thread* thread,
     BYTECODE(Load4CurrentChars, cp_offset, on_failure) {
       DCHECK_EQ(1, sizeof(Char));
       int pos = current + cp_offset;
-      if (pos + 4 > subject.length() || pos < 0) {
+      if (pos > subject.length() - 4 || pos < 0) {
         SET_PC_FROM_OFFSET(on_failure);
       } else {
         ADVANCE();
@@ -830,7 +813,7 @@ IrregexpInterpreter::Result RawMatch(Thread* thread,
       int from = registers[start_reg];
       int len = registers[start_reg + 1] - from;
       if (from >= 0 && len > 0) {
-        if (current + len > subject.length() ||
+        if (current > subject.length() - len ||
             !CompareCharsEqual(&subject[from], &subject[current], len)) {
           SET_PC_FROM_OFFSET(on_not_equal);
           DISPATCH();
@@ -858,7 +841,7 @@ IrregexpInterpreter::Result RawMatch(Thread* thread,
       int from = registers[start_reg];
       int len = registers[start_reg + 1] - from;
       if (from >= 0 && len > 0) {
-        if (current + len > subject.length() ||
+        if (current > subject.length() - len ||
             !BackRefMatchesNoCase(thread, from, current, len, subject, true)) {
           SET_PC_FROM_OFFSET(on_not_equal);
           DISPATCH();
@@ -872,7 +855,7 @@ IrregexpInterpreter::Result RawMatch(Thread* thread,
       int from = registers[start_reg];
       int len = registers[start_reg + 1] - from;
       if (from >= 0 && len > 0) {
-        if (current + len > subject.length() ||
+        if (current > subject.length() - len ||
             !BackRefMatchesNoCase(thread, from, current, len, subject, false)) {
           SET_PC_FROM_OFFSET(on_not_equal);
           DISPATCH();

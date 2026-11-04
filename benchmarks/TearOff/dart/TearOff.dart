@@ -30,6 +30,7 @@ class BenchTearOffInlined extends BenchmarkBase {
   @pragma('vm:never-inline')
   @pragma('wasm:never-inline')
   @pragma('dart2js:never-inline')
+  @pragma('vm:align-loops')
   void run() {
     sum = 0;
     callIt(foo, 1);
@@ -74,6 +75,7 @@ class BenchTearOffInlinedInTry extends BenchmarkBase {
   @pragma('vm:never-inline')
   @pragma('wasm:never-inline')
   @pragma('dart2js:never-inline')
+  @pragma('vm:align-loops')
   void run() {
     sum = 0;
     try {
@@ -121,6 +123,7 @@ class BenchTearOffNotInlined extends BenchmarkBase {
   @pragma('vm:never-inline')
   @pragma('wasm:never-inline')
   @pragma('dart2js:never-inline')
+  @pragma('vm:align-loops')
   void run() {
     sum = 0;
     callIt(foo, 1);
@@ -165,6 +168,7 @@ class BenchTearOffNotInlinedInTry extends BenchmarkBase {
   @pragma('vm:never-inline')
   @pragma('wasm:never-inline')
   @pragma('dart2js:never-inline')
+  @pragma('vm:align-loops')
   void run() {
     sum = 0;
     try {

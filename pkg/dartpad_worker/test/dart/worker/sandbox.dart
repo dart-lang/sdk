@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:typed_data';
+
 import 'package:vm_service/vm_service.dart';
 
 import '../../worker_harness.dart';
@@ -63,6 +65,100 @@ void main() {
     // Test close
     await sandbox.close();
 
+    await iframe.close();
+  });
+
+  testDartWorkspace('sandbox read-only filesystem', (ws) async {
+    final iframe = FakeSandboxedIframe();
+    final sandbox = await ws.connectSandboxedIframe(iframe.port);
+
+    await ws.writeFileFromText('bin/main.dart', 'void main() {}');
+    await ws.writeFileFromBytes(
+      'assets/data.bin',
+      Uint8List.fromList([1, 2, 3]),
+    );
+
+    // Read-only filesystem operations work with relative and absolute paths
+    await check(
+      iframe.readFileAsText('bin/main.dart'),
+    ).completes(.it()..equals('void main() {}'));
+    await check(
+      iframe.readFileAsBytes('${ws.workspaceFolder}/assets/data.bin'),
+    ).completes(.it()..deepEquals([1, 2, 3]));
+    await check(
+      iframe.stat('assets/data.bin'),
+    ).completes(.it()..deepEquals({'type': 'file', 'size': 3}));
+    await check(
+      iframe.stat('assets'),
+    ).completes(.it()..deepEquals({'type': 'folder'}));
+    await check(iframe.listDirectory('assets')).completes(
+      .it()..deepEquals([
+        {'path': 'data.bin', 'type': 'file'},
+      ]),
+    );
+    await check(
+      iframe.readFileAsText('missing.txt'),
+    ).throws<FileNotFoundException>();
+
+    await sandbox.close();
+    await iframe.close();
+  });
+
+  testDartWorkspace('sandbox packageRoot', (ws) async {
+    final iframe = FakeSandboxedIframe();
+    final sandbox = await ws.connectSandboxedIframe(iframe.port);
+
+    await ws.writeFileFromText('bin/main.dart', 'void main() {}');
+
+    await sandbox.run('bin/main.dart', mode: 'console');
+    await iframe.checkEvent(
+      .it()..isA<RunEvent>(.it()..packageRoot.equals(ws.workspaceFolder)),
+    );
+
+    await sandbox.close();
+    await iframe.close();
+  });
+
+  testDartWorkspace('sandbox resolvePackage', (ws) async {
+    final iframe = FakeSandboxedIframe();
+    final sandbox = await ws.connectSandboxedIframe(iframe.port);
+
+    // Before run(), resolvePackage throws InvalidSandboxStateException
+    await check(
+      iframe.resolvePackage('myapp'),
+    ).throws<InvalidSandboxStateException>();
+
+    await ws.writeFileFromText('pubspec.yaml', '''
+name: myapp
+publish_to: none
+dependencies:
+  foo: ^1.0.0
+environment:
+  sdk: ^3.11.0
+''');
+    await ws.writeFileFromText('bin/main.dart', 'void main() {}');
+    await ws.pub(command: 'get');
+
+    await sandbox.run('bin/main.dart', mode: 'console');
+
+    await check(iframe.resolvePackage('myapp')).completes(
+      .it()..equals((
+        name: 'myapp',
+        rootPath: ws.workspaceFolder,
+        packagePath: '${ws.workspaceFolder}/lib',
+        languageVersion: '3.11',
+      )),
+    );
+
+    final fooPkg = await iframe.resolvePackage('foo');
+    check(fooPkg).isNotNull();
+    await check(
+      iframe.readFileAsText('${fooPkg!.rootPath}/pubspec.yaml'),
+    ).completes(.it()..contains('foo'));
+
+    await check(iframe.resolvePackage('unknown_pkg')).completes(.it()..isNull);
+
+    await sandbox.close();
     await iframe.close();
   });
 }

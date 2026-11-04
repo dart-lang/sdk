@@ -20,7 +20,7 @@ void main() {
 }
 
 @reflectiveTest
-class CreateExtensionGetterTest extends FixProcessorTest {
+class CreateExtensionGetterTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.createExtensionGetter;
 
@@ -445,6 +445,19 @@ void f(String s) {
 ''');
   }
 
+  Future<void> test_override_invocation() async {
+    await resolveTestCode('''
+extension E on String {}
+
+extension F on String {
+  void f() {
+    E(this).test();
+  }
+}
+''');
+    await assertNoFix();
+  }
+
   Future<void> test_parameterType() async {
     await resolveTestCode('''
 void f<T>(T t) {
@@ -628,7 +641,7 @@ extension on List<int> {
 }
 
 @reflectiveTest
-class CreateExtensionMethodTest extends FixProcessorTest {
+class CreateExtensionMethodTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.createExtensionMethod;
 
@@ -1203,7 +1216,8 @@ extension E on int {
   }
 }
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 extension E on int {
   void f(int i) {
     i -= foo();
@@ -1211,7 +1225,11 @@ extension E on int {
 
   int foo() {}
 }
-''', filter: (diagnostic) => diagnostic.diagnosticCode == diag.undefinedMethod);
+''',
+      filter: (diagnostic) =>
+          diagnostic.diagnosticCode ==
+          diag.undefinedUnqualifiedNameReadNotFound,
+    );
   }
 
   Future<void> test_operatorAssignment_neverAssignable() async {
@@ -1227,7 +1245,9 @@ extension E on A {
 }
 ''');
     await assertNoFix(
-      filter: (diagnostic) => diagnostic.diagnosticCode == diag.undefinedMethod,
+      filter: (diagnostic) =>
+          diagnostic.diagnosticCode ==
+          diag.undefinedUnqualifiedNameReadNotFound,
     );
     await assertNoFix(
       filter: (diagnostic) =>
@@ -1280,7 +1300,8 @@ extension E on int {
   }
 }
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 extension E on int {
   void f(int i) {
     i += foo();
@@ -1288,7 +1309,11 @@ extension E on int {
 
   int foo() {}
 }
-''', filter: (diagnostic) => diagnostic.diagnosticCode == diag.undefinedMethod);
+''',
+      filter: (diagnostic) =>
+          diagnostic.diagnosticCode ==
+          diag.undefinedUnqualifiedNameReadNotFound,
+    );
   }
 
   Future<void> test_operatorAssignment_slash_int() async {
@@ -1300,7 +1325,9 @@ extension E on int {
 }
 ''');
     await assertNoFix(
-      filter: (diagnostic) => diagnostic.diagnosticCode == diag.undefinedMethod,
+      filter: (diagnostic) =>
+          diagnostic.diagnosticCode ==
+          diag.undefinedUnqualifiedNameReadNotFound,
     );
   }
 
@@ -1312,7 +1339,8 @@ extension E on int {
   }
 }
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 extension E on int {
   void f(int i) {
     i *= foo();
@@ -1320,7 +1348,11 @@ extension E on int {
 
   int foo() {}
 }
-''', filter: (diagnostic) => diagnostic.diagnosticCode == diag.undefinedMethod);
+''',
+      filter: (diagnostic) =>
+          diagnostic.diagnosticCode ==
+          diag.undefinedUnqualifiedNameReadNotFound,
+    );
   }
 
   Future<void> test_operatorAssignment_subtype() async {
@@ -1338,7 +1370,9 @@ extension E on B {
 }
 ''');
     await assertNoFix(
-      filter: (diagnostic) => diagnostic.diagnosticCode == diag.undefinedMethod,
+      filter: (diagnostic) =>
+          diagnostic.diagnosticCode ==
+          diag.undefinedUnqualifiedNameReadNotFound,
     );
   }
 
@@ -1477,13 +1511,17 @@ extension E on int {
   ({int b}) get test => (a: testMethod());
 }
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 extension E on int {
   ({int b}) get test => (a: testMethod());
 
   testMethod() {}
 }
-''', filter: (d) => d.diagnosticCode == diag.undefinedMethod);
+''',
+      filter: (d) =>
+          d.diagnosticCode == diag.undefinedUnqualifiedNameReadNotFound,
+    );
   }
 
   Future<void> test_record_returnType_missingPositionalField() async {
@@ -1492,13 +1530,17 @@ extension E on int {
   (int,) get test => (0, testMethod());
 }
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 extension E on int {
   (int,) get test => (0, testMethod());
 
   testMethod() {}
 }
-''', filter: (d) => d.diagnosticCode == diag.undefinedMethod);
+''',
+      filter: (d) =>
+          d.diagnosticCode == diag.undefinedUnqualifiedNameReadNotFound,
+    );
   }
 
   Future<void> test_record_returnType_positionalField_afterNamedField() async {
@@ -1868,7 +1910,7 @@ void f(A? a) {
 }
 
 @reflectiveTest
-class CreateExtensionOperatorTest extends FixProcessorTest {
+class CreateExtensionOperatorTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.createExtensionOperator;
 
@@ -2128,7 +2170,7 @@ void f(void Function() fn) {
 }
 
 @reflectiveTest
-class CreateExtensionSetterTest extends FixProcessorTest {
+class CreateExtensionSetterTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.createExtensionSetter;
 

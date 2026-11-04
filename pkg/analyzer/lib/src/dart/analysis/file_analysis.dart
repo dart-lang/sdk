@@ -23,7 +23,7 @@ class FileAnalysis {
   /// its directives; `null` if there are none.
   DocImportScope? docImportScope;
 
-  FileAnalysis({
+  new({
     required this.file,
     required this.diagnosticListener,
     required this.unit,

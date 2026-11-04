@@ -17,10 +17,10 @@ import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/applicable_extensions.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
+import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/inference_log.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 
 /// The result of a failed attempt to resolve an identifier to the single
@@ -29,23 +29,24 @@ import 'package:analyzer/src/utilities/extensions/string.dart';
 /// multiple matching extensions were found, resulting in an ambiguity.
 class AmbiguousStaticExtensionResolutionError
     extends StaticExtensionResolutionResult {
-  const AmbiguousStaticExtensionResolutionError();
+  const new();
 
   @override
   InternalExecutableElement? get member => null;
 }
 
 class ExtensionMemberResolver {
-  final ResolverVisitor _resolver;
+  final TypeAnalyzer _typeAnalyzer;
 
-  ExtensionMemberResolver(this._resolver);
+  new(this._typeAnalyzer);
 
-  DiagnosticReporter get _diagnosticReporter => _resolver.diagnosticReporter;
+  DiagnosticReporter get _diagnosticReporter =>
+      _typeAnalyzer.diagnosticReporter;
 
-  bool get _genericMetadataIsEnabled =>
-      _resolver.definingLibrary.featureSet.isEnabled(Feature.generic_metadata);
+  bool get _genericMetadataIsEnabled => _typeAnalyzer.definingLibrary.featureSet
+      .isEnabled(Feature.generic_metadata);
 
-  TypeSystemImpl get _typeSystem => _resolver.typeSystem;
+  TypeSystemImpl get _typeSystem => _typeAnalyzer.typeSystem;
 
   /// Set the type context for the receiver of the override.
   ///
@@ -95,11 +96,11 @@ class ExtensionMemberResolver {
     SyntacticEntity nameEntity,
     Name name,
   ) {
-    var extensions = _resolver.libraryFragment.accessibleExtensions
+    var extensions = _typeAnalyzer.libraryFragment.accessibleExtensions
         .havingMemberWithBaseName(name)
         .toList()
         .applicableTo(
-          targetLibrary: _resolver.definingLibrary,
+          targetLibrary: _typeAnalyzer.definingLibrary,
           targetType: type,
         );
 
@@ -109,7 +110,7 @@ class ExtensionMemberResolver {
 
     if (extensions.length == 1) {
       var instantiated = extensions[0];
-      _resolver.libraryFragment.scope.notifyExtensionUsed(
+      _typeAnalyzer.libraryFragment.scope.notifyExtensionUsed(
         instantiated.extension,
       );
       return instantiated.asResolutionResult;
@@ -118,7 +119,7 @@ class ExtensionMemberResolver {
     var mostSpecific = _chooseMostSpecific(extensions);
     if (mostSpecific.length == 1) {
       var instantiated = mostSpecific.first;
-      _resolver.libraryFragment.scope.notifyExtensionUsed(
+      _typeAnalyzer.libraryFragment.scope.notifyExtensionUsed(
         instantiated.extension,
       );
       return instantiated.asResolutionResult;
@@ -165,7 +166,7 @@ class ExtensionMemberResolver {
   ) {
     var extensions = [
       for (var extension
-          in _resolver.libraryFragment.accessibleExtensions
+          in _typeAnalyzer.libraryFragment.accessibleExtensions
               .havingStaticMemberWithName(name))
         if (extension.extension.onDeclaration == declaration) extension,
     ];
@@ -180,7 +181,9 @@ class ExtensionMemberResolver {
     // error.
     if (extensions.length == 1) {
       var extension = extensions[0];
-      _resolver.libraryFragment.scope.notifyExtensionUsed(extension.extension);
+      _typeAnalyzer.libraryFragment.scope.notifyExtensionUsed(
+        extension.extension,
+      );
       return SingleStaticExtensionResolutionResult(member: extension.member);
     }
 
@@ -196,6 +199,7 @@ class ExtensionMemberResolver {
     String name,
   ) {
     var element = node.element;
+    var library = _typeAnalyzer.definingLibrary;
 
     ExecutableElementImpl? getter;
     ExecutableElementImpl? setter;
@@ -205,6 +209,12 @@ class ExtensionMemberResolver {
     } else {
       getter = element.getGetter(name) ?? element.getMethod(name);
       setter = element.getSetter(name);
+      if (getter != null && !getter.isAccessibleIn(library)) {
+        getter = null;
+      }
+      if (setter != null && !setter.isAccessibleIn(library)) {
+        setter = null;
+      }
     }
 
     if (getter == null && setter == null) {
@@ -220,6 +230,29 @@ class ExtensionMemberResolver {
       getter2: getter?.substitute(substitution),
       setter2: setter?.substitute(substitution),
     );
+  }
+
+  /// Returns an instance member of an accessible extension that applies to
+  /// [type], declared in another library than [name] and spelled like the
+  /// private [name], or `null` if there is none.
+  ///
+  /// This is for reporting a failed lookup of [name], which [findExtension]
+  /// doesn't find, because `_foo` of another library is a different name.
+  /// Any applicable extension is enough, without choosing the most specific.
+  InternalExecutableElement? getPrivateMemberOfOtherLibrary(
+    TypeImpl type,
+    Name name,
+  ) {
+    var extensions = _typeAnalyzer.libraryFragment.accessibleExtensions
+        .havingPrivateMemberOfOtherLibraryWithBaseName(name)
+        .applicableTo(
+          targetLibrary: _typeAnalyzer.definingLibrary,
+          targetType: type,
+        );
+    if (extensions.firstOrNull case var extension?) {
+      return extension.getter ?? extension.setter;
+    }
+    return null;
   }
 
   /// Perform upward inference for the override.
@@ -263,7 +296,7 @@ class ExtensionMemberResolver {
     var typeArgumentTypes = _inferTypeArguments(
       node,
       receiverType,
-      dataForTesting: _resolver.inferenceHelper.dataForTesting,
+      dataForTesting: _typeAnalyzer.inferenceHelper.dataForTesting,
       nodeForTesting: node,
     )!;
     nodeImpl.typeArgumentTypes = typeArgumentTypes;
@@ -289,7 +322,7 @@ class ExtensionMemberResolver {
     } else if (!_typeSystem.isAssignableTo(
       receiverType,
       extendedType,
-      strictCasts: _resolver.analysisOptions.strictCasts,
+      strictCasts: _typeAnalyzer.analysisOptions.strictCasts,
     )) {
       var whyNotPromoted = whyNotPromotedArguments.isEmpty
           ? null
@@ -301,7 +334,7 @@ class ExtensionMemberResolver {
               extendedType: extendedType,
             )
             .withContextMessages(
-              _resolver.computeWhyNotPromotedMessages(
+              _typeAnalyzer.computeWhyNotPromotedMessages(
                 receiverExpression,
                 whyNotPromoted?.call(),
               ),
@@ -435,9 +468,9 @@ class ExtensionMemberResolver {
         diagnosticReporter: _diagnosticReporter,
         errorEntity: node.name,
         genericMetadataIsEnabled: _genericMetadataIsEnabled,
-        inferenceUsingBoundsIsEnabled: _resolver.inferenceUsingBoundsIsEnabled,
-        strictInference: _resolver.analysisOptions.strictInference,
-        typeSystemOperations: _resolver.flowAnalysis.typeOperations,
+        inferenceUsingBoundsIsEnabled:
+            _typeAnalyzer.inferenceUsingBoundsIsEnabled,
+        typeSystemOperations: _typeAnalyzer.flowAnalysis.typeOperations,
         dataForTesting: dataForTesting,
       );
       inferrer.constrainArgument(
@@ -572,7 +605,7 @@ sealed class ExtensionResolutionResult implements SimpleResolutionResult {}
 /// matching extensions were found.
 class NoneStaticExtensionResolutionError
     extends StaticExtensionResolutionResult {
-  const NoneStaticExtensionResolutionError();
+  const new();
 
   @override
   InternalExecutableElement? get member => null;
@@ -582,10 +615,8 @@ class NoneStaticExtensionResolutionError
 /// where the result (if any) is known to come from an extension.
 class SingleExtensionResolutionResult extends SimpleResolutionResult
     implements ExtensionResolutionResult {
-  SingleExtensionResolutionResult({
-    required super.getter2,
-    required super.setter2,
-  }) : assert(getter2 != null || setter2 != null);
+  new({required super.getter2, required super.setter2})
+    : assert(getter2 != null || setter2 != null);
 }
 
 /// The result of a successful attempt to resolve an identifier to the single
@@ -594,9 +625,7 @@ class SingleExtensionResolutionResult extends SimpleResolutionResult
 class SingleStaticExtensionResolutionResult
     extends SimpleStaticExtensionResolutionResult
     implements StaticExtensionResolutionResult {
-  SingleStaticExtensionResolutionResult({
-    required InternalExecutableElement member,
-  }) : super(member: member);
+  new({required InternalExecutableElement member}) : super(member: member);
 
   @override
   InternalExecutableElement get member => super.member!;
@@ -607,5 +636,5 @@ class SingleStaticExtensionResolutionResult
 /// extension.
 sealed class StaticExtensionResolutionResult
     extends SimpleStaticExtensionResolutionResult {
-  const StaticExtensionResolutionResult({super.member});
+  const new({super.member});
 }

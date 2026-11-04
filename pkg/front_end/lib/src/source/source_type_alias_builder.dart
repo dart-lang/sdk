@@ -364,10 +364,10 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
 
     if (arguments == null && typeParameters != null) {
       // TODO(johnniwinther): Use i2b here when needed.
-      return new DartTypeList.generate(
-        typeParameters!.length,
-        (int i) =>
-            typeParameters![i].defaultType!
+      return DartTypeList.mapped(
+        typeParameters!,
+        (t) =>
+            t.defaultType!
             // TODO(johnniwinther): Using [libraryBuilder] here instead of
             // [library] preserves the nullability of the original
             // declaration. We legacy erase it later, but should we legacy
@@ -400,10 +400,9 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
     }
 
     // arguments.length == typeParameters.length
-    return new DartTypeList.generate(
-      arguments!.length,
-      (int i) =>
-          arguments[i].buildAliased(library, TypeUse.typeArgument, hierarchy),
+    return DartTypeList.mapped(
+      arguments!,
+      (a) => a.buildAliased(library, TypeUse.typeArgument, hierarchy),
     );
   }
 
@@ -435,11 +434,12 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
         );
       }
     }
-    _tearOffDependencies?.forEach((Procedure tearOff, Member target) {
+    _tearOffDependencies?.forEach((Procedure tearOff, Member constructor) {
       delayedDefaultValueCloners.add(
         new DelayedDefaultValueCloner(
-          target,
-          tearOff,
+          source: constructor,
+          target: tearOff,
+          parameterMapping: const DirectParameterMapping(),
           libraryBuilder: libraryBuilder,
         ),
       );
@@ -459,13 +459,12 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
 
   Map<Procedure, Member>? _tearOffDependencies;
 
-  DelayedDefaultValueCloner? buildTypedefTearOffs(
+  void buildTypedefTearOffs(
     SourceLibraryBuilder libraryBuilder,
     void Function(Procedure) f,
   ) {
     TypeDeclarationBuilder? declaration = unaliasDeclaration(null);
     DartType? targetType = typedef.type;
-    DelayedDefaultValueCloner? delayedDefaultValueCloner;
     switch (declaration) {
       case ClassBuilder():
         if (targetType is InterfaceType &&
@@ -516,7 +515,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
                   );
               _tearOffDependencies![tearOff] = target;
 
-              delayedDefaultValueCloner = buildTypedefTearOffProcedure(
+              buildTypedefTearOffProcedure(
                 tearOff: tearOff,
                 declarationConstructor: target,
                 // TODO(johnniwinther): Handle augmented constructors.
@@ -575,7 +574,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
                   );
               _tearOffDependencies![tearOff] = target;
 
-              delayedDefaultValueCloner = buildTypedefTearOffProcedure(
+              buildTypedefTearOffProcedure(
                 tearOff: tearOff,
                 declarationConstructor: target,
                 // TODO(johnniwinther): Handle augmented constructors.
@@ -597,7 +596,5 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
       case BuiltinTypeDeclarationBuilder():
       case null:
     }
-
-    return delayedDefaultValueCloner;
   }
 }

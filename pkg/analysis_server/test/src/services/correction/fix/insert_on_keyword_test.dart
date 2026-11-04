@@ -36,7 +36,7 @@ extension on String {}
 }
 
 @reflectiveTest
-class InsertOnKeywordTest extends FixProcessorTest {
+class InsertOnKeywordTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.insertOnKeyword;
 

@@ -2162,6 +2162,36 @@ class SubtypeTest extends AbstractTypeSystemTest {
       isSubtype(scope.parseType('T'), scope.parseType('FutureOr<T>'));
     });
   }
+
+  test_typeParameter_45() {
+    withTypeParameterScope('T', (scope) {
+      isSubtype(scope.parseType('T'), parseType('FutureOr<Object>?'));
+    });
+  }
+
+  test_typeParameter_46() {
+    withTypeParameterScope('T', (scope) {
+      isSubtype(scope.parseType('T?'), parseType('FutureOr<Object>?'));
+    });
+  }
+
+  test_typeParameter_47() {
+    withTypeParameterScope('T', (scope) {
+      isSubtype(scope.parseType('T'), parseType('FutureOr<FutureOr<Object>?>'));
+    });
+  }
+
+  test_typeParameter_48() {
+    withTypeParameterScope('U, T extends U', (scope) {
+      isSubtype(scope.parseType('T'), parseType('FutureOr<Object>?'));
+    });
+  }
+
+  test_typeParameter_49() {
+    withTypeParameterScope('T', (scope) {
+      isNotSubtype(scope.parseType('T'), parseType('FutureOr<Object>'));
+    });
+  }
 }
 
 @reflectiveTest

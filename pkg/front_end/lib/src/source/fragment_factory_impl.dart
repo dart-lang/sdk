@@ -154,9 +154,11 @@ class FragmentFactoryImpl implements FragmentFactory {
   ) {
     _declarationFragments.push(
       new ClassFragment(
-        name: name,
-        fileUri: _compilationUnit.fileUri,
-        nameOffset: nameOffset,
+        uriOffsetName: new UriOffsetName(
+          _compilationUnit.fileUri,
+          name,
+          nameOffset,
+        ),
         typeParameters: typeParameters,
         enclosingScope: _compilationUnitScope,
         typeParameterScope: _typeScopes.current.lookupScope,
@@ -234,9 +236,11 @@ class FragmentFactoryImpl implements FragmentFactory {
   ) {
     _declarationFragments.push(
       new MixinFragment(
-        name: name,
-        fileUri: _compilationUnit.fileUri,
-        nameOffset: nameOffset,
+        uriOffsetName: new UriOffsetName(
+          _compilationUnit.fileUri,
+          name,
+          nameOffset,
+        ),
         typeParameters: typeParameters,
         enclosingScope: _compilationUnitScope,
         typeParameterScope: _typeScopes.current.lookupScope,
@@ -349,9 +353,11 @@ class FragmentFactoryImpl implements FragmentFactory {
   ) {
     _declarationFragments.push(
       new EnumFragment(
-        name: name,
-        fileUri: _compilationUnit.fileUri,
-        nameOffset: nameOffset,
+        uriOffsetName: new UriOffsetName(
+          _compilationUnit.fileUri,
+          name,
+          nameOffset,
+        ),
         typeParameters: typeParameters,
         enclosingScope: _compilationUnitScope,
         typeParameterScope: _typeScopes.current.lookupScope,
@@ -435,8 +441,13 @@ class FragmentFactoryImpl implements FragmentFactory {
     _declarationFragments.push(
       new ExtensionFragment(
         name: name,
-        fileUri: _compilationUnit.fileUri,
-        nameOrExtensionOffset: nameOrExtensionOffset,
+        uriOffset: name != null
+            ? new UriOffsetName(
+                _compilationUnit.fileUri,
+                name,
+                nameOrExtensionOffset,
+              )
+            : new UriOffset(_compilationUnit.fileUri, nameOrExtensionOffset),
         typeParameters: typeParameters,
         enclosingScope: _compilationUnitScope,
         typeParameterScope: _typeScopes.current.lookupScope,
@@ -486,9 +497,11 @@ class FragmentFactoryImpl implements FragmentFactory {
   ) {
     _declarationFragments.push(
       new ExtensionTypeFragment(
-        name: name,
-        fileUri: _compilationUnit.fileUri,
-        nameOffset: nameOffset,
+        uriOffsetName: new UriOffsetName(
+          _compilationUnit.fileUri,
+          name,
+          nameOffset,
+        ),
         typeParameters: typeParameters,
         enclosingScope: _compilationUnitScope,
         typeParameterScope: _typeScopes.current.lookupScope,
@@ -805,12 +818,12 @@ class FragmentFactoryImpl implements FragmentFactory {
       charOffset,
       isPart: true,
     );
-    // To support absolute paths from within packages in the part uri, we try to
-    // translate the file uri from the resolved import uri before resolving
+    // To support absolute paths from within packages in the part uri, we let
+    // the loader translate the resolved package import uri instead of resolving
     // through the file uri of this library. See issue #52964.
-    Uri newFileUri =
-        loader.target.uriTranslator.translate(resolvedUri) ??
-        _resolve(_compilationUnit.fileUri, uri, charOffset);
+    Uri? newFileUri = resolvedUri.isScheme("package")
+        ? null
+        : _resolve(_compilationUnit.fileUri, uri, charOffset);
     CompilationUnit compilationUnit = loader.read(
       resolvedUri,
       charOffset,
@@ -831,8 +844,11 @@ class FragmentFactoryImpl implements FragmentFactory {
     );
 
     // TODO(ahe): [metadata] should be stored, evaluated, and added to [part].
-    LibraryPart part = new LibraryPart(<Expression>[], uri, newFileUri)
-      ..fileOffset = charOffset;
+    LibraryPart part = new LibraryPart(
+      <Expression>[],
+      uri,
+      compilationUnit.fileUri,
+    )..fileOffset = charOffset;
     _compilationUnitRegistry.registerLibraryPart(part);
     offsetMap.registerPart(partKeyword, part);
   }
@@ -870,11 +886,11 @@ class FragmentFactoryImpl implements FragmentFactory {
   }) {
     Uri resolvedUri = _resolve(_compilationUnit.importUri, uri, uriOffset);
     // To support absolute paths from within packages in the part of uri, we
-    // try to translate the file uri from the resolved import uri before
+    // let the loader translate the resolved package import uri instead of
     // resolving through the file uri of this library. See issue #52964.
-    Uri newFileUri =
-        loader.target.uriTranslator.translate(resolvedUri) ??
-        _resolve(_compilationUnit.fileUri, uri, uriOffset);
+    Uri? newFileUri = resolvedUri.isScheme("package")
+        ? null
+        : _resolve(_compilationUnit.fileUri, uri, uriOffset);
     loader.read(
       resolvedUri,
       uriOffset,
@@ -1102,9 +1118,11 @@ class FragmentFactoryImpl implements FragmentFactory {
         _declarationFragments.current;
     EnumElementFragment fragment = new EnumElementFragment(
       metadata: metadata,
-      name: name,
-      nameOffset: nameOffset,
-      fileUri: _compilationUnit.fileUri,
+      uriOffsetName: new UriOffsetName(
+        _compilationUnit.fileUri,
+        name,
+        nameOffset,
+      ),
       constructorReferenceBuilder: constructorReferenceBuilder,
       argumentsBeginToken: argumentsBeginToken,
       enclosingScope: enclosingDeclaration.bodyScope,
@@ -1178,10 +1196,12 @@ class FragmentFactoryImpl implements FragmentFactory {
 
     _addFragment(
       new NamedMixinApplicationFragment(
-        name: name,
-        fileUri: _compilationUnit.fileUri,
+        uriOffsetName: new UriOffsetName(
+          _compilationUnit.fileUri,
+          name,
+          nameOffset,
+        ),
         startOffset: startOffset,
-        nameOffset: nameOffset,
         endOffset: endOffset,
         modifiers: modifiers,
         metadata: metadata,
@@ -1274,11 +1294,13 @@ class FragmentFactoryImpl implements FragmentFactory {
     endTypedef();
     TypedefFragment fragment = new TypedefFragment(
       metadata: metadata,
-      name: name,
+      uriOffsetName: new UriOffsetName(
+        _compilationUnit.fileUri,
+        name,
+        nameOffset,
+      ),
       typeParameters: typeParameters,
       type: type,
-      fileUri: _compilationUnit.fileUri,
-      nameOffset: nameOffset,
       typeParameterScope: typeParameterScope,
       nominalParameterNameSpace: nominalParameterNameSpace,
       enclosingScope: _compilationUnitScope,
@@ -1309,6 +1331,7 @@ class FragmentFactoryImpl implements FragmentFactory {
     required AsyncModifier asyncModifier,
     required String? nativeMethodName,
     required ProcedureKind kind,
+    required Token bodyToken,
   }) {
     switch (kind) {
       case ProcedureKind.Method:
@@ -1332,6 +1355,7 @@ class FragmentFactoryImpl implements FragmentFactory {
           isInstanceMember: !isStatic,
           isExtensionMember: isExtensionMember,
           isExtensionTypeMember: isExtensionTypeMember,
+          bodyToken: bodyToken,
         );
       case ProcedureKind.Getter:
         addGetter(
@@ -1352,6 +1376,7 @@ class FragmentFactoryImpl implements FragmentFactory {
           isInstanceMember: !isStatic,
           isExtensionMember: isExtensionMember,
           isExtensionTypeMember: isExtensionTypeMember,
+          bodyToken: bodyToken,
         );
       case ProcedureKind.Setter:
         addSetter(
@@ -1372,6 +1397,7 @@ class FragmentFactoryImpl implements FragmentFactory {
           isInstanceMember: !isStatic,
           isExtensionMember: isExtensionMember,
           isExtensionTypeMember: isExtensionTypeMember,
+          bodyToken: bodyToken,
         );
       // Coverage-ignore(suite): Not run.
       case ProcedureKind.Factory:
@@ -1578,6 +1604,7 @@ class FragmentFactoryImpl implements FragmentFactory {
   void addPrimaryConstructorBody({
     required OffsetMap offsetMap,
     required Token beginToken,
+    required Token thisToken,
     required List<MetadataBuilder>? metadata,
     required int endOffset,
     required Token? initializersStartToken,
@@ -1588,8 +1615,11 @@ class FragmentFactoryImpl implements FragmentFactory {
         _declarationFragments.current;
     PrimaryConstructorBodyFragment fragment =
         new PrimaryConstructorBodyFragment(
-          fileUri: _compilationUnit.fileUri,
-          thisOffset: beginToken.charOffset,
+          uriOffset: new UriOffsetLength(
+            _compilationUnit.fileUri,
+            thisToken.charOffset,
+            thisToken.length,
+          ),
           metadata: metadata,
           enclosingScope: _declarationFragments.current.bodyScope,
           enclosingDeclaration: enclosingDeclaration,
@@ -1891,6 +1921,7 @@ class FragmentFactoryImpl implements FragmentFactory {
     required bool isInstanceMember,
     required bool isExtensionMember,
     required bool isExtensionTypeMember,
+    required Token bodyToken,
   }) {
     TypeScope typeParameterScope = _typeScopes.pop();
     assert(
@@ -1920,10 +1951,12 @@ class FragmentFactoryImpl implements FragmentFactory {
       modifiers |= Modifiers.Augment;
     }
     GetterFragment fragment = new GetterFragment(
-      name: name,
-      fileUri: _compilationUnit.fileUri,
+      uriOffsetName: new UriOffsetName(
+        _compilationUnit.fileUri,
+        name,
+        nameOffset,
+      ),
       startOffset: startOffset,
-      nameOffset: nameOffset,
       formalsOffset: formalsOffset,
       endOffset: endOffset,
       isTopLevel: enclosingDeclaration == null,
@@ -1939,6 +1972,7 @@ class FragmentFactoryImpl implements FragmentFactory {
       nativeMethodName: nativeMethodName,
       enclosingCompilationUnit: _compilationUnit,
       enclosingDeclaration: enclosingDeclaration,
+      bodyToken: bodyToken,
     );
     _addFragment(fragment);
     if (nativeMethodName != null) {
@@ -1966,6 +2000,7 @@ class FragmentFactoryImpl implements FragmentFactory {
     required bool isInstanceMember,
     required bool isExtensionMember,
     required bool isExtensionTypeMember,
+    required Token bodyToken,
   }) {
     TypeScope typeParameterScope = _typeScopes.pop();
     assert(
@@ -1999,10 +2034,12 @@ class FragmentFactoryImpl implements FragmentFactory {
       modifiers |= Modifiers.Augment;
     }
     SetterFragment fragment = new SetterFragment(
-      name: name,
-      fileUri: _compilationUnit.fileUri,
+      uriOffsetName: new UriOffsetName(
+        _compilationUnit.fileUri,
+        name,
+        nameOffset,
+      ),
       startOffset: startOffset,
-      nameOffset: nameOffset,
       formalsOffset: formalsOffset,
       endOffset: endOffset,
       isTopLevel: enclosingDeclaration == null,
@@ -2018,6 +2055,7 @@ class FragmentFactoryImpl implements FragmentFactory {
       nativeMethodName: nativeMethodName,
       enclosingDeclaration: enclosingDeclaration,
       enclosingCompilationUnit: _compilationUnit,
+      bodyToken: bodyToken,
     );
     _addFragment(fragment);
     if (nativeMethodName != null) {
@@ -2046,6 +2084,7 @@ class FragmentFactoryImpl implements FragmentFactory {
     required bool isExtensionMember,
     required bool isExtensionTypeMember,
     required bool isOperator,
+    required Token bodyToken,
   }) {
     TypeScope typeParameterScope = _typeScopes.pop();
     assert(
@@ -2081,10 +2120,12 @@ class FragmentFactoryImpl implements FragmentFactory {
       modifiers |= Modifiers.Augment;
     }
     MethodFragment fragment = new MethodFragment(
-      name: name,
-      fileUri: _compilationUnit.fileUri,
+      uriOffsetName: new UriOffsetName(
+        _compilationUnit.fileUri,
+        name,
+        nameOffset,
+      ),
       startOffset: startOffset,
-      nameOffset: nameOffset,
       formalsOffset: formalsOffset,
       endOffset: endOffset,
       isTopLevel: enclosingDeclaration == null,
@@ -2101,6 +2142,7 @@ class FragmentFactoryImpl implements FragmentFactory {
       nativeMethodName: nativeMethodName,
       enclosingDeclaration: enclosingDeclaration,
       enclosingCompilationUnit: _compilationUnit,
+      bodyToken: bodyToken,
     );
     _addFragment(fragment);
     if (nativeMethodName != null) {
@@ -2159,9 +2201,11 @@ class FragmentFactoryImpl implements FragmentFactory {
       modifiers |= Modifiers.HasInitializer;
     }
     FieldFragment fragment = new FieldFragment(
-      name: name,
-      fileUri: _compilationUnit.fileUri,
-      nameOffset: nameOffset,
+      uriOffsetName: new UriOffsetName(
+        _compilationUnit.fileUri,
+        name,
+        nameOffset,
+      ),
       endOffset: endOffset,
       initializerToken: initializerToken,
       metadata: metadata,
@@ -2188,9 +2232,11 @@ class FragmentFactoryImpl implements FragmentFactory {
         _declarationFragments.current;
     PrimaryConstructorFieldFragment fragment =
         new PrimaryConstructorFieldFragment(
-          name: name,
-          fileUri: _compilationUnit.fileUri,
-          nameOffset: nameOffset,
+          uriOffsetName: new UriOffsetName(
+            _compilationUnit.fileUri,
+            name,
+            nameOffset,
+          ),
           metadata: metadata,
           modifiers: modifiers,
           type: type,
@@ -2215,6 +2261,7 @@ class FragmentFactoryImpl implements FragmentFactory {
     required bool hasSuper,
     required int nameOffset,
     required Token? initializerToken,
+    required UriOffsetLength uriOffset,
   }) {
     assert(
       !hasThis || !hasSuper,
@@ -2241,8 +2288,7 @@ class FragmentFactoryImpl implements FragmentFactory {
       type: type,
       name: name,
       nameOffset: nameOffset,
-      fileOffset: nameOffset,
-      fileUri: _compilationUnit.fileUri,
+      uriOffset: uriOffset,
       defaultValueToken: initializerToken,
       hasImmediatelyDeclaredDefaultValue: initializerToken != null,
       wildcardIndex: wildcardIndex,
@@ -2378,12 +2424,10 @@ class FragmentFactoryImpl implements FragmentFactory {
   @override
   TypeParameterFragment addNominalParameter({
     required List<MetadataBuilder>? metadata,
-    required String name,
-    required int nameOffset,
-    required Uri fileUri,
+    required UriOffsetName uriOffsetName,
     required TypeParameterKind kind,
   }) {
-    String variableName = name;
+    String variableName = uriOffsetName.name;
     bool isWildcard =
         libraryFeatures.wildcardVariables.isEnabled && variableName == '_';
     if (isWildcard) {
@@ -2392,9 +2436,7 @@ class FragmentFactoryImpl implements FragmentFactory {
     }
     TypeParameterFragment fragment = new TypeParameterFragment(
       metadata: metadata,
-      name: name,
-      nameOffset: nameOffset,
-      fileUri: fileUri,
+      uriOffsetName: uriOffsetName,
       kind: kind,
       isWildcard: isWildcard,
       variableName: variableName,

@@ -61,7 +61,15 @@ void main() {
   jsFunction = ((int arg) => arg).toJS;
   Expect.equals(0, numF(0.toJS).toDartInt);
   Expect.equals(0, numF(0.0.toJS).toDartInt);
-  Expect.throws(() => numF(0.1.toJS));
+  Expect.throwsTypeError(() => numF(0.1.toJS));
+  Expect.throwsTypeError(() => numF(2.5.toJS));
+  Expect.throws(() => anyF(true.toJS));
+
+  jsFunction = ((int? arg) => arg).toJS;
+  Expect.equals(0, numF(0.toJS).toDartInt);
+  Expect.equals(0, numF(0.0.toJS).toDartInt);
+  Expect.isNull(anyF(null));
+  Expect.throwsTypeError(() => numF(2.5.toJS));
   Expect.throws(() => anyF(true.toJS));
 
   jsFunction = ((double arg) => arg).toJS;
@@ -88,12 +96,15 @@ void main() {
   // Extension type on primitives.
   jsFunction = ((IntE i) => i).toJS;
   Expect.equals(0, numF(0.toJS).toDartInt);
+  Expect.throwsTypeError(() => numF(2.5.toJS));
   Expect.throwsWhen(soundNullSafety, () => anyF(null));
   jsFunction = ((IntE? i) => i).toJS;
   Expect.equals(0, numF(0.toJS).toDartInt);
+  Expect.throwsTypeError(() => numF(2.5.toJS));
   Expect.isNull(anyF(null));
   jsFunction = ((NullableIntE i) => i).toJS;
   Expect.equals(0, numF(0.toJS).toDartInt);
+  Expect.throwsTypeError(() => numF(2.5.toJS));
   Expect.isNull(anyF(null));
 
   // Test ExternalDartReference.

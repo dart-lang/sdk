@@ -108,10 +108,7 @@ final class _DartPadVmServiceBackend
   Future<void> onServiceReady(DartRuntimeService service) async {}
 
   @override
-  Future<void> onServerStarted({
-    required Uri httpUri,
-    required Uri wsUri,
-  }) async {}
+  Future<void> onServerStarted() async {}
 
   @override
   Future<void> onServerShutdown() async {}
@@ -129,7 +126,11 @@ final class _DartPadVmServiceBackend
   }
 
   @override
-  void onClientSubscribe(Client client, String streamId) {
+  void onClientSubscribe(
+    Client client,
+    String streamId, {
+    Map<String, Object?> params = const <String, Object?>{},
+  }) {
     _loggingRepository.sendHistoricalEvents(client, streamId);
   }
 

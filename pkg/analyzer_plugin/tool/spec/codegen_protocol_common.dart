@@ -49,7 +49,7 @@ class CodegenCommonVisitor extends CodegenProtocolVisitor {
   /// Initialize a newly created visitor to generate code in the package with
   /// the given [packageName] corresponding to the types in the given [api] that
   /// are common to multiple protocols.
-  CodegenCommonVisitor(
+  new(
     super.packageName,
     super.responseRequiresRequestTime,
     super.uriConverterKind,

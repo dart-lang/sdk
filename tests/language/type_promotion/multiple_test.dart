@@ -36,29 +36,29 @@ void test(A a1) {
   print(a1.a);
   print(a1.b);
   //       ^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
   // [cfe] The getter 'b' isn't defined for the type 'A'.
   print(a1.c);
   //       ^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
   // [cfe] The getter 'c' isn't defined for the type 'A'.
   print(a1.d);
   //       ^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
   // [cfe] The getter 'd' isn't defined for the type 'A'.
 
   print(a2.a);
   print(a2.b);
   //       ^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
   // [cfe] The getter 'b' isn't defined for the type 'A'.
   print(a2.c);
   //       ^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
   // [cfe] The getter 'c' isn't defined for the type 'A'.
   print(a2.d);
   //       ^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
   // [cfe] The getter 'd' isn't defined for the type 'A'.
 
   if (a1 is B && a2 is C) {
@@ -66,11 +66,11 @@ void test(A a1) {
     print(a1.b);
     print(a1.c);
     //       ^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
     // [cfe] The getter 'c' isn't defined for the type 'B'.
     print(a1.d);
     //       ^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
     // [cfe] The getter 'd' isn't defined for the type 'B'.
 
     print(a2.a);
@@ -78,7 +78,7 @@ void test(A a1) {
     print(a2.c);
     print(a2.d);
     //       ^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
     // [cfe] The getter 'd' isn't defined for the type 'C'.
 
     if (a1 is C && a2 is D) {
@@ -87,7 +87,7 @@ void test(A a1) {
       print(a1.c);
       print(a1.d);
       //       ^
-      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
       // [cfe] The getter 'd' isn't defined for the type 'C'.
 
       print(a2.a);
@@ -95,7 +95,7 @@ void test(A a1) {
       print(a2.c);
       print(a2.d);
       //       ^
-      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
       // [cfe] The getter 'd' isn't defined for the type 'C'.
     }
   }
@@ -105,44 +105,44 @@ void test(A a1) {
             '${a1.b}'
             '${a1.c}'
             //    ^
-            // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+            // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
             // [cfe] The getter 'c' isn't defined for the type 'B'.
             '${a1.d}'
             //    ^
-            // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+            // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
             // [cfe] The getter 'd' isn't defined for the type 'B'.
             '${a2.a}'
             '${a2.b}'
             '${a2.c}'
             '${a2.d}'
       //          ^
-      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
       // [cfe] The getter 'd' isn't defined for the type 'C'.
       : '${a1.a}'
             '${a1.b}'
             //    ^
-            // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+            // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
             // [cfe] The getter 'b' isn't defined for the type 'A'.
             '${a1.c}'
             //    ^
-            // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+            // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
             // [cfe] The getter 'c' isn't defined for the type 'A'.
             '${a1.d}'
             //    ^
-            // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+            // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
             // [cfe] The getter 'd' isn't defined for the type 'A'.
             '${a2.a}'
             '${a2.b}'
             //    ^
-            // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+            // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
             // [cfe] The getter 'b' isn't defined for the type 'A'.
             '${a2.c}'
             //    ^
-            // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+            // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
             // [cfe] The getter 'c' isn't defined for the type 'A'.
             '${a2.d}';
   //              ^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
   // [cfe] The getter 'd' isn't defined for the type 'A'.
 
   if (a2 is C && a1 is B && a1 is C && a2 is B && a2 is D) {
@@ -151,7 +151,7 @@ void test(A a1) {
     print(a1.c);
     print(a1.d);
     //       ^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
     // [cfe] The getter 'd' isn't defined for the type 'C'.
 
     print(a2.a);
@@ -159,7 +159,7 @@ void test(A a1) {
     print(a2.c);
     print(a2.d);
     //       ^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
     // [cfe] The getter 'd' isn't defined for the type 'C'.
   }
 }

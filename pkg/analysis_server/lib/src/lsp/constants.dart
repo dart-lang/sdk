@@ -235,6 +235,30 @@ abstract final class CustomSemanticTokenModifiers {
   /// A modifier applied to the identifier for an import prefix.
   static const importPrefix = SemanticTokenModifiers('importPrefix');
 
+  /// A modifier applied to references to mixins to distinguish them from
+  /// classes.
+  static const mixin = SemanticTokenModifiers('mixin');
+
+  /// A modifier applied to references to extensions to distinguish them from
+  /// classes.
+  static const extension = SemanticTokenModifiers('extension');
+
+  /// A modifier applied to references to extension types to distinguish them
+  /// from classes.
+  static const extensionType = SemanticTokenModifiers('extensionType');
+
+  /// A modifier applied to references to typedefs that alias function types to
+  /// distinguish them from other type aliases.
+  static const functionTypeAlias = SemanticTokenModifiers('functionTypeAlias');
+
+  /// A modifier applied to references to typedefs that do not alias function
+  /// types.
+  static const typeAlias = SemanticTokenModifiers('typeAlias');
+
+  /// A modifier applied to functions, methods and constructors that are
+  /// referenced as a tear-off rather than being invoked.
+  static const tearOff = SemanticTokenModifiers('tearOff');
+
   /// A modifier applied to parameter references to indicate they are the name/label
   /// to allow theming them differently to the values.
   ///
@@ -291,14 +315,20 @@ abstract final class CustomSemanticTokenModifiers {
   /// be listed here in case they are removed from mappings in the future.
   static const values = [
     annotation,
+    constructor,
     control,
+    escape,
+    extension,
+    extensionType,
+    functionTypeAlias,
     importPrefix,
     instance,
-    label,
-    constructor,
-    escape,
     interpolation,
+    label,
+    mixin,
     source,
+    tearOff,
+    typeAlias,
     void_,
     wildcard,
   ];

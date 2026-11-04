@@ -790,7 +790,6 @@ CallInvocation
     name: foo
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::foo
-      invokeType: String Function(int, {int b}) Function()
       type: String Function(int, {int b})
         alias: <testLibrary>::@typeAlias::F
     staticType: String Function(int, {int b})
@@ -864,7 +863,6 @@ CallInvocation
     name: foo
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::foo
-      invokeType: Function Function()
       type: Function
     staticType: Function
   argumentList: ArgumentList
@@ -904,7 +902,6 @@ CallInvocation
     name: id
     resolution: GetterInvocationResolution
       element: <testLibrary>::@getter::id
-      invokeType: bool Function(Object?, Object?) Function()
       type: bool Function(Object?, Object?)
     staticType: bool Function(Object?, Object?)
   argumentList: ArgumentList
@@ -914,7 +911,6 @@ CallInvocation
         name: a
         resolution: GetterInvocationResolution
           element: <testLibrary>::@getter::a
-          invokeType: int Function()
           type: int
         correspondingParameter: dart:core::@function::identical::@formalParameter::a
         staticType: int
@@ -922,7 +918,6 @@ CallInvocation
         name: b
         resolution: GetterInvocationResolution
           element: <testLibrary>::@getter::b
-          invokeType: int Function()
           type: int
         correspondingParameter: dart:core::@function::identical::@formalParameter::b
         staticType: int
@@ -1157,7 +1152,6 @@ CallInvocation
     name: foo
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::foo
-      invokeType: int Function() Function()
       type: int Function()
     staticType: int Function()
   argumentList: ArgumentList
@@ -1276,7 +1270,6 @@ ReceiverPropertyExtraction
       name: foo
       resolution: GetterInvocationResolution
         element: <testLibrary>::@class::A::@getter::foo
-        invokeType: int Function() Function()
         type: int Function()
       staticType: int Function()
     argumentList: ArgumentList
@@ -1290,7 +1283,6 @@ ReceiverPropertyExtraction
   name: isEven
   resolution: GetterInvocationResolution
     element: dart:core::@class::int::@getter::isEven
-    invokeType: bool Function()
     type: bool
   staticType: bool?
 V1: PropertyAccess

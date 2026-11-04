@@ -121,6 +121,9 @@ class CoreTypes {
   late final Procedure futureSyncFactory =
       index.getMember('dart:async', 'Future', 'sync') as Procedure;
 
+  late final Procedure futureSyncValueFactory =
+      index.getMember('dart:async', 'Future', 'syncValue') as Procedure;
+
   late final Procedure futureValueFactory =
       index.getMember('dart:async', 'Future', 'value') as Procedure;
 

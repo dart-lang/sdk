@@ -200,8 +200,8 @@ static AppSnapshot* TryReadAppSnapshotDynamicLibrary(
     const intptr_t err = errno;
     const int kBufferSize = 1024;
     char error_buf[kBufferSize];
-    Utils::StrError(err, error_buf, kBufferSize);
-    *error = Utils::SCreate("could not resolve path: %s", error_buf);
+    *error = Utils::SCreate("could not resolve path: %s",
+                            Utils::StrError(err, error_buf, kBufferSize));
     return nullptr;
   }
 #endif

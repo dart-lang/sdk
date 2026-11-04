@@ -2,12 +2,14 @@
   (type $#Top <...>)
   (type $ArgumentError <...>)
   (type $Array<Object?> <...>)
-  (type $Array<String> <...>)
-  (type $Array<WasmArray<WasmI8>?> <...>)
   (type $Array<WasmI8> <...>)
-  (type $Array<int> <...>)
   (type $JSExternWrapper <...>)
   (type $Object <...>)
+  (rec
+    (type $Array<WasmArray<WasmI8>?> <...>)
+    (type $Array<int> <...>)
+    (type $Array<String> <...>)
+  )
   (func $"wasm:js-string.charCodeAt (import)" (import "wasm:js-string" "charCodeAt") (param externref i32) (result i32))
   (@binaryen.removable.if.unused)
   (func $"wasm:js-string.concat (import)" (import "wasm:js-string" "concat") (param externref externref) (result (ref extern)))
@@ -52,9 +54,9 @@
     global.set $_deletedDataMarker
     global.get $deferredLoadLists
     i32.const 1
-    i32.const 0
+    i32.const 1
     i32.const 2
-    array.new_data $Array<WasmI8>$data0
+    array.new $Array<WasmI8>
     array.set $Array<WasmArray<WasmI8>?>
   )
   (func $ArgumentError (param $var0 (ref null $#Top)) (param $var1 (ref null $JSExternWrapper)) (result (ref $ArgumentError)) <...>)
@@ -62,11 +64,10 @@
   (func $IntegerDivisionByZeroException (result (ref $Object)) <...>)
   (func $JSStringImpl._interpolate (param $var0 (ref $Array<Object?>)) (result (ref $JSExternWrapper)) <...>)
   (func $JSStringImpl._interpolate4 (param $var0 (ref null $#Top)) (param $var1 (ref null $#Top)) (param $var2 (ref null $#Top)) (param $var3 (ref null $#Top)) (result (ref $JSExternWrapper)) <...>)
-  (func $JSStringImpl.fromRefUnchecked (param $var0 externref) (result (ref $JSExternWrapper)) <...>)
+  (func $JSStringImpl.fromRefUnchecked (param $var0 (ref extern)) (result (ref $JSExternWrapper)) <...>)
   (func $JSStringImpl.substring (param $var0 (ref $JSExternWrapper)) (param $var1 i64) (param $var2 i64) (result (ref $JSExternWrapper)) <...>)
   (func $_TypeError._throwNullCheckErrorWithCurrentStack  <...>)
   (func $_jsBigIntToString (param $var0 i64) (param $var1 i64) (result (ref $JSExternWrapper)) <...>)
   (func $_throwIndexError (param $var0 i64) (param $var1 i64) (param $var2 (ref null $JSExternWrapper)) <...>)
   (func $_throwRangeError (param $var0 i64) (param $var1 i64) (param $var2 i64) (param $var3 (ref null $JSExternWrapper)) (param $var4 (ref null $JSExternWrapper)) <...>)
-  (data $data0 <... 2 bytes ...>)
 )

@@ -46,7 +46,6 @@ class RegularClassDeclaration implements ClassDeclaration {
   LookupScope get bodyScope => _fragment.bodyScope;
 
   @override
-  // Coverage-ignore(suite): Not run.
   UriOffsetLength get uriOffset => _fragment.uriOffset;
 
   @override
@@ -113,7 +112,6 @@ class EnumDeclaration implements ClassDeclaration {
   LookupScope get bodyScope => _fragment.bodyScope;
 
   @override
-  // Coverage-ignore(suite): Not run.
   UriOffsetLength get uriOffset => _fragment.uriOffset;
 
   @override
@@ -181,7 +179,6 @@ class NamedMixinApplication implements ClassDeclaration {
   LookupScope get bodyScope => compilationUnitScope;
 
   @override
-  // Coverage-ignore(suite): Not run.
   UriOffsetLength get uriOffset => _fragment.uriOffset;
 
   @override
@@ -305,7 +302,6 @@ class MixinDeclaration implements ClassDeclaration {
   LookupScope get bodyScope => _fragment.bodyScope;
 
   @override
-  // Coverage-ignore(suite): Not run.
   UriOffsetLength get uriOffset => _fragment.uriOffset;
 
   @override

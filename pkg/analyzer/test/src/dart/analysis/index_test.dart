@@ -3396,10 +3396,10 @@ enum E {
 void f(E e, dynamic d) {
   e.foo = 1;
 //  ^^^
-// [diag.assignmentToFinal] 'foo' can't be used as a setter because it's final.
+// [diag.undefinedInstanceMemberWriteFinal] The field 'foo' of the type 'E' is final, so it can't be assigned to.
   e..foo = 2;
 //   ^^^
-// [diag.assignmentToFinal] 'foo' can't be used as a setter because it's final.
+// [diag.undefinedInstanceMemberWriteFinal] The field 'foo' of the type 'E' is final, so it can't be assigned to.
   d.foo = 3;
   d..foo = 4;
 }
@@ -5480,10 +5480,7 @@ class A {
 void f(A a) {
   (a).foo ??= () {};
 //    ^^^
-// [diag.assignmentToMethod] Methods can't be assigned a value.
-//            ^^^^^
-// [diag.deadCode] Dead code.
-// [diag.deadNullAwareExpression] The left operand can't be null, so the right operand is never executed.
+// [diag.undefinedInstanceMemberWriteWrongKind] The method 'foo' of the type 'A' can't be assigned to.
 }
 ''');
     var element = result.findElement.method('foo');
@@ -6911,13 +6908,13 @@ class A {
   void f() {
     item;
 //  ^^^^
-// [diag.undefinedIdentifier] Undefined name 'item'.
+// [diag.undefinedUnqualifiedNameReadSetterOnly] There's a setter 'item', but no getter.
     this.item;
 //       ^^^^
-// [diag.undefinedGetter] The getter 'item' isn't defined for the type 'A'.
+// [diag.undefinedInstanceMemberReadSetterOnly] There's a setter 'item' for the type 'A', but no getter.
     (this).item;
 //         ^^^^
-// [diag.undefinedGetter] The getter 'item' isn't defined for the type 'A'.
+// [diag.undefinedInstanceMemberReadSetterOnly] There's a setter 'item' for the type 'A', but no getter.
   }
 }
 ''');
@@ -7437,7 +7434,10 @@ void foo() {}
 void f() {
   foo = 0;
 //^^^
-// [diag.assignmentToFunction] Functions can't be assigned a value.
+// [diag.undefinedUnqualifiedNameWriteWrongKind] The function 'foo' can't be assigned to.
+  for (foo in [0]) {}
+//     ^^^
+// [diag.undefinedUnqualifiedNameWriteWrongKind] The function 'foo' can't be assigned to.
 }
 ''');
 
@@ -7449,6 +7449,8 @@ void foo() {}
 void f() {
   foo = 0;
   ^^^ IS_REFERENCED_BY
+  for (foo in [0]) {}
+       ^^^ IS_REFERENCED_BY
 }
 ''');
   }
@@ -7484,10 +7486,7 @@ void foo() {}
 void f() {
   foo ??= () {};
 //^^^
-// [diag.assignmentToFunction] Functions can't be assigned a value.
-//        ^^^^^
-// [diag.deadCode] Dead code.
-// [diag.deadNullAwareExpression] The left operand can't be null, so the right operand is never executed.
+// [diag.undefinedUnqualifiedNameWriteWrongKind] The function 'foo' can't be assigned to.
 }
 ''');
     var element = result.findElement.topFunction('foo');
@@ -7544,7 +7543,10 @@ int get foo => 0;
 void f() {
   foo = 1;
 //^^^
-// [diag.assignmentToFinal] 'foo' can't be used as a setter because it's final.
+// [diag.undefinedUnqualifiedNameWriteGetterOnly] There's a getter 'foo', but no setter.
+  for (foo in [1]) {}
+//     ^^^
+// [diag.undefinedUnqualifiedNameWriteGetterOnly] There's a getter 'foo', but no setter.
 }
 ''');
 
@@ -7556,6 +7558,8 @@ int get foo => 0;
 void f() {
   foo = 1;
   ^^^ IS_REFERENCED_BY
+  for (foo in [1]) {}
+       ^^^ IS_REFERENCED_BY
 }
 ''');
   }
@@ -7692,6 +7696,7 @@ set foo(int _) {}
 void f() {
   foo = 0;
   p.foo = 0;
+  for (foo in [0]) {}
 }
 ''');
 
@@ -7710,6 +7715,8 @@ void f() {
   ^^^ setter IS_INVOKED_BY
   p.foo = 0;
     ^^^ setter IS_INVOKED_BY qualified
+  for (foo in [0]) {}
+       ^^^ setter IS_INVOKED_BY
 }
 ''',
     );
@@ -8103,6 +8110,7 @@ class C {
     x = 1;
     x += 2;
     x();
+    for (x in [3]) {}
   }
 }
 ''');
@@ -8125,6 +8133,8 @@ class C {
     ^ setter IS_INVOKED_BY
     x();
     ^ getter IS_INVOKED_BY
+    for (x in [3]) {}
+         ^ setter IS_INVOKED_BY
   }
 }
 ''',
@@ -8136,16 +8146,19 @@ class C {
 void f() {
   x;
 //^
-// [diag.undefinedIdentifier] Undefined name 'x'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'x'.
   x = 1;
 //^
-// [diag.undefinedIdentifier] Undefined name 'x'.
+// [diag.undefinedUnqualifiedNameWriteNotFound] Undefined name 'x'.
   x += 2;
 //^
-// [diag.undefinedIdentifier] Undefined name 'x'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'x'.
   x();
 //^
-// [diag.undefinedFunction] The function 'x' isn't defined.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'x'.
+  for (x in [3]) {}
+//     ^
+// [diag.undefinedUnqualifiedNameWriteNotFound] Undefined name 'x'.
 }
 ''');
     assertNamesIndexText(
@@ -8161,6 +8174,8 @@ void f() {
   ^ x IS_READ_WRITTEN_BY
   x();
   ^ x IS_INVOKED_BY
+  for (x in [3]) {}
+       ^ x IS_WRITTEN_BY
 }
 ''',
     );
@@ -8172,9 +8187,8 @@ void f() {
     Set<String> names = const {},
     required String expected,
   }) {
-    var actual = _IndexTextBuilder(
-      result,
-    ).indexText(elements: elements, names: names);
+    var actual = _IndexTextBuilder(result)
+        .indexText(elements: elements, names: names);
     if (actual != expected) {
       NodeTextExpectationsCollector.add(actual);
       if (NodeTextExpectationsCollector.shouldPrintFailureDetails) {
@@ -8211,7 +8225,7 @@ final class _IndexAnnotation {
   final int? labelOrder;
   final String text;
 
-  _IndexAnnotation({
+  new({
     required this.offset,
     required this.length,
     this.labelOrder,
@@ -8223,7 +8237,7 @@ final class _IndexResult {
   final TestResolvedUnitResult resolvedUnit;
   final AnalysisDriverUnitIndex index;
 
-  _IndexResult(this.resolvedUnit, this.index);
+  new(this.resolvedUnit, this.index);
 
   FindElement get findElement => resolvedUnit.findElement;
 }
@@ -8231,7 +8245,7 @@ final class _IndexResult {
 final class _IndexTextBuilder {
   final _IndexResult result;
 
-  _IndexTextBuilder(this.result);
+  new(this.result);
 
   String indexText({
     required Map<String, Element> elements,

@@ -6,12 +6,12 @@
     (field $value f64))))
   (type $JSExternWrapper (sub $#Top (struct
     (field $#classId i32)
-    (field $_externRef externref))))
+    (field $_externRef (ref extern)))))
   (memory $foo.mem (import "foo" "mem") 1)
   (memory $foo.second_mem (import "foo" "second_mem") 1)
   (global $.a (import "" "a") (ref extern))
   (global $"\"a\"" (ref $JSExternWrapper)
-    (i32.const 65)
+    (i32.const 67)
     (global.get $.a)
     (struct.new $JSExternWrapper))
   (func $Error._throwWithCurrentStackTrace (param $var0 (ref $#Top)) <...>)
@@ -20,30 +20,30 @@
     i32.const 1
     memory.grow $foo.mem
     drop
-    i32.const 98
+    i32.const 99
     i32.const 0
     f32.load align=4
     f64.promote_f32
     struct.new $BoxedDouble
     call $print
-    i32.const 98
+    i32.const 99
     i32.const 0
     f32.load align=4
     f64.promote_f32
     struct.new $BoxedDouble
     call $print
-    i32.const 98
+    i32.const 99
     i32.const 0
     f64.load align=8
     struct.new $BoxedDouble
     call $print
-    i32.const 98
+    i32.const 99
     i32.const 1
     f32.load align=4
     f64.promote_f32
     struct.new $BoxedDouble
     call $print
-    i32.const 98
+    i32.const 99
     i32.const 1
     f32.load align=4
     f64.promote_f32
@@ -55,7 +55,7 @@
     memory.size $foo.second_mem
     f64.const 42.5
     f64.store$foo.second_mem offset=258 align=8
-    i32.const 98
+    i32.const 99
     memory.size $foo.second_mem
     f64.load$foo.second_mem offset=258 align=8
     struct.new $BoxedDouble

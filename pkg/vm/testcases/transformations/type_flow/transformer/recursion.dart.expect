@@ -1,0 +1,157 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+
+abstract class Value extends core::Object {
+}
+class IntValue extends core::Object implements self::Value {
+  synthetic constructor •() → self::IntValue
+    : super core::Object::•()
+    ;
+}
+class StringValue extends core::Object implements self::Value {
+  synthetic constructor •() → self::StringValue
+    : super core::Object::•()
+    ;
+}
+abstract class Node extends core::Object {
+
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]
+  abstract method eval() → self::Value;
+}
+class LiteralNode extends core::Object implements self::Node {
+  synthetic constructor •() → self::LiteralNode
+    : super core::Object::•()
+    ;
+
+  [@vm.inferred-return-type.metadata=#lib::IntValue]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]
+  method eval() → self::Value
+    return new self::IntValue::•();
+}
+class NegateNode extends core::Object implements self::Node {
+
+  [@vm.inferred-type.metadata=!]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:3]
+  final field self::Node operand;
+  constructor •([@vm.inferred-arg-type.metadata=!] initializing-formal self::Node operand) → self::NegateNode
+    : self::NegateNode::operand = operand, super core::Object::•()
+    ;
+
+  [@vm.inferred-return-type.metadata=#lib::IntValue]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]
+  method eval() → self::Value
+    return [@vm.inferred-type.metadata=#lib::IntValue] [@vm.direct-call.metadata=#lib::NegateNode.operand] [@vm.inferred-type.metadata=!] this.{self::NegateNode::operand}{self::Node}.{self::Node::eval}(){() → self::Value};
+}
+abstract class StepValue extends core::Object {
+  synthetic constructor •() → self::StepValue
+    : super core::Object::•()
+    ;
+}
+abstract class ValidStep extends self::StepValue {
+  synthetic constructor •() → self::ValidStep
+    : super self::StepValue::•()
+    ;
+}
+class Step0 extends self::ValidStep {
+  synthetic constructor •() → self::Step0
+    : super self::ValidStep::•()
+    ;
+}
+class Step1 extends self::ValidStep {
+  synthetic constructor •() → self::Step1
+    : super self::ValidStep::•()
+    ;
+}
+class Step2 extends self::ValidStep {
+  synthetic constructor •() → self::Step2
+    : super self::ValidStep::•()
+    ;
+
+  [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:4,getterSelectorId:5]
+  method reached() → void
+    return [@vm.inferred-type.metadata=dart.core::Null? (value: null)] core::print("Step2");
+}
+class UnusedStep extends self::StepValue {
+  synthetic constructor •() → self::UnusedStep
+    : super self::StepValue::•()
+    ;
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method main() → void {
+  self::testDirectRecursion();
+  self::testMutualRecursion();
+  self::testPolymorphicRecursion();
+  self::testMultiStepRecursion();
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method testDirectRecursion() → void {
+  core::print([@vm.inferred-type.metadata=dart.core::_Array<dart.core::int> (inexact)] self::buildListDirect(3));
+}
+
+[@vm.inferred-return-type.metadata=dart.core::_Array<dart.core::int> (inexact)]
+[@vm.unboxing-info.metadata=(i)->b]
+static method buildListDirect([@vm.inferred-arg-type.metadata=int] core::int n) → core::List<core::int> {
+  if([@vm.direct-call.metadata=dart.core::_IntegerImplementation.<=] [@vm.inferred-type.metadata=dart.core::bool (skip check)] n.{core::num::<=}(0){(core::num) → core::bool})
+    return #C1;
+  if([@vm.direct-call.metadata=dart.core::_IntegerImplementation.isOdd] [@vm.inferred-type.metadata=dart.core::bool] n.{core::int::isOdd}{core::bool})
+    return [@vm.inferred-type.metadata=dart.core::_Array<dart.core::int> (inexact)] self::buildListDirect([@vm.direct-call.metadata=dart.core::_IntegerImplementation.-] [@vm.inferred-type.metadata=int (skip check)] n.{core::num::-}(1){(core::num) → core::int});
+  return [@vm.inferred-type.metadata=dart.core::_List<dart.core::int>] core::_List::filled<core::int>(n, 0);
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method testMutualRecursion() → void {
+  core::print([@vm.inferred-type.metadata=dart.core::_Array<dart.core::int> (inexact)] self::buildListEven(3));
+}
+
+[@vm.inferred-return-type.metadata=dart.core::_Array<dart.core::int> (inexact)]
+[@vm.unboxing-info.metadata=(i)->b]
+static method buildListEven([@vm.inferred-arg-type.metadata=int] core::int n) → core::List<core::int> {
+  if([@vm.direct-call.metadata=dart.core::_IntegerImplementation.<=] [@vm.inferred-type.metadata=dart.core::bool (skip check)] n.{core::num::<=}(0){(core::num) → core::bool})
+    return #C1;
+  return [@vm.inferred-type.metadata=dart.core::_Array<dart.core::int> (inexact)] self::buildListOdd([@vm.direct-call.metadata=dart.core::_IntegerImplementation.-] [@vm.inferred-type.metadata=int (skip check)] n.{core::num::-}(1){(core::num) → core::int});
+}
+
+[@vm.inferred-return-type.metadata=dart.core::_Array<dart.core::int> (inexact)]
+[@vm.unboxing-info.metadata=(i)->b]
+static method buildListOdd([@vm.inferred-arg-type.metadata=int] core::int n) → core::List<core::int> {
+  if([@vm.direct-call.metadata=dart.core::_IntegerImplementation.isOdd] [@vm.inferred-type.metadata=dart.core::bool] n.{core::int::isOdd}{core::bool})
+    return [@vm.inferred-type.metadata=dart.core::_Array<dart.core::int> (inexact)] self::buildListEven([@vm.direct-call.metadata=dart.core::_IntegerImplementation.-] [@vm.inferred-type.metadata=int (skip check)] n.{core::num::-}(1){(core::num) → core::int});
+  return [@vm.inferred-type.metadata=dart.core::_List<dart.core::int>] core::_List::filled<core::int>(n, 0);
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method testPolymorphicRecursion() → void {
+  core::print(new self::StringValue::•());
+  final self::Node tree = new self::NegateNode::•(new self::NegateNode::•(new self::LiteralNode::•()));
+  core::print([@vm.direct-call.metadata=#lib::NegateNode.eval] [@vm.inferred-type.metadata=#lib::IntValue (skip check)] tree.{self::Node::eval}(){() → self::Value});
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method testMultiStepRecursion() → void {
+  core::print(new self::UnusedStep::•());
+  final self::StepValue result = [@vm.inferred-type.metadata=#lib::ValidStep (inexact)] self::multiStep(3);
+  if(result is self::Step2) {
+    [@vm.direct-call.metadata=#lib::Step2.reached] [@vm.inferred-type.metadata=? (skip check)] result{self::Step2}.{self::Step2::reached}(){() → void};
+  }
+  ;
+}
+
+[@vm.inferred-return-type.metadata=#lib::ValidStep (inexact)]
+[@vm.unboxing-info.metadata=(i)->b]
+static method multiStep([@vm.inferred-arg-type.metadata=int] core::int n) → self::StepValue {
+  if([@vm.direct-call.metadata=dart.core::_IntegerImplementation.<=] [@vm.inferred-type.metadata=dart.core::bool (skip check)] n.{core::num::<=}(0){(core::num) → core::bool})
+    return new self::Step0::•();
+  final self::StepValue prev = [@vm.inferred-type.metadata=#lib::ValidStep (inexact)] self::multiStep([@vm.direct-call.metadata=dart.core::_IntegerImplementation.-] [@vm.inferred-type.metadata=int (skip check)] n.{core::num::-}(1){(core::num) → core::int});
+  if(prev is self::Step0)
+    return new self::Step1::•();
+  if(prev is self::Step1)
+    return new self::Step2::•();
+  return prev;
+}
+constants  {
+  #C1 = <core::int>[]
+}

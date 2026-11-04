@@ -448,7 +448,7 @@ import 'ht:';
 library
   reference: <testLibrary>
   metadata
-    Annotation
+    annotation_0: Annotation
       atSign: @ @0
       expression: UnqualifiedNameExpression
         name: foo @1
@@ -466,7 +466,7 @@ library
       libraryImports
         relativeUri 'ht:'
           metadata
-            Annotation
+            annotation_1: Annotation
               atSign: @ @0
               expression: UnqualifiedNameExpression
                 name: foo @1
@@ -1095,13 +1095,12 @@ const a = 0;
 library
   reference: <testLibrary>
   metadata
-    Annotation
+    annotation_0: Annotation
       atSign: @ @0
       expression: UnqualifiedNameExpression
         name: a @1
         resolution: GetterInvocationResolution
           element: <testLibrary>::@getter::a
-          invokeType: int Function()
           type: int
         staticType: int
       name: SimpleIdentifier
@@ -1115,13 +1114,12 @@ library
       libraryImports
         dart:math
           metadata
-            Annotation
+            annotation_1: Annotation
               atSign: @ @0
               expression: UnqualifiedNameExpression
                 name: a @1
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::a
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -1132,7 +1130,7 @@ library
       topLevelVariables
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:30) (firstTokenOffset:30) (offset:30)
           element: <testLibrary>::@topLevelVariable::a
-          initializer: expression_0
+          constantInitializer2: expression_0
             IntegerLiteral
               literal: 0 @34
               staticType: int
@@ -1146,9 +1144,7 @@ library
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F1
       type: int
-      constantInitializer
-        fragment: #F1
-        expression: expression_0
+      constantInitializer2: expression_0
       getter: <testLibrary>::@getter::a
   getters
     isOriginVariable isStatic a
@@ -1170,13 +1166,12 @@ const a = 0;
 library
   reference: <testLibrary>
   metadata
-    Annotation
+    annotation_0: Annotation
       atSign: @ @0
       expression: UnqualifiedNameExpression
         name: a @1
         resolution: GetterInvocationResolution
           element: <testLibrary>::@getter::a
-          invokeType: int Function()
           type: int
         staticType: int
       name: SimpleIdentifier
@@ -1190,13 +1185,12 @@ library
       libraryImports
         dart:math
           metadata
-            Annotation
+            annotation_1: Annotation
               atSign: @ @0
               expression: UnqualifiedNameExpression
                 name: a @1
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::a
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -1209,7 +1203,7 @@ library
       topLevelVariables
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:42) (firstTokenOffset:42) (offset:42)
           element: <testLibrary>::@topLevelVariable::a
-          initializer: expression_0
+          constantInitializer2: expression_0
             IntegerLiteral
               literal: 0 @46
               staticType: int
@@ -1223,9 +1217,7 @@ library
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F1
       type: int
-      constantInitializer
-        fragment: #F1
-        expression: expression_0
+      constantInitializer2: expression_0
       getter: <testLibrary>::@getter::a
   getters
     isOriginVariable isStatic a

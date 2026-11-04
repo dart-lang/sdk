@@ -21,7 +21,9 @@ main() {
   // Most browsers can trigger timers too early. Test data shows instances where
   // timers fire even 15ms early. We add a safety margin to prevent flakiness
   // when running this test on affected platforms.
-  int safetyMargin = const bool.fromEnvironment('dart.library.js') ? 40 : 0;
+  int safetyMargin = const bool.fromEnvironment('dart.library.js_interop')
+      ? 40
+      : 0;
 
   asyncStart();
   var sw = new Stopwatch()..start();

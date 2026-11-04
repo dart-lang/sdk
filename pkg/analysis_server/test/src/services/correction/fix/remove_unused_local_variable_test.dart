@@ -19,7 +19,8 @@ void main() {
 }
 
 @reflectiveTest
-class RemoveUnusedLocalVariableTest extends FixProcessorTest {
+class RemoveUnusedLocalVariableTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeUnusedLocalVariable;
 
@@ -464,7 +465,7 @@ void f() {
 
 @reflectiveTest
 class RemoveUnusedLocalVariableTest_DeclaredVariablePattern
-    extends FixProcessorTest {
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeUnusedLocalVariable;
 

@@ -1,0 +1,5 @@
+import 'package:fruits/fruits_lib.dart';
+
+test() {}
+
+main() {}

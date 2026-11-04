@@ -9,6 +9,7 @@ import 'notification_manager_test.dart' as notification_manager;
 import 'plugin_isolate_test.dart' as plugin_isolate;
 import 'plugin_locator_test.dart' as plugin_locator;
 import 'plugin_manager_test.dart' as plugin_manager;
+import 'plugin_trust_test.dart' as plugin_trust;
 import 'plugin_watcher_test.dart' as plugin_watcher;
 import 'request_converter_test.dart' as request_converter;
 import 'result_collector_test.dart' as result_collector;
@@ -22,6 +23,7 @@ void main() {
     plugin_isolate.main();
     plugin_locator.main();
     plugin_manager.main();
+    plugin_trust.main();
     plugin_watcher.main();
     request_converter.main();
     result_collector.main();

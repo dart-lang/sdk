@@ -10,70 +10,84 @@ part of "dart:_internal";
  * Intended to mix-in on top of [ListMixin] for fixed-length lists.
  */
 mixin FixedLengthListMixin<E> {
-  /** This operation is not supported by a fixed length list. */
-  set length(int newLength) {
-    throw UnsupportedError("Cannot change the length of a fixed-length list");
-  }
+  // Overridden by [UnmodifiableFixedLengthListMixin].
+  Never _unsupported(String action) =>
+      throw UnsupportedError("Cannot $action a fixed-length list");
 
   /** This operation is not supported by a fixed length list. */
-  void add(E value) {
-    throw UnsupportedError("Cannot add to a fixed-length list");
-  }
+  set length(int newLength) => _unsupported("change the length of");
 
   /** This operation is not supported by a fixed length list. */
-  void insert(int index, E value) {
-    throw UnsupportedError("Cannot add to a fixed-length list");
-  }
+  void add(E value) => _unsupported("add to");
 
   /** This operation is not supported by a fixed length list. */
-  void insertAll(int at, Iterable<E> iterable) {
-    throw UnsupportedError("Cannot add to a fixed-length list");
-  }
+  void insert(int index, E value) => _unsupported("add to");
 
   /** This operation is not supported by a fixed length list. */
-  void addAll(Iterable<E> iterable) {
-    throw UnsupportedError("Cannot add to a fixed-length list");
-  }
+  void insertAll(int at, Iterable<E> iterable) => _unsupported("add to");
 
   /** This operation is not supported by a fixed length list. */
-  bool remove(Object? element) {
-    throw UnsupportedError("Cannot remove from a fixed-length list");
-  }
+  void addAll(Iterable<E> iterable) => _unsupported("add to");
 
   /** This operation is not supported by a fixed length list. */
-  void removeWhere(bool test(E element)) {
-    throw UnsupportedError("Cannot remove from a fixed-length list");
-  }
+  bool remove(Object? element) => _unsupported("remove from");
 
   /** This operation is not supported by a fixed length list. */
-  void retainWhere(bool test(E element)) {
-    throw UnsupportedError("Cannot remove from a fixed-length list");
-  }
+  void removeWhere(bool Function(E element) test) =>
+      _unsupported("remove from");
 
   /** This operation is not supported by a fixed length list. */
-  void clear() {
-    throw UnsupportedError("Cannot clear a fixed-length list");
-  }
+  void retainWhere(bool Function(E element) test) =>
+      _unsupported("remove from");
 
   /** This operation is not supported by a fixed length list. */
-  E removeAt(int index) {
-    throw UnsupportedError("Cannot remove from a fixed-length list");
-  }
+  void clear() => _unsupported("clear");
 
   /** This operation is not supported by a fixed length list. */
-  E removeLast() {
-    throw UnsupportedError("Cannot remove from a fixed-length list");
-  }
+  E removeAt(int index) => _unsupported("remove from");
 
   /** This operation is not supported by a fixed length list. */
-  void removeRange(int start, int end) {
-    throw UnsupportedError("Cannot remove from a fixed-length list");
-  }
+  E removeLast() => _unsupported("remove from");
 
   /** This operation is not supported by a fixed length list. */
-  void replaceRange(int start, int end, Iterable<E> iterable) {
-    throw UnsupportedError("Cannot remove from a fixed-length list");
-  }
+  void removeRange(int start, int end) => _unsupported("remove from");
+
+  /** This operation is not supported by a fixed length list. */
+  void replaceRange(int start, int end, Iterable<E> iterable) =>
+      _unsupported("remove from");
+}
+
+/// Mixin that throws on the [List] members that modify elements without
+/// changing the length.
+///
+/// Intended to mix-in on top of [FixedLengthListMixin], which already throws
+/// on the members that change the length, for unmodifiable fixed-length
+/// lists. All errors then report an unmodifiable list.
+mixin UnmodifiableFixedLengthListMixin<E> on FixedLengthListMixin<E>
+    implements List<E> {
+  Never _unsupported(String action) =>
+      throw UnsupportedError("Cannot $action an unmodifiable list");
+
+  void operator []=(int index, E value) => _unsupported("modify");
+
+  set first(E element) => _unsupported("modify");
+
+  set last(E element) => _unsupported("modify");
+
+  Never setAll(int at, Iterable<E> iterable) => _unsupported("modify");
+
+  Never sort([int Function(E a, E b)? compare]) => _unsupported("modify");
+
+  Never shuffle([Random? random]) => _unsupported("modify");
+
+  Never setRange(
+    int start,
+    int end,
+    Iterable<E> iterable, [
+    int skipCount = 0,
+  ]) => _unsupported("modify");
+
+  Never fillRange(int start, int end, [E? fillValue]) => _unsupported("modify");
 }
 
 /**
@@ -133,12 +147,12 @@ mixin UnmodifiableListMixin<E> implements List<E> {
   }
 
   /** This operation is not supported by an unmodifiable list. */
-  void removeWhere(bool test(E element)) {
+  void removeWhere(bool Function(E element) test) {
     throw UnsupportedError("Cannot remove from an unmodifiable list");
   }
 
   /** This operation is not supported by an unmodifiable list. */
-  void retainWhere(bool test(E element)) {
+  void retainWhere(bool Function(E element) test) {
     throw UnsupportedError("Cannot remove from an unmodifiable list");
   }
 
@@ -234,7 +248,7 @@ class ListMapView<E> extends UnmodifiableMapBase<int, E> {
   bool containsValue(Object? value) => _values.contains(value);
   bool containsKey(Object? key) => key is int && key >= 0 && key < length;
 
-  void forEach(void f(int key, E value)) {
+  void forEach(void Function(int key, E value) f) {
     int length = _values.length;
     for (int i = 0; i < length; i++) {
       f(i, _values[i]);
@@ -295,47 +309,3 @@ abstract class NonGrowableListError {
   static UnsupportedError remove() =>
       UnsupportedError("Cannot remove from non-growable List");
 }
-
-/**
- * Converts a growable list to a fixed length list with the same elements.
- *
- * For internal use only.
- * Only works on growable lists like the one created by `[]`.
- * May throw on any other list.
- *
- * The operation is efficient. It doesn't copy the elements, but converts
- * the existing list directly to a fixed length list.
- * That means that it is a destructive conversion.
- * The original list should not be used afterwards.
- *
- * The returned list may be the same list as the original,
- * or it may be a different list (according to [identical]).
- * The original list may have changed type to be a fixed list,
- * or become empty or been otherwise modified.
- * It will still be a valid object, so references to it will not, e.g., crash
- * the runtime if accessed, but no promises are made wrt. its contents.
- *
- * This unspecified behavior is the reason the function is not exposed to
- * users. We allow the underlying implementation to make the most efficient
- * conversion, at the cost of leaving the original list in an unspecified
- * state.
- */
-external List<T> makeListFixedLength<T>(List<T> growableList);
-
-/**
- * Converts a fixed-length list to an unmodifiable list.
- *
- * For internal use only.
- *
- * Only works for core fixed-length lists as created by
- * `List.filled(length)`/`List.empty()`,
- * or as returned by [makeListFixedLength].
- *
- * The operation is efficient. It doesn't copy the elements, but converts
- * the existing list directly to a fixed length list.
- * That means that it is a destructive conversion.
- * The original list reference should not be used afterwards.
- *
- * The unmodifiable list type is similar to the one used by const lists.
- */
-external List<T> makeFixedListUnmodifiable<T>(List<T> fixedLengthList);

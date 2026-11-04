@@ -39,7 +39,8 @@ void f() {
 }
 
 @reflectiveTest
-class RemoveUnnecessaryParenthesesTest extends FixProcessorLintTest {
+class RemoveUnnecessaryParenthesesTest
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.removeUnnecessaryParentheses;
 

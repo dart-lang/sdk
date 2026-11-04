@@ -240,7 +240,6 @@ ReceiverIndexExpression
   rightBracket: ]
   resolution: MethodIndexReadResolution
     element: <testLibrary>::@extension::E::@method::[]
-    invokeType: int Function(int)
     type: int
   staticType: int
 V1: IndexExpression

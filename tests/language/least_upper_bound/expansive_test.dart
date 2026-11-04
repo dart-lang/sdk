@@ -42,37 +42,37 @@ void testC1(bool z, C1<int> a, N<C1<String>> b) {
     // Is least upper bound dynamic?
     (z ? a : b).z;
     //          ^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
     // [cfe] The getter 'z' isn't defined for the type 'Object'.
 
     // Is least upper bound N<...> ?
     (z ? a : b).n;
     //          ^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
     // [cfe] The getter 'n' isn't defined for the type 'Object'.
 
     // Is least upper bound C1<...> ?
     (z ? a : b).c1;
     //          ^^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
     // [cfe] The getter 'c1' isn't defined for the type 'Object'.
 
     // Is least upper bound N<dynamic> ?
     (z ? a : b).n.z;
     //          ^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
     // [cfe] The getter 'n' isn't defined for the type 'Object'.
 
     // Is least upper bound N<N<...>> ?
     (z ? a : b).n.n;
     //          ^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
     // [cfe] The getter 'n' isn't defined for the type 'Object'.
 
     // Is least upper bound N<C1<...>> ?
     (z ? a : b).n.c1;
     //          ^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
     // [cfe] The getter 'n' isn't defined for the type 'Object'.
   }
 }
@@ -106,37 +106,37 @@ void testC2(bool z, C2<int> a, N<C2<String>> b) {
     // Is least upper bound dynamic?
     (z ? a : b).z;
     //          ^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
     // [cfe] The getter 'z' isn't defined for the type 'Object'.
 
     // Is least upper bound N<...> ?
     (z ? a : b).n;
     //          ^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
     // [cfe] The getter 'n' isn't defined for the type 'Object'.
 
     // Is least upper bound C2<...> ?
     (z ? a : b).c2;
     //          ^^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
     // [cfe] The getter 'c2' isn't defined for the type 'Object'.
 
     // Is least upper bound N<dynamic> ?
     (z ? a : b).n.z;
     //          ^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
     // [cfe] The getter 'n' isn't defined for the type 'Object'.
 
     // Is least upper bound N<N<...>> ?
     (z ? a : b).n.n;
     //          ^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
     // [cfe] The getter 'n' isn't defined for the type 'Object'.
 
     // Is least upper bound N<C2<...>> ?
     (z ? a : b).n.c2;
     //          ^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
     // [cfe] The getter 'n' isn't defined for the type 'Object'.
   }
 }

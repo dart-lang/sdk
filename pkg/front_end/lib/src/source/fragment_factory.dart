@@ -12,6 +12,7 @@ import '../base/configuration.dart' show Configuration;
 import '../base/identifiers.dart' show Identifier;
 import '../base/modifiers.dart';
 import '../base/scope.dart';
+import '../base/uri_offset.dart';
 import '../builder/constructor_reference_builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
@@ -334,6 +335,7 @@ abstract class FragmentFactory {
     required AsyncModifier asyncModifier,
     required String? nativeMethodName,
     required ProcedureKind kind,
+    required Token bodyToken,
   });
 
   void addConstructor({
@@ -369,6 +371,7 @@ abstract class FragmentFactory {
   void addPrimaryConstructorBody({
     required OffsetMap offsetMap,
     required Token beginToken,
+    required Token thisToken,
     required List<MetadataBuilder>? metadata,
     required int endOffset,
     required Token? initializersStartToken,
@@ -427,6 +430,7 @@ abstract class FragmentFactory {
     required bool isExtensionMember,
     required bool isExtensionTypeMember,
     required bool isOperator,
+    required Token bodyToken,
   });
 
   void addGetter({
@@ -447,6 +451,7 @@ abstract class FragmentFactory {
     required bool isInstanceMember,
     required bool isExtensionMember,
     required bool isExtensionTypeMember,
+    required Token bodyToken,
   });
 
   void addSetter({
@@ -467,6 +472,7 @@ abstract class FragmentFactory {
     required bool isInstanceMember,
     required bool isExtensionMember,
     required bool isExtensionTypeMember,
+    required Token bodyToken,
   });
 
   void addFields(
@@ -489,6 +495,7 @@ abstract class FragmentFactory {
     required bool hasSuper,
     required int nameOffset,
     required Token? initializerToken,
+    required UriOffsetLength uriOffset,
   });
 
   FunctionTypeParameterBuilder addFunctionTypeParameter({
@@ -537,9 +544,7 @@ abstract class FragmentFactory {
 
   TypeParameterFragment addNominalParameter({
     required List<MetadataBuilder>? metadata,
-    required String name,
-    required int nameOffset,
-    required Uri fileUri,
+    required UriOffsetName uriOffsetName,
     required TypeParameterKind kind,
   });
 
@@ -564,8 +569,7 @@ class SynthesizedExtensionSignature {
     required List<TypeParameterFragment>? extensionTypeParameterFragments,
     required TypeBuilder onTypeBuilder,
     required TypeParameterFactory typeParameterFactory,
-    required Uri fileUri,
-    required int fileOffset,
+    required UriOffsetLength uriOffset,
     required bool isClosureContextLoweringEnabled,
   }) {
     NominalParameterCopy? nominalVariableCopy = typeParameterFactory
@@ -590,8 +594,7 @@ class SynthesizedExtensionSignature {
       type: thisType,
       name: syntheticThisName,
       nameOffset: null,
-      fileOffset: fileOffset,
-      fileUri: fileUri,
+      uriOffset: uriOffset,
       isExtensionThis: true,
       hasImmediatelyDeclaredDefaultValue: false,
     );
@@ -614,8 +617,7 @@ class SynthesizedExtensionTypeSignature {
     required ExtensionTypeDeclarationBuilder extensionTypeDeclarationBuilder,
     required List<TypeParameterFragment>? extensionTypeTypeParameters,
     required TypeParameterFactory typeParameterFactory,
-    required Uri fileUri,
-    required int fileOffset,
+    required UriOffsetLength uriOffset,
     required bool isClosureContextLoweringEnabled,
   }) {
     NominalParameterCopy? nominalVariableCopy = typeParameterFactory
@@ -657,8 +659,7 @@ class SynthesizedExtensionTypeSignature {
       type: thisType,
       name: syntheticThisName,
       nameOffset: null,
-      fileOffset: fileOffset,
-      fileUri: fileUri,
+      uriOffset: uriOffset,
       isExtensionThis: true,
       hasImmediatelyDeclaredDefaultValue: false,
     );

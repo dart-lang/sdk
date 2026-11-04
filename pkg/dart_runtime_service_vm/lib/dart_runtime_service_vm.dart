@@ -9,7 +9,7 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
 
-import 'package:dart_runtime_service/dart_runtime_service.dart';
+import 'package:dart_runtime_service/dart_runtime_service_io.dart';
 
 import 'package:dds/dds.dart';
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
@@ -26,7 +26,8 @@ import 'src/vm_expression_evaluator.dart';
 import 'src/vm_isolate_manager.dart';
 
 class DartRuntimeServiceVMBackend
-    extends DartRuntimeServiceBackend<VmIsolateManager> {
+    extends DartRuntimeServiceBackend<VmIsolateManager>
+    with DartRuntimeServiceIoBackend {
   /// The backend implementation for the Dart VM Service.
   ///
   /// [signalWatch] is the internal implementation of [ProcessSignal.watch],
@@ -36,7 +37,6 @@ class DartRuntimeServiceVMBackend
     required super.frontend,
     required this.signalWatch,
     required Stream<VmRunningIsolate> runningIsolatesStream,
-    required this.residentCompilerInfoFile,
     required this._ddsManager,
     this.serviceInfoFilename,
   }) : isolateManager = VmIsolateManager(
@@ -86,8 +86,6 @@ class DartRuntimeServiceVMBackend
   late final VmExpressionEvaluator expressionEvaluator;
 
   late final _vmServiceRpcs = DartRuntimeServiceVmRpcs(backend: this);
-
-  final File? residentCompilerInfoFile;
 
   /// Adds support for launching and accepting connections from the
   /// Dart Development Service.
@@ -204,10 +202,8 @@ class DartRuntimeServiceVMBackend
   }
 
   @override
-  Future<void> onServerStarted({
-    required Uri httpUri,
-    required Uri wsUri,
-  }) async {
+  Future<void> onServerStarted() async {
+    var httpUri = frontend.httpUri;
     if (_ddsManager.launchOnStart) {
       try {
         await _ddsManager.start(vmServiceUri: httpUri);
@@ -386,10 +382,7 @@ class DartRuntimeServiceVMBackend
           streamId: streamId,
           event: json.decode(utf8.decode(utf8String)) as Map<String, Object?>,
         ),
-        final Uint8List binaryData => BinaryStreamEvent(
-          streamId: streamId,
-          data: binaryData,
-        ),
+        final Uint8List binaryData => BinaryStreamEvent.fromData(binaryData),
         _ => throw UnimplementedError(
           'Unexpected event type: ${event.runtimeType}.',
         ),

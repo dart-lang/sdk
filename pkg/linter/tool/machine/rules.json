@@ -268,7 +268,7 @@
     "incompatible": [],
     "sets": [],
     "fixStatus": "hasFix",
-    "details": "Avoid escaping inner quotes by converting surrounding quotes.\n\n**BAD:**\n```dart\nvar s = 'It\\'s not fun';\n```\n\n**GOOD:**\n```dart\nvar s = \"It's not fun\";\n```",
+    "details": "**AVOID** escaping inner quotes by converting surrounding quotes.\n\n**BAD:**\n```dart\nvar s = 'It\\'s not fun';\n```\n\n**GOOD:**\n```dart\nvar s = \"It's not fun\";\n```",
     "sinceDartSdk": "2.8"
   },
   {
@@ -1764,7 +1764,7 @@
     "incompatible": [],
     "sets": [],
     "fixStatus": "noFix",
-    "details": "**DON'T** assign new values to parameters of methods or functions.\n\nAssigning new values to parameters is generally a bad practice unless an\noperator such as `??=` is used.  Otherwise, arbitrarily reassigning parameters\nis usually a mistake.\n\n**BAD:**\n```dart\nvoid badFunction(int parameter) { // LINT\n  parameter = 4;\n}\n```\n\n**BAD:**\n```dart\nvoid badFunction(int required, {int optional: 42}) { // LINT\n  optional ??= 8;\n}\n```\n\n**BAD:**\n```dart\nvoid badFunctionPositional(int required, [int optional = 42]) { // LINT\n  optional ??= 8;\n}\n```\n\n**BAD:**\n```dart\nclass A {\n  void badMethod(int parameter) { // LINT\n    parameter = 4;\n  }\n}\n```\n\n**GOOD:**\n```dart\nvoid ok(String parameter) {\n  print(parameter);\n}\n```\n\n**GOOD:**\n```dart\nvoid actuallyGood(int required, {int optional}) { // OK\n  optional ??= ...;\n}\n```\n\n**GOOD:**\n```dart\nvoid actuallyGoodPositional(int required, [int optional]) { // OK\n  optional ??= ...;\n}\n```\n\n**GOOD:**\n```dart\nclass A {\n  void ok(String parameter) {\n    print(parameter);\n  }\n}\n```",
+    "details": "**DON'T** assign new values to parameters of methods or functions.\n\nAssigning new values to parameters is generally a bad practice unless an\noperator such as `??=` is used.  Otherwise, arbitrarily reassigning parameters\nis usually a mistake.\n\n**BAD:**\n```dart\nvoid badFunction(int parameter) { // LINT\n  parameter = 4;\n}\n```\n\n**BAD:**\n```dart\nvoid badFunction(int parameter, {int? optional = 42}) { // LINT\n  optional ??= 8;\n}\n```\n\n**BAD:**\n```dart\nvoid badFunctionPositional(int parameter, [int? optional = 42]) { // LINT\n  optional ??= 8;\n}\n```\n\n**BAD:**\n```dart\nclass A {\n  void badMethod(int parameter) { // LINT\n    parameter = 4;\n  }\n}\n```\n\n**GOOD:**\n```dart\nvoid ok(String parameter) {\n  print(parameter);\n}\n```\n\n**GOOD:**\n```dart\nvoid actuallyGood(int parameter, {int? optional}) { // OK\n  optional ??= 42;\n}\n```\n\n**GOOD:**\n```dart\nvoid actuallyGoodPositional(int parameter, [int? optional]) { // OK\n  optional ??= 42;\n}\n```\n\n**GOOD:**\n```dart\nclass A {\n  void ok(String parameter) {\n    print(parameter);\n  }\n}\n```",
     "sinceDartSdk": "2.0"
   },
   {
@@ -3102,7 +3102,7 @@
     "incompatible": [],
     "sets": [],
     "fixStatus": "hasFix",
-    "details": "**DON'T** assign `this` to a local variable to perform type promotion.\n\n**BAD:**\n```dart\n%experiments=this-promotion\nclass C {\n  void m() {\n    var [!self!] = this;\n    if (self is D) {}\n  }\n}\nclass D extends C {}\n```\n\n**GOOD:**\n```dart\n%experiments=this-promotion\nclass C {\n  void m() {\n    if (this is D) {}\n  }\n}\nclass D extends C {}\n```",
+    "details": "**DON'T** assign `this` to a local variable to perform type promotion.\n\n**BAD:**\n```dart\nclass C {\n  void m() {\n    var [!self!] = this;\n    if (self is D) {}\n  }\n}\nclass D extends C {}\n```\n\n**GOOD:**\n```dart\nclass C {\n  void m() {\n    if (this is D) {}\n  }\n}\nclass D extends C {}\n```",
     "sinceDartSdk": "3.14"
   },
   {

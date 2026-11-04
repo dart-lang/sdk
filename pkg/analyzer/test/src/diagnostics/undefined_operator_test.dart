@@ -146,6 +146,53 @@ f(A a) {
 ''');
   }
 
+  test_index_get_functionType_extensionHasSetter() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+extension E on void Function() {
+  void operator[]=(int index, int value) {}
+}
+
+f(void Function() c) {
+  c[0];
+// ^^^
+// [diag.undefinedOperator] The operator '[]' isn't defined for the type 'void Function()'.
+}
+''');
+
+    var node = result.findNode.singleReceiverIndexExpression;
+    assertResolvedNodeText(node, r'''
+ReceiverIndexExpression
+  receiver: UnqualifiedNameExpression
+    name: c
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      type: void Function()
+    staticType: void Function()
+  leftBracket: [
+  index: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  rightBracket: ]
+  resolution: InvalidIndexReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: IndexExpression
+  target: SimpleIdentifier
+    token: c
+    element: <testLibrary>::@function::f::@formalParameter::c
+    staticType: void Function()
+  leftBracket: [
+  index: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  rightBracket: ]
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
   test_index_getter() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {}
@@ -208,6 +255,72 @@ extension E on A {
 f(A a) {
   a[0] = 1;
 }
+''');
+  }
+
+  test_index_set_functionType_extensionHasGetter() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+extension E on void Function() {
+  int operator[](int index) => 0;
+}
+
+f(void Function() c) {
+  c[0] = 1;
+// ^^^
+// [diag.undefinedOperator] The operator '[]=' isn't defined for the type 'void Function()'.
+}
+''');
+
+    var node = result.findNode.singleDirectAssignment;
+    assertResolvedNodeText(node, r'''
+DirectAssignment
+  target: ReceiverIndexAssignmentTarget
+    receiver: UnqualifiedNameExpression
+      name: c
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::c
+        type: void Function()
+      staticType: void Function()
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      correspondingParameter: <null>
+      staticType: int
+    rightBracket: ]
+    read: <null>
+    write: InvalidIndexWriteResolution
+      recoveryElement: <null>
+  operator: =
+  value: IntegerLiteral
+    literal: 1
+    correspondingParameter: <null>
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: IndexExpression
+    target: SimpleIdentifier
+      token: c
+      element: <testLibrary>::@function::f::@formalParameter::c
+      staticType: void Function()
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      correspondingParameter: <null>
+      staticType: int
+    rightBracket: ]
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 1
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: int
 ''');
   }
 

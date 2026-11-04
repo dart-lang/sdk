@@ -104,52 +104,55 @@ class CodeActionComputer with HandlerHelperMixin<AnalysisServer> {
     required this.performance,
   });
 
-  Future<ErrorOr<TextDocumentCodeActionResult>> compute() {
-    var path = pathOfDoc(textDocument);
-    return path.mapResult((unitPath) async {
-      if (!server.isAnalyzed(unitPath) ||
-          !isEditableDocument(textDocument.uri)) {
-        return success(const []);
-      }
+  Future<ErrorOr<TextDocumentCodeActionResult>> compute(
+    CancellationToken token,
+  ) {
+    return withPath<TextDocumentCodeActionResult>(
+      textDocument: textDocument,
+      token,
+      (unitPath, docIdentifier, checkAbort) async {
+        if (!server.isAnalyzed(unitPath) ||
+            !isEditableDocument(textDocument.uri)) {
+          return success(const []);
+        }
 
-      var pathContext = server.resourceProvider.pathContext;
-      var docIdentifier = server.getVersionedDocumentIdentifier(unitPath);
+        var pathContext = server.resourceProvider.pathContext;
 
-      var library = await requireResolvedLibrary(unitPath);
-      var libraryResult = library.resultOrNull;
-      var unit = libraryResult?.unitWithPath(unitPath);
+        var library = await requireResolvedLibrary(unitPath);
+        if (checkAbort() case var reason?) return reason;
 
-      // For non-Dart files we don't have a unit and must get the best LineInfo we
-      // can for current content.
-      var lineInfo = unit?.lineInfo ?? server.getLineInfo(unitPath);
-      if (lineInfo == null) {
-        return success([]);
-      }
+        var libraryResult = library.resultOrNull;
+        var unit = libraryResult?.unitWithPath(unitPath);
 
-      var startOffset = toOffset(lineInfo, range.start);
-      var endOffset = toOffset(lineInfo, range.end);
-      if (startOffset.isError || endOffset.isError) {
-        return success([]);
-      }
+        // For non-Dart files we don't have a unit and must get the best LineInfo we
+        // can for current content.
+        var lineInfo = unit?.lineInfo ?? server.getLineInfo(unitPath);
+        if (lineInfo == null) {
+          return success([]);
+        }
 
-      return (startOffset, endOffset).mapResults((
-        startOffset,
-        endOffset,
-      ) async {
-        var actions = await _computeActions(
-          startOffset,
-          endOffset,
-          pathContext,
-          unitPath,
-          unit,
-          libraryResult,
-          lineInfo,
-          docIdentifier,
-        );
+        var startOffset = toOffset(lineInfo, range.start);
+        var endOffset = toOffset(lineInfo, range.end);
+        if (startOffset.isError || endOffset.isError) {
+          return success([]);
+        }
 
-        return success(actions);
-      });
-    });
+        return (startOffset, endOffset).mapResults((startOffset, endOffset) {
+          return _computeActions(
+            startOffset,
+            endOffset,
+            pathContext,
+            unitPath,
+            unit,
+            libraryResult,
+            lineInfo,
+            docIdentifier,
+            token,
+            checkAbort,
+          );
+        });
+      },
+    );
   }
 
   /// Whether any fixes of kind [kind] should be included in the results.
@@ -204,7 +207,7 @@ class CodeActionComputer with HandlerHelperMixin<AnalysisServer> {
     return true;
   }
 
-  Future<List<CodeAction>> _computeActions(
+  Future<ErrorOr<TextDocumentCodeActionResult>> _computeActions(
     int startOffset,
     int endOffset,
     Context pathContext,
@@ -213,6 +216,8 @@ class CodeActionComputer with HandlerHelperMixin<AnalysisServer> {
     ResolvedLibraryResult? libraryResult,
     LineInfo lineInfo,
     OptionalVersionedTextDocumentIdentifier docIdentifier,
+    CancellationToken token,
+    ErrorOr<TextDocumentCodeActionResult>? Function() checkAbort,
   ) async {
     var offset = startOffset;
     var length = endOffset - startOffset;
@@ -228,6 +233,7 @@ class CodeActionComputer with HandlerHelperMixin<AnalysisServer> {
     var includeRefactors = shouldIncludeAnyOfKind(CodeActionKind.Refactor);
 
     var analysisOptions = await _getOptions(unitPath, unit);
+    if (checkAbort() case var reason?) return reason;
 
     var actionComputers = [
       if (isDart && libraryResult != null && unit != null)
@@ -250,6 +256,7 @@ class CodeActionComputer with HandlerHelperMixin<AnalysisServer> {
           analysisOptions: analysisOptions,
           triggerKind: triggerKind,
           willBeDeduplicated: true,
+          token: token,
         ),
       if (isPubspec)
         PubspecCodeActionsProducer(
@@ -266,6 +273,7 @@ class CodeActionComputer with HandlerHelperMixin<AnalysisServer> {
           allowCommands: allowCommands,
           allowSnippets: allowSnippets,
           analysisOptions: analysisOptions,
+          token: token,
         ),
       if (isAnalysisOptions)
         AnalysisOptionsCodeActionsProducer(
@@ -282,6 +290,7 @@ class CodeActionComputer with HandlerHelperMixin<AnalysisServer> {
           allowCommands: allowCommands,
           allowSnippets: allowSnippets,
           analysisOptions: analysisOptions,
+          token: token,
         ),
       PluginCodeActionsProducer(
         server,
@@ -297,49 +306,72 @@ class CodeActionComputer with HandlerHelperMixin<AnalysisServer> {
         allowCommands: allowCommands,
         allowSnippets: allowSnippets,
         analysisOptions: analysisOptions,
+        token: token,
       ),
     ];
     var sorter = _CodeActionSorter(range);
 
-    var allActions = <CodeAction>[
-      // Like-kinded actions are grouped (and prioritized) together
-      // regardless of which producer they came from.
+    // Like-kinded actions are grouped (and prioritized) together regardless of
+    // which producer they came from.
 
-      // Source.
-      if (includeSourceActions)
-        for (var computer in actionComputers)
-          ...await performance.runAsync(
+    // Source.
+    var sourceActions = <CodeAction>[];
+    if (includeSourceActions) {
+      for (var computer in actionComputers) {
+        sourceActions.addAll(
+          await performance.runAsync(
             '${computer.name}.getSourceActions',
             (_) => computer.getSourceActions(),
           ),
+        );
+        if (checkAbort() case var reason?) return reason;
+      }
+    }
 
-      // Fixes.
-      if (includeQuickFixes)
-        ...sorter.sort([
-          for (var computer in actionComputers)
-            ...await performance.runAsync(
-              '${computer.name}.getFixActions',
-              (childPerf) => computer.getFixActions(childPerf),
-            ),
-        ]),
+    // Fixes.
+    var fixActions = <CodeActionWithPriority>[];
+    if (includeQuickFixes) {
+      for (var computer in actionComputers) {
+        fixActions.addAll(
+          await performance.runAsync(
+            '${computer.name}.getFixActions',
+            (childPerf) => computer.getFixActions(childPerf),
+          ),
+        );
+        if (checkAbort() case var reason?) return reason;
+      }
+    }
 
-      // Refactors  (Assists + Refactors).
-      if (includeRefactors)
-        ...sorter.sort([
-          for (var computer in actionComputers)
-            ...await performance.runAsync(
-              '${computer.name}.getAssistActions',
-              (childPerf) => computer.getAssistActions(performance: childPerf),
-            ),
-        ]),
-      if (includeRefactors)
-        for (var computer in actionComputers)
-          ...await performance.runAsync(
+    // Refactors (Assists + Refactors).
+    var assistActions = <CodeActionWithPriority>[];
+    var refactorActions = <CodeAction>[];
+    if (includeRefactors) {
+      for (var computer in actionComputers) {
+        assistActions.addAll(
+          await performance.runAsync(
+            '${computer.name}.getAssistActions',
+            (childPerf) => computer.getAssistActions(performance: childPerf),
+          ),
+        );
+        if (checkAbort() case var reason?) return reason;
+      }
+      for (var computer in actionComputers) {
+        refactorActions.addAll(
+          await performance.runAsync(
             '${computer.name}.getRefactorActions',
             (childPerf) => computer.getRefactorActions(childPerf),
           ),
-    ];
-    return allActions;
+        );
+        if (checkAbort() case var reason?) return reason;
+      }
+    }
+
+    return success([
+      ...sourceActions,
+      ...sorter.sort(fixActions),
+      ...sorter.sort(assistActions),
+      ...refactorActions,
+    ]);
   }
 
   Future<AnalysisOptions> _getOptions(

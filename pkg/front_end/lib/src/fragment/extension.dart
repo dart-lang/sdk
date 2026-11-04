@@ -5,9 +5,10 @@
 part of 'fragment.dart';
 
 class ExtensionFragment extends DeclarationFragmentImpl implements Fragment {
-  final ExtensionName extensionName;
+  @override
+  final UriOffsetLength uriOffset;
 
-  final int nameOrExtensionOffset;
+  final ExtensionName extensionName;
 
   SourceExtensionBuilder? _builder;
 
@@ -16,15 +17,9 @@ class ExtensionFragment extends DeclarationFragmentImpl implements Fragment {
   late final int startOffset;
   late final int endOffset;
 
-  @override
-  late final UriOffsetLength uriOffset = isUnnamed
-      ? new UriOffset(fileUri, nameOrExtensionOffset)
-      : new UriOffsetLength(fileUri, nameOrExtensionOffset, name.length);
-
   new({
     required String? name,
-    required super.fileUri,
-    required this.nameOrExtensionOffset,
+    required this.uriOffset,
     required super.typeParameters,
     required super.enclosingScope,
     required super.typeParameterScope,
@@ -33,6 +28,11 @@ class ExtensionFragment extends DeclarationFragmentImpl implements Fragment {
   }) : extensionName = name != null
            ? new FixedExtensionName(name)
            : new UnnamedExtensionName();
+
+  @override
+  Uri get fileUri => uriOffset.fileUri;
+
+  int get nameOrExtensionOffset => uriOffset.fileOffset;
 
   @override
   // Coverage-ignore(suite): Not run.

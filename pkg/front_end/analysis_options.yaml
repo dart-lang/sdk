@@ -27,4 +27,5 @@ linter:
     - annotate_overrides
     - always_declare_return_types
     - deprecated_member_use_from_same_package
+    - unnecessary_this_alias
     # - always_specify_types

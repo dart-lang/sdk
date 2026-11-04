@@ -58,14 +58,14 @@ import 'package:pub_semver/pub_semver.dart';
 sealed class DirectiveState {
   final FileKind container;
 
-  DirectiveState({required this.container});
+  new({required this.container});
 
   void dispose() {}
 }
 
 /// Meaning of a URI referenced in a directive.
 sealed class DirectiveUri {
-  const DirectiveUri();
+  const new();
 
   Source? get source => null;
 }
@@ -75,7 +75,7 @@ class DirectiveUris {
   final List<DirectiveUri> configurations;
   final DirectiveUri selected;
 
-  DirectiveUris({
+  new({
     required this.primary,
     required this.configurations,
     required this.selected,
@@ -86,7 +86,7 @@ class DirectiveUris {
 final class DirectiveUriWithFile extends DirectiveUriWithSource {
   final FileState file;
 
-  DirectiveUriWithFile({
+  new({
     required super.relativeUriStr,
     required super.relativeUri,
     required this.file,
@@ -104,7 +104,7 @@ final class DirectiveUriWithInSummarySource extends DirectiveUriWithSource {
   @override
   final InSummarySource source;
 
-  DirectiveUriWithInSummarySource({
+  new({
     required super.relativeUriStr,
     required super.relativeUri,
     required this.source,
@@ -116,15 +116,12 @@ final class DirectiveUriWithInSummarySource extends DirectiveUriWithSource {
 
 /// [DirectiveUri] for which we can't get its relative URI string.
 final class DirectiveUriWithoutString extends DirectiveUri {
-  const DirectiveUriWithoutString();
+  const new();
 }
 
 /// [DirectiveUriWithUri] that can be resolved into a [Source].
 sealed class DirectiveUriWithSource extends DirectiveUriWithUri {
-  DirectiveUriWithSource({
-    required super.relativeUriStr,
-    required super.relativeUri,
-  });
+  new({required super.relativeUriStr, required super.relativeUri});
 
   @override
   Source get source;
@@ -137,7 +134,7 @@ sealed class DirectiveUriWithSource extends DirectiveUriWithUri {
 final class DirectiveUriWithString extends DirectiveUri {
   final String relativeUriStr;
 
-  DirectiveUriWithString({required this.relativeUriStr});
+  new({required this.relativeUriStr});
 
   @override
   String toString() => relativeUriStr;
@@ -147,10 +144,7 @@ final class DirectiveUriWithString extends DirectiveUri {
 final class DirectiveUriWithUri extends DirectiveUriWithString {
   final Uri relativeUri;
 
-  DirectiveUriWithUri({
-    required super.relativeUriStr,
-    required this.relativeUri,
-  });
+  new({required super.relativeUriStr, required this.relativeUri});
 
   @override
   String toString() => '$relativeUri';
@@ -175,7 +169,7 @@ abstract class FileKind {
   List<PartIncludeState>? _partIncludes;
   List<LibraryImportState>? _docLibraryImports;
 
-  FileKind({required this.file}) {
+  new({required this.file}) {
     disposeLibraryCycle();
   }
 
@@ -531,7 +525,7 @@ class FileState {
   /// might be fixed by a change to another file.
   bool hasErrorOrWarning = false;
 
-  FileState._(
+  new _(
     this._fsState,
     this.path,
     this.uri,
@@ -579,6 +573,14 @@ class FileState {
 
   File get resource {
     return _fsState.resourceProvider.getFile(path);
+  }
+
+  /// The [featureSet] restricted to the [packageLanguageVersion].
+  ///
+  /// This is the feature set of the file, unless it has a `@dart` language
+  /// override token in the file header.
+  FeatureSet get restrictedFeatureSet {
+    return featureSet.restrictToVersion(packageLanguageVersion);
   }
 
   @visibleForTesting
@@ -630,7 +632,9 @@ class FileState {
           Scanner(inputText: code, reportError: diagnosticReporter.report)
             ..configureFeatures(
               featureSetForOverriding: featureSet,
-              featureSet: featureSet.restrictToVersion(packageLanguageVersion),
+              featureSet: restrictedFeatureSet,
+              latestLanguageVersion:
+                  _fsState.featureSetProvider.sdkLanguageVersion,
             );
       scanner.preserveComments = scanComments;
       Token token = scanner.tokenize();
@@ -727,6 +731,12 @@ class FileState {
     } else {
       return FileStateRefreshResult.nothing;
     }
+  }
+
+  /// Takes the parsed [CompilationUnitImpl] cached during
+  /// [FileSystemState.withParsedUnitsForLinking], or returns `null` if none.
+  CompilationUnitImpl? takeParsedUnitForLinking() {
+    return _fsState._unlinkedUnitsForLinking?.remove(this);
   }
 
   @override
@@ -841,6 +851,7 @@ class FileState {
     }
 
     var unit = parse(performance: performance);
+    _fsState._unlinkedUnitsForLinking?[this] = unit;
 
     return performance.run('compute', (performance) {
       var unlinkedUnit = performance.run('serializeAstUnlinked2', (
@@ -876,7 +887,8 @@ class FileState {
   }
 
   /// Invalidate any data that depends on the current unlinked data of the file,
-  /// because [refresh] is going to recompute the unlinked data.
+  /// because [refresh] is going to recompute the unlinked data, or because the
+  /// file is removed from [FileSystemState].
   void _invalidateCurrentUnresolvedData() {
     if (_driverUnlinkedUnit != null) {
       for (var name in _driverUnlinkedUnit!.subtypedNames) {
@@ -1027,28 +1039,32 @@ class FileState {
     var topLevelDeclarations = <String>{};
     for (var declaration in unit.declarations2) {
       switch (declaration) {
-        case ClassDeclarationImpl():
+        case ClassDeclaration2Impl():
           topLevelDeclarations.add(declaration.namePart.typeName.lexeme);
-        case EnumDeclarationImpl():
+        case EnumDeclaration2Impl():
           topLevelDeclarations.add(declaration.namePart.typeName.lexeme);
-        case ExtensionDeclarationImpl():
+        case ExtensionDeclaration2Impl():
           var name = declaration.name;
           if (name != null) {
             topLevelDeclarations.add(name.lexeme);
           }
-        case ExtensionTypeDeclarationImpl():
+        case ExtensionTypeDeclaration2Impl():
           topLevelDeclarations.add(declaration.namePart.typeName.lexeme);
-        case FunctionDeclarationImpl():
+        case MixinDeclaration2Impl():
           topLevelDeclarations.add(declaration.name.lexeme);
-        case MixinDeclarationImpl():
+        case TopLevelFunctionDeclarationImpl():
           topLevelDeclarations.add(declaration.name.lexeme);
         case TopLevelGetterDeclarationImpl():
           topLevelDeclarations.add(declaration.name.lexeme);
-        case TopLevelVariableDeclarationImpl():
-          for (var variable in declaration.variables.variables) {
+        case TopLevelSetterDeclarationImpl():
+          topLevelDeclarations.add(declaration.name.lexeme);
+        case TopLevelVariablesDeclarationImpl():
+          for (var variable in declaration.variables) {
             topLevelDeclarations.add(variable.name.lexeme);
           }
-        case TypeAliasImpl():
+        case ClassTypeAlias2Impl() ||
+            FunctionTypeAlias2Impl() ||
+            GenericTypeAlias2Impl():
           break;
       }
     }
@@ -1205,7 +1221,7 @@ enum FileStateRefreshResult {
 class FileStateTestView {
   final FileState file;
 
-  FileStateTestView(this.file);
+  new(this.file);
 
   @visibleForTesting
   String get unlinkedKey => file._unlinkedKey!;
@@ -1233,6 +1249,12 @@ class FileSystemState {
 
   /// Mapping from a URI to the corresponding [FileState].
   final Map<Uri, FileState> _uriToFile = {};
+
+  late final LibraryCycleComputer _libraryCycleComputer = LibraryCycleComputer(
+    withFineDependencies: withFineDependencies,
+    saltForElements: _saltForElements,
+    sourceFactory: _sourceFactory,
+  );
 
   /// All known file paths.
   final Set<String> knownFilePaths = <String>{};
@@ -1287,7 +1309,16 @@ class FileSystemState {
   /// store here the instance to attach [_newFile] operations.
   OperationPerformanceImpl? newFileOperationPerformance;
 
-  FileSystemState(
+  /// Temporary map of parsed AST units created while computing unlinked
+  /// data inside [withParsedUnitsForLinking], so that linking can take and
+  /// reuse the already-parsed unit instead of parsing the file a second time.
+  ///
+  /// This field is `null` outside [withParsedUnitsForLinking], which ensures
+  /// that background file refreshes, API signature checks, or `getFileSync`
+  /// calls never retain ASTs.
+  Map<FileState, CompilationUnitImpl>? _unlinkedUnitsForLinking;
+
+  new(
     this._byteStore,
     this.resourceProvider,
     this.contextName,
@@ -1326,9 +1357,12 @@ class FileSystemState {
 
     _uriToFile.remove(file.uri);
     knownFiles.remove(file);
+    _unlinkedUnitsForLinking?.remove(file);
 
     // The removed file does not reference other files anymore.
     file._kind?.dispose();
+
+    file._invalidateCurrentUnresolvedData();
 
     // Release this unlinked data.
     unlinkedUnitStore.release(file.unlinkedKey);
@@ -1381,6 +1415,7 @@ class FileSystemState {
     _pathToFile.clear();
     _uriToFile.clear();
     knownFiles.clear();
+    _unlinkedUnitsForLinking?.clear();
     return result;
   }
 
@@ -1424,8 +1459,6 @@ class FileSystemState {
           path,
           uri,
           contextFeatures: analysisOptions.contextFeatures,
-          nonPackageFeatureSet: analysisOptions.nonPackageFeatureSet,
-          nonPackageLanguageVersion: analysisOptions.nonPackageLanguageVersion,
         );
     featureSet ??= packageFeatureSet;
     languageVersion ??= packageLanguageVersion;
@@ -1575,6 +1608,23 @@ class FileSystemState {
     return unused;
   }
 
+  /// Runs [operation] while retaining newly-parsed unlinked AST units in
+  /// [_unlinkedUnitsForLinking] so they can be taken once by
+  /// [FileState.takeParsedUnitForLinking] during linking, and clears any
+  /// remaining unconsumed units upon completion.
+  T withParsedUnitsForLinking<T>(T Function() operation) {
+    if (_unlinkedUnitsForLinking != null) {
+      return operation();
+    }
+    var units = _unlinkedUnitsForLinking = Map.identity();
+    try {
+      return operation();
+    } finally {
+      units.clear();
+      _unlinkedUnitsForLinking = null;
+    }
+  }
+
   /// Clear all [FileState] data - all maps from path or URI, etc.
   void _clearFiles() {
     _uriToFile.clear();
@@ -1584,6 +1634,7 @@ class FileSystemState {
     _pathToFile.clear();
     _subtypedNameToFiles.clear();
     _libraryNameToFiles.clear();
+    _unlinkedUnitsForLinking?.clear();
     // TODO(jensj): If we use finalizers we shouldn't clear.
     unlinkedUnitStore.clear();
   }
@@ -1637,7 +1688,7 @@ class FileSystemState {
 class FileSystemStateTestView {
   final FileSystemState state;
 
-  FileSystemStateTestView(this.state);
+  new(this.state);
 
   Map<Uri, FileState> get uriToFile => state._uriToFile;
 }
@@ -1660,7 +1711,7 @@ class FileTestData {
   /// We add the key every time we put unlinked data into the byte store.
   final List<String> unlinkedKeyPut = [];
 
-  FileTestData._(this.file, this.uri);
+  new _(this.file, this.uri);
 
   @override
   int get hashCode => file.hashCode;
@@ -1681,7 +1732,7 @@ class FileUriProperties {
   final int _flags;
   final String? packageName;
 
-  factory FileUriProperties(Uri uri) {
+  factory(Uri uri) {
     if (uri.isScheme('dart')) {
       var dartName = uri.pathSegments.firstOrNull;
       return FileUriProperties._dart(
@@ -1699,14 +1750,14 @@ class FileUriProperties {
     return const FileUriProperties._unknown();
   }
 
-  const FileUriProperties._dart({required bool isInternal})
+  const new _dart({required bool isInternal})
     : _flags = _isDart | (isInternal ? _isDartInternal : 0),
       packageName = null;
 
-  FileUriProperties._package({required this.packageName, required bool isSrc})
+  new _package({required this.packageName, required bool isSrc})
     : _flags = isSrc ? _isSrc : 0;
 
-  const FileUriProperties._unknown() : _flags = 0, packageName = null;
+  const new _unknown() : _flags = 0, packageName = null;
 
   bool get isDart => (_flags & _isDart) != 0;
 
@@ -1721,7 +1772,7 @@ final class LibraryExportState<U extends DirectiveUri> extends DirectiveState {
   final U selectedUri;
   final DirectiveUris uris;
 
-  LibraryExportState({
+  new({
     required super.container,
     required this.unlinked,
     required this.selectedUri,
@@ -1742,7 +1793,7 @@ final class LibraryExportState<U extends DirectiveUri> extends DirectiveState {
 /// [LibraryExportWithUri] that has a valid URI that references a file.
 final class LibraryExportWithFile
     extends LibraryExportWithUri<DirectiveUriWithFile> {
-  LibraryExportWithFile({
+  new({
     required super.container,
     required super.unlinked,
     required super.selectedUri,
@@ -1782,7 +1833,7 @@ final class LibraryExportWithFile
 /// [LibraryExportWithUri] with a URI that resolves to [InSummarySource].
 final class LibraryExportWithInSummarySource
     extends LibraryExportWithUri<DirectiveUriWithInSummarySource> {
-  LibraryExportWithInSummarySource({
+  new({
     required super.container,
     required super.unlinked,
     required super.selectedUri,
@@ -1805,7 +1856,7 @@ final class LibraryExportWithInSummarySource
 /// [LibraryExportState] that has a valid URI.
 final class LibraryExportWithUri<U extends DirectiveUriWithUri>
     extends LibraryExportWithUriStr<U> {
-  LibraryExportWithUri({
+  new({
     required super.container,
     required super.unlinked,
     required super.selectedUri,
@@ -1816,7 +1867,7 @@ final class LibraryExportWithUri<U extends DirectiveUriWithUri>
 /// [LibraryExportState] that has a relative URI string.
 final class LibraryExportWithUriStr<U extends DirectiveUriWithString>
     extends LibraryExportState<U> {
-  LibraryExportWithUriStr({
+  new({
     required super.container,
     required super.unlinked,
     required super.selectedUri,
@@ -1844,11 +1895,7 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
 
   LibraryCycle? _libraryCycle;
 
-  LibraryFileKind({
-    required super.file,
-    required this.name,
-    this.recoveredFrom,
-  }) {
+  new({required super.file, required this.name, this.recoveredFrom}) {
     file._fsState._libraryNameToFiles.add(this);
   }
 
@@ -1923,12 +1970,7 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
   /// just this file.  If the library cycle is not known yet, compute it.
   LibraryCycle get libraryCycle {
     if (_libraryCycle == null) {
-      computeLibraryCycle(
-        withFineDependencies: file._fsState.withFineDependencies,
-        saltForElements: file._fsState._saltForElements,
-        sourceFactory: file._fsState._sourceFactory,
-        file: this,
-      );
+      file._fsState._libraryCycleComputer.compute(this);
     }
 
     return _libraryCycle!;
@@ -1973,7 +2015,7 @@ final class LibraryImportState<U extends DirectiveUri> extends DirectiveState {
   final U selectedUri;
   final DirectiveUris uris;
 
-  LibraryImportState({
+  new({
     required super.container,
     required this.unlinked,
     required this.selectedUri,
@@ -1998,7 +2040,7 @@ final class LibraryImportState<U extends DirectiveUri> extends DirectiveState {
 /// [LibraryImportWithUri] that has a valid URI that references a file.
 final class LibraryImportWithFile
     extends LibraryImportWithUri<DirectiveUriWithFile> {
-  LibraryImportWithFile({
+  new({
     required super.container,
     required super.unlinked,
     required super.selectedUri,
@@ -2038,7 +2080,7 @@ final class LibraryImportWithFile
 /// [LibraryImportWithUri] with a URI that resolves to [InSummarySource].
 final class LibraryImportWithInSummarySource
     extends LibraryImportWithUri<DirectiveUriWithInSummarySource> {
-  LibraryImportWithInSummarySource({
+  new({
     required super.container,
     required super.unlinked,
     required super.selectedUri,
@@ -2061,7 +2103,7 @@ final class LibraryImportWithInSummarySource
 /// [LibraryImportState] that has a valid URI.
 final class LibraryImportWithUri<U extends DirectiveUriWithUri>
     extends LibraryImportWithUriStr<U> {
-  LibraryImportWithUri({
+  new({
     required super.container,
     required super.unlinked,
     required super.selectedUri,
@@ -2072,7 +2114,7 @@ final class LibraryImportWithUri<U extends DirectiveUriWithUri>
 /// [LibraryImportState] that has a relative URI string.
 final class LibraryImportWithUriStr<U extends DirectiveUriWithString>
     extends LibraryImportState<U> {
-  LibraryImportWithUriStr({
+  new({
     required super.container,
     required super.unlinked,
     required super.selectedUri,
@@ -2081,12 +2123,12 @@ final class LibraryImportWithUriStr<U extends DirectiveUriWithString>
 }
 
 abstract class LibraryOrAugmentationFileKind extends FileKind {
-  LibraryOrAugmentationFileKind({required super.file});
+  new({required super.file});
 }
 
 /// The file has `part of` directive.
 sealed class PartFileKind extends FileKind {
-  PartFileKind({required super.file});
+  new({required super.file});
 
   /// Returns `true` if the `part of` directive confirms the [container].
   bool isPartOf(FileKind container);
@@ -2098,7 +2140,7 @@ final class PartIncludeState<U extends DirectiveUri> extends DirectiveState {
   final U selectedUri;
   final DirectiveUris uris;
 
-  PartIncludeState({
+  new({
     required super.container,
     required this.unlinked,
     required this.selectedUri,
@@ -2109,7 +2151,7 @@ final class PartIncludeState<U extends DirectiveUri> extends DirectiveState {
 /// [PartIncludeWithUri] that has a valid URI that references a file.
 final class PartIncludeWithFile
     extends PartIncludeWithUri<DirectiveUriWithFile> {
-  PartIncludeWithFile({
+  new({
     required super.container,
     required super.unlinked,
     required super.selectedUri,
@@ -2139,7 +2181,7 @@ final class PartIncludeWithFile
 /// [PartIncludeState] that has a valid URI.
 final class PartIncludeWithUri<U extends DirectiveUriWithUri>
     extends PartIncludeWithUriStr<U> {
-  PartIncludeWithUri({
+  new({
     required super.container,
     required super.unlinked,
     required super.selectedUri,
@@ -2150,7 +2192,7 @@ final class PartIncludeWithUri<U extends DirectiveUriWithUri>
 /// [PartIncludeState] that has a relative URI string.
 final class PartIncludeWithUriStr<U extends DirectiveUriWithString>
     extends PartIncludeState<U> {
-  PartIncludeWithUriStr({
+  new({
     required super.container,
     required super.unlinked,
     required super.selectedUri,
@@ -2162,7 +2204,7 @@ final class PartIncludeWithUriStr<U extends DirectiveUriWithString>
 class PartOfNameFileKind extends PartFileKind {
   final UnlinkedPartOfNameDirective unlinked;
 
-  PartOfNameFileKind({required super.file, required this.unlinked});
+  new({required super.file, required this.unlinked});
 
   /// Libraries with the same name as in [unlinked].
   List<LibraryFileKind> get libraries {
@@ -2223,7 +2265,7 @@ class PartOfNameFileKind extends PartFileKind {
 abstract class PartOfUriFileKind extends PartFileKind {
   final UnlinkedPartOfUriDirective unlinked;
 
-  PartOfUriFileKind({required super.file, required this.unlinked});
+  new({required super.file, required this.unlinked});
 
   @override
   List<UnlinkedLibraryImportDirective> get _unlinkedDocImports {
@@ -2235,11 +2277,7 @@ abstract class PartOfUriFileKind extends PartFileKind {
 class PartOfUriKnownFileKind extends PartOfUriFileKind {
   final FileState uriFile;
 
-  PartOfUriKnownFileKind({
-    required super.file,
-    required super.unlinked,
-    required this.uriFile,
-  });
+  new({required super.file, required super.unlinked, required this.uriFile});
 
   /// If the [uriFile] has `part` with this file, returns [uriFile].
   /// Otherwise, this file is not a valid part, returns `null`.
@@ -2276,7 +2314,7 @@ class PartOfUriKnownFileKind extends PartOfUriFileKind {
 
 /// The file has `part of URI` directive, and the URI cannot be resolved.
 class PartOfUriUnknownFileKind extends PartOfUriFileKind {
-  PartOfUriUnknownFileKind({required super.file, required super.unlinked});
+  new({required super.file, required super.unlinked});
 
   @override
   LibraryFileKind? get library => null;
@@ -2295,17 +2333,13 @@ class StoredFileContent implements FileContent {
   @override
   final bool exists;
 
-  StoredFileContent({
-    required this.content,
-    required this.contentHash,
-    required this.exists,
-  });
+  new({required this.content, required this.contentHash, required this.exists});
 }
 
 class StoredFileContentStrategy implements FileContentStrategy {
   final FileContentCache _fileContentCache;
 
-  StoredFileContentStrategy(this._fileContentCache);
+  new(this._fileContentCache);
 
   @override
   FileContent get(String path) {
@@ -2329,13 +2363,13 @@ sealed class UriResolution {}
 final class UriResolutionExternalLibrary extends UriResolution {
   final InSummarySource source;
 
-  UriResolutionExternalLibrary(this.source);
+  new(this.source);
 }
 
 final class UriResolutionFile extends UriResolution {
   final FileState file;
 
-  UriResolutionFile(this.file);
+  new(this.file);
 }
 
 class _LibraryNameToFiles {

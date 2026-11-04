@@ -31,6 +31,12 @@ main() {
     requiredNullableSToVoid.runtimeType,
   );
 
+  // Nullable and potentially non-nullable parameter types are not equal.
+  Expect.notEquals(
+    positionalTToVoid.runtimeType,
+    positionalNullableTToVoid.runtimeType,
+  );
+
   // Required named arguments are not equal to named arguments.
   Expect.notEquals(namedTToVoid.runtimeType, requiredTToVoid.runtimeType);
   Expect.notEquals(

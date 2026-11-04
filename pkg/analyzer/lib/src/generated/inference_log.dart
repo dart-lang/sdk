@@ -7,7 +7,7 @@ import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 
 final bool _assertionsEnabled = () {
   bool enabled = false;
@@ -16,8 +16,8 @@ final bool _assertionsEnabled = () {
 }();
 
 /// Expando used by [_InferenceLogWriterImpl.setExpressionVisitCodePath] to
-/// record the code path that's being used by the [ResolverVisitor] to visit a
-/// subexpression.
+/// record the code path that's being used by the [TypeAnalyzer] to visit
+/// a subexpression.
 final _expressionVisitCodePaths = Expando<ExpressionVisitCodePath>();
 
 /// The [InferenceLogWriter] currently being used by the analyzer, if inference
@@ -59,10 +59,11 @@ void stopInferenceLogging() {
 }
 
 /// Enum of all the possible code paths that can be used by the
-/// [ResolverVisitor] to visit expressions when inside a flow analysis root
+/// [TypeAnalyzer] to visit expressions when inside a flow analysis root
 /// (see [InferenceLogWriter.enterFlowAnalysisRoot]).
 enum ExpressionVisitCodePath {
-  /// The expression is being visited via [ResolverVisitor.analyzeExpression].
+  /// The expression is being visited via
+  /// [TypeAnalyzer.analyzeExpression].
   analyzeExpression,
 
   /// The expression is the identifier in a "for each" loop, so it is not a true
@@ -76,8 +77,8 @@ abstract interface class InferenceLogWriter
     implements SharedInferenceLogWriter {
   /// Checks that [enterExpression] was properly called for [expression].
   ///
-  /// This is called from [ResolverVisitor.dispatchExpression], to verify that
-  /// each expression's visit method property calls [enterExpression].
+  /// This is called from [TypeAnalyzer.dispatchExpression], to verify
+  /// that each expression's visit method property calls [enterExpression].
   void assertExpressionWasRecorded(Expression expression);
 
   /// Called when type inference enters a *flow analysis root*, i.e. a region of
@@ -92,8 +93,8 @@ abstract interface class InferenceLogWriter
   /// recently entered using [enterFlowAnalysisRoot].
   void exitFlowAnalysisRoot();
 
-  /// Records [source] as the code path that the [ResolverVisitor] is about to
-  /// use to visit the expression [node].
+  /// Records [source] as the code path that the [TypeAnalyzer] is about
+  /// to use to visit the expression [node].
   ///
   /// An assertion in [enterExpression] verifies that when inside a flow
   /// analysis root (see [enterFlowAnalysisRoot]), every call to
@@ -117,7 +118,7 @@ final class _InferenceLogWriterImpl extends SharedInferenceLogWriterImpl
   /// [InferenceLogWriter.enterFlowAnalysisRoot]).
   ///
   /// When this value is `true`, flow analysis is active, and expressions must
-  /// be visited using [ResolverVisitor.analyzeExpression].
+  /// be visited using [TypeAnalyzer.analyzeExpression].
   bool _inFlowAnalysisRoot = false;
 
   @override
@@ -128,7 +129,7 @@ final class _InferenceLogWriterImpl extends SharedInferenceLogWriterImpl
 
   @override
   void enterAnnotation(covariant Annotation node) {
-    // ResolverVisitor.visitAnnotation is sometimes called from
+    // TypeAnalyzer.visitAnnotation is sometimes called from
     // AstResolver.resolveAnnotation during summary linking. When this happens,
     // the state will be a "top" state even though _traceableParent suggests
     // that we should be in some other state. So to avoid a bogus exception, if

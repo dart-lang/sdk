@@ -64,14 +64,12 @@ class TypeDefinitionHandler
     /// result is valid for.
     var supportsLocationLink = clientCapabilities.typeDefinitionLocationLink;
     var pos = params.position;
-    var path = pathOfDoc(params.textDocument);
 
-    return path.mapResult((path) async {
-      var result = await server.getResolvedUnit(path);
-      if (result == null) {
-        return success(_emptyResult);
-      }
-
+    return withResolvedUnit(textDocument: params.textDocument, token, (
+      result,
+      _,
+      _,
+    ) {
       var offset = toOffset(result.lineInfo, pos);
       return offset.mapResult((offset) async {
         var node = result.unit.nodeCovering(offset: offset);

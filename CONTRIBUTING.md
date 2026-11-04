@@ -46,11 +46,8 @@ Before you start working on a larger contribution, you should get in touch with 
 
 All submissions, including submissions by project members, require review.  We use the same code-review tools and process as the chromium project.
 
-We occasionally take pull requests, e.g., for comment changes, but the main flow is to use the Gerrit review system as explained below.
-
-## Submitting patches directly from GitHub
-
-This repository primarily uses [Gerrit for code reviews](https://dart-review.googlesource.com/), rather than GitHub PRs. However, you may submit [a GitHub PR ](https://github.com/dart-lang/sdk/pulls), e.g. to edit some API documentation, and it will be automatically converted into a Gerrit change list (a "CL") by a copybara-service bot. You can find the link to that CL as a comment left on the PR by the bot. Any changes made to the PR after opening will also be sync'ed by the bot into the Gerrit review. The PR will be automatically closed when the CL is reviewed and landed.
+This repository does **not** accept GitHub pull requests. We only accept changes via [Gerrit](https://dart-review.googlesource.com/) and
+`depot_tools` based workflows (e.g. `git cl upload`, see below).
 
 ## Setting up the environment
 

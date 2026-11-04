@@ -17,7 +17,8 @@ void main() {
 }
 
 @reflectiveTest
-class AddMissingEnumLikeCaseClausesTest extends FixProcessorLintTest {
+class AddMissingEnumLikeCaseClausesTest
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.addMissingEnumCaseClauses;
 

@@ -9,21 +9,11 @@ class AstBinaryFlags {
 
   static final _hasAwait = _checkBit(0, ForElement, ForStatement);
 
-  static final _hasConstConstructor = _checkBit(0, ClassDeclaration);
+  static final _hasInitializer = _checkBit(2, FormalParameter);
 
-  static final _hasEqual = _checkBit(0, Configuration);
-
-  static final _hasInitializer = _checkBit(
-    2,
-    FormalParameter,
-    VariableDeclaration,
-  );
-
-  static final _hasName = _checkBit(5, ConstructorDeclaration, FormalParameter);
+  static final _hasName = _checkBit(5, FormalParameter);
 
   static final _hasNot = _checkBit(0, IsExpression);
-
-  static final _hasPrefix = _checkBit(1, ImportDirective);
 
   static final _hasQuestion = _checkBit(
     2,
@@ -33,10 +23,6 @@ class AstBinaryFlags {
     ReceiverIndexExpression,
   );
 
-  static final _hasSeparatorColon = _checkBit(0, ConstructorDeclaration);
-
-  static final _hasSeparatorEquals = _checkBit(2, ConstructorDeclaration);
-
   static final _hasThis = _checkBit(
     0,
     ConstructorFieldInitializer,
@@ -45,97 +31,29 @@ class AstBinaryFlags {
 
   static final _hasTypeArguments = _checkBit(0, NamedType, TypedLiteral);
 
-  static final _isAbstract = _checkBit(
-    1,
-    ClassDeclaration,
-    ClassTypeAlias,
-    ConstructorDeclaration,
-    MethodDeclaration,
-  );
-
-  static final _isAsync = _checkBit(
-    2,
-    BlockFunctionBody,
-    EmptyFunctionBody,
-    FunctionExpression,
-    MethodDeclaration,
-  );
-
   static final _isConst = _checkBit(
     3,
-    ConstructorDeclaration,
     DeclaredIdentifier,
     ConstructorInvocation,
     TypedLiteral,
-    VariableDeclarationList,
   );
 
-  static final _isCovariant = _checkBit(2, FieldDeclaration);
-
-  static final _isDeferred = _checkBit(0, ImportDirective);
-
-  static final _isExternal = _checkBit(
-    7,
-    ConstructorDeclaration,
-    FunctionDeclaration,
-    MethodDeclaration,
-  );
-
-  static final _isFactory = _checkBit(4, ConstructorDeclaration);
-
-  static final _isFinal = _checkBit(
-    4,
-    DeclaredIdentifier,
-    VariableDeclarationList,
-  );
-
-  static final _isGenerator = _checkBit(
-    3,
-    FunctionExpression,
-    MethodDeclaration,
-  );
-
-  static final _isGet = _checkBit(4, FunctionDeclaration, MethodDeclaration);
-
-  static final _isLate = _checkBit(0, VariableDeclarationList);
+  static final _isFinal = _checkBit(4, DeclaredIdentifier);
 
   static final _isNamed = _checkBit(0, DelimitedFormalParameters);
 
-  static final _isNative = _checkBit(8, MethodDeclaration);
-
   static final _isNew = _checkBit(0, ConstructorInvocation);
-
-  static final _isOperator = _checkBit(0, MethodDeclaration);
 
   static final _isPositional = _checkBit(1, FormalParameter);
 
   static final _isRequired = _checkBit(0, FormalParameter);
-
-  static final _isSet = _checkBit(
-    5,
-    FunctionDeclaration,
-    MethodDeclaration,
-    TypedLiteral,
-  );
-
-  static final _isStatic = _checkBit(6, FieldDeclaration, MethodDeclaration);
 
   static final _isStringInterpolationIdentifier = _checkBit(
     0,
     InterpolationExpression,
   );
 
-  static final _isSync = _checkBit(
-    3,
-    BlockFunctionBody,
-    ExpressionFunctionBody,
-  );
-
-  static final _isVar = _checkBit(
-    1,
-    DeclaredIdentifier,
-    VariableDeclarationList,
-  );
+  static final _isVar = _checkBit(1, DeclaredIdentifier);
 
   static const _formalParameterKeywordFinal = 1 << 3;
   static const _formalParameterKeywordConst = 1 << 4;
@@ -146,49 +64,24 @@ class AstBinaryFlags {
 
   static int encode({
     bool hasAwait = false,
-    bool hasConstConstructor = false,
-    bool hasEqual = false,
     bool hasInitializer = false,
     bool hasName = false,
     bool hasNot = false,
-    bool hasPrefix = false,
     bool hasQuestion = false,
-    bool hasSeparatorColon = false,
-    bool hasSeparatorEquals = false,
     bool hasThis = false,
     bool hasTypeArguments = false,
-    bool isAbstract = false,
-    bool isAsync = false,
     bool isConst = false,
-    bool isCovariant = false,
-    bool isDeferred = false,
-    bool isExternal = false,
-    bool isFactory = false,
     bool isFinal = false,
-    bool isGenerator = false,
-    bool isGet = false,
-    bool isLate = false,
     bool isNamed = false,
-    bool isNative = false,
     bool isNew = false,
-    bool isOperator = false,
     bool isPositional = false,
     bool isRequired = false,
-    bool isSet = false,
-    bool isStatic = false,
     bool isStringInterpolationIdentifier = false,
-    bool isSync = false,
     bool isVar = false,
   }) {
     var result = 0;
     if (hasAwait) {
       result |= _hasAwait;
-    }
-    if (hasConstConstructor) {
-      result |= _hasConstConstructor;
-    }
-    if (hasEqual) {
-      result |= _hasEqual;
     }
     if (hasInitializer) {
       result |= _hasInitializer;
@@ -199,17 +92,8 @@ class AstBinaryFlags {
     if (hasNot) {
       result |= _hasNot;
     }
-    if (hasPrefix) {
-      result |= _hasPrefix;
-    }
     if (hasQuestion) {
       result |= _hasQuestion;
-    }
-    if (hasSeparatorColon) {
-      result |= _hasSeparatorColon;
-    }
-    if (hasSeparatorEquals) {
-      result |= _hasSeparatorEquals;
     }
     if (hasThis) {
       result |= _hasThis;
@@ -217,50 +101,17 @@ class AstBinaryFlags {
     if (hasTypeArguments) {
       result |= _hasTypeArguments;
     }
-    if (isAbstract) {
-      result |= _isAbstract;
-    }
-    if (isAsync) {
-      result |= _isAsync;
-    }
-    if (isCovariant) {
-      result |= _isCovariant;
-    }
-    if (isDeferred) {
-      result |= _isDeferred;
-    }
     if (isConst) {
       result |= _isConst;
-    }
-    if (isExternal) {
-      result |= _isExternal;
-    }
-    if (isFactory) {
-      result |= _isFactory;
     }
     if (isFinal) {
       result |= _isFinal;
     }
-    if (isGenerator) {
-      result |= _isGenerator;
-    }
-    if (isGet) {
-      result |= _isGet;
-    }
-    if (isLate) {
-      result |= _isLate;
-    }
     if (isNamed) {
       result |= _isNamed;
     }
-    if (isNative) {
-      result |= _isNative;
-    }
     if (isNew) {
       result |= _isNew;
-    }
-    if (isOperator) {
-      result |= _isOperator;
     }
     if (isPositional) {
       result |= _isPositional;
@@ -268,17 +119,8 @@ class AstBinaryFlags {
     if (isRequired) {
       result |= _isRequired;
     }
-    if (isSet) {
-      result |= _isSet;
-    }
-    if (isStatic) {
-      result |= _isStatic;
-    }
     if (isStringInterpolationIdentifier) {
       result |= _isStringInterpolationIdentifier;
-    }
-    if (isSync) {
-      result |= _isSync;
     }
     if (isVar) {
       result |= _isVar;
@@ -363,14 +205,6 @@ class AstBinaryFlags {
     return (flags & _hasAwait) != 0;
   }
 
-  static bool hasConstConstructor(int flags) {
-    return (flags & _hasConstConstructor) != 0;
-  }
-
-  static bool hasEqual(int flags) {
-    return (flags & _hasEqual) != 0;
-  }
-
   static bool hasInitializer(int flags) {
     return (flags & _hasInitializer) != 0;
   }
@@ -383,20 +217,8 @@ class AstBinaryFlags {
     return (flags & _hasNot) != 0;
   }
 
-  static bool hasPrefix(int flags) {
-    return (flags & _hasPrefix) != 0;
-  }
-
   static bool hasQuestion(int flags) {
     return (flags & _hasQuestion) != 0;
-  }
-
-  static bool hasSeparatorColon(int flags) {
-    return (flags & _hasSeparatorColon) != 0;
-  }
-
-  static bool hasSeparatorEquals(int flags) {
-    return (flags & _hasSeparatorEquals) != 0;
   }
 
   static bool hasThis(int flags) {
@@ -407,64 +229,20 @@ class AstBinaryFlags {
     return (flags & _hasTypeArguments) != 0;
   }
 
-  static bool isAbstract(int flags) {
-    return (flags & _isAbstract) != 0;
-  }
-
-  static bool isAsync(int flags) {
-    return (flags & _isAsync) != 0;
-  }
-
   static bool isConst(int flags) {
     return (flags & _isConst) != 0;
-  }
-
-  static bool isCovariant(int flags) {
-    return (flags & _isCovariant) != 0;
-  }
-
-  static bool isDeferred(int flags) {
-    return (flags & _isDeferred) != 0;
-  }
-
-  static bool isExternal(int flags) {
-    return (flags & _isExternal) != 0;
-  }
-
-  static bool isFactory(int flags) {
-    return (flags & _isFactory) != 0;
   }
 
   static bool isFinal(int flags) {
     return (flags & _isFinal) != 0;
   }
 
-  static bool isGenerator(int flags) {
-    return (flags & _isGenerator) != 0;
-  }
-
-  static bool isGet(int flags) {
-    return (flags & _isGet) != 0;
-  }
-
-  static bool isLate(int flags) {
-    return (flags & _isLate) != 0;
-  }
-
   static bool isNamed(int flags) {
     return (flags & _isNamed) != 0;
   }
 
-  static bool isNative(int flags) {
-    return (flags & _isNative) != 0;
-  }
-
   static bool isNew(int flags) {
     return (flags & _isNew) != 0;
-  }
-
-  static bool isOperator(int flags) {
-    return (flags & _isOperator) != 0;
   }
 
   static bool isPositional(int flags) {
@@ -475,20 +253,8 @@ class AstBinaryFlags {
     return (flags & _isRequired) != 0;
   }
 
-  static bool isSet(int flags) {
-    return (flags & _isSet) != 0;
-  }
-
-  static bool isStatic(int flags) {
-    return (flags & _isStatic) != 0;
-  }
-
   static bool isStringInterpolationIdentifier(int flags) {
     return (flags & _isStringInterpolationIdentifier) != 0;
-  }
-
-  static bool isSync(int flags) {
-    return (flags & _isSync) != 0;
   }
 
   static bool isVar(int flags) {

@@ -152,6 +152,7 @@ List<String> librariesToIndex(wasm.Mode mode) {
     "dart:collection",
     "dart:core",
     "dart:ffi",
+    "dart:math",
     "dart:typed_data",
     if (mode == .standalone) "dart:_embedder",
   ];

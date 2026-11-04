@@ -1388,12 +1388,16 @@ int DisassemblerX64::TwoByteOpcodeInstruction(uint8_t* data) {
           mnemonic = "psubd";
         } else if (opcode == 0xEF) {
           mnemonic = "pxor";
+        } else if (opcode == 0x66) {
+          mnemonic = "pcmpgtd";
         } else if (opcode == 0x76) {
           mnemonic = "pcmpeqd";
         } else if (opcode == 0xF2) {
           mnemonic = "pslld";
         } else if (opcode == 0xE2) {
           mnemonic = "psrad";
+        } else if (opcode == 0xD2) {
+          mnemonic = "psrld";
         } else {
           UnimplementedInstruction(*data);
           return 1;

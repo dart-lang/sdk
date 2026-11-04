@@ -67,10 +67,14 @@ class DartUnitHighlightsComputer {
   }
 
   void _addCommentRanges() {
+    var range = this.range;
     Token? token = _unit.beginToken;
     while (token != null) {
       Token? commentToken = token.precedingComments;
       while (commentToken != null) {
+        if (range != null && commentToken.offset > range.end) {
+          break;
+        }
         HighlightRegionType? highlightType;
         if (commentToken.type == TokenType.MULTI_LINE_COMMENT) {
           if (commentToken.lexeme.startsWith('/**')) {
@@ -91,9 +95,10 @@ class DartUnitHighlightsComputer {
         }
         commentToken = commentToken.next;
       }
-      if (token.isEof) {
-        // Only exit the loop *after* processing the EOF token as it may
-        // have preceding comments.
+      if (token.isEof || (range != null && token.offset > range.end)) {
+        // Only exit the loop *after* processing the token's preceding
+        // comments, as they may fall within `range` even if `token` is EOF
+        // or past `range.end`.
         break;
       }
       token = token.next;
@@ -733,7 +738,7 @@ class DartUnitHighlightsComputer {
 }
 
 /// An AST visitor for [DartUnitHighlightsComputer].
-class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
+class _DartUnitHighlightsComputerVisitor extends UnifyingAstVisitor<void> {
   final DartUnitHighlightsComputer computer;
 
   new(this.computer);
@@ -1080,7 +1085,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
     computer._addRegion_token(node.name, HighlightRegionType.ENUM_CONSTANT);
-    node.visitChildren(this);
+    super.visitEnumConstantDeclaration(node);
   }
 
   @override
@@ -1150,7 +1155,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
     computer._addRegion_token(
       node.namePart.typeName,
       HighlightRegionType.EXTENSION_TYPE,
-      semanticTokenModifiers: {SemanticTokenModifiers.declaration},
+      additionalSemanticTokenModifiers: {SemanticTokenModifiers.declaration},
     );
 
     super.visitExtensionTypeDeclaration(node);
@@ -1591,6 +1596,15 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   void visitNativeFunctionBody(NativeFunctionBody node) {
     computer._addRegion_token(node.nativeKeyword, HighlightRegionType.KEYWORD);
     super.visitNativeFunctionBody(node);
+  }
+
+  @override
+  void visitNode(AstNode node) {
+    var range = computer.range;
+    if (range != null && (node.end < range.offset || node.offset > range.end)) {
+      return;
+    }
+    super.visitNode(node);
   }
 
   @override

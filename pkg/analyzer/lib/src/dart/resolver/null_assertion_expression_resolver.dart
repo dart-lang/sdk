@@ -7,17 +7,17 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 
 /// Helper for resolving [NullAssertionExpression]s.
 class NullAssertionExpressionResolver {
-  final ResolverVisitor _resolver;
+  final TypeAnalyzer _typeAnalyzer;
 
-  NullAssertionExpressionResolver(this._resolver);
+  new(this._typeAnalyzer);
 
-  TypeSystemImpl get _typeSystem => _resolver.typeSystem;
+  TypeSystemImpl get _typeSystem => _typeAnalyzer.typeSystem;
 
   void resolve(
     NullAssertionExpressionImpl node, {
@@ -26,17 +26,17 @@ class NullAssertionExpressionResolver {
     var operand = node.operand;
 
     if (operand is InvalidSuperExpressionImpl) {
-      _resolver.diagnosticReporter.report(
+      _typeAnalyzer.diagnosticReporter.report(
         diag.missingAssignableSelector.at(node),
       );
     }
 
-    _resolver.analyzeExpression(
+    _typeAnalyzer.analyzeExpression(
       operand,
       SharedTypeSchemaView(_typeSystem.makeNullable(contextType)),
       continueNullShorting: true,
     );
-    operand = _resolver.popRewrite()!;
+    operand = _typeAnalyzer.popRewrite()!;
 
     if (operand is InvalidSuperExpressionImpl) {
       operand.superReference.legacyStaticType = DynamicTypeImpl.instance;
@@ -44,10 +44,10 @@ class NullAssertionExpressionResolver {
 
     var operandType = operand.typeOrThrow;
     var type = _typeSystem.promoteToNonNull(operandType);
-    node.recordStaticType(type, resolver: _resolver);
+    node.recordStaticType(type, typeAnalyzer: _typeAnalyzer);
 
-    _resolver.flowAnalysis.flow?.nonNullAssert_end(
-      _resolver.flowAnalysis.getExpressionInfo(operand),
+    _typeAnalyzer.flowAnalysis.flow?.nonNullAssert_end(
+      _typeAnalyzer.flowAnalysis.getExpressionInfo(operand),
       offset: node.operator.offset,
     );
   }

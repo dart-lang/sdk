@@ -1,0 +1,38 @@
+class Class {
+  static void set staticSetter(int value) {}
+  void set instanceSetter(int value) {}
+}
+
+enum Enum {
+  a;
+
+  void set instanceSetter(int value) {
+    print('instanceSetter');
+  }
+
+  static void set staticSetter(int value) {
+    print('staticSetter');
+  }
+}
+
+extension Extension on int {
+  static void set staticSetter(int value) {}
+  void set instanceSetter(int value) {}
+}
+
+extension type ExtensionType(int it) {
+  static void set staticSetter(int value) {}
+  void set instanceSetter(int value) {}
+}
+
+mixin Mixin {
+  static void set staticSetter(int value) {}
+  void set instanceSetter(int value) {}
+}
+
+mixin class MixinClass {
+  static void set staticSetter(int value) {}
+  void set instanceSetter(int value) {}
+}
+
+void set topLevelSetter(int value) {}

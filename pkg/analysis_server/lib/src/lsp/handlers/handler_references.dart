@@ -43,15 +43,19 @@ class ReferencesHandler
     }
 
     var pos = params.position;
-    var path = pathOfDoc(params.textDocument);
-    var unit = await path.mapResult(requireResolvedUnit);
-    var offset = unit.mapResultSync((unit) => toOffset(unit.lineInfo, pos));
-    return await message.performance.runAsync(
-      '_getReferences',
-      (performance) => (unit, offset).mapResults(
-        (unit, offset) => _getReferences(unit, offset, params, performance),
-      ),
-    );
+    return withResolvedUnit(textDocument: params.textDocument, token, (
+      unit,
+      _,
+      _,
+    ) async {
+      var offset = toOffset(unit.lineInfo, pos);
+      return await message.performance.runAsync(
+        '_getReferences',
+        (performance) => offset.mapResult(
+          (offset) => _getReferences(unit, offset, params, performance),
+        ),
+      );
+    });
   }
 
   List<Location> _getDeclarations(Element element) {

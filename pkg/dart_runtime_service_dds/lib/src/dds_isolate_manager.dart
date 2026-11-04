@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:dart_runtime_service/dart_runtime_service.dart';
 import 'package:dds_service_extensions/dds_service_extensions.dart';
@@ -148,6 +150,10 @@ final _logger = Logger('DdsIsolateManager');
 final class DdsIsolateManager extends IsolateManager {
   DdsIsolateManager({required this.vmServiceClient});
 
+  static const _kDefaultTimeRange = -1;
+  static const _kTimeExtentMicros = 'timeExtentMicros';
+  static const _kTimeOriginMicros = 'timeOriginMicros';
+
   /// Client connection to the target VM Service.
   final vm.VmService vmServiceClient;
 
@@ -156,6 +162,9 @@ final class DdsIsolateManager extends IsolateManager {
 
   /// Registered resume permissions grouped by client name.
   final clientResumePermissions = <String, ClientResumePermissions>{};
+
+  /// Serializes isolate state transitions and resume operations.
+  final _mutex = Mutex();
 
   /// Bitmask composed of [PauseTypeMasks] specifying pause types requiring
   /// user resume permission.
@@ -185,22 +194,24 @@ final class DdsIsolateManager extends IsolateManager {
           unawaited(
             vmServiceClient
                 .getIsolate(id)
-                .then((iso) {
-                  if (iso.pauseEvent?.kind case final eventKind?) {
-                    switch (eventKind) {
-                      case vm.EventKind.kPauseExit:
-                        isolate.pausedOnExit();
-                      case vm.EventKind.kPausePostRequest:
-                        isolate.pausedPostRequest();
-                      case vm.EventKind.kPauseStart:
-                        isolate.pausedOnStart();
-                      case vm.EventKind.kResume:
-                        isolate.resumed();
+                .then(
+                  (iso) => _mutex.runGuarded(() {
+                    if (iso.pauseEvent?.kind case final eventKind?) {
+                      switch (eventKind) {
+                        case vm.EventKind.kPauseExit:
+                          isolate.pausedOnExit();
+                        case vm.EventKind.kPausePostRequest:
+                          isolate.pausedPostRequest();
+                        case vm.EventKind.kPauseStart:
+                          isolate.pausedOnStart();
+                        case vm.EventKind.kResume:
+                          isolate.resumed();
+                      }
+                    } else {
+                      isolate.running();
                     }
-                  } else {
-                    isolate.running();
-                  }
-                })
+                  }),
+                )
                 .catchError((Object e, StackTrace st) {
                   // Isolates can terminate between getVM and getIsolate,
                   // resulting in an RPCError or SentinelException.
@@ -250,37 +261,42 @@ final class DdsIsolateManager extends IsolateManager {
   ///
   /// Tracks isolate startup, exit, pause states, and resume events, updating
   /// the corresponding [DdsRunningIsolate] state and clearing pending approvals
-  /// when an isolate resumes.
+  /// when an isolate resumes. State transitions are queued via [_mutex] in
+  /// FIFO order with resume operations.
   void handleIsolateEvent(vm.Event event) {
     if (event case vm.Event(
       kind: final kind?,
       isolate: vm.IsolateRef(id: final id?, :final name),
     ) when id.isNotEmpty && kind != vm.EventKind.kIsolateReload) {
-      switch (kind) {
-        case vm.EventKind.kIsolateStart:
-          final isolate = ddsIsolates.putIfAbsent(
-            id,
-            () => DdsRunningIsolate(
-              id: id,
-              isolateManager: this,
-              name: name ?? id,
-            ),
-          );
-          isolate.started();
-        case vm.EventKind.kIsolateExit:
-          ddsIsolates.remove(id)?.shutdown();
-        case vm.EventKind.kPauseExit:
-          ddsIsolates[id]?.pausedOnExit();
-        case vm.EventKind.kPausePostRequest:
-          ddsIsolates[id]?.pausedPostRequest();
-        case vm.EventKind.kPauseStart:
-          ddsIsolates[id]?.pausedOnStart();
-        case vm.EventKind.kResume:
-          if (ddsIsolates[id] case final isolate?) {
-            isolate.clearResumeApprovals();
-            isolate.resumed();
+      unawaited(
+        _mutex.runGuarded(() {
+          switch (kind) {
+            case vm.EventKind.kIsolateStart:
+              final isolate = ddsIsolates.putIfAbsent(
+                id,
+                () => DdsRunningIsolate(
+                  id: id,
+                  isolateManager: this,
+                  name: name ?? id,
+                ),
+              );
+              isolate.started();
+            case vm.EventKind.kIsolateExit:
+              ddsIsolates.remove(id)?.shutdown();
+            case vm.EventKind.kPauseExit:
+              ddsIsolates[id]?.pausedOnExit();
+            case vm.EventKind.kPausePostRequest:
+              ddsIsolates[id]?.pausedPostRequest();
+            case vm.EventKind.kPauseStart:
+              ddsIsolates[id]?.pausedOnStart();
+            case vm.EventKind.kResume:
+              if (ddsIsolates[id] case final isolate?) {
+                isolate.clearResumeApprovals();
+                isolate.resumed();
+              }
           }
-      }
+        }),
+      );
     }
   }
 
@@ -370,58 +386,118 @@ final class DdsIsolateManager extends IsolateManager {
         0,
   ).toJson();
 
+  /// Handles the `getPerfettoVMTimelineWithCpuSamples` custom DDS RPC.
+  ///
+  /// Retrieves the VM's Perfetto timeline trace via
+  /// [vm.VmService.getPerfettoVMTimeline] and appends Perfetto CPU sample
+  /// trace packets collected via [vm.VmService.getPerfettoCpuSamples] from all
+  /// tracked isolates.
+  Future<RpcResponse> getPerfettoVMTimelineWithCpuSamples(
+    json_rpc.Parameters parameters,
+  ) async {
+    var timeOriginMicros = _kDefaultTimeRange;
+    var timeExtentMicros = _kDefaultTimeRange;
+    if (parameters.value != null) {
+      final timeOriginParam = parameters[_kTimeOriginMicros];
+      if (timeOriginParam.valueOr(null) != null) {
+        timeOriginMicros = timeOriginParam.asInt;
+      }
+      final timeExtentParam = parameters[_kTimeExtentMicros];
+      if (timeExtentParam.valueOr(null) != null) {
+        timeExtentMicros = timeExtentParam.asInt;
+      }
+    }
+
+    final timeline = await vmServiceClient.getPerfettoVMTimeline(
+      timeOriginMicros: timeOriginMicros,
+      timeExtentMicros: timeExtentMicros,
+    );
+
+    final combinedBytes = BytesBuilder(copy: false)
+      ..add(base64Decode(timeline.trace ?? ''));
+
+    for (final isolateId in ddsIsolates.keys.toList()) {
+      try {
+        final samplesResult = await vmServiceClient.getPerfettoCpuSamples(
+          isolateId,
+          timeOriginMicros: timeOriginMicros,
+          timeExtentMicros: timeExtentMicros,
+        );
+        if (samplesResult.samples case final String samples
+            when samples.isNotEmpty) {
+          combinedBytes.add(base64Decode(samples));
+        }
+      } on vm.RPCError catch (e, st) {
+        // Since this RPC aggregates CPU samples across all tracked isolates
+        // into the VM-wide timeline trace, skip isolates that are not yet
+        // runnable or cannot be sampled so the timeline and remaining
+        // isolates' samples are still returned.
+        _logger.fine('Skipping CPU samples for $isolateId', e, st);
+      } on vm.SentinelException catch (e, st) {
+        // Skip isolates that exited before or during `getPerfettoCpuSamples`
+        // so the timeline and remaining isolates' samples are still returned.
+        _logger.fine('Skipping CPU samples for exited $isolateId', e, st);
+      }
+    }
+    timeline.trace = base64Encode(combinedBytes.takeBytes());
+    return timeline.toJson();
+  }
+
+  static final RpcResponse _collectedSentinel = Map.unmodifiable(
+    vm.Sentinel(
+      kind: vm.SentinelKind.kCollected,
+      valueAsString: '<collected>',
+    ).toJson(),
+  );
+
   /// Handles the `readyToResume` custom DDS RPC.
   ///
   /// Signals that the calling [client] approves resuming the isolate specified
   /// by `isolateId`. If all other required clients and user permissions have
   /// also granted approval, forwards the resume request to the target VM.
   ///
-  /// Throws a [json_rpc.RpcException] with [json_rpc_error.INVALID_PARAMS] if
-  /// `isolateId` is not recognized.
+  /// Returns a collected [vm.Sentinel] if `isolateId` no longer exists.
   Future<RpcResponse> readyToResume(
     json_rpc.Parameters parameters,
     Client client,
-  ) async {
-    final isolateId = parameters['isolateId'].asString;
-    final isolate = ddsIsolates[isolateId];
+  ) => _mutex.runGuarded(() async {
+    final isolate = ddsIsolates[parameters['isolateId'].asString];
     if (isolate == null) {
-      throw json_rpc.RpcException(
-        json_rpc_error.INVALID_PARAMS,
-        'Invalid isolateId: $isolateId',
-      );
+      return _collectedSentinel;
     }
     if (isolate.shouldResume(resumingClient: client)) {
-      isolate.clearResumeApprovals();
-      await sendResumeRequest(isolateId: isolateId, parameters: parameters);
+      return await sendResumeRequest(isolate: isolate, parameters: parameters);
     }
     return vm.Success().toJson();
-  }
+  });
 
   /// Handles the VM Service `resume` RPC.
   ///
   /// Invocations of `resume` are considered to be resume requests made by the
   /// user and are treated as a force resume, bypassing any resume permissions
   /// set by tooling.
-  Future<RpcResponse> resume(
-    json_rpc.Parameters parameters,
-    Client client,
-  ) async {
-    final isolateId = parameters['isolateId'].asString;
-    if (ddsIsolates[isolateId] case final isolate?) {
-      isolate.clearResumeApprovals();
-    }
-    return await sendResumeRequest(
-      isolateId: isolateId,
-      parameters: parameters,
-    );
-  }
+  ///
+  /// Returns a collected [vm.Sentinel] if `isolateId` no longer exists.
+  Future<RpcResponse> resume(json_rpc.Parameters parameters, Client client) =>
+      _mutex.runGuarded(() async {
+        final isolate = ddsIsolates[parameters['isolateId'].asString];
+        if (isolate == null) {
+          return _collectedSentinel;
+        }
+        return await sendResumeRequest(
+          isolate: isolate,
+          parameters: parameters,
+        );
+      });
 
-  /// Sends the `resume` request to the target VM Service client with optional
-  /// `step` and `frameIndex` parameters.
+  /// Clears resume approvals on [isolate] and sends the `resume` request to
+  /// the target VM Service client with optional `step` and `frameIndex`
+  /// parameters.
   Future<RpcResponse> sendResumeRequest({
-    required String isolateId,
+    required DdsRunningIsolate isolate,
     json_rpc.Parameters? parameters,
   }) async {
+    isolate.clearResumeApprovals();
     const invalidFrameIndex = -1;
     final step = switch (parameters?['step']) {
       final s? when s.exists => s.asString,
@@ -432,7 +508,7 @@ final class DdsIsolateManager extends IsolateManager {
       _ => null,
     };
     final response = await vmServiceClient.resume(
-      isolateId,
+      isolate.id,
       frameIndex: frameIndex == invalidFrameIndex ? null : frameIndex,
       step: step,
     );
@@ -488,17 +564,18 @@ final class DdsIsolateManager extends IsolateManager {
   /// Checks all tracked isolates and forwards a `resume` request to the VM
   /// for any paused isolate that is now eligible to resume.
   Future<void> maybeResumeIsolates() async {
-    for (final isolate in ddsIsolates.values) {
-      if (isolate.state
-          case IsolateState.pauseStart ||
-              IsolateState.pauseExit ||
-              IsolateState.pausePostRequest) {
-        if (isolate.shouldResume()) {
-          isolate.clearResumeApprovals();
-          await sendResumeRequest(isolateId: isolate.id);
+    await _mutex.runGuarded(() async {
+      for (final isolate in ddsIsolates.values) {
+        if (isolate.state
+            case IsolateState.pauseStart ||
+                IsolateState.pauseExit ||
+                IsolateState.pausePostRequest) {
+          if (isolate.shouldResume()) {
+            await sendResumeRequest(isolate: isolate);
+          }
         }
       }
-    }
+    });
   }
 
   @override

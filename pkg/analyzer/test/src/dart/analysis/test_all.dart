@@ -28,6 +28,7 @@ import 'session_test.dart' as session;
 import 'single_file_byte_store_test.dart' as single_file_byte_store_test;
 import 'unlinked_api_signature_test.dart' as unlinked_api_signature;
 import 'uri_converter_test.dart' as uri_converter;
+import 'xxh64_test.dart' as xxh64_test;
 
 main() {
   defineReflectiveSuite(() {
@@ -55,5 +56,6 @@ main() {
     single_file_byte_store_test.main();
     unlinked_api_signature.main();
     uri_converter.main();
+    xxh64_test.main();
   }, name: 'analysis');
 }

@@ -36,6 +36,7 @@ const List<Option> folderOptionsSpecification = [
   Options.forceNoExplicitGetterCalls,
   Options.forceConstructorTearOffLowering,
   Options.forceClosureContextLowering,
+  Options.forceMixinInOutline,
   Options.noDefines,
   noVerifyCmd,
   Options.target,
@@ -58,6 +59,7 @@ class SuiteFolderOptions {
       bool? forceStaticFieldLowering;
       bool? forceNoExplicitGetterCalls;
       int? forceConstructorTearOffLowering;
+      bool? forceMixinInOutline;
       bool noVerify = false;
       Map<String, String>? defines = {};
       String target = "vm";
@@ -72,6 +74,7 @@ class SuiteFolderOptions {
           forceStaticFieldLowering: forceStaticFieldLowering,
           forceNoExplicitGetterCalls: forceNoExplicitGetterCalls,
           forceConstructorTearOffLowering: forceConstructorTearOffLowering,
+          forceMixinInOutline: forceMixinInOutline,
           defines: defines,
           noVerify: noVerify,
           target: target,
@@ -109,6 +112,7 @@ class SuiteFolderOptions {
               .read(parsedOptions);
           forceClosureContextLowering = Options.forceClosureContextLowering
               .read(parsedOptions);
+          forceMixinInOutline = Options.forceMixinInOutline.read(parsedOptions);
           defines = parsedOptions.defines;
           showOffsets = Options.showOffsets.read(parsedOptions);
           if (Options.noDefines.read(parsedOptions)) {
@@ -132,6 +136,7 @@ class SuiteFolderOptions {
             forceStaticFieldLowering: forceStaticFieldLowering,
             forceNoExplicitGetterCalls: forceNoExplicitGetterCalls,
             forceConstructorTearOffLowering: forceConstructorTearOffLowering,
+            forceMixinInOutline: forceMixinInOutline,
             defines: defines,
             noVerify: noVerify,
             withOutline: withOutline,
@@ -188,6 +193,7 @@ class FolderOptions {
   final bool? forceStaticFieldLowering;
   final bool? forceNoExplicitGetterCalls;
   final int? forceConstructorTearOffLowering;
+  final bool? forceMixinInOutline;
   final Map<String, String>? defines;
   final bool noVerify;
   final bool withOutline;
@@ -203,6 +209,7 @@ class FolderOptions {
     this.forceStaticFieldLowering,
     this.forceNoExplicitGetterCalls,
     this.forceConstructorTearOffLowering,
+    this.forceMixinInOutline,
     this.defines = const {},
     this.noVerify = false,
     this.withOutline = false,

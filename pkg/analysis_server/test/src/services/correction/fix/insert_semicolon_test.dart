@@ -37,7 +37,7 @@ void f() {
 }
 
 @reflectiveTest
-class InsertSemicolonTest extends FixProcessorTest {
+class InsertSemicolonTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.insertSemicolon;
 

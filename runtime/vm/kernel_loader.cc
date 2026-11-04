@@ -572,6 +572,11 @@ ObjectPtr KernelLoader::LoadExpressionEvaluationFunction(
     return result.ptr();
   }
   const Function& function = H.GetExpressionEvaluationFunction();
+  if (function.IsNull()) {
+    const String& message = String::Handle(
+        String::New("Expression evaluation failure: No function."));
+    return ApiError::New(message);
+  }
   ASSERT(!function.IsNull());
   ASSERT(
       GrowableObjectArray::Handle(IG->object_store()->libraries()).Length() ==
@@ -709,9 +714,9 @@ void KernelLoader::ReadInferredType(const Field& field,
   field.set_guarded_cid(type.cid);
   field.set_is_nullable(type.IsNullable());
   field.set_guarded_list_length(Field::kNoFixedLength);
-  if (type.IsExactType()) {
-    ASSERT(!type.dart_type.IsNull());
-    field.set_exact_type(type.dart_type);
+  if (!type.dart_type.IsNull()) {
+    field.set_inferred_type(type.dart_type);
+    field.set_is_inferred_type_exact(type.IsExactType());
   }
   if (FLAG_precompiled_mode) {
     field.set_is_unboxed(!field.is_late() && !field.is_static() &&

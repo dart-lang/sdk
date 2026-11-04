@@ -13,9 +13,7 @@ import 'package:analyzer/src/error/listener.dart';
 class ExperimentalElementUsageReporter implements ElementUsageReporter<()> {
   final DiagnosticReporter _diagnosticReporter;
 
-  ExperimentalElementUsageReporter({
-    required DiagnosticReporter diagnosticReporter,
-  }) : _diagnosticReporter = diagnosticReporter;
+  new({required this._diagnosticReporter});
 
   @override
   void report(
@@ -38,7 +36,7 @@ class ExperimentalElementUsageReporter implements ElementUsageReporter<()> {
 
 /// Instance of [ElementUsageSet] for experimental elements.
 class ExperimentalElementUsageSet implements ElementUsageSet<()> {
-  const ExperimentalElementUsageSet();
+  const new();
 
   @override
   bool get reliesOnlyOnElementMetadata => true;

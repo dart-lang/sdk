@@ -47,6 +47,7 @@ Future<void> main() async {
       if (hasDsymutil) runMachODsym,
       // Don't run assembly on Windows since DLLs don't contain DWARF.
       if (!Platform.isWindows) runAssembly,
+      runPECoff,
     ],
   );
 }
@@ -237,6 +238,46 @@ Future<DwarfAssemblyState?> runAssembly(
     singleArchSnapshot,
     multiArchSnapshot,
   );
+}
+
+class DwarfPECoffState extends PECoffState<Dwarf> {
+  DwarfPECoffState(super.output, super.outputWithOppositeFlag, super.pdb);
+
+  @override
+  Future<void> check(Trace trace, Dwarf dwarf) =>
+      compareTraces(trace, output, outputWithOppositeFlag, dwarf);
+}
+
+Future<DwarfPECoffState?> runPECoff(String tempDir, String scriptDill) async {
+  if (skipPECoff != false) return null;
+
+  print("Generating PE/COFF snapshots");
+  final objectPath = path.join(tempDir, 'dwarf_pecoff.obj');
+  final snapshotPath = path.join(tempDir, 'dwarf_pecoff.dll');
+  final pdbPath = path.join(tempDir, 'dwarf_pecoff.pdb');
+  await run(genSnapshot, <String>[
+    '--dwarf-stack-traces-mode',
+    '--snapshot-kind=app-aot-pecoff-obj',
+    '--coff=$objectPath',
+    scriptDill,
+  ]);
+  await linkCoffSnapshot(objectPath, snapshotPath, pdbPath);
+
+  final pdb = Dwarf.fromFile(pdbPath)!;
+
+  // Run the resulting Dwarf-AOT compiled script.
+  print("Generating PE/COFF snapshot outputs");
+  final output = await runTestProgram(dartPrecompiledRuntime, <String>[
+    '--dwarf-stack-traces-mode',
+    snapshotPath,
+    scriptDill,
+  ]);
+  final outputWithOppositeFlag = await runTestProgram(
+    dartPrecompiledRuntime,
+    <String>['--no-dwarf-stack-traces-mode', snapshotPath, scriptDill],
+  );
+
+  return DwarfPECoffState(output, outputWithOppositeFlag, pdb);
 }
 
 class DwarfMachOState extends MachOState<Dwarf> {

@@ -9,8 +9,12 @@ import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/scanner/characters.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
-import 'package:analyzer/src/dart/analysis/fletcher16.dart';
+import 'package:analyzer/src/dart/analysis/xxh64.dart';
 import 'package:meta/meta.dart';
+
+/// Byte offset of the checksum field in the file header.
+@visibleForTesting
+const int headerChecksumOffset = _Header._headerChecksumOffset;
 
 /// Size in bytes of every physical page in the store.
 @visibleForTesting
@@ -52,6 +56,11 @@ const int _tableEntryPageReferenceOffset = 4;
 /// A 32-bit key hash followed by a 32-bit encoded data-page reference.
 const int _tableEntrySize = 8;
 
+/// Computes the on-disk checksum for [bytes].
+///
+/// We use the low 32 bits of the XXH64 hash, with seed zero.
+int _xxh64_32(Uint8List bytes) => xxh64(bytes) & 0xFFFFFFFF;
+
 /// Storage backed by a caller-owned file handle opened for random-access writes.
 /// The caller is responsible for closing the handle. The length is cached and
 /// refreshed after acquiring exclusive access. Each process must use one handle
@@ -60,7 +69,7 @@ class FileStorage implements Storage {
   final RandomAccessFile _file;
   int _length;
 
-  FileStorage(this._file) : _length = _file.lengthSync();
+  new(this._file) : _length = _file.lengthSync();
 
   @override
   int get length => _length;
@@ -272,7 +281,7 @@ class SingleFileByteStore implements ByteStore {
   ///
   /// [maxPendingValueBytes] and [maxPendingEntryCount] bound the write queue.
   /// These runtime limits and the pool capacity are not stored in the header.
-  SingleFileByteStore(
+  new(
     Storage storage, {
     required int filePageCountLog2,
     required int tableSlotCountLog2,
@@ -329,7 +338,7 @@ class SingleFileByteStore implements ByteStore {
   ///
   /// Uses the same configuration and recovery rules as [SingleFileByteStore].
   /// The file is closed if initialization fails. The parent directory must exist.
-  factory SingleFileByteStore.file(
+  factory file(
     String path, {
     required int filePageCountLog2,
     required int tableSlotCountLog2,
@@ -498,7 +507,7 @@ class SingleFileByteStore implements ByteStore {
         ], Uint8List.sublistView(value, inlineValueLength));
 
         // Verify the complete value, including inline and continuation bytes.
-        if (fletcher16(value) != header.valueChecksum) {
+        if (_xxh64_32(value) != header.valueChecksum) {
           throw const FormatException('Invalid value checksum');
         }
 
@@ -1016,8 +1025,7 @@ class _BufferPage {
   final bool _writable;
   bool _released = false;
 
-  _BufferPage._(this._pool, this._frame, {required bool writable})
-    : _writable = writable;
+  new _(this._pool, this._frame, {required this._writable});
 
   /// The borrowed page buffer, modifiable only through a writable handle.
   /// This view and any views derived from it are valid only until [release] or
@@ -1115,7 +1123,7 @@ class _BufferPool {
   /// Used to enforce [capacity] when allocating new frames.
   int _allocatedFrameCount = 0;
 
-  _BufferPool(this._storage, {required this.capacityLog2}) {
+  new(this._storage, {required this.capacityLog2}) {
     RangeError.checkValueInInterval(
       capacityLog2,
       _minCapacityLog2,
@@ -1414,7 +1422,7 @@ class _CapacityException implements Exception {}
 /// describing the allocation bitmap selected by this header.
 /// Bytes 32..35 hold the next table slot to examine for data reclamation as a
 /// little-endian unsigned word.
-/// Bytes 36..37 contain the little-endian Fletcher-16 checksum of bytes 0..35.
+/// Bytes 36..39 contain the little-endian checksum of bytes 0..35.
 /// Publication rewrites the header; a checksum mismatch after interruption
 /// causes the store to be reset.
 class _Header {
@@ -1456,7 +1464,7 @@ class _Header {
   /// Persisted so restarts and cooperating processes continue the same sweep.
   final int dataReclamationClockHand;
 
-  _Header({
+  new({
     required this.filePageCountLog2,
     required this.tableSlotCountLog2,
     required this.pageSize,
@@ -1514,7 +1522,7 @@ class _Header {
         dataReclamationClockHand,
         Endian.little,
       );
-    data.setUint16(
+    data.setUint32(
       _headerChecksumOffset,
       _headerChecksum(bytes),
       Endian.little,
@@ -1537,7 +1545,7 @@ class _Header {
     }
     var data = ByteData.sublistView(bytes);
     var tableSlotCountLog2 = bytes[_tableSlotCountLog2Offset];
-    if (data.getUint16(_headerChecksumOffset, Endian.little) !=
+    if (data.getUint32(_headerChecksumOffset, Endian.little) !=
             _headerChecksum(bytes) ||
         tableSlotCountLog2 < _minTableSlotCountLog2 ||
         tableSlotCountLog2 > _maxTableSlotCountLog2) {
@@ -1566,7 +1574,7 @@ class _Header {
   }
 
   static int _headerChecksum(Uint8List bytes) =>
-      fletcher16(Uint8List.sublistView(bytes, 0, _headerChecksumOffset));
+      _xxh64_32(Uint8List.sublistView(bytes, 0, _headerChecksumOffset));
 }
 
 /// A page of continuation data-page indices, all integers little-endian:
@@ -1574,14 +1582,14 @@ class _Header {
 ///     uint32                    nextOverflowMetadataPageIndex (index + 1, or zero)
 ///     uint16                    dataPageIndexCount
 ///     uint32[dataPageIndexCount] dataPageIndices
-///     uint16                    metadataChecksum
+///     uint32                    metadataChecksum
 ///
 /// The checksum covers all preceding fields. Unused bytes are zero. These pages
 /// belong to the record and are allocated/freed with its payload pages.
 class _OverflowMetadata {
   /// Total bytes for the next-page reference, index count, and trailing checksum.
   /// Excludes the variable-length page-index array.
-  static const int _fixedMetadataSize = 8;
+  static const int _fixedMetadataSize = 10;
 
   /// Size in bytes of each encoded data-page index.
   static const int _pageIndexSize = 4;
@@ -1599,10 +1607,7 @@ class _OverflowMetadata {
   final _DataPageIndex? nextOverflowMetadataPageIndex;
   final List<_DataPageIndex> dataPages;
 
-  _OverflowMetadata({
-    required this.nextOverflowMetadataPageIndex,
-    required this.dataPages,
-  });
+  new({required this.nextOverflowMetadataPageIndex, required this.dataPages});
 
   void write(_BufferPage page) {
     var bytes = page.bytes;
@@ -1628,9 +1633,9 @@ class _OverflowMetadata {
     }
 
     // Write the checksum.
-    data.setUint16(
+    data.setUint32(
       offset,
-      fletcher16(Uint8List.sublistView(bytes, 0, offset)),
+      _xxh64_32(Uint8List.sublistView(bytes, 0, offset)),
       Endian.little,
     );
     page.writeAndRelease();
@@ -1652,8 +1657,8 @@ class _OverflowMetadata {
     // Validate the checksum.
     var checksumOffset =
         _dataPageIndicesOffset + _pageIndexSize * dataPageIndexCount;
-    if (data.getUint16(checksumOffset, Endian.little) !=
-        fletcher16(Uint8List.sublistView(bytes, 0, checksumOffset))) {
+    if (data.getUint32(checksumOffset, Endian.little) !=
+        _xxh64_32(Uint8List.sublistView(bytes, 0, checksumOffset))) {
       throw const FormatException('Invalid overflow metadata checksum');
     }
 
@@ -1693,7 +1698,7 @@ class _Statistics {
   int _oversizedValueBytes = 0;
   int _oversizedValueCount = 0;
 
-  _Statistics._();
+  new _();
 
   /// Bucket rebuilds in committed transactions, including repeats per bucket.
   int get bucketRebuildCount => _bucketRebuildCount;
@@ -1729,11 +1734,11 @@ class _Statistics {
 ///     uint16                         keyLength
 ///     uint8[keyLength]               keyBytes
 ///     uint32                         valueLength
-///     uint16                         valueChecksum
+///     uint32                         valueChecksum
 ///     uint16                         inlineDataPageIndexCount
 ///     uint32[inlineDataPageIndexCount] inlineDataPageIndices
 ///     uint32                         firstOverflowMetadataPage
-///     uint16                         metadataChecksum
+///     uint32                         metadataChecksum
 ///     uint8[inlineValueLength]       inlineValueBytes
 ///
 /// All integers are little-endian. Fields are packed without alignment padding;
@@ -1756,11 +1761,11 @@ class _ValueHeader {
   // Encoded field sizes in bytes.
   static const int _keyLengthSize = 2;
   static const int _valueLengthSize = 4;
-  static const int _valueChecksumSize = 2;
+  static const int _valueChecksumSize = 4;
   static const int _pageIndexCountSize = 2;
   static const int _pageIndexSize = 4;
   static const int _overflowReferenceSize = 4;
-  static const int _metadataChecksumSize = 2;
+  static const int _metadataChecksumSize = 4;
 
   /// Total metadata bytes excluding the key and inline page-index array.
   static const int _fixedSize =
@@ -1783,7 +1788,7 @@ class _ValueHeader {
   /// Filled when the overflow chain is read, so replacement can free its pages.
   final List<_DataPageIndex> overflowMetadataPages = [];
 
-  _ValueHeader({
+  new({
     required this.firstDataPageIndex,
     required this.key,
     required this.valueLength,
@@ -1818,7 +1823,7 @@ class _ValueHeader {
     data.setUint32(offset, valueLength, Endian.little);
     offset += _valueLengthSize;
 
-    data.setUint16(offset, valueChecksum, Endian.little);
+    data.setUint32(offset, valueChecksum, Endian.little);
     offset += _valueChecksumSize;
 
     // Write the count of continuation data-page indices stored in this header.
@@ -1843,9 +1848,9 @@ class _ValueHeader {
     );
     offset += _overflowReferenceSize;
 
-    data.setUint16(
+    data.setUint32(
       offset,
-      fletcher16(Uint8List.sublistView(bytes, 0, offset)),
+      _xxh64_32(Uint8List.sublistView(bytes, 0, offset)),
       Endian.little,
     );
 
@@ -1895,7 +1900,7 @@ class _ValueHeader {
   static int maximumValueLength(int dataPageCount) {
     var remainingPages = dataPageCount - 1;
     var excess = remainingPages - inlinePageIndexCapacity(maxKeyLength);
-    // Each additional metadata page consumes a page and describes 254 payload
+    // Each additional metadata page consumes a page and describes 253 payload
     // pages. Reserve enough metadata for the worst-case key length.
     var metadataPages = excess <= 0
         ? 0
@@ -1946,7 +1951,7 @@ class _ValueHeader {
     var valueLength = data.getUint32(offset, Endian.little);
     offset += _valueLengthSize;
 
-    var valueChecksum = data.getUint16(offset, Endian.little);
+    var valueChecksum = data.getUint32(offset, Endian.little);
     offset += _valueChecksumSize;
 
     var dataPageIndexCount = data.getUint16(offset, Endian.little);
@@ -1961,8 +1966,8 @@ class _ValueHeader {
       throw const FormatException('Invalid data-page index count');
     }
 
-    if (data.getUint16(checksumOffset, Endian.little) !=
-        fletcher16(Uint8List.sublistView(bytes, 0, checksumOffset))) {
+    if (data.getUint32(checksumOffset, Endian.little) !=
+        _xxh64_32(Uint8List.sublistView(bytes, 0, checksumOffset))) {
       throw const FormatException('Invalid record metadata checksum');
     }
 
@@ -2057,7 +2062,7 @@ class _WriteTransaction {
   /// allocated until commit, so subsequent allocations need not revisit them.
   _DataPageIndex _nextAllocationPageIndex = const _DataPageIndex(0);
 
-  _WriteTransaction(this._store, _Header header)
+  new(this._store, _Header header)
     : _selectorSlot = header.selectorSlot,
       _dataReclamationClockHand = header.dataReclamationClockHand,
       _freePageCount = header.freePageCount {
@@ -2261,7 +2266,7 @@ class _WriteTransaction {
       firstDataPageIndex: valuePages.first,
       key: key,
       valueLength: value.length,
-      valueChecksum: fletcher16(value),
+      valueChecksum: _xxh64_32(value),
       continuationPages: valuePages.sublist(1),
       firstOverflowMetadataPageIndex: metadataPages.firstOrNull,
     );
@@ -2328,9 +2333,8 @@ class _WriteTransaction {
       );
 
     // Mark the entry as recently used so CLOCK gives it a second chance.
-    _getBucketClockBits(
-      index,
-    ).setBit(entry.entryIndex % _tableEntriesPerPage, true);
+    _getBucketClockBits(index)
+        .setBit(entry.entryIndex % _tableEntriesPerPage, true);
 
     // If replaced a value, schedule freeing old pages.
     _pagesToFree.addAll([

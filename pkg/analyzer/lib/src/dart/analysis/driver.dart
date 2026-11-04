@@ -39,8 +39,8 @@ import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart'
     show DiagnosticMessageImpl;
@@ -113,7 +113,20 @@ testFineAfterLibraryAnalyzerHook;
 // TODO(scheglov): Clean up the list of implicitly analyzed files.
 class AnalysisDriver {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 739;
+  static const int DATA_VERSION = 756;
+
+  /// The signature of the numbering of token types.
+  ///
+  /// Bundles store indexes into [tokenTypesByIndex], so they can be read back
+  /// only with the same numbering, which `_fe_analyzer_shared` can change
+  /// without anyone updating [DATA_VERSION].
+  static final Uint32List _tokenTypesSignature = () {
+    var signature = ApiSignature();
+    for (var type in tokenTypesByIndex) {
+      signature.addString(type.name);
+    }
+    return signature.toUint32List();
+  }();
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -301,13 +314,13 @@ class AnalysisDriver {
   ///
   /// The given [SourceFactory] is cloned to ensure that it does not contain a
   /// reference to an [AnalysisContext] in which it could have been used.
-  AnalysisDriver({
-    required AnalysisDriverScheduler scheduler,
-    required PerformanceLog logger,
+  new({
+    required this._scheduler,
+    required this._logger,
     required ResourceProvider resourceProvider,
-    required ByteStore byteStore,
-    required SourceFactory sourceFactory,
-    required Packages packages,
+    required this._byteStore,
+    required this._sourceFactory,
+    required this._packages,
     required this.withFineDependencies,
     this.ownedFiles,
     this.analysisContext,
@@ -316,34 +329,31 @@ class AnalysisDriver {
     UnlinkedUnitStore? unlinkedUnitStore,
     this.enableIndex = false,
     this.shouldReportInconsistentAnalysisException = true,
-    SummaryDataStore? externalSummaries,
+    this._externalSummaries,
     DeclaredVariables? declaredVariables,
-    Version? languageVersionOverride,
+    this._languageVersionOverride,
     bool retainDataForTesting = false,
     this.testView,
-    bool enableLintRuleTiming = false,
-  }) : _scheduler = scheduler,
-       _resourceProvider = resourceProvider,
-       _byteStore = byteStore,
+    this._enableLintRuleTiming = false,
+  }) : _resourceProvider = resourceProvider,
        _fileContentCache =
            fileContentCache ?? FileContentCache.ephemeral(resourceProvider),
        _unlinkedUnitStore = unlinkedUnitStore ?? UnlinkedUnitStoreImpl(),
-       _logger = logger,
-       _packages = packages,
-       _languageVersionOverride = languageVersionOverride,
-       _sourceFactory = sourceFactory,
-       _externalSummaries = externalSummaries,
        declaredVariables = declaredVariables ?? DeclaredVariables(),
        testingData = retainDataForTesting ? TestingData() : null,
-       _enableLintRuleTiming = enableLintRuleTiming,
-       _saltForUnlinked = _calculateSaltForUnlinked(enableIndex: enableIndex),
+       _saltForUnlinked = _calculateSaltForUnlinked(
+         enableIndex: enableIndex,
+         sdkLanguageVersion: _sourceFactory.dartSdk!.languageVersion,
+       ),
        _saltForElements = _calculateSaltForElements(
          declaredVariables ?? DeclaredVariables(),
+         sdkLanguageVersion: _sourceFactory.dartSdk!.languageVersion,
        ),
        _saltForResolution = _calculateSaltForResolution(
          enableIndex: enableIndex,
          analysisContext: analysisContext,
          declaredVariables: declaredVariables ?? DeclaredVariables(),
+         sdkLanguageVersion: _sourceFactory.dartSdk!.languageVersion,
        ) {
     analysisContext?.driver = this;
     testView?.driver = this;
@@ -380,9 +390,8 @@ class AnalysisDriver {
     // plugins from its parent context).
     var rootOptionsFile = analysisContext?.contextRoot.optionsFile;
     return rootOptionsFile != null
-        ? getAnalysisOptionsForFile(
-            rootOptionsFile,
-          ).enabledLegacyPluginNames.toSet()
+        ? getAnalysisOptionsForFile(rootOptionsFile).enabledLegacyPluginNames
+              .toSet()
         : const {};
   }
 
@@ -694,15 +703,23 @@ class AnalysisDriver {
   void clearLibraryContext() {
     _libraryContext?.dispose();
     _libraryContext = null;
+
+    // The cached results belong to the discarded session.
+    _priorityResults.clear();
+    _resolvedLibraryCache.clear();
   }
 
+  /// Discards data that is expensive to keep in memory, and can be computed
+  /// or read again when needed.
   void discardMemoryExpensiveData() {
-    if (_hasDiscardedMemoryExpensiveData) {
-      return;
+    if (_libraryContext case var libraryContext?) {
+      var elementFactory = libraryContext.elementFactory;
+      elementFactory.analysisSession.clearHierarchies();
+      elementFactory.discardDecodedLibraryManifests();
+      _scheduler.eventsController.add(
+        events.DiscardMemoryExpensiveData(driver: this, keptIds: const []),
+      );
     }
-    _hasDiscardedMemoryExpensiveData = true;
-    currentSession.clearHierarchies();
-    libraryContext.elementFactory.discardLibraryManifestInstances();
   }
 
   /// Completes after all potentially available files have been added to
@@ -1197,7 +1214,8 @@ class AnalysisDriver {
       } catch (exception, stackTrace) {
         _reportException(request.path, exception, stackTrace, null);
         request.completer.completeError(exception, stackTrace);
-        _clearLibraryContextAfterException();
+        // Recover from a possibly inconsistent library context.
+        clearLibraryContext();
       }
       return;
     }
@@ -1377,13 +1395,8 @@ class AnalysisDriver {
           );
         });
 
-        var analysisOptions = file.analysisOptions;
         var libraryElement = libraryContext.elementFactory.libraryOfUri2(
           library.file.uri,
-        );
-        var typeSystemOperations = TypeSystemOperations(
-          libraryElement.typeSystem,
-          strictCasts: analysisOptions.strictCasts,
         );
 
         RequirementsManifest? requirements;
@@ -1395,14 +1408,13 @@ class AnalysisDriver {
 
         var results = performance.run('LibraryAnalyzer', (performance) {
           return LibraryAnalyzer(
-            analysisOptions,
+            library.file.analysisOptions,
             declaredVariables,
             libraryElement,
             libraryContext.elementFactory.analysisSession.inheritanceManager,
             library,
             performance: performance,
             testingData: testingData,
-            typeSystemOperations: typeSystemOperations,
             enableLintRuleTiming: _enableLintRuleTiming,
           ).analyze();
         });
@@ -1414,9 +1426,9 @@ class AnalysisDriver {
         }
 
         if (withFineDependencies) {
-          assert(requirements!.assertSerialization());
           globalResultRequirements?.stopRecording();
           globalResultRequirements = null;
+          assert(requirements!.assertSerialization());
         }
 
         var isLibraryWithPriorityFile = _isLibraryWithPriorityFile(library);
@@ -1469,7 +1481,7 @@ class AnalysisDriver {
           }
 
           _fileTracker.fileWasAnalyzed(unitFile.path);
-          _lastProducedSignatures[path] = unitSignature;
+          _lastProducedSignatures[unitFile.path] = unitSignature;
           _scheduler.eventsController.add(resolvedUnit);
 
           if (isLibraryWithPriorityFile) {
@@ -1560,7 +1572,8 @@ class AnalysisDriver {
         }
         // getResolvedLibrary()
         completeWithError(_requestedLibraries.remove(library.file.path));
-        _clearLibraryContextAfterException();
+        // Recover from a possibly inconsistent library context.
+        clearLibraryContext();
       }
 
       return null;
@@ -1597,16 +1610,6 @@ class AnalysisDriver {
         completer.complete(accumulatedAffected.toList());
       }
     }
-  }
-
-  /// There was an exception during a file analysis, we don't know why.
-  /// But it might have been caused by an inconsistency of files state, and
-  /// the library context state. Reset the library context, and hope that
-  /// we will solve the inconsistency while loading / building summaries.
-  void _clearLibraryContextAfterException() {
-    clearLibraryContext();
-    _priorityResults.clear();
-    _resolvedLibraryCache.clear();
   }
 
   /// Completes pending requests if a required SDK library is missing.
@@ -1728,6 +1731,25 @@ class AnalysisDriver {
       unit: unitResult.unit,
       diagnostics: unitResult.diagnostics,
     );
+  }
+
+  /// Like [discardMemoryExpensiveData], but keeps decoded data that the
+  /// analysis keeps using. The scheduler invokes it once after each period
+  /// of work of this driver.
+  void _discardMemoryExpensiveDataOnIdle() {
+    if (_hasDiscardedMemoryExpensiveData) {
+      return;
+    }
+    _hasDiscardedMemoryExpensiveData = true;
+
+    if (_libraryContext case var libraryContext?) {
+      var elementFactory = libraryContext.elementFactory;
+      elementFactory.analysisSession.clearHierarchies();
+      var keptIds = elementFactory.discardDecodedLibraryManifestsOnIdle();
+      _scheduler.eventsController.add(
+        events.DiscardMemoryExpensiveData(driver: this, keptIds: keptIds),
+      );
+    }
   }
 
   /// When we look at a part that has a `part of name;` directive, we
@@ -2374,26 +2396,19 @@ class AnalysisDriver {
         libraryContext.load(targetLibrary: library, performance: performance);
       });
       var libraryFragment = libraryContext.computeUnitElement(library, file);
-      var analysisOptions = libraryContext.analysisContext
-          .getAnalysisOptionsForFile(file.resource);
       var libraryElement = libraryContext.elementFactory.libraryOfUri2(
         library.file.uri,
-      );
-      var typeSystemOperations = TypeSystemOperations(
-        libraryElement.typeSystem,
-        strictCasts: analysisOptions.strictCasts,
       );
 
       var analysisResult = performance.run('LibraryAnalyzer', (performance) {
         return LibraryAnalyzer(
-          analysisOptions as AnalysisOptionsImpl,
+          library.file.analysisOptions,
           declaredVariables,
           libraryElement,
           libraryContext.elementFactory.analysisSession.inheritanceManager,
           library,
           performance: OperationPerformanceImpl('<root>'),
           testingData: testingData,
-          typeSystemOperations: typeSystemOperations,
         ).analyzeForCompletion(
           file: file,
           offset: offset,
@@ -2512,10 +2527,13 @@ class AnalysisDriver {
   }
 
   static Uint32List _calculateSaltForElements(
-    DeclaredVariables declaredVariables,
-  ) {
+    DeclaredVariables declaredVariables, {
+    required Version sdkLanguageVersion,
+  }) {
     var buffer = ApiSignature();
     buffer.addInt(DATA_VERSION);
+    buffer.addUint32List(_tokenTypesSignature);
+    buffer.addLanguageVersion(sdkLanguageVersion);
     _addDeclaredVariablesToSignature(buffer, declaredVariables);
     return buffer.toUint32List();
   }
@@ -2524,10 +2542,12 @@ class AnalysisDriver {
     required bool enableIndex,
     required DriverBasedAnalysisContext? analysisContext,
     required DeclaredVariables declaredVariables,
+    required Version sdkLanguageVersion,
   }) {
     var buffer = ApiSignature()
       ..addInt(DATA_VERSION)
-      ..addBool(enableIndex);
+      ..addBool(enableIndex)
+      ..addLanguageVersion(sdkLanguageVersion);
     _addDeclaredVariablesToSignature(buffer, declaredVariables);
 
     var workspace = analysisContext?.contextRoot.workspace;
@@ -2536,10 +2556,14 @@ class AnalysisDriver {
     return buffer.toUint32List();
   }
 
-  static Uint32List _calculateSaltForUnlinked({required bool enableIndex}) {
+  static Uint32List _calculateSaltForUnlinked({
+    required bool enableIndex,
+    required Version sdkLanguageVersion,
+  }) {
     var buffer = ApiSignature()
       ..addInt(DATA_VERSION)
-      ..addBool(enableIndex);
+      ..addBool(enableIndex)
+      ..addLanguageVersion(sdkLanguageVersion);
 
     return buffer.toUint32List();
   }
@@ -2619,7 +2643,7 @@ class AnalysisDriverScheduler {
   /// File updates since last transition to working status.
   FileUpdatesStatistics _fileUpdatesStatistics = FileUpdatesStatistics();
 
-  AnalysisDriverScheduler(
+  new(
     this._logger, {
     this.driverWatcher,
     this.shouldDiscardMemoryExpensiveDataOnIdle = true,
@@ -2770,7 +2794,7 @@ class AnalysisDriverScheduler {
         if (priority == AnalysisDriverPriority.nothing) {
           if (driver.withFineDependencies &&
               shouldDiscardMemoryExpensiveDataOnIdle) {
-            driver.discardMemoryExpensiveData();
+            driver._discardMemoryExpensiveDataOnIdle();
           }
         } else {
           driver._hasDiscardedMemoryExpensiveData = false;
@@ -2985,7 +3009,7 @@ class ExceptionResult {
   /// number of context to store was reached, etc.
   final String? contextKey;
 
-  ExceptionResult({
+  new({
     required this.filePath,
     required this.fileContentMap,
     required this.exception,
@@ -2998,7 +3022,7 @@ class FileChange {
   final String path;
   final FileChangeKind kind;
 
-  FileChange(this.path, this.kind);
+  new(this.path, this.kind);
 
   @override
   String toString() {
@@ -3082,7 +3106,7 @@ class _DiscoverAvailableFilesJob {
 
   bool _isInitialized = false;
 
-  _DiscoverAvailableFilesJob(this.driver, this.filter);
+  new(this.driver, this.filter);
 
   bool get isCompleted => completer.isCompleted;
 
@@ -3228,7 +3252,7 @@ class _DiscoverAvailableFilesTask {
   _DiscoverAvailableFilesJob? _allFilesJob;
   bool _isStopped = false;
 
-  _DiscoverAvailableFilesTask(this.driver);
+  new(this.driver);
 
   bool get hasPendingWork {
     return _pendingScopedJobs.any((job) => !job.isCompleted) ||
@@ -3319,14 +3343,14 @@ class _GetFilesDefiningClassMemberNameRequest {
   final String name;
   final completer = Completer<List<FileState>>();
 
-  _GetFilesDefiningClassMemberNameRequest(this.name);
+  new(this.name);
 }
 
 class _GetFilesReferencingNamesRequest {
   final Set<String> names;
   final completer = Completer<List<FileState>>();
 
-  _GetFilesReferencingNamesRequest(this.names);
+  new(this.names);
 }
 
 class _ResolveForCompletionRequest {
@@ -3337,7 +3361,7 @@ class _ResolveForCompletionRequest {
   final OperationPerformanceImpl performance;
   final Completer<ResolvedForCompletionResultImpl?> completer = Completer();
 
-  _ResolveForCompletionRequest({
+  new({
     required this.path,
     required this.offset,
     required this.line,

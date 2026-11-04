@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/base/uri_offset.dart';
 import 'package:kernel/ast.dart';
 
 import '../base/lookup_result.dart';
@@ -364,6 +365,11 @@ class DillExtensionTypeDeclarationBuilder
       content: content,
     );
   }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  UriOffsetLength get uriOffset =>
+      new UriOffsetLength(fileUri, fileOffset, name.length);
 
   @override
   // Coverage-ignore(suite): Not run.

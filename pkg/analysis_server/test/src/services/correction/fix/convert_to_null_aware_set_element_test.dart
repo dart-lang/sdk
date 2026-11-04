@@ -15,7 +15,8 @@ void main() {
 }
 
 @reflectiveTest
-class ConvertToNullAwareSetElementTest extends FixProcessorTest {
+class ConvertToNullAwareSetElementTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.convertToNullAwareSetElement;
 

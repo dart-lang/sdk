@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:developer';
 import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
@@ -127,6 +128,35 @@ Future<void> testMain() async {
 
     // Exercise multiple concurrent WebSocket connections.
     await runHeavyTrafficSession(uri);
+
+    addWebSocketProfilingData({
+      'isolateId': 'package-test-isolate',
+      'uri': uri.toString(),
+      'state': 'closed',
+      'protocol': 'chat',
+      'connectTimestamp': DateTime.now()
+          .subtract(
+            const Duration(seconds: 2),
+          )
+          .microsecondsSinceEpoch,
+      'openTimestamp': DateTime.now()
+          .subtract(
+            const Duration(seconds: 1),
+          )
+          .microsecondsSinceEpoch,
+      'closeTimestamp': DateTime.now().microsecondsSinceEpoch,
+      'bytesSent': 100,
+      'bytesReceived': 200,
+      'framesSent': 2,
+      'framesReceived': 3,
+      'pingCount': 1,
+      'pongCount': 1,
+      'closeCode': WebSocketStatus.normalClosure,
+      'closeReason': 'test',
+      'error': null,
+      'events': <Map<String, dynamic>>[],
+      'lastUpdated': DateTime.now().microsecondsSinceEpoch,
+    });
 
     // Allow profiler events to flush.
     await Future.delayed(const Duration(seconds: 1));

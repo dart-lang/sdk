@@ -478,8 +478,8 @@ class IdbFactory extends JavaScriptObject {
   Future<Database> open(
     String name, {
     int? version,
-    void onUpgradeNeeded(VersionChangeEvent event)?,
-    void onBlocked(Event event)?,
+    void Function(VersionChangeEvent event)? onUpgradeNeeded,
+    void Function(Event event)? onBlocked,
   }) {
     if ((version == null) != (onUpgradeNeeded == null)) {
       return new Future.error(
@@ -508,7 +508,10 @@ class IdbFactory extends JavaScriptObject {
     }
   }
 
-  Future<IdbFactory> deleteDatabase(String name, {void onBlocked(Event e)?}) {
+  Future<IdbFactory> deleteDatabase(
+    String name, {
+    void Function(Event e)? onBlocked,
+  }) {
     try {
       var request = _deleteDatabase(name);
 

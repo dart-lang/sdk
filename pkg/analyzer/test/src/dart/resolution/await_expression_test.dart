@@ -101,7 +101,6 @@ AwaitExpression
     name: hashCode
     resolution: GetterInvocationResolution
       element: dart:core::@class::Object::@getter::hashCode
-      invokeType: int Function()
       type: int
     staticType: int
   expression(v1): PropertyAccess
@@ -123,7 +122,7 @@ AwaitExpression
 void f() async {
   await unresolved;
 //      ^^^^^^^^^^
-// [diag.undefinedIdentifier] Undefined name 'unresolved'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'unresolved'.
 }
 ''');
 
@@ -151,7 +150,7 @@ import 'dart:math' as prefix;
 void f() async {
   await prefix.unresolved;
 //             ^^^^^^^^^^
-// [diag.undefinedPrefixedName] The name 'unresolved' is being referenced through the prefix 'prefix', but it isn't defined in any of the libraries imported using that prefix.
+// [diag.undefinedPrefixedNameReadNotFound] The name 'unresolved' isn't defined in the libraries imported with the prefix 'prefix'.
 }
 ''');
 
@@ -189,7 +188,7 @@ AwaitExpression
 void f() async {
   await 0.isEven.unresolved;
 //               ^^^^^^^^^^
-// [diag.undefinedGetter] The getter 'unresolved' isn't defined for the type 'bool'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'unresolved' isn't defined for the type 'bool'.
 }
 ''');
 
@@ -206,7 +205,6 @@ AwaitExpression
       name: isEven
       resolution: GetterInvocationResolution
         element: dart:core::@class::int::@getter::isEven
-        invokeType: bool Function()
         type: bool
       staticType: bool
     operator: .

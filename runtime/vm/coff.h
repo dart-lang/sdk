@@ -58,9 +58,11 @@ class CoffWriter : public SharedObjectWriter {
   void Finalize() override;
 
   const GrowableArray<const Code*>& debug_codes();
+  const GrowableArray<const Function*>& debug_functions();
   const GrowableArray<const Script*>& debug_scripts();
   const Trie<const char>* debug_deobfuscation_trie();
   intptr_t LookupDebugCodeLabel(const Code& code);
+  intptr_t LookupDebugFunction(const Function& function);
   intptr_t LookupDebugScript(const Script& script);
 
   void AssertConsistency(const SharedObjectWriter* debug) const override {

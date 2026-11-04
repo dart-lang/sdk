@@ -16,63 +16,6 @@ main() {
 
 @reflectiveTest
 class AbstractSuperMemberReferenceTest extends PubPackageResolutionTest {
-  test_methodInvocation_mixin_implements() async {
-    var result = await resolveTestCodeWithDiagnostics(r'''
-class A {
-  void foo(int _) {}
-}
-
-mixin M implements A {
-  void bar() {
-    super.foo(0);
-//        ^^^
-// [diag.abstractSuperMemberReference] The method 'foo' is always abstract in the supertype.
-  }
-}
-''');
-
-    var node = result.findNode.receiverMethodInvocation('super.foo(0)');
-    assertResolvedNodeText(node, r'''
-ReceiverMethodInvocation
-  receiver: SuperReference
-    superKeyword: super
-  operator: .
-  name: foo
-  argumentList: ArgumentList
-    leftParenthesis: (
-    arguments2
-      IntegerLiteral
-        literal: 0
-        correspondingParameter: <testLibrary>::@class::A::@method::foo::@formalParameter::_
-        staticType: int
-    rightParenthesis: )
-  resolution: ExecutableInvocationResolution
-    element: <testLibrary>::@class::A::@method::foo
-    invokeType: void Function(int)
-    type: void
-  staticType: void
-V1: MethodInvocation
-  target: SuperExpression
-    superKeyword: super
-    staticType: M
-  operator: .
-  methodName: SimpleIdentifier
-    token: foo
-    element: <testLibrary>::@class::A::@method::foo
-    staticType: void Function(int)
-  argumentList: ArgumentList
-    leftParenthesis: (
-    arguments
-      IntegerLiteral
-        literal: 0
-        correspondingParameter: <testLibrary>::@class::A::@method::foo::@formalParameter::_
-        staticType: int
-    rightParenthesis: )
-  staticInvokeType: void Function(int)
-  staticType: void
-''');
-  }
-
   test_methodInvocation_mixinHasConcrete() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class A {}
@@ -395,7 +338,6 @@ ReceiverPropertyExtraction
   name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::A::@getter::foo
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PropertyAccess
@@ -411,13 +353,20 @@ V1: PropertyAccess
 ''');
   }
 
-  test_propertyAccess_getter_mixin_implements() async {
+  test_propertyAccess_getter_interfaceConflicts() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-class A {
-  int get foo => 0;
+abstract class A {
+  int get foo;
 }
 
-mixin M implements A {
+class I {
+  String get foo => '';
+}
+
+class B extends A implements I {
+  @override
+  Never get foo => throw 0;
+
   void bar() {
     super.foo;
 //        ^^^
@@ -435,13 +384,12 @@ ReceiverPropertyExtraction
   name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::A::@getter::foo
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PropertyAccess
   target: SuperExpression
     superKeyword: super
-    staticType: M
+    staticType: B
   operator: .
   propertyName: SimpleIdentifier
     token: foo
@@ -475,7 +423,6 @@ ReceiverPropertyExtraction
   name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@mixin::A::@getter::foo
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PropertyAccess
@@ -513,7 +460,6 @@ ReceiverPropertyExtraction
   name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::A::@getter::foo
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PropertyAccess
@@ -554,7 +500,6 @@ ReceiverPropertyExtraction
   name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::A::@getter::foo
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PropertyAccess
@@ -594,7 +539,6 @@ ReceiverPropertyExtraction
   name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::A::@getter::foo
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PropertyAccess
@@ -707,22 +651,32 @@ V1: AssignmentExpression
 ''');
   }
 
-  test_propertyAccess_setter_mixin_implements() async {
+  test_propertyAccess_setter_interfaceConflicts() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-class A {
-  set foo(int _) {}
+abstract class A {
+  abstract int foo;
 }
 
-mixin M implements A {
+class I {
+  set foo(String _) {}
+}
+
+class B extends A implements I {
+  @override
+  int get foo => 0;
+
+  @override
+  set foo(Object? _) {}
+
   void bar() {
-    super.foo = 0;
+    super.foo = 1;
 //        ^^^
 // [diag.abstractSuperMemberReference] The setter 'foo' is always abstract in the supertype.
   }
 }
 ''');
 
-    var node = result.findNode.directAssignment('foo =');
+    var node = result.findNode.singleDirectAssignment;
     assertResolvedNodeText(node, r'''
 DirectAssignment
   target: ReceiverPropertyAssignmentTarget
@@ -736,15 +690,15 @@ DirectAssignment
       acceptedType: int
   operator: =
   value: IntegerLiteral
-    literal: 0
-    correspondingParameter: <testLibrary>::@class::A::@setter::foo::@formalParameter::_
+    literal: 1
+    correspondingParameter: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
     staticType: int
   staticType: int
 V1: AssignmentExpression
   leftHandSide: PropertyAccess
     target: SuperExpression
       superKeyword: super
-      staticType: M
+      staticType: B
     operator: .
     propertyName: SimpleIdentifier
       token: foo
@@ -753,8 +707,8 @@ V1: AssignmentExpression
     staticType: null
   operator: =
   rightHandSide: IntegerLiteral
-    literal: 0
-    correspondingParameter: <testLibrary>::@class::A::@setter::foo::@formalParameter::_
+    literal: 1
+    correspondingParameter: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
     staticType: int
   readElement: <null>
   readType: null

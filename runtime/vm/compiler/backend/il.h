@@ -8605,6 +8605,7 @@ class CloneContextInstr : public TemplateDefinition<1, Throws> {
   DECLARE_INSTRUCTION(CloneContext)
   virtual CompileType ComputeType() const;
 
+  virtual bool CanBecomeDeoptimizationTarget() const { return true; }
   virtual bool ComputeCanDeoptimize() const { return false; }
   virtual bool ComputeCanDeoptimizeAfterCall() const {
     // We test that allocation instructions have correct deopt environment
@@ -11312,6 +11313,7 @@ class LoadThreadInstr : public TemplateDefinition<0, NoThrow, PureAndMovable> {
   M(2, _, Int32x4NotEqual, (Int32x4, Int32x4), Int32x4)                        \
   M(2, _, Int32x4Shl, (Int32x4, Int32), Int32x4)                               \
   M(2, _, Int32x4ShrS, (Int32x4, Int32), Int32x4)                              \
+  M(2, _, Int32x4ShrU, (Int32x4, Int32), Int32x4)                              \
   M(2, _, Int32x4AndNot, (Int32x4, Int32x4), Int32x4)                          \
   M(2, _, Float32x4GreaterThan, (Float32x4, Float32x4), Int32x4)               \
   M(2, _, Float32x4GreaterThanOrEqual, (Float32x4, Float32x4), Int32x4)        \
@@ -11343,8 +11345,6 @@ class LoadThreadInstr : public TemplateDefinition<0, NoThrow, PureAndMovable> {
   M(1, _, Float32x4Abs, (Float32x4), Float32x4)                                \
   M(1, _, Float64x2Abs, (Float64x2), Float64x2)                                \
   M(1, _, Int32x4Not, (Int32x4), Int32x4)                                      \
-  M(3, _, Float32x4Clamp, (Float32x4, Float32x4, Float32x4), Float32x4)        \
-  M(3, _, Float64x2Clamp, (Float64x2, Float64x2, Float64x2), Float64x2)        \
   M(1, _, Float64x2GetX, (Float64x2), Double)                                  \
   M(1, _, Float64x2GetY, (Float64x2), Double)                                  \
   M(2, _, Float64x2WithX, (Float64x2, Double), Float64x2)                      \

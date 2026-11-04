@@ -41,6 +41,15 @@ enum TargetCPU {
   static TargetCPU fromName(String name) => values.byName(name);
 }
 
+enum TargetOS {
+  macos,
+  ios;
+
+  static final String defaultName = macos.name;
+  static final List<String> allowedNames = [for (final v in values) v.name];
+  static TargetOS fromName(String name) => values.byName(name);
+}
+
 enum ImageFormat {
   macho;
 
@@ -51,6 +60,7 @@ enum ImageFormat {
 
 abstract base class Configuration(
   final TargetCPU targetCPU,
+  final TargetOS targetOS,
   final ImageFormat imageFormat, {
   required final bool enableAsserts,
   required final bool compilePlatform,
@@ -121,6 +131,7 @@ abstract base class Configuration(
 final class DevelopmentCompilerConfiguration extends Configuration {
   DevelopmentCompilerConfiguration(
     super.targetCPU,
+    super.targetOS,
     super.imageFormat, {
     required super.enableAsserts,
     required super.compilePlatform,

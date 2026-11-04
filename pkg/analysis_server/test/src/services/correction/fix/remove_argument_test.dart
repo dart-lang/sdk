@@ -111,7 +111,7 @@ void g({int a = 0, int b = 1, int c = 2}) {}
 }
 
 @reflectiveTest
-class RemoveArgumentTest extends FixProcessorLintTest {
+class RemoveArgumentTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.removeArgument;
 
@@ -185,6 +185,23 @@ void test({bool foo = true}) {}
 
 void main() {
   test();
+}
+''');
+  }
+
+  Future<void> test_named_null() async {
+    await resolveTestCode('''
+void f({int? x}) {}
+
+void g() {
+  f(x: null);
+}
+''');
+    await assertHasFix('''
+void f({int? x}) {}
+
+void g() {
+  f();
 }
 ''');
   }

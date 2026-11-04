@@ -33,39 +33,30 @@ final _uriFramework = Uri.parse('package:flutter/src/widgets/framework.dart');
 
 extension FlutterDartTypeExtension on DartType? {
   bool get isWidgetProperty {
-    var self = this;
-    if (self.isWidgetType) return true;
+    if (isWidgetType) return true;
 
-    if (self is InterfaceType &&
-        self.implementsAnyInterface(_collectionInterfaces)) {
-      return self.element.typeParameters.length == 1 &&
-          self.typeArguments.first.isWidgetProperty;
+    if (this is InterfaceType &&
+        implementsAnyInterface(_collectionInterfaces)) {
+      return element.typeParameters.length == 1 &&
+          typeArguments.first.isWidgetProperty;
     }
     return false;
   }
 
-  bool get isWidgetType {
-    var self = this;
-    return self is InterfaceType && self.element.isWidget;
-  }
+  bool get isWidgetType => this is InterfaceType && element.isWidget;
 
   bool isBuildContext({bool skipNullable = false}) {
-    var self = this;
-    if (self is! InterfaceType) return false;
-    if (skipNullable && self.nullabilitySuffix == NullabilitySuffix.question) {
+    if (this is! InterfaceType) return false;
+    if (skipNullable && nullabilitySuffix == NullabilitySuffix.question) {
       return false;
     }
-    return self.element._isExactly(_nameBuildContext, _uriFramework);
+    return element._isExactly(_nameBuildContext, _uriFramework);
   }
 }
 
 extension FlutterElementExtension on Element? {
-  bool get isKDebugMode {
-    var self = this;
-    return self != null &&
-        self.name == 'kDebugMode' &&
-        self.library?.uri == _uriFoundation;
-  }
+  bool get isKDebugMode =>
+      this != null && name == 'kDebugMode' && library?.uri == _uriFoundation;
 }
 
 extension FlutterInstanceCreationExpressionExtension

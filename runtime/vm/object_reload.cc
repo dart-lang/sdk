@@ -132,15 +132,6 @@ void CallSiteResetter::ResetSwitchableCalls(const Code& code) {
   }
   const Function& function = Function::Cast(object_);
 
-  if (function.kind() == UntaggedFunction::kIrregexpFunction) {
-    // Regex matchers do not support breakpoints or stepping, and they only call
-    // core library functions that cannot change due to reload. As a performance
-    // optimization, avoid this matching of ICData to PCs for these functions'
-    // large number of instance calls.
-    ASSERT(!function.is_debuggable());
-    return;
-  }
-
   ic_data_array_ = function.ic_data_array();
   if (ic_data_array_.IsNull()) {
     // The megamorphic miss stub and some recognized function doesn't populate

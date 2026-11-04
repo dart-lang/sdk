@@ -192,8 +192,6 @@ class FlowGraph : public ZoneObject {
     return parsed_function_.num_stack_locals();
   }
 
-  bool IsIrregexpFunction() const { return function().IsIrregexpFunction(); }
-
   LocalVariable* SuspendStateVar() const {
     return parsed_function().suspend_state_var();
   }
@@ -652,6 +650,8 @@ class FlowGraph : public ZoneObject {
   bool ExtractExternalUntaggedPayload(Instruction* instr,
                                       Value* array,
                                       classid_t cid);
+
+  void AllocateCatchEntryParameterLocations();
 
  private:
   friend class FlowGraphCompiler;  // TODO(ajcbik): restructure

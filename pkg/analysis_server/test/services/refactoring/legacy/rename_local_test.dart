@@ -746,6 +746,24 @@ void f(List<int> values) {
 ''');
   }
 
+  /// https://github.com/dart-lang/sdk/issues/47521
+  Future<void> test_createChange_localVariable_interpolation_dollar() async {
+    await indexTestUnit(r'''
+String f() {
+  var t^est = '';
+  return '$test ${test}';
+}
+''');
+    createRenameRefactoring();
+    refactoring.newName = r'test$';
+    return assertSuccessfulRefactoring(r'''
+String f() {
+  var test$ = '';
+  return '${test$} ${test$}';
+}
+''');
+  }
+
   Future<void>
   test_createChange_localVariable_sameNameDifferenceScopes() async {
     await indexTestUnit('''

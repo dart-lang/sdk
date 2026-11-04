@@ -36,7 +36,7 @@ class SourceFactoryImpl implements SourceFactory {
 
   /// Initialize a newly created source factory with the given absolute URI
   /// [resolvers].
-  SourceFactoryImpl(this.resolvers);
+  new(this.resolvers);
 
   @override
   DartSdk? get dartSdk {

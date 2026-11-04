@@ -43,7 +43,7 @@ void f(bool b) {
 }
 
 @reflectiveTest
-class RemoveReturnedValueTest extends FixProcessorLintTest {
+class RemoveReturnedValueTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.removeReturnedValue;
 

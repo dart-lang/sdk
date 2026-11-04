@@ -16,18 +16,27 @@ class DTDConnectionInfo {
       epoch: json[_kEpoch] as int? ?? 0,
       pid: json[_kPid] as int? ?? 0,
       dartVersion: json[_kDartVersion] as String? ?? '',
-      workspaceRoot: json[_kWorkspaceRoot] as String? ?? '',
+      workingDirectory:
+          json[_kWorkingDirectory] as String? ??
+          // Fall back to `_kWorkspaceRoot` for backwards compatibility with PID
+          // files written by older SDKs.
+          json[_kWorkspaceRoot] as String? ??
+          '',
+      workspaceRoots: <String>[
+        ...?(json[_kWorkspaceRoots] as List<Object?>?)?.whereType<String>(),
+      ],
       ideName: json[_kIdeName] as String?,
     );
   }
 
   DTDConnectionInfo({
-    required this.wsUri,
+    required this.dartVersion,
     required this.epoch,
     required this.pid,
-    required this.dartVersion,
-    required this.workspaceRoot,
+    required this.workingDirectory,
+    required this.wsUri,
     this.ideName,
+    this.workspaceRoots = const <String>[],
   });
 
   /// The WebSocket URI of this DTD instance.
@@ -42,8 +51,12 @@ class DTDConnectionInfo {
   /// The version of Dart running the DTD instance.
   final String dartVersion;
 
-  /// The workspace root of the directory the DTD instance was launched from.
-  final String workspaceRoot;
+  /// The working directory the DTD instance was launched from.
+  final String workingDirectory;
+
+  /// The workspace roots configured for this DTD instance via
+  /// `FileSystem.setIDEWorkspaceRoots`.
+  final List<String> workspaceRoots;
 
   /// The name of the IDE that owns this DTD instance, if any.
   final String? ideName;
@@ -52,38 +65,48 @@ class DTDConnectionInfo {
   static const String _kEpoch = 'epoch';
   static const String _kPid = 'pid';
   static const String _kDartVersion = 'dartVersion';
-  static const String _kWorkspaceRoot = 'workspaceRoot';
+  static const String _kWorkingDirectory = 'workingDirectory';
+  static const String _kWorkspaceRoots = 'workspaceRoots';
   static const String _kIdeName = 'ideName';
 
+  // Legacy keys retained for backwards compatibility with older SDKs.
+  static const String _kWorkspaceRoot = 'workspaceRoot';
+
   /// Serializes the observation to a json object.
+  ///
+  /// Note: Because PID files are read across different Dart SDK versions,
+  /// this format must remain backwards compatible (only add new fields,
+  /// never remove or alter existing ones).
   Map<String, Object?> toJson() {
     return <String, Object?>{
       _kWsUri: wsUri,
       _kEpoch: epoch,
       _kPid: pid,
       _kDartVersion: dartVersion,
-      _kWorkspaceRoot: workspaceRoot,
+      _kWorkingDirectory: workingDirectory,
+      _kWorkspaceRoots: workspaceRoots,
       _kIdeName: ?ideName,
+      // Legacy fields retained for backwards compatibility with older SDKs.
+      _kWorkspaceRoot: workspaceRoots.firstOrNull ?? workingDirectory,
     };
   }
 
   @override
   String toString() {
-    final buffer = StringBuffer();
-    buffer.writeln('  WS URI:         $wsUri');
-    buffer.writeln('  Workspace Root: $workspaceRoot');
-    buffer.writeln('  Dart Version:   $dartVersion');
-    buffer.writeln('  PID:            $pid');
-    if (ideName != null) {
-      buffer.writeln('  IDE:            $ideName');
-    }
-
     final duration = Duration(
       milliseconds: DateTime.now().millisecondsSinceEpoch - epoch,
     );
-
-    buffer.writeln('  Started:        ${duration.ago()}');
-    return buffer.toString();
+    return <String>[
+      '  WS URI:            $wsUri',
+      '  Working Directory: $workingDirectory',
+      if (workspaceRoots.isNotEmpty)
+        '  Workspace Roots:   ${workspaceRoots.join(', ')}',
+      '  Dart Version:      $dartVersion',
+      '  PID:               $pid',
+      if (ideName != null) '  IDE:               $ideName',
+      '  Started:           ${duration.ago()}',
+      '',
+    ].join('\n');
   }
 }
 

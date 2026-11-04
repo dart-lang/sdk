@@ -16,7 +16,7 @@ class Super(super.j) extends A {
   this {
     print(j);
     //    ^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
     // [cfe] The getter 'j' isn't defined for the type 'Super'.
   }
 }
@@ -26,7 +26,7 @@ class InitializingFormal(this.x) {
   this {
     print(x++); // Accessing instance variable `x`
     //    ^
-    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_WRITE
     // [cfe] The setter 'x' isn't defined for the type 'InitializingFormal'.
   }
 }
@@ -35,7 +35,7 @@ class Declaring(final int x) {
   this {
     print(x++); // Accessing instance variable `x`
     //    ^
-    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_WRITE
     // [cfe] The setter 'x' isn't defined for the type 'Declaring'.
   }
 }

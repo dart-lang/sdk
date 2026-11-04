@@ -5,7 +5,7 @@
 part of 'dart:_string';
 
 final class EmbedderRegExp implements RegExp {
-  WasmExternRef? _regexp = WasmExternRef.nullRef;
+  WasmExternRef _regexp = dummyExternRef;
 
   @override
   final String pattern;
@@ -90,7 +90,7 @@ final class EmbedderRegExp implements RegExp {
       return null;
     }
 
-    return _EmbedderMatch(this, string).._match = match;
+    return _EmbedderMatch(this, string, match!);
   }
 
   @override
@@ -107,9 +107,9 @@ final class _EmbedderMatch implements RegExpMatch {
   @override
   final String input;
 
-  WasmExternRef? _match = WasmExternRef.nullRef;
+  final WasmExternRef _match;
 
-  _EmbedderMatch(this.pattern, this.input);
+  _EmbedderMatch(this.pattern, this.input, this._match);
 
   @override
   String? operator [](int group) {
@@ -135,7 +135,7 @@ final class _EmbedderMatch implements RegExpMatch {
     );
     return contents.isNull
         ? null
-        : EmbedderStringImpl.fromRefUnchecked(contents);
+        : EmbedderStringImpl.fromRefUnchecked(contents!);
   }
 
   @override
@@ -166,7 +166,7 @@ final class _EmbedderMatch implements RegExpMatch {
     );
     return contents.isNull
         ? null
-        : EmbedderStringImpl.fromRefUnchecked(contents);
+        : EmbedderStringImpl.fromRefUnchecked(contents!);
   }
 }
 

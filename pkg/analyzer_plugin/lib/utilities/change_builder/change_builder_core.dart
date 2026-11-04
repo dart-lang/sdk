@@ -28,7 +28,7 @@ abstract class ChangeBuilder {
   /// not have EOLs. Existing files with EOL markers will always have the same
   /// EOL in inserted text. If not specified, [Platform.lineTerminator] will be
   /// used.
-  factory ChangeBuilder({
+  factory({
     AnalysisSession session,
     ChangeWorkspace workspace,
     String? defaultEol,

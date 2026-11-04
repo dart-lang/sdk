@@ -27,13 +27,13 @@ class C<T> {
   // X is not in scope. NoSuchMethodError.
   static baz() => X();
   //              ^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
   // [cfe] Method not found: 'X'.
 
   // Class 'C' has no static method 'T': NoSuchMethodError.
   static qux() => C.T();
   //                ^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] Member not found: 'C.T'.
 
   // Class '_Type' has no instance method 'call': NoSuchMethodError.
@@ -71,7 +71,7 @@ class C<T> {
   // Class '_Type' has no member m: NoSuchMethodError.
   waldo() => T.m;
   //           ^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
   // [cfe] The getter 'm' isn't defined for the type 'Type'.
 
   // Runtime type T not accessible from static context. Compile-time error.
@@ -80,7 +80,7 @@ class C<T> {
   // [analyzer] COMPILE_TIME_ERROR.TYPE_PARAMETER_REFERENCED_BY_STATIC
   // [cfe] Type variables can't be used in static members.
   //                 ^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
   // [cfe] The getter 'm' isn't defined for the type 'Type'.
 }
 

@@ -15,7 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class ConvertToOnTypeTest extends FixProcessorLintTest {
+class ConvertToOnTypeTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.convertToOnType;
 

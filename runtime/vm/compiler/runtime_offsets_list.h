@@ -94,6 +94,37 @@
   CONSTANT(CallbackMetadata, kCallRet4)                                        \
   CONSTANT(Context, kMaxElements)                                              \
   CONSTANT(Class, kNoTypeArguments)                                            \
+  CONSTANT(Class, kConstBitPos)                                                \
+  CONSTANT(Class, kImplementedBitPos)                                          \
+  CONSTANT(Class, kClassFinalizedBitsPos)                                      \
+  CONSTANT(Class, kClassFinalizedBitsSize)                                     \
+  CONSTANT(Class, kClassLoadingBitsPos)                                        \
+  CONSTANT(Class, kClassLoadingBitsSize)                                       \
+  CONSTANT(Class, kAbstractBitPos)                                             \
+  CONSTANT(Class, kEnumBitPos)                                                 \
+  CONSTANT(Class, kTransformedMixinApplicationBitPos)                          \
+  CONSTANT(Class, kIsLoadedBitPos)                                             \
+  CONSTANT(Class, kHasPragmaBitPos)                                            \
+  CONSTANT(Class, kSealedBitPos)                                               \
+  CONSTANT(Class, kMixinClassBitPos)                                           \
+  CONSTANT(Class, kBaseClassBitPos)                                            \
+  CONSTANT(Class, kInterfaceClassBitPos)                                       \
+  CONSTANT(Class, kFinalBitPos)                                                \
+  CONSTANT(Class, kIsIsolateUnsendableBitPos)                                  \
+  CONSTANT(Class, kIsDeeplyImmutableBitPos)                                    \
+  CONSTANT(Field, kConstBitPos)                                                \
+  CONSTANT(Field, kStaticBitPos)                                               \
+  CONSTANT(Field, kFinalBitPos)                                                \
+  CONSTANT(Field, kHasNontrivialInitializerBitPos)                             \
+  CONSTANT(Field, kUnboxedBitPos)                                              \
+  CONSTANT(Field, kHasPragmaBitPos)                                            \
+  CONSTANT(Field, kCovariantBitPos)                                            \
+  CONSTANT(Field, kGenericCovariantImplBitPos)                                 \
+  CONSTANT(Field, kIsLateBitPos)                                               \
+  CONSTANT(Field, kIsExtensionMemberBitPos)                                    \
+  CONSTANT(Field, kIsExtensionTypeMemberBitPos)                                \
+  CONSTANT(Field, kHasInitializerBitPos)                                       \
+  CONSTANT(Field, kSharedBitPos)                                               \
   CONSTANT(Function, kKindBitsPos)                                             \
   CONSTANT(Function, kKindBitsSize)                                            \
   CONSTANT(Function, kRecognizedBitsPos)                                       \
@@ -149,6 +180,8 @@
   CONSTANT(SubtypeTestCache, kTestResult)                                      \
   CONSTANT(TypeArguments, kAllDynamicHash)                                     \
   CONSTANT(TypeArguments, kMaxElements)                                        \
+  CONSTANT(UntaggedClass, kFinalized)                                          \
+  CONSTANT(UntaggedClass, kTypeFinalized)                                      \
   CONSTANT(UntaggedClosure, kDelayedTypeArgumentsIndex)                        \
   CONSTANT(UntaggedClosure, kInstantiatorTypeArgumentsIndexBitsPos)            \
   CONSTANT(UntaggedClosure, kInstantiatorTypeArgumentsIndexBitsSize)           \
@@ -159,6 +192,20 @@
   CONSTANT(UntaggedClosure, kFunctionTypeArgumentsIndexBitsSize)               \
   CONSTANT(UntaggedClosure, kLengthBitsPos)                                    \
   CONSTANT(UntaggedClosure, kLengthBitsSize)                                   \
+  CONSTANT(UntaggedFunction, kAsync)                                           \
+  CONSTANT(UntaggedFunction, kSyncGen)                                         \
+  CONSTANT(UntaggedFunction, kAsyncGen)                                        \
+  CONSTANT(UntaggedFunctionType, kPackedNumParentTypeArgumentsPos)             \
+  CONSTANT(UntaggedFunctionType, kPackedNumParentTypeArgumentsSize)            \
+  CONSTANT(UntaggedFunctionType, kPackedNumTypeParametersPos)                  \
+  CONSTANT(UntaggedFunctionType, kPackedNumTypeParametersSize)                 \
+  CONSTANT(UntaggedFunctionType, kPackedNumImplicitParametersPos)              \
+  CONSTANT(UntaggedFunctionType, kPackedNumImplicitParametersSize)             \
+  CONSTANT(UntaggedFunctionType, kPackedHasNamedOptionalParametersPos)         \
+  CONSTANT(UntaggedFunctionType, kPackedNumFixedParametersPos)                 \
+  CONSTANT(UntaggedFunctionType, kPackedNumFixedParametersSize)                \
+  CONSTANT(UntaggedFunctionType, kPackedNumOptionalParametersPos)              \
+  CONSTANT(UntaggedFunctionType, kPackedNumOptionalParametersSize)             \
   CONSTANT(UntaggedObject, kCardRememberedBit)                                 \
   CONSTANT(UntaggedObject, kCanonicalBit)                                      \
   CONSTANT(UntaggedObject, kNotMarkedBit)                                      \
@@ -246,8 +293,7 @@
   FIELD(GrowableObjectArray, length_offset)                                    \
   FIELD(GrowableObjectArray, type_arguments_offset)                            \
   FIELD(Page, card_table_offset)                                               \
-  FIELD(Page, original_top_offset)                                             \
-  FIELD(Page, original_end_offset)                                             \
+  FIELD(Page, survivor_end_offset)                                             \
   FIELD(CallSiteData, arguments_descriptor_offset)                             \
   FIELD(ICData, NumArgsTestedMask)                                             \
   FIELD(ICData, NumArgsTestedShift)                                            \

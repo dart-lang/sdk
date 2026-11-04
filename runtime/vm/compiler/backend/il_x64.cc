@@ -4396,10 +4396,6 @@ DEFINE_EMIT(SimdUnaryOp, (SameAsFirstInput, XmmRegister value)) {
       __ shufps(value, value, compiler::Immediate(0xFF));
       __ cvtss2sd(value, value);
       break;
-    case SimdOpInstr::kFloat32x4Shuffle:
-    case SimdOpInstr::kInt32x4Shuffle:
-      __ shufps(value, value, compiler::Immediate(instr->mask()));
-      break;
     case SimdOpInstr::kFloat32x4Splat:
       // Convert to Float32.
       __ cvtsd2ss(value, value);
@@ -4469,24 +4465,6 @@ DEFINE_EMIT(Float32x4Zero, (XmmRegister value)) {
 
 DEFINE_EMIT(Float64x2Zero, (XmmRegister value)) {
   __ ClearFpuRegister(value);
-}
-
-DEFINE_EMIT(Float32x4Clamp,
-            (SameAsFirstInput,
-             XmmRegister value,
-             XmmRegister lower,
-             XmmRegister upper)) {
-  __ minps(value, upper);
-  __ maxps(value, lower);
-}
-
-DEFINE_EMIT(Float64x2Clamp,
-            (SameAsFirstInput,
-             XmmRegister value,
-             XmmRegister lower,
-             XmmRegister upper)) {
-  __ minpd(value, upper);
-  __ maxpd(value, lower);
 }
 
 DEFINE_EMIT(Int32x4FromInts,
@@ -4654,6 +4632,10 @@ DEFINE_EMIT(Int32x4Select,
   __ orps(mask, temp);
 }
 
+DEFINE_EMIT(Simd32x4Shuffle, (XmmRegister result, XmmRegister value)) {
+  __ pshufd(result, value, compiler::Immediate(instr->mask()));
+}
+
 DEFINE_EMIT(Int32x4NotEqual,
             (SameAsFirstInput, XmmRegister left, XmmRegister right)) {
   // Compare-equal, then invert to get not-equal.
@@ -4677,6 +4659,9 @@ DEFINE_EMIT(Int32x4Shift,
     case SimdOpInstr::kInt32x4ShrS:
       __ psrad(value, count_xmm);
       break;
+    case SimdOpInstr::kInt32x4ShrU:
+      __ psrld(value, count_xmm);
+      break;
     default:
       UNREACHABLE();
   }
@@ -4691,6 +4676,7 @@ DEFINE_EMIT(Int32x4Shift,
 #define SIMD_OP_VARIANTS(CASE, ____, SIMPLE)                                   \
   CASE(Int32x4Shl)                                                             \
   CASE(Int32x4ShrS)                                                            \
+  CASE(Int32x4ShrU)                                                            \
   ____(Int32x4Shift)                                                           \
   SIMD_OP_SIMPLE_BINARY(CASE)                                                  \
   CASE(Int32x4AndNot)                                                          \
@@ -4711,13 +4697,14 @@ DEFINE_EMIT(Int32x4Shift,
   SIMPLE(Float64x2Min)                                                         \
   SIMPLE(Float64x2Max)                                                         \
   SIMPLE(Int32x4NotEqual)                                                      \
+  CASE(Float32x4Shuffle)                                                       \
+  CASE(Int32x4Shuffle)                                                         \
+  ____(Simd32x4Shuffle)                                                        \
   SIMD_OP_SIMPLE_UNARY(CASE)                                                   \
   CASE(Float32x4GetX)                                                          \
   CASE(Float32x4GetY)                                                          \
   CASE(Float32x4GetZ)                                                          \
   CASE(Float32x4GetW)                                                          \
-  CASE(Float32x4Shuffle)                                                       \
-  CASE(Int32x4Shuffle)                                                         \
   CASE(Float32x4Splat)                                                         \
   CASE(Float32x4ToFloat64x2)                                                   \
   CASE(Float64x2ToFloat32x4)                                                   \
@@ -4737,8 +4724,6 @@ DEFINE_EMIT(Int32x4Shift,
   SIMPLE(Int32x4FromBools)                                                     \
   SIMPLE(Float32x4Zero)                                                        \
   SIMPLE(Float64x2Zero)                                                        \
-  SIMPLE(Float32x4Clamp)                                                       \
-  SIMPLE(Float64x2Clamp)                                                       \
   CASE(Int32x4GetX)                                                            \
   CASE(Int32x4GetY)                                                            \
   CASE(Int32x4GetZ)                                                            \
@@ -4851,6 +4836,9 @@ void UnaryDoubleOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   XmmRegister result = locs()->out(0).fpu_reg();
   XmmRegister value = locs()->in(0).fpu_reg();
   switch (op_kind()) {
+    case Token::kABS:
+      __ DoubleAbs(result, value);
+      break;
     case Token::kNEGATE:
       __ DoubleNegate(result, value);
       break;

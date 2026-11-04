@@ -568,7 +568,10 @@ sealed class num implements Comparable<num> {
   /// value = num.parse(double.infinity.toString()); // Infinity
   /// value = num.parse('1f'); // Throws.
   /// ```
-  static num parse(String input, [@deprecated num onError(String input)?]) {
+  static num parse(
+    String input, [
+    @deprecated num Function(String input)? onError,
+  ]) {
     num? result = tryParse(input);
     if (result != null) return result;
     throw FormatException(input);

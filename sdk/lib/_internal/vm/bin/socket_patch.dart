@@ -2198,9 +2198,9 @@ class _RawServerSocket extends Stream<RawSocket>
   _RawServerSocket(this._socket, this._v6Only);
 
   StreamSubscription<RawSocket> listen(
-    void onData(RawSocket event)?, {
+    void Function(RawSocket event)? onData, {
     Function? onError,
-    void onDone()?,
+    void Function()? onDone,
     bool? cancelOnError,
   }) {
     if (_controller != null) {
@@ -2372,18 +2372,17 @@ class _RawSocket extends Stream<RawSocketEvent>
     native.isClosedWrite = true;
     if (fd != null) _getStdioHandle(native, fd);
     var result = _RawSocket(native);
-    if (fd != null) {
+    if (fd != null && Platform.isMacOS) {
       var socketType = _StdIOUtils._nativeSocketType(result._socket);
-      result._isMacOSTerminalInput =
-          Platform.isMacOS && socketType == _stdioHandleTypeTerminal;
+      result._isMacOSTerminalInput = socketType == _stdioHandleTypeTerminal;
     }
     return result;
   }
 
   StreamSubscription<RawSocketEvent> listen(
-    void onData(RawSocketEvent event)?, {
+    void Function(RawSocketEvent event)? onData, {
     Function? onError,
-    void onDone()?,
+    void Function()? onDone,
     bool? cancelOnError,
   }) {
     return _controller.stream.listen(
@@ -2518,9 +2517,9 @@ class _ServerSocket extends Stream<Socket> implements ServerSocket {
   _ServerSocket(this._socket);
 
   StreamSubscription<Socket> listen(
-    void onData(Socket event)?, {
+    void Function(Socket event)? onData, {
     Function? onError,
-    void onDone()?,
+    void Function()? onDone,
     bool? cancelOnError,
   }) {
     return _socket
@@ -2745,9 +2744,9 @@ class _Socket extends Stream<Uint8List> implements Socket {
   _NativeSocket get _nativeSocket => (_raw as _RawSocket)._socket;
 
   StreamSubscription<Uint8List> listen(
-    void onData(Uint8List event)?, {
+    void Function(Uint8List event)? onData, {
     Function? onError,
-    void onDone()?,
+    void Function()? onDone,
     bool? cancelOnError,
   }) {
     return _controller.stream.listen(
@@ -3045,9 +3044,9 @@ class _RawDatagramSocket extends Stream<RawSocketEvent>
   }
 
   StreamSubscription<RawSocketEvent> listen(
-    void onData(RawSocketEvent event)?, {
+    void Function(RawSocketEvent event)? onData, {
     Function? onError,
-    void onDone()?,
+    void Function()? onDone,
     bool? cancelOnError,
   }) {
     return _controller.stream.listen(

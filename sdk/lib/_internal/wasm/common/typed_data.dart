@@ -2033,7 +2033,7 @@ mixin _FixedLengthListMixin<E> implements TypedDataList<E> {
     this[this.length - 1] = value;
   }
 
-  int indexWhere(bool test(E element), [int start = 0]) {
+  int indexWhere(bool Function(E element) test, [int start = 0]) {
     if (start < 0) start = 0;
     for (int i = start; i < length; i++) {
       if (test(this[i])) return i;
@@ -2041,7 +2041,7 @@ mixin _FixedLengthListMixin<E> implements TypedDataList<E> {
     return -1;
   }
 
-  int lastIndexWhere(bool test(E element), [int? start]) {
+  int lastIndexWhere(bool Function(E element) test, [int? start]) {
     int startIndex = (start == null || start >= this.length)
         ? this.length - 1
         : start;
@@ -2073,16 +2073,16 @@ mixin _FixedLengthListMixin<E> implements TypedDataList<E> {
     }
   }
 
-  Iterable<E> where(bool f(E element)) => WhereIterable<E>(this, f);
+  Iterable<E> where(bool Function(E element) f) => WhereIterable<E>(this, f);
 
   Iterable<E> take(int n) => SubListIterable<E>(this, 0, n);
 
-  Iterable<E> takeWhile(bool test(E element)) =>
+  Iterable<E> takeWhile(bool Function(E element) test) =>
       TakeWhileIterable<E>(this, test);
 
   Iterable<E> skip(int n) => SubListIterable<E>(this, n, null);
 
-  Iterable<E> skipWhile(bool test(E element)) =>
+  Iterable<E> skipWhile(bool Function(E element) test) =>
       SkipWhileIterable<E>(this, test);
 
   Iterable<E> get reversed => ReversedListIterable<E>(this);
@@ -2104,14 +2104,14 @@ mixin _FixedLengthListMixin<E> implements TypedDataList<E> {
     return Set<E>.of(this);
   }
 
-  void forEach(void f(E element)) {
+  void forEach(void Function(E element) f) {
     var len = this.length;
     for (var i = 0; i < len; i++) {
       f(this[i]);
     }
   }
 
-  E reduce(E combine(E value, E element)) {
+  E reduce(E Function(E value, E element) combine) {
     var len = this.length;
     if (len == 0) throw IterableElementError.noElement();
     var value = this[0];
@@ -2121,7 +2121,7 @@ mixin _FixedLengthListMixin<E> implements TypedDataList<E> {
     return value;
   }
 
-  T fold<T>(T initialValue, T combine(T initialValue, E element)) {
+  T fold<T>(T initialValue, T Function(T initialValue, E element) combine) {
     var len = this.length;
     for (var i = 0; i < len; ++i) {
       initialValue = combine(initialValue, this[i]);
@@ -2129,12 +2129,12 @@ mixin _FixedLengthListMixin<E> implements TypedDataList<E> {
     return initialValue;
   }
 
-  Iterable<T> map<T>(T f(E element)) => MappedIterable<E, T>(this, f);
+  Iterable<T> map<T>(T Function(E element) f) => MappedIterable<E, T>(this, f);
 
-  Iterable<T> expand<T>(Iterable<T> f(E element)) =>
+  Iterable<T> expand<T>(Iterable<T> Function(E element) f) =>
       ExpandIterable<E, T>(this, f);
 
-  bool every(bool f(E element)) {
+  bool every(bool Function(E element) f) {
     var len = this.length;
     for (var i = 0; i < len; ++i) {
       if (!f(this[i])) return false;
@@ -2142,7 +2142,7 @@ mixin _FixedLengthListMixin<E> implements TypedDataList<E> {
     return true;
   }
 
-  bool any(bool f(E element)) {
+  bool any(bool Function(E element) f) {
     var len = this.length;
     for (var i = 0; i < len; ++i) {
       if (f(this[i])) return true;
@@ -2150,7 +2150,7 @@ mixin _FixedLengthListMixin<E> implements TypedDataList<E> {
     return false;
   }
 
-  E firstWhere(bool test(E element), {E orElse()?}) {
+  E firstWhere(bool Function(E element) test, {E Function()? orElse}) {
     var len = this.length;
     for (var i = 0; i < len; ++i) {
       var element = this[i];
@@ -2160,7 +2160,7 @@ mixin _FixedLengthListMixin<E> implements TypedDataList<E> {
     throw IterableElementError.noElement();
   }
 
-  E lastWhere(bool test(E element), {E orElse()?}) {
+  E lastWhere(bool Function(E element) test, {E Function()? orElse}) {
     var len = this.length;
     for (var i = len - 1; i >= 0; --i) {
       var element = this[i];
@@ -2172,7 +2172,7 @@ mixin _FixedLengthListMixin<E> implements TypedDataList<E> {
     throw IterableElementError.noElement();
   }
 
-  E singleWhere(bool test(E element), {E orElse()?}) {
+  E singleWhere(bool Function(E element) test, {E Function()? orElse}) {
     var result = null;
     bool foundMatching = false;
     var len = this.length;
@@ -2211,7 +2211,7 @@ mixin _FixedLengthListMixin<E> implements TypedDataList<E> {
     throw UnsupportedError("Cannot insert into a fixed-length list");
   }
 
-  void sort([int compare(E a, E b)?]) {
+  void sort([int Function(E a, E b)? compare]) {
     Sort.sort(this, compare ?? _compareAny);
   }
 
@@ -2249,11 +2249,11 @@ mixin _FixedLengthListMixin<E> implements TypedDataList<E> {
     throw UnsupportedError("Cannot remove from a fixed-length list");
   }
 
-  void removeWhere(bool test(E element)) {
+  void removeWhere(bool Function(E element) test) {
     throw UnsupportedError("Cannot remove from a fixed-length list");
   }
 
-  void retainWhere(bool test(E element)) {
+  void retainWhere(bool Function(E element) test) {
     throw UnsupportedError("Cannot remove from a fixed-length list");
   }
 

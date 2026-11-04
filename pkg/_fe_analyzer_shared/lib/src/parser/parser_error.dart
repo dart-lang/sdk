@@ -17,9 +17,9 @@ class ParserError {
 
   final Message message;
 
-  ParserError(this.beginOffset, this.endOffset, this.message);
+  new(this.beginOffset, this.endOffset, this.message);
 
-  ParserError.fromTokens(Token begin, Token end, Message message)
+  new fromTokens(Token begin, Token end, Message message)
     : this(begin.charOffset, end.charOffset + end.charCount, message);
 
   @override

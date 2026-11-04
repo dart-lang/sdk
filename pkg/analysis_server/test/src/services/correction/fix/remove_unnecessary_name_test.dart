@@ -37,7 +37,7 @@ void f(Object o) {
 }
 
 @reflectiveTest
-class RemoveUnnecessaryNameTest extends FixProcessorLintTest {
+class RemoveUnnecessaryNameTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.removeUnnecessaryName;
 

@@ -102,7 +102,7 @@ void f() {}
 }
 
 @reflectiveTest
-class RemoveUnusedImportMultiTest extends FixProcessorTest {
+class RemoveUnusedImportMultiTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeUnusedImportMulti;
 
@@ -162,7 +162,7 @@ void f() {}
 }
 
 @reflectiveTest
-class RemoveUnusedImportTest extends FixProcessorTest {
+class RemoveUnusedImportTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeUnusedImport;
 

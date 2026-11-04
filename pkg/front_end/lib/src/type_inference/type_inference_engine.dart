@@ -936,17 +936,13 @@ class OperationsCfe
     required List<SharedType> positional,
     required List<(String, SharedType)> named,
   }) {
-    List<NamedType> namedFields = [];
-    for (var (name, type) in named) {
-      namedFields.add(new NamedType(name, type as DartType));
-    }
-    namedFields.sort((f1, f2) => f1.name.compareTo(f2.name));
+    NamedDartTypeList namedFields = NamedDartTypeList.mapped(
+      named,
+      (r) => new NamedType(r.$1, r.$2 as DartType),
+    )..sort((f1, f2) => f1.name.compareTo(f2.name));
     return new RecordType(
-      new DartTypeList.generate(
-        positional.length,
-        (i) => positional[i] as DartType,
-      ),
-      new NamedDartTypeList.from(namedFields),
+      DartTypeList.mapped(positional, (t) => t as DartType),
+      namedFields,
       Nullability.nonNullable,
     );
   }

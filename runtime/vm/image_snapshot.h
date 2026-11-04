@@ -17,6 +17,7 @@
 #include "vm/growable_array.h"
 #include "vm/hash_map.h"
 #include "vm/object.h"
+#include "vm/os.h"
 #include "vm/reusable_handles.h"
 #include "vm/so_writer.h"
 #include "vm/type_testing_stubs.h"
@@ -83,14 +84,12 @@ class Image : public ValueObject {
   // precompiled snapshots.
   uword instructions_relocated_address() const;
 
-  // Returns the GNU build ID, or nullptr if not available. See
-  // build_id_length() for the length of the returned buffer. Only has meaning
-  // for instructions images from precompiled snapshots.
-  const uint8_t* build_id() const;
-
-  // Returns the length of the GNU build ID returned by build_id(). Only has
+  // Returns the build ID, which has no data if not available. Only has
   // meaning for instructions images from precompiled snapshots.
-  intptr_t build_id_length() const;
+  //
+  // This is the GNU build ID for ELF, the UUID for Mach-O, and the signature
+  // (GUID and age) of the PDB for PE images.
+  OS::BuildId build_id() const;
 
   // Returns whether this instructions section was directly compiled to a shared
   // object. Only valid for instructions images from precompiled snapshots.
@@ -107,6 +106,13 @@ class Image : public ValueObject {
   // Returns whether this instructions section was directly compiled to MachO.
   // Only valid for instructions images from precompiled snapshots.
   bool compiled_to_macho() const;
+
+#if defined(DART_HOST_OS_WINDOWS)
+  // Returns whether this instructions section was directly compiled to a COFF
+  // object that was linked into a PE image. Only valid for instructions images
+  // from precompiled snapshots.
+  bool compiled_to_pe() const;
+#endif
 
   // Constants used to denote special values for the offsets in the Image
   // object header and the fields of the InstructionsSection object.

@@ -44,7 +44,6 @@ abstract interface class ProblemReporting {
     bool wasHandled = false,
     List<LocatedMessage>? context,
     CfeSeverity? severity,
-    bool problemOnLibrary = false,
   });
 }
 
@@ -68,11 +67,10 @@ class LibraryProblemReporting(final SourceLoader _loader, final Uri _fileUri)
     bool wasHandled = false,
     List<LocatedMessage>? context,
     CfeSeverity? severity,
-    bool problemOnLibrary = false,
   }) {
     fileUri ??= _fileUri;
 
-    FormattedMessage? formattedMessage = _loader.addProblem(
+    FormattedMessage? formattedMessage = _loader.addLibraryProblem(
       message,
       charOffset,
       length,
@@ -80,7 +78,6 @@ class LibraryProblemReporting(final SourceLoader _loader, final Uri _fileUri)
       wasHandled: wasHandled,
       context: context,
       severity: severity,
-      problemOnLibrary: true,
     );
     if (formattedMessage != null) {
       (_problemsAsJson ??= (_library?.problemsAsJson ??= []) ?? []).add(

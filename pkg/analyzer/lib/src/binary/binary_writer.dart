@@ -29,7 +29,7 @@ class BinaryWriter {
   final ManifestIdTableBuilder _manifestIdTableBuilder;
   final StringTableBuilder _stringTableBuilder;
 
-  BinaryWriter({
+  new({
     StringTableBuilder? stringTableBuilder,
     ManifestIdTableBuilder? manifestIdTableBuilder,
   }) : _stringTableBuilder = stringTableBuilder ?? StringTableBuilder(),
@@ -163,10 +163,10 @@ class BinaryWriter {
     required void Function(V value) writeValue,
   }) {
     writeUint30(map.length);
-    for (var entry in map.entries) {
-      writeKey(entry.key);
-      writeValue(entry.value);
-    }
+    map.forEach((key, value) {
+      writeKey(key);
+      writeValue(value);
+    });
   }
 
   void writeOptionalInt64(int? value) {

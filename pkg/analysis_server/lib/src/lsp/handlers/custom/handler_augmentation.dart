@@ -34,22 +34,25 @@ class AugmentationHandler
     }
 
     var pos = params.position;
-    var path = pathOfDoc(params.textDocument);
-    var unit = await path.mapResult(requireResolvedUnit);
-    var offset = unit.mapResultSync((unit) => toOffset(unit.lineInfo, pos));
+    return withResolvedUnit(textDocument: params.textDocument, token, (
+      unit,
+      _,
+      _,
+    ) async {
+      var offset = toOffset(unit.lineInfo, pos);
+      return offset.mapResultSync((offset) {
+        // Find the nearest node that could have fragments.
+        var node = unit.unit
+            .nodeCovering(offset: offset)
+            ?.thisOrAncestorOfType<ast.Declaration>();
 
-    return (unit, offset).mapResultsSync((unit, offset) {
-      // Find the nearest node that could have fragments.
-      var node = unit.unit
-          .nodeCovering(offset: offset)
-          ?.thisOrAncestorOfType<ast.Declaration>();
-
-      var location = fragmentToLocation(
-        uriConverter,
-        // Augmentation = next fragment.
-        node?.declaredFragment?.nextFragment,
-      );
-      return success(location);
+        var location = fragmentToLocation(
+          uriConverter,
+          // Augmentation = next fragment.
+          node?.declaredFragment?.nextFragment,
+        );
+        return success(location);
+      });
     });
   }
 }

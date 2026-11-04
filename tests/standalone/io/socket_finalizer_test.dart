@@ -42,7 +42,7 @@ main() async {
     port.listen((_) {
       print("Isolate exited - triggering GC");
       // Cause a GC to collect the [socket] from [connectorIsolate].
-      VMInternalsForTesting.collectAllGarbage(); // ignore: undefined_identifier
+      VMInternalsForTesting.collectAllGarbage(); // ignore: undefined_unqualified_name_read
       port.close();
     });
     isolate.addOnExitListener(port.sendPort);

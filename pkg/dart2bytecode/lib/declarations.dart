@@ -18,6 +18,7 @@ import 'dbc.dart' show bytecodeFormatVersion;
 import 'disassembler.dart' show BytecodeDisassembler;
 import 'exceptions.dart' show ExceptionsTable;
 import 'local_variable_table.dart' show LocalVariableTable;
+import 'local_vars.dart' show AwaiterLink;
 import 'object_table.dart'
     show
         ObjectTable,
@@ -1252,12 +1253,14 @@ class ClosureCode {
   static const capturesOnlyFinalNotLateVarsFlag = 1 << 3;
   static const hasLocalFunctionIdFlag = 1 << 4;
   static const hasRecordedCoverageFlag = 1 << 5;
+  static const hasAwaiterLinkFlag = 1 << 6;
 
   final Uint8List bytecodes;
   final ExceptionsTable exceptionsTable;
   final SourcePositions? sourcePositions;
   final LocalVariableTable? localVariables;
   final RecordedCoverageArray? recordedCoverage;
+  final AwaiterLink? awaiterLink;
   final bool capturesOnlyFinalNotLateVars;
   final int localFunctionId;
   bool get hasExceptionsTable => exceptionsTable.blocks.isNotEmpty;
@@ -1265,6 +1268,7 @@ class ClosureCode {
   bool get hasLocalVariables => localVariables?.isNotEmpty ?? false;
   bool get hasRecordedCoverage => recordedCoverage?.isNotEmpty ?? false;
   bool get hasLocalFunctionId => localFunctionId > 0;
+  bool get hasAwaiterLink => awaiterLink != null;
 
   int get flags =>
       (hasExceptionsTable ? hasExceptionsTableFlag : 0) |
@@ -1272,6 +1276,7 @@ class ClosureCode {
       (hasLocalVariables ? hasLocalVariablesFlag : 0) |
       (capturesOnlyFinalNotLateVars ? capturesOnlyFinalNotLateVarsFlag : 0) |
       (hasLocalFunctionId ? hasLocalFunctionIdFlag : 0) |
+      (hasAwaiterLink ? hasAwaiterLinkFlag : 0) |
       (hasRecordedCoverage ? hasRecordedCoverageFlag : 0);
 
   ClosureCode(
@@ -1280,6 +1285,7 @@ class ClosureCode {
     this.sourcePositions,
     this.localVariables,
     this.recordedCoverage,
+    this.awaiterLink,
     this.capturesOnlyFinalNotLateVars,
     this.localFunctionId,
   );
@@ -1288,6 +1294,11 @@ class ClosureCode {
     writer.writePackedUInt30(flags);
     if (hasLocalFunctionId) {
       writer.writePackedUInt30(localFunctionId);
+    }
+    if (hasAwaiterLink) {
+      final (:depth, :index) = awaiterLink!;
+      writer.writePackedUInt30(depth);
+      writer.writePackedUInt30(index);
     }
     _writeBytecodeInstructions(writer, bytecodes);
     if (hasExceptionsTable) {
@@ -1309,6 +1320,9 @@ class ClosureCode {
     final localFunctionId = ((flags & hasLocalFunctionIdFlag) != 0)
         ? reader.readPackedUInt30()
         : -1;
+    final awaiterLink = (flags & hasAwaiterLinkFlag != 0)
+        ? (depth: reader.readPackedUInt30(), index: reader.readPackedUInt30())
+        : null;
     final Uint8List bytecodes = _readBytecodeInstructions(reader);
     final exceptionsTable = ((flags & hasExceptionsTableFlag) != 0)
         ? new ExceptionsTable.read(reader)
@@ -1331,6 +1345,7 @@ class ClosureCode {
       sourcePositions,
       localVariables,
       recordedCoverage,
+      awaiterLink,
       capturesOnlyFinalNotLateVars,
       localFunctionId,
     );
@@ -1356,6 +1371,9 @@ class ClosureCode {
     );
     if (hasRecordedCoverage) {
       sb.writeln('Coverage array: $recordedCoverage');
+    }
+    if (hasAwaiterLink) {
+      sb.writeln('Awaiter link: $awaiterLink');
     }
     sb.writeln('}');
     return sb.toString();

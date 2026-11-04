@@ -2578,9 +2578,6 @@ class SimdLowering : public ValueObject {
       case MethodRecognizer::kFloat32x4Max:
         Float32x4Binary(Token::kMAX);
         return true;
-      case MethodRecognizer::kFloat32x4Clamp:
-        DoubleClamp(kUnboxedFloat, 4);
-        return true;
       case MethodRecognizer::kFloat32x4Scale:
         UnboxVector(0, kUnboxedFloat, kDoubleCid, 4);
         UnboxScalar(1, kUnboxedFloat, 4);
@@ -2698,9 +2695,6 @@ class SimdLowering : public ValueObject {
       case MethodRecognizer::kFloat64x2Max:
         Float64x2Binary(Token::kMAX);
         return true;
-      case MethodRecognizer::kFloat64x2Clamp:
-        DoubleClamp(kUnboxedDouble, 2);
-        return true;
       case MethodRecognizer::kFloat64x2GetSignMask:
         // TODO(riscv)
         return false;
@@ -2773,6 +2767,7 @@ class SimdLowering : public ValueObject {
       case MethodRecognizer::kInt32x4AllTrue:
       case MethodRecognizer::kInt32x4Shl:
       case MethodRecognizer::kInt32x4ShrS:
+      case MethodRecognizer::kInt32x4ShrU:
       case MethodRecognizer::kInt32x4AndNot:
         // TODO(riscv)
         return false;
@@ -2912,25 +2907,6 @@ class SimdLowering : public ValueObject {
           new (zone()) Value(in_[1][lane]), call_->deopt_id(), call_->source(),
           rep));
     }
-  }
-
-  void DoubleClamp(Representation rep, intptr_t n) {
-    UnboxVector(0, rep, kDoubleCid, n);
-    UnboxVector(1, rep, kDoubleCid, n);
-    UnboxVector(2, rep, kDoubleCid, n);
-
-    for (intptr_t lane = 0; lane < n; lane++) {
-      auto* mid = AddDefinition(new (zone()) BinaryDoubleOpInstr(
-          Token::kMIN, new (zone()) Value(in_[0][lane]),
-          new (zone()) Value(in_[2][lane]), call_->deopt_id(), call_->source(),
-          rep));
-      op_[lane] = AddDefinition(new (zone()) BinaryDoubleOpInstr(
-          Token::kMAX, new (zone()) Value(mid),
-          new (zone()) Value(in_[1][lane]), call_->deopt_id(), call_->source(),
-          rep));
-    }
-
-    BoxVector(rep, n);
   }
 
   void CompareAsMask(Representation rep, Token::Kind op, intptr_t n) {
@@ -3468,7 +3444,6 @@ bool CallSpecializer::TryInlineRecognizedMethod(
           receiver, graph_entry, entry, last, result);
 
     case MethodRecognizer::kFloat32x4Abs:
-    case MethodRecognizer::kFloat32x4Clamp:
     case MethodRecognizer::kFloat32x4FromDoubles:
     case MethodRecognizer::kFloat32x4Equal:
     case MethodRecognizer::kFloat32x4GetSignMask:
@@ -3497,7 +3472,6 @@ bool CallSpecializer::TryInlineRecognizedMethod(
     case MethodRecognizer::kFloat32x4WithZ:
     case MethodRecognizer::kFloat32x4Zero:
     case MethodRecognizer::kFloat64x2Abs:
-    case MethodRecognizer::kFloat64x2Clamp:
     case MethodRecognizer::kFloat64x2FromDoubles:
     case MethodRecognizer::kFloat64x2GetSignMask:
     case MethodRecognizer::kFloat64x2GetX:
@@ -3557,6 +3531,7 @@ bool CallSpecializer::TryInlineRecognizedMethod(
     case MethodRecognizer::kInt32x4NotEqual:
     case MethodRecognizer::kInt32x4Shl:
     case MethodRecognizer::kInt32x4ShrS:
+    case MethodRecognizer::kInt32x4ShrU:
     case MethodRecognizer::kInt32x4AndNot:
 #endif
       return InlineSimdOp(flow_graph, is_dynamic_call, call, receiver, kind,

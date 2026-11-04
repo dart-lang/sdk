@@ -151,7 +151,7 @@ T Function<T>(T) makeFunction() => identity;
 var x = makeFunction()<int>.call(0);
 ''');
 
-    var node = result.findNode.singleVariableDeclaration.initializer2!;
+    var node = result.findNode.singleTopLevelVariable.initializer!;
     assertResolvedNodeText(node, r'''
 ReceiverMethodInvocation
   receiver: FunctionInstantiation
@@ -537,7 +537,6 @@ FunctionInstantiation
     name: i
     resolution: GetterInvocationResolution
       element: <testLibrary>::@getter::i
-      invokeType: dynamic Function()
       type: dynamic
     staticType: dynamic
   typeArguments: TypeArgumentList
@@ -584,7 +583,6 @@ FunctionInstantiation
     name: i
     resolution: GetterInvocationResolution
       element: <testLibrary>::@getter::i
-      invokeType: dynamic Function()
       type: dynamic
     staticType: dynamic
   typeArguments: TypeArgumentList
@@ -689,7 +687,7 @@ V1: FunctionReference
 bar() {
   a.foo<int>;
 //^
-// [diag.undefinedIdentifier] Undefined name 'a'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'a'.
 }
 ''');
 
@@ -746,7 +744,7 @@ V1: FunctionReference
 bar() {
   a.b.foo<int>;
 //^
-// [diag.undefinedIdentifier] Undefined name 'a'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'a'.
 }
 ''');
 
@@ -954,7 +952,6 @@ FunctionInstantiation
     name: foo
     resolution: GetterInvocationResolution
       element: <testLibrary>::@extension::E::@getter::foo
-      invokeType: int Function()
       type: int
     staticType: int
   typeArguments: TypeArgumentList
@@ -1432,7 +1429,7 @@ extension E on A {}
 bar(A a) {
   E(a).foo<int>;
 //     ^^^
-// [diag.undefinedExtensionGetter] The getter 'foo' isn't defined for the extension 'E'.
+// [diag.undefinedExtensionMemberReadNotFound] The extension 'E' doesn't have an instance member named 'foo'.
 }
 ''');
 
@@ -1563,7 +1560,7 @@ extension on double {
 // [diag.unusedElement] The declaration 'bar' isn't referenced.
     foo<int>;
 //  ^^^
-// [diag.undefinedMethod] The method 'foo' isn't defined for the type 'double'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
   }
 }
 ''');
@@ -1934,7 +1931,7 @@ void foo<T>(T a) {}
 void bar() {
   foo.m<int>;
 //    ^
-// [diag.undefinedGetter] The getter 'm' isn't defined for the type 'void Function<T>(T)'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'm' isn't defined for the type 'void Function<T>(T)'.
 }
 
 extension E on Function {
@@ -2137,7 +2134,6 @@ FunctionInstantiation
       name: v
       resolution: GetterInvocationResolution
         element: <testLibrary>::@class::C::@getter::v
-        invokeType: C Function()
         type: C
       staticType: C
     element: <testLibrary>::@class::C::@method::call
@@ -2201,7 +2197,6 @@ FunctionInstantiation
       name: v
       resolution: GetterInvocationResolution
         element: <testLibrary>::@getter::v
-        invokeType: Object? Function()
         type: Object?
       staticType: Object?
     element: <testLibrary>::@extension::E::@method::call
@@ -2316,7 +2311,6 @@ FunctionInstantiation
       name: v
       resolution: GetterInvocationResolution
         element: package:test/a.dart::@class::C::@getter::v
-        invokeType: C Function()
         type: C
       staticType: C
     element: package:test/a.dart::@class::C::@method::call
@@ -2394,7 +2388,6 @@ FunctionInstantiation
       name: c
       resolution: GetterInvocationResolution
         element: package:test/a.dart::@getter::c
-        invokeType: C Function()
         type: C
       staticType: C
     element: package:test/a.dart::@class::C::@method::call
@@ -2448,7 +2441,7 @@ C get c => C();
 var x = c<int>.call(0);
 ''');
 
-    var node = result.findNode.singleVariableDeclaration.initializer2!;
+    var node = result.findNode.singleTopLevelVariable.initializer!;
     assertResolvedNodeText(node, r'''
 ReceiverMethodInvocation
   receiver: FunctionInstantiation
@@ -2457,7 +2450,6 @@ ReceiverMethodInvocation
         name: c
         resolution: GetterInvocationResolution
           element: <testLibrary>::@getter::c
-          invokeType: C Function()
           type: C
         staticType: C
       element: <testLibrary>::@class::C::@method::call
@@ -2686,7 +2678,6 @@ FunctionInstantiation
     name: foo
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::foo
-      invokeType: void Function<T>(T) Function()
       type: void Function<T>(T)
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
@@ -2749,7 +2740,6 @@ FunctionInstantiation
     name: foo
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::B::@getter::foo
-      invokeType: void Function<T>(T) Function()
       type: void Function<T>(T)
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
@@ -2802,7 +2792,6 @@ FunctionInstantiation
     name: foo
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::foo
-      invokeType: void Function<T>(T) Function()
       type: void Function<T>(T)
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
@@ -2854,7 +2843,6 @@ FunctionInstantiation
     name: foo
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::foo
-      invokeType: void Function<T>(T) Function()
       type: void Function<T>(T)
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
@@ -2914,7 +2902,6 @@ FunctionInstantiation
     name: f
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::f
-      invokeType: List<int> Function()
       type: List<int>
     staticType: List<int>
   typeArguments: TypeArgumentList
@@ -2982,7 +2969,6 @@ FunctionInstantiation
     name: f
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::f
-      invokeType: List<int> Function()
       type: List<int>
     staticType: List<int>
   typeArguments: TypeArgumentList
@@ -3245,7 +3231,6 @@ FunctionInstantiation
       name: a
       resolution: GetterInvocationResolution
         element: <testLibrary>::@class::B::@getter::a
-        invokeType: A Function()
         type: A
       staticType: A
     operator: .
@@ -3324,7 +3309,6 @@ FunctionInstantiation
     name: foo
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::foo
-      invokeType: int Function()
       type: int
     staticType: int
   typeArguments: TypeArgumentList
@@ -3783,7 +3767,7 @@ class A {
   bar() {
     super.foo<int>;
 //        ^^^
-// [diag.undefinedSuperGetter] The getter 'foo' isn't defined in a superclass of 'A'.
+// [diag.undefinedSuperMemberReadNotFound] The member 'foo' isn't defined in a superclass of 'A'.
   }
 }
 ''');
@@ -4031,7 +4015,6 @@ FunctionInstantiation
       name: a
       resolution: GetterInvocationResolution
         element: <testLibrary>::@getter::a
-        invokeType: A Function()
         type: A
       staticType: A
     operator: .
@@ -4105,7 +4088,6 @@ FunctionInstantiation
       name: a
       resolution: GetterInvocationResolution
         element: package:test/a.dart::@getter::a
-        invokeType: A Function()
         type: A
       staticType: A
     operator: .
@@ -4170,7 +4152,7 @@ import 'a.dart' as prefix;
 bar() {
   prefix.a.foo<int>;
 //         ^^^
-// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'A'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'foo' isn't defined for the type 'A'.
 }
 ''');
 
@@ -4186,7 +4168,6 @@ FunctionInstantiation
       name: a
       resolution: GetterInvocationResolution
         element: package:test/a.dart::@getter::a
-        invokeType: A Function()
         type: A
       staticType: A
     operator: .
@@ -4240,7 +4221,7 @@ V1: FunctionReference
 bar<T>() {
   T.foo<int>;
 //  ^^^
-// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'Type'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'foo' isn't defined for the type 'Type'.
 }
 ''');
 
@@ -4864,7 +4845,6 @@ FunctionInstantiation
       name: foo
       resolution: GetterInvocationResolution
         element: <testLibrary>::@extension::#0::@getter::foo
-        invokeType: A Function()
         type: A
       staticType: A
     operator: .
@@ -4936,7 +4916,6 @@ FunctionInstantiation
       name: foo
       resolution: GetterInvocationResolution
         element: <testLibrary>::@class::B::@getter::foo
-        invokeType: A Function()
         type: A
       staticType: A
     operator: .
@@ -5005,7 +4984,6 @@ FunctionInstantiation
       name: foo
       resolution: GetterInvocationResolution
         element: <testLibrary>::@class::B::@getter::foo
-        invokeType: A Function()
         type: A
       staticType: A
     operator: .
@@ -5505,7 +5483,7 @@ class A {
   bar() {
     foo<int>;
 //  ^^^
-// [diag.undefinedMethod] The method 'foo' isn't defined for the type 'A'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
   }
 }
 ''');
@@ -6012,7 +5990,6 @@ FunctionInstantiation
     name: i
     resolution: GetterInvocationResolution
       element: <testLibrary>::@getter::i
-      invokeType: Never Function()
       type: Never
     staticType: Never
   typeArguments: TypeArgumentList
@@ -7199,7 +7176,7 @@ extension E on int Function(int) {
 var x = p.identity<int>.transform<String>('s');
 ''');
 
-    var node = result.findNode.singleVariableDeclaration.initializer2!;
+    var node = result.findNode.singleTopLevelVariable.initializer!;
     assertResolvedNodeText(node, r'''
 ReceiverMethodInvocation
   receiver: FunctionInstantiation
@@ -7303,7 +7280,7 @@ V1: MethodInvocation
 bar() {
   prefix.foo<int>;
 //^^^^^^
-// [diag.undefinedIdentifier] Undefined name 'prefix'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'prefix'.
 }
 ''');
 
@@ -7475,7 +7452,7 @@ T identity<T>(T value) => value;
 var x = identity<int>.hashCode;
 ''');
 
-    var node = result.findNode.singleVariableDeclaration.initializer2!;
+    var node = result.findNode.singleTopLevelVariable.initializer!;
     assertResolvedNodeText(node, r'''
 ReceiverPropertyExtraction
   receiver: FunctionInstantiation
@@ -7500,7 +7477,6 @@ ReceiverPropertyExtraction
   name: hashCode
   resolution: GetterInvocationResolution
     element: dart:core::@class::Object::@getter::hashCode
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PropertyAccess
@@ -7552,7 +7528,6 @@ FunctionInstantiation
     name: foo
     resolution: GetterInvocationResolution
       element: package:test/a.dart::@getter::foo
-      invokeType: void Function<T>(T) Function()
       type: void Function<T>(T)
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
@@ -7601,7 +7576,7 @@ import 'a.dart' as prefix;
 bar() {
   prefix.a.foo<int>;
 //       ^
-// [diag.undefinedPrefixedName] The name 'a' is being referenced through the prefix 'prefix', but it isn't defined in any of the libraries imported using that prefix.
+// [diag.undefinedPrefixedNameReadNotFound] The name 'a' isn't defined in the libraries imported with the prefix 'prefix'.
 }
 ''');
 
@@ -7670,7 +7645,7 @@ typedef Cb = void Function();
 
 var a = Cb.foo<int>;
 //         ^^^
-// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'Type'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'foo' isn't defined for the type 'Type'.
 ''');
 
     var node = result.findNode.functionInstantiation('foo<int>;');
@@ -7731,7 +7706,7 @@ typedef T<E> = E;
 
 var a = T.foo<int>;
 //        ^^^
-// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'Type'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'foo' isn't defined for the type 'Type'.
 ''');
 
     var node = result.findNode.functionInstantiation('foo<int>;');
@@ -7851,7 +7826,7 @@ V1: FunctionReference
 void bar() {
   foo<int>;
 //^^^
-// [diag.undefinedIdentifier] Undefined name 'foo'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
 }
 ''');
 
@@ -7896,7 +7871,7 @@ var x = missing<int>.call();
 // [diag.newWithNonType] The name 'missing' isn't a class.
 ''');
 
-    var node = result.findNode.singleVariableDeclaration.initializer2!;
+    var node = result.findNode.singleTopLevelVariable.initializer!;
     assertResolvedNodeText(node, r'''
 ConstructorInvocation
   constructorReference: ConstructorReference2
@@ -7955,7 +7930,7 @@ class B {
   bar(A a) {
     a.foo<int>;
 //    ^^^
-// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'A'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'foo' isn't defined for the type 'A'.
   }
 }
 ''');
@@ -8017,7 +7992,7 @@ import 'a.dart' as a;
 void bar() {
   a.foo<int>;
 //  ^^^
-// [diag.undefinedPrefixedName] The name 'foo' is being referenced through the prefix 'a', but it isn't defined in any of the libraries imported using that prefix.
+// [diag.undefinedPrefixedNameReadNotFound] The name 'foo' isn't defined in the libraries imported with the prefix 'a'.
 }
 ''');
 
@@ -8077,7 +8052,7 @@ var x = p.missing<int>.call();
 // [diag.newWithNonType] The name 'missing' isn't a class.
 ''');
 
-    var node = result.findNode.singleVariableDeclaration.initializer2!;
+    var node = result.findNode.singleTopLevelVariable.initializer!;
     assertResolvedNodeText(node, r'''
 ConstructorInvocation
   constructorReference: ConstructorReference2
@@ -8224,7 +8199,7 @@ var x = identity<int>.call(0);
 // [diag.sdkVersionConstructorTearoffs] Tearing off a constructor requires the 'constructor-tearoffs' language feature.
 ''');
 
-    var node = result.findNode.singleVariableDeclaration.initializer2!;
+    var node = result.findNode.singleTopLevelVariable.initializer!;
     assertResolvedNodeText(node, r'''
 ReceiverMethodInvocation
   receiver: FunctionInstantiation
@@ -8985,7 +8960,6 @@ ImplicitFunctionInstantiation
       element: SubstitutedMethodElementImpl
         baseElement: dart:core::@class::List::@method::[]
         substitution: {E: void Function<T>(T)}
-      invokeType: void Function<T>(T) Function(int)
       type: void Function<T>(T)
     staticType: void Function<T>(T)
   staticType: void Function(int)
@@ -9150,7 +9124,6 @@ ImplicitFunctionInstantiation
     name: f
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::f
-      invokeType: void Function<T>(T) Function()
       type: void Function<T>(T)
     staticType: void Function<T>(T)
   staticType: void Function(int)
@@ -9257,7 +9230,6 @@ ImplicitFunctionInstantiation
     name: f
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::f
-      invokeType: void Function<T>(T) Function()
       type: void Function<T>(T)
     staticType: void Function<T>(T)
   staticType: void Function(int)

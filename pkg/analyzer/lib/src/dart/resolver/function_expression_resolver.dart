@@ -11,23 +11,20 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 import 'package:analyzer/src/generated/error_verifier.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/summary2/default_types_builder.dart';
 
 class FunctionExpressionResolver {
-  final ResolverVisitor _resolver;
+  final TypeAnalyzer _typeAnalyzer;
 
-  FunctionExpressionResolver({required ResolverVisitor resolver})
-    : _resolver = resolver;
+  new({required this._typeAnalyzer});
 
-  TypeSystemImpl get _typeSystem => _resolver.typeSystem;
+  TypeSystemImpl get _typeSystem => _typeAnalyzer.typeSystem;
 
   void resolve(FunctionExpressionImpl node, {required DartType contextType}) {
-    var parent = node.parent2;
-    var isFunctionDeclaration = parent is FunctionDeclarationImpl;
     var body = node.body;
-    var isClosure = _resolver.flowAnalysis.isActive && !isFunctionDeclaration;
+    var isClosure = _typeAnalyzer.flowAnalysis.isActive;
 
     if (isClosure) {
       // Use typeParameters or parameters for the offset if available, because
@@ -35,7 +32,7 @@ class FunctionExpressionResolver {
       var enterOffset =
           (node.typeParameters ?? node.parameters ?? node.body).offset;
       var element = node.declaredFragment!.element;
-      _resolver.flowAnalysis.executableDeclaration_enter(
+      _typeAnalyzer.flowAnalysis.executableDeclaration_enter(
         node,
         element.formalParameters,
         isClosure: true,
@@ -60,42 +57,72 @@ class FunctionExpressionResolver {
       }
     }
 
-    node.typeParameters?.accept2(_resolver);
-    node.parameters?.accept2(_resolver);
-    imposedType = node.body.resolve(_resolver, imposedType);
-    if (isFunctionDeclaration) {
-      // A side effect of visiting the children is that the parameters are now
-      // in scope, so we can visit the documentation comment now.
-      parent.documentationComment?.accept2(_resolver);
-    }
+    node.typeParameters?.accept2(_typeAnalyzer);
+    node.parameters?.accept2(_typeAnalyzer);
+    imposedType = node.body.resolve(_typeAnalyzer, imposedType);
     _resolve2(node, imposedType);
 
     if (isClosure) {
-      _resolver.checkForBodyMayCompleteNormally(body: body, errorNode: body);
-      _resolver.flowAnalysis.flow?.functionExpression_end(
+      _typeAnalyzer.checkForBodyMayCompleteNormally(
+        body: body,
+        errorNode: body,
+      );
+      _typeAnalyzer.flowAnalysis.flow?.functionExpression_end(
         offset: node.body.flowEndOffset,
       );
-      _resolver.nullSafetyDeadCodeVerifier.flowEnd(node);
+      _typeAnalyzer.nullSafetyDeadCodeVerifier.flowEnd(node);
     }
 
-    var typeParameterList = node.typeParameters;
-    if (typeParameterList != null) {
-      // Computing the default types for type parameters will normalize the
-      // recursive bounds, so we need to check for recursion first.
-      //
-      // This is only needed for local functions because top-level and
-      checkForTypeParameterBoundRecursion(
-        _resolver.diagnosticReporter,
-        typeParameterList.typeParameters,
-      );
-      var map = <Fragment, TypeParameter>{};
-      for (var typeParameter in typeParameterList.typeParameters) {
-        map[typeParameter.declaredFragment!] = typeParameter;
-      }
-      DefaultTypesBuilder(
-        getTypeParameterNode: (fragment) => map[fragment],
-      ).build([node]);
+    _buildTypeParameterDefaults(node, node.typeParameters);
+  }
+
+  /// Resolves the type parameters, formal parameters, and body of the local
+  /// function [node], and infers its return type if it isn't declared.
+  ///
+  /// Flow analysis for the local function is handled by the caller.
+  void resolveLocalFunction(LocalFunctionDeclarationImpl node) {
+    var element = node.declaredFragment!.element;
+
+    TypeImpl? imposedType;
+    var returnType = element.returnType;
+    if (!(returnType is DynamicType || returnType is UnknownInferredType)) {
+      imposedType = returnType;
     }
+
+    node.typeParameters?.accept2(_typeAnalyzer);
+    node.formalParameters.accept2(_typeAnalyzer);
+    var bodyReturnType = node.body.resolve(_typeAnalyzer, imposedType);
+
+    if (node.returnType == null) {
+      element.returnType = bodyReturnType;
+    }
+
+    _buildTypeParameterDefaults(node, node.typeParameters);
+  }
+
+  /// Checks the bounds of the type parameters of the local function or
+  /// function expression [node], and computes their default types.
+  ///
+  /// Top-level and member type parameters are handled during linking.
+  void _buildTypeParameterDefaults(
+    AstNodeImpl node,
+    TypeParameterListImpl? typeParameterList,
+  ) {
+    if (typeParameterList == null) {
+      return;
+    }
+    // Computing the default types for type parameters will normalize the
+    // recursive bounds, so we need to check for recursion first.
+    checkForTypeParameterBoundRecursion(
+      _typeAnalyzer.diagnosticReporter,
+      typeParameterList.typeParameters,
+    );
+    var map = <Fragment, TypeParameter>{};
+    for (var typeParameter in typeParameterList.typeParameters) {
+      map[typeParameter.declaredFragment!] = typeParameter;
+    }
+    DefaultTypesBuilder(getTypeParameterNode: (fragment) => map[fragment])
+        .build([node]);
   }
 
   /// Infer types of implicitly typed formal parameters.
@@ -115,7 +142,7 @@ class FunctionExpressionResolver {
         // corresponding parameter in the context type schema with type
         // schema `K`, the parameter is given an inferred type `T` where `T`
         // is derived from `K` as follows.
-        inferredType = _resolver.operations
+        inferredType = _typeAnalyzer.operations
             .greatestClosureOfSchema(SharedTypeSchemaView(inferredType))
             .unwrapTypeView<TypeImpl>();
 
@@ -196,23 +223,7 @@ class FunctionExpressionResolver {
 
   void _resolve2(FunctionExpressionImpl node, TypeImpl? imposedType) {
     var functionElement = node.declaredFragment!.element;
-
-    if (_shouldUpdateReturnType(node)) {
-      functionElement.returnType = imposedType ?? DynamicTypeImpl.instance;
-    }
-
-    node.recordStaticType(functionElement.type, resolver: _resolver);
-  }
-
-  static bool _shouldUpdateReturnType(FunctionExpression node) {
-    var parent = node.parent2;
-    if (parent is FunctionDeclaration) {
-      // Local function without declared return type.
-      return parent.parent2 is FunctionDeclarationStatement &&
-          parent.returnType == null;
-    } else {
-      // Pure function expression.
-      return true;
-    }
+    functionElement.returnType = imposedType ?? DynamicTypeImpl.instance;
+    node.recordStaticType(functionElement.type, typeAnalyzer: _typeAnalyzer);
   }
 }

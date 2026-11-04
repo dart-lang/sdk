@@ -51,11 +51,11 @@ main() {
   // Test that operator calls on class literals go to Type.
   Expect.throwsNoSuchMethodError(() => C = 1);
   //                                   ^
-  // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_TYPE
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_WRITE
   // [cfe] Can't assign to a type literal.
   Expect.throwsNoSuchMethodError(() => C++);
   //                                   ^
-  // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_TYPE
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_WRITE
   // [cfe] Can't assign to a type literal.
   Expect.throwsNoSuchMethodError(() => C + 1);
   //                                     ^
@@ -71,11 +71,11 @@ main() {
   // [cfe] The operator '[]=' isn't defined for the type 'Type'.
   Expect.throwsNoSuchMethodError(() => dynamic = 1);
   //                                   ^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_TYPE
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_WRITE
   // [cfe] Can't assign to a type literal.
   Expect.throwsNoSuchMethodError(() => dynamic++);
   //                                   ^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_TYPE
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_WRITE
   // [cfe] Can't assign to a type literal.
   Expect.throwsNoSuchMethodError(() => dynamic + 1);
   //                                           ^

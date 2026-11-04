@@ -23,15 +23,12 @@ class ReturnTypeVerifier {
 
   late EnclosingExecutableContext enclosingExecutable;
 
-  ReturnTypeVerifier({
-    required TypeProviderImpl typeProvider,
-    required TypeSystemImpl typeSystem,
-    required DiagnosticReporter diagnosticReporter,
-    required bool strictCasts,
-  }) : _typeProvider = typeProvider,
-       _typeSystem = typeSystem,
-       _diagnosticReporter = diagnosticReporter,
-       _strictCasts = strictCasts;
+  new({
+    required this._typeProvider,
+    required this._typeSystem,
+    required this._diagnosticReporter,
+    required this._strictCasts,
+  });
 
   DartType get _flattenedReturnType {
     var returnType = enclosingExecutable.returnType;

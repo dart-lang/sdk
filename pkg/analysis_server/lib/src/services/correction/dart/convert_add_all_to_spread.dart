@@ -171,7 +171,6 @@ class ConvertAddAllToSpread extends ResolvedCorrectionProducer {
 
 extension on Expression {
   bool get isEmptyListLiteral {
-    var self = this;
-    return self is ListLiteral && self.elements.isEmpty;
+    return this is ListLiteral && elements.isEmpty;
   }
 }

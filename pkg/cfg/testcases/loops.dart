@@ -25,6 +25,12 @@ void chainedHeaders(int i) {
   } while (i % 2 == 0);
 }
 
+void selfLoop(int i) {
+  while (true) {
+    ++i;
+  }
+}
+
 void irreducible(int i) {
   switch (i) {
     L1:

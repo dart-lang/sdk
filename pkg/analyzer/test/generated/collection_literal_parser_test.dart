@@ -114,14 +114,23 @@ ListLiteral
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForPartsWithDeclarations
-        variables: VariableDeclarationList
+        variables2: LocalVariablesDeclaration
+          type: NamedType
+            name: int
+          variables
+            LocalVariable
+              name: x
+              equals: =
+              initializer: IntegerLiteral
+                literal: 0
+        variables(v1): VariableDeclarationList
           type: NamedType
             name: int
           variables
             VariableDeclaration
               name: x
               equals: =
-              initializer2: IntegerLiteral
+              initializer: IntegerLiteral
                 literal: 0
         leftSeparator: ;
         condition2: BinaryOperatorInvocation
@@ -141,7 +150,7 @@ ListLiteral
         updaters2
           IncrementOrDecrementExpression
             operator: ++
-            target: ParsedUnqualifiedNameAssignmentTarget
+            target: UnqualifiedNameAssignmentTarget
               name: x
             operation: increment
             position: prefix
@@ -242,14 +251,15 @@ ListLiteral
         forKeyword: for
         leftParenthesis: (
         forLoopParts: ForEachPartsWithIdentifier
-          identifier2: a
-          identifier(v1): SimpleIdentifier
-            token: a
+          target: UnqualifiedNameAssignmentTarget
+            name: a
           inKeyword: in
           iterable2: ParsedUnqualifiedName
             name: b
           iterable(v1): SimpleIdentifier
             token: b
+          identifier: SimpleIdentifier
+            token: a
         rightParenthesis: )
         body2: IntegerLiteral
           literal: 5
@@ -327,14 +337,15 @@ ListLiteral
         forKeyword: for
         leftParenthesis: (
         forLoopParts: ForEachPartsWithIdentifier
-          identifier2: a
-          identifier(v1): SimpleIdentifier
-            token: a
+          target: UnqualifiedNameAssignmentTarget
+            name: a
           inKeyword: in
           iterable2: ParsedUnqualifiedName
             name: b
           iterable(v1): SimpleIdentifier
             token: b
+          identifier: SimpleIdentifier
+            token: a
         rightParenthesis: )
         body2: IntegerLiteral
           literal: 2
@@ -454,14 +465,15 @@ SetOrMapLiteral
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForEachPartsWithIdentifier
-        identifier2: y
-        identifier(v1): SimpleIdentifier
-          token: y
+        target: UnqualifiedNameAssignmentTarget
+          name: y
         inKeyword: in
         iterable2: ParsedUnqualifiedName
           name: list
         iterable(v1): SimpleIdentifier
           token: list
+        identifier: SimpleIdentifier
+          token: y
       rightParenthesis: )
       body2: MapLiteralEntry
         key2: IntegerLiteral
@@ -500,14 +512,15 @@ SetOrMapLiteral
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForEachPartsWithIdentifier
-        identifier2: y
-        identifier(v1): SimpleIdentifier
-          token: y
+        target: UnqualifiedNameAssignmentTarget
+          name: y
         inKeyword: in
         iterable2: ParsedUnqualifiedName
           name: list
         iterable(v1): SimpleIdentifier
           token: list
+        identifier: SimpleIdentifier
+          token: y
       rightParenthesis: )
       body2: IfElement
         ifKeyword: if
@@ -553,7 +566,7 @@ SetOrMapLiteral
       leftParenthesis: (
       forLoopParts: ForPartsWithExpression
         initialization2: DirectAssignment
-          target: ParsedUnqualifiedNameAssignmentTarget
+          target: UnqualifiedNameAssignmentTarget
             name: x
           operator: =
           value: IntegerLiteral
@@ -582,7 +595,7 @@ SetOrMapLiteral
         updaters2
           IncrementOrDecrementExpression
             operator: ++
-            target: ParsedUnqualifiedNameAssignmentTarget
+            target: UnqualifiedNameAssignmentTarget
               name: x
             operation: increment
             position: prefix
@@ -719,14 +732,15 @@ SetOrMapLiteral
         forKeyword: for
         leftParenthesis: (
         forLoopParts: ForEachPartsWithIdentifier
-          identifier2: c
-          identifier(v1): SimpleIdentifier
-            token: c
+          target: UnqualifiedNameAssignmentTarget
+            name: c
           inKeyword: in
           iterable2: ParsedUnqualifiedName
             name: d
           iterable(v1): SimpleIdentifier
             token: d
+          identifier: SimpleIdentifier
+            token: c
         rightParenthesis: )
         body2: MapLiteralEntry
           key2: IntegerLiteral
@@ -828,14 +842,15 @@ SetOrMapLiteral
         forKeyword: for
         leftParenthesis: (
         forLoopParts: ForEachPartsWithIdentifier
-          identifier2: a
-          identifier(v1): SimpleIdentifier
-            token: a
+          target: UnqualifiedNameAssignmentTarget
+            name: a
           inKeyword: in
           iterable2: ParsedUnqualifiedName
             name: b
           iterable(v1): SimpleIdentifier
             token: b
+          identifier: SimpleIdentifier
+            token: a
         rightParenthesis: )
         body2: MapLiteralEntry
           key2: IntegerLiteral

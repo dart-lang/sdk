@@ -75,15 +75,21 @@ class FormatOnTypeHandler
       return success(null);
     }
 
-    var path = pathOfDoc(params.textDocument);
-    return path.mapResult((path) async {
+    return withPath(textDocument: params.textDocument, token, (
+      path,
+      _,
+      checkAbort,
+    ) async {
       if (!server.lspClientConfiguration.forResource(path).enableSdkFormatter) {
         // Because we now support formatting for just some WorkspaceFolders
         // we should silently do nothing for those that are disabled.
         return success(null);
       }
 
-      return await formatFile(path, params.position, params.ch);
+      var edits = await formatFile(path, params.position, params.ch);
+      if (checkAbort() case var reason?) return reason;
+
+      return edits;
     });
   }
 

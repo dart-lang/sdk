@@ -58,12 +58,12 @@ class ManifestParser {
   /// The current offset in the source file.
   int _pos;
 
-  ManifestParser(this.content, Uri uri)
+  new(this.content, Uri uri)
     : sourceFile = SourceFile.fromString(content, url: uri),
       _pos = 0,
       restrictElements = _manifestValidationElements;
 
-  ManifestParser.general(this.content, {required Uri uri})
+  new general(this.content, {required Uri uri})
     : sourceFile = SourceFile.fromString(content, url: uri),
       _pos = 0,
       restrictElements = null;
@@ -406,7 +406,7 @@ class ManifestValidator {
 
   /// Initialize a newly create validator to validate the content of the given
   /// [source].
-  ManifestValidator(this.source);
+  new(this.source);
 
   /// Validate the [content] of the Android Manifest file.
   List<Diagnostic> validate(String content, bool checkManifest) {
@@ -637,7 +637,7 @@ class ParseAttributeResult {
 
   final Map<String, XmlAttribute>? attributes;
 
-  ParseAttributeResult(this.parseResult, this.attributes);
+  new(this.parseResult, this.attributes);
 }
 
 enum ParseResult {
@@ -668,7 +668,7 @@ class ParseTagResult {
 
   final XmlElement? element;
 
-  ParseTagResult(this.parseResult, this.element);
+  new(this.parseResult, this.element);
 }
 
 class XmlAttribute {
@@ -676,7 +676,7 @@ class XmlAttribute {
   final String value;
   final SourceSpan sourceSpan;
 
-  XmlAttribute(this.name, this.value, this.sourceSpan);
+  new(this.name, this.value, this.sourceSpan);
 }
 
 class XmlElement {
@@ -685,7 +685,7 @@ class XmlElement {
   final List<XmlElement> children;
   final SourceSpan? sourceSpan;
 
-  XmlElement(this.name, this.attributes, this.children, this.sourceSpan);
+  new(this.name, this.attributes, this.children, this.sourceSpan);
 }
 
 enum _TagClosingState {

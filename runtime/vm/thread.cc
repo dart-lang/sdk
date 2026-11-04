@@ -235,6 +235,14 @@ void Thread::InitVMConstants() {
 #undef REUSABLE_HANDLE_ALLOCATION
 }
 
+void Thread::UpdateCachedVMStubs() {
+#define UPDATE_VALUE(type_name, member_name, init_expr, default_init_value)    \
+  member_name = (init_expr);
+  CACHED_VM_STUBS_LIST(UPDATE_VALUE)
+  CACHED_VM_STUBS_ADDRESSES_LIST(UPDATE_VALUE)
+#undef UPDATE_VALUE
+}
+
 void Thread::FixInitiallyNullFields() {
   global_object_pool_ = ObjectPool::null();
   active_exception_ = Object::null();
@@ -1711,6 +1719,11 @@ void Thread::ResetDartMutatorState() {
   thread_locals_ = Array::null();
   ONLY_IN_PRECOMPILED(global_object_pool_ = ObjectPool::null());
   ONLY_IN_PRECOMPILED(dispatch_table_array_ = nullptr);
+
+#if defined(DART_DYNAMIC_MODULES)
+  delete interpreter_;
+  interpreter_ = nullptr;
+#endif
 }
 
 void Thread::set_forward_table_new(WeakTable* table) {

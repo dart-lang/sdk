@@ -107,8 +107,7 @@ extension on Expression? {
 
 extension on DartType? {
   bool get isNullable {
-    var self = this;
-    if (self == null) return false;
-    return self.nullabilitySuffix == NullabilitySuffix.question;
+    if (this == null) return false;
+    return nullabilitySuffix == NullabilitySuffix.question;
   }
 }

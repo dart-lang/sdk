@@ -15,7 +15,8 @@ void main() {
 }
 
 @reflectiveTest
-class RemoveParametersInGetterDeclarationTest extends FixProcessorTest {
+class RemoveParametersInGetterDeclarationTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeParenthesesInGetterDeclaration;
 

@@ -147,7 +147,7 @@ class _TopType extends _Type {
       case _voidKind:
         return 'void';
       default:
-        throw 'Invalid top type kind';
+        throwReachabilityError('Invalid top type kind');
     }
   }
 }
@@ -167,12 +167,14 @@ class _InterfaceTypeParameterType extends _Type {
   );
 
   @override
-  _Type get _asNullable =>
-      throw 'Type parameter should have been substituted already.';
+  _Type get _asNullable => throwReachabilityError(
+    'Type parameter should have been substituted already.',
+  );
 
   @override
-  bool _checkInstance(Object o) =>
-      throw 'Type parameter should have been substituted already.';
+  bool _checkInstance(Object o) => throwReachabilityError(
+    'Type parameter should have been substituted already.',
+  );
 
   @override
   String toString() => 'T$environmentIndex';
@@ -192,8 +194,9 @@ class _FunctionTypeParameterType extends _Type {
   _Type get _asNullable => _FunctionTypeParameterType(true, index);
 
   @override
-  bool _checkInstance(Object o) =>
-      throw 'Instance check should not reach function type parameter.';
+  bool _checkInstance(Object o) => throwReachabilityError(
+    'Instance check should not reach function type parameter.',
+  );
 
   @override
   bool operator ==(Object o) {
@@ -201,6 +204,7 @@ class _FunctionTypeParameterType extends _Type {
     _FunctionTypeParameterType other = unsafeCast<_FunctionTypeParameterType>(
       o,
     );
+    if (isDeclaredNullable != other.isDeclaredNullable) return false;
     // References to different type parameters can have the same index and thus
     // sometimes compare equal even if they are not. However, this can only
     // happen if the containing types are different in other places, in which
@@ -627,6 +631,7 @@ class _RecordType extends _Type {
   bool operator ==(Object o) {
     if (ClassID.getID(o) != ClassID.cidRecordType) return false;
     _RecordType other = unsafeCast<_RecordType>(o);
+    if (isDeclaredNullable != other.isDeclaredNullable) return false;
 
     if (!_sameShape(other)) {
       return false;
@@ -644,6 +649,7 @@ class _RecordType extends _Type {
   @override
   int get hashCode {
     int hash = mix64(ClassID.cidRecordType.toIntSigned());
+    hash = mix64(hash ^ (isDeclaredNullable ? 1 : 0));
     for (int i = 0; i < names.length; i++) {
       hash = mix64(hash ^ names[i].hashCode);
     }
@@ -944,7 +950,7 @@ abstract class _TypeUniverse {
         rootFunction,
       );
     } else {
-      throw 'Type argument substitution not supported for $type';
+      throwReachabilityError('Type argument substitution not supported');
     }
   }
 

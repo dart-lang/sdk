@@ -222,6 +222,10 @@ class Primitives {
     if (JS<bool>('!', 'typeof window == "undefined"')) return;
     var jsWindow = JS('var', 'window');
     if (jsWindow == null) return;
+
+    // Use `Date.now()` if the preamble simulates time with a fake clock.
+    if (JS<bool>('!', '!!#.dartUseDateNowForTicks', jsWindow)) return;
+
     var performance = JS('var', '#.performance', jsWindow);
     if (performance == null) return;
     if (JS<bool>('!', 'typeof #.now != "function"', performance)) return;

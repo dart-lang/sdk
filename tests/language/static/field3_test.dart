@@ -21,7 +21,7 @@ main() {
     // [cfe] Member not found: 'm'.
     Foo.m = 1;
     //  ^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SETTER
+    // [analyzer] COMPILE_TIME_ERROR.STATIC_ACCESS_TO_INSTANCE_MEMBER
     // [cfe] Setter not found: 'm'.
     Foo.x = 1;
     //  ^

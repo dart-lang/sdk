@@ -40,7 +40,7 @@ enum ResourceProviderOperation {
   /// The operation name, such as `File.readAsBytesSync`.
   final String label;
 
-  const ResourceProviderOperation(this.label);
+  new(this.label);
 }
 
 /// Cumulative measurements of calls to a resource provider operation.
@@ -71,7 +71,7 @@ class TimingResourceProvider implements ResourceProvider {
   /// The number of active [withoutMeasuring] calls; nested calls are allowed.
   int _suspendedDepth = 0;
 
-  TimingResourceProvider(this.baseProvider);
+  new(this.baseProvider);
 
   @override
   pathos.Context get pathContext => baseProvider.pathContext;
@@ -170,7 +170,7 @@ class TimingResourceProvider implements ResourceProvider {
 }
 
 class _TimingFile extends _TimingResource implements File {
-  _TimingFile(super.provider, File super.resource);
+  new(super.provider, File super.resource);
 
   @override
   int get lengthSync => provider._record(
@@ -231,7 +231,7 @@ class _TimingFile extends _TimingResource implements File {
 }
 
 class _TimingFolder extends _TimingResource implements Folder {
-  _TimingFolder(super.provider, Folder super.resource);
+  new(super.provider, Folder super.resource);
 
   @override
   bool get isRoot => _folder.isRoot;
@@ -292,7 +292,7 @@ class _TimingLink implements Link {
   final TimingResourceProvider _provider;
   final Link _link;
 
-  _TimingLink(this._provider, this._link);
+  new(this._provider, this._link);
 
   @override
   bool get exists => _provider._record(
@@ -313,7 +313,7 @@ abstract class _TimingResource implements Resource {
 
   final Resource _resource;
 
-  _TimingResource(this.provider, this._resource);
+  new(this.provider, this._resource);
 
   @override
   bool get exists => provider._record(

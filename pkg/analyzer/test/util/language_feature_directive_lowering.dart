@@ -28,7 +28,7 @@ final class LanguageFeatureDirectiveLowering {
   })?
   _directiveReplacement;
 
-  factory LanguageFeatureDirectiveLowering(String code) {
+  factory(String code) {
     var matches = _beforeLanguageFeaturePattern.allMatches(code).toList();
     if (matches.isEmpty) {
       return LanguageFeatureDirectiveLowering._(code, null);
@@ -62,10 +62,7 @@ final class LanguageFeatureDirectiveLowering {
     ));
   }
 
-  LanguageFeatureDirectiveLowering._(
-    this.loweredCode,
-    this._directiveReplacement,
-  );
+  new _(this.loweredCode, this._directiveReplacement);
 
   /// Restores the semantic directive in analyzer-generated test code.
   String restoreDirective(String code) {

@@ -44,25 +44,25 @@ void computeSimplyBounded(Linker linker) {
   for (var node in nodes) {
     walker.walk(node);
     var node2 = node._node;
-    if (node2 is ClassDeclarationImpl) {
+    if (node2 is ClassDeclaration2Impl) {
       var element = node2.declaredFragment!.element;
       element.isSimplyBounded = node.isSimplyBounded;
-    } else if (node2 is ClassTypeAliasImpl) {
+    } else if (node2 is ClassTypeAlias2Impl) {
       var element = node2.declaredFragment!.element;
       element.isSimplyBounded = node.isSimplyBounded;
-    } else if (node2 is EnumDeclarationImpl) {
+    } else if (node2 is EnumDeclaration2Impl) {
       var element = node2.declaredFragment!.element;
       element.isSimplyBounded = node.isSimplyBounded;
-    } else if (node2 is ExtensionTypeDeclarationImpl) {
+    } else if (node2 is ExtensionTypeDeclaration2Impl) {
       var element = node2.declaredFragment!.element;
       element.isSimplyBounded = node.isSimplyBounded;
-    } else if (node2 is GenericTypeAliasImpl) {
+    } else if (node2 is GenericTypeAlias2Impl) {
       var element = node2.declaredFragment!.element;
       element.isSimplyBounded = node.isSimplyBounded;
-    } else if (node2 is FunctionTypeAliasImpl) {
+    } else if (node2 is FunctionTypeAlias2Impl) {
       var element = node2.declaredFragment!.element;
       element.isSimplyBounded = node.isSimplyBounded;
-    } else if (node2 is MixinDeclarationImpl) {
+    } else if (node2 is MixinDeclaration2Impl) {
       var element = node2.declaredFragment!.element;
       element.isSimplyBounded = node.isSimplyBounded;
     } else {
@@ -77,7 +77,7 @@ class SimplyBoundedDependencyWalker
   final Linker linker;
   final Map<Element, SimplyBoundedNode> nodeMap = Map.identity();
 
-  SimplyBoundedDependencyWalker(this.linker);
+  new(this.linker);
 
   @override
   void evaluate(SimplyBoundedNode v) {
@@ -95,7 +95,7 @@ class SimplyBoundedDependencyWalker
     var graphNode = nodeMap[element];
     if (graphNode == null) {
       var node = linker.getLinkingNode(element.firstFragment);
-      if (node is ClassDeclaration) {
+      if (node is ClassDeclaration2) {
         var parameters = node.namePart.typeParameters?.typeParameters;
         graphNode = SimplyBoundedNode(
           this,
@@ -103,7 +103,7 @@ class SimplyBoundedDependencyWalker
           parameters ?? const <TypeParameter>[],
           const <TypeAnnotation>[],
         );
-      } else if (node is ClassTypeAlias) {
+      } else if (node is ClassTypeAlias2) {
         var parameters = node.typeParameters?.typeParameters;
         graphNode = SimplyBoundedNode(
           this,
@@ -111,7 +111,7 @@ class SimplyBoundedDependencyWalker
           parameters ?? const <TypeParameter>[],
           const <TypeAnnotation>[],
         );
-      } else if (node is EnumDeclaration) {
+      } else if (node is EnumDeclaration2) {
         var parameters = node.namePart.typeParameters?.typeParameters;
         graphNode = SimplyBoundedNode(
           this,
@@ -119,7 +119,7 @@ class SimplyBoundedDependencyWalker
           parameters ?? const <TypeParameter>[],
           const <TypeAnnotation>[],
         );
-      } else if (node is ExtensionTypeDeclaration) {
+      } else if (node is ExtensionTypeDeclaration2) {
         var parameters = node.namePart.typeParameters?.typeParameters;
         graphNode = SimplyBoundedNode(
           this,
@@ -127,15 +127,7 @@ class SimplyBoundedDependencyWalker
           parameters ?? const <TypeParameter>[],
           const <TypeAnnotation>[],
         );
-      } else if (node is FunctionTypeAlias) {
-        var parameters = node.typeParameters?.typeParameters;
-        graphNode = SimplyBoundedNode(
-          this,
-          node,
-          parameters ?? const <TypeParameter>[],
-          _collectTypedefRhsTypes(node),
-        );
-      } else if (node is GenericTypeAlias) {
+      } else if (node is FunctionTypeAlias2) {
         var parameters = node.typeParameters?.typeParameters;
         graphNode = SimplyBoundedNode(
           this,
@@ -143,7 +135,15 @@ class SimplyBoundedDependencyWalker
           parameters ?? const <TypeParameter>[],
           _collectTypedefRhsTypes(node),
         );
-      } else if (node is MixinDeclaration) {
+      } else if (node is GenericTypeAlias2) {
+        var parameters = node.typeParameters?.typeParameters;
+        graphNode = SimplyBoundedNode(
+          this,
+          node,
+          parameters ?? const <TypeParameter>[],
+          _collectTypedefRhsTypes(node),
+        );
+      } else if (node is MixinDeclaration2) {
         var parameters = node.typeParameters?.typeParameters;
         graphNode = SimplyBoundedNode(
           this,
@@ -168,12 +168,12 @@ class SimplyBoundedDependencyWalker
   /// converted to a new style typedef declaration.  This means that type
   /// parameter declarations and their bounds are not included.
   static List<TypeAnnotation> _collectTypedefRhsTypes(AstNode node) {
-    if (node is FunctionTypeAlias) {
+    if (node is FunctionTypeAlias2) {
       var collector = _TypeCollector();
       collector.addType(node.returnType);
       collector.visitParameters(node.parameters);
       return collector.types;
-    } else if (node is GenericTypeAlias) {
+    } else if (node is GenericTypeAlias2) {
       var type = node.type;
       var collector = _TypeCollector();
       if (type is GenericFunctionType) {
@@ -216,12 +216,7 @@ class SimplyBoundedNode extends graph.Node<SimplyBoundedNode> {
   /// are simply bounded; `false` indicates that the type is not simply bounded.
   bool isSimplyBounded = true;
 
-  SimplyBoundedNode(
-    this._walker,
-    this._node,
-    this._typeParameters,
-    this._rhsTypes,
-  );
+  new(this._walker, this._node, this._typeParameters, this._rhsTypes);
 
   @override
   List<SimplyBoundedNode> computeDependencies() {

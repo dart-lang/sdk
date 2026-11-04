@@ -290,9 +290,9 @@ static method foo6a() → dynamic
   ;
 static method foo6b() → dynamic
   ;
-static method foo7a([(self::A<Never>) →? self::A<dynamic> x]) → dynamic
+static method foo7a([(self::A<Never>) →? self::A<dynamic> x = null]) → dynamic
   ;
-static method foo7b([(self::A<Never>) →? self::A<dynamic> x]) → dynamic
+static method foo7b([(self::A<Never>) →? self::A<dynamic> x = null]) → dynamic
   ;
 static method bar1(self::B<core::num> x) → dynamic
   ;
@@ -304,7 +304,7 @@ static method bar5({required self::B<core::num> x}) → dynamic
   ;
 static method bar6() → dynamic
   ;
-static method bar7([self::B<core::num>? x]) → dynamic
+static method bar7([self::B<core::num>? x = null]) → dynamic
   ;
 static method main() → dynamic
   ;

@@ -46,16 +46,18 @@ class InformativeDataApplier {
     if (elementFactory.isApplyingInformativeData) {
       throw StateError('Unexpected recursion.');
     }
+
     elementFactory.isApplyingInformativeData = true;
-
-    for (var libraryFragment in libraryElement.internal.fragments) {
-      var uri = libraryFragment.source.uri;
-      if (unitsInformativeBytes[uri] case var infoBytes?) {
-        _applyFromBytes(libraryFragment, infoBytes);
+    try {
+      for (var libraryFragment in libraryElement.internal.fragments) {
+        var uri = libraryFragment.source.uri;
+        if (unitsInformativeBytes[uri] case var infoBytes?) {
+          _applyFromBytes(libraryFragment, infoBytes);
+        }
       }
+    } finally {
+      elementFactory.isApplyingInformativeData = false;
     }
-
-    elementFactory.isApplyingInformativeData = false;
   }
 
   void _applyFromBytes(
@@ -82,7 +84,7 @@ class InformativeDataApplier {
       _applyToPartIncludes(libraryFragment.parts, unitInfo);
     });
 
-    libraryFragment.deferConstantOffsets(unitInfo.libraryConstantOffsets, (
+    libraryFragment.deferConstantOffsets(unitInfo.directiveConstantOffsets, (
       applier,
     ) {
       applier.applyToImports(libraryFragment.libraryImports);
@@ -581,35 +583,31 @@ class _InfoBuilder {
     var topLevelVariable = <_InfoTopLevelVariable>[];
     var typeAliases = <_InfoTypeAlias>[];
     for (var declaration in unit.declarations2) {
-      if (declaration is ClassDeclaration) {
+      if (declaration is ClassDeclaration2) {
         classDeclarations.add(_buildClass(declaration));
-      } else if (declaration is ClassTypeAlias) {
+      } else if (declaration is ClassTypeAlias2) {
         classTypeAliases.add(_buildClassTypeAlias(declaration));
-      } else if (declaration is EnumDeclarationImpl) {
+      } else if (declaration is EnumDeclaration2Impl) {
         enums.add(_buildEnum(declaration));
-      } else if (declaration is ExtensionDeclaration) {
+      } else if (declaration is ExtensionDeclaration2) {
         extensions.add(_buildExtension(declaration));
-      } else if (declaration is ExtensionTypeDeclaration) {
+      } else if (declaration is ExtensionTypeDeclaration2) {
         extensionTypes.add(_buildExtensionType(declaration));
-      } else if (declaration is MixinDeclarationImpl) {
+      } else if (declaration is MixinDeclaration2Impl) {
         mixinDeclarations.add(_buildMixin(declaration));
+      } else if (declaration is TopLevelFunctionDeclarationImpl) {
+        topLevelFunctions.add(_buildTopLevelFunction(declaration));
       } else if (declaration is TopLevelGetterDeclarationImpl) {
         topLevelGetters.add(_buildTopLevelGetter(declaration));
-      } else if (declaration is FunctionDeclaration) {
-        if (declaration.isGetter) {
-          topLevelGetters.add(_buildTopLevelFunction(declaration));
-        } else if (declaration.isSetter) {
-          topLevelSetters.add(_buildTopLevelFunction(declaration));
-        } else {
-          topLevelFunctions.add(_buildTopLevelFunction(declaration));
+      } else if (declaration is TopLevelSetterDeclarationImpl) {
+        topLevelSetters.add(_buildTopLevelSetter(declaration));
+      } else if (declaration is TopLevelVariablesDeclaration) {
+        for (var variable in declaration.variables) {
+          topLevelVariable.add(_buildTopLevelVariable(declaration, variable));
         }
-      } else if (declaration is TopLevelVariableDeclaration) {
-        for (var variable in declaration.variables.variables) {
-          topLevelVariable.add(_buildTopLevelVariable(variable));
-        }
-      } else if (declaration is FunctionTypeAlias) {
+      } else if (declaration is FunctionTypeAlias2) {
         typeAliases.add(_buildFunctionTypeAlias(declaration));
-      } else if (declaration is GenericTypeAlias) {
+      } else if (declaration is GenericTypeAlias2) {
         typeAliases.add(_buildGenericTypeAlias(declaration));
       }
     }
@@ -643,11 +641,13 @@ class _InfoBuilder {
       codeLength: unit.length,
       lineStarts: unit.lineInfo.lineStarts,
       libraryName: _buildLibraryName(firstLibraryDirective),
-      libraryConstantOffsets: _buildLibraryConstantOffsets(
-        unit.directives.firstOrNull,
-        rawImports,
-        rawExports,
-        rawParts,
+      libraryConstantOffsets: _buildConstantOffsets(
+        metadata: unit.directives.firstOrNull?.metadata,
+      ),
+      directiveConstantOffsets: _buildConstantOffsets(
+        importDirectives: rawImports,
+        exportDirectives: rawExports,
+        partDirectives: rawParts,
       ),
       docComment: _getDocumentationComment(unit.directives.firstOrNull),
       imports: imports,
@@ -667,7 +667,7 @@ class _InfoBuilder {
     );
   }
 
-  _InfoClassDeclaration _buildClass(ClassDeclaration node) {
+  _InfoClassDeclaration _buildClass(ClassDeclaration2 node) {
     return _InfoClassDeclaration(
       data: _buildInterfaceData(
         node,
@@ -679,7 +679,7 @@ class _InfoBuilder {
     );
   }
 
-  _InfoClassTypeAlias _buildClassTypeAlias(ClassTypeAlias node) {
+  _InfoClassTypeAlias _buildClassTypeAlias(ClassTypeAlias2 node) {
     return _InfoClassTypeAlias(
       firstTokenOffset: node.offset,
       codeOffset: node.offset,
@@ -711,7 +711,7 @@ class _InfoBuilder {
     FormalParameterList? formalParameters,
     Expression? constantInitializer,
     NodeList<ConstructorInitializer>? constructorInitializers,
-    NodeList<EnumConstantDeclaration>? enumConstants,
+    NodeList<EnumConstantDeclaration2>? enumConstants,
     TypeAnnotation? aliasedType,
     EnumConstantArguments? enumConstantArguments,
   }) {
@@ -739,7 +739,7 @@ class _InfoBuilder {
           parameter.metadata.accept2(collector);
           addFormalParameters(parameter.functionTypedSuffix?.formalParameters);
           if (parameter.defaultClause case var defaultClause?) {
-            defaultClause.value2.accept2(collector);
+            collector.visitReplaceable(defaultClause.value2);
           }
         }
       }
@@ -751,7 +751,7 @@ class _InfoBuilder {
     addDirectives(partDirectives);
     addTypeParameters(typeParameters);
     addFormalParameters(formalParameters);
-    constantInitializer?.accept2(collector);
+    collector.visitReplaceable(constantInitializer);
     constructorInitializers?.accept2(collector);
     if (enumConstants != null) {
       for (var enumConstant in enumConstants) {
@@ -762,12 +762,17 @@ class _InfoBuilder {
       addTypeParameters(aliasedType.typeParameters);
       addFormalParameters(aliasedType.parameters);
     }
-    enumConstantArguments?.typeArguments?.accept2(collector);
-    enumConstantArguments?.argumentList.accept2(collector);
+    if (enumConstantArguments != null) {
+      // Detaching replaces the whole initializer of an enum constant.
+      if (isSerializable(enumConstantArguments)) {
+        enumConstantArguments.typeArguments?.accept2(collector);
+        enumConstantArguments.argumentList.accept2(collector);
+      }
+    }
     return collector.offsets.takeAndReset();
   }
 
-  _InfoConstructorDeclaration _buildConstructor(ConstructorDeclaration node) {
+  _InfoConstructorDeclaration _buildConstructor(ConstructorDeclaration2 node) {
     return _InfoConstructorDeclaration(
       firstTokenOffset: node.offset,
       codeOffset: node.offset,
@@ -775,24 +780,24 @@ class _InfoBuilder {
       nameOffset: node.name?.offsetIfNotEmpty,
       documentationComment: _getDocumentationComment(node),
       typeParameters: const [],
-      parameters: _buildFormalParameters(node.parameters),
+      parameters: _buildFormalParameters(node.formalParameters),
       constantOffsets: _buildConstantOffsets(
         metadata: node.metadata,
-        formalParameters: node.parameters,
+        formalParameters: node.formalParameters,
         constructorInitializers: node.initializers,
       ),
       newKeywordOffset: node.newKeyword?.offset,
       factoryKeywordOffset: node.factoryKeyword?.offset,
-      typeNameOffset: node.typeName2?.offset,
+      typeNameOffset: node.typeName?.offset,
       periodOffset: node.period?.offset,
-      nameEnd: (node.name ?? node.typeName2)?.end,
+      nameEnd: (node.name ?? node.typeName)?.end,
       thisKeywordOffset: null,
       primaryHeaderCodeRange: null,
       primaryBodyCodeRange: null,
     );
   }
 
-  _InfoEnumDeclaration _buildEnum(EnumDeclarationImpl node) {
+  _InfoEnumDeclaration _buildEnum(EnumDeclaration2Impl node) {
     return _InfoEnumDeclaration(
       data: _buildInterfaceData(
         node,
@@ -802,16 +807,16 @@ class _InfoBuilder {
         members: node.body.members,
         fields: [
           ...node.body.constants.map(_buildEnumConstant),
-          ...node.body.members
-              .whereType<FieldDeclaration>()
-              .expand((node) => node.fields.variables)
-              .map((node) => _buildField(node)),
+          for (var declaration
+              in node.body.members.whereType<FieldsDeclaration>())
+            for (var field in declaration.fields)
+              _buildField(declaration, field),
         ],
       ),
     );
   }
 
-  _InfoFieldDeclaration _buildEnumConstant(EnumConstantDeclaration node) {
+  _InfoFieldDeclaration _buildEnumConstant(EnumConstantDeclaration2 node) {
     var codeOffset = node.offset;
     return _InfoFieldDeclaration(
       firstTokenOffset: node.offset,
@@ -833,7 +838,7 @@ class _InfoBuilder {
     );
   }
 
-  _InfoExtensionDeclaration _buildExtension(ExtensionDeclaration node) {
+  _InfoExtensionDeclaration _buildExtension(ExtensionDeclaration2 node) {
     return _InfoExtensionDeclaration(
       data: _buildInstanceData(
         node,
@@ -845,7 +850,7 @@ class _InfoBuilder {
   }
 
   _InfoExtensionTypeDeclaration _buildExtensionType(
-    ExtensionTypeDeclaration node,
+    ExtensionTypeDeclaration2 node,
   ) {
     return _InfoExtensionTypeDeclaration(
       data: _buildInterfaceData(
@@ -858,18 +863,22 @@ class _InfoBuilder {
     );
   }
 
-  _InfoFieldDeclaration _buildField(VariableDeclaration node) {
-    var codeOffset = _codeOffsetForVariable(node);
-    var declaration = node.parent2!.parent2 as FieldDeclaration;
+  _InfoFieldDeclaration _buildField(
+    FieldsDeclaration declaration,
+    Field2 node,
+  ) {
+    var codeOffset = node == declaration.fields.first
+        ? declaration.offset
+        : node.offset;
     return _InfoFieldDeclaration(
       firstTokenOffset: node.offset,
       codeOffset: codeOffset,
       codeLength: node.end - codeOffset,
       nameOffset: node.name.offsetIfNotEmpty,
-      documentationComment: _getDocumentationComment(node),
+      documentationComment: _getDocumentationComment(declaration),
       constantOffsets: _buildConstantOffsets(
         metadata: declaration.metadata,
-        constantInitializer: node.initializer2,
+        constantInitializer: node.initializer,
       ),
     );
   }
@@ -899,7 +908,7 @@ class _InfoBuilder {
     );
   }
 
-  _InfoTypeAlias _buildFunctionTypeAlias(FunctionTypeAlias node) {
+  _InfoTypeAlias _buildFunctionTypeAlias(FunctionTypeAlias2 node) {
     return _InfoTypeAlias(
       firstTokenOffset: node.offset,
       codeOffset: node.offset,
@@ -915,7 +924,7 @@ class _InfoBuilder {
     );
   }
 
-  _InfoTypeAlias _buildGenericTypeAlias(GenericTypeAlias node) {
+  _InfoTypeAlias _buildGenericTypeAlias(GenericTypeAlias2 node) {
     return _InfoTypeAlias(
       firstTokenOffset: node.offset,
       codeOffset: node.offset,
@@ -940,10 +949,10 @@ class _InfoBuilder {
   }
 
   _InstanceData _buildInstanceData(
-    Declaration node, {
+    AnnotatedNode node, {
     required Token? name,
     required TypeParameterList? typeParameters,
-    required List<ClassMember> members,
+    required List<AnnotatedNode> members,
     List<_InfoFieldDeclaration>? fields,
   }) {
     // Build all needed lists based on `members` with a single iteration the list.
@@ -953,22 +962,23 @@ class _InfoBuilder {
     bool processFields = fields == null;
     fields ??= <_InfoFieldDeclaration>[];
     for (var member in members) {
-      if (member is MethodDeclaration) {
-        if (member.isGetter) {
-          getters.add(_buildMethodDeclaration(member));
-        } else if (member.isSetter) {
-          setters.add(_buildMethodDeclaration(member));
-        } else {
-          methods.add(_buildMethodDeclaration(member));
+      if (member is MethodDeclarationV1OriginImpl) {
+        switch (member) {
+          case GetterDeclarationImpl():
+            getters.add(_buildMethodDeclaration(member));
+          case SetterDeclarationImpl():
+            setters.add(_buildMethodDeclaration(member));
+          case MethodDeclaration2Impl() || OperatorDeclarationImpl():
+            methods.add(_buildMethodDeclaration(member));
         }
-      } else if (processFields && member is FieldDeclaration) {
-        for (var variable in member.fields.variables) {
-          fields.add(_buildField(variable));
+      } else if (processFields && member is FieldsDeclaration) {
+        for (var field in member.fields) {
+          fields.add(_buildField(member, field));
         }
       }
     }
 
-    var annotatedNode = node as AnnotatedNode;
+    var annotatedNode = node;
     return _InstanceData(
       firstTokenOffset: node.offset,
       codeOffset: node.offset,
@@ -988,11 +998,11 @@ class _InfoBuilder {
   }
 
   _InterfaceData _buildInterfaceData(
-    Declaration node, {
+    AnnotatedNode node, {
     required Token? name,
     required TypeParameterList? typeParameters,
     PrimaryConstructorDeclaration? primaryConstructor,
-    required List<ClassMember> members,
+    required List<AnnotatedNode> members,
     List<_InfoFieldDeclaration>? fields,
   }) {
     var instanceData = _buildInstanceData(
@@ -1004,7 +1014,7 @@ class _InfoBuilder {
     );
 
     var primaryConstructorBody = members
-        .whereType<PrimaryConstructorBody>()
+        .whereType<PrimaryConstructorBody2>()
         .firstOrNull;
 
     return _InterfaceData(
@@ -1015,22 +1025,8 @@ class _InfoBuilder {
             primaryConstructor,
             body: primaryConstructorBody,
           ),
-        ...members.whereType<ConstructorDeclaration>().map(_buildConstructor),
+        ...members.whereType<ConstructorDeclaration2>().map(_buildConstructor),
       ],
-    );
-  }
-
-  Uint32List _buildLibraryConstantOffsets(
-    Directive? firstDirective,
-    List<ImportDirective> imports,
-    List<ExportDirective> exports,
-    List<PartDirective> parts,
-  ) {
-    return _buildConstantOffsets(
-      metadata: firstDirective?.metadata,
-      importDirectives: imports,
-      exportDirectives: exports,
-      partDirectives: parts,
     );
   }
 
@@ -1045,24 +1041,26 @@ class _InfoBuilder {
     return _InfoLibraryName(offset: nameOffset, length: nameLength);
   }
 
-  _InfoExecutableDeclaration _buildMethodDeclaration(MethodDeclaration node) {
+  _InfoExecutableDeclaration _buildMethodDeclaration(
+    MethodDeclarationV1OriginImpl node,
+  ) {
     return _InfoExecutableDeclaration(
       firstTokenOffset: node.offset,
       codeOffset: node.offset,
       codeLength: node.length,
-      nameOffset: node.name.offsetIfNotEmpty,
+      nameOffset: node.nameToken.offsetIfNotEmpty,
       documentationComment: _getDocumentationComment(node),
-      typeParameters: _buildTypeParameters(node.typeParameters),
-      parameters: _buildFormalParameters(node.parameters),
+      typeParameters: _buildTypeParameters(node.writtenTypeParameters),
+      parameters: _buildFormalParameters(node.writtenFormalParameters),
       constantOffsets: _buildConstantOffsets(
         metadata: node.metadata,
-        typeParameters: node.typeParameters,
-        formalParameters: node.parameters,
+        typeParameters: node.writtenTypeParameters,
+        formalParameters: node.writtenFormalParameters,
       ),
     );
   }
 
-  _InfoMixinDeclaration _buildMixin(MixinDeclarationImpl node) {
+  _InfoMixinDeclaration _buildMixin(MixinDeclaration2Impl node) {
     return _InfoMixinDeclaration(
       data: _buildInterfaceData(
         node,
@@ -1079,7 +1077,7 @@ class _InfoBuilder {
 
   _InfoConstructorDeclaration _buildPrimaryConstructor(
     PrimaryConstructorDeclaration node, {
-    required PrimaryConstructorBody? body,
+    required PrimaryConstructorBody2? body,
   }) {
     var headerOffset = (node.constructorName ?? node.formalParameters).offset;
     return _InfoConstructorDeclaration(
@@ -1111,21 +1109,21 @@ class _InfoBuilder {
     );
   }
 
-  _InfoExecutableDeclaration _buildTopLevelFunction(FunctionDeclaration node) {
+  _InfoExecutableDeclaration _buildTopLevelFunction(
+    TopLevelFunctionDeclarationImpl node,
+  ) {
     return _InfoExecutableDeclaration(
       firstTokenOffset: node.offset,
       codeOffset: node.offset,
       codeLength: node.length,
       nameOffset: node.name.offsetIfNotEmpty,
       documentationComment: _getDocumentationComment(node),
-      typeParameters: _buildTypeParameters(
-        node.functionExpression.typeParameters,
-      ),
-      parameters: _buildFormalParameters(node.functionExpression.parameters),
+      typeParameters: _buildTypeParameters(node.typeParameters),
+      parameters: _buildFormalParameters(node.formalParameters),
       constantOffsets: _buildConstantOffsets(
         metadata: node.metadata,
-        typeParameters: node.functionExpression.typeParameters,
-        formalParameters: node.functionExpression.parameters,
+        typeParameters: node.typeParameters,
+        formalParameters: node.formalParameters,
       ),
     );
   }
@@ -1139,28 +1137,49 @@ class _InfoBuilder {
       codeLength: node.length,
       nameOffset: node.name.offsetIfNotEmpty,
       documentationComment: _getDocumentationComment(node),
-      typeParameters: _buildTypeParameters(node.recoveryTypeParameters),
+      typeParameters: const [],
       parameters: _buildFormalParameters(node.recoveryFormalParameters),
       constantOffsets: _buildConstantOffsets(
         metadata: node.metadata,
-        typeParameters: node.recoveryTypeParameters,
         formalParameters: node.recoveryFormalParameters,
       ),
     );
   }
 
-  _InfoTopLevelVariable _buildTopLevelVariable(VariableDeclaration node) {
-    var codeOffset = _codeOffsetForVariable(node);
-    var declaration = node.parent2!.parent2 as TopLevelVariableDeclaration;
+  _InfoExecutableDeclaration _buildTopLevelSetter(
+    TopLevelSetterDeclarationImpl node,
+  ) {
+    return _InfoExecutableDeclaration(
+      firstTokenOffset: node.offset,
+      codeOffset: node.offset,
+      codeLength: node.length,
+      nameOffset: node.name.offsetIfNotEmpty,
+      documentationComment: _getDocumentationComment(node),
+      typeParameters: const [],
+      parameters: _buildFormalParameters(node.formalParameters),
+      constantOffsets: _buildConstantOffsets(
+        metadata: node.metadata,
+        formalParameters: node.formalParameters,
+      ),
+    );
+  }
+
+  _InfoTopLevelVariable _buildTopLevelVariable(
+    TopLevelVariablesDeclaration declaration,
+    TopLevelVariable2 node,
+  ) {
+    var codeOffset = node == declaration.variables.first
+        ? declaration.offset
+        : node.offset;
     return _InfoTopLevelVariable(
       firstTokenOffset: node.offset,
       codeOffset: codeOffset,
       codeLength: node.end - codeOffset,
       nameOffset: node.name.offsetIfNotEmpty,
-      documentationComment: _getDocumentationComment(node),
+      documentationComment: _getDocumentationComment(declaration),
       constantOffsets: _buildConstantOffsets(
         metadata: declaration.metadata,
-        constantInitializer: node.initializer2,
+        constantInitializer: node.initializer,
       ),
     );
   }
@@ -1185,15 +1204,6 @@ class _InfoBuilder {
     );
   }
 
-  int _codeOffsetForVariable(VariableDeclaration node) {
-    var codeOffset = node.offset;
-    var variableList = node.parent2 as VariableDeclarationList;
-    if (variableList.variables[0] == node) {
-      codeOffset = variableList.parent2!.offset;
-    }
-    return codeOffset;
-  }
-
   String? _getDocumentationComment(AnnotatedNode? node) {
     var comment = node?.documentationComment;
     return getCommentNodeRawText(comment);
@@ -1201,16 +1211,16 @@ class _InfoBuilder {
 }
 
 class _InfoClassDeclaration extends _InfoInterfaceDeclaration {
-  _InfoClassDeclaration({required super.data});
+  new({required super.data});
 
-  _InfoClassDeclaration.read(super.reader) : super.read();
+  new read(super.reader) : super.read();
 }
 
 class _InfoClassTypeAlias extends _InfoNode {
   final List<_InfoTypeParameter> typeParameters;
   final Uint32List constantOffsets;
 
-  _InfoClassTypeAlias({
+  new({
     required super.firstTokenOffset,
     required super.codeOffset,
     required super.codeLength,
@@ -1220,7 +1230,7 @@ class _InfoClassTypeAlias extends _InfoNode {
     required this.constantOffsets,
   }) : super();
 
-  _InfoClassTypeAlias.read(super.reader)
+  new read(super.reader)
     : typeParameters = reader.readList(_InfoTypeParameter.read),
       constantOffsets = reader.readUint30List(),
       super.read();
@@ -1237,9 +1247,9 @@ class _InfoCombinator {
   final int offset;
   final int end;
 
-  _InfoCombinator({required this.offset, required this.end});
+  new({required this.offset, required this.end});
 
-  factory _InfoCombinator.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return _InfoCombinator(
       offset: reader.readUint30(),
       end: reader.readUint30(),
@@ -1262,7 +1272,7 @@ class _InfoConstructorDeclaration extends _InfoExecutableDeclaration {
   final SourceRange? primaryHeaderCodeRange;
   final SourceRange? primaryBodyCodeRange;
 
-  _InfoConstructorDeclaration({
+  new({
     required super.firstTokenOffset,
     required super.codeOffset,
     required super.codeLength,
@@ -1281,7 +1291,7 @@ class _InfoConstructorDeclaration extends _InfoExecutableDeclaration {
     required this.primaryBodyCodeRange,
   });
 
-  _InfoConstructorDeclaration.read(super.reader)
+  new read(super.reader)
     : newKeywordOffset = reader.readOptionalUint30(),
       factoryKeywordOffset = reader.readOptionalUint30(),
       typeNameOffset = reader.readOptionalUint30(),
@@ -1307,9 +1317,9 @@ class _InfoConstructorDeclaration extends _InfoExecutableDeclaration {
 }
 
 class _InfoEnumDeclaration extends _InfoInterfaceDeclaration {
-  _InfoEnumDeclaration({required super.data});
+  new({required super.data});
 
-  _InfoEnumDeclaration.read(super.reader) : super.read();
+  new read(super.reader) : super.read();
 }
 
 class _InfoExecutableDeclaration extends _InfoNode {
@@ -1317,7 +1327,7 @@ class _InfoExecutableDeclaration extends _InfoNode {
   final List<_InfoFormalParameter> parameters;
   final Uint32List constantOffsets;
 
-  _InfoExecutableDeclaration({
+  new({
     required super.firstTokenOffset,
     required super.codeOffset,
     required super.codeLength,
@@ -1328,7 +1338,7 @@ class _InfoExecutableDeclaration extends _InfoNode {
     required this.constantOffsets,
   }) : super();
 
-  _InfoExecutableDeclaration.read(super.reader)
+  new read(super.reader)
     : typeParameters = reader.readList(_InfoTypeParameter.read),
       parameters = reader.readList(_InfoFormalParameter.read),
       constantOffsets = reader.readUint30List(),
@@ -1347,9 +1357,9 @@ class _InfoExport {
   final int exportKeywordOffset;
   final List<_InfoCombinator> combinators;
 
-  _InfoExport({required this.exportKeywordOffset, required this.combinators});
+  new({required this.exportKeywordOffset, required this.combinators});
 
-  factory _InfoExport.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return _InfoExport(
       exportKeywordOffset: reader.readUint30(),
       combinators: reader.readList(_InfoCombinator.read),
@@ -1363,21 +1373,21 @@ class _InfoExport {
 }
 
 class _InfoExtensionDeclaration extends _InfoInstanceDeclaration {
-  _InfoExtensionDeclaration({required super.data});
+  new({required super.data});
 
-  _InfoExtensionDeclaration.read(super.reader) : super.read();
+  new read(super.reader) : super.read();
 }
 
 class _InfoExtensionTypeDeclaration extends _InfoInterfaceDeclaration {
-  _InfoExtensionTypeDeclaration({required super.data});
+  new({required super.data});
 
-  _InfoExtensionTypeDeclaration.read(super.reader) : super.read();
+  new read(super.reader) : super.read();
 }
 
 class _InfoFieldDeclaration extends _InfoNode {
   final Uint32List constantOffsets;
 
-  _InfoFieldDeclaration({
+  new({
     required super.firstTokenOffset,
     required super.codeOffset,
     required super.codeLength,
@@ -1386,7 +1396,7 @@ class _InfoFieldDeclaration extends _InfoNode {
     required this.constantOffsets,
   }) : super();
 
-  _InfoFieldDeclaration.read(super.reader)
+  new read(super.reader)
     : constantOffsets = reader.readUint30List(),
       super.read();
 
@@ -1401,7 +1411,7 @@ class _InfoFormalParameter extends _InfoNode {
   final List<_InfoTypeParameter> typeParameters;
   final List<_InfoFormalParameter> parameters;
 
-  _InfoFormalParameter({
+  new({
     required super.firstTokenOffset,
     required super.codeOffset,
     required super.codeLength,
@@ -1411,7 +1421,7 @@ class _InfoFormalParameter extends _InfoNode {
     required this.parameters,
   });
 
-  _InfoFormalParameter.read(super.reader)
+  new read(super.reader)
     : typeParameters = reader.readList(_InfoTypeParameter.read),
       parameters = reader.readList(_InfoFormalParameter.read),
       super.read();
@@ -1429,13 +1439,13 @@ class _InfoImport {
   final int? prefixOffset;
   final List<_InfoCombinator> combinators;
 
-  _InfoImport({
+  new({
     required this.importKeywordOffset,
     required this.prefixOffset,
     required this.combinators,
   });
 
-  factory _InfoImport.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return _InfoImport(
       importKeywordOffset: reader.readUint30(),
       prefixOffset: reader.readOptionalUint30(),
@@ -1458,7 +1468,7 @@ abstract class _InfoInstanceDeclaration extends _InfoNode {
   final List<_InfoExecutableDeclaration> methods;
   final Uint32List constantOffsets;
 
-  _InfoInstanceDeclaration({required _InstanceData data})
+  new({required _InstanceData data})
     : typeParameters = data.typeParameters,
       fields = data.fields,
       getters = data.getters,
@@ -1473,7 +1483,7 @@ abstract class _InfoInstanceDeclaration extends _InfoNode {
         documentationComment: data.documentationComment,
       );
 
-  _InfoInstanceDeclaration.read(super.reader)
+  new read(super.reader)
     : typeParameters = reader.readList(_InfoTypeParameter.read),
       fields = reader.readList(_InfoFieldDeclaration.read),
       getters = reader.readList(_InfoExecutableDeclaration.read),
@@ -1497,11 +1507,11 @@ abstract class _InfoInstanceDeclaration extends _InfoNode {
 abstract class _InfoInterfaceDeclaration extends _InfoInstanceDeclaration {
   final List<_InfoConstructorDeclaration> constructors;
 
-  _InfoInterfaceDeclaration({required _InterfaceData data})
+  new({required _InterfaceData data})
     : constructors = data.constructors,
       super(data: data.instanceData);
 
-  _InfoInterfaceDeclaration.read(super.reader)
+  new read(super.reader)
     : constructors = reader.readList(_InfoConstructorDeclaration.read),
       super.read();
 
@@ -1516,9 +1526,9 @@ class _InfoLibraryName {
   final int offset;
   final int length;
 
-  _InfoLibraryName({required this.offset, required this.length});
+  new({required this.offset, required this.length});
 
-  factory _InfoLibraryName.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return _InfoLibraryName(
       offset: reader.readUint30() - 1,
       length: reader.readUint30(),
@@ -1532,9 +1542,9 @@ class _InfoLibraryName {
 }
 
 class _InfoMixinDeclaration extends _InfoInterfaceDeclaration {
-  _InfoMixinDeclaration({required super.data});
+  new({required super.data});
 
-  _InfoMixinDeclaration.read(super.reader) : super.read();
+  new read(super.reader) : super.read();
 }
 
 abstract class _InfoNode {
@@ -1544,7 +1554,7 @@ abstract class _InfoNode {
   final int? nameOffset;
   final String? documentationComment;
 
-  _InfoNode({
+  new({
     required this.firstTokenOffset,
     required this.codeOffset,
     required this.codeLength,
@@ -1552,7 +1562,7 @@ abstract class _InfoNode {
     required this.documentationComment,
   });
 
-  _InfoNode.read(BinaryReader reader)
+  new read(BinaryReader reader)
     : firstTokenOffset = reader.readUint30(),
       codeOffset = reader.readUint30(),
       codeLength = reader.readUint30(),
@@ -1571,9 +1581,9 @@ abstract class _InfoNode {
 class _InfoPart {
   final int partKeywordOffset;
 
-  _InfoPart({required this.partKeywordOffset});
+  new({required this.partKeywordOffset});
 
-  factory _InfoPart.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return _InfoPart(partKeywordOffset: reader.readUint30());
   }
 
@@ -1585,7 +1595,7 @@ class _InfoPart {
 class _InfoTopLevelVariable extends _InfoNode {
   final Uint32List constantOffsets;
 
-  _InfoTopLevelVariable({
+  new({
     required super.firstTokenOffset,
     required super.codeOffset,
     required super.codeLength,
@@ -1594,7 +1604,7 @@ class _InfoTopLevelVariable extends _InfoNode {
     required this.constantOffsets,
   }) : super();
 
-  _InfoTopLevelVariable.read(super.reader)
+  new read(super.reader)
     : constantOffsets = reader.readUint30List(),
       super.read();
 
@@ -1609,7 +1619,7 @@ class _InfoTypeAlias extends _InfoNode {
   final List<_InfoTypeParameter> typeParameters;
   final Uint32List constantOffsets;
 
-  _InfoTypeAlias({
+  new({
     required super.firstTokenOffset,
     required super.codeOffset,
     required super.codeLength,
@@ -1619,7 +1629,7 @@ class _InfoTypeAlias extends _InfoNode {
     required this.constantOffsets,
   }) : super();
 
-  _InfoTypeAlias.read(super.reader)
+  new read(super.reader)
     : typeParameters = reader.readList(_InfoTypeParameter.read),
       constantOffsets = reader.readUint30List(),
       super.read();
@@ -1633,14 +1643,14 @@ class _InfoTypeAlias extends _InfoNode {
 }
 
 class _InfoTypeParameter extends _InfoNode {
-  _InfoTypeParameter({
+  new({
     required super.firstTokenOffset,
     required super.codeOffset,
     required super.codeLength,
     required super.nameOffset,
   }) : super(documentationComment: null);
 
-  _InfoTypeParameter.read(super.reader) : super.read();
+  new read(super.reader) : super.read();
 }
 
 class _InfoUnit {
@@ -1648,7 +1658,18 @@ class _InfoUnit {
   final int codeLength;
   final List<int> lineStarts;
   final _InfoLibraryName libraryName;
+
+  /// The offsets of the tokens of the annotations of the first directive,
+  /// which are the annotations of the library.
   final Uint32List libraryConstantOffsets;
+
+  /// The offsets of the tokens of the annotations of imports, exports, and
+  /// parts.
+  ///
+  /// These are separate from [libraryConstantOffsets], because the library
+  /// and the library fragment apply their offsets independently, each from
+  /// the start of its own list.
+  final Uint32List directiveConstantOffsets;
   final String? docComment;
   final List<_InfoImport> imports;
   final List<_InfoExport> exports;
@@ -1665,12 +1686,13 @@ class _InfoUnit {
   final List<_InfoTopLevelVariable> topLevelVariable;
   final List<_InfoTypeAlias> typeAliases;
 
-  _InfoUnit({
+  new({
     required this.codeOffset,
     required this.codeLength,
     required this.lineStarts,
     required this.libraryName,
     required this.libraryConstantOffsets,
+    required this.directiveConstantOffsets,
     required this.docComment,
     required this.imports,
     required this.exports,
@@ -1688,12 +1710,13 @@ class _InfoUnit {
     required this.typeAliases,
   });
 
-  _InfoUnit.read(BinaryReader reader)
+  new read(BinaryReader reader)
     : codeOffset = reader.readUint30(),
       codeLength = reader.readUint30(),
       lineStarts = reader.readUint30List(),
       libraryName = _InfoLibraryName.read(reader),
       libraryConstantOffsets = reader.readUint30List(),
+      directiveConstantOffsets = reader.readUint30List(),
       docComment = reader.readOptionalStringUtf8(),
       imports = reader.readList(_InfoImport.read),
       exports = reader.readList(_InfoExport.read),
@@ -1716,6 +1739,7 @@ class _InfoUnit {
     writer.writeUint30List(lineStarts);
     libraryName.write(writer);
     writer.writeUint30List(libraryConstantOffsets);
+    writer.writeUint30List(directiveConstantOffsets);
     writer.writeOptionalStringUtf8(docComment);
     writer.writeList(imports, (v) => v.write(writer));
     writer.writeList(exports, (v) => v.write(writer));
@@ -1747,7 +1771,7 @@ class _InstanceData {
   final List<_InfoExecutableDeclaration> methods;
   final Uint32List constantOffsets;
 
-  _InstanceData({
+  new({
     required this.firstTokenOffset,
     required this.codeOffset,
     required this.codeLength,
@@ -1766,13 +1790,13 @@ class _InterfaceData {
   final _InstanceData instanceData;
   final List<_InfoConstructorDeclaration> constructors;
 
-  _InterfaceData({required this.instanceData, required this.constructors});
+  new({required this.instanceData, required this.constructors});
 }
 
 class _OffsetsApplier extends _OffsetsAstVisitor {
   final _SafeListIterator<int> _iterator;
 
-  _OffsetsApplier(this._iterator);
+  new(this._iterator);
 
   void applyToConstantInitializer(FragmentImpl fragment) {
     if (fragment is FieldFragmentImpl && fragment.isEnumConstant) {
@@ -1843,18 +1867,6 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
   }
 
   @override
-  void visitFunctionExpression(FunctionExpression node) {
-    // We store FunctionExpression(s) as empty stubs: `() {}`.
-    // We just need it to have right code range, so we apply 2 offsets.
-    node.parameters?.leftParenthesis.offset = _iterator.take() ?? 0;
-
-    var body = node.body;
-    if (body is BlockFunctionBody) {
-      body.block.rightBracket.offset = _iterator.take() ?? 0;
-    }
-  }
-
-  @override
   void visitRegularFormalParameter(RegularFormalParameter node) {
     super.visitRegularFormalParameter(node);
 
@@ -1896,10 +1908,17 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitArgumentList(ArgumentList node) {
+  void visitArgumentList(covariant ArgumentListImpl node) {
     _tokenOrNull(node.leftParenthesis);
     _tokenOrNull(node.rightParenthesis);
-    super.visitArgumentList(node);
+    for (var argument in node.arguments2) {
+      switch (argument) {
+        case ExpressionImpl():
+          visitReplaceable(argument);
+        case NamedArgumentImpl():
+          argument.accept2(this);
+      }
+    }
   }
 
   @override
@@ -1914,7 +1933,8 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
     _tokenOrNull(node.leftParenthesis);
     _tokenOrNull(node.comma);
     _tokenOrNull(node.rightParenthesis);
-    super.visitAssertInitializer(node);
+    visitReplaceable(node.condition2);
+    visitReplaceable(node.message2);
   }
 
   @override
@@ -1985,7 +2005,7 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
     _tokenOrNull(node.thisKeyword);
     _tokenOrNull(node.fieldName2);
     _tokenOrNull(node.equals);
-    super.visitConstructorFieldInitializer(node);
+    visitReplaceable(node.expression2);
   }
 
   @override
@@ -2052,9 +2072,11 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
-    _tokenOrNull(node.identifier2);
-    super.visitForEachPartsWithIdentifier(node);
+  void visitExtensionOverride2(ExtensionOverride2 node) {
+    node.importPrefix?.accept2(this);
+    _tokenOrNull(node.name);
+    node.typeArguments?.accept2(this);
+    node.argumentList.accept2(this);
   }
 
   @override
@@ -2194,7 +2216,7 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
   void visitNamedArgument(NamedArgument node) {
     _tokenOrNull(node.name);
     _tokenOrNull(node.colon);
-    super.visitNamedArgument(node);
+    visitReplaceable(node.argumentExpression2);
   }
 
   @override
@@ -2252,13 +2274,6 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
 
   @override
   void visitParsedUnqualifiedName(ParsedUnqualifiedName node) {
-    _tokenOrNull(node.name);
-  }
-
-  @override
-  void visitParsedUnqualifiedNameAssignmentTarget(
-    ParsedUnqualifiedNameAssignmentTarget node,
-  ) {
     _tokenOrNull(node.name);
   }
 
@@ -2367,6 +2382,12 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
     super.visitRegularFormalParameter(node);
   }
 
+  /// Visits [node], which detaching might replace with a marker, see
+  /// [replaceNotSerializableExpression].
+  void visitReplaceable(Expression? node) {
+    node?.accept2(this);
+  }
+
   @override
   void visitSetOrMapLiteral(SetOrMapLiteral node) {
     _tokenOrNull(node.constKeyword);
@@ -2468,9 +2489,10 @@ class _OffsetsCollector extends _OffsetsAstVisitor {
   }
 
   @override
-  void visitFunctionExpression(FunctionExpression node) {
-    offsets.add(node.offset);
-    offsets.add(node.end - 1);
+  void visitReplaceable(Expression? node) {
+    if (node != null && isSerializable(node)) {
+      node.accept2(this);
+    }
   }
 }
 
@@ -2478,7 +2500,7 @@ class _SafeListIterator<T> {
   final List<T> _elements;
   int _index = 0;
 
-  _SafeListIterator(this._elements);
+  new(this._elements);
 
   bool get hasNext {
     return _index < _elements.length;

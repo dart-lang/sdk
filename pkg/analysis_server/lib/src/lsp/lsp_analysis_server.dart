@@ -9,6 +9,7 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/analytics/analytics_manager.dart';
 import 'package:analysis_server/src/computer/computer_closing_labels.dart';
 import 'package:analysis_server/src/computer/computer_outline.dart';
+import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/flutter/flutter_outline_computer.dart';
 import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/lsp/channel/lsp_channel.dart';
@@ -53,6 +54,10 @@ import 'package:meta/meta.dart';
 /// that listens on a [LspServerCommunicationChannel] for LSP messages and
 /// processes them.
 class LspAnalysisServer extends AnalysisServer {
+  /// A [Future] used by tests to allow inserting a delay after getting a
+  /// resolved unit.
+  static Future<void>? delayAfterResolveForTests;
+
   /// The capabilities of the LSP client. Will be null prior to initialization.
   LspClientCapabilities? _clientCapabilities;
 
@@ -87,6 +92,7 @@ class LspAnalysisServer extends AnalysisServer {
   /// Capabilities of the server. Will be null prior to initialization as
   /// the server capabilities depend on the client capabilities.
   ServerCapabilities? capabilities;
+
   late ServerCapabilitiesComputer capabilitiesComputer;
 
   /// Whether or not the server is controlling the shutdown and will exit
@@ -310,7 +316,7 @@ class LspAnalysisServer extends AnalysisServer {
       // If there are no explicit analysis roots, they are inferred from open
       // files and so must be recomputed.
       if (_workspaceFolders.isEmpty) {
-        await refreshAnalysisRoots();
+        await refreshAnalysisRoots(ContextRebuildReasons.priorityFileAdded);
       }
     }
   }
@@ -322,8 +328,8 @@ class LspAnalysisServer extends AnalysisServer {
   /// register/unregister requests for any supported/enabled dynamic
   /// registrations.
   @override
-  Future<void> fetchClientConfiguration() async {
-    await super.fetchClientConfiguration();
+  Future<void> fetchClientConfiguration(String reason) async {
+    await super.fetchClientConfiguration(reason);
 
     // Client config can affect capabilities, so this should only be done after
     // we have the initial/updated config.
@@ -365,7 +371,6 @@ class LspAnalysisServer extends AnalysisServer {
     }
 
     performanceAfterStartup = ServerPerformance();
-    performance = performanceAfterStartup!;
 
     checkAnalytics();
     enableSurveys();
@@ -698,7 +703,7 @@ class LspAnalysisServer extends AnalysisServer {
 
   @override
   @protected
-  Future<void> refreshAnalysisRoots() async {
+  Future<void> refreshAnalysisRoots(String reason) async {
     // When there are open folders, they are always the roots. If there are no
     // open workspace folders, then we use the open (priority) files to compute
     // roots.
@@ -733,7 +738,7 @@ class LspAnalysisServer extends AnalysisServer {
     } else {
       var completer = analysisContextRebuildCompleter = Completer();
       try {
-        await contextManager.setRoots(includedPaths, excludedPaths);
+        await contextManager.setRoots(includedPaths, excludedPaths, reason);
       } finally {
         completer.complete();
       }
@@ -761,7 +766,7 @@ class LspAnalysisServer extends AnalysisServer {
       // If there are no explicit analysis roots, they are inferred from open
       // files and so must be recomputed.
       if (_workspaceFolders.isEmpty) {
-        await refreshAnalysisRoots();
+        await refreshAnalysisRoots(ContextRebuildReasons.priorityFileRemoved);
       }
     }
   }
@@ -1048,6 +1053,7 @@ class LspAnalysisServer extends AnalysisServer {
   Future<void> updateWorkspaceFolders(
     List<String> addedPaths,
     List<String> removedPaths,
+    String reason,
   ) async {
     // TODO(dantup): This is currently case-sensitive!
 
@@ -1078,9 +1084,9 @@ class LspAnalysisServer extends AnalysisServer {
     try {
       // This async request is why we need to prevent this code running
       // concurrently because they could overlap with each other.
-      await fetchClientConfiguration();
+      await fetchClientConfiguration(reason);
 
-      await refreshAnalysisRoots();
+      await refreshAnalysisRoots(reason);
     } finally {
       completer.complete();
     }

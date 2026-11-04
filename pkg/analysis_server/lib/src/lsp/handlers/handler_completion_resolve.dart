@@ -10,7 +10,6 @@ import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/utilities/element_location2.dart';
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -87,133 +86,129 @@ class CompletionResolveHandler
           return cancelled();
         }
 
-        var result = await session.getResolvedUnit(file);
-        if (result is! ResolvedUnitResult) {
-          return cancelled();
-        }
-
-        if (token.isCancellationRequested) {
-          return cancelled(token);
-        }
-
-        var element = elementReference != null
-            ? await ElementLocation.decode(elementReference).locateIn(session)
-            : null;
-
-        var showName = element?.name;
-        if (element?.enclosingElement case InstanceElement(:var name)) {
-          showName = name;
-        }
-
-        var builder = ChangeBuilder(session: session);
-        if (importUris.isNotEmpty) {
-          await builder.addDartFileEdit(file, (builder) {
-            for (var uri in importUris) {
-              builder.importLibraryElement(uri, showName: showName);
-            }
-          });
-        }
-
-        if (token.isCancellationRequested) {
-          return cancelled(token);
-        }
-
-        var changes = builder.sourceChange;
-        // This is an unexpected case, but it shouldn't cause failures so only
-        // flag it in an assert for during tests.
-        assert(
-          importUris.isEmpty || changes.edits.isNotEmpty,
-          'completionItem/resolve was provided import URIs that did not result '
-          'in edits. This may indicate that completion items included '
-          'unnecessary imports.',
-        );
-        var thisFilesChanges = changes.edits
-            .where((e) => e.file == file)
-            .toList();
-        var otherFilesChanges = changes.edits
-            .where((e) => e.file != file)
-            .toList();
-
-        // If this completion involves editing other files, we'll need to build
-        // a command that the client will call to apply those edits later.
-        Command? command;
-        if (otherFilesChanges.isNotEmpty) {
-          var workspaceEdit = createPlainWorkspaceEdit(
-            server,
-            clientCapabilities,
-            otherFilesChanges,
-          );
-          command = Command(
-            title: 'Add import',
-            command: Commands.sendWorkspaceEdit,
-            arguments: [
-              {'edit': workspaceEdit},
-            ],
-          );
-        }
-
-        // Look up documentation if we can get an element for this item.
-        Either2<MarkupContent, String>? documentation;
-        if (element != null) {
-          var formats = clientCapabilities.completionDocumentationFormats;
-          var dartDocInfo = server.getDartdocDirectiveInfoForSession(session);
-          var dartDocComputer = DartDocumentationComputer(dartDocInfo);
-          var dartDoc = dartDocComputer.computePreferred(
-            element,
-            server.lspClientConfiguration.global.preferredDocumentation,
-          );
-          // `dartDoc` can be both null or empty.
-          documentation = dartDoc != null && dartDoc.isNotEmpty
-              ? asMarkupContentOrString(formats, dartDoc)
+        return await withResolvedUnit(path: file, token, (
+          result,
+          _,
+          checkAbort,
+        ) async {
+          var element = elementReference != null
+              ? await ElementLocation.decode(elementReference).locateIn(session)
               : null;
-        }
 
-        String? detail = item.detail;
-        if (changes.edits.isNotEmpty && importUris.isNotEmpty) {
-          if (importUris.length == 1) {
-            var libraryUri = importUris.first;
-            var autoImportDisplayUriString = getCompletionDisplayUriString(
-              uriConverter: server.uriConverter,
-              pathContext: server.pathContext,
-              elementLibraryUri: libraryUri,
-              completionFilePath: file,
-            );
-
-            detail =
-                "Auto import from '$autoImportDisplayUriString'\n\n${item.detail ?? ''}"
-                    .trim();
-          } else {
-            detail = "Auto import required URIs\n\n${item.detail ?? ''}".trim();
+          var showName = element?.name;
+          if (element?.enclosingElement case InstanceElement(:var name)) {
+            showName = name;
           }
-        }
 
-        return success(
-          CompletionItem(
-            label: item.label,
-            kind: item.kind,
-            tags: item.tags,
-            detail: detail,
-            labelDetails: item.labelDetails,
-            documentation: documentation,
-            deprecated: item.deprecated,
-            preselect: item.preselect,
-            sortText: item.sortText,
-            filterText: item.filterText,
-            insertTextFormat: item.insertTextFormat,
-            insertTextMode: item.insertTextMode,
-            textEdit: item.textEdit,
-            additionalTextEdits: thisFilesChanges
-                .expand(
-                  (change) =>
-                      sortSourceEditsForLsp(change.edits)
-                          .map((edit) => toTextEdit(result.lineInfo, edit)),
-                )
-                .toList(),
-            commitCharacters: item.commitCharacters,
-            command: command ?? item.command,
-            data: item.data,
-          ),
-        );
+          var builder = ChangeBuilder(session: session);
+          if (importUris.isNotEmpty) {
+            await builder.addDartFileEdit(file, (builder) {
+              for (var uri in importUris) {
+                builder.importLibraryElement(uri, showName: showName);
+              }
+            });
+          }
+
+          if (checkAbort() case var abort?) return abort;
+
+          var changes = builder.sourceChange;
+          // This is an unexpected case, but it shouldn't cause failures so only
+          // flag it in an assert for during tests.
+          assert(
+            importUris.isEmpty || changes.edits.isNotEmpty,
+            'completionItem/resolve was provided import URIs that did not result '
+            'in edits. This may indicate that completion items included '
+            'unnecessary imports.',
+          );
+          var thisFilesChanges = changes.edits
+              .where((e) => e.file == file)
+              .toList();
+          var otherFilesChanges = changes.edits
+              .where((e) => e.file != file)
+              .toList();
+
+          // If this completion involves editing other files, we'll need to build
+          // a command that the client will call to apply those edits later.
+          Command? command;
+          if (otherFilesChanges.isNotEmpty) {
+            var workspaceEdit = createPlainWorkspaceEdit(
+              server,
+              clientCapabilities,
+              otherFilesChanges,
+            );
+            command = Command(
+              title: 'Add import',
+              command: Commands.sendWorkspaceEdit,
+              arguments: [
+                {'edit': workspaceEdit},
+              ],
+            );
+          }
+
+          // Look up documentation if we can get an element for this item.
+          Either2<MarkupContent, String>? documentation;
+          if (element != null) {
+            var formats = clientCapabilities.completionDocumentationFormats;
+            var dartDocInfo = server.getDartdocDirectiveInfoForSession(session);
+            var dartDocComputer = DartDocumentationComputer(dartDocInfo);
+            var dartDoc = dartDocComputer.computePreferred(
+              element,
+              server.lspClientConfiguration.global.preferredDocumentation,
+            );
+            // `dartDoc` can be both null or empty.
+            documentation = dartDoc != null && dartDoc.isNotEmpty
+                ? asMarkupContentOrString(formats, dartDoc)
+                : null;
+          }
+
+          String? detail = item.detail;
+          if (changes.edits.isNotEmpty && importUris.isNotEmpty) {
+            if (importUris.length == 1) {
+              var libraryUri = importUris.first;
+              var autoImportDisplayUriString = getCompletionDisplayUriString(
+                uriConverter: server.uriConverter,
+                pathContext: server.pathContext,
+                elementLibraryUri: libraryUri,
+                completionFilePath: file,
+              );
+
+              detail =
+                  "Auto import from '$autoImportDisplayUriString'\n\n${item.detail ?? ''}"
+                      .trim();
+            } else {
+              detail = "Auto import required URIs\n\n${item.detail ?? ''}"
+                  .trim();
+            }
+          }
+
+          return success(
+            CompletionItem(
+              label: item.label,
+              kind: item.kind,
+              tags: item.tags,
+              detail: detail,
+              labelDetails: item.labelDetails,
+              documentation: documentation,
+              deprecated: item.deprecated,
+              preselect: item.preselect,
+              sortText: item.sortText,
+              filterText: item.filterText,
+              insertTextFormat: item.insertTextFormat,
+              insertTextMode: item.insertTextMode,
+              textEdit: item.textEdit,
+              additionalTextEdits: thisFilesChanges
+                  .expand(
+                    (change) =>
+                        sortSourceEditsForLsp(change.edits)
+                            .map((edit) => toTextEdit(result.lineInfo, edit)),
+                  )
+                  .toList(),
+              commitCharacters: item.commitCharacters,
+              command: command ?? item.command,
+              data: item.data,
+            ),
+          );
+        });
       } on InconsistentAnalysisException {
         // Loop around to try again.
       }

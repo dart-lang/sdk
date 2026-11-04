@@ -57,7 +57,7 @@ ErrorToken buildUnexpectedCharacterToken(int character, int charOffset) {
 /// It's considered an implementation error to access [lexeme] of an
 /// [ErrorToken].
 abstract class ErrorToken extends SimpleToken {
-  ErrorToken(int offset) : super(TokenType.BAD_INPUT, offset, null);
+  new(int offset) : super(TokenType.BAD_INPUT, offset, null);
 
   /// This is a token that wraps around an error message. Return 1
   /// instead of the size of the length of the error message.
@@ -98,7 +98,7 @@ abstract class ErrorToken extends SimpleToken {
 
 /// Represents an encoding error.
 class EncodingErrorToken extends ErrorToken {
-  EncodingErrorToken(super.charOffset);
+  new(super.charOffset);
 
   @override
   String toString() => "EncodingErrorToken()";
@@ -112,7 +112,7 @@ class NonAsciiIdentifierToken extends ErrorToken {
   @override
   final int character;
 
-  NonAsciiIdentifierToken(this.character, int charOffset) : super(charOffset);
+  new(this.character, int charOffset) : super(charOffset);
 
   @override
   String toString() => "NonAsciiIdentifierToken($character)";
@@ -129,7 +129,7 @@ class NonAsciiWhitespaceToken extends ErrorToken {
   @override
   final int character;
 
-  NonAsciiWhitespaceToken(this.character, int charOffset) : super(charOffset);
+  new(this.character, int charOffset) : super(charOffset);
 
   @override
   String toString() => "NonAsciiWhitespaceToken($character)";
@@ -144,8 +144,7 @@ class AsciiControlCharacterToken extends ErrorToken {
   @override
   final int character;
 
-  AsciiControlCharacterToken(this.character, int charOffset)
-    : super(charOffset);
+  new(this.character, int charOffset) : super(charOffset);
 
   @override
   String toString() => "AsciiControlCharacterToken($character)";
@@ -159,7 +158,7 @@ class AsciiControlCharacterToken extends ErrorToken {
 class UnsupportedOperator extends ErrorToken {
   Token token;
 
-  UnsupportedOperator(this.token, int charOffset) : super(charOffset);
+  new(this.token, int charOffset) : super(charOffset);
 
   @override
   Message get assertionMessage =>
@@ -176,8 +175,7 @@ class UnterminatedString extends ErrorToken {
   @override
   final int endOffset;
 
-  UnterminatedString(this.start, int charOffset, this.endOffset)
-    : super(charOffset);
+  new(this.start, int charOffset, this.endOffset) : super(charOffset);
 
   @override
   String toString() => "UnterminatedString($start)";
@@ -202,7 +200,7 @@ class UnterminatedToken extends ErrorToken {
   @override
   final int endOffset;
 
-  UnterminatedToken(this.assertionMessage, int charOffset, this.endOffset)
+  new(this.assertionMessage, int charOffset, this.endOffset)
     : super(charOffset);
 
   @override
@@ -220,9 +218,7 @@ class UnmatchedToken extends ErrorToken {
   @override
   final BeginToken begin;
 
-  UnmatchedToken(BeginToken begin)
-    : this.begin = begin,
-      super(begin.charOffset);
+  new(BeginToken begin) : this.begin = begin, super(begin.charOffset);
 
   @override
   String toString() => "UnmatchedToken(${begin.lexeme})";

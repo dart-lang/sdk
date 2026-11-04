@@ -11,6 +11,7 @@ import 'package:analysis_server/src/lsp/handlers/commands/abstract_refactor.dart
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/progress.dart';
 import 'package:analysis_server/src/protocol_server.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 
 /// A handler that validates arguments for legacy refactors such as
@@ -30,7 +31,7 @@ class ValidateRefactorCommandHandler extends AbstractRefactorCommandHandler {
   @override
   FutureOr<ErrorOr<ValidateRefactorResult>> execute(
     MessageInfo message,
-    String path,
+    ResolvedUnitResult unit,
     String kind,
     int offset,
     int length,
@@ -38,7 +39,7 @@ class ValidateRefactorCommandHandler extends AbstractRefactorCommandHandler {
     LspClientCapabilities clientCapabilities,
     CancellationToken cancellationToken,
     ProgressReporter reporter,
-    int? docVersion,
+    ErrorOr<void>? Function() checkAbort,
   ) async {
     var actionName = 'dart.refactor.${kind.toLowerCase()}.validate';
     server.analyticsManager.executedCommand(actionName);
@@ -52,44 +53,43 @@ class ValidateRefactorCommandHandler extends AbstractRefactorCommandHandler {
     // will be no visibility of the reason why the refactor is not available to
     // the user.
 
-    var result = await requireResolvedUnit(path);
-    return result.mapResult((result) async {
-      var refactoring = await getRefactoring(
-        RefactoringKind.values.byName(kind),
-        result,
-        offset,
-        length,
-        options,
-      );
-      return refactoring.mapResult((refactoring) async {
-        // If the token we were given is not cancelable, wrap it with one that
-        // is for the rest of this request as a future refactor may need to
-        // cancel this request.
-        var cancelableToken = cancellationToken.asCancelable();
-        manager.begin(cancelableToken);
+    var refactoringResult = await getRefactoring(
+      RefactoringKind.values.byName(kind),
+      unit,
+      offset,
+      length,
+      options,
+    );
+    return refactoringResult.mapResult((refactoring) async {
+      // If the token we were given is not cancelable, wrap it with one that
+      // is for the rest of this request as a future refactor may need to
+      // cancel this request.
+      var cancelableToken = cancellationToken.asCancelable();
+      manager.begin(cancelableToken);
+      checkAbort = appendToken(checkAbort, cancelableToken);
 
-        try {
-          // ignore: unawaited_futures
-          reporter.begin('Preparing Refactor…');
-          var status = await refactoring.checkInitialConditions();
+      try {
+        // ignore: unawaited_futures
+        reporter.begin('Preparing Refactor…');
+        var status = await refactoring.checkInitialConditions();
+        if (checkAbort() case var reason?) return failure(reason);
 
-          // Only reject fatal errors, since we now support "Refactor Anyway"
-          // for non-fatal errors.
-          if (status.hasFatalError) {
-            return success(
-              ValidateRefactorResult(valid: false, message: status.message!),
-            );
-          }
-
-          return success(ValidateRefactorResult(valid: true));
-        } on InconsistentAnalysisException {
-          return failure(fileModifiedError);
-        } finally {
-          manager.end(cancelableToken);
-          // ignore: unawaited_futures
-          reporter.end();
+        // Only reject fatal errors, since we now support "Refactor Anyway"
+        // for non-fatal errors.
+        if (status.hasFatalError) {
+          return success(
+            ValidateRefactorResult(valid: false, message: status.message!),
+          );
         }
-      });
+
+        return success(ValidateRefactorResult(valid: true));
+      } on InconsistentAnalysisException {
+        return failure(fileModifiedError);
+      } finally {
+        manager.end(cancelableToken);
+        // ignore: unawaited_futures
+        reporter.end();
+      }
     });
   }
 }

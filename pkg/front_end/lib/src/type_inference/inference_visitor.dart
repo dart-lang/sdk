@@ -2966,20 +2966,17 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       classTypeParametersCopy,
       targetType.typeArguments,
     );
-    DartTypeList positional = new DartTypeList.generate(
-      function.positionalParameters.length,
-      (i) => substitution.substituteType(function.positionalParameters[i].type),
+    DartTypeList positional = DartTypeList.mapped(
+      function.positionalParameters,
+      (p) => substitution.substituteType(p.type),
     );
-    NamedDartTypeList named = new NamedDartTypeList.generate(
-      function.namedParameters.length,
-      (i) {
-        NamedParameter decl = function.namedParameters[i];
-        return new NamedType(
-          decl.parameterName,
-          substitution.substituteType(decl.type),
-          isRequired: decl.isRequired,
-        );
-      },
+    NamedDartTypeList named = NamedDartTypeList.mapped(
+      function.namedParameters,
+      (NamedParameter decl) => new NamedType(
+        decl.parameterName,
+        substitution.substituteType(decl.type),
+        isRequired: decl.isRequired,
+      ),
     )..sort();
     return new FunctionType(
       positional,
@@ -3103,21 +3100,18 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       classTypeParametersCopy,
       targetType.typeArguments,
     );
-    DartTypeList positional = new DartTypeList.generate(
-      function.positionalParameters.length,
-      (i) => substitution.substituteType(function.positionalParameters[i].type),
+    DartTypeList positional = DartTypeList.mapped(
+      function.positionalParameters,
+      (p) => substitution.substituteType(p.type),
     );
-    NamedDartTypeList named = new NamedDartTypeList.generate(
-      function.namedParameters.length,
+    NamedDartTypeList named = NamedDartTypeList.mapped(
+      function.namedParameters,
       // Coverage-ignore(suite): Not run.
-      (i) {
-        NamedParameter decl = function.namedParameters[i];
-        return new NamedType(
-          decl.parameterName,
-          substitution.substituteType(decl.type),
-          isRequired: decl.isRequired,
-        );
-      },
+      (NamedParameter decl) => new NamedType(
+        decl.parameterName,
+        substitution.substituteType(decl.type),
+        isRequired: decl.isRequired,
+      ),
     )..sort();
     return new FunctionType(
       positional,
@@ -6333,6 +6327,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression index = ensureAssignableResult(
       indexType,
       indexResult,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node.index,
     ).expression;
 
@@ -6401,6 +6396,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression index = ensureAssignableResult(
       indexType,
       indexResult,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node.index,
     ).expression;
 
@@ -6421,6 +6417,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     valueResult = ensureAssignableResult(
       valueType,
       valueResult,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node.value,
     );
     Expression value = valueResult.expression;
@@ -6428,6 +6425,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     CachedExpression? valueCache;
     Expression? returnedValue;
     if (node.forEffect) {
+      // The value of the assignment isn't used, so there's no need to cache
+      // the value expression.
     } else if (extern.isPureExpression(value)) {
       returnedValue = extern.clonePureExpression(value);
     } else {
@@ -6439,7 +6438,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       returnedValue = extern.createVariableGet(valueCache.variable);
     }
 
-    // The inferred type is that inferred type of the value expression and not
+    // The inferred type is the inferred type of the value expression and not
     // the type of the value parameter.
     DartType inferredType = valueResult.inferredType;
 
@@ -6485,9 +6484,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType typeContext,
   ) {
     ObjectAccessTarget indexSetTarget = thisType!.classNode.isMixinDeclaration
-        ?
-          // Coverage-ignore(suite): Not run.
-          new ObjectAccessTarget.interfaceMember(
+        ? new ObjectAccessTarget.interfaceMember(
             thisType!,
             node.setter,
             hasNonObjectMemberAccess: true,
@@ -6506,11 +6503,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression index = ensureAssignableResult(
       indexType,
       indexResult,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node.index,
     ).expression;
 
     CachedExpression? indexCache;
-    if (!extern.isPureExpression(index)) {
+    if (!node.forEffect && !extern.isPureExpression(index)) {
       indexCache = extern.createCachedExpression(
         expression: index,
         type: indexResult.inferredType,
@@ -6526,13 +6524,26 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     valueResult = ensureAssignableResult(
       valueType,
       valueResult,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node.value,
     );
     Expression value = valueResult.expression;
 
+    // The inferred type is the inferred type of the value expression and not
+    // the type of the value parameter.
+    DartType inferredType = valueResult.inferredType;
+
+    assert(
+      indexSetTarget.isInstanceMember || indexSetTarget.isSuperMember,
+      'Unexpected index set target $indexSetTarget.',
+    );
+
     CachedExpression? valueCache;
-    Expression returnedValue;
-    if (extern.isPureExpression(value)) {
+    Expression? returnedValue;
+    if (node.forEffect) {
+      // The value of the assignment isn't used, so there's no need to cache
+      // the value expression.
+    } else if (extern.isPureExpression(value)) {
       returnedValue = extern.clonePureExpression(value);
     } else {
       valueCache = extern.createCachedExpression(
@@ -6543,21 +6554,22 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       returnedValue = extern.createVariableGet(valueCache.variable);
     }
 
-    // The inferred type is that inferred type of the value expression and not
-    // the type of the value parameter.
-    DartType inferredType = valueResult.inferredType;
-
-    assert(
-      indexSetTarget.isInstanceMember || indexSetTarget.isSuperMember,
-      'Unexpected index set target $indexSetTarget.',
-    );
-    Expression assignment = new SuperMethodInvocation(
-      new ThisExpression(),
+    Expression assignment = extern.createSuperMethodInvocation(
+      // TODO(paulberry): use `_createThisExpression` in value context too.
+      // See https://github.com/dart-lang/sdk/issues/64593.
+      node.forEffect
+          ? _createThisExpression(node.fileOffset)
+          : new ThisExpression(),
       indexSetName,
+      indexSetTarget.classMember as Procedure,
       new Arguments(new ExpressionList(index, value))
         ..fileOffset = node.fileOffset,
-      indexSetTarget.classMember as Procedure,
-    )..fileOffset = node.fileOffset;
+      fileOffset: node.fileOffset,
+    );
+
+    if (node.forEffect) {
+      return new ExpressionInferenceResult(inferredType, assignment);
+    }
 
     CachedExpression assignmentCache = extern.createCachedExpression(
       expression: assignment,
@@ -6565,7 +6577,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
     Expression replacement = extern.createLet(
       cache: assignmentCache,
-      body: returnedValue,
+      body: returnedValue!,
     );
     if (valueCache != null) {
       replacement = extern.createLet(cache: valueCache, body: replacement);
@@ -6654,6 +6666,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression index = ensureAssignableResult(
       indexType,
       indexResult,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node.index,
     ).expression;
 
@@ -6756,6 +6769,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression index = ensureAssignableResult(
       indexType,
       indexResult,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node.index,
     ).expression;
 
@@ -6767,6 +6781,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     valueResult = ensureAssignableResult(
       valueType,
       valueResult,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node.value,
     );
     Expression value = valueResult.expression;
@@ -6786,7 +6801,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       returnedValue = extern.createVariableGet(valueCache.variable);
     }
 
-    // The inferred type is that inferred type of the value expression and not
+    // The inferred type is the inferred type of the value expression and not
     // the type of the value parameter.
     DartType inferredType = valueResult.inferredType;
 
@@ -6914,6 +6929,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       indexResult.inferredType,
       readIndex,
       whyNotPromoted: whyNotPromotedIndex,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node.index,
     );
 
@@ -6938,6 +6954,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       indexResult.inferredType,
       writeIndex,
       whyNotPromoted: whyNotPromotedIndex,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node.index,
     );
 
@@ -6949,6 +6966,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     valueResult = ensureAssignableResult(
       valueType,
       valueResult,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node.value,
     );
     Expression value = valueResult.expression;
@@ -7121,6 +7139,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       readIndexType,
       indexResult.inferredType,
       readIndex,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node.index,
     );
 
@@ -7128,6 +7147,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       writeIndexType,
       indexResult.inferredType,
       writeIndex,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node.index,
     );
 
@@ -7152,6 +7172,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     valueResult = ensureAssignableResult(
       valueType,
       valueResult,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node.value,
     );
     Expression value = valueResult.expression;
@@ -7378,6 +7399,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       readIndexType,
       indexResult.inferredType,
       readIndex,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node.index,
     );
 
@@ -7401,6 +7423,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       writeIndexType,
       indexResult.inferredType,
       writeIndex,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node.index,
     );
 
@@ -7412,6 +7435,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     valueResult = ensureAssignableResult(
       valueType,
       valueResult,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node.value,
     );
     Expression value = valueResult.expression;
@@ -7553,16 +7577,18 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     // When evaluating exactly a dot shorthand in the RHS, we use the LHS type
     // to provide the context type for the shorthand.
-    DartType rightTypeContext =
-        right is DotShorthand &&
-            leftType is! InvalidType &&
-            leftType is! DynamicType &&
-            leftType is! VoidType
-        ? leftType
-        : const UnknownType();
+    if (right is DotShorthand &&
+        leftType is! InvalidType &&
+        leftType is! DynamicType &&
+        leftType is! VoidType) {
+      pushDotShorthandContext(
+        right.innerExpression,
+        new SharedTypeSchemaView(leftType),
+      );
+    }
     ExpressionInferenceResult rightResult = inferExpression(
       right,
-      rightTypeContext,
+      const UnknownType(),
       isVoidAllowed: false,
     );
 
@@ -8515,6 +8541,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       indexResult.inferredType,
       readIndex,
       whyNotPromoted: whyNotPromotedIndex,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node.index,
     );
 
@@ -8572,6 +8599,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       indexResult.inferredType,
       writeIndex,
       whyNotPromoted: whyNotPromotedIndex,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node.index,
     );
 
@@ -8579,6 +8607,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       valueType,
       binaryResult,
       fileOffset: node.fileOffset,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node,
     );
     Expression binary = binaryResult.expression;
@@ -8720,6 +8749,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       readIndexType,
       indexResult.inferredType,
       readIndex,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node.index,
     );
 
@@ -8772,6 +8802,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       valueType,
       binaryResult,
       fileOffset: node.fileOffset,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node,
     );
     Expression binary = binaryResult.expression;
@@ -8781,6 +8812,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       writeIndexType,
       indexResult.inferredType,
       writeIndex,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node.index,
     );
 
@@ -8975,6 +9007,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       readIndexType,
       indexResult.inferredType,
       readIndex,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node.index,
     );
 
@@ -9031,12 +9064,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       writeIndexType,
       indexResult.inferredType,
       writeIndex,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node.index,
     );
     binaryResult = ensureAssignableResult(
       valueType,
       binaryResult,
       fileOffset: node.fileOffset,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node,
     );
     Expression binary = binaryResult.expression;
@@ -11250,12 +11285,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             positionalIndex--;
         }
       }
-      namedTypes = new NamedDartTypeList.generate(sortedNames.length, (
-        int index,
-      ) {
-        String name = sortedNames[index];
-        return new NamedType(name, namedResults[name]!.type);
-      });
+      namedTypes = NamedDartTypeList.mapped(
+        sortedNames,
+        (String name) => new NamedType(name, namedResults[name]!.type),
+      );
       named = NamedExpressionList.mapped(
         sortedNames,
         (String name) => namedResults[name]!.expression,
@@ -11419,7 +11452,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             new SharedTypeView(node.requiredType),
           );
         case InternalOrPattern():
-          // Coverage-ignore(suite): Not run.
           return analyzeLogicalOrPatternSchema(node.left, node.right);
         case InternalRecordPattern():
           return analyzeRecordPatternSchema(
@@ -12268,7 +12300,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     InvalidExpression? error =
         analysisResult.refutablePatternInIrrefutableContextError;
     if (error != null) {
-      // Coverage-ignore-block(suite): Not run.
       replacement = extern.createInvalidPattern(
         error: error,
         patternVariables: node.patternVariables,

@@ -32,7 +32,6 @@ import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/micro/analysis_context.dart';
 import 'package:analyzer/src/dart/micro/utils.dart';
-import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/format.dart';
@@ -52,11 +51,7 @@ class CiderFileContent implements FileContent {
   final String path;
   final String digestStr;
 
-  CiderFileContent({
-    required this.strategy,
-    required this.path,
-    required this.digestStr,
-  });
+  new({required this.strategy, required this.path, required this.digestStr});
 
   @override
   String get content {
@@ -101,10 +96,7 @@ class CiderFileContentStrategy implements FileContentStrategy {
   /// not exist/has no contents.
   final String Function(String path) getFileDigest;
 
-  CiderFileContentStrategy({
-    required this.resourceProvider,
-    required this.getFileDigest,
-  });
+  new({required this.resourceProvider, required this.getFileDigest});
 
   @override
   CiderFileContent get(String path) {
@@ -118,7 +110,7 @@ class CiderSearchInfo {
   final int length;
   final MatchKind kind;
 
-  CiderSearchInfo(this.startPosition, this.length, this.kind);
+  new(this.startPosition, this.length, this.kind);
 
   @override
   bool operator ==(Object other) =>
@@ -132,7 +124,7 @@ class CiderSearchMatch {
   final String path;
   final List<CiderSearchInfo> references;
 
-  CiderSearchMatch(this.path, this.references);
+  new(this.path, this.references);
 
   @override
   bool operator ==(Object other) =>
@@ -153,7 +145,7 @@ class FileContext {
   final AnalysisOptionsImpl analysisOptions;
   final FileState file;
 
-  FileContext(this.analysisOptions, this.file);
+  new(this.analysisOptions, this.file);
 }
 
 class FileResolver {
@@ -205,7 +197,7 @@ class FileResolver {
     (bytes) => bytes.length,
   );
 
-  FileResolver({
+  new({
     required this.logger,
     required this.resourceProvider,
     required this.sourceFactory,
@@ -586,11 +578,6 @@ class FileResolver {
 
         var libraryElement = elementFactory.libraryOfUri2(libraryKind.file.uri);
 
-        var typeSystemOperations = TypeSystemOperations(
-          libraryElement.typeSystem,
-          strictCasts: fileContext.analysisOptions.strictCasts,
-        );
-
         var libraryAnalyzer = LibraryAnalyzer(
           fileContext.analysisOptions,
           contextObjects!.declaredVariables,
@@ -598,7 +585,6 @@ class FileResolver {
           analysisSession.inheritanceManager,
           libraryKind,
           performance: OperationPerformanceImpl('<root>'),
-          typeSystemOperations: typeSystemOperations,
         );
 
         var analysisResult = performance!.run('analyze', (performance) {
@@ -658,11 +644,6 @@ class FileResolver {
           libraryKind.file.uri,
         );
 
-        var typeSystemOperations = TypeSystemOperations(
-          libraryElement.typeSystem,
-          strictCasts: fileContext.analysisOptions.strictCasts,
-        );
-
         var libraryAnalyzer = LibraryAnalyzer(
           fileContext.analysisOptions,
           contextObjects!.declaredVariables,
@@ -670,7 +651,6 @@ class FileResolver {
           libraryContext!.elementFactory.analysisSession.inheritanceManager,
           libraryKind,
           performance: OperationPerformanceImpl('<root>'),
-          typeSystemOperations: typeSystemOperations,
         );
 
         results = performance!.run('analyze', (performance) {
@@ -723,8 +703,7 @@ class FileResolver {
         (AnalysisOptionsBuilder()
               ..strictInference = fileAnalysisOptions.strictInference
               ..contextFeatures =
-                  FeatureSet.latestLanguageVersion() as ExperimentStatus
-              ..nonPackageFeatureSet = FeatureSet.latestLanguageVersion())
+                  FeatureSet.latestLanguageVersion() as ExperimentStatus)
             .build();
 
     if (fsState == null) {
@@ -925,5 +904,5 @@ class _ContentWithDigest {
   final String content;
   final String digestStr;
 
-  _ContentWithDigest({required this.content, required this.digestStr});
+  new({required this.content, required this.digestStr});
 }

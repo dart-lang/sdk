@@ -36,7 +36,7 @@ import '../../summary/element_text.dart';
 import '../../summary/resolved_ast_printer.dart';
 
 class BundleRequirementsPrinter extends ManifestPrinter {
-  BundleRequirementsPrinter({
+  new({
     required super.configuration,
     required super.sink,
     required super.idProvider,
@@ -80,7 +80,7 @@ class BundleRequirementsPrinter extends ManifestPrinter {
             var idStr = idProvider.manifestId(id);
             sink.writelnWithIndent('libraryMetadataId: $idStr');
           }
-          _writeExportMap(libraryRequirements);
+          _writeExportMap(requirements, libraryUri, libraryRequirements);
           _writeLibraryDeclaredItems(libraryRequirements);
           _writeInstanceItems(libraryRequirements);
           _writeInterfaceItems(libraryRequirements);
@@ -123,12 +123,27 @@ class BundleRequirementsPrinter extends ManifestPrinter {
     }
   }
 
-  void _writeExportMap(LibraryRequirements requirements) {
+  void _writeExportMap(
+    RequirementsManifest manifest,
+    Uri libraryUri,
+    LibraryRequirements requirements,
+  ) {
     _writelnIdField('exportMapId', requirements.exportMapId);
+
+    // Print the implied not exported names as `null`, as before.
+    var exportMap = {...requirements.exportMap};
+    for (var requirement in manifest.notExportedNames) {
+      if (requirement.libraryUris.contains(libraryUri)) {
+        for (var id in requirement.names) {
+          exportMap.putIfAbsent(id.asLookupName, () => null);
+          exportMap.putIfAbsent('$id='.asLookupName, () => null);
+        }
+      }
+    }
 
     sink.writeElements(
       'exportMap',
-      requirements.exportMap.sorted,
+      exportMap.sorted,
       _writelnIdLookupNameEntry,
     );
 
@@ -353,7 +368,7 @@ class DriverEventsPrinter {
   final ElementPrinter elementPrinter;
   final IdProvider idProvider;
 
-  DriverEventsPrinter({
+  new({
     required this.configuration,
     required this.sink,
     required this.elementPrinter,
@@ -426,6 +441,23 @@ class DriverEventsPrinter {
     sink.writelnWithIndent(
       '${d.offset} +${d.length} ${d.diagnosticCode.lowerCaseName.toUpperCase()}',
     );
+  }
+
+  void _writeDiscardMemoryExpensiveData(
+    events.DiscardMemoryExpensiveData event,
+  ) {
+    if (configuration.withDiscardMemoryExpensiveData) {
+      var root = event.driver.analysisContext!.contextRoot.root;
+      sink.writelnWithIndent('[operation] discardMemoryExpensiveData');
+      sink.withIndent(() {
+        sink.writelnWithIndent('root: ${root.posixPath}');
+        sink.writeElements(
+          'keptIds',
+          event.keptIds.map((uri) => '$uri').sorted(),
+          sink.writelnWithIndent,
+        );
+      });
+    }
   }
 
   void _writeErrorsEvent(GetErrorsEvent event) {
@@ -918,6 +950,8 @@ class DriverEventsPrinter {
         _writeCheckLibraryDiagnosticsRequirements(object);
       case events.CheckLinkedBundleRequirements():
         _writeCheckLinkedBundleRequirements(object);
+      case events.DiscardMemoryExpensiveData():
+        _writeDiscardMemoryExpensiveData(object);
       case events.LinkLibraryCycle():
         _writeLinkLibraryCycle(object);
       case events.ReuseLinkedBundle():
@@ -1007,6 +1041,7 @@ class DriverEventsPrinterConfiguration {
   var withAnalyzeFileEvents = true;
   var withCheckLibraryDiagnosticsRequirements = false;
   var withCheckLinkedBundleRequirements = false;
+  var withDiscardMemoryExpensiveData = false;
   var withElementManifests = false;
   var withGetErrorsEvents = true;
   var withGetLibraryByUri = true;
@@ -1039,7 +1074,7 @@ class ErrorsResultPrinterConfiguration {
 final class GetCachedResolvedUnitEvent extends GetDriverEvent {
   final SomeResolvedUnitResult? result;
 
-  GetCachedResolvedUnitEvent({required super.name, required this.result});
+  new({required super.name, required this.result});
 
   @override
   String get methodName => 'getCachedResolvedUnit';
@@ -1048,7 +1083,7 @@ final class GetCachedResolvedUnitEvent extends GetDriverEvent {
 sealed class GetDriverEvent extends DriverEvent {
   final String name;
 
-  GetDriverEvent({required this.name});
+  new({required this.name});
 
   String get methodName;
 }
@@ -1057,7 +1092,7 @@ sealed class GetDriverEvent extends DriverEvent {
 final class GetErrorsEvent extends GetDriverEvent {
   final SomeErrorsResult result;
 
-  GetErrorsEvent({required super.name, required this.result});
+  new({required super.name, required this.result});
 
   @override
   String get methodName => 'getErrors';
@@ -1067,7 +1102,7 @@ final class GetErrorsEvent extends GetDriverEvent {
 final class GetIndexEvent extends GetDriverEvent {
   final AnalysisDriverUnitIndex? result;
 
-  GetIndexEvent({required super.name, required this.result});
+  new({required super.name, required this.result});
 
   @override
   String get methodName => 'getIndex';
@@ -1077,7 +1112,7 @@ final class GetIndexEvent extends GetDriverEvent {
 final class GetLibraryByUriEvent extends GetDriverEvent {
   final SomeLibraryElementResult result;
 
-  GetLibraryByUriEvent({required super.name, required this.result});
+  new({required super.name, required this.result});
 
   @override
   String get methodName => 'getLibraryByUri';
@@ -1087,7 +1122,7 @@ final class GetLibraryByUriEvent extends GetDriverEvent {
 final class GetResolvedLibraryByUriEvent extends GetDriverEvent {
   final SomeResolvedLibraryResult result;
 
-  GetResolvedLibraryByUriEvent({required super.name, required this.result});
+  new({required super.name, required this.result});
 
   @override
   String get methodName => 'getResolvedLibraryByUri';
@@ -1097,7 +1132,7 @@ final class GetResolvedLibraryByUriEvent extends GetDriverEvent {
 final class GetResolvedLibraryEvent extends GetDriverEvent {
   final SomeResolvedLibraryResult result;
 
-  GetResolvedLibraryEvent({required super.name, required this.result});
+  new({required super.name, required this.result});
 
   @override
   String get methodName => 'getResolvedLibrary';
@@ -1107,7 +1142,7 @@ final class GetResolvedLibraryEvent extends GetDriverEvent {
 final class GetResolvedUnitEvent extends GetDriverEvent {
   final SomeResolvedUnitResult result;
 
-  GetResolvedUnitEvent({required super.name, required this.result});
+  new({required super.name, required this.result});
 
   @override
   String get methodName => 'getResolvedUnit';
@@ -1117,7 +1152,7 @@ final class GetResolvedUnitEvent extends GetDriverEvent {
 final class GetUnitElementEvent extends GetDriverEvent {
   final SomeUnitElementResult result;
 
-  GetUnitElementEvent({required super.name, required this.result});
+  new({required super.name, required this.result});
 
   @override
   String get methodName => 'getUnitElement';
@@ -1147,7 +1182,7 @@ class IdProvider {
 }
 
 class LibraryManifestPrinter extends ManifestPrinter {
-  LibraryManifestPrinter({
+  new({
     required super.configuration,
     required super.sink,
     required super.idProvider,
@@ -1886,15 +1921,12 @@ class LibraryManifestPrinter extends ManifestPrinter {
         sink.writeln('RecordType');
         sink.withIndent(() {
           sink.writeElements('positional', type.positionalFields, (field) {
-            sink.writeIndentedLine(() {
-              _writeType(field);
-            });
+            sink.writeIndent();
+            _writeType(field);
           });
           sink.writeElements('named', type.namedFields, (field) {
-            sink.writeIndentedLine(() {
-              sink.write('${field.name}: ');
-              _writeType(field.type);
-            });
+            sink.writeWithIndent('${field.name}: ');
+            _writeType(field.type);
           });
         });
       case ManifestTypeParameterType():
@@ -1910,6 +1942,7 @@ class LibraryManifestPrinter extends ManifestPrinter {
     if (configuration.withElementManifests) {
       sink.withIndent(() {
         sink.writeFlags({
+          'hasSelfReference': item.flags.hasSelfReference,
           'isProperRename': item.flags.isProperRename,
           'isSimplyBounded': item.flags.isSimplyBounded,
         });
@@ -1947,7 +1980,7 @@ class ManifestPrinter {
   final TreeStringSink sink;
   final IdProvider idProvider;
 
-  ManifestPrinter({
+  new({
     required this.configuration,
     required this.sink,
     required this.idProvider,
@@ -2006,7 +2039,7 @@ class ResolvedLibraryResultPrinter {
 
   late final LibraryElement _libraryElement;
 
-  ResolvedLibraryResultPrinter({
+  new({
     required this.configuration,
     required this.sink,
     required this.elementPrinter,
@@ -2061,7 +2094,7 @@ class ResolvedUnitResultPrinter {
   final LibraryElement? libraryElement;
   final IdProvider idProvider;
 
-  ResolvedUnitResultPrinter({
+  new({
     required this.configuration,
     required this.sink,
     required this.elementPrinter,
@@ -2161,13 +2194,13 @@ class ResolvedUnitResultPrinterConfiguration {
 final class ResultStreamEvent extends DriverEvent {
   final Object object;
 
-  ResultStreamEvent({required this.object});
+  new({required this.object});
 }
 
 final class SchedulerStatusEvent extends DriverEvent {
   final AnalysisStatus status;
 
-  SchedulerStatusEvent(this.status);
+  new(this.status);
 }
 
 class UnitElementPrinterConfiguration {

@@ -416,7 +416,7 @@ class PluginSession {
       channel!.close();
       channel = null;
     }
-    pluginStoppedCompleter.complete(null);
+    pluginStoppedCompleter.complete();
   }
 
   /// Handles the fact that an unhandled error has occurred in the plugin.

@@ -197,9 +197,8 @@ class ConvertNullCheckToNullAwareElementOrEntry
 
 extension AstNodeNullableExtension on AstNode? {
   Element? get canonicalElement {
-    var self = this;
-    if (self is Expression) {
-      var node = self.unParenthesized;
+    if (this is Expression) {
+      var node = unParenthesized;
       if (node is Identifier) {
         return node.element;
       } else if (node is PropertyAccess) {

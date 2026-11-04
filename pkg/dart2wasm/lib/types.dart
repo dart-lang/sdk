@@ -686,10 +686,7 @@ abstract class _TypeCheckers {
     // We only need to check whether the nullability and the class itself fits
     // (the [testedAgainstType] arguments are guaranteed to fit statically)
     final parameters = type.classNode.typeParameters;
-    final args = DartTypeList.generate(
-      parameters.length,
-      (i) => parameters[i].defaultType,
-    );
+    final args = DartTypeList.mapped(parameters, (p) => p.defaultType);
     return InterfaceType(type.classNode, type.nullability, args);
   }
 }

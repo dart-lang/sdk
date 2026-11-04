@@ -21,7 +21,7 @@ import 'package:pub_semver/pub_semver.dart';
 class SubstitutedConstructorElementImpl extends SubstitutedExecutableElementImpl
     with InternalConstructorElement
     implements ConstructorElement {
-  SubstitutedConstructorElementImpl({
+  new({
     required ConstructorElementImpl super.baseElement,
     required super.substitution,
   }) : super(typeParameters: const <TypeParameterElementImpl>[]);
@@ -168,10 +168,7 @@ abstract class SubstitutedElementImpl implements Element {
   /// The substitution for type parameters referenced in the base element.
   final MapSubstitution substitution;
 
-  SubstitutedElementImpl({
-    required this.baseElement,
-    required this.substitution,
-  });
+  new({required this.baseElement, required this.substitution});
 
   @override
   String get displayName => baseElement.displayName;
@@ -253,7 +250,7 @@ abstract class SubstitutedExecutableElementImpl extends SubstitutedElementImpl
   /// The [typeParameters] are fresh, and [substitution] is already applied to
   /// their bounds.  The [substitution] includes replacing [baseElement] type
   /// parameters with the provided fresh [typeParameters].
-  SubstitutedExecutableElementImpl({
+  new({
     required ExecutableElementImpl super.baseElement,
     required super.substitution,
     required this.typeParameters,
@@ -354,7 +351,7 @@ abstract class SubstitutedExecutableElementImpl extends SubstitutedElementImpl
 /// parameters are known.
 class SubstitutedFieldElementImpl extends SubstitutedVariableElementImpl
     with InternalPropertyInducingElement, InternalFieldElement {
-  SubstitutedFieldElementImpl({
+  new({
     required FieldElementImpl super.baseElement,
     required super.substitution,
   });
@@ -465,7 +462,7 @@ class SubstitutedFieldElementImpl extends SubstitutedVariableElementImpl
 class SubstitutedFieldFormalParameterElementImpl
     extends SubstitutedFormalParameterElementImpl
     with InternalFieldFormalParameterElement {
-  SubstitutedFieldFormalParameterElementImpl({
+  new({
     required FieldFormalParameterElementImpl super.baseElement,
     required super.substitution,
   });
@@ -508,7 +505,7 @@ class SubstitutedFieldFormalParameterElementImpl
 class SubstitutedFormalParameterElementImpl
     extends SubstitutedVariableElementImpl
     with InternalFormalParameterElement {
-  SubstitutedFormalParameterElementImpl({
+  new({
     required FormalParameterElementImpl super.baseElement,
     required super.substitution,
   });
@@ -621,7 +618,7 @@ class SubstitutedFormalParameterElementImpl
 class SubstitutedGetterElementImpl
     extends SubstitutedPropertyAccessorElementImpl
     with InternalGetterElement {
-  SubstitutedGetterElementImpl({
+  new({
     required GetterElementImpl super.baseElement,
     required super.substitution,
   }) : super._(typeParameters: const []);
@@ -673,7 +670,7 @@ class SubstitutedGetterElementImpl
 /// type parameters are known.
 class SubstitutedMethodElementImpl extends SubstitutedExecutableElementImpl
     with InternalMethodElement {
-  factory SubstitutedMethodElementImpl({
+  factory({
     required MethodElementImpl baseElement,
     required MapSubstitution substitution,
   }) {
@@ -688,7 +685,7 @@ class SubstitutedMethodElementImpl extends SubstitutedExecutableElementImpl
     );
   }
 
-  SubstitutedMethodElementImpl._({
+  new _({
     required MethodElementImpl super.baseElement,
     required super.substitution,
     required super.typeParameters,
@@ -742,7 +739,7 @@ class SubstitutedMethodElementImpl extends SubstitutedExecutableElementImpl
 abstract class SubstitutedPropertyAccessorElementImpl
     extends SubstitutedExecutableElementImpl
     with InternalPropertyAccessorElement {
-  SubstitutedPropertyAccessorElementImpl._({
+  new _({
     required PropertyAccessorElementImpl super.baseElement,
     required super.substitution,
     required super.typeParameters,
@@ -796,7 +793,7 @@ abstract class SubstitutedPropertyAccessorElementImpl
 class SubstitutedSetterElementImpl
     extends SubstitutedPropertyAccessorElementImpl
     with InternalSetterElement {
-  SubstitutedSetterElementImpl({
+  new({
     required SetterElementImpl super.baseElement,
     required super.substitution,
   }) : super._(typeParameters: const []);
@@ -847,7 +844,7 @@ class SubstitutedSetterElementImpl
 class SubstitutedSuperFormalParameterElementImpl
     extends SubstitutedFormalParameterElementImpl
     with InternalSuperFormalParameterElement {
-  SubstitutedSuperFormalParameterElementImpl({
+  new({
     required SuperFormalParameterElementImpl super.baseElement,
     required super.substitution,
   });
@@ -887,7 +884,7 @@ abstract class SubstitutedVariableElementImpl extends SubstitutedElementImpl
     with InternalVariableElement {
   TypeImpl? _type;
 
-  SubstitutedVariableElementImpl({
+  new({
     required VariableElementImpl super.baseElement,
     required super.substitution,
   });
@@ -896,7 +893,7 @@ abstract class SubstitutedVariableElementImpl extends SubstitutedElementImpl
   VariableElementImpl get baseElement =>
       super.baseElement as VariableElementImpl;
 
-  @ToBeDeprecated('Use constantInitializer2 instead.')
+  @V1Ast('The V2 counterpart is constantInitializer2.')
   @override
   ExpressionImpl? get constantInitializer {
     return baseElement.constantInitializer;
@@ -959,7 +956,7 @@ class _SubstitutedTypeParameters {
   final List<TypeParameterElementImpl> elements;
   final MapSubstitution substitution;
 
-  factory _SubstitutedTypeParameters(
+  factory(
     List<TypeParameterElementImpl> elements,
     MapSubstitution substitution,
   ) {
@@ -1002,5 +999,5 @@ class _SubstitutedTypeParameters {
     );
   }
 
-  _SubstitutedTypeParameters._(this.elements, this.substitution);
+  new _(this.elements, this.substitution);
 }

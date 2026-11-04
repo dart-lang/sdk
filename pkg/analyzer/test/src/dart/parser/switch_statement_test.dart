@@ -16,6 +16,150 @@ main() {
 
 @reflectiveTest
 class SwitchStatementParserTest extends ParserDiagnosticsTest {
+  void test_caseAfterDefault() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+void f(int a) {
+  switch (a) {
+    default:
+      break;
+    case 0:
+//  ^^^^
+// [diag.switchHasCaseAfterDefaultCase] The default case should be the last case in a switch statement.
+      break;
+  }
+}
+''');
+
+    var node = parseResult.findNode.singleSwitchStatement;
+    assertParsedNodeText(node, r'''
+SwitchStatement
+  switchKeyword: switch
+  leftParenthesis: (
+  expression2: ParsedUnqualifiedName
+    name: a
+  expression(v1): SimpleIdentifier
+    token: a
+  rightParenthesis: )
+  leftBracket: {
+  members
+    SwitchDefault
+      keyword: default
+      colon: :
+      statements2
+        BreakStatement
+          breakKeyword: break
+          semicolon: ;
+    SwitchPatternCase
+      keyword: case
+      guardedPattern: GuardedPattern
+        pattern: ConstantPattern
+          expression2: IntegerLiteral
+            literal: 0
+      colon: :
+      statements2
+        BreakStatement
+          breakKeyword: break
+          semicolon: ;
+  rightBracket: }
+''');
+  }
+
+  void test_caseAfterDefault_pattern() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+void f(Object o) {
+  switch (o) {
+    default:
+      break;
+    case int x:
+//  ^^^^
+// [diag.switchHasCaseAfterDefaultCase] The default case should be the last case in a switch statement.
+      x;
+  }
+}
+''');
+
+    var node = parseResult.findNode.singleSwitchStatement;
+    assertParsedNodeText(node, r'''
+SwitchStatement
+  switchKeyword: switch
+  leftParenthesis: (
+  expression2: ParsedUnqualifiedName
+    name: o
+  expression(v1): SimpleIdentifier
+    token: o
+  rightParenthesis: )
+  leftBracket: {
+  members
+    SwitchDefault
+      keyword: default
+      colon: :
+      statements2
+        BreakStatement
+          breakKeyword: break
+          semicolon: ;
+    SwitchPatternCase
+      keyword: case
+      guardedPattern: GuardedPattern
+        pattern: DeclaredVariablePattern
+          type: NamedType
+            name: int
+          name: x
+      colon: :
+      statements2
+        ExpressionStatement
+          expression2: ParsedUnqualifiedName
+            name: x
+          expression(v1): SimpleIdentifier
+            token: x
+          semicolon: ;
+  rightBracket: }
+''');
+  }
+
+  void test_multipleDefaults() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+void f(int a) {
+  switch (a) {
+    default:
+      break;
+    default:
+//  ^^^^^^^
+// [diag.switchHasMultipleDefaultCases] The 'default' case can only be declared once.
+      break;
+  }
+}
+''');
+
+    var node = parseResult.findNode.singleSwitchStatement;
+    assertParsedNodeText(node, r'''
+SwitchStatement
+  switchKeyword: switch
+  leftParenthesis: (
+  expression2: ParsedUnqualifiedName
+    name: a
+  expression(v1): SimpleIdentifier
+    token: a
+  rightParenthesis: )
+  leftBracket: {
+  members
+    SwitchDefault
+      keyword: default
+      colon: :
+      statements2
+        BreakStatement
+          breakKeyword: break
+          semicolon: ;
+    SwitchDefault
+      keyword: default
+      colon: :
+      statements2
+        BreakStatement
+          breakKeyword: break
+          semicolon: ;
+  rightBracket: }
+''');
+  }
+
   void test_withPatternCase_whenDisabled() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 // %before-language-feature: patterns

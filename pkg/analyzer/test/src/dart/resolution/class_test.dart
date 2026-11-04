@@ -111,6 +111,29 @@ class X extends A {}
     ]);
   }
 
+  test_element_allSupertypes_recursive_mixinInference() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A extends B {}
+//    ^
+// [diag.recursiveInterfaceInheritance] 'A' can't be a superinterface of itself: B, A.
+class B extends A {}
+//    ^
+// [diag.recursiveInterfaceInheritance] 'B' can't be a superinterface of itself: B, A.
+mixin M on Object {}
+
+class X extends A with M {}
+''');
+
+    assertElementTypes(result.findElement.class_('A').allSupertypes, [
+      'Object',
+    ]);
+    assertElementTypes(result.findElement.class_('X').allSupertypes, [
+      'A',
+      'M',
+      'Object',
+    ]);
+  }
+
   test_element_typeFunction_extends() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class A extends Function {}
@@ -166,9 +189,21 @@ class A<T> {
 }
 ''');
 
-    var node = result.findNode.singleFieldDeclaration;
+    var node = result.findNode.singleFieldsDeclaration;
     assertResolvedNodeText(node, r'''
-FieldDeclaration
+FieldsDeclaration
+  staticKeyword: static
+  type: NamedType
+    name: T
+    question: ?
+    element: #E0 T
+    type: InvalidType
+  fields
+    Field
+      name: foo
+      declaredFragment: <testLibraryFragment> foo@25
+  semicolon: ;
+V1: FieldDeclaration
   staticKeyword: static
   fields: VariableDeclarationList
     type: NamedType
@@ -216,7 +251,25 @@ class A<T> {
 
     var node = result.findNode.singleMethodDeclaration;
     assertResolvedNodeText(node, r'''
-MethodDeclaration
+MethodDeclaration2
+  staticKeyword: static
+  returnType: NamedType
+    name: T
+    question: ?
+    element: #E0 T
+    type: InvalidType
+  name: foo
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+  declaredFragment: <testLibraryFragment> foo@25
+    element: <testLibrary>::@class::A::@method::foo
+      type: InvalidType Function()
+V1: MethodDeclaration
   modifierKeyword: static
   returnType: NamedType
     name: T
@@ -244,7 +297,28 @@ class A<T extends int> {}
 
     var node = result.findNode.singleClassDeclaration;
     assertResolvedNodeText(node, r'''
-ClassDeclaration
+ClassDeclaration2
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: A
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+          extendsKeyword: extends
+          bound: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          declaredFragment: <testLibraryFragment> T@8
+            defaultType: int
+      rightBracket: >
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@6
+V1: ClassDeclaration
   classKeyword: class
   namePart: NameWithTypeParameters
     typeName: A
@@ -275,7 +349,15 @@ class A {}
 
     var node = result.findNode.singleClassDeclaration;
     assertResolvedNodeText(node, r'''
-ClassDeclaration
+ClassDeclaration2
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: A
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@6
+V1: ClassDeclaration
   classKeyword: class
   namePart: NameWithTypeParameters
     typeName: A
@@ -293,7 +375,7 @@ class A({final int a = 0});
 
     var node = result.findNode.singleClassDeclaration;
     assertResolvedNodeText(node, r'''
-ClassDeclaration
+ClassDeclaration2
   classKeyword: class
   namePart: PrimaryConstructorDeclaration
     typeName: A
@@ -320,7 +402,17 @@ ClassDeclaration
                 field: <testLibrary>::@class::A::@field::a
         rightDelimiter: }
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@class::A::@constructor::new
+        type: A Function({int a})
+  body: SemicolonInstanceDeclarationBody
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> A@6
+V1: ClassDeclaration
+  classKeyword: class
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
@@ -357,7 +449,7 @@ class A({required final int a});
 
     var node = result.findNode.singleClassDeclaration;
     assertResolvedNodeText(node, r'''
-ClassDeclaration
+ClassDeclaration2
   classKeyword: class
   namePart: PrimaryConstructorDeclaration
     typeName: A
@@ -380,7 +472,17 @@ ClassDeclaration
                 field: <testLibrary>::@class::A::@field::a
         rightDelimiter: }
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@class::A::@constructor::new
+        type: A Function({required int a})
+  body: SemicolonInstanceDeclarationBody
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> A@6
+V1: ClassDeclaration
+  classKeyword: class
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
@@ -413,7 +515,7 @@ class A(final int a(String x));
 
     var node = result.findNode.singleClassDeclaration;
     assertResolvedNodeText(node, r'''
-ClassDeclaration
+ClassDeclaration2
   classKeyword: class
   namePart: PrimaryConstructorDeclaration
     typeName: A
@@ -441,24 +543,22 @@ ClassDeclaration
                     element: isPublic
                       type: String
               rightParenthesis: )
-            formalParameters(v1): FormalParameterList
-              leftParenthesis: (
-              parameter: RegularFormalParameter
-                type: NamedType
-                  name: String
-                  element: dart:core::@class::String
-                  type: String
-                name: x
-                declaredFragment: <testLibraryFragment> x@27
-                  element: isPublic
-                    type: String
-              rightParenthesis: )
           declaredFragment: <testLibraryFragment> a@18
             element: isFinal isPublic
               type: int Function(String)
               field: <testLibrary>::@class::A::@field::a
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@class::A::@constructor::new
+        type: A Function(int Function(String))
+  body: SemicolonInstanceDeclarationBody
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> A@6
+V1: ClassDeclaration
+  classKeyword: class
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         constFinalOrVarKeyword: final
@@ -501,7 +601,7 @@ class A(final int a) {}
 
     var node = result.findNode.singleClassDeclaration;
     assertResolvedNodeText(node, r'''
-ClassDeclaration
+ClassDeclaration2
   classKeyword: class
   namePart: PrimaryConstructorDeclaration
     typeName: A
@@ -520,7 +620,18 @@ ClassDeclaration
               type: int
               field: <testLibrary>::@class::A::@field::a
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@class::A::@constructor::new
+        type: A Function(int)
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@6
+V1: ClassDeclaration
+  classKeyword: class
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         constFinalOrVarKeyword: final
@@ -551,7 +662,7 @@ class A(var int a) {}
 
     var node = result.findNode.singleClassDeclaration;
     assertResolvedNodeText(node, r'''
-ClassDeclaration
+ClassDeclaration2
   classKeyword: class
   namePart: PrimaryConstructorDeclaration
     typeName: A
@@ -570,7 +681,18 @@ ClassDeclaration
               type: int
               field: <testLibrary>::@class::A::@field::a
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@class::A::@constructor::new
+        type: A Function(int)
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@6
+V1: ClassDeclaration
+  classKeyword: class
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         constFinalOrVarKeyword: var
@@ -604,7 +726,7 @@ class A(final String a, final bool b) {
 
     var node = result.findNode.singleClassDeclaration;
     assertResolvedNodeText(node, r'''
-ClassDeclaration
+ClassDeclaration2
   classKeyword: class
   namePart: PrimaryConstructorDeclaration
     typeName: A
@@ -634,7 +756,51 @@ ClassDeclaration
               type: bool
               field: <testLibrary>::@class::A::@field::b
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@class::A::@constructor::new
+        type: A Function(String, bool)
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    members
+      FieldsDeclaration
+        staticKeyword: static
+        constFinalOrVarKeyword: const
+        type: NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        fields
+          Field
+            name: foo
+            equals: =
+            initializer: IntegerLiteral
+              literal: 0
+              staticType: int
+            declaredFragment: <testLibraryFragment> foo@59
+        semicolon: ;
+      FieldsDeclaration
+        staticKeyword: static
+        constFinalOrVarKeyword: const
+        type: NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        fields
+          Field
+            name: bar
+            equals: =
+            initializer: IntegerLiteral
+              literal: 1
+              staticType: int
+            declaredFragment: <testLibraryFragment> bar@87
+        semicolon: ;
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@6
+V1: ClassDeclaration
+  classKeyword: class
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         constFinalOrVarKeyword: final
@@ -677,7 +843,7 @@ ClassDeclaration
             VariableDeclaration
               name: foo
               equals: =
-              initializer2: IntegerLiteral
+              initializer: IntegerLiteral
                 literal: 0
                 staticType: int
               declaredFragment: <testLibraryFragment> foo@59
@@ -695,7 +861,7 @@ ClassDeclaration
             VariableDeclaration
               name: bar
               equals: =
-              initializer2: IntegerLiteral
+              initializer: IntegerLiteral
                 literal: 1
                 staticType: int
               declaredFragment: <testLibraryFragment> bar@87
@@ -715,7 +881,7 @@ class A(int this.a) {
 
     var node = result.findNode.singleClassDeclaration;
     assertResolvedNodeText(node, r'''
-ClassDeclaration
+ClassDeclaration2
   classKeyword: class
   namePart: PrimaryConstructorDeclaration
     typeName: A
@@ -735,7 +901,30 @@ ClassDeclaration
               type: int
               field: <testLibrary>::@class::A::@field::a
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@class::A::@constructor::new
+        type: A Function(int)
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    members
+      FieldsDeclaration
+        constFinalOrVarKeyword: final
+        type: NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        fields
+          Field
+            name: a
+            declaredFragment: <testLibraryFragment> a@34
+        semicolon: ;
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@6
+V1: ClassDeclaration
+  classKeyword: class
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: FieldFormalParameter
         type: NamedType
@@ -797,7 +986,6 @@ PrimaryConstructorDeclaration
               name: foo
               resolution: GetterInvocationResolution
                 element: <testLibrary>::@class::A::@getter::foo
-                invokeType: int Function()
                 type: int
               staticType: int
             name: SimpleIdentifier
@@ -891,7 +1079,7 @@ class A<T>.named(T t) {}
 
     var node = result.findNode.singleClassDeclaration;
     assertResolvedNodeText(node, r'''
-ClassDeclaration
+ClassDeclaration2
   classKeyword: class
   namePart: PrimaryConstructorDeclaration
     typeName: A
@@ -919,7 +1107,29 @@ ClassDeclaration
             element: isPublic
               type: T
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> named@11
+      element: <testLibrary>::@class::A::@constructor::named
+        type: A<T> Function(T)
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@6
+V1: ClassDeclaration
+  classKeyword: class
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+          declaredFragment: <testLibraryFragment> T@8
+            defaultType: dynamic
+      rightBracket: >
+    constructorName: PrimaryConstructorName
+      period: .
+      name: named
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -948,7 +1158,7 @@ class A<T>(T t) {}
 
     var node = result.findNode.singleClassDeclaration;
     assertResolvedNodeText(node, r'''
-ClassDeclaration
+ClassDeclaration2
   classKeyword: class
   namePart: PrimaryConstructorDeclaration
     typeName: A
@@ -973,7 +1183,26 @@ ClassDeclaration
             element: isPublic
               type: T
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@class::A::@constructor::new
+        type: A<T> Function(T)
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@6
+V1: ClassDeclaration
+  classKeyword: class
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+          declaredFragment: <testLibraryFragment> T@8
+            defaultType: dynamic
+      rightBracket: >
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -1002,7 +1231,7 @@ class A.named(int a) {}
 
     var node = result.findNode.singleClassDeclaration;
     assertResolvedNodeText(node, r'''
-ClassDeclaration
+ClassDeclaration2
   classKeyword: class
   namePart: PrimaryConstructorDeclaration
     typeName: A
@@ -1022,7 +1251,21 @@ ClassDeclaration
             element: isPublic
               type: int
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> named@8
+      element: <testLibrary>::@class::A::@constructor::named
+        type: A Function(int)
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@6
+V1: ClassDeclaration
+  classKeyword: class
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    constructorName: PrimaryConstructorName
+      period: .
+      name: named
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -1051,7 +1294,7 @@ class A(int a) {}
 
     var node = result.findNode.singleClassDeclaration;
     assertResolvedNodeText(node, r'''
-ClassDeclaration
+ClassDeclaration2
   classKeyword: class
   namePart: PrimaryConstructorDeclaration
     typeName: A
@@ -1068,7 +1311,18 @@ ClassDeclaration
             element: isPublic
               type: int
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@class::A::@constructor::new
+        type: A Function(int)
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@6
+V1: ClassDeclaration
+  classKeyword: class
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -1113,7 +1367,6 @@ PrimaryConstructorDeclaration
               name: foo
               resolution: GetterInvocationResolution
                 element: <testLibrary>::@getter::foo
-                invokeType: int Function()
                 type: int
               staticType: int
             name: SimpleIdentifier
@@ -1138,7 +1391,6 @@ PrimaryConstructorDeclaration
                 name: foo
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@class::A::@getter::foo
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -1157,7 +1409,6 @@ PrimaryConstructorDeclaration
               name: foo
               resolution: GetterInvocationResolution
                 element: <testLibrary>::@class::A::@getter::foo
-                invokeType: int Function()
                 type: int
               staticType: int
             value(v1): SimpleIdentifier
@@ -1211,7 +1462,7 @@ class B(super.a) extends A;
 
     var node = result.findNode.classDeclaration('class B');
     assertResolvedNodeText(node, r'''
-ClassDeclaration
+ClassDeclaration2
   classKeyword: class
   namePart: PrimaryConstructorDeclaration
     typeName: B
@@ -1226,7 +1477,23 @@ ClassDeclaration
             element: hasImplicitType isFinal isPublic
               type: int
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@class::B::@constructor::new
+        type: B Function(int)
+  extendsClause: ExtendsClause
+    extendsKeyword: extends
+    superclass: NamedType
+      name: A
+      element: <testLibrary>::@class::A
+      type: A
+  body: SemicolonInstanceDeclarationBody
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> B@28
+V1: ClassDeclaration
+  classKeyword: class
+  namePart: PrimaryConstructorDeclaration
+    typeName: B
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: SuperFormalParameter
         superKeyword: super
@@ -1258,7 +1525,7 @@ class D<T extends U, U extends num>(T t, U u);
 
     var node = result.findNode.singleClassDeclaration;
     assertResolvedNodeText(node, r'''
-ClassDeclaration
+ClassDeclaration2
   classKeyword: class
   namePart: PrimaryConstructorDeclaration
     typeName: D
@@ -1306,7 +1573,39 @@ ClassDeclaration
             element: isPublic
               type: U
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@class::D::@constructor::new
+        type: D<T, U> Function(T, U)
+  body: SemicolonInstanceDeclarationBody
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> D@6
+V1: ClassDeclaration
+  classKeyword: class
+  namePart: PrimaryConstructorDeclaration
+    typeName: D
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+          extendsKeyword: extends
+          bound: NamedType
+            name: U
+            element: #E0 U
+            type: U
+          declaredFragment: <testLibraryFragment> T@8
+            defaultType: num
+        TypeParameter
+          name: U
+          extendsKeyword: extends
+          bound: NamedType
+            name: num
+            element: dart:core::@class::num
+            type: num
+          declaredFragment: <testLibraryFragment> U@21
+            defaultType: num
+      rightBracket: >
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -1352,7 +1651,7 @@ class A(bool x, bool y) {
 
     var node = result.findNode.singleClassDeclaration;
     assertResolvedNodeText(node, r'''
-ClassDeclaration
+ClassDeclaration2
   classKeyword: class
   namePart: PrimaryConstructorDeclaration
     typeName: A
@@ -1378,7 +1677,79 @@ ClassDeclaration
             element: isPublic
               type: bool
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@class::A::@constructor::new
+        type: A Function(bool, bool)
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    members
+      PrimaryConstructorBody2
+        thisKeyword: this
+        colon: :
+        initializers
+          AssertInitializer
+            assertKeyword: assert
+            leftParenthesis: (
+            condition2: UnqualifiedNameExpression
+              name: x
+              resolution: VariableReadResolution
+                element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
+                type: bool
+              staticType: bool
+            rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            statements2
+              ExpressionStatement
+                expression2: UnqualifiedNameExpression
+                  name: y
+                  resolution: VariableReadResolution
+                    element: <testLibrary>::@class::A::@constructor::new::@formalParameter::y
+                    type: bool
+                  staticType: bool
+                semicolon: ;
+            rightBracket: }
+      PrimaryConstructorBody2
+        thisKeyword: this
+        colon: :
+        initializers
+          AssertInitializer
+            assertKeyword: assert
+            leftParenthesis: (
+            condition2: LogicalNot
+              operator: !
+              operand: UnqualifiedNameExpression
+                name: x
+                resolution: VariableReadResolution
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
+                  type: bool
+                staticType: bool
+              staticType: bool
+            rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            statements2
+              ExpressionStatement
+                expression2: LogicalNot
+                  operator: !
+                  operand: UnqualifiedNameExpression
+                    name: y
+                    resolution: VariableReadResolution
+                      element: <testLibrary>::@class::A::@constructor::new::@formalParameter::y
+                      type: bool
+                    staticType: bool
+                  staticType: bool
+                semicolon: ;
+            rightBracket: }
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@6
+V1: ClassDeclaration
+  classKeyword: class
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -1412,13 +1783,7 @@ ClassDeclaration
           AssertInitializer
             assertKeyword: assert
             leftParenthesis: (
-            condition2: UnqualifiedNameExpression
-              name: x
-              resolution: VariableReadResolution
-                element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
-                type: bool
-              staticType: bool
-            condition(v1): SimpleIdentifier
+            condition: SimpleIdentifier
               token: x
               element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
               staticType: bool
@@ -1428,13 +1793,7 @@ ClassDeclaration
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: UnqualifiedNameExpression
-                  name: y
-                  resolution: VariableReadResolution
-                    element: <testLibrary>::@class::A::@constructor::new::@formalParameter::y
-                    type: bool
-                  staticType: bool
-                expression(v1): SimpleIdentifier
+                expression: SimpleIdentifier
                   token: y
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::y
                   staticType: bool
@@ -1447,16 +1806,7 @@ ClassDeclaration
           AssertInitializer
             assertKeyword: assert
             leftParenthesis: (
-            condition2: LogicalNot
-              operator: !
-              operand: UnqualifiedNameExpression
-                name: x
-                resolution: VariableReadResolution
-                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
-                  type: bool
-                staticType: bool
-              staticType: bool
-            condition(v1): PrefixExpression
+            condition: PrefixExpression
               operator: !
               operand: SimpleIdentifier
                 token: x
@@ -1470,16 +1820,7 @@ ClassDeclaration
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: LogicalNot
-                  operator: !
-                  operand: UnqualifiedNameExpression
-                    name: y
-                    resolution: VariableReadResolution
-                      element: <testLibrary>::@class::A::@constructor::new::@formalParameter::y
-                      type: bool
-                    staticType: bool
-                  staticType: bool
-                expression(v1): PrefixExpression
+                expression: PrefixExpression
                   operator: !
                   operand: SimpleIdentifier
                     token: y
@@ -1504,7 +1845,7 @@ class A() {
 
     var node = result.findNode.singlePrimaryConstructorBody;
     assertResolvedNodeText(node, r'''
-PrimaryConstructorBody
+PrimaryConstructorBody2
   metadata
     Annotation
       atSign: @
@@ -1512,9 +1853,16 @@ PrimaryConstructorBody
         name: deprecated
         resolution: GetterInvocationResolution
           element: dart:core::@getter::deprecated
-          invokeType: Deprecated Function()
           type: Deprecated
         staticType: Deprecated
+      element: dart:core::@getter::deprecated
+  thisKeyword: this
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: PrimaryConstructorBody
+  metadata
+    Annotation
+      atSign: @
       name: SimpleIdentifier
         token: deprecated
         element: dart:core::@getter::deprecated
@@ -1538,7 +1886,7 @@ class A {
 
     var node = result.findNode.singlePrimaryConstructorBody;
     assertResolvedNodeText(node, r'''
-PrimaryConstructorBody
+PrimaryConstructorBody2
   metadata
     Annotation
       atSign: @
@@ -1546,9 +1894,16 @@ PrimaryConstructorBody
         name: deprecated
         resolution: GetterInvocationResolution
           element: dart:core::@getter::deprecated
-          invokeType: Deprecated Function()
           type: Deprecated
         staticType: Deprecated
+      element: dart:core::@getter::deprecated
+  thisKeyword: this
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: PrimaryConstructorBody
+  metadata
+    Annotation
+      atSign: @
       name: SimpleIdentifier
         token: deprecated
         element: dart:core::@getter::deprecated
@@ -1567,17 +1922,17 @@ class A {
 //^^^^
 // [diag.primaryConstructorBodyWithoutDeclaration] A primary constructor body requires a primary constructor declaration.
 //              ^
-// [diag.undefinedIdentifier] Undefined name 'x'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'x'.
     y;
 //  ^
-// [diag.undefinedIdentifier] Undefined name 'y'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'y'.
   }
 }
 ''');
 
     var node = result.findNode.singlePrimaryConstructorBody;
     assertResolvedNodeText(node, r'''
-PrimaryConstructorBody
+PrimaryConstructorBody2
   thisKeyword: this
   colon: :
   initializers
@@ -1589,7 +1944,27 @@ PrimaryConstructorBody
         resolution: InvalidNamedReadResolution
           recoveryElement: <null>
         staticType: InvalidType
-      condition(v1): SimpleIdentifier
+      rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      statements2
+        ExpressionStatement
+          expression2: UnqualifiedNameExpression
+            name: y
+            resolution: InvalidNamedReadResolution
+              recoveryElement: <null>
+            staticType: InvalidType
+          semicolon: ;
+      rightBracket: }
+V1: PrimaryConstructorBody
+  thisKeyword: this
+  colon: :
+  initializers
+    AssertInitializer
+      assertKeyword: assert
+      leftParenthesis: (
+      condition: SimpleIdentifier
         token: x
         element: <null>
         staticType: InvalidType
@@ -1599,12 +1974,7 @@ PrimaryConstructorBody
       leftBracket: {
       statements
         ExpressionStatement
-          expression2: UnqualifiedNameExpression
-            name: y
-            resolution: InvalidNamedReadResolution
-              recoveryElement: <null>
-            staticType: InvalidType
-          expression(v1): SimpleIdentifier
+          expression: SimpleIdentifier
             token: y
             element: <null>
             staticType: InvalidType
@@ -1676,7 +2046,7 @@ class A(final bool a) {
 
     var node = result.findNode.singlePrimaryConstructorBody;
     assertResolvedNodeText(node, r'''
-PrimaryConstructorBody
+PrimaryConstructorBody2
   thisKeyword: this
   colon: :
   initializers
@@ -1689,7 +2059,17 @@ PrimaryConstructorBody
           element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
           type: bool
         staticType: bool
-      condition(v1): SimpleIdentifier
+      rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: PrimaryConstructorBody
+  thisKeyword: this
+  colon: :
+  initializers
+    AssertInitializer
+      assertKeyword: assert
+      leftParenthesis: (
+      condition: SimpleIdentifier
         token: a
         element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
         staticType: bool
@@ -1746,7 +2126,7 @@ class A(this.a) {
 
     var node = result.findNode.singlePrimaryConstructorBody;
     assertResolvedNodeText(node, r'''
-PrimaryConstructorBody
+PrimaryConstructorBody2
   thisKeyword: this
   colon: :
   initializers
@@ -1759,7 +2139,17 @@ PrimaryConstructorBody
           element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
           type: bool
         staticType: bool
-      condition(v1): SimpleIdentifier
+      rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: PrimaryConstructorBody
+  thisKeyword: this
+  colon: :
+  initializers
+    AssertInitializer
+      assertKeyword: assert
+      leftParenthesis: (
+      condition: SimpleIdentifier
         token: a
         element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
         staticType: bool
@@ -1820,7 +2210,7 @@ class A(bool a) {
 
     var node = result.findNode.singlePrimaryConstructorBody;
     assertResolvedNodeText(node, r'''
-PrimaryConstructorBody
+PrimaryConstructorBody2
   thisKeyword: this
   colon: :
   initializers
@@ -1833,7 +2223,17 @@ PrimaryConstructorBody
           element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
           type: bool
         staticType: bool
-      condition(v1): SimpleIdentifier
+      rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: PrimaryConstructorBody
+  thisKeyword: this
+  colon: :
+  initializers
+    AssertInitializer
+      assertKeyword: assert
+      leftParenthesis: (
+      condition: SimpleIdentifier
         token: a
         element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
         staticType: bool
@@ -1853,7 +2253,7 @@ class B(super.a) extends A {
 
     var node = result.findNode.singlePrimaryConstructorBody;
     assertResolvedNodeText(node, r'''
-PrimaryConstructorBody
+PrimaryConstructorBody2
   thisKeyword: this
   colon: :
   initializers
@@ -1866,7 +2266,17 @@ PrimaryConstructorBody
           element: <testLibrary>::@class::B::@constructor::new::@formalParameter::a
           type: bool
         staticType: bool
-      condition(v1): SimpleIdentifier
+      rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: PrimaryConstructorBody
+  thisKeyword: this
+  colon: :
+  initializers
+    AssertInitializer
+      assertKeyword: assert
+      leftParenthesis: (
+      condition: SimpleIdentifier
         token: a
         element: <testLibrary>::@class::B::@constructor::new::@formalParameter::a
         staticType: bool
@@ -1927,23 +2337,18 @@ class A(final int a) {
 
     var node = result.findNode.singlePrimaryConstructorBody;
     assertResolvedNodeText(node, r'''
-PrimaryConstructorBody
+PrimaryConstructorBody2
   thisKeyword: this
   body: BlockFunctionBody
     block: Block
       leftBracket: {
-      statements
+      statements2
         ExpressionStatement
           expression2: UnqualifiedNameExpression
             name: a
             resolution: GetterInvocationResolution
               element: <testLibrary>::@class::A::@getter::a
-              invokeType: int Function()
               type: int
-            staticType: int
-          expression(v1): SimpleIdentifier
-            token: a
-            element: <testLibrary>::@class::A::@getter::a
             staticType: int
           semicolon: ;
         ExpressionStatement
@@ -1953,7 +2358,22 @@ PrimaryConstructorBody
               element: <testLibrary>::@class::A::@method::foo
               type: void Function()
             staticType: void Function()
-          expression(v1): SimpleIdentifier
+          semicolon: ;
+      rightBracket: }
+V1: PrimaryConstructorBody
+  thisKeyword: this
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      statements
+        ExpressionStatement
+          expression: SimpleIdentifier
+            token: a
+            element: <testLibrary>::@class::A::@getter::a
+            staticType: int
+          semicolon: ;
+        ExpressionStatement
+          expression: SimpleIdentifier
             token: foo
             element: <testLibrary>::@class::A::@method::foo
             staticType: void Function()
@@ -1976,23 +2396,18 @@ class A(this.a) {
 
     var node = result.findNode.singlePrimaryConstructorBody;
     assertResolvedNodeText(node, r'''
-PrimaryConstructorBody
+PrimaryConstructorBody2
   thisKeyword: this
   body: BlockFunctionBody
     block: Block
       leftBracket: {
-      statements
+      statements2
         ExpressionStatement
           expression2: UnqualifiedNameExpression
             name: a
             resolution: GetterInvocationResolution
               element: <testLibrary>::@class::A::@getter::a
-              invokeType: int Function()
               type: int
-            staticType: int
-          expression(v1): SimpleIdentifier
-            token: a
-            element: <testLibrary>::@class::A::@getter::a
             staticType: int
           semicolon: ;
         ExpressionStatement
@@ -2002,7 +2417,22 @@ PrimaryConstructorBody
               element: <testLibrary>::@class::A::@method::foo
               type: void Function()
             staticType: void Function()
-          expression(v1): SimpleIdentifier
+          semicolon: ;
+      rightBracket: }
+V1: PrimaryConstructorBody
+  thisKeyword: this
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      statements
+        ExpressionStatement
+          expression: SimpleIdentifier
+            token: a
+            element: <testLibrary>::@class::A::@getter::a
+            staticType: int
+          semicolon: ;
+        ExpressionStatement
+          expression: SimpleIdentifier
             token: foo
             element: <testLibrary>::@class::A::@method::foo
             staticType: void Function()
@@ -2025,22 +2455,18 @@ class A(int a) {
 
     var node = result.findNode.singlePrimaryConstructorBody;
     assertResolvedNodeText(node, r'''
-PrimaryConstructorBody
+PrimaryConstructorBody2
   thisKeyword: this
   body: BlockFunctionBody
     block: Block
       leftBracket: {
-      statements
+      statements2
         ExpressionStatement
           expression2: UnqualifiedNameExpression
             name: a
             resolution: VariableReadResolution
               element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
               type: int
-            staticType: int
-          expression(v1): SimpleIdentifier
-            token: a
-            element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
             staticType: int
           semicolon: ;
         ExpressionStatement
@@ -2049,10 +2475,6 @@ PrimaryConstructorBody
             resolution: ExecutableTearOffResolution
               element: <testLibrary>::@class::A::@method::foo
               type: void Function()
-            staticType: void Function()
-          expression(v1): SimpleIdentifier
-            token: foo
-            element: <testLibrary>::@class::A::@method::foo
             staticType: void Function()
           semicolon: ;
         ExpressionStatement
@@ -2081,6 +2503,50 @@ PrimaryConstructorBody
             staticType: (int,)
           semicolon: ;
       rightBracket: }
+V1: PrimaryConstructorBody
+  thisKeyword: this
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      statements
+        ExpressionStatement
+          expression: SimpleIdentifier
+            token: a
+            element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+            staticType: int
+          semicolon: ;
+        ExpressionStatement
+          expression: SimpleIdentifier
+            token: foo
+            element: <testLibrary>::@class::A::@method::foo
+            staticType: void Function()
+          semicolon: ;
+        ExpressionStatement
+          expression: PatternAssignment
+            pattern: RecordPattern
+              leftParenthesis: (
+              fields
+                PatternField
+                  pattern: AssignedVariablePattern
+                    name: a
+                    element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+                    matchedValueType: int
+                  element: <null>
+              rightParenthesis: )
+              matchedValueType: (int,)
+            equals: =
+            expression: RecordLiteral
+              leftParenthesis: (
+              fields
+                IntegerLiteral
+                  literal: 0
+                  staticType: int
+              rightParenthesis: )
+              staticType: (int,)
+            patternTypeSchema: (int,)
+            staticType: (int,)
+          semicolon: ;
+      rightBracket: }
 ''');
   }
 
@@ -2098,23 +2564,18 @@ class B(super.a) extends A {
 
     var node = result.findNode.singlePrimaryConstructorBody;
     assertResolvedNodeText(node, r'''
-PrimaryConstructorBody
+PrimaryConstructorBody2
   thisKeyword: this
   body: BlockFunctionBody
     block: Block
       leftBracket: {
-      statements
+      statements2
         ExpressionStatement
           expression2: UnqualifiedNameExpression
             name: a
             resolution: GetterInvocationResolution
               element: <testLibrary>::@class::A::@getter::a
-              invokeType: int Function()
               type: int
-            staticType: int
-          expression(v1): SimpleIdentifier
-            token: a
-            element: <testLibrary>::@class::A::@getter::a
             staticType: int
           semicolon: ;
         ExpressionStatement
@@ -2124,7 +2585,22 @@ PrimaryConstructorBody
               element: <testLibrary>::@class::B::@method::foo
               type: void Function()
             staticType: void Function()
-          expression(v1): SimpleIdentifier
+          semicolon: ;
+      rightBracket: }
+V1: PrimaryConstructorBody
+  thisKeyword: this
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      statements
+        ExpressionStatement
+          expression: SimpleIdentifier
+            token: a
+            element: <testLibrary>::@class::A::@getter::a
+            staticType: int
+          semicolon: ;
+        ExpressionStatement
+          expression: SimpleIdentifier
             token: foo
             element: <testLibrary>::@class::B::@method::foo
             staticType: void Function()
@@ -2140,22 +2616,30 @@ class A(int foo) {
 }
 ''');
 
-    var node = result.findNode.singleFieldDeclaration;
+    var node = result.findNode.singleFieldsDeclaration;
     assertResolvedNodeText(node, r'''
-FieldDeclaration
+FieldsDeclaration
+  constFinalOrVarKeyword: var
+  fields
+    Field
+      name: bar
+      equals: =
+      initializer: UnqualifiedNameExpression
+        name: foo
+        resolution: VariableReadResolution
+          element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
+          type: int
+        staticType: int
+      declaredFragment: <testLibraryFragment> bar@25
+  semicolon: ;
+V1: FieldDeclaration
   fields: VariableDeclarationList
     keyword: var
     variables
       VariableDeclaration
         name: bar
         equals: =
-        initializer2: UnqualifiedNameExpression
-          name: foo
-          resolution: VariableReadResolution
-            element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
-            type: int
-          staticType: int
-        initializer(v1): SimpleIdentifier
+        initializer: SimpleIdentifier
           token: foo
           element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
           staticType: int
@@ -2172,22 +2656,30 @@ class A(final int foo) {
 }
 ''');
 
-    var node = result.findNode.singleFieldDeclaration;
+    var node = result.findNode.singleFieldsDeclaration;
     assertResolvedNodeText(node, r'''
-FieldDeclaration
+FieldsDeclaration
+  constFinalOrVarKeyword: var
+  fields
+    Field
+      name: bar
+      equals: =
+      initializer: UnqualifiedNameExpression
+        name: foo
+        resolution: VariableReadResolution
+          element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
+          type: int
+        staticType: int
+      declaredFragment: <testLibraryFragment> bar@31
+  semicolon: ;
+V1: FieldDeclaration
   fields: VariableDeclarationList
     keyword: var
     variables
       VariableDeclaration
         name: bar
         equals: =
-        initializer2: UnqualifiedNameExpression
-          name: foo
-          resolution: VariableReadResolution
-            element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
-            type: int
-          staticType: int
-        initializer(v1): SimpleIdentifier
+        initializer: SimpleIdentifier
           token: foo
           element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
           staticType: int
@@ -2202,13 +2694,27 @@ FieldDeclaration
 class A(int foo) {
   late var bar = foo;
 //               ^^^
-// [diag.undefinedIdentifier] Undefined name 'foo'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
 }
 ''');
 
-    var node = result.findNode.singleFieldDeclaration;
+    var node = result.findNode.singleFieldsDeclaration;
     assertResolvedNodeText(node, r'''
-FieldDeclaration
+FieldsDeclaration
+  lateKeyword: late
+  constFinalOrVarKeyword: var
+  fields
+    Field
+      name: bar
+      equals: =
+      initializer: UnqualifiedNameExpression
+        name: foo
+        resolution: InvalidNamedReadResolution
+          recoveryElement: <null>
+        staticType: InvalidType
+      declaredFragment: <testLibraryFragment> bar@30
+  semicolon: ;
+V1: FieldDeclaration
   fields: VariableDeclarationList
     lateKeyword: late
     keyword: var
@@ -2216,12 +2722,7 @@ FieldDeclaration
       VariableDeclaration
         name: bar
         equals: =
-        initializer2: UnqualifiedNameExpression
-          name: foo
-          resolution: InvalidNamedReadResolution
-            recoveryElement: <null>
-          staticType: InvalidType
-        initializer(v1): SimpleIdentifier
+        initializer: SimpleIdentifier
           token: foo
           element: <null>
           staticType: InvalidType
@@ -2236,13 +2737,27 @@ FieldDeclaration
 class A(int foo) {
   static var bar = foo;
 //                 ^^^
-// [diag.undefinedIdentifier] Undefined name 'foo'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
 }
 ''');
 
-    var node = result.findNode.singleFieldDeclaration;
+    var node = result.findNode.singleFieldsDeclaration;
     assertResolvedNodeText(node, r'''
-FieldDeclaration
+FieldsDeclaration
+  staticKeyword: static
+  constFinalOrVarKeyword: var
+  fields
+    Field
+      name: bar
+      equals: =
+      initializer: UnqualifiedNameExpression
+        name: foo
+        resolution: InvalidNamedReadResolution
+          recoveryElement: <null>
+        staticType: InvalidType
+      declaredFragment: <testLibraryFragment> bar@32
+  semicolon: ;
+V1: FieldDeclaration
   staticKeyword: static
   fields: VariableDeclarationList
     keyword: var
@@ -2250,12 +2765,7 @@ FieldDeclaration
       VariableDeclaration
         name: bar
         equals: =
-        initializer2: UnqualifiedNameExpression
-          name: foo
-          resolution: InvalidNamedReadResolution
-            recoveryElement: <null>
-          staticType: InvalidType
-        initializer(v1): SimpleIdentifier
+        initializer: SimpleIdentifier
           token: foo
           element: <null>
           staticType: InvalidType

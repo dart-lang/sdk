@@ -5,12 +5,7 @@
 part of 'fragment.dart';
 
 class FieldFragment implements Fragment {
-  @override
-  final String name;
-
-  final Uri fileUri;
-
-  final int nameOffset;
+  final UriOffsetName _uriOffsetName;
 
   final int endOffset;
 
@@ -32,17 +27,8 @@ class FieldFragment implements Fragment {
   SourcePropertyBuilder? _builder;
   FieldFragmentDeclaration? _declaration;
 
-  @override
-  late final UriOffsetLength uriOffset = new UriOffsetLength(
-    fileUri,
-    nameOffset,
-    name.length,
-  );
-
   new({
-    required this.name,
-    required this.fileUri,
-    required this.nameOffset,
+    required this._uriOffsetName,
     required this.endOffset,
     required Token? initializerToken,
     required this.metadata,
@@ -54,6 +40,16 @@ class FieldFragment implements Fragment {
     required this.enclosingCompilationUnit,
   }) : _initializerTokenForTopLevelInference = initializerToken,
        _initializerTokenForOutline = initializerToken;
+
+  Uri get fileUri => _uriOffsetName.fileUri;
+
+  @override
+  String get name => _uriOffsetName.name;
+
+  int get nameOffset => _uriOffsetName.nameOffset;
+
+  @override
+  UriOffsetLength get uriOffset => _uriOffsetName;
 
   @override
   SourcePropertyBuilder get builder {

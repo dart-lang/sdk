@@ -52,6 +52,7 @@ const List<Option> optionSpecification = [
   Options.forceNoExplicitGetterCalls,
   Options.forceConstructorTearOffLowering,
   Options.forceClosureContextLowering,
+  Options.forceMixinInOutline,
   Options.help,
   Options.librariesJson,
   Options.noDefines,
@@ -127,6 +128,9 @@ ProcessedOptions analyzeCommandLine(
       parsedOptions,
     ),
     isClosureContextLoweringEnabled: Options.forceClosureContextLowering.read(
+      parsedOptions,
+    ),
+    forceMixinInOutlineForTesting: Options.forceMixinInOutline.read(
       parsedOptions,
     ),
   );

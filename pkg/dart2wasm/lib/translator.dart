@@ -22,7 +22,6 @@ import 'package:vm/metadata/unboxing_info.dart';
 import 'package:vm/metadata/unreachable.dart';
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
-import 'cfg/code_generator.dart';
 import 'cfg/ir_log.dart';
 import 'class_info.dart';
 import 'closures.dart';
@@ -39,6 +38,7 @@ import 'kernel_nodes.dart';
 import 'modules.dart';
 import 'namer.dart';
 import 'param_info.dart';
+import 'prod/cfg/code_generator.dart';
 import 'records.dart';
 import 'reference_extensions.dart';
 import 'static_dispatch_table.dart';
@@ -808,6 +808,12 @@ class Translator with KernelNodes {
   ///
   /// When performing a direct call it may inline the target if allowed and
   /// beneficial.
+  ///
+  /// Arguments must already be pushed to the stack, matching the inputs of
+  /// [signatureForDirectCall].
+  ///
+  /// Returns the types of the values that the emitted code leaves on the
+  /// stack.
   List<w.ValueType> callReference(
     Reference reference,
     w.InstructionsBuilder b,
@@ -1214,43 +1220,14 @@ class Translator with KernelNodes {
   }
 
   /// Translate a Dart type as it should appear on parameters and returns of
-  /// imported and exported functions. All wasm types are allowed on the interop
-  /// boundary, but in order to be compatible with the `--closed-world` mode of
-  /// Binaryen, we coerce all reference types to abstract reference types
-  /// (`anyref`, `funcref` or `externref`).
-  /// This function can be called before the class info is built.
+  /// imported and exported functions.
+  ///
+  /// Only Wasm types that Binaryen supports on the module boundary under
+  /// `--closed-world` are allowed (primitives, abstract heap reference types,
+  /// Wasm function types, and Wasm arrays of external storage types). No type
+  /// or nullability coercion is performed.
   w.ValueType translateExternalType(DartType type) {
-    final bool isPotentiallyNullable = type.isPotentiallyNullable;
-    if (type is InterfaceType) {
-      Class cls = type.classNode;
-      if (cls == wasmFuncRefClass || cls == wasmFunctionClass) {
-        return w.RefType.func(nullable: isPotentiallyNullable);
-      }
-      if (cls == wasmExternRefClass) {
-        return w.RefType.extern(nullable: isPotentiallyNullable);
-      }
-      if (cls == wasmArrayRefClass) {
-        return w.RefType.array(nullable: isPotentiallyNullable);
-      }
-      if (cls == wasmArrayClass) {
-        final elementType = translateExternalStorageType(
-          type.typeArguments.single,
-        );
-        return w.RefType.def(
-          wasmArrayType(elementType, '$elementType', mutable: true),
-          nullable: isPotentiallyNullable,
-        );
-      }
-      if (!isPotentiallyNullable) {
-        w.StorageType? builtin = builtinTypes[cls];
-        if (builtin != null && builtin.isPrimitive) {
-          return builtin as w.ValueType;
-        }
-      }
-    }
-    // TODO(joshualitt): We'd like to use the potential nullability here too,
-    // but unfortunately this seems to break things.
-    return w.RefType.any(nullable: true);
+    return translateExternalStorageType(type) as w.ValueType;
   }
 
   w.StorageType translateExternalStorageType(DartType type) {
@@ -1261,12 +1238,45 @@ class Translator with KernelNodes {
         final w.StorageType? builtin = builtinTypes[cls];
         if (builtin != null) {
           if (!isNullable) return builtin;
-          if (builtin.isPrimitive) throw "Wasm numeric types can't be nullable";
+          assert(!builtin.isPrimitive, "Wasm numeric types can't be nullable");
           return (builtin as w.RefType).withNullability(isNullable);
+        }
+        if (cls == wasmArrayClass || cls == immutableWasmArrayClass) {
+          final dartElementType = type.typeArguments.single;
+          final elementType = translateExternalStorageType(dartElementType);
+          return w.RefType.def(
+            wasmArrayType(
+              elementType,
+              dartElementType.toText(defaultAstTextStrategy),
+              mutable: cls == wasmArrayClass,
+            ),
+            nullable: isNullable,
+          );
+        }
+        if (cls == wasmFunctionClass) {
+          final functionType = type.typeArguments.single as FunctionType;
+          assert(
+            !functionType.isPotentiallyNullable &&
+                functionType.typeParameters.isEmpty &&
+                functionType.namedParameters.isEmpty &&
+                functionType.requiredParameterCount ==
+                    functionType.positionalParameters.length,
+          );
+          final returnType = functionType.returnType;
+          final voidReturn =
+              returnType is InterfaceType &&
+              returnType.classNode == wasmVoidClass;
+          final inputs = [
+            for (final type in functionType.positionalParameters)
+              translateExternalType(type),
+          ];
+          final outputs = [if (!voidReturn) translateExternalType(returnType)];
+          final wasmType = typesBuilder.defineFunction(inputs, outputs);
+          return w.RefType.def(wasmType, nullable: isNullable);
         }
       }
     }
-    return translateExternalType(type) as w.RefType;
+    throw "Unsupported external type '$type' (${type.runtimeType})";
   }
 
   /// Creates a global reference to [f] in its [w.BaseFunction.enclosingModule].
@@ -1286,6 +1296,11 @@ class Translator with KernelNodes {
     Member member,
     w.ModuleBuilder closureModule,
   ) {
+    assert(
+      interopMemberNamer.getImportName(member) == null &&
+          interopMemberNamer.getExportName(member) == null,
+      "Cannot create tear-off closure for wasm import/export $member",
+    );
     assert(
       member is Constructor ||
           member is Procedure &&
@@ -2174,17 +2189,16 @@ class Translator with KernelNodes {
     // require it (for now) to be an interface type.
     if (defaultType is! InterfaceType) return null;
 
+    // If code uses wasm types, use those precise types.
+    if (isWasmType(defaultType.classNode)) return null;
+
     final dartType = inferredType.dartType;
     if (dartType == null) return null;
     final targetClass = dartType.classNode;
     // TFA doesn't know how dart2wasm represents closures
     if (targetClass == closureClass) return null;
-    // The WasmFunction<>/WasmArray<>/WasmTable<> types need concrete type
-    // arguments.
-    if (targetClass == wasmFunctionClass) return null;
-    if (targetClass == wasmArrayClass) return null;
-    if (targetClass == immutableWasmArrayClass) return null;
-    if (targetClass == wasmTableClass) return null;
+    // Do not use inferred wasm types where original types were Dart types.
+    if (isWasmType(targetClass)) return null;
 
     // If the TFA inferred class is the same as the [defaultType] we prefer the
     // latter as it has the correct type arguments.
@@ -2439,6 +2453,10 @@ class Translator with KernelNodes {
     if (member is Field) return true;
     if (member.function!.asyncMarker != AsyncMarker.Sync) return false;
     if (mayUseCfgToCompileMember(this, member)) return false;
+    if (util.hasWasmExportPragma(coreTypes, member) ||
+        util.hasWasmWeakExportPragma(coreTypes, member)) {
+      return false;
+    }
     return true;
   }
 
@@ -2612,16 +2630,17 @@ class Translator with KernelNodes {
         this,
         topLevelExternalMemoryGetter,
       )!;
-      final exportName = interopMemberNamer.getExportName(
-        topLevelExternalMemoryGetter,
-      );
       final import = util.getWasmImportPragma(
         coreTypes,
         topLevelExternalMemoryGetter,
       );
+      final exportName = interopMemberNamer.getExportName(
+        topLevelExternalMemoryGetter,
+      );
 
-      w.Memory memory;
+      final w.Memory memory;
       if (import != null) {
+        assert(exportName == null);
         memory = mainModule.memories.import(
           import.moduleName,
           import.itemName,
@@ -2635,10 +2654,9 @@ class Translator with KernelNodes {
           memoryType.minSize,
           memoryType.maxSize,
         );
-      }
-
-      if (exportName != null) {
-        mainModule.exports.export(exportName, memory);
+        if (exportName != null) {
+          mainModule.exports.export(exportName, memory);
+        }
       }
       return memory;
     });
@@ -2895,6 +2913,7 @@ class _ClosureTrampolineGenerator implements CodeGenerator {
           b,
           paramInfo.positional[i]!,
           target.signature.inputs[targetIndex++],
+          dummyValueIfIncompatible: true,
         );
       }
     }
@@ -2915,6 +2934,7 @@ class _ClosureTrampolineGenerator implements CodeGenerator {
           b,
           paramInfo.named[argName]!,
           target.signature.inputs[targetIndex++],
+          dummyValueIfIncompatible: true,
         );
       }
     }
@@ -3016,30 +3036,33 @@ class _ClosureDynamicEntryGenerator implements CodeGenerator {
 
     // Push positional arguments
     for (int posIdx = 0; posIdx < positionalTotal; posIdx += 1) {
+      final targetParamType = targetInputs[inputIdx];
       if (posIdx < positionalRequired) {
         // Shape check passed, argument must be passed
         b.local_get(posArgsListLocal);
         b.i32_const(posIdx);
         b.array_get(translator.nullableObjectArrayType);
+        translator.convertType(b, translator.topType, targetParamType);
       } else {
         // Argument may be missing
         b.i32_const(posIdx);
         b.local_get(posArgsListLocal);
         b.array_len();
         b.i32_lt_u();
-        b.if_([], [translator.topType]);
+        b.if_([], [targetParamType]);
         b.local_get(posArgsListLocal);
         b.i32_const(posIdx);
         b.array_get(translator.nullableObjectArrayType);
+        translator.convertType(b, translator.topType, targetParamType);
         b.else_();
         translator.constants.instantiateConstant(
           b,
           paramInfo.positional[posIdx]!,
-          translator.topType,
+          targetParamType,
+          dummyValueIfIncompatible: true,
         );
         b.end();
       }
-      translator.convertType(b, translator.topType, targetInputs[inputIdx]);
       inputIdx += 1;
     }
 
@@ -3073,6 +3096,7 @@ class _ClosureDynamicEntryGenerator implements CodeGenerator {
       translator.callReference(translator.getNamedParameterIndex.reference, b);
       b.local_set(namedArgValueIndexLocal);
 
+      final targetParamType = targetInputs[inputIdx];
       if (functionNodeDefaultValue == null && paramInfoDefaultValue == null) {
         // Shape check passed, parameter must be passed
         b.local_get(namedArgsListLocal);
@@ -3080,29 +3104,27 @@ class _ClosureDynamicEntryGenerator implements CodeGenerator {
         translator.convertType(b, namedArgValueIndexLocal.type, w.NumType.i64);
         b.i32_wrap_i64();
         b.array_get(translator.nullableObjectArrayType);
-        translator.convertType(
-          b,
-          translator.nullableObjectArrayType.elementType.type.unpacked,
-          target.signature.inputs[inputIdx],
-        );
+        translator.convertType(b, translator.topType, targetParamType);
       } else {
         // Parameter may not be passed.
         b.local_get(namedArgValueIndexLocal);
         b.ref_is_null();
-        b.if_([], [translator.topType]);
+        b.if_([], [targetParamType]);
         if (functionNodeDefaultValue != null) {
           // Used by the member, has a default value
           translator.constants.instantiateConstant(
             b,
             (functionNodeDefaultValue as ConstantExpression).constant,
-            translator.topType,
+            targetParamType,
+            dummyValueIfIncompatible: true,
           );
         } else {
           // Not used by the member
           translator.constants.instantiateConstant(
             b,
             paramInfoDefaultValue!,
-            translator.topType,
+            targetParamType,
+            dummyValueIfIncompatible: true,
           );
         }
         b.else_(); // value index not null
@@ -3111,8 +3133,8 @@ class _ClosureDynamicEntryGenerator implements CodeGenerator {
         translator.convertType(b, namedArgValueIndexLocal.type, w.NumType.i64);
         b.i32_wrap_i64();
         b.array_get(translator.nullableObjectArrayType);
+        translator.convertType(b, translator.topType, targetParamType);
         b.end();
-        translator.convertType(b, translator.topType, targetInputs[inputIdx]);
       }
       inputIdx += 1;
     }
@@ -3966,6 +3988,12 @@ class DummyValuesCollector {
   }
 }
 
+/// Whether [type] has a trivial dummy value that doesn't require instantiating
+/// a custom heap type.
+bool hasTrivialDummyValue(w.RefType type) {
+  return type.nullable || type.heapType == w.HeapType.extern;
+}
+
 void instantiateDummyValue(
   w.InstructionsBuilder b,
   w.ValueType type,
@@ -3992,6 +4020,11 @@ void instantiateDummyValue(
         w.HeapType heapType = type.heapType;
         if (type.nullable) {
           b.ref_null(heapType.bottomType);
+        } else if (type.heapType == w.HeapType.extern) {
+          b
+            ..i32_const(0)
+            ..i31_new()
+            ..extern_convert_any();
         } else {
           instantiateHeapType(b, heapType);
         }
@@ -4011,7 +4044,7 @@ void instantiateDummyValue(
 abstract class _WasmImporter<T extends w.Exportable> {
   final Translator _translator;
   final String _exportPrefix;
-  final Map<T, Map<w.ModuleBuilder, T>> _map = {};
+  final Map<T, _ExportedWasmEntity<T>> _map = {};
 
   _WasmImporter(this._translator, this._exportPrefix);
 
@@ -4022,25 +4055,25 @@ abstract class _WasmImporter<T extends w.Exportable> {
     String importName,
   );
 
-  Iterable<T> get imports => _map.values.expand((v) => v.values);
+  Iterable<T> get imports => _map.values.expand((v) => v.imports.values);
 
   T get(T key, w.ModuleBuilder module) {
     final keyModuleBuilder = _translator.moduleToBuilder[key.enclosingModule]!;
     if (keyModuleBuilder == module) return key;
 
-    final innerMap = _map.putIfAbsent(key, () {
+    final exported = _map.putIfAbsent(key, () {
       final name = _translator.exportNamer.getName(
         '$_exportPrefix${_map.length}',
       );
       keyModuleBuilder.exports.export(name, key);
-      return {};
+      return _ExportedWasmEntity(name);
     });
-    return innerMap.putIfAbsent(module, () {
+    return exported.imports.putIfAbsent(module, () {
       return import(
         module,
         key,
         _translator.nameForModule(keyModuleBuilder),
-        key.exportedName,
+        exported.exportName,
       );
     });
   }
@@ -4048,6 +4081,13 @@ abstract class _WasmImporter<T extends w.Exportable> {
   bool has(T key) {
     return _map.containsKey(key);
   }
+}
+
+class _ExportedWasmEntity<T extends w.Exportable> {
+  final String exportName;
+  final Map<w.ModuleBuilder, T> imports = {};
+
+  _ExportedWasmEntity(this.exportName);
 }
 
 class WasmFunctionImporter extends _WasmImporter<w.BaseFunction> {

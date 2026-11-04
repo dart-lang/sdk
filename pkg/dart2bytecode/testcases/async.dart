@@ -65,4 +65,38 @@ var asyncInFieldInitializer = (Future<int> x) async {
   await x;
 };
 
+ZoneUnaryCallback<R, T> testAwaiterLink1<R, T>(
+  Zone self,
+  ZoneDelegate parent,
+  Zone zone,
+  @pragma('vm:awaiter-link') R Function(T) f,
+) {
+  return parent.registerUnaryCallback(zone, (v) => f(v));
+}
+
+ZoneUnaryCallback<R, T> testAwaiterLink2<R, T>(
+  Zone self,
+  ZoneDelegate parent,
+  Zone zone,
+  R Function(T) f,
+) {
+  final obj = Object();
+  nested() {
+    final obj2 = Object();
+    final obj3 = Object();
+    @pragma('vm:awaiter-link')
+    R Function(T) g = f;
+    register() {
+      print(obj);
+      print(obj2);
+      print(obj3);
+      return parent.registerUnaryCallback(zone, (T v) => g(v));
+    }
+
+    return register;
+  }
+
+  return nested()();
+}
+
 main() {}

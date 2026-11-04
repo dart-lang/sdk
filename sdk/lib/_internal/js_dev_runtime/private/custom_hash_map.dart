@@ -157,7 +157,7 @@ base class CustomHashMap<K, V> extends InternalMap<K, V> {
     throw ConcurrentModificationError(this);
   }
 
-  V putIfAbsent(K key, V ifAbsent()) {
+  V putIfAbsent(K key, V Function() ifAbsent) {
     var keyMap = _keyMap;
     var modifications = _modifications;
     int hash = JS('!', '# & 0x3fffffff', _hashCode(key));

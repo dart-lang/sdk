@@ -327,11 +327,6 @@ final class F32x4 extends WasmTypedDataBase implements Float32x4 {
   @pragma("wasm:entry-point")
   final WasmV128 _bits;
 
-  // Scratch storage used by shuffle / shuffleMix. Lane reads from `_bits`
-  // already use single wasm v128 lane-extract intrinsics, so no scratch is
-  // needed for the simple element-wise operators.
-  static final Float32List _list = Float32List(4);
-
   @pragma("wasm:entry-point")
   F32x4.fromV128(this._bits);
 
@@ -398,65 +393,21 @@ final class F32x4 extends WasmTypedDataBase implements Float32x4 {
 
   Float32x4 abs() => F32x4.fromV128(WasmF32x4(_bits).abs());
 
-  Float32x4 clamp(Float32x4 lowerLimit, Float32x4 upperLimit) {
-    double _lx = lowerLimit.x;
-    double _ly = lowerLimit.y;
-    double _lz = lowerLimit.z;
-    double _lw = lowerLimit.w;
-    double _ux = upperLimit.x;
-    double _uy = upperLimit.y;
-    double _uz = upperLimit.z;
-    double _uw = upperLimit.w;
-    double _x = x;
-    double _y = y;
-    double _z = z;
-    double _w = w;
-    // MAX(MIN(self, upper), lower).
-    _x = _x > _ux ? _ux : _x;
-    _y = _y > _uy ? _uy : _y;
-    _z = _z > _uz ? _uz : _z;
-    _w = _w > _uw ? _uw : _w;
-    _x = _x < _lx ? _lx : _x;
-    _y = _y < _ly ? _ly : _y;
-    _z = _z < _lz ? _lz : _z;
-    _w = _w < _lw ? _lw : _w;
-    return F32x4(_x, _y, _z, _w);
-  }
+  Float32x4 clamp(Float32x4 lowerLimit, Float32x4 upperLimit) =>
+      min(upperLimit).max(lowerLimit);
 
   int get signMask => WasmI32x4(_bits).bitmask.toIntUnsigned();
 
   Float32x4 shuffle(int mask) {
     // mask < 0 || mask > 255
     RangeErrorUtils.checkValueBetweenZeroAndPositiveMax(mask, 255, 'mask');
-    _list[0] = x;
-    _list[1] = y;
-    _list[2] = z;
-    _list[3] = w;
-
-    double _x = _list[mask & 0x3];
-    double _y = _list[(mask >> 2) & 0x3];
-    double _z = _list[(mask >> 4) & 0x3];
-    double _w = _list[(mask >> 6) & 0x3];
-    return F32x4(_x, _y, _z, _w);
+    return F32x4.fromV128(_shuffle32x4(_bits, mask));
   }
 
   Float32x4 shuffleMix(Float32x4 other, int mask) {
     // mask < 0 || mask > 255
     RangeErrorUtils.checkValueBetweenZeroAndPositiveMax(mask, 255, 'mask');
-    _list[0] = x;
-    _list[1] = y;
-    _list[2] = z;
-    _list[3] = w;
-    double _x = _list[mask & 0x3];
-    double _y = _list[(mask >> 2) & 0x3];
-
-    _list[0] = other.x;
-    _list[1] = other.y;
-    _list[2] = other.z;
-    _list[3] = other.w;
-    double _z = _list[(mask >> 4) & 0x3];
-    double _w = _list[(mask >> 6) & 0x3];
-    return F32x4(_x, _y, _z, _w);
+    return F32x4.fromV128(_shuffleMix32x4(_bits, (other as F32x4)._bits, mask));
   }
 
   Float32x4 withX(double newX) =>
@@ -539,20 +490,8 @@ final class F64x2 extends WasmTypedDataBase implements Float64x2 {
 
   Float64x2 abs() => F64x2.fromV128(WasmF64x2(_bits).abs());
 
-  Float64x2 clamp(Float64x2 lowerLimit, Float64x2 upperLimit) {
-    double _lx = lowerLimit.x;
-    double _ly = lowerLimit.y;
-    double _ux = upperLimit.x;
-    double _uy = upperLimit.y;
-    double _x = x;
-    double _y = y;
-    // MAX(MIN(self, upper), lower).
-    _x = _x > _ux ? _ux : _x;
-    _y = _y > _uy ? _uy : _y;
-    _x = _x < _lx ? _lx : _x;
-    _y = _y < _ly ? _ly : _y;
-    return F64x2(_x, _y);
-  }
+  Float64x2 clamp(Float64x2 lowerLimit, Float64x2 upperLimit) =>
+      min(upperLimit).max(lowerLimit);
 
   int get signMask => WasmI64x2(_bits).bitmask.toIntUnsigned();
 
@@ -584,11 +523,6 @@ extension F64x2Ext on F64x2 {
 final class I32x4 extends WasmTypedDataBase implements Int32x4 {
   @pragma("wasm:entry-point")
   final WasmV128 _bits;
-
-  // Scratch storage used by shuffle / shuffleMix. Lane reads from `_bits`
-  // already use single wasm v128 lane-extract intrinsics, so no scratch is
-  // needed for the simple element-wise operators.
-  static final Int32List _list = Int32List(4);
 
   @pragma("wasm:entry-point")
   I32x4.fromV128(this._bits);
@@ -709,34 +643,13 @@ final class I32x4 extends WasmTypedDataBase implements Int32x4 {
   Int32x4 shuffle(int mask) {
     // mask < 0 || mask > 255
     RangeErrorUtils.checkValueBetweenZeroAndPositiveMax(mask, 255, 'mask');
-    _list[0] = x;
-    _list[1] = y;
-    _list[2] = z;
-    _list[3] = w;
-    int _x = _list[mask & 0x3];
-    int _y = _list[(mask >> 2) & 0x3];
-    int _z = _list[(mask >> 4) & 0x3];
-    int _w = _list[(mask >> 6) & 0x3];
-    return I32x4._truncated(_x, _y, _z, _w);
+    return I32x4.fromV128(_shuffle32x4(_bits, mask));
   }
 
   Int32x4 shuffleMix(Int32x4 other, int mask) {
     // mask < 0 || mask > 255
     RangeErrorUtils.checkValueBetweenZeroAndPositiveMax(mask, 255, 'mask');
-    _list[0] = x;
-    _list[1] = y;
-    _list[2] = z;
-    _list[3] = w;
-    int _x = _list[mask & 0x3];
-    int _y = _list[(mask >> 2) & 0x3];
-
-    _list[0] = other.x;
-    _list[1] = other.y;
-    _list[2] = other.z;
-    _list[3] = other.w;
-    int _z = _list[(mask >> 4) & 0x3];
-    int _w = _list[(mask >> 6) & 0x3];
-    return I32x4._truncated(_x, _y, _z, _w);
+    return I32x4.fromV128(_shuffleMix32x4(_bits, (other as I32x4)._bits, mask));
   }
 
   Int32x4 withX(int x) =>
@@ -785,3 +698,35 @@ extension I32x4Ext on I32x4 {
   @pragma("wasm:prefer-inline")
   WasmV128 get bits => _bits;
 }
+
+int _laneByteIndices(int mask, int lane) =>
+    0x03020100 + 0x04040404 * ((mask >> (2 * lane)) & 3);
+
+WasmV128 _swizzle(WasmV128 bits, int l0, int l1, int l2, int l3) =>
+    WasmI8x16(bits)
+        .swizzle(WasmI8x16(WasmI32x4.fromInts(l0, l1, l2, l3).value))
+        .value;
+
+WasmV128 _shuffle32x4(WasmV128 bits, int mask) => _swizzle(
+  bits,
+  _laneByteIndices(mask, 0),
+  _laneByteIndices(mask, 1),
+  _laneByteIndices(mask, 2),
+  _laneByteIndices(mask, 3),
+);
+
+WasmV128 _shuffleMix32x4(WasmV128 left, WasmV128 right, int mask) =>
+    _swizzle(
+      left,
+      _laneByteIndices(mask, 0),
+      _laneByteIndices(mask, 1),
+      -1,
+      -1,
+    ) |
+    _swizzle(
+      right,
+      -1,
+      -1,
+      _laneByteIndices(mask, 2),
+      _laneByteIndices(mask, 3),
+    );

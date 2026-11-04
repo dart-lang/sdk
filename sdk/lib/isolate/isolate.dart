@@ -250,7 +250,10 @@ final class Isolate {
   ///
   /// The [debugName] is only used to name the new isolate for debugging.
   @Since("2.19")
-  static Future<R> run<R>(FutureOr<R> computation(), {String? debugName}) {
+  static Future<R> run<R>(
+    FutureOr<R> Function() computation, {
+    String? debugName,
+  }) {
     var result = Completer<R>();
     var resultPort = RawReceivePort();
     resultPort.handler = (response) {
@@ -456,7 +459,7 @@ final class Isolate {
   /// One can expect the base memory overhead of an isolate to be in the order
   /// of 30 kb.
   external static Future<Isolate> spawn<T>(
-    void entryPoint(T message),
+    void Function(T message) entryPoint,
     T message, {
     bool paused = false,
     bool errorsAreFatal = true,
@@ -885,8 +888,27 @@ abstract interface class SendPort implements Capability {
   ///   - `MirrorReference`
   ///
   /// Instances of classes that either themselves are marked with
-  /// `@pragma('vm:isolate-unsendable')`, extend or implement such classes
-  /// cannot be sent through the ports.
+  /// `@pragma('vm:isolate-unsendable')`, or are subtypes of such classes
+  /// (through `extends`, `with`, `implements` or mixin `on` clauses), cannot
+  /// be sent through the ports, unless they are constants (see below).
+  /// This includes the following `dart:async` classes and their subtypes:
+  ///
+  ///   - [Completer]
+  ///   - [Future]
+  ///   - [Stream]
+  ///   - [Timer]
+  ///   - [Zone]
+  ///
+  /// Constant objects can always be sent between isolates that share code,
+  /// regardless of their type. Constants are shared rather than copied, so
+  /// the restrictions above do not apply to them. This includes constant
+  /// instances of classes that are marked as unsendable, and of their
+  /// subtypes. For example, [Zone.root] is a constant and can be sent,
+  /// while any other zone, such as one created by [runZoned],
+  /// [runZonedGuarded] or [Zone.fork], cannot. As a result, an object that
+  /// stores [Zone.current] can be sent if it was created in the root zone,
+  /// but not if it was created inside a custom zone (for example, inside a
+  /// `package:test` test body).
   ///
   /// Apart from those exceptions any object can be sent. Objects that are
   /// identified as immutable (e.g. strings) will be shared whereas all other
@@ -955,9 +977,9 @@ abstract interface class ReceivePort implements Stream<dynamic> {
   /// The [onDone] handler will be called when the stream closes.
   /// The stream closes when [close] is called.
   StreamSubscription<dynamic> listen(
-    void onData(message)?, {
+    void Function(dynamic message)? onData, {
     Function? onError,
-    void onDone()?,
+    void Function()? onDone,
     bool? cancelOnError,
   });
 

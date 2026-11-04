@@ -872,6 +872,47 @@ main() {
       ]);
     });
 
+    test(
+      'forEach_bodyBegin() does not write capture declared loop variable',
+      () {
+        // Each iteration gets a fresh copy of `x`, so a closure created later
+        // in the loop body can't affect the promotion.
+        var x = Var('x');
+        h.run([
+          forEachWithVariableDecl(x, expr('List<int?>'), [
+            if_(x.notEq(nullLiteral), [checkPromoted(x, 'int')]),
+            localFunction([x.write(expr('int?'))]),
+          ]),
+        ]);
+      },
+    );
+
+    test('forEach_bodyBegin() declared loop variable: write capture earlier '
+        'in the iteration', () {
+      var x = Var('x');
+      h.run([
+        forEachWithVariableDecl(x, expr('List<int?>'), [
+          localFunction([x.write(expr('int?'))]),
+          if_(x.notEq(nullLiteral), [checkNotPromoted(x)]),
+        ]),
+      ]);
+    });
+
+    test('forEach_bodyBegin() declared loop variable: write capture in a '
+        'nested loop', () {
+      // A closure created in an earlier iteration of the inner loop writes
+      // the same copy of `x`.
+      var x = Var('x');
+      h.run([
+        forEachWithVariableDecl(x, expr('List<int?>'), [
+          while_(expr('bool'), [
+            if_(x.notEq(nullLiteral), [checkNotPromoted(x)]),
+            localFunction([x.write(expr('int?'))]),
+          ]),
+        ]),
+      ]);
+    });
+
     test('forEach_bodyBegin() pushes conservative join state', () {
       var x = Var('x');
       h.run([
@@ -2074,9 +2115,8 @@ main() {
     test('nullAwareAccess sets reachability correctly for `Null` type', () {
       h.addMember('Never', 'f', 'Null Function(Object?)');
       h.run([
-        expr(
-          'Null',
-        ).invokeMethod('f', [checkReachable(false)], isNullAware: true),
+        expr('Null')
+            .invokeMethod('f', [checkReachable(false)], isNullAware: true),
         checkReachable(true),
       ]);
     });
@@ -2414,9 +2454,8 @@ main() {
     test('switchExpression throw in scrutinee makes all cases unreachable', () {
       h.run([
         switchExpr(throw_(expr('C')), [
-          intLiteral(
-            0,
-          ).pattern.thenExpr(second(checkReachable(false), intLiteral(1))),
+          intLiteral(0).pattern
+              .thenExpr(second(checkReachable(false), intLiteral(1))),
           wildcard().thenExpr(second(checkReachable(false), intLiteral(2))),
         ]),
         checkReachable(false),
@@ -2609,9 +2648,8 @@ main() {
         y.as_('int'),
         z.as_('int'),
         switch_(expr('int'), [
-          intLiteral(
-            0,
-          ).pattern.then([x.as_('int'), y.write(expr('int?')), break_()]),
+          intLiteral(0).pattern
+              .then([x.as_('int'), y.write(expr('int?')), break_()]),
         ]),
         checkNotPromoted(x),
         checkNotPromoted(y),
@@ -2697,14 +2735,11 @@ main() {
         declare(x, type: 'int?', initializer: expr('int?')),
         declare(y, type: 'int?', initializer: expr('int?')),
         y.as_('int'),
-        try_([
-          x.as_('int'),
-          checkPromoted(x, 'int'),
-          checkPromoted(y, 'int'),
-        ]).catch_(
-          type: 'dynamic',
-          body: [checkNotPromoted(x), checkPromoted(y, 'int')],
-        ),
+        try_([x.as_('int'), checkPromoted(x, 'int'), checkPromoted(y, 'int')])
+            .catch_(
+              type: 'dynamic',
+              body: [checkNotPromoted(x), checkPromoted(y, 'int')],
+            ),
       ]);
     });
 
@@ -2745,9 +2780,8 @@ main() {
       h.run([
         declare(x, type: 'int?'),
         checkUnassigned(x, true),
-        try_([
-          x.write(expr('int')),
-        ]).catch_(type: 'dynamic', body: [checkUnassigned(x, false)]),
+        try_([x.write(expr('int'))])
+            .catch_(type: 'dynamic', body: [checkUnassigned(x, false)]),
       ]);
     });
 
@@ -2760,9 +2794,8 @@ main() {
       h.run([
         declare(x, type: 'int?'),
         checkUnassigned(x, true),
-        try_([
-          x.write(expr('int')),
-        ]).catch_(type: 'dynamic', body: [checkUnassigned(x, false)]),
+        try_([x.write(expr('int'))])
+            .catch_(type: 'dynamic', body: [checkUnassigned(x, false)]),
       ]);
     });
 
@@ -2869,10 +2902,8 @@ main() {
           declare(x, type: 'int?', initializer: expr('int?')),
           declare(y, type: 'int?', initializer: expr('int?')),
           declare(z, type: 'int?', initializer: expr('int?')),
-          try_([
-            x.as_('int'),
-            y.as_('int'),
-          ]).catch_(type: 'dynamic', body: [x.as_('int'), z.as_('int')]),
+          try_([x.as_('int'), y.as_('int')])
+              .catch_(type: 'dynamic', body: [x.as_('int'), z.as_('int')]),
           // Only x should be promoted, because it's the only variable
           // promoted in both the try body and the catch handler.
           checkPromoted(x, 'int'), checkNotPromoted(y), checkNotPromoted(z),
@@ -2904,11 +2935,8 @@ main() {
         declare(x, type: 'int?', initializer: expr('int?')),
         declare(y, type: 'int?', initializer: expr('int?')),
         y.as_('int'),
-        try_([
-          x.as_('int'),
-          checkPromoted(x, 'int'),
-          checkPromoted(y, 'int'),
-        ]).finally_([checkNotPromoted(x), checkPromoted(y, 'int')]),
+        try_([x.as_('int'), checkPromoted(x, 'int'), checkPromoted(y, 'int')])
+            .finally_([checkNotPromoted(x), checkPromoted(y, 'int')]),
       ]);
     });
 
@@ -3053,10 +3081,8 @@ main() {
       test('tryFinallyStatement_end() sets unreachable if end of try block '
           'unreachable', () {
         h.run([
-          try_([
-            return_(),
-            checkReachable(false),
-          ]).finally_([checkReachable(true)]),
+          try_([return_(), checkReachable(false)])
+              .finally_([checkReachable(true)]),
           checkReachable(false),
         ]);
       });
@@ -3064,9 +3090,8 @@ main() {
       test('tryFinallyStatement_end() sets unreachable if end of finally block '
           'unreachable', () {
         h.run([
-          try_([
-            checkReachable(true),
-          ]).finally_([return_(), checkReachable(false)]),
+          try_([checkReachable(true)])
+              .finally_([return_(), checkReachable(false)]),
           checkReachable(false),
         ]);
       });
@@ -3075,9 +3100,8 @@ main() {
           'try block', () {
         var x = Var('x');
         h.run([
-          try_([
-            declare(x, type: 'int?', initializer: expr('int?')),
-          ]).finally_([]),
+          try_([declare(x, type: 'int?', initializer: expr('int?'))])
+              .finally_([]),
         ]);
       });
 
@@ -3085,9 +3109,8 @@ main() {
           'finally block', () {
         var x = Var('x');
         h.run([
-          try_(
-            [],
-          ).finally_([declare(x, type: 'int?', initializer: expr('int?'))]),
+          try_([])
+              .finally_([declare(x, type: 'int?', initializer: expr('int?'))]),
         ]);
       });
 
@@ -4061,33 +4084,33 @@ main() {
       });
 
       test('promoted -> unchanged (same)', () {
-        var s1 = FlowModel(
-          Reachability.initial,
-        )._tryPromoteForTypeCheck(h, objectQVar, 'int').ifTrue;
+        var s1 = FlowModel(Reachability.initial)
+            ._tryPromoteForTypeCheck(h, objectQVar, 'int')
+            .ifTrue;
         var s2 = s1._tryPromoteForTypeCheck(h, objectQVar, 'int').ifTrue;
         expect(s2, same(s1));
       });
 
       test('promoted -> unchanged (supertype)', () {
-        var s1 = FlowModel(
-          Reachability.initial,
-        )._tryPromoteForTypeCheck(h, objectQVar, 'int').ifTrue;
+        var s1 = FlowModel(Reachability.initial)
+            ._tryPromoteForTypeCheck(h, objectQVar, 'int')
+            .ifTrue;
         var s2 = s1._tryPromoteForTypeCheck(h, objectQVar, 'Object').ifTrue;
         expect(s2, same(s1));
       });
 
       test('promoted -> unchanged (unrelated)', () {
-        var s1 = FlowModel(
-          Reachability.initial,
-        )._tryPromoteForTypeCheck(h, objectQVar, 'int').ifTrue;
+        var s1 = FlowModel(Reachability.initial)
+            ._tryPromoteForTypeCheck(h, objectQVar, 'int')
+            .ifTrue;
         var s2 = s1._tryPromoteForTypeCheck(h, objectQVar, 'String').ifTrue;
         expect(s2, same(s1));
       });
 
       test('promoted -> subtype', () {
-        var s1 = FlowModel(
-          Reachability.initial,
-        )._tryPromoteForTypeCheck(h, objectQVar, 'int?').ifTrue;
+        var s1 = FlowModel(Reachability.initial)
+            ._tryPromoteForTypeCheck(h, objectQVar, 'int?')
+            .ifTrue;
         var s2 = s1._tryPromoteForTypeCheck(h, objectQVar, 'int').ifTrue;
         expect(s2.reachable.overallReachable, true);
         expect(s2.promotionInfo.unwrap(h), {
@@ -4751,17 +4774,17 @@ main() {
       });
 
       test('promoted -> unchanged', () {
-        var s1 = FlowModel(
-          Reachability.initial,
-        )._tryPromoteForTypeCheck(h, objectQVar, 'int').ifTrue;
+        var s1 = FlowModel(Reachability.initial)
+            ._tryPromoteForTypeCheck(h, objectQVar, 'int')
+            .ifTrue;
         var s2 = s1._tryMarkNonNullable(h, objectQVar).ifTrue;
         expect(s2, same(s1));
       });
 
       test('promoted -> re-promoted', () {
-        var s1 = FlowModel(
-          Reachability.initial,
-        )._tryPromoteForTypeCheck(h, objectQVar, 'int?').ifTrue;
+        var s1 = FlowModel(Reachability.initial)
+            ._tryPromoteForTypeCheck(h, objectQVar, 'int?')
+            .ifTrue;
         var s2 = s1._tryMarkNonNullable(h, objectQVar).ifTrue;
         expect(s2.reachable.overallReachable, true);
         expect(s2.promotionInfo.unwrap(h), {
@@ -5030,9 +5053,8 @@ main() {
           List<String> expectedResult,
         ) {
           var x = Var('x')..type = Type('Object?');
-          var initialModel = FlowModel(
-            Reachability.initial,
-          )._declare(h, x, true);
+          var initialModel = FlowModel(Reachability.initial)
+              ._declare(h, x, true);
           for (var t in before) {
             initialModel = initialModel._tryPromoteForTypeCheck(h, x, t).ifTrue;
           }
@@ -5743,7 +5765,6 @@ main() {
       });
 
       test('enabled', () {
-        h.enablePromotionChainIntersectionJoin();
         var s0 = FlowModel(Reachability.initial);
         var s1 = s0._setInfo(h, {
           x: model([SharedTypeView(bType), SharedTypeView(dType)]),
@@ -5767,7 +5788,6 @@ main() {
       });
 
       test('AST enabled', () {
-        h.enablePromotionChainIntersectionJoin();
         var x = Var('x');
         h.run([
           declare(x, type: 'Object', initializer: expr('Object')),
@@ -6426,6 +6446,323 @@ main() {
       ]);
     });
 
+    group('promotion after promotion of target:', () {
+      // These tests exercise the situation where a property is promoted, then
+      // its target is promoted, causing the property's unpromoted type to
+      // change, and then the property is promoted again.
+      //
+      // When the promotion-chain-intersection-join feature is enabled, and the
+      // last type in the property's promotion chain isn't a subtype of the
+      // property's new unpromoted type, types in the property's promotion
+      // chain that the new promoted type is not a strict subtype of are
+      // discarded, so that the promotion chain remains valid (each type is a
+      // strict subtype of the previous one). See
+      // `FlowModel._filterPropertyPromotionChain`.
+
+      void setUpClasses({required String cFieldType}) {
+        h.addMember('B', '_field', 'Object?', promotable: true);
+        h.addMember('C', '_field', cFieldType, promotable: true);
+        h.addSuperInterfaces('C', (_) => [Type('B'), Type('Object')]);
+        h.addSuperInterfaces('B', (_) => [Type('Object')]);
+      }
+
+      /// Statements that promote `x._field` to [type] (while `x` has type
+      /// `B`), then promote `x` to `C`, then promote `x._field` to non-null.
+      List<ProtoStatement> promoteFieldThenTargetThenField(
+        Var x,
+        String type,
+      ) => [
+        if_(x.property('_field').isNot(type), [return_()]),
+        if_(x.isNot('C'), [return_()]),
+        if_(x.property('_field').eq(nullLiteral), [return_()]),
+      ];
+
+      test('stale promotion discarded', () {
+        setUpClasses(cFieldType: 'String?');
+        var x = Var('x');
+        h.run([
+          declare(x, type: 'B', initializer: expr('B')),
+          if_(x.property('_field').isNot('num'), [return_()]),
+          checkPromotionChain(x.property('_field'), ['num']),
+          if_(x.isNot('C'), [return_()]),
+          // `num` is not a subtype of `String?`, so the promotion is ignored.
+          checkNotPromoted(x.property('_field')),
+          x.property('_field').checkType('String?'),
+          if_(x.property('_field').eq(nullLiteral), [return_()]),
+          checkPromotionChain(x.property('_field'), ['String']),
+          checkPromoted(x.property('_field'), 'String'),
+          x.property('_field').checkType('String'),
+        ]);
+      });
+
+      test('stale promotion not discarded when disabled', () {
+        h.disablePromotionChainIntersectionJoin();
+        setUpClasses(cFieldType: 'String?');
+        var x = Var('x');
+        h.run([
+          declare(x, type: 'B', initializer: expr('B')),
+          ...promoteFieldThenTargetThenField(x, 'num'),
+          checkPromotionChain(x.property('_field'), ['num', 'String']),
+          checkPromoted(x.property('_field'), 'String'),
+          x.property('_field').checkType('String'),
+        ]);
+      });
+
+      test('promotion that is a strict supertype kept', () {
+        setUpClasses(cFieldType: 'int?');
+        var x = Var('x');
+        h.run([
+          declare(x, type: 'B', initializer: expr('B')),
+          if_(x.property('_field').isNot('num'), [return_()]),
+          if_(x.isNot('C'), [return_()]),
+          // `num` is not a subtype of `int?`, so the promotion is ignored.
+          checkNotPromoted(x.property('_field')),
+          x.property('_field').checkType('int?'),
+          if_(x.property('_field').eq(nullLiteral), [return_()]),
+          // But `int` is a strict subtype of `num`, so `num` is kept.
+          checkPromotionChain(x.property('_field'), ['num', 'int']),
+          checkPromoted(x.property('_field'), 'int'),
+          x.property('_field').checkType('int'),
+        ]);
+      });
+
+      test('promotion that is a strict supertype survives join', () {
+        setUpClasses(cFieldType: 'int?');
+        var x = Var('x');
+        h.run([
+          declare(x, type: 'B', initializer: expr('B')),
+          if_(x.property('_field').isNot('num'), [return_()]),
+          if_(x.is_('C'), [
+            if_(x.property('_field').eq(nullLiteral), [return_()]),
+            checkPromotionChain(x.property('_field'), ['num', 'int']),
+          ]),
+          checkPromotionChain(x.property('_field'), ['num']),
+          checkPromoted(x.property('_field'), 'num'),
+          x.property('_field').checkType('num'),
+        ]);
+      });
+
+      group('join is independent of order:', () {
+        // In each branch, `x._field` is promoted to some type while `x` has
+        // type `B`, then `x` is promoted to `C`, then `x._field` is promoted to
+        // `String`. Without filtering, the promotion chains for `x._field` in
+        // the two branches would be `[int, String]` and `[num, String]`, which
+        // aren't valid promotion chains, and the join algorithm would produce
+        // different results depending on the order of the branches.
+        void checkJoin(String thenType, String elseType) {
+          setUpClasses(cFieldType: 'String?');
+          var x = Var('x');
+          h.run([
+            declare(x, type: 'B', initializer: expr('B')),
+            if_(
+              expr('bool'),
+              promoteFieldThenTargetThenField(x, thenType),
+              promoteFieldThenTargetThenField(x, elseType),
+            ),
+            checkPromotionChain(x.property('_field'), ['String']),
+            checkPromoted(x.property('_field'), 'String'),
+            x.property('_field').checkType('String'),
+          ]);
+        }
+
+        test('int then num', () {
+          checkJoin('int', 'num');
+        });
+
+        test('num then int', () {
+          checkJoin('num', 'int');
+        });
+
+        // Without filtering, the promotion chains for `x._field` would be
+        // `[int, String]` and `[String]`, and the join algorithm would fail to
+        // find the common type `String`.
+        void checkJoinWithUnpromoted({required bool promoteInThen}) {
+          setUpClasses(cFieldType: 'String?');
+          var x = Var('x');
+          List<ProtoStatement> promoteTargetThenField = [
+            if_(x.isNot('C'), [return_()]),
+            if_(x.property('_field').eq(nullLiteral), [return_()]),
+          ];
+          List<ProtoStatement> promoteFieldFirst =
+              promoteFieldThenTargetThenField(x, 'int');
+          h.run([
+            declare(x, type: 'B', initializer: expr('B')),
+            if_(
+              expr('bool'),
+              promoteInThen ? promoteFieldFirst : promoteTargetThenField,
+              promoteInThen ? promoteTargetThenField : promoteFieldFirst,
+            ),
+            checkPromotionChain(x.property('_field'), ['String']),
+            checkPromoted(x.property('_field'), 'String'),
+            x.property('_field').checkType('String'),
+          ]);
+        }
+
+        test('promoted before target in then branch only', () {
+          checkJoinWithUnpromoted(promoteInThen: true);
+        });
+
+        test('promoted before target in else branch only', () {
+          checkJoinWithUnpromoted(promoteInThen: false);
+        });
+      });
+
+      test('stale promotions partially discarded', () {
+        setUpClasses(cFieldType: 'String?');
+        var x = Var('x');
+        h.run([
+          declare(x, type: 'B', initializer: expr('B')),
+          if_(x.property('_field').isNot('Object'), [return_()]),
+          if_(x.property('_field').isNot('int'), [return_()]),
+          checkPromotionChain(x.property('_field'), ['Object', 'int']),
+          if_(x.isNot('C'), [return_()]),
+          // `int` is not a subtype of `String?`, so the promotion is ignored.
+          checkPromoted(x.property('_field'), null),
+          x.property('_field').checkType('String?'),
+          if_(x.property('_field').eq(nullLiteral), [return_()]),
+          // `String` is a strict subtype of `Object` but not of `int`, so only
+          // `int` is discarded.
+          checkPromotionChain(x.property('_field'), ['Object', 'String']),
+          checkPromoted(x.property('_field'), 'String'),
+        ]);
+      });
+
+      group('promotion lost after join:', () {
+        // When the promotion-chain-intersection-join feature is enabled,
+        // discarding stale promotions can cause promotions to be lost after a
+        // join, since a promotion chain can't represent an intersection of
+        // unrelated types.
+        void setUpUnrelatedInterfaces() {
+          h.addSuperInterfaces('E', (_) => [Type('Object')]);
+          h.addSuperInterfaces('F', (_) => [Type('Object')]);
+          setUpClasses(cFieldType: 'F?');
+        }
+
+        List<ProtoStatement> promoteThenJoin(Var x) => [
+          declare(x, type: 'B', initializer: expr('B')),
+          if_(x.property('_field').isNot('E'), [return_()]),
+          if_(x.is_('C').and(x.property('_field').notEq(nullLiteral)), []),
+        ];
+
+        test('when enabled', () {
+          setUpUnrelatedInterfaces();
+          var x = Var('x');
+          h.run([
+            ...promoteThenJoin(x),
+            // Joining `[F]` with `[E]` produces `[]`.
+            checkPromotionChain(x.property('_field'), []),
+            checkNotPromoted(x.property('_field')),
+          ]);
+        });
+
+        test('when disabled', () {
+          h.disablePromotionChainIntersectionJoin();
+          setUpUnrelatedInterfaces();
+          var x = Var('x');
+          h.run([
+            ...promoteThenJoin(x),
+            // Joining `[E, F]` with `[E]` produces `[E]`.
+            checkPromotionChain(x.property('_field'), ['E']),
+            checkPromoted(x.property('_field'), 'E'),
+          ]);
+        });
+      });
+    });
+
+    group('pattern promotions of property not filtered:', () {
+      // When a pattern promotes a property, it uses a reference to the
+      // property that was created before the pattern began, so its type
+      // doesn't reflect promotions made by earlier subpatterns or `switch`
+      // cases. Therefore a promotion made by a later subpattern or case might
+      // not be a strict subtype of the last type in the property's promotion
+      // chain. But the target of the property access hasn't been promoted, so
+      // the last type in the property's promotion chain is a subtype of the
+      // property's unpromoted type, and the property's promotion chain is not
+      // filtered (see `FlowModel._filterPropertyPromotionChain`). These tests
+      // verify that the behavior in this situation is unchanged.
+      test('logical-and pattern with unrelated types', () {
+        h.addSuperInterfaces('A', (_) => [Type('Object')]);
+        h.addSuperInterfaces('B', (_) => [Type('Object')]);
+        h.addMember('D', '_field', 'Object?', promotable: true);
+        var x = Var('x');
+        h.run([
+          declare(x, type: 'D', initializer: expr('D')),
+          if_(
+            expr('bool'),
+            [
+              if_(x.property('_field').isNot('A'), [return_()]),
+            ],
+            [
+              ifCase(
+                x.property('_field'),
+                wildcard(type: 'A').and(wildcard(type: 'B')),
+                [],
+                [return_()],
+              ),
+            ],
+          ),
+          checkPromoted(x.property('_field'), 'A'),
+        ]);
+      });
+
+      test('logical-and pattern with subtype then supertype', () {
+        h.addSuperInterfaces('A', (_) => [Type('Object')]);
+        h.addSuperInterfaces('B', (_) => [Type('A'), Type('Object')]);
+        h.addMember('D', '_field', 'Object?', promotable: true);
+        var x = Var('x');
+        h.run(
+          [
+            declare(x, type: 'D', initializer: expr('D')),
+            if_(
+              expr('bool'),
+              [
+                if_(x.property('_field').isNot('B'), [return_()]),
+              ],
+              [
+                ifCase(
+                  x.property('_field'),
+                  wildcard(type: 'B')
+                      .and(wildcard(type: 'A')..errorId = 'WILDCARD'),
+                  [],
+                  [return_()],
+                ),
+              ],
+            ),
+            checkPromoted(x.property('_field'), 'B'),
+          ],
+          expectedErrors: {
+            'unnecessaryWildcardPattern(pattern: WILDCARD, '
+                'kind: logicalAndPatternOperand)',
+          },
+        );
+      });
+
+      test('switch cases', () {
+        h.addMember('D', '_field', 'FutureOr<num>?', promotable: true);
+        var x = Var('x');
+        h.run([
+          declare(x, type: 'D', initializer: expr('D')),
+          if_(
+            expr('bool'),
+            [
+              if_(x.property('_field').eq(nullLiteral), [return_()]),
+            ],
+            [
+              switch_(x.property('_field'), [
+                nullLiteral.pattern.then([return_()]),
+                objectPattern(
+                  requiredType: 'Future<num>',
+                  fields: [],
+                ).then([return_()]),
+                default_.then([break_()]),
+              ]),
+            ],
+          ),
+          checkPromoted(x.property('_field'), 'FutureOr<num>'),
+        ]);
+      });
+    });
+
     test('field not promotable after outer variable demoted', () {
       h.addMember('B', '_field', 'Object?', promotable: false);
       h.addMember('C', '_field', 'Object?', promotable: true);
@@ -7030,9 +7367,8 @@ main() {
           declare(c, initializer: expr('C')),
           c.property('_property').nonNullAssert,
           checkPromoted(c.property('_property'), 'int'),
-          try_([
-            checkPromoted(c.property('_property'), 'int'),
-          ]).finally_([checkPromoted(c.property('_property'), 'int')]),
+          try_([checkPromoted(c.property('_property'), 'int')])
+              .finally_([checkPromoted(c.property('_property'), 'int')]),
           checkPromoted(c.property('_property'), 'int'),
         ]);
       });
@@ -8110,9 +8446,8 @@ main() {
               checkReachable(true),
               checkNotPromoted(x),
             ]),
-            wildcard(
-              expectInferredType: 'int',
-            ).then([checkReachable(true), checkNotPromoted(x)]),
+            wildcard(expectInferredType: 'int')
+                .then([checkReachable(true), checkNotPromoted(x)]),
           ]),
         ]);
       });
@@ -8342,9 +8677,9 @@ main() {
               ifCase(
                 x,
                 recordPattern([
-                  wildcard(
-                    type: 'int',
-                  ).and(wildcard(type: 'num')..errorId = 'NUM').recordField(),
+                  wildcard(type: 'int')
+                      .and(wildcard(type: 'num')..errorId = 'NUM')
+                      .recordField(),
                 ]),
                 [checkPromoted(x, '(int,)')],
               ),
@@ -8378,9 +8713,9 @@ main() {
               ifCase(
                 x,
                 recordPattern([
-                  wildcard(
-                    type: 'int',
-                  ).and(wildcard(type: 'num')..errorId = 'NUM').recordField(),
+                  wildcard(type: 'int')
+                      .and(wildcard(type: 'num')..errorId = 'NUM')
+                      .recordField(),
                 ]),
                 [checkPromoted(x, '(int,)')],
               ),
@@ -8770,9 +9105,9 @@ main() {
             ifCase(
               x,
               recordPattern([
-                wildcard(
-                  type: 'int',
-                ).or(wildcard(type: 'Object')).recordField(),
+                wildcard(type: 'int')
+                    .or(wildcard(type: 'Object'))
+                    .recordField(),
               ]),
               [checkNotPromoted(x)],
             ),
@@ -8786,9 +9121,9 @@ main() {
             ifCase(
               x,
               recordPattern([
-                wildcard(
-                  type: 'Object',
-                ).or(wildcard(type: 'int')).recordField(),
+                wildcard(type: 'Object')
+                    .or(wildcard(type: 'int'))
+                    .recordField(),
               ]),
               [checkNotPromoted(x)],
             ),
@@ -8802,9 +9137,9 @@ main() {
             ifCase(
               x,
               recordPattern([
-                wildcard(
-                  type: 'num',
-                ).or(wildcard(type: 'Object')).recordField(),
+                wildcard(type: 'num')
+                    .or(wildcard(type: 'Object'))
+                    .recordField(),
               ]),
               [checkNotPromoted(x)],
             ),
@@ -8818,9 +9153,9 @@ main() {
             ifCase(
               x,
               recordPattern([
-                wildcard(
-                  type: 'Object',
-                ).or(wildcard(type: 'num')).recordField(),
+                wildcard(type: 'Object')
+                    .or(wildcard(type: 'num'))
+                    .recordField(),
               ]),
               [checkNotPromoted(x)],
             ),
@@ -8837,9 +9172,9 @@ main() {
             ifCase(
               x,
               recordPattern([
-                wildcard(
-                  type: 'int',
-                ).or(wildcard(type: 'double')).recordField(),
+                wildcard(type: 'int')
+                    .or(wildcard(type: 'double'))
+                    .recordField(),
               ]),
               [checkNotPromoted(x)],
             ),
@@ -9269,9 +9604,8 @@ main() {
             wildcard().when(second(c.write(expr('C')), expr('bool'))).then([
               break_(),
             ]),
-            mapPattern([
-              mapPatternEntry(intLiteral(0), wildcard()),
-            ]).then([checkNotPromoted(c.property('_property'))]),
+            mapPattern([mapPatternEntry(intLiteral(0), wildcard())])
+                .then([checkNotPromoted(c.property('_property'))]),
           ]),
         ]);
       });
@@ -9885,9 +10219,8 @@ main() {
             ifCase(
               x,
               recordPattern([
-                recordPattern([
-                  wildcard(type: 'int').recordField(),
-                ]).recordField(),
+                recordPattern([wildcard(type: 'int').recordField()])
+                    .recordField(),
               ]),
               [checkPromoted(x, '((int,),)')],
             ),
@@ -9901,9 +10234,8 @@ main() {
             ifCase(
               x,
               recordPattern([
-                recordPattern([
-                  wildcard(type: 'num').recordField(),
-                ]).recordField(),
+                recordPattern([wildcard(type: 'num').recordField()])
+                    .recordField(),
               ]),
               [checkNotPromoted(x)],
             ),
@@ -9917,9 +10249,8 @@ main() {
             ifCase(
               x,
               recordPattern([
-                recordPattern([
-                  wildcard(type: 'num').recordField(),
-                ]).recordField(),
+                recordPattern([wildcard(type: 'num').recordField()])
+                    .recordField(),
               ]),
               [checkNotPromoted(x)],
             ),
@@ -9960,9 +10291,9 @@ main() {
         h.run([
           declare(c, initializer: expr('C')),
           switch_(c.property('_property'), [
-            recordPattern([]).when(expr('bool')).then([
-              checkPromoted(c.property('_property'), '()'),
-            ]),
+            recordPattern([])
+                .when(expr('bool'))
+                .then([checkPromoted(c.property('_property'), '()')]),
             wildcard().when(second(c.write(expr('C')), expr('bool'))).then([
               break_(),
             ]),
@@ -10056,9 +10387,8 @@ main() {
                 '==',
                 nullLiteral,
               ).then([checkReachable(true), checkNotPromoted(x)]),
-              wildcard(
-                expectInferredType: 'int',
-              ).then([checkReachable(true), checkNotPromoted(x)]),
+              wildcard(expectInferredType: 'int')
+                  .then([checkReachable(true), checkNotPromoted(x)]),
             ]),
           ]);
         });
@@ -10328,9 +10658,9 @@ main() {
           h.run([
             declare(x, type: 'int?'),
             switchExpr(expr('Object?'), [
-              wildcard(
-                type: 'String',
-              ).when(x.eq(nullLiteral)).thenExpr(intLiteral(0)),
+              wildcard(type: 'String')
+                  .when(x.eq(nullLiteral))
+                  .thenExpr(intLiteral(0)),
               wildcard().thenExpr(
                 second(
                   listLiteral(elementType: 'dynamic', [checkNotPromoted(x)]),
@@ -10437,9 +10767,8 @@ main() {
         // following cases still will be useful once the error is fixed.
         h.run([
           switchExpr(expr('num'), [
-            wildcard(
-              type: 'error',
-            ).thenExpr(second(checkReachable(true), intLiteral(0))),
+            wildcard(type: 'error')
+                .thenExpr(second(checkReachable(true), intLiteral(0))),
             wildcard().thenExpr(second(checkReachable(true), intLiteral(1))),
           ]),
         ]);
@@ -10614,17 +10943,15 @@ main() {
                 checkPromoted(x, 'num'),
                 checkNotPromoted(y),
                 switch_(y, [
-                  wildcard(
-                    type: 'int',
-                  ).then([checkPromoted(x, 'num'), checkPromoted(y, 'int')]),
+                  wildcard(type: 'int')
+                      .then([checkPromoted(x, 'num'), checkPromoted(y, 'int')]),
                   default_.then([return_()]),
                 ]),
                 checkPromoted(x, 'num'),
                 checkPromoted(y, 'int'),
               ]),
-              wildcard(
-                type: 'String',
-              ).then([checkPromoted(x, 'String'), checkNotPromoted(y)]),
+              wildcard(type: 'String')
+                  .then([checkPromoted(x, 'String'), checkNotPromoted(y)]),
             ]),
           ]);
         });
@@ -11431,15 +11758,14 @@ main() {
         h.run([
           declare(c, initializer: expr('C')),
           switch_(c.property('_property'), [
-            wildcard(type: 'int').when(expr('bool')).then([
-              checkPromoted(c.property('_property'), 'int'),
-            ]),
+            wildcard(type: 'int')
+                .when(expr('bool'))
+                .then([checkPromoted(c.property('_property'), 'int')]),
             wildcard().when(second(c.write(expr('C')), expr('bool'))).then([
               break_(),
             ]),
-            wildcard(
-              type: 'int',
-            ).then([checkNotPromoted(c.property('_property'))]),
+            wildcard(type: 'int')
+                .then([checkNotPromoted(c.property('_property'))]),
           ]),
         ]);
       });
@@ -11960,9 +12286,8 @@ main() {
         var x = Var('x');
         h.run([
           declare(x, type: 'int'),
-          expr(
-            'C',
-          ).invokeMethod(isNullAware: true, 'foo', [x.write(expr('int'))]),
+          expr('C')
+              .invokeMethod(isNullAware: true, 'foo', [x.write(expr('int'))]),
           checkAssigned(x, true),
         ]);
       });
@@ -11973,9 +12298,8 @@ main() {
         var x = Var('x');
         h.run([
           declare(x, type: 'int'),
-          expr(
-            'C',
-          ).invokeMethod(isNullAware: true, 'foo', [x.write(expr('int'))]),
+          expr('C')
+              .invokeMethod(isNullAware: true, 'foo', [x.write(expr('int'))]),
           checkAssigned(x, false),
         ]);
       });
@@ -12912,9 +13236,8 @@ main() {
           var a = Var('a');
           h.run([
             declare(a, initializer: expr('A')),
-            expr(
-              'bool',
-            ).conditional(nullLiteral, a.property('_i', isNullAware: true)),
+            expr('bool')
+                .conditional(nullLiteral, a.property('_i', isNullAware: true)),
           ]);
         });
       });
@@ -13013,14 +13336,12 @@ main() {
           var x = Var('x');
           h.run([
             declare(x, initializer: expr('Object?')),
-            try_([
-              x.as_('List<Object?>'),
-              checkPromoted(x, 'List<Object?>'),
-            ]).finally_([
-              checkNotPromoted(x),
-              x.as_('List<dynamic>'),
-              checkPromoted(x, 'List<dynamic>'),
-            ]),
+            try_([x.as_('List<Object?>'), checkPromoted(x, 'List<Object?>')])
+                .finally_([
+                  checkNotPromoted(x),
+                  x.as_('List<dynamic>'),
+                  checkPromoted(x, 'List<dynamic>'),
+                ]),
             // After the try/finally, the promotions in the try block are
             // layered over the promotions in the finally block (see
             // https://github.com/dart-lang/language/issues/4382), so the
@@ -13154,14 +13475,12 @@ main() {
           var x = Var('x');
           h.run([
             declare(x, initializer: expr('Object?')),
-            try_([
-              x.as_('List<Object?>'),
-              checkPromoted(x, 'List<Object?>'),
-            ]).finally_([
-              checkNotPromoted(x),
-              x.as_('List<dynamic>'),
-              checkPromoted(x, 'List<dynamic>'),
-            ]),
+            try_([x.as_('List<Object?>'), checkPromoted(x, 'List<Object?>')])
+                .finally_([
+                  checkNotPromoted(x),
+                  x.as_('List<dynamic>'),
+                  checkPromoted(x, 'List<dynamic>'),
+                ]),
             // After the try/finally, the promotions in the finally block are
             // layered over the promotions in the try block, so the
             // promotion to `List<dynamic>` layers over the promotion to
@@ -13761,9 +14080,8 @@ main() {
 
     test('Anonymous method with target having no ExpressionInfo', () {
       h.run([
-        expr(
-          'A',
-        ).invokeAnonymousMethod([checkReachable(true)], returnType: 'void'),
+        expr('A')
+            .invokeAnonymousMethod([checkReachable(true)], returnType: 'void'),
       ]);
     });
 
@@ -13896,12 +14214,15 @@ main() {
         this_.as_('A'),
         this_.property('_field').as_('B'),
         this_.property('_field').property('_subField').as_('num'),
-        this_
-            .property('_field')
-            .invokeAnonymousMethod(isParameterless: false, parameter: p, [
-              checkNotPromoted(p.property('_subField')),
-              p.property('_subField').as_('int'),
-            ], returnType: 'void'),
+        this_.property('_field').invokeAnonymousMethod(
+          isParameterless: false,
+          parameter: p,
+          [
+            checkNotPromoted(p.property('_subField')),
+            p.property('_subField').as_('int'),
+          ],
+          returnType: 'void',
+        ),
         checkPromoted(this_.property('_field').property('_subField'), 'num'),
       ]);
     });
@@ -14075,18 +14396,18 @@ String _describeMatcher(Matcher matcher) {
 
 Matcher _matchOfInterestSet(List<String> expectedTypes) {
   return predicate(
-    (List<SharedTypeView> x) => unorderedEquals(
-      expectedTypes,
-    ).matches(x.map((t) => t.unwrapTypeView<Type>().type).toList(), {}),
+    (List<SharedTypeView> x) =>
+        unorderedEquals(expectedTypes)
+            .matches(x.map((t) => t.unwrapTypeView<Type>().type).toList(), {}),
     'interest set $expectedTypes',
   );
 }
 
 Matcher _matchPromotionChain(List<String> expectedTypes) {
   return predicate(
-    (List<SharedTypeView> x) => equals(
-      expectedTypes,
-    ).matches(x.map((t) => t.unwrapTypeView<Type>().type).toList(), {}),
+    (List<SharedTypeView> x) =>
+        equals(expectedTypes)
+            .matches(x.map((t) => t.unwrapTypeView<Type>().type).toList(), {}),
     'promotion chain $expectedTypes',
   );
 }

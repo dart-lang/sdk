@@ -7,6 +7,7 @@ import 'package:kernel/ast.dart';
 import '../base/lookup_result.dart';
 import '../base/name_space.dart';
 import '../base/scope.dart';
+import '../base/uri_offset.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/member_builder.dart';
 import '../builder/type_builder.dart';
@@ -201,6 +202,10 @@ class DillExtensionBuilder extends ExtensionBuilderImpl
       content: content,
     );
   }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  UriOffsetLength get uriOffset => new UriOffset(fileUri, fileOffset);
 
   @override
   DillLibraryBuilder get parent => libraryBuilder;

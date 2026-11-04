@@ -160,8 +160,6 @@ final class DartdevLogger implements Logger {
   }
 }
 
-bool isDiagnostics = false;
-
 /// When set, this function is executed from the [DartdevCommand] constructor to
 /// contribute additional flags.
 void Function(ArgParser argParser, String cmdName)? flagContributor;

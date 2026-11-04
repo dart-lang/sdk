@@ -39,7 +39,7 @@ Future<void>? future_null;
 }
 
 @reflectiveTest
-class ReplaceNullWithVoidTest extends FixProcessorLintTest {
+class ReplaceNullWithVoidTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.replaceNullWithVoid;
 

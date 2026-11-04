@@ -62,6 +62,14 @@ num pow(num x, num exponent) {
   return JS('num', r'Math.pow(#, #)', x, exponent);
 }
 
+@patch
+int imul32(int a, int b) => JS(
+  'returns:int;depends:none;effects:none;gvn:true',
+  r'Math.imul(#, #)',
+  a,
+  b,
+);
+
 const int _POW2_32 = 0x100000000;
 
 @patch

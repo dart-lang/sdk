@@ -658,6 +658,8 @@ ArgParser _createParser({required bool verbose}) => ArgParser()
           'Compile the Dart code into Kernel and then into '
           'an app snapshot.',
       'dartk': 'Compile the Dart code into Kernel before running test.',
+      'dart_resident':
+          'Run the Dart code using "dart run -r" with the resident frontend compiler.',
       'dartkp':
           'Compile the Dart code into Kernel and then Kernel into '
           'AOT snapshot before running the test.',

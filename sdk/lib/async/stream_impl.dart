@@ -118,17 +118,17 @@ class _BufferingStreamSubscription<T>
   _PendingEvents<T>? _pending;
 
   _BufferingStreamSubscription(
-    void onData(T data)?,
+    void Function(T data)? onData,
     Function? onError,
-    void onDone()?,
+    void Function()? onDone,
     bool cancelOnError,
   ) : this.zoned(Zone.current, onData, onError, onDone, cancelOnError);
 
   _BufferingStreamSubscription.zoned(
     this._zone,
-    void onData(T data)?,
+    void Function(T data)? onData,
     Function? onError,
-    void onDone()?,
+    void Function()? onDone,
     bool cancelOnError,
   ) : _state =
           (cancelOnError ? _STATE_CANCEL_ON_ERROR : 0) |
@@ -153,7 +153,7 @@ class _BufferingStreamSubscription<T>
 
   // StreamSubscription interface.
 
-  void onData(void handleData(T event)?) {
+  void onData(void Function(T event)? handleData) {
     _onData = _registerDataHandler<T>(_zone, handleData);
   }
 
@@ -190,7 +190,7 @@ class _BufferingStreamSubscription<T>
     );
   }
 
-  void onDone(void handleDone()?) {
+  void onDone(void Function()? handleDone) {
     _onDone = _registerDoneHandler(_zone, handleDone);
   }
 
@@ -507,9 +507,9 @@ abstract class _StreamImpl<T> extends Stream<T> {
   // Stream interface.
 
   StreamSubscription<T> listen(
-    void onData(T data)?, {
+    void Function(T data)? onData, {
     Function? onError,
-    void onDone()?,
+    void Function()? onDone,
     bool? cancelOnError,
   }) {
     cancelOnError ??= false;
@@ -526,9 +526,9 @@ abstract class _StreamImpl<T> extends Stream<T> {
   // -------------------------------------------------------------------
   /// Create a subscription object. Called by [subscribe].
   StreamSubscription<T> _createSubscription(
-    void onData(T data)?,
+    void Function(T data)? onData,
     Function? onError,
-    void onDone()?,
+    void Function()? onDone,
     bool cancelOnError,
   ) {
     return new _BufferingStreamSubscription<T>(
@@ -746,11 +746,11 @@ class _DoneStreamSubscription<T> implements StreamSubscription<T> {
   static int _incrementPauseCount(int state) => state + _statePausedOnce;
   static int _decrementPauseCount(int state) => state - _statePausedOnce;
 
-  void onData(void handleData(T data)?) {}
+  void onData(void Function(T data)? handleData) {}
 
   void onError(Function? handleError) {}
 
-  void onDone(void handleDone()?) {
+  void onDone(void Function()? handleDone) {
     if (!_isDone(_state)) {
       if (handleDone != null) handleDone = _zone.registerCallback(handleDone);
       _onDone = handleDone;
@@ -828,8 +828,8 @@ class _AsBroadcastStream<T> extends Stream<T> {
 
   _AsBroadcastStream(
     this._source,
-    void onListenHandler(StreamSubscription<T> subscription)?,
-    void onCancelHandler(StreamSubscription<T> subscription)?,
+    void Function(StreamSubscription<T> subscription)? onListenHandler,
+    void Function(StreamSubscription<T> subscription)? onCancelHandler,
   ) : _onListenHandler = onListenHandler == null
           ? null
           : Zone.current.registerUnaryCallback<void, StreamSubscription<T>>(
@@ -847,9 +847,9 @@ class _AsBroadcastStream<T> extends Stream<T> {
   bool get isBroadcast => true;
 
   StreamSubscription<T> listen(
-    void onData(T data)?, {
+    void Function(T data)? onData, {
     Function? onError,
-    void onDone()?,
+    void Function()? onDone,
     bool? cancelOnError,
   }) {
     var controller = _controller;
@@ -924,7 +924,7 @@ class _BroadcastSubscriptionWrapper<T> implements StreamSubscription<T> {
 
   _BroadcastSubscriptionWrapper(this._stream);
 
-  void onData(void handleData(T data)?) {
+  void onData(void Function(T data)? handleData) {
     throw new UnsupportedError(
       "Cannot change handlers of asBroadcastStream source subscription.",
     );
@@ -936,7 +936,7 @@ class _BroadcastSubscriptionWrapper<T> implements StreamSubscription<T> {
     );
   }
 
-  void onDone(void handleDone()?) {
+  void onDone(void Function()? handleDone) {
     throw new UnsupportedError(
       "Cannot change handlers of asBroadcastStream source subscription.",
     );
@@ -1170,9 +1170,9 @@ class _MultiStream<T> extends Stream<T> {
   _MultiStream(this._onListen, this.isBroadcast);
 
   StreamSubscription<T> listen(
-    void onData(T event)?, {
+    void Function(T event)? onData, {
     Function? onError,
-    void onDone()?,
+    void Function()? onDone,
     bool? cancelOnError,
   }) {
     var controller = _MultiStreamController<T>();

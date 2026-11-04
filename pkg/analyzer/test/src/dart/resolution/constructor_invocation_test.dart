@@ -30,7 +30,7 @@ typedef Fn<T> = void Function(T);
 void bar() {
   Fn<int>.foo();
 //        ^^^
-// [diag.undefinedMethodOnFunctionType] The method 'foo' isn't defined for the 'Fn' function type.
+// [diag.undefinedStaticMemberReadNoStaticMembers] The function type 'Fn' doesn't have a static member named 'foo'.
 }
 
 extension E on Type {
@@ -105,7 +105,7 @@ import 'a.dart' as a;
 void bar() {
   a.Fn<int>.foo();
 //          ^^^
-// [diag.undefinedMethodOnFunctionType] The method 'foo' isn't defined for the 'a.Fn' function type.
+// [diag.undefinedStaticMemberReadNoStaticMembers] The function type 'a.Fn' doesn't have a static member named 'foo'.
 }
 
 extension E on Type {
@@ -872,7 +872,7 @@ const x = C<int>.();
 // [diag.missingIdentifier] Expected an identifier.
 ''');
 
-    var node = result.findNode.singleVariableDeclaration.initializer2!;
+    var node = result.findNode.singleTopLevelVariable.initializer!;
     assertResolvedNodeText(node, r'''
 ConstructorInvocation
   constructorReference: ConstructorReference2
@@ -1302,26 +1302,26 @@ ConstructorInvocation
         period: .
         element: <testLibraryFragment>::@prefix::p
       name: Foo
-      typeArguments: TypeArgumentList
-        leftBracket: <
-        arguments
-          NamedType
-            name: int
-            element: dart:core::@class::int
-            type: int
-        rightBracket: >
       element: package:test/a.dart::@class::Foo
-      type: Foo<int>
+      type: Foo<dynamic>
     selector: ConstructorSelector
       period: .
       name2: bar
     element: SubstitutedConstructorElementImpl
       baseElement: package:test/a.dart::@class::Foo::@constructor::bar
-      substitution: {X: int}
+      substitution: {X: dynamic}
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  staticType: Foo<int>
+  staticType: Foo<dynamic>
 V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
@@ -1330,30 +1330,30 @@ V1: InstanceCreationExpression
         period: .
         element: <testLibraryFragment>::@prefix::p
       name: Foo
-      typeArguments: TypeArgumentList
-        leftBracket: <
-        arguments
-          NamedType
-            name: int
-            element: dart:core::@class::int
-            type: int
-        rightBracket: >
       element: package:test/a.dart::@class::Foo
-      type: Foo<int>
+      type: Foo<dynamic>
     period: .
     name: SimpleIdentifier
       token: bar
       element: SubstitutedConstructorElementImpl
         baseElement: package:test/a.dart::@class::Foo::@constructor::bar
-        substitution: {X: int}
+        substitution: {X: dynamic}
       staticType: null
     element: SubstitutedConstructorElementImpl
       baseElement: package:test/a.dart::@class::Foo::@constructor::bar
-      substitution: {X: int}
+      substitution: {X: dynamic}
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  staticType: Foo<int>
+  staticType: Foo<dynamic>
 ''');
   }
 
@@ -1866,7 +1866,7 @@ const x = p.C<int>.();
 ''');
 
     assertResolvedNodeText(
-      result.findNode.singleVariableDeclaration.initializer2!,
+      result.findNode.singleTopLevelVariable.initializer!,
       r'''
 ConstructorInvocation
   constructorReference: ConstructorReference2
@@ -3291,8 +3291,8 @@ V1: InstanceCreationExpression
     var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   new Unresolved.named(0);
-//    ^^^^^^^^^^^^^^^^
-// [diag.undefinedIdentifier] Undefined name 'Unresolved'.
+//    ^^^^^^^^^^
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'Unresolved'.
 }
 
 ''');
@@ -3348,8 +3348,8 @@ V1: InstanceCreationExpression
     var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   new unresolved.Foo.bar(0);
-//    ^^^^^^^^^^^^^^
-// [diag.undefinedIdentifier] Undefined name 'unresolved'.
+//    ^^^^^^^^^^
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'unresolved'.
 }
 
 ''');

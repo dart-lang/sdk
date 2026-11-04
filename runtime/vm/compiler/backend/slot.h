@@ -250,7 +250,8 @@ class ParsedFunction;
 // Note: Currently LoadFieldInstr::IsImmutableLengthLoad() assumes that no
 // slots of non-Dart values represent length loads.
 #define UNBOXED_NATIVE_NONDART_SLOTS_LIST(V)                                   \
-  V(StreamInfo, _, enabled, IntPtr, VAR)
+  V(StreamInfo, _, enabled, IntPtr, VAR)                                       \
+  V(TimelineStream, _, enabled, IntPtr, VAR)
 
 // List of slots that correspond to fields of non-Dart objects containing
 // untagged addresses in the following format:

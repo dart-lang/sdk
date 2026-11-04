@@ -127,7 +127,7 @@ final class ServerIsolateChannel implements ServerCommunicationChannel {
     receivePort.listen((dynamic input) {
       if (input is SendPort) {
         _sendPort = input;
-        channelReady.complete(null);
+        channelReady.complete();
       } else if (input is Map<String, Object?>) {
         if (input.containsKey('id')) {
           var encodedInput = json.encode(input);

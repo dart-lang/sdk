@@ -118,9 +118,6 @@ class _FactoryBodyBuildingContext(final FactoryFragment _fragment)
   bool get shouldFinishFunction => true;
 
   @override
-  bool get isImplementation => _fragment.declaration.isImplementation;
-
-  @override
   List<TypeParameter>? get thisTypeParameters => null;
 
   @override

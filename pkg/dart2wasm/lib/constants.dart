@@ -1660,7 +1660,8 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
         if (type is w.StructType) {
           for (w.FieldType field in type.fields) {
             final unpackedType = field.type.unpacked;
-            if (unpackedType is w.RefType && !unpackedType.nullable) {
+            if (unpackedType is w.RefType &&
+                !hasTrivialDummyValue(unpackedType)) {
               childConstants.add(
                 ensureConstant(
                   constants._getDummyValueConstant(unpackedType.heapType),

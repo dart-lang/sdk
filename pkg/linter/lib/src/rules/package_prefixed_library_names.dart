@@ -15,11 +15,6 @@ import '../diagnostic.dart' as diag;
 const _desc =
     r'Prefix library names with the package name and a dot-separated path.';
 
-/// Checks if the [name] is equivalent to the specified [prefix] or at least
-/// is prefixed by it with a delimiting `.`.
-bool matchesOrIsPrefixedBy(String name, String prefix) =>
-    name == prefix || name.startsWith('$prefix.');
-
 class PackagePrefixedLibraryNames extends AnalysisRule {
   new()
     : super(name: LintNames.package_prefixed_library_names, description: _desc);

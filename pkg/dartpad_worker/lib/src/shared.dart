@@ -25,5 +25,6 @@ typedef CompiledModule = ({
 typedef CompileResult = ({
   List<CompiledModule> modules,
   String entrypointLibraryUri,
+  String packageRoot,
   String log,
 });

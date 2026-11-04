@@ -33,6 +33,48 @@ class RenameClassTest extends _AbstractRenameTest {
   @override
   String get _kind => 'class';
 
+  Future<void> test_annotation_constructor_removed() async {
+    setPackageContent('''
+class New {
+  const New();
+}
+''');
+    setPackageData(_rename(['Old'], 'New'));
+    await resolveTestCode('''
+import '$importUri';
+
+@Old()
+void f(New n) {}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+@New()
+void f(New n) {}
+''');
+  }
+
+  Future<void> test_annotation_constructor_removed_prefixed() async {
+    setPackageContent('''
+class New {
+  const New();
+}
+''');
+    setPackageData(_rename(['Old'], 'New'));
+    await resolveTestCode('''
+import '$importUri' as p;
+
+@p.Old()
+void f() {}
+''');
+    await assertHasFix('''
+import '$importUri' as p;
+
+@p.New()
+void f() {}
+''');
+  }
+
   Future<void> test_as_deprecated() async {
     setPackageContent('''
 class A {}
@@ -75,6 +117,52 @@ import '$importUri';
 
 void f(A o) {
   print(o as New);
+}
+''');
+  }
+
+  Future<void> test_constructor_const_removed() async {
+    setPackageContent('''
+class New {
+  const New();
+}
+''');
+    setPackageData(_rename(['Old'], 'New'));
+    await resolveTestCode('''
+import '$importUri';
+
+void f(New n) {
+  const Old();
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f(New n) {
+  const New();
+}
+''');
+  }
+
+  Future<void> test_constructor_const_removed_prefixed() async {
+    setPackageContent('''
+class New {
+  const New.c();
+}
+''');
+    setPackageData(_rename(['Old'], 'New'));
+    await resolveTestCode('''
+import '$importUri' as p;
+
+void f() {
+  const p.Old.c();
+}
+''');
+    await assertHasFix('''
+import '$importUri' as p;
+
+void f() {
+  const p.New.c();
 }
 ''');
   }
@@ -125,6 +213,52 @@ import '$importUri';
 
 void f() {
   New.c();
+}
+''');
+  }
+
+  Future<void> test_constructor_new_removed() async {
+    setPackageContent('''
+class New {
+  New();
+}
+''');
+    setPackageData(_rename(['Old'], 'New'));
+    await resolveTestCode('''
+import '$importUri';
+
+void f(New n) {
+  new Old();
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f(New n) {
+  new New();
+}
+''');
+  }
+
+  Future<void> test_constructor_new_removed_prefixed() async {
+    setPackageContent('''
+class New {
+  New.c();
+}
+''');
+    setPackageData(_rename(['Old'], 'New'));
+    await resolveTestCode('''
+import '$importUri' as p;
+
+void f() {
+  new p.Old.c();
+}
+''');
+    await assertHasFix('''
+import '$importUri' as p;
+
+void f() {
+  new p.New.c();
 }
 ''');
   }
@@ -202,6 +336,74 @@ void f() {
 ''');
   }
 
+  Future<void> test_inCatch_removed() async {
+    setPackageContent('''
+class New implements Exception {}
+''');
+    setPackageData(_rename(['Old'], 'New'));
+    await resolveTestCode('''
+import '$importUri';
+
+void f(New n) {
+  try {} on Old catch (e) {
+    print(e);
+  }
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f(New n) {
+  try {} on New catch (e) {
+    print(e);
+  }
+}
+''');
+  }
+
+  Future<void> test_inCatch_removed_prefixed() async {
+    setPackageContent('''
+class New implements Exception {}
+''');
+    setPackageData(_rename(['Old'], 'New'));
+    await resolveTestCode('''
+import '$importUri' as p;
+
+void f() {
+  try {} on p.Old catch (e) {
+    print(e);
+  }
+}
+''');
+    await assertHasFix('''
+import '$importUri' as p;
+
+void f() {
+  try {} on p.New catch (e) {
+    print(e);
+  }
+}
+''', filter: ignoreUnusedImport);
+  }
+
+  Future<void> test_inClassTypeAlias_removed() async {
+    setPackageContent('''
+class New {}
+mixin M {}
+''');
+    setPackageData(_rename(['Old'], 'New'));
+    await resolveTestCode('''
+import '$importUri';
+
+class C = Old with M;
+''');
+    await assertHasFix('''
+import '$importUri';
+
+class C = New with M;
+''');
+  }
+
   Future<void> test_inExtends_deprecated() async {
     setPackageContent('''
 @deprecated
@@ -235,6 +437,24 @@ class C extends Old {}
 import '$importUri';
 
 class C extends New {}
+''');
+  }
+
+  Future<void> test_inExtends_withMixin_removed() async {
+    setPackageContent('''
+class New {}
+mixin M {}
+''');
+    setPackageData(_rename(['Old'], 'New'));
+    await resolveTestCode('''
+import '$importUri';
+
+class C extends Old with M {}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+class C extends New with M {}
 ''');
   }
 
@@ -432,6 +652,40 @@ import '$importUri';
 
 class C with New {}
 ''');
+  }
+
+  Future<void> test_is_removed() async {
+    setPackageContent('''
+class New {}
+''');
+    setPackageData(_rename(['Old'], 'New'));
+    await resolveTestCode('''
+import '$importUri';
+
+bool f(Object o, New n) => o is Old;
+''');
+    await assertHasFix('''
+import '$importUri';
+
+bool f(Object o, New n) => o is New;
+''');
+  }
+
+  Future<void> test_isNot_removed_prefixed() async {
+    setPackageContent('''
+class New {}
+''');
+    setPackageData(_rename(['Old'], 'New'));
+    await resolveTestCode('''
+import '$importUri' as p;
+
+bool f(Object o) => o is! p.Old;
+''');
+    await assertHasFix('''
+import '$importUri' as p;
+
+bool f(Object o) => o is! p.New;
+''', filter: ignoreUnusedImport);
   }
 
   Future<void> test_staticField_deprecated() async {
@@ -1605,9 +1859,144 @@ class C with p.New {}
 @reflectiveTest
 class RenameSetterTest extends _AbstractRenameTest {
   @override
-  // TODO(asashour): consider changing the kind to `setter`,
-  // and matching it as `method`
-  String get _kind => 'method';
+  String get _kind => 'setter';
+
+  Future<void> test_extensionOverride_deprecated() async {
+    setPackageContent('''
+extension E on String {
+  @deprecated
+  set a(int x) {}
+  set b(int x) {}
+}
+''');
+    setPackageData(_rename(['a', 'E'], 'b'));
+    await resolveTestCode('''
+import '$importUri';
+
+void f(String s) {
+  E(s).a = 0;
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f(String s) {
+  E(s).b = 0;
+}
+''');
+  }
+
+  Future<void> test_extensionOverride_removed() async {
+    setPackageContent('''
+extension E on String {
+  set b(int x) {}
+}
+''');
+    setPackageData(_rename(['a', 'E'], 'b'));
+    await resolveTestCode('''
+import '$importUri';
+
+void f(String s) {
+  E(s).a = 0;
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f(String s) {
+  E(s).b = 0;
+}
+''');
+  }
+
+  Future<void> test_extensionOverride_removed_differentExtension() async {
+    setPackageContent('''
+extension E on String {}
+extension Other on String {
+  set b(int x) {}
+}
+''');
+    setPackageData(_rename(['a', 'Other'], 'b'));
+    await resolveTestCode('''
+import '$importUri';
+
+void f(String s) {
+  E(s).a = 0;
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_extensionOverride_removed_prefixed() async {
+    setPackageContent('''
+extension E on String {
+  set b(int x) {}
+}
+''');
+    setPackageData(_rename(['a', 'E'], 'b'));
+    await resolveTestCode('''
+import '$importUri' as p;
+
+void f(String s) {
+  p.E(s).a = 0;
+}
+''');
+    await assertHasFix('''
+import '$importUri' as p;
+
+void f(String s) {
+  p.E(s).b = 0;
+}
+''');
+  }
+
+  Future<void> test_instance_deprecated() async {
+    setPackageContent('''
+class C {
+  @deprecated
+  set a(int x) {}
+  set b(int x) {}
+}
+''');
+    setPackageData(_rename(['a', 'C'], 'b'));
+    await resolveTestCode('''
+import '$importUri';
+
+void f(C c) {
+  c.a = 0;
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f(C c) {
+  c.b = 0;
+}
+''');
+  }
+
+  Future<void> test_instance_removed() async {
+    setPackageContent('''
+class C {
+  set b(int x) {}
+}
+''');
+    setPackageData(_rename(['a', 'C'], 'b'));
+    await resolveTestCode('''
+import '$importUri';
+
+void f(C c) {
+  c.a = 0;
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f(C c) {
+  c.b = 0;
+}
+''');
+  }
 
   Future<void> test_invalidOverride() async {
     setPackageContent('''
@@ -1615,7 +2004,9 @@ class A {
   set x(int i) {}
 }
 ''');
-    setPackageData(_rename(['x', 'B'], 'y'));
+    // TODO(asashour): consider changing the kind to `setter`,
+    // and matching it as `method`
+    setPackageData(_rename(['x', 'B'], 'y', kind: 'method'));
     await resolveTestCode('''
 import '$importUri';
 
@@ -1628,6 +2019,71 @@ import '$importUri';
 
 class B extends A {
   set y(String s) {}
+}
+''');
+  }
+
+  Future<void> test_topLevel_deprecated() async {
+    setPackageContent('''
+@deprecated
+set a(int x) {}
+set b(int x) {}
+''');
+    setPackageData(_rename(['a'], 'b'));
+    await resolveTestCode('''
+import '$importUri';
+
+void f() {
+  a = 0;
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f() {
+  b = 0;
+}
+''');
+  }
+
+  Future<void> test_topLevel_removed() async {
+    setPackageContent('''
+set b(int x) {}
+''');
+    setPackageData(_rename(['a'], 'b'));
+    await resolveTestCode('''
+import '$importUri';
+
+void f() {
+  a = 0;
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f() {
+  b = 0;
+}
+''');
+  }
+
+  Future<void> test_topLevel_removed_prefixed() async {
+    setPackageContent('''
+set b(int x) {}
+''');
+    setPackageData(_rename(['a'], 'b'));
+    await resolveTestCode('''
+import '$importUri' as p;
+
+void f() {
+  p.a = 0;
+}
+''');
+    await assertHasFix('''
+import '$importUri' as p;
+
+void f() {
+  p.b = 0;
 }
 ''');
   }
@@ -1785,6 +2241,44 @@ import '$importUri' as p;
 int f() => p.New;
 ''');
   }
+
+  Future<void> test_toTopLevel_withPrefix_removed_read() async {
+    setPackageContent('''
+int New = 1;
+''');
+    setPackageData(_rename(['Old'], 'New'));
+    await resolveTestCode('''
+import '$importUri' as p;
+
+int f() => p.Old;
+''');
+    await assertHasFix('''
+import '$importUri' as p;
+
+int f() => p.New;
+''');
+  }
+
+  Future<void> test_toTopLevel_withPrefix_removed_write() async {
+    setPackageContent('''
+int New = 1;
+''');
+    setPackageData(_rename(['Old'], 'New'));
+    await resolveTestCode('''
+import '$importUri' as p;
+
+void f() {
+  p.Old = 0;
+}
+''');
+    await assertHasFix('''
+import '$importUri' as p;
+
+void f() {
+  p.New = 0;
+}
+''');
+  }
 }
 
 @reflectiveTest
@@ -1854,12 +2348,13 @@ abstract class _AbstractRenameTest extends DataDrivenFixProcessorTest {
     List<String> components,
     String newName, {
     bool isStatic = false,
+    String? kind,
   }) => Transform(
     title: 'title',
     date: DateTime.now(),
     element: ElementDescriptor(
       libraryUris: [Uri.parse(importUri)],
-      kind: ElementKind.fromName(_kind)!,
+      kind: ElementKind.fromName(kind ?? _kind)!,
       isStatic: isStatic,
       components: components,
     ),

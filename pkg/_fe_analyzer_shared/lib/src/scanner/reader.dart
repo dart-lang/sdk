@@ -71,9 +71,7 @@ class CharSequenceReader implements CharacterReader {
    * Initialize a newly created reader to read the characters in the given
    * [_sequence].
    */
-  CharSequenceReader(this._sequence)
-    : _stringLength = _sequence.length,
-      _charOffset = 0;
+  new(this._sequence) : _stringLength = _sequence.length, _charOffset = 0;
 
   @override
   int get offset => _charOffset - 1;
@@ -124,7 +122,7 @@ class SubSequenceReader extends CharSequenceReader {
    * [sequence]. The [_offsetDelta] is the offset from the beginning of the file
    * to the beginning of the source being scanned
    */
-  SubSequenceReader(super.sequence, this._offsetDelta);
+  new(super.sequence, this._offsetDelta);
 
   @override
   int get offset => _offsetDelta + super.offset;

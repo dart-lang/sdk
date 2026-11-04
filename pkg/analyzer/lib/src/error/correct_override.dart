@@ -24,12 +24,17 @@ class CorrectOverrideHelper {
 
   final DiagnosticFactory _diagnosticFactory = DiagnosticFactory();
 
-  CorrectOverrideHelper({
-    required TypeSystemImpl typeSystem,
-    required InternalExecutableElement thisMember,
-  }) : _typeSystem = typeSystem,
-       _thisMember = thisMember {
-    _computeThisTypeForSubtype();
+  /// A parameter of [_thisMember] is also treated as covariant if the
+  /// corresponding parameter of any of [addCovarianceFrom] is covariant.
+  ///
+  /// This is how an inherited implementation is checked against the interface
+  /// of the class that inherits it: the implementation itself does not change.
+  new({
+    required this._typeSystem,
+    required this._thisMember,
+    List<ExecutableElement> addCovarianceFrom = const [],
+  }) {
+    _computeThisTypeForSubtype(addCovarianceFrom);
   }
 
   /// Return `true` if [_thisMember] is a correct override of [superMember].
@@ -67,14 +72,20 @@ class CorrectOverrideHelper {
 
   /// Fill [_thisTypeForSubtype]. If [_thisMember] has covariant formal
   /// parameters, replace their types with `Object?` or `Object`.
-  void _computeThisTypeForSubtype() {
+  void _computeThisTypeForSubtype(List<ExecutableElement> addCovarianceFrom) {
     var type = _thisMember.type;
     var parameters = type.formalParameters;
 
     List<InternalFormalParameterElement>? newParameters;
     for (var i = 0; i < parameters.length; i++) {
       var parameter = parameters[i];
-      if (parameter.isCovariant) {
+      var isCovariant =
+          parameter.isCovariant ||
+          addCovarianceFrom.any((member) {
+            var corresponding = member.correspondingParameter(parameter, i);
+            return corresponding != null && corresponding.isCovariant;
+          });
+      if (isCovariant) {
         newParameters ??= parameters.toList(growable: false);
         newParameters[i] = parameter.copyWith(type: _typeSystem.objectQuestion);
       }
@@ -99,7 +110,7 @@ class CovariantParametersVerifier {
 
   final InternalExecutableElement _thisMember;
 
-  CovariantParametersVerifier({required InternalExecutableElement thisMember})
+  new({required InternalExecutableElement thisMember})
     : _session = thisMember.library.session as AnalysisSessionImpl,
       _typeSystem = thisMember.library.typeSystem as TypeSystemImpl,
       _thisMember = thisMember;
@@ -164,16 +175,14 @@ class CovariantParametersVerifier {
       if (parameter.isCovariant) {
         superMembers ??= _superMembers();
         for (var superMember in superMembers) {
-          var superParameter = _correspondingParameter(
-            superMember.rawElement.formalParameters,
+          var superParameter = superMember.rawElement.correspondingParameter(
             parameter,
             i,
           );
           if (superParameter != null) {
             var parameterSuperList = result[parameter] ??= [];
-            var superType = _superSubstitution(
-              superMember,
-            ).substituteType(superParameter.type);
+            var superType = _superSubstitution(superMember)
+                .substituteType(superParameter.type);
             parameterSuperList.add(_SuperParameter(superParameter, superType));
           }
         }
@@ -223,45 +232,20 @@ class CovariantParametersVerifier {
     }
     return null;
   }
-
-  /// Return an element of [parameters] that corresponds for the [proto],
-  /// or `null` if no such parameter exist.
-  static FormalParameterElement? _correspondingParameter(
-    List<FormalParameterElement> parameters,
-    FormalParameterElement proto,
-    int protoIndex,
-  ) {
-    if (proto.isPositional) {
-      if (parameters.length > protoIndex) {
-        var parameter = parameters[protoIndex];
-        if (parameter.isPositional) {
-          return parameter;
-        }
-      }
-    } else {
-      assert(proto.isNamed);
-      for (var parameter in parameters) {
-        if (parameter.isNamed && parameter.name == proto.name) {
-          return parameter;
-        }
-      }
-    }
-    return null;
-  }
 }
 
 class _SuperMember {
   final InterfaceType interface;
   final ExecutableElement rawElement;
 
-  _SuperMember(this.interface, this.rawElement);
+  new(this.interface, this.rawElement);
 }
 
 class _SuperParameter {
   final FormalParameterElement element;
   final TypeImpl type;
 
-  _SuperParameter(this.element, this.type);
+  new(this.element, this.type);
 
   ExecutableElement get member => element.enclosingElement as ExecutableElement;
 }

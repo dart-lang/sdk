@@ -112,7 +112,7 @@ void main() {
 
     await check(ws.pub(command: 'get')).throws<PubCommandFailedException>(
       .it()
-        ..has((e) => e.message, 'message').contains(
+        ..has2('message', (e) => e.message).contains(
           'Because myapp depends on flutter from sdk '
           'which depends on material_ui',
         ),

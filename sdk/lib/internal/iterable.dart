@@ -43,7 +43,7 @@ abstract class ListIterable<E> extends EfficientLengthIterable<E>
 
   Iterator<E> get iterator => ListIterator<E>(this);
 
-  void forEach(void action(E element)) {
+  void forEach(void Function(E element) action) {
     int length = this.length;
     for (int i = 0; i < length; i++) {
       action(elementAt(i));
@@ -82,7 +82,7 @@ abstract class ListIterable<E> extends EfficientLengthIterable<E>
     return false;
   }
 
-  bool every(bool test(E element)) {
+  bool every(bool Function(E element) test) {
     int length = this.length;
     for (int i = 0; i < length; i++) {
       if (!test(elementAt(i))) return false;
@@ -93,7 +93,7 @@ abstract class ListIterable<E> extends EfficientLengthIterable<E>
     return true;
   }
 
-  bool any(bool test(E element)) {
+  bool any(bool Function(E element) test) {
     int length = this.length;
     for (int i = 0; i < length; i++) {
       if (test(elementAt(i))) return true;
@@ -104,7 +104,7 @@ abstract class ListIterable<E> extends EfficientLengthIterable<E>
     return false;
   }
 
-  E firstWhere(bool test(E element), {E Function()? orElse}) {
+  E firstWhere(bool Function(E element) test, {E Function()? orElse}) {
     int length = this.length;
     for (int i = 0; i < length; i++) {
       E element = elementAt(i);
@@ -117,7 +117,7 @@ abstract class ListIterable<E> extends EfficientLengthIterable<E>
     throw IterableElementError.noElement();
   }
 
-  E lastWhere(bool test(E element), {E Function()? orElse}) {
+  E lastWhere(bool Function(E element) test, {E Function()? orElse}) {
     int length = this.length;
     for (int i = length - 1; i >= 0; i--) {
       E element = elementAt(i);
@@ -130,7 +130,7 @@ abstract class ListIterable<E> extends EfficientLengthIterable<E>
     throw IterableElementError.noElement();
   }
 
-  E singleWhere(bool test(E element), {E Function()? orElse}) {
+  E singleWhere(bool Function(E element) test, {E Function()? orElse}) {
     int length = this.length;
     late E match;
     bool matchFound = false;
@@ -181,12 +181,12 @@ abstract class ListIterable<E> extends EfficientLengthIterable<E>
     }
   }
 
-  Iterable<E> where(bool test(E element)) => super.where(test);
+  Iterable<E> where(bool Function(E element) test) => super.where(test);
 
-  Iterable<T> map<T>(T toElement(E element)) =>
+  Iterable<T> map<T>(T Function(E element) toElement) =>
       MappedListIterable<E, T>(this, toElement);
 
-  E reduce(E combine(E value, E element)) {
+  E reduce(E Function(E value, E element) combine) {
     int length = this.length;
     if (length == 0) throw IterableElementError.noElement();
     E value = elementAt(0);
@@ -199,7 +199,7 @@ abstract class ListIterable<E> extends EfficientLengthIterable<E>
     return value;
   }
 
-  T fold<T>(T initialValue, T combine(T previousValue, E element)) {
+  T fold<T>(T initialValue, T Function(T previousValue, E element) combine) {
     var value = initialValue;
     int length = this.length;
     for (int i = 0; i < length; i++) {
@@ -213,12 +213,12 @@ abstract class ListIterable<E> extends EfficientLengthIterable<E>
 
   Iterable<E> skip(int count) => SubListIterable<E>(this, count, null);
 
-  Iterable<E> skipWhile(bool test(E element)) => super.skipWhile(test);
+  Iterable<E> skipWhile(bool Function(E element) test) => super.skipWhile(test);
 
   Iterable<E> take(int count) =>
       SubListIterable<E>(this, 0, checkNotNullable(count, "count"));
 
-  Iterable<E> takeWhile(bool test(E element)) => super.takeWhile(test);
+  Iterable<E> takeWhile(bool Function(E element) test) => super.takeWhile(test);
 
   List<E> toList({bool growable = true}) =>
       List<E>.of(this, growable: growable);
@@ -381,7 +381,7 @@ class MappedIterable<S, T> extends Iterable<T> {
   final Iterable<S> _iterable;
   final _Transformation<S, T> _f;
 
-  factory MappedIterable(Iterable<S> iterable, T function(S value)) {
+  factory MappedIterable(Iterable<S> iterable, T Function(S value) function) {
     if (iterable is EfficientLengthIterable) {
       return EfficientLengthMappedIterable<S, T>(iterable, function);
     }
@@ -405,8 +405,10 @@ class MappedIterable<S, T> extends Iterable<T> {
 
 class EfficientLengthMappedIterable<S, T> extends MappedIterable<S, T>
     implements EfficientLengthIterable<T>, HideEfficientLengthIterable<T> {
-  EfficientLengthMappedIterable(Iterable<S> iterable, T function(S value))
-    : super._(iterable, function);
+  EfficientLengthMappedIterable(
+    Iterable<S> iterable,
+    T Function(S value) function,
+  ) : super._(iterable, function);
 }
 
 class MappedIterator<S, T> implements Iterator<T> {
@@ -454,7 +456,7 @@ class WhereIterable<E> extends Iterable<E> {
   Iterator<E> get iterator => WhereIterator<E>(_iterable.iterator, _f);
 
   // Specialization of [Iterable.map] to non-EfficientLengthIterable.
-  Iterable<T> map<T>(T toElement(E element)) =>
+  Iterable<T> map<T>(T Function(E element) toElement) =>
       MappedIterable<E, T>._(this, toElement);
 }
 
@@ -718,7 +720,7 @@ class EmptyIterable<E> extends EfficientLengthIterable<E>
 
   Iterator<E> get iterator => const EmptyIterator<Never>();
 
-  void forEach(void action(E element)) {}
+  void forEach(void Function(E element) action) {}
 
   bool get isEmpty => true;
 
@@ -742,36 +744,36 @@ class EmptyIterable<E> extends EfficientLengthIterable<E>
 
   bool contains(Object? element) => false;
 
-  bool every(bool test(E element)) => true;
+  bool every(bool Function(E element) test) => true;
 
-  bool any(bool test(E element)) => false;
+  bool any(bool Function(E element) test) => false;
 
-  E firstWhere(bool test(E element), {E Function()? orElse}) {
+  E firstWhere(bool Function(E element) test, {E Function()? orElse}) {
     if (orElse != null) return orElse();
     throw IterableElementError.noElement();
   }
 
-  E lastWhere(bool test(E element), {E Function()? orElse}) {
+  E lastWhere(bool Function(E element) test, {E Function()? orElse}) {
     if (orElse != null) return orElse();
     throw IterableElementError.noElement();
   }
 
-  E singleWhere(bool test(E element), {E Function()? orElse}) {
+  E singleWhere(bool Function(E element) test, {E Function()? orElse}) {
     if (orElse != null) return orElse();
     throw IterableElementError.noElement();
   }
 
   String join([String separator = ""]) => "";
 
-  Iterable<E> where(bool test(E element)) => this;
+  Iterable<E> where(bool Function(E element) test) => this;
 
-  Iterable<T> map<T>(T toElement(E element)) => EmptyIterable<T>();
+  Iterable<T> map<T>(T Function(E element) toElement) => EmptyIterable<T>();
 
-  E reduce(E combine(E value, E element)) {
+  E reduce(E Function(E value, E element) combine) {
     throw IterableElementError.noElement();
   }
 
-  T fold<T>(T initialValue, T combine(T previousValue, E element)) {
+  T fold<T>(T initialValue, T Function(T previousValue, E element) combine) {
     return initialValue;
   }
 
@@ -780,14 +782,14 @@ class EmptyIterable<E> extends EfficientLengthIterable<E>
     return this;
   }
 
-  Iterable<E> skipWhile(bool test(E element)) => this;
+  Iterable<E> skipWhile(bool Function(E element) test) => this;
 
   Iterable<E> take(int count) {
     RangeError.checkNotNegative(count, "count");
     return this;
   }
 
-  Iterable<E> takeWhile(bool test(E element)) => this;
+  Iterable<E> takeWhile(bool Function(E element) test) => this;
 
   List<E> toList({bool growable = true}) => List<E>.empty(growable: growable);
 

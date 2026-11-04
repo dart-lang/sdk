@@ -17,7 +17,8 @@ void main() {
 }
 
 @reflectiveTest
-class IgnoreDiagnosticAnalysisOptionFileTest extends FixProcessorTest {
+class IgnoreDiagnosticAnalysisOptionFileTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => ignoreErrorAnalysisFileKind;
 
@@ -218,7 +219,7 @@ void f() {
 }
 
 @reflectiveTest
-class IgnoreDiagnosticFileTest extends FixProcessorTest {
+class IgnoreDiagnosticFileTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => ignoreErrorFileKind;
 
@@ -352,7 +353,7 @@ void f() {
 }
 
 @reflectiveTest
-class IgnoreDiagnosticLineTest extends FixProcessorTest {
+class IgnoreDiagnosticLineTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => ignoreErrorLineKind;
 
@@ -390,13 +391,13 @@ String get _AA => '';
   Future<void> test_existingIgnore() async {
     await resolveTestCode('''
 void f() {
-  // ignore: undefined_identifier
+  // ignore: undefined_unqualified_name_read
   var a = b;
 }
 ''');
     await assertHasFix('''
 void f() {
-  // ignore: unused_local_variable, undefined_identifier
+  // ignore: unused_local_variable, undefined_unqualified_name_read
   var a = b;
 }
 ''');

@@ -14,7 +14,7 @@ class CodeStyleOptionsImpl implements CodeStyleOptions {
   @override
   final bool useFormatter;
 
-  CodeStyleOptionsImpl({required this.useFormatter});
+  new({required this.useFormatter});
 
   @override
   bool get addTrailingCommas => _isLintEnabled('require_trailing_commas');

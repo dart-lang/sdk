@@ -35,10 +35,10 @@ class Notification {
   /// Initialize a newly created [Notification] to have the given [event] name.
   /// If [params] is provided, it will be used as the params; otherwise no
   /// params will be used.
-  Notification(this.event, [this.params]);
+  new(this.event, [this.params]);
 
   /// Initialize a newly created instance based on the given JSON data.
-  factory Notification.fromJson(Map json) {
+  factory fromJson(Map json) {
     return Notification(
       json[Notification.EVENT] as String,
       json[Notification.PARAMS] as Map<String, Object>,
@@ -91,7 +91,7 @@ class Request {
   /// Initialize a newly created [Request] to have the given [id] and [method]
   /// name. If [params] is supplied, it is used as the "params" map for the
   /// request. Otherwise an empty "params" map is allocated.
-  Request(
+  new(
     this.id,
     this.method, [
     Map<String, Object?>? params,
@@ -116,7 +116,7 @@ class Request {
   /// The parameters can contain any number of name/value pairs. The
   /// clientRequestTime must be an int representing the time at which the client
   /// issued the request (milliseconds since epoch).
-  factory Request.fromJson(Map<String, Object?> result) {
+  factory fromJson(Map<String, Object?> result) {
     var id = result[Request.ID];
     var method = result[Request.METHOD];
     if (id is! String || method is! String) {
@@ -284,7 +284,7 @@ class RequestFailure implements Exception {
 
   /// Initialize a newly created exception to return a response with the given
   /// [error].
-  RequestFailure(this.error);
+  new(this.error);
 }
 
 /// A response to the server.
@@ -324,10 +324,10 @@ class Response {
   /// with the given [id]. If [result] is provided, it will be used as the
   /// result; otherwise an empty result will be used. If an [error] is provided
   /// then the response will represent an error condition.
-  Response(this.id, this.requestTime, {this.error, this.result});
+  new(this.id, this.requestTime, {this.error, this.result});
 
   /// Initialize a newly created instance based on the given JSON data.
-  factory Response.fromJson(Map<String, Object?> json) {
+  factory fromJson(Map<String, Object?> json) {
     var id = json[ID];
     if (id is! String) {
       throw StateError('Unexpected type for id');

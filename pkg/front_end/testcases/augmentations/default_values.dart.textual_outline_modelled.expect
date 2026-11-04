@@ -1,0 +1,108 @@
+augment int topLevelMethod1a([int x = 0]) => x;
+
+augment int topLevelMethod1b([int x]) => x;
+
+augment int topLevelMethod1c([int x = 0]);
+
+augment int topLevelMethod1c([int x]) => x;
+
+augment int topLevelMethod1d([int x = 0]);
+
+augment int topLevelMethod1d([int x]) => x;
+
+augment int topLevelMethod1e([int x = 0]) => x;
+
+augment int topLevelMethod1f([int x]) => x;
+
+augment int topLevelMethod2a([int x = 0, int y = 0]) => x + y;
+
+augment int topLevelMethod2b([int x, int y]) => x + y;
+
+augment int topLevelMethod2c([int x, int y = 0]) => x + y;
+
+class Class {
+  augment int instanceMethod1a([int x = 0]) => x;
+  augment int instanceMethod1b([int x]) => x;
+  augment int instanceMethod1c([int x = 0]);
+  augment int instanceMethod1c([int x]) => x;
+  augment int instanceMethod1d([int x = 0]);
+  augment int instanceMethod1d([int x]) => x;
+  augment int instanceMethod1e([int x = 0]) => x;
+  augment int instanceMethod1f([int x]) => x;
+  augment int instanceMethod2a([int x = 0, int y = 0]) => x + y;
+  augment int instanceMethod2b([int x, int y]) => x + y;
+  augment int instanceMethod2c([int x, int y = 0]) => x + y;
+  augment new generative1a([int x = 0]) : result = x;
+  augment new generative1b([int x]) : result = x;
+  augment new generative1c([int x = 0]);
+  augment new generative1c([int x]) : result = x;
+  augment new generative1d([int x = 0]);
+  augment new generative1d([int x]) : result = x;
+  augment new generative1e([int x = 0]) : result = x;
+  augment new generative1f([int x]) : result = x;
+  augment new generative2a([int x = 0, int y = 0]) : result = x + y;
+  augment new generative2b([int x, int y]) : result = x + y;
+  augment new generative2c([int x, int y = 0]) : result = x + y;
+  augment static int staticMethod1a([int x = 0]) => x;
+  augment static int staticMethod1b([int x]) => x;
+  augment static int staticMethod1c([int x = 0]);
+  augment static int staticMethod1c([int x]) => x;
+  augment static int staticMethod1d([int x = 0]);
+  augment static int staticMethod1d([int x]) => x;
+  augment static int staticMethod1e([int x = 0]) => x;
+  augment static int staticMethod1f([int x]) => x;
+  augment static int staticMethod2a([int x = 0, int y = 0]) => x + y;
+  augment static int staticMethod2b([int x, int y]) => x + y;
+  augment static int staticMethod2c([int x, int y = 0]) => x + y;
+  final int result;
+  int instanceMethod1a([int x]);
+  int instanceMethod1b([int x = 0]);
+  int instanceMethod1c([int x]);
+  int instanceMethod1d([int x]);
+  int instanceMethod1e([int x = 0]);
+  int instanceMethod1f([int x]);
+  int instanceMethod2a([int x, int y]);
+  int instanceMethod2b([int x = 0, int y = 0]);
+  int instanceMethod2c([int x = 0, int y]);
+  new([this.result = -1]);
+  new generative1a([int x]);
+  new generative1b([int x = 0]);
+  new generative1c([int x]);
+  new generative1d([int x]);
+  new generative1e([int x = 0]);
+  new generative1f([int x]);
+  new generative2a([int x, int y]);
+  new generative2b([int x = 0, int y = 0]);
+  new generative2c([int x = 0, int y]);
+  static int staticMethod1a([int x]);
+  static int staticMethod1b([int x = 0]);
+  static int staticMethod1c([int x]);
+  static int staticMethod1d([int x]);
+  static int staticMethod1e([int x = 0]);
+  static int staticMethod1f([int x]);
+  static int staticMethod2a([int x, int y]);
+  static int staticMethod2b([int x = 0, int y = 0]);
+  static int staticMethod2c([int x = 0, int y]);
+}
+
+expect(expected, actual) {}
+
+int topLevelMethod1a([int x]);
+
+int topLevelMethod1b([int x = 0]);
+
+int topLevelMethod1c([int x]);
+
+int topLevelMethod1d([int x]);
+
+int topLevelMethod1e([int x = 0]);
+
+int topLevelMethod1f([int x]);
+
+int topLevelMethod2a([int x, int y]);
+
+int topLevelMethod2b([int x = 0, int y = 0]);
+
+int topLevelMethod2c([int x = 0, int y]);
+
+main() {}

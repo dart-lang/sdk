@@ -45,8 +45,7 @@ DotShorthandConstructorInvocation2
         correspondingParameter: <null>
         staticType: int
     rightParenthesis: )
-  shorthandContext: InvalidDotShorthandContextResolution
-    contextType: null
+  shorthandContext: MissingDotShorthandContextResolution
   element: <null>
   staticType: dynamic
 V1: DotShorthandConstructorInvocation
@@ -300,7 +299,6 @@ ReceiverPropertyExtraction
   name: self
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::self
-    invokeType: C Function()
     type: C
   staticType: C
 V1: PropertyAccess
@@ -451,7 +449,6 @@ ReceiverPropertyExtraction
   name: property
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::property
-    invokeType: C Function()
     type: C
   staticType: C
 V1: PropertyAccess
@@ -553,8 +550,7 @@ DotShorthandMethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  shorthandContext: InvalidDotShorthandContextResolution
-    contextType: null
+  shorthandContext: MissingDotShorthandContextResolution
   resolution: InvalidInvocationResolution
     type: InvalidType
     recovery: <null>
@@ -596,8 +592,7 @@ DotShorthandMethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  shorthandContext: InvalidDotShorthandContextResolution
-    contextType: null
+  shorthandContext: MissingDotShorthandContextResolution
   resolution: InvalidInvocationResolution
     type: InvalidType
     recovery: <null>
@@ -684,8 +679,7 @@ DotShorthandMethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  shorthandContext: InvalidDotShorthandContextResolution
-    contextType: null
+  shorthandContext: MissingDotShorthandContextResolution
   resolution: InvalidInvocationResolution
     type: InvalidType
     recovery: <null>
@@ -729,8 +723,7 @@ DotShorthandMethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  shorthandContext: InvalidDotShorthandContextResolution
-    contextType: null
+  shorthandContext: MissingDotShorthandContextResolution
   resolution: InvalidInvocationResolution
     type: InvalidType
     recovery: <null>
@@ -758,7 +751,7 @@ class C { }
 void main() {
   C Function() c = .member();
 //                  ^^^^^^
-// [diag.dotShorthandUndefinedInvocation] The static method or constructor 'member' isn't defined for the context type 'C Function()'.
+// [diag.undefinedStaticMemberReadNoStaticMembersDotShorthand] The context type 'C Function()' doesn't have static members or constructors.
   print(c);
 }
 ''');
@@ -773,6 +766,47 @@ DotShorthandMethodInvocation
     rightParenthesis: )
   shorthandContext: InvalidDotShorthandContextResolution
     contextType: C Function()
+    lookupType: C Function()
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: DotShorthandInvocation
+  period: .
+  memberName: SimpleIdentifier
+    token: member
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_error_context_invalid_futureOr() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+import 'dart:async';
+
+class C {}
+
+FutureOr<C Function()> f() => .member();
+//                             ^^^^^^
+// [diag.undefinedStaticMemberReadNoStaticMembersDotShorthand] The context type 'FutureOr<C Function()>' doesn't have static members or constructors.
+''');
+
+    var node = result.findNode.singleDotShorthandMethodInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandMethodInvocation
+  period: .
+  name: member
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  shorthandContext: InvalidDotShorthandContextResolution
+    contextType: FutureOr<C Function()>
+    lookupType: C Function()
   resolution: InvalidInvocationResolution
     type: InvalidType
     recovery: <null>
@@ -809,8 +843,7 @@ DotShorthandMethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  shorthandContext: InvalidDotShorthandContextResolution
-    contextType: null
+  shorthandContext: MissingDotShorthandContextResolution
   resolution: InvalidInvocationResolution
     type: InvalidType
     recovery: <null>
@@ -838,7 +871,7 @@ class C {
 void main() {
   final C c = .foo();
 //             ^^^
-// [diag.dotShorthandUndefinedInvocation] The static method or constructor 'foo' isn't defined for the context type 'C'.
+// [diag.staticAccessToInstanceMember] Instance member 'foo' can't be accessed using static access.
   print(c);
 }
 ''');
@@ -879,7 +912,7 @@ class C { }
 void main() {
   C c = .member();
 //       ^^^^^^
-// [diag.dotShorthandUndefinedInvocation] The static method or constructor 'member' isn't defined for the context type 'C'.
+// [diag.undefinedStaticMemberReadNotFoundDotShorthand] The context type 'C' doesn't have a static member or constructor named 'member'.
   print(c);
 }
 ''');
@@ -922,7 +955,7 @@ class C {
 void main() {
   C c = .new();
 //       ^^^
-// [diag.dotShorthandUndefinedInvocation] The static method or constructor 'new' isn't defined for the context type 'C'.
+// [diag.undefinedStaticMemberReadNotFoundDotShorthand] The context type 'C' doesn't have a static member or constructor named 'new'.
   print(c);
 }
 ''');
@@ -1769,8 +1802,7 @@ DotShorthandMethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  shorthandContext: InvalidDotShorthandContextResolution
-    contextType: null
+  shorthandContext: MissingDotShorthandContextResolution
   resolution: InvalidInvocationResolution
     type: InvalidType
     recovery: <null>
@@ -1815,8 +1847,7 @@ DotShorthandMethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  shorthandContext: InvalidDotShorthandContextResolution
-    contextType: null
+  shorthandContext: MissingDotShorthandContextResolution
   resolution: InvalidInvocationResolution
     type: InvalidType
     recovery: <null>
@@ -1852,10 +1883,10 @@ void main() {
   var x = p;
   x = .new();
 //     ^^^
-// [diag.dotShorthandUndefinedInvocation] The static method or constructor 'new' isn't defined for the context type '_Private'.
+// [diag.undefinedStaticMemberReadPrivateDotShorthand] The context type '_Private' is declared in 'package:test/a.dart', but private names are visible only in their own library.
   x = .named();
 //     ^^^^^
-// [diag.dotShorthandUndefinedInvocation] The static method or constructor 'named' isn't defined for the context type '_Private'.
+// [diag.undefinedStaticMemberReadPrivateDotShorthand] The context type '_Private' is declared in 'package:test/a.dart', but private names are visible only in their own library.
   print(x);
 }
 ''');
@@ -1870,6 +1901,8 @@ DotShorthandMethodInvocation
     rightParenthesis: )
   shorthandContext: InvalidDotShorthandContextResolution
     contextType: _Private
+      alias: package:test/a.dart::@typeAlias::Public
+    lookupType: _Private
       alias: package:test/a.dart::@typeAlias::Public
   resolution: InvalidInvocationResolution
     type: InvalidType
@@ -1900,6 +1933,8 @@ DotShorthandMethodInvocation
     rightParenthesis: )
   shorthandContext: InvalidDotShorthandContextResolution
     contextType: _Private
+      alias: package:test/a.dart::@typeAlias::Public
+    lookupType: _Private
       alias: package:test/a.dart::@typeAlias::Public
   resolution: InvalidInvocationResolution
     type: InvalidType
@@ -1937,7 +1972,7 @@ void main() {
   var x = p;
   x = .instance();
 //     ^^^^^^^^
-// [diag.dotShorthandUndefinedInvocation] The static method or constructor 'instance' isn't defined for the context type '_Private'.
+// [diag.undefinedStaticMemberReadPrivateDotShorthand] The context type '_Private' is declared in 'package:test/a.dart', but private names are visible only in their own library.
   print(x);
 }
 ''');
@@ -1952,6 +1987,8 @@ DotShorthandMethodInvocation
     rightParenthesis: )
   shorthandContext: InvalidDotShorthandContextResolution
     contextType: _Private
+      alias: package:test/a.dart::@typeAlias::Public
+    lookupType: _Private
       alias: package:test/a.dart::@typeAlias::Public
   resolution: InvalidInvocationResolution
     type: InvalidType
@@ -2086,7 +2123,7 @@ void main() {
   var x = p;
   x = .a();
 //     ^
-// [diag.dotShorthandUndefinedInvocation] The static method or constructor 'a' isn't defined for the context type '_Private'.
+// [diag.undefinedStaticMemberReadPrivateDotShorthand] The context type '_Private' is declared in 'package:test/a.dart', but private names are visible only in their own library.
   print(x);
 }
 ''');
@@ -2101,6 +2138,8 @@ DotShorthandMethodInvocation
     rightParenthesis: )
   shorthandContext: InvalidDotShorthandContextResolution
     contextType: _Private
+      alias: package:test/a.dart::@typeAlias::Public
+    lookupType: _Private
       alias: package:test/a.dart::@typeAlias::Public
   resolution: InvalidInvocationResolution
     type: InvalidType
@@ -2139,7 +2178,7 @@ void main() {
   var x = p;
   x = .instance();
 //     ^^^^^^^^
-// [diag.dotShorthandUndefinedInvocation] The static method or constructor 'instance' isn't defined for the context type '_Private'.
+// [diag.undefinedStaticMemberReadPrivateDotShorthand] The context type '_Private' is declared in 'package:test/a.dart', but private names are visible only in their own library.
   print(x);
 }
 ''');
@@ -2154,6 +2193,8 @@ DotShorthandMethodInvocation
     rightParenthesis: )
   shorthandContext: InvalidDotShorthandContextResolution
     contextType: _Private
+      alias: package:test/a.dart::@typeAlias::Public
+    lookupType: _Private
       alias: package:test/a.dart::@typeAlias::Public
   resolution: InvalidInvocationResolution
     type: InvalidType
@@ -2289,10 +2330,10 @@ void main() {
   var x = p;
   x = .new(1);
 //     ^^^
-// [diag.dotShorthandUndefinedInvocation] The static method or constructor 'new' isn't defined for the context type '_Private'.
+// [diag.undefinedStaticMemberReadPrivateDotShorthand] The context type '_Private' is declared in 'package:test/a.dart', but private names are visible only in their own library.
   x = .named(1);
 //     ^^^^^
-// [diag.dotShorthandUndefinedInvocation] The static method or constructor 'named' isn't defined for the context type '_Private'.
+// [diag.undefinedStaticMemberReadPrivateDotShorthand] The context type '_Private' is declared in 'package:test/a.dart', but private names are visible only in their own library.
   print(x);
 }
 ''');
@@ -2312,6 +2353,8 @@ DotShorthandMethodInvocation
     rightParenthesis: )
   shorthandContext: InvalidDotShorthandContextResolution
     contextType: _Private
+      alias: package:test/a.dart::@typeAlias::Public
+    lookupType: _Private
       alias: package:test/a.dart::@typeAlias::Public
   resolution: InvalidInvocationResolution
     type: InvalidType
@@ -2352,6 +2395,8 @@ DotShorthandMethodInvocation
     rightParenthesis: )
   shorthandContext: InvalidDotShorthandContextResolution
     contextType: _Private
+      alias: package:test/a.dart::@typeAlias::Public
+    lookupType: _Private
       alias: package:test/a.dart::@typeAlias::Public
   resolution: InvalidInvocationResolution
     type: InvalidType
@@ -2394,7 +2439,7 @@ void main() {
   var x = p;
   x = .instance();
 //     ^^^^^^^^
-// [diag.dotShorthandUndefinedInvocation] The static method or constructor 'instance' isn't defined for the context type '_Private'.
+// [diag.undefinedStaticMemberReadPrivateDotShorthand] The context type '_Private' is declared in 'package:test/a.dart', but private names are visible only in their own library.
   print(x);
 }
 ''');
@@ -2409,6 +2454,8 @@ DotShorthandMethodInvocation
     rightParenthesis: )
   shorthandContext: InvalidDotShorthandContextResolution
     contextType: _Private
+      alias: package:test/a.dart::@typeAlias::Public
+    lookupType: _Private
       alias: package:test/a.dart::@typeAlias::Public
   resolution: InvalidInvocationResolution
     type: InvalidType
@@ -2551,7 +2598,7 @@ void main() {
   var x = p;
   x = .instance();
 //     ^^^^^^^^
-// [diag.dotShorthandUndefinedInvocation] The static method or constructor 'instance' isn't defined for the context type '_Private'.
+// [diag.undefinedStaticMemberReadPrivateDotShorthand] The context type '_Private' is declared in 'package:test/a.dart', but private names are visible only in their own library.
   print(x);
 }
 ''');
@@ -2566,6 +2613,8 @@ DotShorthandMethodInvocation
     rightParenthesis: )
   shorthandContext: InvalidDotShorthandContextResolution
     contextType: _Private
+      alias: package:test/a.dart::@typeAlias::Public
+    lookupType: _Private
       alias: package:test/a.dart::@typeAlias::Public
   resolution: InvalidInvocationResolution
     type: InvalidType
@@ -2788,7 +2837,7 @@ V1: DotShorthandInvocation
     var result = await resolveTestCodeWithDiagnostics(r'''
 int f() => .foo();
 //          ^^^
-// [diag.dotShorthandUndefinedInvocation] The static method or constructor 'foo' isn't defined for the context type 'int'.
+// [diag.undefinedStaticMemberReadNotFoundDotShorthand] The context type 'int' doesn't have a static member or constructor named 'foo'.
 ''');
 
     var node = result.findNode.singleDotShorthandMethodInvocation;
@@ -2824,7 +2873,7 @@ V1: DotShorthandInvocation
     var result = await resolveTestCodeWithDiagnostics(r'''
 bool f(int x) => x == .foo();
 //                     ^^^
-// [diag.dotShorthandUndefinedInvocation] The static method or constructor 'foo' isn't defined for the context type 'int'.
+// [diag.undefinedStaticMemberReadNotFoundDotShorthand] The context type 'int' doesn't have a static member or constructor named 'foo'.
 ''');
 
     var node = result.findNode.singleDotShorthandMethodInvocation;

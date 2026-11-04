@@ -49,7 +49,7 @@ class OccurrencesGenerator {
 
   /// Initialize a newly created occurrences generator to use the given
   /// [contributors].
-  OccurrencesGenerator(this.contributors);
+  new(this.contributors);
 
   /// Create an 'analysis.occurrences' notification. If any of the contributors
   /// throws an exception, also create a non-fatal 'plugin.error' notification.

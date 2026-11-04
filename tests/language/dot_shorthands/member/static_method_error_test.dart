@@ -11,6 +11,6 @@ class C {
 void main() {
   C c = .foo();
   //     ^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.STATIC_ACCESS_TO_INSTANCE_MEMBER
   // [cfe] The static method or constructor 'foo' isn't defined for the type 'C'.
 }

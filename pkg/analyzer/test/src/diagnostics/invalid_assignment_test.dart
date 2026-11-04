@@ -496,16 +496,14 @@ class C {
 ''');
   }
 
-  void
-  test_functionInstantiation_topLevelVariable_genericContext_assignable() async {
+  void test_functionInstantiation_topLevelVariable_genericContext_assignable() async {
     await resolveTestCodeWithDiagnostics(r'''
 T f<T>(T a) => a;
 U Function<U>(U) foo = f;
 ''');
   }
 
-  void
-  test_functionInstantiation_topLevelVariable_genericContext_nonAssignable() async {
+  void test_functionInstantiation_topLevelVariable_genericContext_nonAssignable() async {
     await resolveTestCodeWithDiagnostics(r'''
 T f<T>(T a) => a;
 U Function<U>(U, int) foo = f;
@@ -514,8 +512,7 @@ U Function<U>(U, int) foo = f;
 ''');
   }
 
-  void
-  test_functionInstantiation_topLevelVariable_nonGenericContext_assignable() async {
+  void test_functionInstantiation_topLevelVariable_nonGenericContext_assignable() async {
     await resolveTestCodeWithDiagnostics(r'''
 T f<T>(T a) => a;
 int Function(int) foo = f;
@@ -769,24 +766,6 @@ void f(int a) {
 ''');
   }
 
-  test_postfixExpression_int_index() async {
-    await resolveTestCodeWithDiagnostics(r'''
-class A {
-  int operator [](int index) => 0;
-  void operator []=(int index, String value) {}
-}
-
-void f(A a) {
-  a[0]++;
-//^^^^^^
-// [diag.invalidAssignment] A value of type 'int' can't be assigned to a variable of type 'String'.
-  a[0]--;
-//^^^^^^
-// [diag.invalidAssignment] A value of type 'int' can't be assigned to a variable of type 'String'.
-}
-''');
-  }
-
   test_postfixExpression_int_instanceGetterSetter() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {
@@ -881,24 +860,6 @@ class C {
 
 f(C c) {
   c.a++;
-}
-''');
-  }
-
-  test_prefixExpression_int_index() async {
-    await resolveTestCodeWithDiagnostics(r'''
-class A {
-  int operator [](int index) => 0;
-  void operator []=(int index, String value) {}
-}
-
-void f(A a) {
-  ++a[0];
-//^^^^^^
-// [diag.invalidAssignment] A value of type 'int' can't be assigned to a variable of type 'String'.
-  --a[0];
-//^^^^^^
-// [diag.invalidAssignment] A value of type 'int' can't be assigned to a variable of type 'String'.
 }
 ''');
   }

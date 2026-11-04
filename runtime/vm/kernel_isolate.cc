@@ -393,6 +393,84 @@ DEFINE_OPTION_HANDLER(KernelIsolate::AddExperimentalFlag,
                       enable_experiment,
                       "Comma separated list of experimental features.");
 
+// Keep these implicit defines in sync with Api::GetEnvironmentValue
+// in runtime/vm/dart_api_impl.cc.
+static const char* const kImplicitEnvironmentDefines[] = {
+    "dart.vm.product",
+#if defined(PRODUCT)
+    "true",
+#else
+    "false",
+#endif
+    "dart.vm.asan",
+#if defined(USING_ADDRESS_SANITIZER)
+    "true",
+#else
+    "false",
+#endif
+    "dart.vm.msan",
+#if defined(USING_MEMORY_SANITIZER)
+    "true",
+#else
+    "false",
+#endif
+    "dart.vm.tsan",
+#if defined(USING_THREAD_SANITIZER)
+    "true",
+#else
+    "false",
+#endif
+    "dart.developer.timeline",
+#if defined(SUPPORT_TIMELINE)
+    "true",
+#else
+    "false",
+#endif
+    "dart.isVM",
+    "true",
+};
+static const intptr_t kNumImplicitEnvironmentDefines =
+    ARRAY_SIZE(kImplicitEnvironmentDefines);
+
+static Dart_CObject** CreateDefinesArray(Isolate* isolate,
+                                         intptr_t* out_num_defines) {
+  intptr_t num_explicit =
+      (isolate != nullptr && isolate->environment() != nullptr)
+          ? isolate->environment_length()
+          : 0;
+  intptr_t num_defines = kNumImplicitEnvironmentDefines + num_explicit;
+  *out_num_defines = num_defines;
+
+  Dart_CObject** defines_array = new Dart_CObject*[num_defines];
+  intptr_t idx = 0;
+  for (intptr_t i = 0; i < kNumImplicitEnvironmentDefines; ++i) {
+    defines_array[idx] = new Dart_CObject;
+    defines_array[idx]->type = Dart_CObject_kString;
+    defines_array[idx]->value.as_string = kImplicitEnvironmentDefines[i];
+    idx++;
+  }
+  if (num_explicit > 0) {
+    const char* const* env = isolate->environment();
+    for (intptr_t i = 0; i < num_explicit; ++i) {
+      defines_array[idx] = new Dart_CObject;
+      defines_array[idx]->type = Dart_CObject_kString;
+      defines_array[idx]->value.as_string = env[i];
+      idx++;
+    }
+  }
+  return defines_array;
+}
+
+static void FreeDefinesArray(Dart_CObject** defines_array,
+                             intptr_t num_defines) {
+  if (defines_array != nullptr) {
+    for (intptr_t i = 0; i < num_defines; ++i) {
+      delete defines_array[i];
+    }
+    delete[] defines_array;
+  }
+}
+
 class KernelCompilationRequest : public ValueObject {
  public:
   KernelCompilationRequest()
@@ -680,6 +758,14 @@ class KernelCompilationRequest : public ValueObject {
     experimental_flags_object.value.as_array.values = experimental_flags_array;
     experimental_flags_object.value.as_array.length = num_experimental_flags;
 
+    auto isolate = thread != nullptr ? thread->isolate() : nullptr;
+    intptr_t num_defines = 0;
+    Dart_CObject** defines_array = CreateDefinesArray(isolate, &num_defines);
+    Dart_CObject defines_object;
+    defines_object.type = Dart_CObject_kArray;
+    defines_object.value.as_array.values = defines_array;
+    defines_object.value.as_array.length = num_defines;
+
     Dart_CObject enable_mirrors;
     enable_mirrors.type = Dart_CObject_kBool;
     enable_mirrors.value.as_bool = FLAG_enable_mirrors && !FLAG_interpreter;
@@ -714,6 +800,7 @@ class KernelCompilationRequest : public ValueObject {
                                    &num_blob_loads,
                                    &enable_asserts,
                                    &experimental_flags_object,
+                                   &defines_object,
                                    &enable_mirrors,
                                    &enable_ffi,
                                    &generate_bytecode};
@@ -768,6 +855,8 @@ class KernelCompilationRequest : public ValueObject {
       delete experimental_flags_array[i];
     }
     delete[] experimental_flags_array;
+
+    FreeDefinesArray(defines_array, num_defines);
 
     return result_;
   }
@@ -849,6 +938,8 @@ class KernelCompilationRequest : public ValueObject {
     auto isolate_group = thread != nullptr ? thread->isolate_group() : nullptr;
     ASSERT((thread == nullptr) || (isolate_group != nullptr));
 
+    auto isolate = thread != nullptr ? thread->isolate() : nullptr;
+
     Dart_CObject isolate_id;
     isolate_id.type = Dart_CObject_kInt64;
     isolate_id.value.as_int64 = isolate_group != nullptr
@@ -878,6 +969,13 @@ class KernelCompilationRequest : public ValueObject {
     experimental_flags_object.type = Dart_CObject_kArray;
     experimental_flags_object.value.as_array.values = experimental_flags_array;
     experimental_flags_object.value.as_array.length = num_experimental_flags;
+
+    intptr_t num_defines = 0;
+    Dart_CObject** defines_array = CreateDefinesArray(isolate, &num_defines);
+    Dart_CObject defines_object;
+    defines_object.type = Dart_CObject_kArray;
+    defines_object.value.as_array.values = defines_array;
+    defines_object.value.as_array.length = num_defines;
 
     Dart_CObject package_config_uri;
     if (package_config != nullptr) {
@@ -942,6 +1040,7 @@ class KernelCompilationRequest : public ValueObject {
                                    &files,
                                    &enable_asserts,
                                    &experimental_flags_object,
+                                   &defines_object,
                                    &package_config_uri,
                                    &multiroot_filepaths_object,
                                    &multiroot_scheme_object,
@@ -967,6 +1066,8 @@ class KernelCompilationRequest : public ValueObject {
       delete experimental_flags_array[i];
     }
     delete[] experimental_flags_array;
+
+    FreeDefinesArray(defines_array, num_defines);
 
     return result_;
   }

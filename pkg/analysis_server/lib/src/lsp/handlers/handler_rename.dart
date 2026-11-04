@@ -47,57 +47,64 @@ class PrepareRenameHandler
     }
 
     var pos = params.position;
-    var path = pathOfDoc(params.textDocument);
-    var unit = await path.mapResult(requireResolvedUnit);
-    var offset = unit.mapResultSync((unit) => toOffset(unit.lineInfo, pos));
+    return withResolvedUnit(textDocument: params.textDocument, token, (
+      result,
+      _,
+      checkAbort,
+    ) {
+      var offset = toOffset(result.lineInfo, pos);
+      return offset.mapResult((offset) async {
+        var node = result.unit.nodeCovering(offset: offset);
+        var element = node?.getElement(useMockForImport: true);
 
-    return (unit, offset).mapResults((result, offset) async {
-      var node = result.unit.nodeCovering(offset: offset);
-      var element = node?.getElement(useMockForImport: true);
+        if (node == null || element == null) {
+          return success(null);
+        }
 
-      if (node == null || element == null) {
-        return success(null);
-      }
-
-      var refactorDetails = RenameRefactoring.getElementToRename(node, element);
-      if (refactorDetails == null) {
-        return success(null);
-      }
-
-      var refactoring = RenameRefactoring.create(
-        server.refactoringWorkspace,
-        result,
-        refactorDetails.element,
-      );
-      if (refactoring == null) {
-        return success(null);
-      }
-
-      // Check the rename is valid here.
-      var initStatus = await refactoring.checkInitialConditions();
-      if (initStatus.hasFatalError) {
-        return error(
-          ServerErrorCodes.renameNotValid,
-          initStatus.problem!.message,
+        var refactorDetails = RenameRefactoring.getElementToRename(
+          node,
+          element,
         );
-      }
+        if (refactorDetails == null) {
+          return success(null);
+        }
 
-      return success(
-        TextDocumentPrepareRenameResult.t2(
-          PrepareRenamePlaceholder(
-            range: toRange(
-              result.lineInfo,
-              // If the offset is set to -1 it means there is no location for the
-              // old name. However since we must provide a range for LSP, we'll use
-              // a 0-character span at the originally requested location to ensure
-              // it's valid.
-              refactorDetails.offset == -1 ? offset : refactorDetails.offset,
-              refactorDetails.length,
+        var refactoring = RenameRefactoring.create(
+          server.refactoringWorkspace,
+          result,
+          refactorDetails.element,
+        );
+        if (refactoring == null) {
+          return success(null);
+        }
+
+        // Check the rename is valid here.
+        var initStatus = await refactoring.checkInitialConditions();
+        if (checkAbort() case var reason?) return reason;
+        if (initStatus.hasFatalError) {
+          return error(
+            ServerErrorCodes.renameNotValid,
+            initStatus.problem!.message,
+          );
+        }
+
+        return success(
+          TextDocumentPrepareRenameResult.t2(
+            PrepareRenamePlaceholder(
+              range: toRange(
+                result.lineInfo,
+                // If the offset is set to -1 it means there is no location for the
+                // old name. However since we must provide a range for LSP, we'll use
+                // a 0-character span at the originally requested location to ensure
+                // it's valid.
+                refactorDetails.offset == -1 ? offset : refactorDetails.offset,
+                refactorDetails.length,
+              ),
+              placeholder: refactoring.oldName,
             ),
-            placeholder: refactoring.oldName,
           ),
-        ),
-      );
+        );
+      });
     });
   }
 }
@@ -134,180 +141,163 @@ class RenameHandler extends SharedMessageHandler<RenameParams, WorkspaceEdit?> {
 
     var pos = params.position;
     var textDocument = params.textDocument;
-    var path = pathOfDoc(params.textDocument);
-    // Capture the document version so we can verify it hasn't changed after
-    // we've computed the rename.
-    var docIdentifier = path.mapResultSync(
-      (path) => success(extractDocumentVersion(textDocument, path)),
-    );
 
-    var unit = await path.mapResult(requireResolvedUnit);
-    var offset = unit.mapResultSync((unit) => toOffset(unit.lineInfo, pos));
-
-    return (path, docIdentifier, unit, offset).mapResults((
-      path,
-      docIdentifier,
+    return withResolvedUnit(textDocument: textDocument, token, (
       result,
-      offset,
-    ) async {
-      var node = result.unit.nodeCovering(offset: offset);
-      var element = node?.getElement(useMockForImport: true);
-      if (node == null || element == null) {
-        return success(null);
-      }
-
-      var refactorDetails = RenameRefactoring.getElementToRename(node, element);
-      if (refactorDetails == null) {
-        return success(null);
-      }
-
-      var refactoring = RenameRefactoring.create(
-        server.refactoringWorkspace,
-        result,
-        refactorDetails.element,
-      );
-      if (refactoring == null) {
-        return success(null);
-      }
-
-      // Check the rename is valid here.
-      var initStatus = await refactoring.checkInitialConditions();
-      if (token.isCancellationRequested) {
-        return cancelled(token);
-      }
-      if (initStatus.hasFatalError) {
-        return error(
-          ServerErrorCodes.renameNotValid,
-          initStatus.problem!.message,
-        );
-      }
-
-      // Check the name is valid.
-      refactoring.newName = params.newName;
-      var optionsStatus = refactoring.checkNewName();
-      if (optionsStatus.hasError) {
-        return error(
-          ServerErrorCodes.renameNotValid,
-          optionsStatus.problem!.message,
-        );
-      }
-
-      // Final validation.
-      var finalStatus = await refactoring.checkFinalConditions();
-      if (token.isCancellationRequested) {
-        return cancelled(token);
-      }
-      if (finalStatus.hasFatalError) {
-        return error(
-          ServerErrorCodes.renameNotValid,
-          finalStatus.problem!.message,
-        );
-      } else if (finalStatus.hasError || finalStatus.hasWarning) {
-        var prompt = server.userPromptSender;
-
-        // If this change would produce errors but we can't prompt the user,
-        // just fail with the message.
-        if (prompt == null) {
-          return error(ServerErrorCodes.renameNotValid, finalStatus.message!);
+      _,
+      checkAbort,
+    ) {
+      var offset = toOffset(result.lineInfo, pos);
+      return offset.mapResult((offset) async {
+        var node = result.unit.nodeCovering(offset: offset);
+        var element = node?.getElement(useMockForImport: true);
+        if (node == null || element == null) {
+          return success(null);
         }
 
-        // Complete the message before we make the outbound request because when
-        // the server is in non-overlapping request mode, we cannot have the
-        // server stall because this request is blocked on user-input.
-        message.completer?.complete();
+        var refactorDetails = RenameRefactoring.getElementToRename(
+          node,
+          element,
+        );
+        if (refactorDetails == null) {
+          return success(null);
+        }
 
-        // Otherwise, ask the user whether to proceed with the rename.
-        var userChoice = await prompt(
-          MessageType.warning,
-          finalStatus.message!,
-          [UserPromptActions.renameAnyway, UserPromptActions.cancel],
-          token,
+        var refactoring = RenameRefactoring.create(
+          server.refactoringWorkspace,
+          result,
+          refactorDetails.element,
+        );
+        if (refactoring == null) {
+          return success(null);
+        }
+
+        // Check the rename is valid here.
+        var initStatus = await refactoring.checkInitialConditions();
+        if (checkAbort() case var reason?) return reason;
+        if (initStatus.hasFatalError) {
+          return error(
+            ServerErrorCodes.renameNotValid,
+            initStatus.problem!.message,
+          );
+        }
+
+        // Check the name is valid.
+        refactoring.newName = params.newName;
+        var optionsStatus = refactoring.checkNewName();
+        if (optionsStatus.hasError) {
+          return error(
+            ServerErrorCodes.renameNotValid,
+            optionsStatus.problem!.message,
+          );
+        }
+
+        // Final validation.
+        var finalStatus = await refactoring.checkFinalConditions();
+        if (checkAbort() case var reason?) return reason;
+        if (finalStatus.hasFatalError) {
+          return error(
+            ServerErrorCodes.renameNotValid,
+            finalStatus.problem!.message,
+          );
+        } else if (finalStatus.hasError || finalStatus.hasWarning) {
+          var prompt = server.userPromptSender;
+
+          // If this change would produce errors but we can't prompt the user,
+          // just fail with the message.
+          if (prompt == null) {
+            return error(ServerErrorCodes.renameNotValid, finalStatus.message!);
+          }
+
+          // Complete the message before we make the outbound request because when
+          // the server is in non-overlapping request mode, we cannot have the
+          // server stall because this request is blocked on user-input.
+          message.completer?.complete();
+
+          // Otherwise, ask the user whether to proceed with the rename.
+          var userChoice = await prompt(
+            MessageType.warning,
+            finalStatus.message!,
+            [UserPromptActions.renameAnyway, UserPromptActions.cancel],
+            token,
+          );
+
+          if (userChoice != UserPromptActions.renameAnyway) {
+            // Return an empty workspace edit response so we do not perform any
+            // rename, but also so we do not cause the client to show the user an
+            // error after they clicked cancel.
+            return success(emptyWorkspaceEdit);
+          }
+
+          if (checkAbort() case var reason?) return reason;
+        }
+
+        // Compute the actual change.
+        // Don't include potential edits while we don't have a way for the user
+        // to opt-in/out.
+        // https://github.com/Dart-Code/Dart-Code/issues/4131.
+        // TODO(dantup): Check whether LSP's annotated edits would allow us to
+        //  send potential edits in their own group that can be easily toggled by
+        //  the user.
+        refactoring.includePotential = false;
+        var change = await refactoring.createChange();
+        if (checkAbort() case var reason?) return reason;
+
+        var workspaceEdit = createWorkspaceEdit(
+          server,
+          clientCapabilities,
+          change,
         );
 
-        if (token.isCancellationRequested) {
-          return cancelled(token);
-        }
+        // Check whether we should handle renaming the file to match the class.
+        if (_clientSupportsRename(clientCapabilities) &&
+            _isClassRename(refactoring)) {
+          // The rename must always be performed on the file that defines the
+          // class which is not necessarily the one where the rename was invoked.
+          var declaringFile = (refactoring as RenameUnitMemberRefactoringImpl)
+              .element
+              .firstFragment
+              .libraryFragment
+              ?.source
+              .fullName;
+          if (declaringFile != null) {
+            var folder = pathContext.dirname(declaringFile);
+            var actualFilename = pathContext.basename(declaringFile);
+            var oldComputedFilename = refactoring.oldName.toFileName;
+            var newFilename = params.newName.toFileName;
 
-        if (userChoice != UserPromptActions.renameAnyway) {
-          // Return an empty workspace edit response so we do not perform any
-          // rename, but also so we do not cause the client to show the user an
-          // error after they clicked cancel.
-          return success(emptyWorkspaceEdit);
-        }
-      }
-
-      // Compute the actual change.
-      // Don't include potential edits while we don't have a way for the user
-      // to opt-in/out.
-      // https://github.com/Dart-Code/Dart-Code/issues/4131.
-      // TODO(dantup): Check whether LSP's annotated edits would allow us to
-      //  send potential edits in their own group that can be easily toggled by
-      //  the user.
-      refactoring.includePotential = false;
-      var change = await refactoring.createChange();
-      if (token.isCancellationRequested) {
-        return cancelled(token);
-      }
-
-      // Before we send anything back, ensure the original file didn't change
-      // while we were computing changes.
-      if (fileHasBeenModified(path, docIdentifier.version)) {
-        return fileModifiedError;
-      }
-
-      var workspaceEdit = createWorkspaceEdit(
-        server,
-        clientCapabilities,
-        change,
-      );
-
-      // Check whether we should handle renaming the file to match the class.
-      if (_clientSupportsRename(clientCapabilities) &&
-          _isClassRename(refactoring)) {
-        // The rename must always be performed on the file that defines the
-        // class which is not necessarily the one where the rename was invoked.
-        var declaringFile = (refactoring as RenameUnitMemberRefactoringImpl)
-            .element
-            .firstFragment
-            .libraryFragment
-            ?.source
-            .fullName;
-        if (declaringFile != null) {
-          var folder = pathContext.dirname(declaringFile);
-          var actualFilename = pathContext.basename(declaringFile);
-          var oldComputedFilename = refactoring.oldName.toFileName;
-          var newFilename = params.newName.toFileName;
-
-          // Only if the existing filename matches exactly what we'd expect for
-          // the original class name will we consider renaming.
-          if (actualFilename == oldComputedFilename) {
-            var renameConfig = config.renameFilesWithClasses;
-            var shouldRename =
-                renameConfig == 'always' ||
-                (renameConfig == 'prompt' &&
-                    await _promptToRenameFile(
-                      actualFilename,
-                      newFilename,
-                      token,
-                    ));
-            if (shouldRename && !token.isCancellationRequested) {
-              var newPath = pathContext.join(folder, newFilename);
-              var renameEdit = createRenameEdit(
-                uriConverter,
-                declaringFile,
-                newPath,
-              );
-              workspaceEdit = mergeWorkspaceEdits([workspaceEdit, renameEdit]);
+            // Only if the existing filename matches exactly what we'd expect for
+            // the original class name will we consider renaming.
+            if (actualFilename == oldComputedFilename) {
+              var renameConfig = config.renameFilesWithClasses;
+              var shouldRename =
+                  renameConfig == 'always' ||
+                  (renameConfig == 'prompt' &&
+                      await _promptToRenameFile(
+                        actualFilename,
+                        newFilename,
+                        token,
+                      ));
+              if (shouldRename && !token.isCancellationRequested) {
+                var newPath = pathContext.join(folder, newFilename);
+                var renameEdit = createRenameEdit(
+                  uriConverter,
+                  declaringFile,
+                  newPath,
+                );
+                workspaceEdit = mergeWorkspaceEdits([
+                  workspaceEdit,
+                  renameEdit,
+                ]);
+              }
             }
           }
         }
-      }
 
-      if (token.isCancellationRequested) {
-        return cancelled(token);
-      }
+        if (checkAbort() case var reason?) return reason;
 
-      return success(workspaceEdit);
+        return success(workspaceEdit);
+      });
     });
   }
 

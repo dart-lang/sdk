@@ -56,7 +56,8 @@ Widget buildRow() {
 }
 
 @reflectiveTest
-class ReplaceContainedWithSizedBoxTest extends FixProcessorLintTest {
+class ReplaceContainedWithSizedBoxTest
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   bool get addFlutterPackageDep => true;
 

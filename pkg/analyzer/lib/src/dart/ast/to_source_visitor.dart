@@ -15,7 +15,7 @@ class ToSourceVisitor implements AstVisitor2<void> {
 
   /// Initialize a newly created visitor to write source code representing the
   /// visited nodes to the given [sink].
-  ToSourceVisitor(this.sink);
+  new(this.sink);
 
   @override
   void visitAdjacentStrings(AdjacentStrings node) {
@@ -113,22 +113,15 @@ class ToSourceVisitor implements AstVisitor2<void> {
   @override
   void visitBlock(Block node) {
     sink.write('{');
-    _visitNodeList(node.statements, separator: ' ');
+    _visitNodeList(node.statements2, separator: ' ');
     sink.write('}');
   }
 
   @override
-  void visitBlockClassBody(BlockClassBody node) {
-    sink.write(' {');
-    _visitNodeList(node.members, separator: ' ');
-    sink.write('}');
-  }
-
-  @override
-  void visitBlockEnumBody(BlockEnumBody node) {
+  void visitBlockEnumDeclarationBody(BlockEnumDeclarationBody node) {
     sink.write(' {');
     _visitNodeList(node.constants, separator: ', ');
-    _visitToken(node.semicolon);
+    _visitToken(node.membersSeparator);
     _visitNodeList(node.members, prefix: ' ', separator: ' ');
     sink.write('}');
   }
@@ -144,6 +137,13 @@ class ToSourceVisitor implements AstVisitor2<void> {
       sink.write(' ');
     }
     _visitNode(node.block);
+  }
+
+  @override
+  void visitBlockInstanceDeclarationBody(BlockInstanceDeclarationBody node) {
+    sink.write(' {');
+    _visitNodeList(node.members, separator: ' ');
+    sink.write('}');
   }
 
   @override
@@ -248,7 +248,7 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
-  void visitClassDeclaration(covariant ClassDeclarationImpl node) {
+  void visitClassDeclaration2(covariant ClassDeclaration2Impl node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
     _visitToken(node.augmentKeyword, suffix: ' ');
     _visitToken(node.abstractKeyword, suffix: ' ');
@@ -262,11 +262,12 @@ class ToSourceVisitor implements AstVisitor2<void> {
     _visitNode(node.extendsClause, prefix: ' ');
     _visitNode(node.withClause, prefix: ' ');
     _visitNode(node.implementsClause, prefix: ' ');
+    _visitNode(node.nativeClause, prefix: ' ');
     _visitNode(node.body);
   }
 
   @override
-  void visitClassTypeAlias(covariant ClassTypeAliasImpl node) {
+  void visitClassTypeAlias2(covariant ClassTypeAlias2Impl node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
     _visitToken(node.augmentKeyword, suffix: ' ');
     _visitToken(node.abstractKeyword, suffix: ' ');
@@ -282,7 +283,7 @@ class ToSourceVisitor implements AstVisitor2<void> {
     _visitNode(node.superclass);
     _visitNode(node.withClause, prefix: ' ');
     _visitNode(node.implementsClause, prefix: ' ');
-    sink.write(';');
+    _visitNode(node.body);
   }
 
   @override
@@ -295,11 +296,9 @@ class ToSourceVisitor implements AstVisitor2<void> {
 
   @override
   void visitCommentReference(CommentReference node) {
-    sink.write('[');
     for (var component in node.components) {
       component.accept2(this);
     }
-    sink.write(']');
   }
 
   @override
@@ -354,20 +353,20 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
-  void visitConstructorDeclaration(ConstructorDeclaration node) {
+  void visitConstructorDeclaration2(ConstructorDeclaration2 node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
     _visitToken(node.augmentKeyword, suffix: ' ');
     _visitToken(node.externalKeyword, suffix: ' ');
     _visitToken(node.constKeyword, suffix: ' ');
     _visitToken(node.factoryKeyword, suffix: ' ');
     _visitToken(node.newKeyword, suffix: ' ');
-    if (node.typeName2 != null) {
-      _visitToken(node.typeName2);
+    if (node.typeName != null) {
+      _visitToken(node.typeName);
       _visitToken(node.name, prefix: '.');
     } else {
       _visitToken(node.name);
     }
-    _visitNode(node.parameters);
+    _visitNode(node.formalParameters);
     _visitNodeList(node.initializers, prefix: ' : ', separator: ', ');
     _visitNode(node.factoryRedirectionTarget, prefix: ' = ');
     _visitFunctionBody(node.body);
@@ -458,7 +457,7 @@ class ToSourceVisitor implements AstVisitor2<void> {
   @override
   void visitDoStatement(DoStatement node) {
     sink.write('do ');
-    _visitNode(node.body);
+    _visitNode(node.body2);
     sink.write(' while (');
     _visitNode(node.condition2);
     sink.write(');');
@@ -502,16 +501,6 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
-  void visitEmptyClassBody(EmptyClassBody node) {
-    sink.write(';');
-  }
-
-  @override
-  void visitEmptyEnumBody(EmptyEnumBody node) {
-    sink.write(';');
-  }
-
-  @override
   void visitEmptyFunctionBody(EmptyFunctionBody node) {
     sink.write(';');
   }
@@ -529,7 +518,7 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
-  void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+  void visitEnumConstantDeclaration2(EnumConstantDeclaration2 node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
     _visitToken(node.augmentKeyword, suffix: ' ');
     _visitToken(node.name);
@@ -537,7 +526,7 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
-  void visitEnumDeclaration(EnumDeclaration node) {
+  void visitEnumDeclaration2(EnumDeclaration2 node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
     _visitToken(node.augmentKeyword, suffix: ' ');
     sink.write('enum ');
@@ -587,7 +576,7 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
-  void visitExtensionDeclaration(ExtensionDeclaration node) {
+  void visitExtensionDeclaration2(ExtensionDeclaration2 node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
     _visitToken(node.augmentKeyword, suffix: ' ');
     _visitToken(node.extensionKeyword, suffix: ' ');
@@ -613,7 +602,7 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
-  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+  void visitExtensionTypeDeclaration2(ExtensionTypeDeclaration2 node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
     _visitToken(node.augmentKeyword, suffix: ' ');
     _visitToken(node.extensionKeyword, suffix: ' ');
@@ -624,15 +613,9 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
-  void visitFieldDeclaration(FieldDeclaration node) {
-    _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
-    _visitToken(node.augmentKeyword, suffix: ' ');
-    _visitToken(node.externalKeyword, suffix: ' ');
-    _visitToken(node.staticKeyword, suffix: ' ');
-    _visitToken(node.abstractKeyword, suffix: ' ');
-    _visitToken(node.covariantKeyword, suffix: ' ');
-    _visitNode(node.fields);
-    sink.write(';');
+  void visitField2(Field2 node) {
+    _visitToken(node.name);
+    _visitNode(node.initializer, prefix: ' = ');
   }
 
   @override
@@ -645,6 +628,21 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
+  void visitFieldsDeclaration(FieldsDeclaration node) {
+    _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
+    _visitToken(node.augmentKeyword, suffix: ' ');
+    _visitToken(node.externalKeyword, suffix: ' ');
+    _visitToken(node.staticKeyword, suffix: ' ');
+    _visitToken(node.abstractKeyword, suffix: ' ');
+    _visitToken(node.covariantKeyword, suffix: ' ');
+    _visitToken(node.lateKeyword, suffix: ' ');
+    _visitToken(node.constFinalOrVarKeyword, suffix: ' ');
+    _visitNode(node.type, suffix: ' ');
+    _visitNodeList(node.fields, separator: ', ');
+    sink.write(';');
+  }
+
+  @override
   void visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) {
     _visitNode(node.loopVariable);
     sink.write(' in ');
@@ -653,7 +651,7 @@ class ToSourceVisitor implements AstVisitor2<void> {
 
   @override
   void visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
-    _visitToken(node.identifier2);
+    _visitNode(node.target);
     sink.write(' in ');
     _visitNode(node.iterable2);
   }
@@ -700,7 +698,7 @@ class ToSourceVisitor implements AstVisitor2<void> {
 
   @override
   void visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
-    _visitNode(node.variables);
+    _visitNode(node.variables2);
     sink.write(';');
     _visitNode(node.condition2, prefix: ' ');
     sink.write(';');
@@ -733,23 +731,7 @@ class ToSourceVisitor implements AstVisitor2<void> {
     sink.write('for (');
     _visitNode(node.forLoopParts);
     sink.write(') ');
-    _visitNode(node.body);
-  }
-
-  @override
-  void visitFunctionDeclaration(FunctionDeclaration node) {
-    _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
-    _visitToken(node.augmentKeyword, suffix: ' ');
-    _visitToken(node.externalKeyword, suffix: ' ');
-    _visitNode(node.returnType, suffix: ' ');
-    _visitToken(node.propertyKeyword, suffix: ' ');
-    _visitToken(node.name);
-    _visitNode(node.functionExpression);
-  }
-
-  @override
-  void visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
-    _visitNode(node.functionDeclaration);
+    _visitNode(node.body2);
   }
 
   @override
@@ -766,7 +748,7 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
-  void visitFunctionTypeAlias(FunctionTypeAlias node) {
+  void visitFunctionTypeAlias2(FunctionTypeAlias2 node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
     _visitToken(node.augmentKeyword, suffix: ' ');
     sink.write('typedef ');
@@ -800,7 +782,7 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
-  void visitGenericTypeAlias(GenericTypeAlias node) {
+  void visitGenericTypeAlias2(GenericTypeAlias2 node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
     _visitToken(node.augmentKeyword, suffix: ' ');
     sink.write('typedef ');
@@ -869,8 +851,8 @@ class ToSourceVisitor implements AstVisitor2<void> {
     _visitNode(node.expression2);
     _visitNode(node.caseClause, prefix: ' ');
     sink.write(') ');
-    _visitNode(node.thenStatement);
-    _visitNode(node.elseStatement, prefix: ' else ');
+    _visitNode(node.thenStatement2);
+    _visitNode(node.elseStatement2, prefix: ' else ');
   }
 
   @override
@@ -1020,7 +1002,7 @@ class ToSourceVisitor implements AstVisitor2<void> {
   @override
   void visitLabeledStatement(LabeledStatement node) {
     _visitNodeList(node.labels, separator: ' ', suffix: ' ');
-    _visitNode(node.statement);
+    _visitNode(node.statement2);
   }
 
   @override
@@ -1051,6 +1033,39 @@ class ToSourceVisitor implements AstVisitor2<void> {
     sink.write('[');
     _visitNodeList(node.elements, separator: ', ');
     sink.write(']');
+  }
+
+  @override
+  void visitLocalFunctionDeclaration(LocalFunctionDeclaration node) {
+    _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
+    _visitNode(node.returnType, suffix: ' ');
+    _visitToken(node.name);
+    _visitNode(node.typeParameters);
+    _visitNode(node.formalParameters);
+    _visitFunctionBody(node.body);
+  }
+
+  @override
+  void visitLocalVariable(LocalVariable node) {
+    _visitToken(node.name);
+    _visitNode(node.initializer, prefix: ' = ');
+  }
+
+  @override
+  void visitLocalVariablesDeclaration(LocalVariablesDeclaration node) {
+    _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
+    _visitToken(node.lateKeyword, suffix: ' ');
+    _visitToken(node.constFinalOrVarKeyword, suffix: ' ');
+    _visitNode(node.type, suffix: ' ');
+    _visitNodeList(node.variables, separator: ', ');
+  }
+
+  @override
+  void visitLocalVariablesDeclarationStatement(
+    LocalVariablesDeclarationStatement node,
+  ) {
+    _visitNode(node.declaration);
+    sink.write(';');
   }
 
   @override
@@ -1097,8 +1112,10 @@ class ToSourceVisitor implements AstVisitor2<void> {
 
   @override
   void visitMapLiteralEntry(MapLiteralEntry node) {
+    _visitToken(node.keyQuestion);
     _visitNode(node.key2);
     sink.write(' : ');
+    _visitToken(node.valueQuestion);
     _visitNode(node.value2);
   }
 
@@ -1118,23 +1135,6 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
-  void visitMethodDeclaration(MethodDeclaration node) {
-    _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
-    _visitToken(node.augmentKeyword, suffix: ' ');
-    _visitToken(node.externalKeyword, suffix: ' ');
-    _visitToken(node.modifierKeyword, suffix: ' ');
-    _visitNode(node.returnType, suffix: ' ');
-    _visitToken(node.propertyKeyword, suffix: ' ');
-    _visitToken(node.operatorKeyword, suffix: ' ');
-    _visitToken(node.name);
-    if (!node.isGetter) {
-      _visitNode(node.typeParameters);
-      _visitNode(node.parameters);
-    }
-    _visitFunctionBody(node.body);
-  }
-
-  @override
   void visitMethodDeclaration2(MethodDeclaration2 node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
     _visitToken(node.augmentKeyword, suffix: ' ');
@@ -1148,7 +1148,7 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
-  void visitMixinDeclaration(MixinDeclaration node) {
+  void visitMixinDeclaration2(MixinDeclaration2 node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
     _visitToken(node.augmentKeyword, suffix: ' ');
     _visitToken(node.baseKeyword, suffix: ' ');
@@ -1240,13 +1240,14 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
-  void visitOperatorDeclaration(OperatorDeclaration node) {
+  void visitOperatorDeclaration(covariant OperatorDeclarationImpl node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
     _visitToken(node.augmentKeyword, suffix: ' ');
     _visitToken(node.externalKeyword, suffix: ' ');
     _visitNode(node.returnType, suffix: ' ');
     _visitToken(node.operatorKeyword, suffix: ' ');
     _visitToken(node.operator);
+    _visitNode(node.recoveryTypeParameters);
     _visitNode(node.formalParameters);
     _visitFunctionBody(node.body);
   }
@@ -1302,13 +1303,6 @@ class ToSourceVisitor implements AstVisitor2<void> {
 
   @override
   void visitParsedUnqualifiedName(ParsedUnqualifiedName node) {
-    _visitToken(node.name);
-  }
-
-  @override
-  void visitParsedUnqualifiedNameAssignmentTarget(
-    ParsedUnqualifiedNameAssignmentTarget node,
-  ) {
     _visitToken(node.name);
   }
 
@@ -1372,7 +1366,7 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
-  void visitPrimaryConstructorBody(PrimaryConstructorBody node) {
+  void visitPrimaryConstructorBody2(PrimaryConstructorBody2 node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
     _visitToken(node.thisKeyword);
     if (node.initializers.isNotEmpty) {
@@ -1442,6 +1436,7 @@ class ToSourceVisitor implements AstVisitor2<void> {
 
   @override
   void visitRecordLiteral(RecordLiteral node) {
+    _visitToken(node.constKeyword, suffix: ' ');
     _visitToken(node.leftParenthesis);
     _visitNodeList(node.fields2, separator: ', ');
     _visitToken(node.rightParenthesis);
@@ -1566,6 +1561,18 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
+  void visitSemicolonEnumDeclarationBody(SemicolonEnumDeclarationBody node) {
+    sink.write(';');
+  }
+
+  @override
+  void visitSemicolonInstanceDeclarationBody(
+    SemicolonInstanceDeclarationBody node,
+  ) {
+    sink.write(';');
+  }
+
+  @override
   void visitSetOrMapLiteral(SetOrMapLiteral node) {
     _visitToken(node.constKeyword, suffix: ' ');
     _visitNode(node.typeArguments);
@@ -1640,14 +1647,14 @@ class ToSourceVisitor implements AstVisitor2<void> {
     sink.write('case ');
     _visitNode(node.expression2);
     sink.write(': ');
-    _visitNodeList(node.statements, separator: ' ');
+    _visitNodeList(node.statements2, separator: ' ');
   }
 
   @override
   void visitSwitchDefault(SwitchDefault node) {
     _visitNodeList(node.labels, separator: ' ', suffix: ' ');
     sink.write('default: ');
-    _visitNodeList(node.statements, separator: ' ');
+    _visitNodeList(node.statements2, separator: ' ');
   }
 
   @override
@@ -1672,7 +1679,7 @@ class ToSourceVisitor implements AstVisitor2<void> {
     sink.write('case ');
     _visitNode(node.guardedPattern);
     sink.write(': ');
-    _visitNodeList(node.statements, separator: ' ');
+    _visitNodeList(node.statements2, separator: ' ');
   }
 
   @override
@@ -1708,6 +1715,18 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
+  void visitTopLevelFunctionDeclaration(TopLevelFunctionDeclaration node) {
+    _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
+    _visitToken(node.augmentKeyword, suffix: ' ');
+    _visitToken(node.externalKeyword, suffix: ' ');
+    _visitNode(node.returnType, suffix: ' ');
+    _visitToken(node.name);
+    _visitNode(node.typeParameters);
+    _visitNode(node.formalParameters);
+    _visitFunctionBody(node.body);
+  }
+
+  @override
   void visitTopLevelGetterDeclaration(TopLevelGetterDeclaration node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
     _visitToken(node.augmentKeyword, suffix: ' ');
@@ -1719,12 +1738,34 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
-  void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+  void visitTopLevelSetterDeclaration(TopLevelSetterDeclaration node) {
+    _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
+    _visitToken(node.augmentKeyword, suffix: ' ');
+    _visitToken(node.externalKeyword, suffix: ' ');
+    _visitNode(node.returnType, suffix: ' ');
+    _visitToken(node.setKeyword, suffix: ' ');
+    _visitToken(node.name);
+    _visitNode(node.formalParameters);
+    _visitFunctionBody(node.body);
+  }
+
+  @override
+  void visitTopLevelVariable2(TopLevelVariable2 node) {
+    _visitToken(node.name);
+    _visitNode(node.initializer, prefix: ' = ');
+  }
+
+  @override
+  void visitTopLevelVariablesDeclaration(TopLevelVariablesDeclaration node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
     _visitToken(node.augmentKeyword, suffix: ' ');
     _visitToken(node.externalKeyword, suffix: ' ');
     _visitToken(node.abstractKeyword, suffix: ' ');
-    _visitNode(node.variables, suffix: ';');
+    _visitToken(node.lateKeyword, suffix: ' ');
+    _visitToken(node.constFinalOrVarKeyword, suffix: ' ');
+    _visitNode(node.type, suffix: ' ');
+    _visitNodeList(node.variables, separator: ', ');
+    sink.write(';');
   }
 
   @override
@@ -1747,12 +1788,12 @@ class ToSourceVisitor implements AstVisitor2<void> {
     _visitNode(node.type);
   }
 
+  // TODO(kallentu): Declare `TypeParameter` once variance is added to the
+  // interface.
   @override
-  void visitTypeParameter(TypeParameter node) {
+  void visitTypeParameter(covariant TypeParameterImpl node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
-    // TODO(kallentu): : Clean up TypeParameterImpl casting once variance is
-    // added to the interface.
-    var varianceKeyword = (node as TypeParameterImpl).varianceKeyword;
+    var varianceKeyword = node.varianceKeyword;
     if (varianceKeyword != null) {
       sink.write('${varianceKeyword.lexeme} ');
     }
@@ -1793,28 +1834,6 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
-  void visitVariableDeclaration(VariableDeclaration node) {
-    _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
-    _visitToken(node.name);
-    _visitNode(node.initializer2, prefix: ' = ');
-  }
-
-  @override
-  void visitVariableDeclarationList(VariableDeclarationList node) {
-    _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
-    _visitToken(node.lateKeyword, suffix: ' ');
-    _visitToken(node.keyword, suffix: ' ');
-    _visitNode(node.type, suffix: ' ');
-    _visitNodeList(node.variables, separator: ', ');
-  }
-
-  @override
-  void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
-    _visitNode(node.variables);
-    sink.write(';');
-  }
-
-  @override
   void visitWhenClause(WhenClause node) {
     sink.write('when ');
     _visitNode(node.expression2);
@@ -1825,7 +1844,7 @@ class ToSourceVisitor implements AstVisitor2<void> {
     sink.write('while (');
     _visitNode(node.condition2);
     sink.write(') ');
-    _visitNode(node.body);
+    _visitNode(node.body2);
   }
 
   @override

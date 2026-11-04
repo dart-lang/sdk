@@ -54,6 +54,7 @@ abstract class GetterDeclaration {
     required SourcePropertyBuilder propertyBuilder,
     required Annotatable annotatable,
     required Uri annotatableFileUri,
+    required bool includeBody,
   });
 
   void buildGetterOutlineNode({
@@ -83,7 +84,6 @@ abstract class GetterDeclaration {
     required SourcePropertyBuilder builder,
     required PropertyEncodingStrategy encodingStrategy,
     required TypeParameterFactory typeParameterFactory,
-    required bool isImplementation,
   });
 
   void ensureGetterTypes({
@@ -100,14 +100,10 @@ class RegularGetterDeclaration
     implements GetterDeclaration, GetterFragmentDeclaration {
   final GetterFragment _fragment;
   late final GetterEncoding _encoding;
-  late final bool _isImplementation;
 
   new(this._fragment) {
     _fragment.declaration = this;
   }
-
-  @override
-  bool get isImplementation => _isImplementation;
 
   @override
   UriOffsetLength get uriOffset => _fragment.uriOffset;
@@ -171,6 +167,7 @@ class RegularGetterDeclaration
     required SourcePropertyBuilder propertyBuilder,
     required Annotatable annotatable,
     required Uri annotatableFileUri,
+    required bool includeBody,
   }) {
     _encoding.buildOutlineExpressions(
       classHierarchy: classHierarchy,
@@ -180,6 +177,7 @@ class RegularGetterDeclaration
       bodyBuilderContext: createBodyBuilderContext(propertyBuilder),
       annotatable: annotatable,
       annotatableFileUri: annotatableFileUri,
+      includeBody: includeBody,
     );
   }
 
@@ -251,9 +249,7 @@ class RegularGetterDeclaration
     required SourcePropertyBuilder builder,
     required PropertyEncodingStrategy encodingStrategy,
     required TypeParameterFactory typeParameterFactory,
-    required bool isImplementation,
   }) {
-    _isImplementation = isImplementation;
     _fragment.builder = builder;
     typeParameterFactory.createNominalParameterBuilders(
       _fragment.declaredTypeParameters,
@@ -291,9 +287,7 @@ class RegularGetterDeclaration
         _fragment.returnType,
         getterOverrideDependencies,
         name: _fragment.name,
-        fileUri: _fragment.fileUri,
-        nameOffset: _fragment.nameOffset,
-        nameLength: _fragment.name.length,
+        uriOffset: uriOffset,
       );
     }
     _encoding.ensureTypes(libraryBuilder, membersBuilder.hierarchyBuilder);
@@ -347,13 +341,6 @@ abstract class GetterFragmentDeclaration {
   bool get isNoSuchMethodForwarder;
 
   bool get isExternal;
-
-  /// Whether this declaration hold the implementation for the getter.
-  ///
-  /// For augmentations, only one of the getter declarations is considered
-  /// as the implementation. Other declarations can only provide annotations
-  /// for the generated AST node.
-  bool get isImplementation;
 
   String get name;
 

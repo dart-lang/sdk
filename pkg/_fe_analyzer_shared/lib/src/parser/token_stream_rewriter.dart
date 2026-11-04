@@ -330,11 +330,8 @@ class NextTokenStreamChange implements TokenStreamChange {
   final Token? nextTokenPrevious;
   final Token? nextTokenBeforeSynthetic;
 
-  NextTokenStreamChange(
-    UndoableTokenStreamRewriter rewriter,
-    this.setOn,
-    this.nextToken,
-  ) : setOnNext = setOn.next,
+  new(UndoableTokenStreamRewriter rewriter, this.setOn, this.nextToken)
+    : setOnNext = setOn.next,
       nextTokenPrevious = nextToken.previous,
       nextTokenBeforeSynthetic = nextToken.beforeSynthetic {
     rewriter._changes.add(this);
@@ -355,11 +352,8 @@ class EndGroupTokenStreamChange implements TokenStreamChange {
   final BeginToken setOn;
   final Token? endGroup;
 
-  EndGroupTokenStreamChange(
-    UndoableTokenStreamRewriter rewriter,
-    this.setOn,
-    Token endGroup,
-  ) : endGroup = setOn.endGroup {
+  new(UndoableTokenStreamRewriter rewriter, this.setOn, Token endGroup)
+    : endGroup = setOn.endGroup {
     rewriter._changes.add(this);
     setOn.endGroup = endGroup;
   }
@@ -374,11 +368,8 @@ class OffsetTokenStreamChange implements TokenStreamChange {
   final Token setOn;
   final int offset;
 
-  OffsetTokenStreamChange(
-    UndoableTokenStreamRewriter rewriter,
-    this.setOn,
-    int offset,
-  ) : offset = setOn.offset {
+  new(UndoableTokenStreamRewriter rewriter, this.setOn, int offset)
+    : offset = setOn.offset {
     rewriter._changes.add(this);
     setOn.offset = offset;
   }
@@ -393,11 +384,8 @@ class PrecedingCommentsTokenStreamChange implements TokenStreamChange {
   final SimpleToken setOn;
   final CommentToken? comment;
 
-  PrecedingCommentsTokenStreamChange(
-    UndoableTokenStreamRewriter rewriter,
-    this.setOn,
-    CommentToken? comment,
-  ) : comment = setOn.precedingComments {
+  new(UndoableTokenStreamRewriter rewriter, this.setOn, CommentToken? comment)
+    : comment = setOn.precedingComments {
     rewriter._changes.add(this);
     setOn.precedingComments = comment;
   }
@@ -412,11 +400,8 @@ class PreviousTokenStreamChange implements TokenStreamChange {
   final Token setOn;
   final Token previous;
 
-  PreviousTokenStreamChange(
-    UndoableTokenStreamRewriter rewriter,
-    this.setOn,
-    Token previous,
-  ) : previous = setOn.previous! {
+  new(UndoableTokenStreamRewriter rewriter, this.setOn, Token previous)
+    : previous = setOn.previous! {
     rewriter._changes.add(this);
     setOn.previous = previous;
   }

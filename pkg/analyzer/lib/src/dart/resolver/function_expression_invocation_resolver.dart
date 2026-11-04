@@ -11,30 +11,33 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
+import 'package:analyzer/src/dart/resolver/resolution_result.dart';
+import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/dart/type_instantiation_target.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/error/nullable_dereference_verifier.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 
 /// Helper for resolving [CallInvocation]s.
 class CallInvocationResolver {
-  final ResolverVisitor _resolver;
+  final TypeAnalyzer _typeAnalyzer;
   final TypePropertyResolver _typePropertyResolver;
 
-  CallInvocationResolver({required ResolverVisitor resolver})
-    : _resolver = resolver,
-      _typePropertyResolver = resolver.typePropertyResolver;
+  new({required TypeAnalyzer typeAnalyzer})
+    : _typeAnalyzer = typeAnalyzer,
+      _typePropertyResolver = typeAnalyzer.typePropertyResolver;
 
-  DiagnosticReporter get _diagnosticReporter => _resolver.diagnosticReporter;
+  DiagnosticReporter get _diagnosticReporter =>
+      _typeAnalyzer.diagnosticReporter;
 
-  ExtensionMemberResolver get _extensionResolver => _resolver.extensionResolver;
+  ExtensionMemberResolver get _extensionResolver =>
+      _typeAnalyzer.extensionResolver;
 
   NullableDereferenceVerifier get _nullableDereferenceVerifier =>
-      _resolver.nullableDereferenceVerifier;
+      _typeAnalyzer.nullableDereferenceVerifier;
 
-  TypeSystemImpl get _typeSystem => _resolver.typeSystem;
+  TypeSystemImpl get _typeSystem => _typeAnalyzer.typeSystem;
 
   void resolve(
     CallInvocationImpl node,
@@ -45,7 +48,7 @@ class CallInvocationResolver {
       case SuperReferenceImpl receiver:
         var result = _typePropertyResolver.resolve(
           receiver: receiver,
-          receiverType: _resolver.superLookupType(receiver),
+          receiverType: _typeAnalyzer.superLookupType(receiver),
           name: MethodElement.CALL_METHOD_NAME,
           hasRead: true,
           hasWrite: false,
@@ -60,7 +63,8 @@ class CallInvocationResolver {
             target: InvocationTargetExecutableElement(element),
           );
         } else {
-          if (result.needsGetterError || result.getter2 != null) {
+          if (result.getterOutcome == LookupOutcome.notFound ||
+              result.getter2 != null) {
             _diagnosticReporter.report(
               diag.invocationOfNonFunctionExpression.at(receiver),
             );
@@ -161,14 +165,14 @@ class CallInvocationResolver {
         }
 
         if (callElement == null) {
-          if (result.needsGetterError) {
+          if (result.getterOutcome == LookupOutcome.notFound) {
             _diagnosticReporter.report(
               diag.invocationOfNonFunctionExpression.at(function),
             );
           }
-          var type = result.isGetterInvalid
-              ? InvalidTypeImpl.instance
-              : DynamicTypeImpl.instance;
+          var type = result.getterOutcome == LookupOutcome.resolved
+              ? DynamicTypeImpl.instance
+              : InvalidTypeImpl.instance;
           _unresolved(
             node,
             type,
@@ -227,7 +231,7 @@ class CallInvocationResolver {
   }) {
     var returnType =
         CallInvocationInferrer(
-              resolver: _resolver,
+              typeAnalyzer: _typeAnalyzer,
               node: node,
               argumentList: node.argumentList,
               whyNotPromotedArguments: whyNotPromotedArguments,
@@ -251,7 +255,7 @@ class CallInvocationResolver {
         ),
       _ => throw StateError('Unexpected call invocation target: $target'),
     };
-    node.recordStaticType(returnType, resolver: _resolver);
+    node.recordStaticType(returnType, typeAnalyzer: _typeAnalyzer);
   }
 
   void _resolveReceiverExtensionOverride(
@@ -303,7 +307,7 @@ class CallInvocationResolver {
   }) {
     _setExplicitTypeArgumentTypes(node);
     CallInvocationInferrer(
-      resolver: _resolver,
+      typeAnalyzer: _typeAnalyzer,
       node: node,
       argumentList: node.argumentList,
       contextType: contextType,
@@ -322,7 +326,7 @@ class CallInvocationResolver {
           ),
           _ => DynamicInvocationResolutionImpl(type: type),
         };
-    node.recordStaticType(type, resolver: _resolver);
+    node.recordStaticType(type, typeAnalyzer: _typeAnalyzer);
   }
 
   /// Inference cannot be done, we still want to fill type argument types.

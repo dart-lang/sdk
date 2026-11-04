@@ -34,9 +34,9 @@ WhileStatement
     literal: true
     staticType: bool
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
-    statements
+    statements2
       BreakStatement
         breakKeyword: break
         semicolon: ;
@@ -61,16 +61,16 @@ LabeledStatement
       name: L
       colon: :
       declaredFragment: <testLibraryFragment> L@13
-  statement: WhileStatement
+  statement2: WhileStatement
     whileKeyword: while
     leftParenthesis: (
     condition2: BooleanLiteral
       literal: true
       staticType: bool
     rightParenthesis: )
-    body: Block
+    body2: Block
       leftBracket: {
-      statements
+      statements2
         BreakStatement
           breakKeyword: break
           label: LabelReference
@@ -101,9 +101,9 @@ WhileStatement
     literal: true
     staticType: bool
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
-    statements
+    statements2
       BreakStatement
         breakKeyword: break
         label: LabelReference
@@ -138,7 +138,7 @@ WhileStatement
     superKeyword: super
     staticType: A
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
     rightBracket: }
 ''');
@@ -162,9 +162,9 @@ WhileStatement
     literal: true
     staticType: bool
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
-    statements
+    statements2
       ContinueStatement
         continueKeyword: continue
         semicolon: ;
@@ -189,16 +189,16 @@ LabeledStatement
       name: L
       colon: :
       declaredFragment: <testLibraryFragment> L@13
-  statement: WhileStatement
+  statement2: WhileStatement
     whileKeyword: while
     leftParenthesis: (
     condition2: BooleanLiteral
       literal: true
       staticType: bool
     rightParenthesis: )
-    body: Block
+    body2: Block
       leftBracket: {
-      statements
+      statements2
         ContinueStatement
           continueKeyword: continue
           label: LabelReference
@@ -229,9 +229,9 @@ WhileStatement
     literal: true
     staticType: bool
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
-    statements
+    statements2
       ContinueStatement
         continueKeyword: continue
         label: LabelReference

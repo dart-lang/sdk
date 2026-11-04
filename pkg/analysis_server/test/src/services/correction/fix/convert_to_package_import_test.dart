@@ -52,7 +52,7 @@ var bar = Bar();
 
 @reflectiveTest
 class ConvertToPackageImport_AlwaysUsePackageImportsTest
-    extends FixProcessorLintTest {
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.convertToPackageImport;
 
@@ -70,6 +70,30 @@ var foo = Foo();
 ''');
 
     await assertHasFix('''
+import 'package:test/foo.dart';
+
+var foo = Foo();
+''');
+  }
+
+  Future<void> test_relativeImport_inPart() async {
+    newFile('$testPackageLibPath/foo.dart', '''
+class Foo {}
+''');
+    newFile('$testPackageLibPath/a.dart', '''
+part 'test.dart';
+''');
+    await resolveTestCode('''
+part of 'a.dart';
+
+import 'foo.dart';
+
+var foo = Foo();
+''');
+
+    await assertHasFix('''
+part of 'a.dart';
+
 import 'package:test/foo.dart';
 
 var foo = Foo();
@@ -106,7 +130,7 @@ var bar = Bar();
 
 @reflectiveTest
 class ConvertToPackageImport_AvoidRelativeLibImportsTest
-    extends FixProcessorLintTest {
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.convertToPackageImport;
 

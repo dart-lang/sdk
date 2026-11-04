@@ -23,7 +23,7 @@ class TypeConstraintGatherer
 
   final constraints = <String>[];
 
-  TypeConstraintGatherer(
+  new(
     Set<String> typeVariablesBeingConstrained, {
     this.enableDiscrepantObliviousnessOfNullabilitySuffixOfFutureOr = false,
   }) : super(inferenceUsingBoundsIsEnabled: false) {

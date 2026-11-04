@@ -6,5 +6,6 @@ import 'dart:_embedder' as embedder;
 import 'dart:_string' show embedderStringFromDartString;
 
 @patch
-void printToConsole(String line) =>
-    embedder.print(embedderStringFromDartString(line).wrappedExternRef);
+void printToConsole(String line) {
+  embedder.print(embedderStringFromDartString(line).wrappedExternRef);
+}

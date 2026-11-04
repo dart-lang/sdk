@@ -131,7 +131,6 @@ ImportPrefixedNameExpression
   name: value
   resolution: GetterInvocationResolution
     element: package:test/a.dart::@getter::value
-    invokeType: int Function()
     type: int
   correspondingParameter: <testLibrary>::@function::consume::@formalParameter::value
   staticType: int
@@ -172,7 +171,6 @@ ImportPrefixedNameExpression
   name: value
   resolution: GetterInvocationResolution
     element: package:test/a.dart::@getter::value
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PrefixedIdentifier
@@ -251,7 +249,6 @@ ImportPrefixedNameExpression
   name: value
   resolution: GetterInvocationResolution
     element: package:test/a.dart::@getter::value
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PrefixedIdentifier
@@ -378,7 +375,7 @@ import 'a.dart' as p;
 void f() {
   p.missing;
 //  ^^^^^^^
-// [diag.undefinedPrefixedName] The name 'missing' is being referenced through the prefix 'p', but it isn't defined in any of the libraries imported using that prefix.
+// [diag.undefinedPrefixedNameReadNotFound] The name 'missing' isn't defined in the libraries imported with the prefix 'p'.
 }
 ''');
     assertResolvedNodeText(
@@ -471,7 +468,6 @@ ReceiverPropertyExtraction
       name: value
       resolution: GetterInvocationResolution
         element: package:test/a.dart::@getter::value
-        invokeType: int Function()
         type: int
       staticType: int
     rightParenthesis: )
@@ -480,7 +476,6 @@ ReceiverPropertyExtraction
   name: isEven
   resolution: GetterInvocationResolution
     element: dart:core::@class::int::@getter::isEven
-    invokeType: bool Function()
     type: bool
   staticType: bool
 V1: PropertyAccess
@@ -573,7 +568,6 @@ ImportPrefixedNameExpression
   name: foo
   resolution: GetterInvocationResolution
     element: package:test/a.dart::@getter::foo
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PrefixedIdentifier
@@ -602,7 +596,7 @@ import 'a.dart' as prefix;
 void f() {
   prefix.foo;
 //       ^^^
-// [diag.undefinedPrefixedName] The name 'foo' is being referenced through the prefix 'prefix', but it isn't defined in any of the libraries imported using that prefix.
+// [diag.undefinedPrefixedNameReadSetterOnly] There's a setter 'foo' in the libraries imported with the prefix 'prefix', but no getter.
 }
 ''');
 
@@ -655,7 +649,6 @@ ImportPrefixedNameExpression
   name: foo
   resolution: GetterInvocationResolution
     element: package:test/a.dart::@getter::foo
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PrefixedIdentifier

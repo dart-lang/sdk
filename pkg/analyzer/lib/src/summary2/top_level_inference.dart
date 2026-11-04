@@ -2,27 +2,28 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/src/analysis_options/analysis_options.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_schema.dart';
+import 'package:analyzer/src/dart/resolver/ast_resolver.dart';
 import 'package:analyzer/src/error/inference_error.dart';
-import 'package:analyzer/src/summary2/ast_resolver.dart';
 import 'package:analyzer/src/summary2/instance_member_inferrer.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:collection/collection.dart';
 
-/// Resolver for typed constant top-level variables and fields initializers.
+/// Resolver for constant initializers of top-level variables and fields.
 ///
-/// Initializers of untyped variables are resolved during [TopLevelInference].
+/// The initializer from which [TopLevelInference] infers the type of the
+/// variable is already resolved, all other initializers are resolved here.
 class ConstantInitializersResolver {
   final Linker linker;
 
-  ConstantInitializersResolver(this.linker);
+  new(this.linker);
 
   void perform() {
     for (var builder in linker.builders.values) {
@@ -54,57 +55,40 @@ class ConstantInitializersResolver {
     AnalysisOptionsImpl analysisOptions,
     PropertyInducingElementImpl element,
   ) {
-    if (element is FieldElementImpl && element.isEnumConstant) {
-      return;
-    }
-
-    var constantInitializer = element.constantInitializerData;
-    if (constantInitializer == null) {
-      return;
-    }
-
-    var fragment = constantInitializer.fragment;
-    var node = linker.getLinkingNode(fragment) as VariableDeclarationImpl;
-
-    // TopLevelInference resolves an initializer when it infers the variable's
-    // type from it. Only the remaining constant initializers need resolution.
-    if (!element.isTypeInferredFromInitializer) {
-      var astResolver = AstResolver(
-        linker,
-        fragment.libraryFragment as LibraryFragmentImpl,
-        node.initializerScope!,
-        analysisOptions,
-      );
-
-      List<FormalParameterElementImpl>? inScopePrimaryConstructorParameters;
-      if (element case FieldElementImpl field) {
-        if (field.isInstanceField && !field.isLate) {
-          inScopePrimaryConstructorParameters = field.enclosingElement
-              .tryCast<InterfaceElementImpl>()
-              ?.primaryConstructor
-              ?.formalParameters;
-        }
+    // Every fragment's initializer is written into the bundle, including
+    // initializers of augmentations, so each of them must end up resolved.
+    for (var fragment in element.fragments) {
+      if (fragment.constantInitializer2 == null) {
+        continue;
       }
 
-      astResolver.resolveExpression(
-        () => node.initializer2!,
-        contextType: element.type,
-        inScopePrimaryConstructorParameters:
-            inScopePrimaryConstructorParameters,
-        isThisAccessible: false,
-      );
-    }
+      var node = linker.getLinkingNode(fragment) as VariableBindingImpl;
 
-    // We could have rewritten the initializer.
-    fragment.constantInitializer2 = node.initializer2;
-    element.resetConstantInitializer();
+      // TopLevelInference resolves the initializer from which it infers the
+      // variable's type, which is the initializer of the first fragment.
+      var isResolvedByInference =
+          element.isTypeInferredFromInitializer &&
+          identical(fragment, element.firstFragment);
+      if (!isResolvedByInference) {
+        AstResolver.resolveVariableInitializerForLinking(
+          inheritance: linker.inheritance,
+          analysisOptions: analysisOptions,
+          fragment: fragment,
+          node: node,
+          contextType: element.type,
+        );
+      }
+
+      // Resolution here or by TopLevelInference could rewrite the initializer.
+      fragment.constantInitializer2 = node.initializer2;
+    }
   }
 }
 
 class TopLevelInference {
   final Linker linker;
 
-  TopLevelInference(this.linker);
+  new(this.linker);
 
   void infer() {
     var initializerInference = _InitializerInference(linker);
@@ -134,7 +118,7 @@ class _InitializerInference {
 
   late LibraryBuilder _libraryBuilder;
 
-  _InitializerInference(this._linker);
+  new(this._linker);
 
   void createNodes() {
     for (var builder in _linker.builders.values) {
@@ -203,50 +187,47 @@ class _PropertyInducingElementTypeInference
   final LibraryBuilder _libraryBuilder;
   final PropertyInducingElementImpl _element;
 
-  _PropertyInducingElementTypeInference(
-    this._linker,
-    this._inferring,
-    this._element,
-    this._libraryBuilder,
-  );
+  new(this._linker, this._inferring, this._element, this._libraryBuilder);
 
   @override
   ({TypeImpl type, bool isTypeInferredFromInitializer}) perform() {
-    LibraryFragmentImpl? initializerLibraryFragment;
-    Scope? scope;
-    ExpressionImpl Function()? getInitializer;
-    List<FormalParameterElementImpl>? inScopePrimaryConstructorParameters;
-    bool isThisAccessible = false;
+    var analysisOptions = _libraryBuilder.kind.file.analysisOptions;
+    ExpressionImpl Function()? resolveInitializer;
 
     // Augmentations cannot change the type of the element, so only
     // the initializer of the first fragment can be used for type inference.
     var firstFragment = _element.firstFragment;
     var node = _linker.getLinkingNode(firstFragment);
     switch (node) {
-      case VariableDeclarationImpl():
+      case VariableBindingImpl():
         if (node.initializer2 != null) {
-          initializerLibraryFragment = firstFragment.libraryFragment;
-          scope = node.initializerScope!;
-          getInitializer = () => node.initializer2!;
-          if (_element case FieldElementImpl field) {
-            if (field.isInstanceField) {
-              if (!field.isLate) {
-                inScopePrimaryConstructorParameters = field.enclosingElement
-                    .tryCast<InterfaceElementImpl>()
-                    ?.primaryConstructor
-                    ?.formalParameters;
-              } else {
-                isThisAccessible = true;
-              }
-            }
-          }
+          resolveInitializer = () {
+            return AstResolver.resolveVariableInitializerForLinking(
+              inheritance: _linker.inheritance,
+              analysisOptions: analysisOptions,
+              fragment: firstFragment,
+              node: node,
+              contextType: UnknownInferredType.instance,
+            );
+          };
         }
       case FormalParameterImpl():
         _assertElementFieldOriginDeclaringFormalParameter();
         if (node.defaultClause case var defaultClause?) {
-          initializerLibraryFragment = firstFragment.libraryFragment;
-          scope = node.scope!;
-          getInitializer = () => defaultClause.value2;
+          resolveInitializer = () {
+            var astResolver = AstResolver.forLinking(
+              inheritance: _linker.inheritance,
+              libraryFragment: firstFragment.libraryFragment,
+              nameScope: node.scope!,
+              analysisOptions: analysisOptions,
+              enclosingClassElement: _element.enclosingElement.tryCast(),
+              enclosingExecutableElement: null,
+            );
+            return astResolver.resolveDefaultValue(
+              defaultClause,
+              contextType: UnknownInferredType.instance,
+            );
+          };
         } else if (node is RegularFormalParameterImpl &&
             node.functionTypedSuffix == null) {
           _status = _InferenceStatus.inferred;
@@ -257,9 +238,7 @@ class _PropertyInducingElementTypeInference
         }
     }
 
-    if (initializerLibraryFragment == null ||
-        scope == null ||
-        getInitializer == null) {
+    if (resolveInitializer == null) {
       _status = _InferenceStatus.inferred;
       return (
         type: DynamicTypeImpl.instance,
@@ -304,23 +283,7 @@ class _PropertyInducingElementTypeInference
     _inferring.add(this);
     _status = _InferenceStatus.beingInferred;
 
-    var enclosingElement = _element.enclosingElement;
-    var enclosingInterfaceElement = enclosingElement
-        .tryCast<InterfaceElementImpl>();
-
-    var analysisOptions = _libraryBuilder.kind.file.analysisOptions;
-    var astResolver = AstResolver(
-      _linker,
-      initializerLibraryFragment,
-      scope,
-      analysisOptions,
-      enclosingClassElement: enclosingInterfaceElement,
-    );
-    astResolver.resolveExpression(
-      getInitializer,
-      inScopePrimaryConstructorParameters: inScopePrimaryConstructorParameters,
-      isThisAccessible: isThisAccessible,
-    );
+    var initializer = resolveInitializer();
 
     // Pop self from the stack.
     var self = _inferring.removeLast();
@@ -334,7 +297,7 @@ class _PropertyInducingElementTypeInference
       _status = _InferenceStatus.inferred;
     }
 
-    var initializerType = getInitializer().typeOrThrow;
+    var initializerType = initializer.typeOrThrow;
     return (
       type: _refineType(initializerType),
       isTypeInferredFromInitializer: true,

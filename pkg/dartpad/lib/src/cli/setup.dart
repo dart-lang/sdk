@@ -6,6 +6,7 @@ import 'package:args/command_runner.dart';
 
 import '../setup/dart.dart';
 import '../setup/flutter.dart';
+import '../setup/shared_worker.dart';
 
 /// Command to download or build DartPad SDK assets for Dart and Flutter.
 final class SetupCommand extends Command<void> {
@@ -19,5 +20,6 @@ final class SetupCommand extends Command<void> {
   SetupCommand() {
     addSubcommand(SetupDartCommand());
     addSubcommand(SetupFlutterCommand());
+    addSubcommand(SetupSharedWorkerCommand());
   }
 }

@@ -109,7 +109,7 @@ abstract mixin class Iterable<E> {
   ///
   /// As an `Iterable`, `Iterable.generate(n, generator))` is equivalent to
   /// `const [0, ..., n - 1].map(generator)`.
-  factory Iterable.generate(int count, [E generator(int index)?]) {
+  factory Iterable.generate(int count, [E Function(int index)? generator]) {
     // Always OK to omit generator when count is zero.
     if (count <= 0) return EmptyIterable<E>();
     if (generator == null) {
@@ -254,7 +254,8 @@ abstract mixin class Iterable<E> {
   /// var values = products.map((product) => product['price'] as double);
   /// var totalPrice = values.fold(0.0, (a, b) => a + b); // 42.5.
   /// ```
-  Iterable<T> map<T>(T toElement(E e)) => MappedIterable<E, T>(this, toElement);
+  Iterable<T> map<T>(T Function(E e) toElement) =>
+      MappedIterable<E, T>(this, toElement);
 
   /// Creates a new lazy [Iterable] with all elements that satisfy the
   /// predicate [test].
@@ -276,7 +277,8 @@ abstract mixin class Iterable<E> {
   /// result = numbers.where((x) => x > 5); // (6, 7)
   /// result = numbers.where((x) => x.isEven); // (2, 6)
   /// ```
-  Iterable<E> where(bool test(E element)) => WhereIterable<E>(this, test);
+  Iterable<E> where(bool Function(E element) test) =>
+      WhereIterable<E>(this, test);
 
   /// Creates a new lazy [Iterable] with all elements that have type [T].
   ///
@@ -317,7 +319,7 @@ abstract mixin class Iterable<E> {
   ///   }
   /// }
   /// ```
-  Iterable<T> expand<T>(Iterable<T> toElements(E element)) =>
+  Iterable<T> expand<T>(Iterable<T> Function(E element) toElements) =>
       ExpandIterable<E, T>(this, toElements);
 
   /// Whether the collection contains an element equal to [element].
@@ -362,7 +364,7 @@ abstract mixin class Iterable<E> {
   /// // 6
   /// // 7
   /// ```
-  void forEach(void action(E element)) {
+  void forEach(void Function(E element) action) {
     for (E element in this) action(element);
   }
 
@@ -389,7 +391,7 @@ abstract mixin class Iterable<E> {
   /// print(result); // 17.5
   /// ```
   /// Consider using [fold] if the iterable can be empty.
-  E reduce(E combine(E value, E element)) {
+  E reduce(E Function(E value, E element) combine) {
     Iterator<E> iterator = this.iterator;
     if (!iterator.moveNext()) {
       throw IterableElementError.noElement();
@@ -422,7 +424,7 @@ abstract mixin class Iterable<E> {
   ///     initialValue, (previousValue, element) => previousValue + element);
   /// print(result); // 117.5
   /// ```
-  T fold<T>(T initialValue, T combine(T previousValue, E element)) {
+  T fold<T>(T initialValue, T Function(T previousValue, E element) combine) {
     var value = initialValue;
     for (E element in this) value = combine(value, element);
     return value;
@@ -441,7 +443,7 @@ abstract mixin class Iterable<E> {
   /// // Checks whether all keys are smaller than 1.
   /// final every = planetsByMass.keys.every((key) => key < 1.0); // true
   /// ```
-  bool every(bool test(E element)) {
+  bool every(bool Function(E element) test) {
     for (E element in this) {
       if (!test(element)) return false;
     }
@@ -494,7 +496,7 @@ abstract mixin class Iterable<E> {
   /// var result = numbers.any((element) => element >= 5); // true;
   /// result = numbers.any((element) => element >= 10); // false;
   /// ```
-  bool any(bool test(E element)) {
+  bool any(bool Function(E element) test) {
     for (E element in this) {
       if (test(element)) return true;
     }
@@ -606,7 +608,8 @@ abstract mixin class Iterable<E> {
   /// result = numbers.takeWhile((x) => x != 4); // (1, 2, 3, 5, 6, 7)
   /// result = numbers.takeWhile((x) => x.isOdd); // (1)
   /// ```
-  Iterable<E> takeWhile(bool test(E value)) => TakeWhileIterable<E>(this, test);
+  Iterable<E> takeWhile(bool Function(E value) test) =>
+      TakeWhileIterable<E>(this, test);
 
   /// Creates an [Iterable] that provides all but the first [count] elements.
   ///
@@ -650,7 +653,8 @@ abstract mixin class Iterable<E> {
   /// result = numbers.skipWhile((x) => x != 4); // ()
   /// result = numbers.skipWhile((x) => x.isOdd); // (2, 3, 5, 6, 7)
   /// ```
-  Iterable<E> skipWhile(bool test(E value)) => SkipWhileIterable<E>(this, test);
+  Iterable<E> skipWhile(bool Function(E value) test) =>
+      SkipWhileIterable<E>(this, test);
 
   /// The first element.
   ///
@@ -714,7 +718,7 @@ abstract mixin class Iterable<E> {
   /// function is returned.
   /// If [orElse] is omitted, it defaults to throwing a [StateError].
   /// Stops iterating on the first matching element.
-  E firstWhere(bool test(E element), {E orElse()?}) {
+  E firstWhere(bool Function(E element) test, {E Function()? orElse}) {
     for (E element in this) {
       if (test(element)) return element;
     }
@@ -743,7 +747,7 @@ abstract mixin class Iterable<E> {
   /// If no element satisfies [test], the result of invoking the [orElse]
   /// function is returned.
   /// If [orElse] is omitted, it defaults to throwing a [StateError].
-  E lastWhere(bool test(E element), {E orElse()?}) {
+  E lastWhere(bool Function(E element) test, {E Function()? orElse}) {
     var iterator = this.iterator;
     // Potential result during first loop.
     E result;
@@ -785,7 +789,7 @@ abstract mixin class Iterable<E> {
   /// ```dart continued
   /// result = numbers.singleWhere((element) => element == 2); // Throws Error.
   /// ```
-  E singleWhere(bool test(E element), {E orElse()?}) {
+  E singleWhere(bool Function(E element) test, {E Function()? orElse}) {
     var iterator = this.iterator;
     E result;
     do {

@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/exhaustiveness/key.dart';
+import 'package:_fe_analyzer_shared/src/exhaustiveness/shape.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/shared.dart';
-import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/types.dart';
 
 class TestEnvironment implements ObjectPropertyLookup {
@@ -19,7 +19,7 @@ class TestEnvironment implements ObjectPropertyLookup {
         _sealedClassOperations,
       );
 
-  TestEnvironment() {
+  new() {
     _addClass(_Class.Object);
     _addClass(_Class.Never);
     _addClass(_Class.Bool);
@@ -40,22 +40,22 @@ class TestEnvironment implements ObjectPropertyLookup {
     (_subtypes[supertype.cls] ??= {}).add(type);
   }
 
-  _Type _typeFromStaticType(StaticType type) {
-    if (type is TypeBasedStaticType<_Type>) {
-      return type.typeForTesting;
-    } else if (type is NullableStaticType) {
-      return new _NullableType(_typeFromStaticType(type.underlying));
-    } else if (type == StaticType.nullType) {
+  _Type _typeFromShape(Shape shape) {
+    if (shape is TypeBasedShape<_Type>) {
+      return shape.typeForTesting;
+    } else if (shape is NullableShape) {
+      return new _NullableType(_typeFromShape(shape.underlying));
+    } else if (shape == Shape.nullShape) {
       return _Type.Null;
-    } else if (type == StaticType.nonNullableObject) {
+    } else if (shape == Shape.nonNullableObject) {
       return _Type.Object;
-    } else if (type == StaticType.nullableObject) {
+    } else if (shape == Shape.nullableObject) {
       return _Type.NullableObject;
-    } else if (type == StaticType.neverType) {
+    } else if (shape == Shape.neverShape) {
       return _Type.Never;
     }
     throw new UnsupportedError(
-      "Unexpected StaticType $type (${type.runtimeType}).",
+      "Unexpected Shape $shape (${shape.runtimeType}).",
     );
   }
 
@@ -71,18 +71,18 @@ class TestEnvironment implements ObjectPropertyLookup {
     return _fields[cls] ?? const {};
   }
 
-  StaticType createClass(
+  Shape createClass(
     String name, {
     bool isSealed = false,
-    List<StaticType> inherits = const [],
-    Map<String, StaticType> fields = const {},
+    List<Shape> inherits = const [],
+    Map<String, Shape> fields = const {},
   }) {
     _Class cls = new _Class(name, isSealed: isSealed);
     _addClass(cls);
     _InterfaceType type = new _InterfaceType(cls);
     _addSupertype(type, _Type.Object);
-    for (StaticType inherit in inherits) {
-      _Type supertype = _typeFromStaticType(inherit);
+    for (Shape inherit in inherits) {
+      _Type supertype = _typeFromShape(inherit);
       if (supertype is _InterfaceType) {
         _addSupertype(type, supertype);
       } else {
@@ -94,7 +94,7 @@ class TestEnvironment implements ObjectPropertyLookup {
 
     if (fields.isNotEmpty) {
       Map<Key, _Type> fieldMap = _fields[cls] ??= {};
-      for (MapEntry<String, StaticType> entry in fields.entries) {
+      for (MapEntry<String, Shape> entry in fields.entries) {
         // TODO(srawlins): Look into fixing this code. Right now we get:
         // "The argument type 'String' isn't related to 'Key'."
         assert(
@@ -102,7 +102,7 @@ class TestEnvironment implements ObjectPropertyLookup {
           !fieldMap.containsKey(entry.key),
           "Duplicate field '${entry.key}' in $cls.",
         );
-        fieldMap[new NameKey(entry.key)] = _typeFromStaticType(entry.value);
+        fieldMap[new NameKey(entry.key)] = _typeFromShape(entry.value);
       }
     }
 
@@ -126,23 +126,21 @@ class TestEnvironment implements ObjectPropertyLookup {
       throw new ArgumentError('Can only have one sealed supertype.');
     }
 
-    return _exhaustivenessCache.getStaticType(type);
+    return _exhaustivenessCache.getShapeForType(type);
   }
 
-  StaticType createRecordType(Map<String, StaticType> named) {
+  Shape createRecordType(Map<String, Shape> named) {
     Map<Key, _Type> namedTypes = {};
-    for (MapEntry<String, StaticType> entry in named.entries) {
-      namedTypes[new RecordNameKey(entry.key)] = _typeFromStaticType(
-        entry.value,
-      );
+    for (MapEntry<String, Shape> entry in named.entries) {
+      namedTypes[new RecordNameKey(entry.key)] = _typeFromShape(entry.value);
     }
     _Type type = new _RecordType([], namedTypes);
-    return _exhaustivenessCache.getStaticType(type);
+    return _exhaustivenessCache.getShapeForType(type);
   }
 
   @override
-  StaticType? getObjectFieldType(Key key) {
-    return _exhaustivenessCache.getObjectFieldType(key);
+  Shape? getObjectPropertyShape(Key key) {
+    return _exhaustivenessCache.getObjectPropertyShape(key);
   }
 }
 
@@ -158,7 +156,7 @@ class _Class {
   final String name;
   final bool isSealed;
 
-  const _Class(this.name, {this.isSealed = false});
+  const new(this.name, {this.isSealed = false});
 
   @override
   String toString() => name;
@@ -169,7 +167,7 @@ class _Class {
 }
 
 class _EnumClass extends _Class {
-  _EnumClass(super.name, {required super.isSealed});
+  new(super.name, {required super.isSealed});
 }
 
 // TODO(johnniwinther): Support testing of enums elements.
@@ -181,7 +179,7 @@ typedef _EnumElementValue = Object;
 class _InterfaceType implements _Type {
   final _Class cls;
 
-  const _InterfaceType(this.cls);
+  const new(this.cls);
 
   @override
   int get hashCode => cls.hashCode;
@@ -199,7 +197,7 @@ class _InterfaceType implements _Type {
 class _NullableType implements _Type {
   final _Type type;
 
-  const _NullableType(this.type);
+  const new(this.type);
 
   @override
   int get hashCode => type.hashCode;
@@ -218,7 +216,7 @@ class _RecordType implements _Type {
   final List<_Type> positional;
   final Map<Key, _Type> named;
 
-  _RecordType(this.positional, this.named);
+  new(this.positional, this.named);
 
   @override
   int get hashCode => Object.hash(
@@ -275,23 +273,23 @@ class _RecordType implements _Type {
 class _TypeOperations implements TypeOperations<_Type> {
   final TestEnvironment env;
 
-  _TypeOperations(this.env);
+  new(this.env);
 
   @override
   _Type get boolType => _Type.Bool;
 
   @override
-  Map<Key, _Type> getFieldTypes(_Type type) {
+  Map<Key, _Type> getPropertyTypes(_Type type) {
     if (type is _InterfaceType) {
       Map<Key, _Type> fields = {};
       for (_InterfaceType supertype in env._getSupertypes(type.cls)) {
-        fields.addAll(getFieldTypes(supertype));
+        fields.addAll(getPropertyTypes(supertype));
       }
       fields.addAll(env._getFields(type.cls));
       return fields;
     } else if (type is _RecordType) {
       Map<Key, _Type> fields = {};
-      fields.addAll(getFieldTypes(_Type.Object));
+      fields.addAll(getPropertyTypes(_Type.Object));
       for (int i = 0; i < type.positional.length; i++) {
         fields[new RecordIndexKey(i)] = type.positional[i];
       }
@@ -302,7 +300,7 @@ class _TypeOperations implements TypeOperations<_Type> {
       );
       return fields;
     } else {
-      return getFieldTypes(_Type.Object);
+      return getPropertyTypes(_Type.Object);
     }
   }
 
@@ -493,6 +491,12 @@ class _EnumOperations
   }
 
   @override
+  String getEnumElementSimpleName(_EnumElement enumElement) {
+    // TODO(johnniwinther): Support testing of enums.
+    throw new UnimplementedError('_EnumOperations.getEnumElementSimpleName');
+  }
+
+  @override
   _Type getEnumElementType(_EnumElement enumElement) {
     // TODO(johnniwinther): Support testing of enums.
     throw new UnimplementedError('_EnumOperations.getEnumElementType');
@@ -514,7 +518,7 @@ class _EnumOperations
 class _SealedClassOperations implements SealedClassOperations<_Type, _Class> {
   final TestEnvironment env;
 
-  _SealedClassOperations(this.env);
+  new(this.env);
 
   @override
   List<_Class> getDirectSubclasses(_Class sealedClass) {
@@ -551,9 +555,5 @@ class _ExhaustivenessCache
           _EnumElement,
           _EnumElementValue
         > {
-  _ExhaustivenessCache(
-    super.typeOperations,
-    super.enumOperations,
-    super.sealedClassOperations,
-  );
+  new(super.typeOperations, super.enumOperations, super.sealedClassOperations);
 }

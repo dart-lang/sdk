@@ -15,7 +15,8 @@ void main() {
 }
 
 @reflectiveTest
-class AddMissingParameterNamedTest extends FixProcessorTest {
+class AddMissingParameterNamedTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.addMissingParameterNamed;
 

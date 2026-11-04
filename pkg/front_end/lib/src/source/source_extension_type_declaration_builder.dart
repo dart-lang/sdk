@@ -122,8 +122,7 @@ class SourceExtensionTypeDeclarationBuilder
     )..fileOffset = nameOffset;
   }
 
-  // Coverage-ignore(suite): Not run.
-  /// [UriOffsetLength] for the introductory declaration.
+  @override
   UriOffsetLength get uriOffset => _introductory.uriOffset;
 
   @override
@@ -501,11 +500,9 @@ class SourceExtensionTypeDeclarationBuilder
             }
           }
           if (isBottom(representationType)) {
-            libraryBuilder.addProblem(
+            libraryBuilder.addProblem2(
               diag.extensionTypeRepresentationTypeBottom,
-              _representationFieldFragment!.nameOffset,
-              _representationFieldFragment!.name.length,
-              _representationFieldFragment!.fileUri,
+              _representationFieldFragment!.uriOffset,
             );
             representationType = const InvalidType();
           }

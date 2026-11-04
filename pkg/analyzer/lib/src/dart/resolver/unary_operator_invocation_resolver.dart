@@ -6,18 +6,19 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
+import 'package:analyzer/src/dart/resolver/resolution_result.dart';
+import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 
 /// Helper for resolving [UnaryOperatorInvocation]s.
 class UnaryOperatorInvocationResolver {
-  final ResolverVisitor _resolver;
+  final TypeAnalyzer _typeAnalyzer;
   final TypePropertyResolver _typePropertyResolver;
 
-  UnaryOperatorInvocationResolver(this._resolver)
-    : _typePropertyResolver = _resolver.typePropertyResolver;
+  new(this._typeAnalyzer)
+    : _typePropertyResolver = _typeAnalyzer.typePropertyResolver;
 
   void resolve(
     UnaryOperatorInvocationImpl node, {
@@ -29,7 +30,7 @@ class UnaryOperatorInvocationResolver {
             operand is IntegerLiteralImpl
         ? contextType
         : UnknownInferredType.instance;
-    operand = _resolver.analyzeInstanceReceiver(
+    operand = _typeAnalyzer.analyzeInstanceReceiver(
       operand,
       contextType: innerContextType,
     );
@@ -39,13 +40,13 @@ class UnaryOperatorInvocationResolver {
     switch (operand) {
       case ExpressionImpl():
       case SuperReferenceImpl():
-        var operandType = _resolver.instanceReceiverType(operand);
+        var operandType = _typeAnalyzer.instanceReceiverType(operand);
         if (operandType is DynamicTypeImpl) {
           type = DynamicTypeImpl.instance;
         } else if (operandType is InvalidTypeImpl) {
           type = InvalidTypeImpl.instance;
         } else if (identical(operandType, NeverTypeImpl.instance)) {
-          _resolver.diagnosticReporter.report(
+          _typeAnalyzer.diagnosticReporter.report(
             diag.receiverOfTypeNever.at(operand),
           );
           type = NeverTypeImpl.instance;
@@ -58,7 +59,7 @@ class UnaryOperatorInvocationResolver {
         type = node.element?.returnType ?? InvalidTypeImpl.instance;
     }
 
-    node.recordStaticType(type, resolver: _resolver);
+    node.recordStaticType(type, typeAnalyzer: _typeAnalyzer);
   }
 
   InternalMethodElement? _resolveElement(
@@ -84,15 +85,15 @@ class UnaryOperatorInvocationResolver {
           nameErrorEntity: operand,
         );
         var element = result.getter2 as InternalMethodElement?;
-        if (result.needsGetterError) {
+        if (result.getterOutcome == LookupOutcome.notFound) {
           if (operand is SuperReference) {
-            _resolver.diagnosticReporter.report(
+            _typeAnalyzer.diagnosticReporter.report(
               diag.undefinedSuperOperator
                   .withArguments(operator: methodName, type: operandType)
                   .at(node.operator),
             );
           } else {
-            _resolver.diagnosticReporter.report(
+            _typeAnalyzer.diagnosticReporter.report(
               diag.undefinedOperator
                   .withArguments(operator: methodName, type: operandType)
                   .at(node.operator),
@@ -105,7 +106,7 @@ class UnaryOperatorInvocationResolver {
         var member = extension.getMethod(methodName);
         if (member == null) {
           // Extension overrides always refer to named extensions.
-          _resolver.diagnosticReporter.report(
+          _typeAnalyzer.diagnosticReporter.report(
             diag.undefinedExtensionOperator
                 .withArguments(
                   operator: methodName,

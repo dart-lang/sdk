@@ -178,8 +178,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     }
   }
 
-  // Coverage-ignore(suite): Not run.
-  /// [UriOffsetLength] for the introductory declaration.
+  @override
   UriOffsetLength get uriOffset => _introductory.uriOffset;
 
   @override
@@ -403,11 +402,9 @@ class SourceClassBuilder extends ClassBuilderImpl
 
     // TODO(johnniwinther): Update the message for when a class depends on
     // a cycle but does not depend on itself.
-    libraryBuilder.addProblem(
+    libraryBuilder.addProblem2(
       diag.cyclicClassHierarchy.withArguments(typeName: fullNameForErrors),
-      fileOffset,
-      noLength,
-      fileUri,
+      uriOffset,
     );
   }
 
@@ -417,29 +414,14 @@ class SourceClassBuilder extends ClassBuilderImpl
   void checkObjectSupertypes() {
     if (_supertypeBuilder != null) {
       _supertypeBuilder = null;
-      libraryBuilder.addProblem(
-        diag.objectExtends,
-        fileOffset,
-        noLength,
-        fileUri,
-      );
+      libraryBuilder.addProblem2(diag.objectExtends, uriOffset);
     }
     if (_interfaceBuilders != null) {
-      libraryBuilder.addProblem(
-        diag.objectImplements,
-        fileOffset,
-        noLength,
-        fileUri,
-      );
+      libraryBuilder.addProblem2(diag.objectImplements, uriOffset);
       _interfaceBuilders = null;
     }
     if (_mixedInTypeBuilder != null) {
-      libraryBuilder.addProblem(
-        diag.objectMixesIn,
-        fileOffset,
-        noLength,
-        fileUri,
-      );
+      libraryBuilder.addProblem2(diag.objectMixesIn, uriOffset);
       _mixedInTypeBuilder = null;
     }
   }
@@ -516,11 +498,9 @@ class SourceClassBuilder extends ClassBuilderImpl
       // cannot be extended.  However, a mixin declaration with a single
       // superclass constraint is encoded with the constraint as the supertype,
       // and that is allowed to be a mixin's interface.
-      libraryBuilder.addProblem(
+      libraryBuilder.addProblem2(
         diag.supertypeIsIllegal.withArguments(typeName: cls.superclass!.name),
-        fileOffset,
-        noLength,
-        fileUri,
+        uriOffset,
       );
       supertype = null;
     }
@@ -831,11 +811,9 @@ class SourceClassBuilder extends ClassBuilderImpl
         }
       }
       if (!cls.isAbstract && !cls.isEnum && hasEnumSuperinterface) {
-        libraryBuilder.addProblem(
+        libraryBuilder.addProblem2(
           diag.enumSupertypeOfNonAbstractClass.withArguments(className: name),
-          fileOffset,
-          noLength,
-          fileUri,
+          uriOffset,
         );
       }
 
@@ -897,14 +875,12 @@ class SourceClassBuilder extends ClassBuilderImpl
           );
         }
         if (superclassDeclaringConcreteValues != null) {
-          libraryBuilder.addProblem(
+          libraryBuilder.addProblem2(
             diag.inheritedRestrictedMemberOfEnumImplementer.withArguments(
               memberName: "values",
               superclassName: superclassDeclaringConcreteValues.name,
             ),
-            fileOffset,
-            noLength,
-            fileUri,
+            uriOffset,
           );
         }
 
@@ -932,14 +908,12 @@ class SourceClassBuilder extends ClassBuilderImpl
           )) {
             ClassBuilder restrictedNameMemberProvider =
                 restrictedMembersInSuperclasses[restrictedMemberName]!;
-            libraryBuilder.addProblem(
+            libraryBuilder.addProblem2(
               diag.inheritedRestrictedMemberOfEnumImplementer.withArguments(
                 memberName: restrictedMemberName,
                 superclassName: restrictedNameMemberProvider.name,
               ),
-              fileOffset,
-              noLength,
-              fileUri,
+              uriOffset,
             );
           }
         }
@@ -1068,21 +1042,14 @@ class SourceClassBuilder extends ClassBuilderImpl
       if (unaliasedDeclaration is ClassBuilder) {
         ClassBuilder interface = unaliasedDeclaration;
         if (superClass == interface) {
-          libraryBuilder.addProblem(
+          libraryBuilder.addProblem2(
             diag.implementsSuperClass.withArguments(name: interface.name),
-            this.fileOffset,
-            noLength,
-            this.fileUri,
+            uriOffset,
           );
         } else if (interface.cls.name == "FutureOr" &&
             interface.cls.enclosingLibrary.importUri.isScheme("dart") &&
             interface.cls.enclosingLibrary.importUri.path == "async") {
-          libraryBuilder.addProblem(
-            diag.implementsFutureOr,
-            this.fileOffset,
-            noLength,
-            this.fileUri,
-          );
+          libraryBuilder.addProblem2(diag.implementsFutureOr, uriOffset);
         } else if (!allowRepeatedImplements &&
             implemented.contains(interface)) {
           // Aggregate repetitions.
@@ -1134,15 +1101,13 @@ class SourceClassBuilder extends ClassBuilderImpl
             implementedInterface,
             requiredInterface,
           )) {
-        libraryBuilder.addProblem(
+        libraryBuilder.addProblem2(
           diag.mixinApplicationIncompatibleSupertype.withArguments(
             supertype: supertype,
             requiredInterfaceType: requiredInterface,
             mixedInType: cls.mixedInType!.asInterfaceType,
           ),
-          cls.fileOffset,
-          noLength,
-          cls.fileUri,
+          uriOffset,
         );
       }
     }
@@ -1203,7 +1168,7 @@ class SourceClassBuilder extends ClassBuilderImpl
                 supertypeName: supertype.typeName!.name,
               );
         }
-        libraryBuilder.addProblem(message, fileOffset, noLength, fileUri);
+        libraryBuilder.addProblem2(message, uriOffset);
       }
     }
     if (message != null) {
@@ -1232,8 +1197,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     required bool isInstanceMember,
     required bool hasSetter,
     required bool isCovariantByDeclaration,
-    required Uri fileUri,
-    required int fileOffset,
+    required UriOffsetLength uriOffset,
   }) {
     List<TypeParameter> typeParameters = cls.typeParameters;
     if (typeParameters.isNotEmpty) {
@@ -1243,8 +1207,7 @@ class SourceClassBuilder extends ClassBuilderImpl
           reportVariancePositionIfInvalid(
             fieldVariance,
             typeParameter,
-            fileUri,
-            fileOffset,
+            uriOffset,
           );
         }
         if (isInstanceMember && hasSetter && !isCovariantByDeclaration) {
@@ -1252,8 +1215,7 @@ class SourceClassBuilder extends ClassBuilderImpl
           reportVariancePositionIfInvalid(
             fieldVariance,
             typeParameter,
-            fileUri,
-            fileOffset,
+            uriOffset,
           );
         }
       }
@@ -1266,7 +1228,7 @@ class SourceClassBuilder extends ClassBuilderImpl
   ) {
     List<TypeParameter> classTypeParameters = cls.typeParameters;
     if (typeParameters != null && classTypeParameters.isNotEmpty) {
-      for (NominalParameterBuilder nominalParameter in typeParameters) {
+      for (SourceNominalParameterBuilder nominalParameter in typeParameters) {
         for (TypeParameter classTypeParameter in classTypeParameters) {
           Variance typeVariance = Variance.invariant.combine(
             computeVariance(
@@ -1277,8 +1239,7 @@ class SourceClassBuilder extends ClassBuilderImpl
           reportVariancePositionIfInvalid(
             typeVariance,
             classTypeParameter,
-            fileUri,
-            nominalParameter.fileOffset,
+            nominalParameter.uriOffset,
           );
         }
       }
@@ -1300,8 +1261,7 @@ class SourceClassBuilder extends ClassBuilderImpl
             reportVariancePositionIfInvalid(
               formalVariance,
               typeParameter,
-              formal.fileUri,
-              formal.fileOffset,
+              formal.uriOffset,
             );
           }
         }
@@ -1312,6 +1272,7 @@ class SourceClassBuilder extends ClassBuilderImpl
   void checkVarianceInReturnType(
     TypeEnvironment type,
     DartType returnType, {
+    required UriOffsetLength uriOffset,
     required Uri fileUri,
     required fileOffset,
   }) {
@@ -1325,8 +1286,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         reportVariancePositionIfInvalid(
           returnTypeVariance,
           typeParameter,
-          fileUri,
-          fileOffset,
+          uriOffset,
           isReturnType: true,
         );
       }
@@ -1336,8 +1296,7 @@ class SourceClassBuilder extends ClassBuilderImpl
   void reportVariancePositionIfInvalid(
     Variance variance,
     TypeParameter typeParameter,
-    Uri fileUri,
-    int fileOffset, {
+    UriOffsetLength uriOffset, {
     bool isReturnType = false,
   }) {
     ProblemReporting problemReporting = libraryBuilder;
@@ -1360,8 +1319,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       }
       problemReporting.reportTypeArgumentIssue(
         message: message,
-        fileUri: fileUri,
-        fileOffset: fileOffset,
+        uriOffset: uriOffset,
         typeParameter: typeParameter,
         isVariancePosition: true,
       );
@@ -2329,14 +2287,12 @@ class SourceClassBuilder extends ClassBuilderImpl
       ];
       if (isInterfaceCheck) {
         // Interface check
-        libraryBuilder.addProblem(
+        libraryBuilder.addProblem2(
           diag.interfaceCheck.withArguments(
             memberName: declaredMember.name.text,
             className: cls.name,
           ),
-          cls.fileOffset,
-          cls.name.length,
-          cls.fileUri,
+          uriOffset,
           context: context,
         );
       } else {
@@ -2358,14 +2314,12 @@ class SourceClassBuilder extends ClassBuilderImpl
           );
         } else {
           // Named mixin application class
-          libraryBuilder.addProblem(
+          libraryBuilder.addProblem2(
             diag.namedMixinOverride.withArguments(
               className: cls.name,
               overriddenMemberName: declaredMember.name.text,
             ),
-            cls.fileOffset,
-            cls.name.length,
-            cls.fileUri,
+            uriOffset,
             context: context,
           );
         }

@@ -15,7 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class RemoveTypeArgumentsTest extends FixProcessorTest {
+class RemoveTypeArgumentsTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeTypeArguments;
 

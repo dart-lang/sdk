@@ -99,7 +99,8 @@ void f2(List<int> list) {
 }
 
 @reflectiveTest
-class OmitLocalVariableTypesLintTest extends FixProcessorLintTest {
+class OmitLocalVariableTypesLintTest
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.replaceWithVar;
 
@@ -306,7 +307,7 @@ class C<T> {}
 ''');
     await assertHasFix('''
 C<int> f() {
-  var c = C<int>.new()..toString();
+  var c = C<int>()..toString();
   return c;
 }
 class C<T> {}
@@ -358,7 +359,7 @@ class C<T> {}
 ''');
     await assertHasFix('''
 C<int> f() {
-  var c = C<int>.new();
+  var c = C<int>();
   return c;
 }
 class C<T> {}
@@ -632,7 +633,7 @@ E f() {
     await assertHasFix('''
 class E {}
 E f() {
-  var e = E.new();
+  var e = E();
   return e;
 }
 ''');
@@ -736,7 +737,8 @@ void f2() {
 }
 
 @reflectiveTest
-class OmitObviousLocalVariableTypesLintTest extends FixProcessorLintTest {
+class OmitObviousLocalVariableTypesLintTest
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.replaceWithVar;
 
@@ -1000,7 +1002,8 @@ class A {
 }
 
 @reflectiveTest
-class OmitObviousPropertyTypesLintTest extends FixProcessorLintTest {
+class OmitObviousPropertyTypesLintTest
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.replaceWithVar;
 

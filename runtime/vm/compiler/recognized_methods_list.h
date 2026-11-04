@@ -55,6 +55,7 @@ namespace dart {
   V(CoreLibrary, _Double, _div, DoubleDiv, 0x28601fd1)                         \
   V(CoreLibrary, _Double, _modulo, DoubleMod, 0xfd967c6e)                      \
   V(CoreLibrary, _Double, _remainder, DoubleRem, 0xf0f458d2)                   \
+  V(CoreLibrary, _Double, abs, DoubleAbs, 0x41b6aaa1)                          \
   V(CoreLibrary, _Double, ceil, DoubleCeilToInt, 0xcedbc005)                   \
   V(CoreLibrary, _Double, ceilToDouble, DoubleCeilToDouble, 0x5efeb358)        \
   V(CoreLibrary, _Double, floor, DoubleFloorToInt, 0x2a1527c8)                 \
@@ -253,74 +254,75 @@ namespace dart {
   V(TypedDataLibrary, _Int8List, [], Int8ArrayGetIndexed, 0x23133682)          \
   V(TypedDataLibrary, _ExternalInt8Array, [], ExternalInt8ArrayGetIndexed,     \
     0x23133682)                                                                \
-  V(TypedDataLibrary, _Int8ArrayView, [], Int8ArrayViewGetIndexed, 0x23133682) \
+  V(TypedDataLibrary, _Int8ArrayViewBase, [], Int8ArrayViewGetIndexed,         \
+    0x23133682)                                                                \
   V(TypedDataLibrary, _Uint8List, [], Uint8ArrayGetIndexed, 0x23133682)        \
   V(TypedDataLibrary, _ExternalUint8Array, [], ExternalUint8ArrayGetIndexed,   \
     0x23133682)                                                                \
-  V(TypedDataLibrary, _Uint8ArrayView, [], Uint8ArrayViewGetIndexed,           \
+  V(TypedDataLibrary, _Uint8ArrayViewBase, [], Uint8ArrayViewGetIndexed,       \
     0x23133682)                                                                \
   V(TypedDataLibrary, _Uint8ClampedList, [], Uint8ClampedArrayGetIndexed,      \
     0x23133682)                                                                \
   V(TypedDataLibrary, _ExternalUint8ClampedArray, [],                          \
     ExternalUint8ClampedArrayGetIndexed, 0x23133682)                           \
-  V(TypedDataLibrary, _Uint8ClampedArrayView, [],                              \
+  V(TypedDataLibrary, _Uint8ClampedArrayViewBase, [],                          \
     Uint8ClampedArrayViewGetIndexed, 0x23133682)                               \
   V(TypedDataLibrary, _Int16List, [], Int16ArrayGetIndexed, 0x23133682)        \
   V(TypedDataLibrary, _ExternalInt16Array, [], ExternalInt16ArrayGetIndexed,   \
     0x23133682)                                                                \
-  V(TypedDataLibrary, _Int16ArrayView, [], Int16ArrayViewGetIndexed,           \
+  V(TypedDataLibrary, _Int16ArrayViewBase, [], Int16ArrayViewGetIndexed,       \
     0x23133682)                                                                \
   V(TypedDataLibrary, _Uint16List, [], Uint16ArrayGetIndexed, 0x23133682)      \
   V(TypedDataLibrary, _ExternalUint16Array, [], ExternalUint16ArrayGetIndexed, \
     0x23133682)                                                                \
-  V(TypedDataLibrary, _Uint16ArrayView, [], Uint16ArrayViewGetIndexed,         \
+  V(TypedDataLibrary, _Uint16ArrayViewBase, [], Uint16ArrayViewGetIndexed,     \
     0x23133682)                                                                \
   V(TypedDataLibrary, _Int32List, [], Int32ArrayGetIndexed, 0x231332c1)        \
   V(TypedDataLibrary, _ExternalInt32Array, [], ExternalInt32ArrayGetIndexed,   \
     0x231332c1)                                                                \
-  V(TypedDataLibrary, _Int32ArrayView, [], Int32ArrayViewGetIndexed,           \
+  V(TypedDataLibrary, _Int32ArrayViewBase, [], Int32ArrayViewGetIndexed,       \
     0x231332c1)                                                                \
   V(TypedDataLibrary, _Uint32List, [], Uint32ArrayGetIndexed, 0x231332c1)      \
   V(TypedDataLibrary, _ExternalUint32Array, [], ExternalUint32ArrayGetIndexed, \
     0x231332c1)                                                                \
-  V(TypedDataLibrary, _Uint32ArrayView, [], Uint32ArrayViewGetIndexed,         \
+  V(TypedDataLibrary, _Uint32ArrayViewBase, [], Uint32ArrayViewGetIndexed,     \
     0x231332c1)                                                                \
   V(TypedDataLibrary, _Int64List, [], Int64ArrayGetIndexed, 0x231332c1)        \
   V(TypedDataLibrary, _ExternalInt64Array, [], ExternalInt64ArrayGetIndexed,   \
     0x231332c1)                                                                \
-  V(TypedDataLibrary, _Int64ArrayView, [], Int64ArrayViewGetIndexed,           \
+  V(TypedDataLibrary, _Int64ArrayViewBase, [], Int64ArrayViewGetIndexed,       \
     0x231332c1)                                                                \
   V(TypedDataLibrary, _Uint64List, [], Uint64ArrayGetIndexed, 0x231332c1)      \
   V(TypedDataLibrary, _ExternalUint64Array, [], ExternalUint64ArrayGetIndexed, \
     0x231332c1)                                                                \
-  V(TypedDataLibrary, _Uint64ArrayView, [], Uint64ArrayViewGetIndexed,         \
+  V(TypedDataLibrary, _Uint64ArrayViewBase, [], Uint64ArrayViewGetIndexed,     \
     0x231332c1)                                                                \
   V(TypedDataLibrary, _Float32List, [], Float32ArrayGetIndexed, 0x07764e5c)    \
   V(TypedDataLibrary, _ExternalFloat32Array, [],                               \
     ExternalFloat32ArrayGetIndexed, 0x07764e5c)                                \
-  V(TypedDataLibrary, _Float32ArrayView, [], Float32ArrayViewGetIndexed,       \
+  V(TypedDataLibrary, _Float32ArrayViewBase, [], Float32ArrayViewGetIndexed,   \
     0x07764e5c)                                                                \
   V(TypedDataLibrary, _Float64List, [], Float64ArrayGetIndexed, 0x07764e5c)    \
   V(TypedDataLibrary, _ExternalFloat64Array, [],                               \
     ExternalFloat64ArrayGetIndexed, 0x07764e5c)                                \
-  V(TypedDataLibrary, _Float64ArrayView, [], Float64ArrayViewGetIndexed,       \
+  V(TypedDataLibrary, _Float64ArrayViewBase, [], Float64ArrayViewGetIndexed,   \
     0x07764e5c)                                                                \
   V(TypedDataLibrary, _Float32x4List, [], Float32x4ArrayGetIndexed,            \
     0xb0e90a43)                                                                \
   V(TypedDataLibrary, _ExternalFloat32x4Array, [],                             \
     ExternalFloat32x4ArrayGetIndexed, 0xb0e90a43)                              \
-  V(TypedDataLibrary, _Float32x4ArrayView, [], Float32x4ArrayViewGetIndexed,   \
-    0xb0e90a43)                                                                \
+  V(TypedDataLibrary, _Float32x4ArrayViewBase, [],                             \
+    Float32x4ArrayViewGetIndexed, 0xb0e90a43)                                  \
   V(TypedDataLibrary, _Float64x2List, [], Float64x2ArrayGetIndexed,            \
     0x5fc75359)                                                                \
   V(TypedDataLibrary, _ExternalFloat64x2Array, [],                             \
     ExternalFloat64x2ArrayGetIndexed, 0x5fc75359)                              \
-  V(TypedDataLibrary, _Float64x2ArrayView, [], Float64x2ArrayViewGetIndexed,   \
-    0x5fc75359)                                                                \
+  V(TypedDataLibrary, _Float64x2ArrayViewBase, [],                             \
+    Float64x2ArrayViewGetIndexed, 0x5fc75359)                                  \
   V(TypedDataLibrary, _Int32x4List, [], Int32x4ArrayGetIndexed, 0x4959642b)    \
   V(TypedDataLibrary, _ExternalInt32x4Array, [],                               \
     ExternalInt32x4ArrayGetIndexed, 0x4959642b)                                \
-  V(TypedDataLibrary, _Int32x4ArrayView, [], Int32x4ArrayViewGetIndexed,       \
+  V(TypedDataLibrary, _Int32x4ArrayViewBase, [], Int32x4ArrayViewGetIndexed,   \
     0x4959642b)                                                                \
   V(TypedDataLibrary, _TypedList, _getInt8, TypedList_GetInt8, 0x26d42e4c)     \
   V(TypedDataLibrary, _TypedList, _getUint8, TypedList_GetUint8, 0xf58cab06)   \
@@ -464,71 +466,68 @@ namespace dart {
     0x6bf4597c)                                                                \
   V(TypedDataLibrary, ::, _byteDataByteOffsetCheck, ByteDataByteOffsetCheck,   \
     0xa3d746a7)                                                                \
-  V(TypedDataLibrary, Float32x4, _Float32x4FromDoubles, Float32x4FromDoubles,  \
-    0x5bf18ed9)                                                                \
-  V(TypedDataLibrary, Float32x4, Float32x4.zero, Float32x4Zero, 0xd3992842)    \
-  V(TypedDataLibrary, Float32x4, _Float32x4Splat, Float32x4Splat, 0x634bed32)  \
+  V(TypedDataLibrary, Float32x4, ., Float32x4FromDoubles, 0xa0c29b58)          \
+  V(TypedDataLibrary, Float32x4, Float32x4.zero, Float32x4Zero, 0x1c9bf7f8)    \
+  V(TypedDataLibrary, Float32x4, Float32x4.splat, Float32x4Splat, 0xba16e7a9)  \
   V(TypedDataLibrary, Float32x4, Float32x4.fromInt32x4Bits,                    \
-    Int32x4ToFloat32x4, 0x7eb87d82)                                            \
+    Int32x4ToFloat32x4, 0x7eb88504)                                            \
   V(TypedDataLibrary, Float32x4, Float32x4.fromFloat64x2,                      \
-    Float64x2ToFloat32x4, 0x50a175cd)                                          \
+    Float64x2ToFloat32x4, 0x719542ff)                                          \
   V(TypedDataLibrary, _Float32x4, shuffle, Float32x4Shuffle, 0xa7d4a02b)       \
   V(TypedDataLibrary, _Float32x4, shuffleMix, Float32x4ShuffleMix, 0x7983ab0c) \
   V(TypedDataLibrary, _Float32x4, get:signMask, Float32x4GetSignMask,          \
     0x7c4dfa2a)                                                                \
-  V(TypedDataLibrary, _Float32x4, equal, Float32x4Equal, 0x443dd5b6)           \
+  V(TypedDataLibrary, _Float32x4, equal, Float32x4Equal, 0x4e996e2e)           \
   V(TypedDataLibrary, _Float32x4, greaterThan, Float32x4GreaterThan,           \
-    0x523065bf)                                                                \
+    0x1604c777)                                                                \
   V(TypedDataLibrary, _Float32x4, greaterThanOrEqual,                          \
-    Float32x4GreaterThanOrEqual, 0x4e5149f7)                                   \
-  V(TypedDataLibrary, _Float32x4, lessThan, Float32x4LessThan, 0x49fb595d)     \
+    Float32x4GreaterThanOrEqual, 0xcd6a8287)                                   \
+  V(TypedDataLibrary, _Float32x4, lessThan, Float32x4LessThan, 0x9c9091dd)     \
   V(TypedDataLibrary, _Float32x4, lessThanOrEqual, Float32x4LessThanOrEqual,   \
-    0x465a3b80)                                                                \
-  V(TypedDataLibrary, _Float32x4, notEqual, Float32x4NotEqual, 0x64321d83)     \
-  V(TypedDataLibrary, _Float32x4, min, Float32x4Min, 0xe40186d2)               \
-  V(TypedDataLibrary, _Float32x4, max, Float32x4Max, 0xc63108a3)               \
+    0xfe02bc20)                                                                \
+  V(TypedDataLibrary, _Float32x4, notEqual, Float32x4NotEqual, 0xb9ec2ecb)     \
+  V(TypedDataLibrary, _Float32x4, min, Float32x4Min, 0xb7bee12a)               \
+  V(TypedDataLibrary, _Float32x4, max, Float32x4Max, 0xfcc102bb)               \
   V(TypedDataLibrary, _Float32x4, scale, Float32x4Scale, 0xa39a3042)           \
-  V(TypedDataLibrary, _Float32x4, sqrt, Float32x4Sqrt, 0xe4d9e2f2)             \
+  V(TypedDataLibrary, _Float32x4, sqrt, Float32x4Sqrt, 0x47eddca6)             \
   V(TypedDataLibrary, _Float32x4, reciprocalSqrt, Float32x4ReciprocalSqrt,     \
     0xddbada78)                                                                \
   V(TypedDataLibrary, _Float32x4, reciprocal, Float32x4Reciprocal, 0xd4350ab2) \
-  V(TypedDataLibrary, _Float32x4, unary-, Float32x4Negate, 0xe68eac52)         \
-  V(TypedDataLibrary, _Float32x4, abs, Float32x4Abs, 0xeb296688)               \
-  V(TypedDataLibrary, _Float32x4, clamp, Float32x4Clamp, 0x77b05a1d)           \
-  V(TypedDataLibrary, _Float32x4, _withX, Float32x4WithX, 0xa37b7fa7)          \
-  V(TypedDataLibrary, _Float32x4, _withY, Float32x4WithY, 0xcd0ff712)          \
-  V(TypedDataLibrary, _Float32x4, _withZ, Float32x4WithZ, 0xb99fe966)          \
-  V(TypedDataLibrary, _Float32x4, _withW, Float32x4WithW, 0xd3567bb9)          \
-  V(TypedDataLibrary, Float64x2, _Float64x2FromDoubles, Float64x2FromDoubles,  \
-    0x7d1f258d)                                                                \
-  V(TypedDataLibrary, Float64x2, Float64x2.zero, Float64x2Zero, 0x82777158)    \
-  V(TypedDataLibrary, Float64x2, _Float64x2Splat, Float64x2Splat, 0x3d21f386)  \
+  V(TypedDataLibrary, _Float32x4, unary-, Float32x4Negate, 0x719b6a84)         \
+  V(TypedDataLibrary, _Float32x4, abs, Float32x4Abs, 0xe6fdfdfb)               \
+  V(TypedDataLibrary, _Float32x4, withX, Float32x4WithX, 0x9b766656)           \
+  V(TypedDataLibrary, _Float32x4, withY, Float32x4WithY, 0xb889207c)           \
+  V(TypedDataLibrary, _Float32x4, withZ, Float32x4WithZ, 0xc7e2bf2f)           \
+  V(TypedDataLibrary, _Float32x4, withW, Float32x4WithW, 0xc174324c)           \
+  V(TypedDataLibrary, Float64x2, ., Float64x2FromDoubles, 0x94a6af8e)          \
+  V(TypedDataLibrary, Float64x2, Float64x2.zero, Float64x2Zero, 0xcf185be4)    \
+  V(TypedDataLibrary, Float64x2, Float64x2.splat, Float64x2Splat, 0xb980e716)  \
   V(TypedDataLibrary, Float64x2, Float64x2.fromFloat32x4,                      \
-    Float32x4ToFloat64x2, 0x6e8a84a6)                                          \
+    Float32x4ToFloat64x2, 0x6e8a8c28)                                          \
   V(TypedDataLibrary, _Float64x2, get:x, Float64x2GetX, 0x3a1c6d70)            \
   V(TypedDataLibrary, _Float64x2, get:y, Float64x2GetY, 0x27adc893)            \
-  V(TypedDataLibrary, _Float64x2, unary-, Float64x2Negate, 0x956cf568)         \
-  V(TypedDataLibrary, _Float64x2, abs, Float64x2Abs, 0x9a07af9e)               \
-  V(TypedDataLibrary, _Float64x2, clamp, Float64x2Clamp, 0xfdbefd73)           \
-  V(TypedDataLibrary, _Float64x2, sqrt, Float64x2Sqrt, 0x93b82c08)             \
+  V(TypedDataLibrary, _Float64x2, unary-, Float64x2Negate, 0x3a5dc21a)         \
+  V(TypedDataLibrary, _Float64x2, abs, Float64x2Abs, 0x2c86676c)               \
+  V(TypedDataLibrary, _Float64x2, sqrt, Float64x2Sqrt, 0x6ac8ad92)             \
   V(TypedDataLibrary, _Float64x2, get:signMask, Float64x2GetSignMask,          \
     0x7c4dfa2a)                                                                \
-  V(TypedDataLibrary, _Float64x2, scale, Float64x2Scale, 0x52787958)           \
-  V(TypedDataLibrary, _Float64x2, _withX, Float64x2WithX, 0x5259c8bd)          \
-  V(TypedDataLibrary, _Float64x2, _withY, Float64x2WithY, 0x7bee4028)          \
-  V(TypedDataLibrary, _Float64x2, min, Float64x2Min, 0x3611c492)               \
-  V(TypedDataLibrary, _Float64x2, max, Float64x2Max, 0x18414663)               \
-  V(TypedDataLibrary, Int32x4, ., Int32x4FromInts, 0xe136fe3e)                 \
-  V(TypedDataLibrary, Int32x4, Int32x4.splat, Int32x4Splat, 0x5401e067)        \
-  V(TypedDataLibrary, Int32x4, Int32x4.bool, Int32x4FromBools, 0x18dcc3b4)     \
+  V(TypedDataLibrary, _Float64x2, scale, Float64x2Scale, 0x7c56f838)           \
+  V(TypedDataLibrary, _Float64x2, withX, Float64x2WithX, 0x4a54af6c)           \
+  V(TypedDataLibrary, _Float64x2, withY, Float64x2WithY, 0x67676992)           \
+  V(TypedDataLibrary, _Float64x2, min, Float64x2Min, 0x9cc2baec)               \
+  V(TypedDataLibrary, _Float64x2, max, Float64x2Max, 0xcaad909d)               \
+  V(TypedDataLibrary, Int32x4, ., Int32x4FromInts, 0xe13705c0)                 \
+  V(TypedDataLibrary, Int32x4, Int32x4.splat, Int32x4Splat, 0x5401e7e9)        \
+  V(TypedDataLibrary, Int32x4, Int32x4.bool, Int32x4FromBools, 0x18dcc775)     \
   V(TypedDataLibrary, Int32x4, Int32x4.fromFloat32x4Bits, Float32x4ToInt32x4,  \
-    0x45555da1)                                                                \
+    0x45556523)                                                                \
   V(TypedDataLibrary, _Int32x4, ~, Int32x4Not, 0xad8370a8)                     \
   V(TypedDataLibrary, _Int32x4, andNot, Int32x4AndNot, 0x4a88a5d8)             \
   V(TypedDataLibrary, _Int32x4, equal, Int32x4Equal, 0xe12e0e16)               \
   V(TypedDataLibrary, _Int32x4, notEqual, Int32x4NotEqual, 0xafde9ab3)         \
   V(TypedDataLibrary, _Int32x4, <<, Int32x4Shl, 0xfc92031f)                    \
   V(TypedDataLibrary, _Int32x4, >>, Int32x4ShrS, 0xf0fc5fc4)                   \
+  V(TypedDataLibrary, _Int32x4, >>>, Int32x4ShrU, 0xedd3f6c6)                  \
   V(TypedDataLibrary, _Int32x4, get:x, Int32x4GetX, 0x55b951d5)                \
   V(TypedDataLibrary, _Int32x4, get:y, Int32x4GetY, 0x434aacf8)                \
   V(TypedDataLibrary, _Int32x4, get:z, Int32x4GetZ, 0x7916188e)                \
@@ -679,19 +678,19 @@ namespace dart {
   V(TypedDataLibrary, _Float32x4, get:y, Float32x4GetY, 0x27adc893)            \
   V(TypedDataLibrary, _Float32x4, get:z, Float32x4GetZ, 0x5d793429)            \
   V(TypedDataLibrary, _Float32x4, get:w, Float32x4GetW, 0x3fb978ab)            \
-  V(TypedDataLibrary, _Float32x4, *, Float32x4Mul, 0xe53364c7)                 \
-  V(TypedDataLibrary, _Float32x4, /, Float32x4Div, 0xc08217a2)                 \
-  V(TypedDataLibrary, _Float32x4, -, Float32x4Sub, 0xdd15548a)                 \
-  V(TypedDataLibrary, _Float32x4, +, Float32x4Add, 0xb7dc8a19)                 \
+  V(TypedDataLibrary, _Float32x4, *, Float32x4Mul, 0x2cc3ef63)                 \
+  V(TypedDataLibrary, _Float32x4, /, Float32x4Div, 0x6ec0411f)                 \
+  V(TypedDataLibrary, _Float32x4, -, Float32x4Sub, 0xec0c850e)                 \
+  V(TypedDataLibrary, _Float32x4, +, Float32x4Add, 0x6379c225)                 \
   V(TypedDataLibrary, _Int32x4, +, Int32x4Add, 0xee5a7125)                     \
   V(TypedDataLibrary, _Int32x4, -, Int32x4Sub, 0x76ed340e)                     \
   V(TypedDataLibrary, _Int32x4, |, Int32x4BitOr, 0xe7c9b621)                   \
   V(TypedDataLibrary, _Int32x4, &, Int32x4BitAnd, 0xd87b2129)                  \
   V(TypedDataLibrary, _Int32x4, ^, Int32x4BitXor, 0xc632a870)                  \
-  V(TypedDataLibrary, _Float64x2, *, Float64x2Mul, 0x37439ec6)                 \
-  V(TypedDataLibrary, _Float64x2, /, Float64x2Div, 0x12925562)                 \
-  V(TypedDataLibrary, _Float64x2, -, Float64x2Sub, 0x2f258e89)                 \
-  V(TypedDataLibrary, _Float64x2, +, Float64x2Add, 0x09ecc418)                 \
+  V(TypedDataLibrary, _Float64x2, *, Float64x2Mul, 0x5d8f4cc3)                 \
+  V(TypedDataLibrary, _Float64x2, /, Float64x2Div, 0x15cea8ef)                 \
+  V(TypedDataLibrary, _Float64x2, -, Float64x2Sub, 0xdf0fdd7a)                 \
+  V(TypedDataLibrary, _Float64x2, +, Float64x2Add, 0xd4d21ccd)                 \
   V(VMLibrary, ThreadLocal, _getValue, ThreadLocalGetValue, 0xad8f22db)        \
   V(VMLibrary, ThreadLocal, _hasValue, ThreadLocalHasValue, 0xa6d3b876)        \
 

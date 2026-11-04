@@ -15,6 +15,6 @@ void main() {
   var c = C.named(1);
   c.factory();
   //^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
   // [cfe] The method 'factory' isn't defined for the type 'C'.
 }

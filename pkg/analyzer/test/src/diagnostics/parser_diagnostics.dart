@@ -22,7 +22,6 @@ import '../summary/resolved_ast_printer.dart';
 class ParserDiagnosticsTest {
   FeatureSet get testFeatureSet => FeatureSets.latestWithExperiments;
 
-  // TODO(scheglov): Enable [withCheckingLinking] everywhere.
   void assertParsedNodeText(
     AstNode node,
     String expected, {
@@ -126,7 +125,7 @@ extension ParseStringResultExtension on ParseStringResult {
     return FindNode2(content, unit);
   }
 
-  @ToBeDeprecated('Use findNode instead.')
+  @V1Ast('The V2 counterpart is findNode.')
   FindNode get findNodeV1 {
     return FindNode(content, unit);
   }

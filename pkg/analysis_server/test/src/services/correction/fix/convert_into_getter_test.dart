@@ -19,7 +19,8 @@ void main() {
 }
 
 @reflectiveTest
-class ExtensionInstanceFieldFixTest extends FixProcessorTest {
+class ExtensionInstanceFieldFixTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.convertIntoGetter;
 
@@ -95,7 +96,8 @@ extension E on int {
 }
 
 @reflectiveTest
-class ExtensionTypeInstanceFieldFixTest extends FixProcessorTest {
+class ExtensionTypeInstanceFieldFixTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.convertIntoGetter;
 
@@ -167,7 +169,8 @@ extension type A(int i) {
 }
 
 @reflectiveTest
-class ImplicitThisInInitializerFixTest extends FixProcessorTest {
+class ImplicitThisInInitializerFixTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.convertIntoGetter;
 
@@ -292,7 +295,8 @@ class A {
 }
 
 @reflectiveTest
-class InvalidReferenceToThisFixTest extends FixProcessorTest {
+class InvalidReferenceToThisFixTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.convertIntoGetter;
 

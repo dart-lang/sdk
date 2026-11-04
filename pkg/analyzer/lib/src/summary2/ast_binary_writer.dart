@@ -9,13 +9,12 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/summary2/ast_binary_flags.dart';
 import 'package:analyzer/src/summary2/ast_binary_tag.dart';
 import 'package:analyzer/src/summary2/bundle_writer.dart';
-import 'package:analyzer/src/summary2/tokens_writer.dart';
 
 /// Serializer of fully resolved ASTs.
 class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   final ResolutionSink _sink;
 
-  AstBinaryWriter({required ResolutionSink sink}) : _sink = sink;
+  new({required this._sink});
 
   @override
   void visitAdjacentStrings(AdjacentStrings node) {
@@ -70,9 +69,7 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
     _writeNode(node.leftOperand);
     _writeNode(node.rightOperand);
 
-    var operatorToken = node.operator.type;
-    var binaryToken = TokensWriter.astToBinaryTokenType(operatorToken);
-    _sink.writeEnum(binaryToken);
+    _writeTokenType(node.operator.type);
 
     _sink.writeElement(node.element);
     _storeExpression(node);
@@ -128,7 +125,7 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
     covariant CascadeMethodInvocationImpl node,
   ) {
     _sink.writeEnum(AstNodeTag.CascadeMethodInvocation);
-    _writeStringReference(node.name.lexeme);
+    _writeNameToken(node.name);
     _writeOptionalNode(node.typeArguments);
     _writeNode(node.argumentList);
     _sink.writeType(node.staticInvokeType);
@@ -142,7 +139,7 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
     covariant CascadePropertyAssignmentTargetImpl node,
   ) {
     _sink.writeEnum(AstNodeTag.CascadePropertyAssignmentTarget);
-    _writeStringReference(node.name.lexeme);
+    _writeNameToken(node.name);
     _sink.writeOptionalObject(node.read, _writeNamedReadResolution);
     _sink.writeOptionalObject(node.write, _writeNamedWriteResolution);
   }
@@ -152,7 +149,7 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
     covariant CascadePropertyExtractionImpl node,
   ) {
     _sink.writeEnum(AstNodeTag.CascadePropertyExtraction);
-    _writeStringReference(node.name.lexeme);
+    _writeNameToken(node.name);
     _sink.writeOptionalObject(node.resolution, _writeNamedReadResolution);
     _storeExpression(node);
   }
@@ -170,9 +167,7 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
     _writeNode(node.target);
     _writeNode(node.value);
 
-    var operatorToken = node.operator.type;
-    var binaryToken = TokensWriter.astToBinaryTokenType(operatorToken);
-    _sink.writeEnum(binaryToken);
+    _writeTokenType(node.operator.type);
 
     _sink.writeElement(node.element);
     _sink.writeType(node.operatorResultType);
@@ -194,7 +189,7 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
 
     _writeByte(AstBinaryFlags.encode(hasThis: node.thisKeyword != null));
 
-    _writeStringReference(node.fieldName2.lexeme);
+    _writeNameToken(node.fieldName2);
     _sink.writeElement(node.fieldElement);
     _writeNode(node.expression2);
   }
@@ -226,7 +221,7 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   @override
   void visitConstructorSelector(ConstructorSelector node) {
     _sink.writeEnum(AstNodeTag.ConstructorSelector);
-    _writeStringReference(node.name2.lexeme);
+    _writeNameToken(node.name2);
   }
 
   @override
@@ -243,13 +238,15 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitConstructorTypeReference(ConstructorTypeReference node) {
+  void visitConstructorTypeReference(
+    covariant ConstructorTypeReferenceImpl node,
+  ) {
     _sink.writeEnum(AstNodeTag.ConstructorTypeReference);
     _writeOptionalNode(node.importPrefix);
-    _writeStringReference(node.name.lexeme);
+    _writeNameToken(node.name);
     _writeOptionalNode(node.typeArguments);
     _sink.writeElement(node.element);
-    _sink.writeType((node as ConstructorTypeReferenceImpl).type);
+    _sink.writeType(node.type);
   }
 
   @override
@@ -263,7 +260,7 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
       ),
     );
     _writeOptionalNode(node.type);
-    _writeDeclarationName(node.name);
+    _writeNameToken(node.name);
     _storeDeclaration(node);
   }
 
@@ -290,7 +287,7 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
     _writeByte(
       AstBinaryFlags.encode(isConst: node.constKeyword?.type == Keyword.CONST),
     );
-    _writeStringReference(node.name.lexeme);
+    _writeNameToken(node.name);
     _writeOptionalNode(node.typeArguments);
     _writeNode(node.argumentList);
     _sink.writeOptionalObject(
@@ -306,7 +303,7 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
     covariant DotShorthandMethodInvocationImpl node,
   ) {
     _sink.writeEnum(AstNodeTag.DotShorthandMethodInvocation);
-    _writeStringReference(node.name.lexeme);
+    _writeNameToken(node.name);
     _writeOptionalNode(node.typeArguments);
     _writeNode(node.argumentList);
     _sink.writeOptionalObject(
@@ -324,7 +321,7 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
     covariant DotShorthandNameExpressionImpl node,
   ) {
     _sink.writeEnum(AstNodeTag.DotShorthandNameExpression);
-    _writeStringReference(node.name.lexeme);
+    _writeNameToken(node.name);
     _sink.writeOptionalObject(
       node.shorthandContext,
       _writeDotShorthandContextResolution,
@@ -344,7 +341,16 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
 
   @override
   void visitDoubleLiteral(DoubleLiteral node) {
-    _sink.writeEnum(AstNodeTag.DoubleLiteral);
+    // Almost all literals are spelled as their values print, so writing every
+    // lexeme would only grow summaries. It is written when it is different,
+    // such as `.5` or `1e3`.
+    var lexeme = node.literal.lexeme;
+    if (lexeme == '${node.value}') {
+      _sink.writeEnum(AstNodeTag.DoubleLiteral);
+    } else {
+      _sink.writeEnum(AstNodeTag.DoubleLiteralWithLexeme);
+      _writeStringReference(lexeme);
+    }
     _writeDouble(node.value);
     _storeExpression(node);
   }
@@ -354,7 +360,7 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
     _sink.writeEnum(AstNodeTag.ExtensionOverride2);
 
     _writeOptionalNode(node.importPrefix);
-    _writeStringReference(node.name.lexeme);
+    _writeNameToken(node.name);
     _writeOptionalNode(node.typeArguments);
     _writeNode(node.argumentList);
 
@@ -389,13 +395,6 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
     _sink.writeEnum(AstNodeTag.FormalParameterList);
     _writeNodeList(node.requiredPositionalFormalParameters);
     _writeOptionalNode(node.delimitedFormalParameters);
-  }
-
-  @override
-  void visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
-    _sink.writeEnum(AstNodeTag.ForPartsWithDeclarations);
-    _writeNode(node.variables);
-    _storeForParts(node);
   }
 
   @override
@@ -478,7 +477,7 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   ) {
     _sink.writeEnum(AstNodeTag.ImportPrefixedAssignmentTarget);
     _writeNode(node.importPrefix);
-    _writeStringReference(node.name.lexeme);
+    _writeNameToken(node.name);
     _sink.writeOptionalObject(node.read, _writeNamedReadResolution);
     _sink.writeOptionalObject(node.write, _writeNamedWriteResolution);
   }
@@ -489,7 +488,7 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   ) {
     _sink.writeEnum(AstNodeTag.ImportPrefixedFunctionInvocation);
     _writeNode(node.importPrefix);
-    _writeStringReference(node.name.lexeme);
+    _writeNameToken(node.name);
     _writeOptionalNode(node.typeArguments);
     _writeNode(node.argumentList);
     _sink.writeType(node.staticInvokeType);
@@ -504,7 +503,7 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   ) {
     _sink.writeEnum(AstNodeTag.ImportPrefixedNameExpression);
     _writeNode(node.importPrefix);
-    _writeStringReference(node.name.lexeme);
+    _writeNameToken(node.name);
     _sink.writeOptionalObject(node.resolution, _writeNamedReadResolution);
     _storeExpression(node);
   }
@@ -512,7 +511,7 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   @override
   void visitImportPrefixReference(ImportPrefixReference node) {
     _sink.writeEnum(AstNodeTag.ImportPrefixReference);
-    _writeStringReference(node.name.lexeme);
+    _writeNameToken(node.name);
     _sink.writeElement(node.element);
   }
 
@@ -694,7 +693,7 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   void visitNamedArgument(NamedArgument node) {
     _sink.writeEnum(AstNodeTag.NamedArgument);
 
-    _writeStringReference(node.name.lexeme);
+    _writeNameToken(node.name);
 
     _writeNode(node.argumentExpression2);
   }
@@ -711,7 +710,7 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
     );
 
     _writeOptionalNode(node.importPrefix);
-    _writeStringReference(node.name.lexeme);
+    _writeNameToken(node.name);
     _writeOptionalNode(node.typeArguments);
 
     _sink.writeElement(node.element);
@@ -774,8 +773,8 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   ) {
     _sink.writeEnum(AstNodeTag.ReceiverMethodInvocation);
     _writeNode(node.receiver);
-    _writeByte(TokensWriter.astToBinaryTokenType(node.operator.type).index);
-    _writeStringReference(node.name.lexeme);
+    _writeTokenType(node.operator.type);
+    _writeNameToken(node.name);
     _writeOptionalNode(node.typeArguments);
     _writeNode(node.argumentList);
     _sink.writeType(node.staticInvokeType);
@@ -790,8 +789,8 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   ) {
     _sink.writeEnum(AstNodeTag.ReceiverPropertyAssignmentTarget);
     _writeNode(node.receiver);
-    _sink.writeEnum(TokensWriter.astToBinaryTokenType(node.operator.type));
-    _writeStringReference(node.name.lexeme);
+    _writeTokenType(node.operator.type);
+    _writeNameToken(node.name);
     _sink.writeOptionalObject(node.read, _writeNamedReadResolution);
     _sink.writeOptionalObject(node.write, _writeNamedWriteResolution);
   }
@@ -802,8 +801,8 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   ) {
     _sink.writeEnum(AstNodeTag.ReceiverPropertyExtraction);
     _writeNode(node.receiver);
-    _sink.writeEnum(TokensWriter.astToBinaryTokenType(node.operator.type));
-    _writeStringReference(node.name.lexeme);
+    _writeTokenType(node.operator.type);
+    _writeNameToken(node.name);
     _sink.writeOptionalObject(node.resolution, _writeNamedReadResolution);
     _storeExpression(node);
   }
@@ -819,7 +818,7 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   @override
   void visitRecordLiteralNamedField(RecordLiteralNamedField node) {
     _sink.writeEnum(AstNodeTag.RecordLiteralNamedField);
-    _writeStringReference(node.name.lexeme);
+    _writeNameToken(node.name);
     _writeNode(node.fieldExpression2);
   }
 
@@ -842,7 +841,7 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
     _sink.writeEnum(AstNodeTag.RecordTypeAnnotationNamedField);
     _writeNodeList(node.metadata);
     _writeNode(node.type);
-    _writeStringReference(node.name.lexeme);
+    _writeNameToken(node.name);
   }
 
   @override
@@ -861,7 +860,7 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
     _writeNodeList(node.metadata);
     _writeNode(node.type);
     _sink.writeOptionalObject(node.name, (name) {
-      _writeStringReference(name.lexeme);
+      _writeNameToken(name);
     });
   }
 
@@ -929,7 +928,7 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   void visitStaticQualifier(StaticQualifier node) {
     _sink.writeEnum(AstNodeTag.StaticQualifier);
     _writeOptionalNode(node.importPrefix);
-    _writeStringReference(node.name.lexeme);
+    _writeNameToken(node.name);
     _sink.writeElement(node.element);
   }
 
@@ -1009,7 +1008,7 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   @override
   void visitTypeParameter(TypeParameter node) {
     _sink.writeEnum(AstNodeTag.TypeParameter);
-    _writeDeclarationName(node.name);
+    _writeNameToken(node.name);
     _writeOptionalNode(node.bound);
     _storeDeclaration(node);
   }
@@ -1024,8 +1023,7 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   void visitUnaryOperatorInvocation(UnaryOperatorInvocation node) {
     _sink.writeEnum(AstNodeTag.UnaryOperatorInvocation);
 
-    var binaryToken = TokensWriter.astToBinaryTokenType(node.operator.type);
-    _sink.writeEnum(binaryToken);
+    _writeTokenType(node.operator.type);
     _writeNode(node.operand);
 
     _storeExpression(node);
@@ -1037,7 +1035,7 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
     covariant UnqualifiedFunctionInvocationImpl node,
   ) {
     _sink.writeEnum(AstNodeTag.UnqualifiedFunctionInvocation);
-    _writeStringReference(node.name.lexeme);
+    _writeNameToken(node.name);
     _writeOptionalNode(node.typeArguments);
     _writeNode(node.argumentList);
     _sink.writeType(node.staticInvokeType);
@@ -1051,7 +1049,7 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
     covariant UnqualifiedNameAssignmentTargetImpl node,
   ) {
     _sink.writeEnum(AstNodeTag.UnqualifiedNameAssignmentTarget);
-    _writeStringReference(node.name.lexeme);
+    _writeNameToken(node.name);
     _sink.writeOptionalObject(node.read, _writeNamedReadResolution);
     _sink.writeOptionalObject(node.write, _writeNamedWriteResolution);
   }
@@ -1061,25 +1059,9 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
     covariant UnqualifiedNameExpressionImpl node,
   ) {
     _sink.writeEnum(AstNodeTag.UnqualifiedNameExpression);
-    _writeStringReference(node.name.lexeme);
+    _writeNameToken(node.name);
     _sink.writeOptionalObject(node.resolution, _writeNamedReadResolution);
     _storeExpression(node);
-  }
-
-  @override
-  void visitVariableDeclarationList(VariableDeclarationList node) {
-    _sink.writeEnum(AstNodeTag.VariableDeclarationList);
-    _writeByte(
-      AstBinaryFlags.encode(
-        isConst: node.isConst,
-        isFinal: node.isFinal,
-        isLate: node.lateKeyword != null,
-        isVar: node.keyword?.keyword == Keyword.VAR,
-      ),
-    );
-    _writeOptionalNode(node.type);
-    _writeNodeList(node.variables);
-    _storeAnnotatedNode(node);
   }
 
   void _storeAnnotatedNode(AnnotatedNode node) {
@@ -1144,7 +1126,7 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
 
     _writeNodeList(node.metadata);
     if (node.name != null) {
-      _writeDeclarationName(node.name!);
+      _writeNameToken(node.name!);
     }
     if (node.defaultClause case var defaultClause?) {
       _writeNode(defaultClause.value2);
@@ -1173,21 +1155,20 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
     _sink.writeByte(byte);
   }
 
-  void _writeDeclarationName(Token token) {
-    _writeStringReference(token.lexeme);
-  }
-
   void _writeDotShorthandContextResolution(
     DotShorthandContextResolutionImpl resolution,
   ) {
     switch (resolution) {
+      case MissingDotShorthandContextResolutionImpl():
+        _sink.writeEnum(DotShorthandContextResolutionTag.missing);
+      case InvalidDotShorthandContextResolutionImpl():
+        _sink.writeEnum(DotShorthandContextResolutionTag.invalid);
+        _sink.writeType(resolution.contextType);
+        _sink.writeType(resolution.lookupType);
       case ValidDotShorthandContextResolutionImpl():
         _sink.writeEnum(DotShorthandContextResolutionTag.valid);
         _sink.writeType(resolution.contextType);
         _sink.writeType(resolution.lookupType);
-      case InvalidDotShorthandContextResolutionImpl():
-        _sink.writeEnum(DotShorthandContextResolutionTag.invalid);
-        _sink.writeType(resolution.contextType);
     }
   }
 
@@ -1302,6 +1283,14 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
     }
   }
 
+  /// Writes the lexeme and the type of [token], so that the reader restores
+  /// a token of the same type, e.g. a keyword used as a name, or a recovered
+  /// non-identifier token in a selector.
+  void _writeNameToken(Token token) {
+    _writeStringReference(token.lexeme);
+    _writeTokenType(token.type);
+  }
+
   void _writeNode(AstNode node) {
     node.accept2(this);
   }
@@ -1319,6 +1308,12 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
 
   void _writeStringReference(String string) {
     _sink.writeStringReference(string);
+  }
+
+  /// Writes [TokenType.index], so the bundle depends on the numbering of
+  /// token types, which is a part of the element salt in `AnalysisDriver`.
+  void _writeTokenType(TokenType type) {
+    _writeByte(type.index);
   }
 
   @pragma("vm:prefer-inline")

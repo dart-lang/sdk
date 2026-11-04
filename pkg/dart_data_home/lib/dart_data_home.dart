@@ -10,8 +10,8 @@
 /// OS-conventions and configurable via the `DART_DATA_HOME` environment
 /// variable.
 ///
-/// This package also provides utilities [createPidFile] and [listPidFiles]
-/// for managing pid files for service processes.
+/// This package also provides utilities [createPidFile], [updatePidFile], and
+/// [listPidFiles] for managing pid files for service processes.
 library;
 
 export 'src/dart_data_home.dart';

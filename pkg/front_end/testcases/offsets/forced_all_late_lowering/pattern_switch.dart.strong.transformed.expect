@@ -17,10 +17,10 @@ import "dart:core" as core;
 [258]        [258, -1] dynamic a = [-1] [-1] #t1;
 [248]        {
 [311]          [311] [311] core::print [316]([317] a);
-        }
+[-1]        }
       }
-    }
-  }
+[248]    }
+[231]  }
 }
 
 constants  {

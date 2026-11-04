@@ -676,7 +676,11 @@ class AnnotateKernel extends RecursiveVisitor {
                   )
                   as InterfaceType;
         }
-        return (dartType, isExactClass: isExactClass, isExactType: false);
+        return (
+          dartType.extensionTypeErasure as InterfaceType,
+          isExactClass: isExactClass,
+          isExactType: false,
+        );
       case ConeType(:final cls):
         return (
           interfaceTypeWithDefaultBounds(cls.classNode, nullability),
@@ -693,36 +697,44 @@ class AnnotateKernel extends RecursiveVisitor {
     Nullability nullability,
   ) {
     final concreteClass = type.cls.classNode;
-    final numTypeParams = concreteClass.typeParameters.length;
-    if (numTypeParams == 0) {
-      return (
-        InterfaceType(concreteClass, nullability, DartTypeList.empty),
-        // Record classes don't capture field types, so the DartType is not exact.
-        isExactType: !type.cls.isRecord,
-      );
-    }
-    final typeArgs = type.typeArgs;
-    if (typeArgs != null) {
-      bool isExactType = true;
-      final dartTypeArgs = DartTypeList.generate(type.numImmediateTypeArgs, (
-        i,
-      ) {
-        final t = typeArgs[i];
-        if (t is RuntimeType) {
-          return t.representedType;
+    switch (type) {
+      case RecordConcreteType():
+        assert(concreteClass.typeParameters.isEmpty);
+        return (
+          InterfaceType(concreteClass, nullability, DartTypeList.empty),
+          // Record classes don't capture field types, so the DartType is not exact.
+          isExactType: false,
+        );
+      case ClassConcreteType(:final typeArgs, :final numImmediateTypeArgs):
+        if (concreteClass.typeParameters.isEmpty) {
+          return (
+            InterfaceType(concreteClass, nullability, DartTypeList.empty),
+            isExactType: true,
+          );
         }
-        isExactType = false;
-        return concreteClass.typeParameters[i].defaultType;
-      });
-      return (
-        InterfaceType(concreteClass, nullability, dartTypeArgs),
-        isExactType: isExactType,
-      );
+        if (typeArgs != null) {
+          bool isExactType = true;
+          final dartTypeArgs = DartTypeList.generate(numImmediateTypeArgs, (i) {
+            final t = typeArgs[i];
+            if (t is RuntimeType) {
+              return t.representedType;
+            }
+            isExactType = false;
+            return concreteClass
+                .typeParameters[i]
+                .defaultType
+                .extensionTypeErasure;
+          });
+          return (
+            InterfaceType(concreteClass, nullability, dartTypeArgs),
+            isExactType: isExactType,
+          );
+        }
+        return (
+          interfaceTypeWithDefaultBounds(concreteClass, nullability),
+          isExactType: false,
+        );
     }
-    return (
-      interfaceTypeWithDefaultBounds(concreteClass, nullability),
-      isExactType: false,
-    );
   }
 
   void _setInferredType(
@@ -797,7 +809,9 @@ class AnnotateKernel extends RecursiveVisitor {
       if (node is! StaticInvocation &&
           node is! StaticSet &&
           node is! StaticGet &&
-          node is! StaticTearOff) {
+          node is! StaticTearOff &&
+          node is! RecordIndexGet &&
+          node is! RecordNameGet) {
         // The compiler uses another heuristic in addition to the call-site
         // annotation: if the call-site is non-dynamic and the interface target does
         // not exist in the parent chain of _Smi (int is used as an approximation
@@ -1044,6 +1058,18 @@ class AnnotateKernel extends RecursiveVisitor {
   }
 
   @override
+  visitRecordIndexGet(RecordIndexGet node) {
+    _annotateCallSite(node, null);
+    super.visitRecordIndexGet(node);
+  }
+
+  @override
+  visitRecordNameGet(RecordNameGet node) {
+    _annotateCallSite(node, null);
+    super.visitRecordNameGet(node);
+  }
+
+  @override
   visitInstanceSet(InstanceSet node) {
     _annotateCallSite(node, node.interfaceTarget);
     super.visitInstanceSet(node);
@@ -1212,6 +1238,10 @@ class TreeShaker {
   bool isMemberBodyReachable(Member m) =>
       typeFlowAnalysis.isMemberUsed(m) ||
       fieldMorpher.isExtraMemberWithReachableBody(m);
+  bool isLocalFunctionBodyReachable(
+    Member enclosingMember,
+    LocalFunction function,
+  ) => typeFlowAnalysis.isLocalFunctionUsed(enclosingMember, function);
   bool isFieldInitializerReachable(Field f) =>
       typeFlowAnalysis.isFieldInitializerUsed(f);
   bool isFieldGetterReachable(Field f) => typeFlowAnalysis.isFieldGetterUsed(f);
@@ -1811,6 +1841,9 @@ class _TreeShakerPass1 extends RemovingTransformer {
     FunctionDeclaration node,
     TreeNode? removalSentinel,
   ) {
+    if (!shaker.isLocalFunctionBodyReachable(currentMember, node)) {
+      return removalSentinel ?? EmptyStatement();
+    }
     node.id = (_localFunctionIdGenerator ??= LocalFunctionIdGenerator())
         .allocateId();
     return super.visitFunctionDeclaration(node, removalSentinel);
@@ -1877,6 +1910,26 @@ class _TreeShakerPass1 extends RemovingTransformer {
 
   @override
   TreeNode visitDynamicGet(DynamicGet node, TreeNode? removalSentinel) {
+    node.transformOrRemoveChildren(this);
+    if (_isUnreachable(node)) {
+      return _makeUnreachableCall([node.receiver]);
+    } else {
+      return node;
+    }
+  }
+
+  @override
+  TreeNode visitRecordIndexGet(RecordIndexGet node, TreeNode? removalSentinel) {
+    node.transformOrRemoveChildren(this);
+    if (_isUnreachable(node)) {
+      return _makeUnreachableCall([node.receiver]);
+    } else {
+      return node;
+    }
+  }
+
+  @override
+  TreeNode visitRecordNameGet(RecordNameGet node, TreeNode? removalSentinel) {
     node.transformOrRemoveChildren(this);
     if (_isUnreachable(node)) {
       return _makeUnreachableCall([node.receiver]);

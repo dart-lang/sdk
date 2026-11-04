@@ -23,7 +23,7 @@ void main() {
 
 @reflectiveTest
 class RemoveConstConstConstructorParamTypeMismatchTest
-    extends FixProcessorTest {
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeConst;
 
@@ -134,7 +134,8 @@ void f(int i) {
 }
 
 @reflectiveTest
-class RemoveConstNonConstantListElementTest extends FixProcessorTest {
+class RemoveConstNonConstantListElementTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeConst;
 
@@ -302,7 +303,8 @@ final x = [const A(), A.nonConst()];
 }
 
 @reflectiveTest
-class RemoveConstNonConstantMapElementTest extends FixProcessorTest {
+class RemoveConstNonConstantMapElementTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeConst;
 
@@ -360,7 +362,8 @@ var v = {1: null, 2: const A(), ...notConst};
 }
 
 @reflectiveTest
-class RemoveConstNonConstantMapKeyTest extends FixProcessorTest {
+class RemoveConstNonConstantMapKeyTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeConst;
 
@@ -395,7 +398,8 @@ Object f(dynamic a) {
 }
 
 @reflectiveTest
-class RemoveConstNonConstantMapValueTest extends FixProcessorTest {
+class RemoveConstNonConstantMapValueTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeConst;
 
@@ -476,7 +480,8 @@ final v = {1: const A(), 2: A.nonConst()};
 }
 
 @reflectiveTest
-class RemoveConstNonConstantSetElementTest extends FixProcessorTest {
+class RemoveConstNonConstantSetElementTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeConst;
 
@@ -559,7 +564,7 @@ final v = {const A(), A.nonConst()};
 }
 
 @reflectiveTest
-class RemoveConstTest extends FixProcessorTest {
+class RemoveConstTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeConst;
 

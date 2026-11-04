@@ -14,7 +14,7 @@ class ConflictingEditException implements Exception {
   final SourceEdit existingEdit;
 
   /// Initialize a newly created exception indicating that the [newEdit].
-  ConflictingEditException({required this.newEdit, required this.existingEdit});
+  new({required this.newEdit, required this.existingEdit});
 
   @override
   String toString() =>

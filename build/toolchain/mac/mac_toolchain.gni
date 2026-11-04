@@ -15,30 +15,9 @@ import("//build/config/sysroot.gni")
 import("//build/toolchain/rbe.gni")
 import("//build/toolchain/signing.gni")
 
-if (use_rbe) {
-  compiler_args =
-      rewrapper_args + [ "--labels=type=compile,compiler=clang,lang=cpp" ]
-  if (rbe_os != host_os || rbe_cpu != host_cpu) {
-    extra_inputs = [
-      "build/rbe",
-      "buildtools/$rbe_os-$rbe_cpu/clang/bin/llvm",
-
-      # Is RBE's scandeps too old to know about this?
-      "buildtools/mac-arm64/clang/lib/clang/24/include/ptrauth.h",
-    ]
-    compiler_args += [
-      "--inputs=" + string_join(",", extra_inputs),
-      "--remote_wrapper=../../build/rbe/llvm.sh",
-    ]
-  }
-  assembler_prefix = ""
-  compiler_prefix = string_join(" ", compiler_args) + " "
-  link_prefix = ""
-} else {
-  assembler_prefix = ""
-  compiler_prefix = ""
-  link_prefix = ""
-}
+assembler_prefix = ""
+compiler_prefix = ""
+link_prefix = ""
 
 if (host_cpu == "arm64" || host_cpu == "arm64e") {
   rebased_clang_dir =
@@ -108,7 +87,6 @@ template("mac_toolchain") {
 
     tool("asm") {
       # For GCC we can just use the C compiler to compile assembly.
-      pool = "//build/toolchain:local_action_pool($host_toolchain)"
       depfile = "{{output}}.d"
       command = "$asm -MMD -MF $depfile {{defines}} {{include_dirs}} $sysroot_flags $toolchain_flags {{asmflags}} -c {{source}} -o {{output}}"
       depsformat = "gcc"
@@ -136,7 +114,6 @@ template("mac_toolchain") {
     }
 
     tool("alink") {
-      pool = "//build/toolchain:local_action_pool($host_toolchain)"
       rspfile = "{{output}}.rsp"
       command = "rm -f {{output}} && $ar rcs {{output}} @$rspfile"
       description = "AR {{output}}"
@@ -148,7 +125,6 @@ template("mac_toolchain") {
     }
 
     tool("solink") {
-      pool = "//build/toolchain:local_action_pool($host_toolchain)"
       dylib = "{{root_out_dir}}/{{target_output_name}}{{output_extension}}"  # eg
                                                                              # "./libfoo.dylib"
       rspfile = dylib + ".rsp"
@@ -213,7 +189,6 @@ template("mac_toolchain") {
     }
 
     tool("link") {
-      pool = "//build/toolchain:local_action_pool($host_toolchain)"
       exename = "{{target_output_name}}{{output_extension}}"
       outfile = "{{root_out_dir}}/$exename"
       rspfile = "$outfile.rsp"

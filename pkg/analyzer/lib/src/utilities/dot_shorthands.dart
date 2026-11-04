@@ -17,7 +17,7 @@ import 'package:analyzer/src/dart/element/type_visitor.dart';
 ///
 /// Example of fixes that use this helper are extract local refactoring and
 /// `omit_local_variable_types`.
-@ToBeDeprecated('Use hasDependentDotShorthand2 instead.')
+@V1Ast('The V2 counterpart is hasDependentDotShorthand2.')
 bool hasDependentDotShorthand(AstNode node) {
   if (node is Expression && isDotShorthand(node)) {
     return _isDependentDotShorthand(node);
@@ -123,8 +123,8 @@ bool hasDependentDotShorthand2(AstNode node) {
     switch (body) {
       case ExpressionFunctionBody(:var expression2):
         return hasDependentDotShorthand2(expression2);
-      case BlockFunctionBody(block: Block(:var statements)):
-        for (var statement in statements) {
+      case BlockFunctionBody(block: Block(:var statements2)):
+        for (var statement in statements2) {
           if (statement is ReturnStatement) {
             var expression = statement.expression2;
             if (expression != null && hasDependentDotShorthand2(expression)) {
@@ -156,7 +156,7 @@ bool hasDependentDotShorthand2(AstNode node) {
 /// index operands, and cascade sections do not. The leading shorthand operation
 /// and intermediate selectors are not complete chains when another selector
 /// follows them.
-@ToBeDeprecated('Use isDotShorthand2 instead.')
+@V1Ast('The V2 counterpart is isDotShorthand2.')
 bool isDotShorthand(AstNode node) {
   if (identical(_selectorOperand(node.parent), node)) {
     return false;
@@ -290,7 +290,7 @@ FunctionType? _namedFunctionInvocationType(NamedFunctionInvocation node) {
 
 /// The preceding expression in a written selector chain. Implicit adaptations
 /// retain the same source expression and are transparent to this query.
-@ToBeDeprecated('Use _selectorOperand2 instead.')
+@V1Ast('The V2 counterpart is _selectorOperand2.')
 AstNode? _selectorOperand(AstNode? node) => switch (node) {
   MethodInvocation(:var target) => target,
   PropertyAccess(:var target) => target,
@@ -323,7 +323,7 @@ AstNode? _selectorOperand2(AstNode? node) => switch (node) {
 class _TypeParameterVisitor extends RecursiveTypeVisitor {
   Set<TypeParameterElement> typeParameters = {};
 
-  _TypeParameterVisitor() : super(includeTypeAliasArguments: false);
+  new() : super(includeTypeAliasArguments: false);
 
   @override
   bool visitTypeParameterType(TypeParameterType type) {

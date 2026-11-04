@@ -215,6 +215,17 @@ class [!D!](final int i) extends C {
 ''');
   }
 
+  test_immutable_documentationComment_undefinedReference() async {
+    await assertDiagnosticsFromMarkup(r'''
+import 'package:meta/meta.dart';
+@immutable
+class C {
+  /// See [Undefined] and [Undefined.foo].
+  [!C!]();
+}
+''');
+  }
+
   test_immutable_enumComparisonInInitializerList() async {
     await assertDiagnosticsFromMarkup(r'''
 import 'package:meta/meta.dart';
@@ -260,6 +271,33 @@ class C {
   C();
 }
 ''');
+  }
+
+  test_immutable_fieldWithInitializer_undefinedName() async {
+    await assertDiagnostics(
+      r'''
+import 'package:meta/meta.dart';
+@immutable
+class C {
+  final int f = undefined;
+  C();
+}
+''',
+      [error(diag.undefinedUnqualifiedNameReadNotFound, 70, 9)],
+    );
+  }
+
+  test_immutable_fieldWithInitializer_undefinedName_primary() async {
+    await assertDiagnostics(
+      r'''
+import 'package:meta/meta.dart';
+@immutable
+class C(final int i) {
+  final int f = undefined;
+}
+''',
+      [error(diag.undefinedUnqualifiedNameReadNotFound, 83, 9)],
+    );
   }
 
   test_immutable_hasMixin() async {
@@ -431,6 +469,20 @@ class C {
   [!C!].named(): this();
 }
 ''');
+  }
+
+  test_immutable_undefinedNameInInitializerList() async {
+    await assertDiagnostics(
+      r'''
+import 'package:meta/meta.dart';
+@immutable
+class C {
+  final int f;
+  C() : f = undefined;
+}
+''',
+      [error(diag.undefinedUnqualifiedNameReadNotFound, 81, 9)],
+    );
   }
 
   test_immutableInstantiation_nonConstConstructor() async {

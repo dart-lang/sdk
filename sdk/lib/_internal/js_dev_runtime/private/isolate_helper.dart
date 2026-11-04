@@ -37,7 +37,7 @@ class TimerImpl implements Timer {
   int? _handle;
   int _tick = 0;
 
-  TimerImpl(int milliseconds, void callback()) : _once = true {
+  TimerImpl(int milliseconds, void Function() callback) : _once = true {
     if (hasTimer()) {
       int hotRestartGenerationBefore = dart.hotRestartGeneration();
       void internalCallback() {
@@ -60,7 +60,7 @@ class TimerImpl implements Timer {
     }
   }
 
-  TimerImpl.periodic(int milliseconds, void callback(Timer timer))
+  TimerImpl.periodic(int milliseconds, void Function(Timer timer) callback)
     : _once = false {
     if (hasTimer()) {
       int start = JS<int>('!', 'Date.now()');

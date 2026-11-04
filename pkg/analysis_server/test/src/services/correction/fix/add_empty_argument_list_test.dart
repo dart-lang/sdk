@@ -17,7 +17,8 @@ void main() {
 }
 
 @reflectiveTest
-class AddEmptyArgumentListMultiTest extends FixProcessorTest {
+class AddEmptyArgumentListMultiTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.addEmptyArgumentListMulti;
 
@@ -42,7 +43,7 @@ main() {}
 }
 
 @reflectiveTest
-class AddEmptyArgumentListTest extends FixProcessorTest {
+class AddEmptyArgumentListTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.addEmptyArgumentList;
 

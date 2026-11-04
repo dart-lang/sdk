@@ -42,7 +42,7 @@ abstract class AbstractDartSdk implements DartSdk {
   /// The mapping from Dart URI's to the corresponding sources.
   final Map<String, Source?> _uriToSourceMap = HashMap<String, Source?>();
 
-  AbstractDartSdk(this.resourceProvider);
+  new(this.resourceProvider);
 
   @override
   List<SdkLibraryImpl> get sdkLibraries => libraryMap.sdkLibraries;
@@ -206,12 +206,12 @@ class EmbedderSdk extends AbstractDartSdk {
 
   final Map<String, String> _urlMappings = HashMap<String, String>();
 
-  EmbedderSdk.new2(
+  new new2(
     super.resourceProvider,
     Folder libFolder,
     YamlMap? embedderYaml, {
-    required Version languageVersion,
-  }) : _languageVersion = languageVersion {
+    required this._languageVersion,
+  }) {
     _processEmbedderYaml(libFolder, embedderYaml);
   }
 
@@ -392,7 +392,7 @@ class FolderBasedDartSdk extends AbstractDartSdk {
 
   /// Initialize a newly created SDK to represent the Dart SDK installed in the
   /// [sdkDirectory].
-  FolderBasedDartSdk(super.resourceProvider, Folder sdkDirectory)
+  new(super.resourceProvider, Folder sdkDirectory)
     : _sdkDirectory = sdkDirectory {
     libraryMap = initialLibraryMap();
   }

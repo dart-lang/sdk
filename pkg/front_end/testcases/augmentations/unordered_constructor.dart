@@ -9,9 +9,13 @@ const annotation1 = 1;
 const annotation2 = 2;
 
 class Class1 {
+  var field;
+
   new() {
     print('Class1.new');
   }
+
+  new withInitializers() : field = 0;
 
   new alias() : this();
 
@@ -24,8 +28,13 @@ class Class1 {
 }
 
 class Class2 {
+  var field;
+
   @annotation1
   new();
+
+  @annotation1
+  new withInitializers();
 
   @annotation1
   new alias();
@@ -38,8 +47,13 @@ class Class2 {
 }
 
 class Class3 {
+  var field;
+
   @annotation1
   new();
+
+  @annotation1
+  new withInitializers();
 
   @annotation1
   new alias();
@@ -51,3 +65,17 @@ class Class3 {
   factory redirect();
 }
 
+main() {
+  expect(null, Class1().field);
+  expect(0, Class1.withInitializers().field);
+
+  expect(null, Class2().field);
+  expect(0, Class2.withInitializers().field);
+
+  expect(null, Class3().field);
+  expect(0, Class3.withInitializers().field);
+}
+
+expect(expected, actual) {
+  if (expected != actual) throw 'Expected $expected, actual $actual.';
+}

@@ -14,7 +14,7 @@ import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 
 /// Information about a constructor element to instantiate.
 ///
@@ -35,7 +35,7 @@ class ConstructorElementToInfer {
   /// The element, might be [SubstitutedConstructorElementImpl].
   final InternalConstructorElement element;
 
-  ConstructorElementToInfer(this.typeParameters, this.element);
+  new(this.typeParameters, this.element);
 
   /// Return the equivalent generic function type that we could use to
   /// forward to the constructor, or for a non-generic type simply returns
@@ -56,21 +56,19 @@ class ConstructorElementToInfer {
 }
 
 class InvocationInferenceHelper {
-  final ResolverVisitor _resolver;
+  final TypeAnalyzer _typeAnalyzer;
   final DiagnosticReporter _diagnosticReporter;
   final TypeSystemImpl _typeSystem;
   final bool _genericMetadataIsEnabled;
   final TypeConstraintGenerationDataForTesting? dataForTesting;
 
-  InvocationInferenceHelper({
-    required ResolverVisitor resolver,
-    required DiagnosticReporter diagnosticReporter,
-    required TypeSystemImpl typeSystem,
+  new({
+    required TypeAnalyzer typeAnalyzer,
+    required this._diagnosticReporter,
+    required this._typeSystem,
     required this.dataForTesting,
-  }) : _resolver = resolver,
-       _diagnosticReporter = diagnosticReporter,
-       _typeSystem = typeSystem,
-       _genericMetadataIsEnabled = resolver.definingLibrary.featureSet
+  }) : _typeAnalyzer = typeAnalyzer,
+       _genericMetadataIsEnabled = typeAnalyzer.definingLibrary.featureSet
            .isEnabled(Feature.generic_metadata);
 
   /// If the constructor referenced by the [constructorName] is generic,
@@ -130,12 +128,13 @@ class InvocationInferenceHelper {
         contextType,
         tearOffType,
         diagnosticReporter: _diagnosticReporter,
-        errorNode: expression,
+        expression: expression,
         genericMetadataIsEnabled: _genericMetadataIsEnabled,
-        inferenceUsingBoundsIsEnabled: _resolver.inferenceUsingBoundsIsEnabled,
-        strictInference: _resolver.analysisOptions.strictInference,
-        strictCasts: _resolver.analysisOptions.strictCasts,
-        typeSystemOperations: _resolver.flowAnalysis.typeOperations,
+        inferenceUsingBoundsIsEnabled:
+            _typeAnalyzer.inferenceUsingBoundsIsEnabled,
+        strictInference: _typeAnalyzer.analysisOptions.strictInference,
+        strictCasts: _typeAnalyzer.analysisOptions.strictCasts,
+        typeSystemOperations: _typeAnalyzer.flowAnalysis.typeOperations,
         dataForTesting: dataForTesting,
         nodeForTesting: expression,
       );

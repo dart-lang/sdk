@@ -17,6 +17,7 @@ aot_snapshot("kernel_worker_aot") {
 aot_snapshot("kernel_worker_aot_product") {
   main_dart = "kernel_worker.dart"
   name = "kernel_worker_aot_product"
+  dill = "$target_gen_dir/kernel_worker_aot_product.aot.dill"
   output = "$root_gen_dir/kernel_worker_aot_product.dart.snapshot"
 
   # dartaotruntime in the dart SDK has dart_product_config applied to it,

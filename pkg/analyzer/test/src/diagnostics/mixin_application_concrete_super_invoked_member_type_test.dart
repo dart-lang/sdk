@@ -43,6 +43,36 @@ abstract class X extends B with M {}
 ''');
   }
 
+  test_class_method_OK_covariantInSuperclassInterface() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  void foo(int x) {}
+}
+
+abstract class I {
+  void foo(covariant num x);
+}
+
+abstract class J {
+  void foo(num x);
+}
+
+class B1 extends A implements I, J {}
+
+class B2 extends A implements J, I {}
+
+mixin M on J {
+  void bar() {
+    super.foo(0);
+  }
+}
+
+class X1 extends B1 with M {}
+
+class X2 extends B2 with M {}
+''');
+  }
+
   test_class_method_OK_overriddenInMixin() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A<T> {

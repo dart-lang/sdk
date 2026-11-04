@@ -16,10 +16,7 @@ import '../kinds.dart';
 class RemoveLastFormalParameterMutation extends Mutation {
   final int targetDeclarationOffset;
 
-  RemoveLastFormalParameterMutation({
-    required super.path,
-    required this.targetDeclarationOffset,
-  });
+  new({required super.path, required this.targetDeclarationOffset});
 
   @override
   MutationKind get kind => MutationKind.removeLastFormalParameter;

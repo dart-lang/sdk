@@ -17,7 +17,6 @@ import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
-import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:collection/collection.dart';
 
 /// An [AstVisitor2] that fills [UsedLocalElements].
@@ -31,10 +30,7 @@ class GatherUsedLocalElementsVisitor extends UnifyingAstVisitor2<void> {
   /// Whether the visitor is inside an [IsExpression]'s type.
   bool _insideIsExpression = false;
 
-  /// Non-null when the visitor is inside a [VariableDeclarationList]'s type.
-  VariableDeclarationList? _enclosingVariableDeclaration;
-
-  GatherUsedLocalElementsVisitor(this._enclosingLibrary);
+  new(this._enclosingLibrary);
 
   @override
   void visitBinaryOperatorInvocation(BinaryOperatorInvocation node) {
@@ -82,7 +78,7 @@ class GatherUsedLocalElementsVisitor extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitClassDeclaration(ClassDeclaration node) {
+  void visitClassDeclaration2(ClassDeclaration2 node) {
     var element = node.declaredFragment?.element;
     if (element != null) {
       if (element.metadata.hasJS) {
@@ -93,7 +89,7 @@ class GatherUsedLocalElementsVisitor extends UnifyingAstVisitor2<void> {
     var enclosingClassOld = _enclosingClass;
     try {
       _enclosingClass = node.declaredFragment?.element;
-      super.visitClassDeclaration(node);
+      super.visitClassDeclaration2(node);
     } finally {
       _enclosingClass = enclosingClassOld;
     }
@@ -110,9 +106,9 @@ class GatherUsedLocalElementsVisitor extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitConstructorDeclaration(ConstructorDeclaration node) {
+  void visitConstructorDeclaration2(ConstructorDeclaration2 node) {
     var element = node.declaredFragment!.element;
-    if (node.typeName2 case var typeName?) {
+    if (node.typeName case var typeName?) {
       if (typeName.lexeme == element.enclosingElement.name) {
         _useIdentifierElement(element.enclosingElement);
       }
@@ -132,7 +128,7 @@ class GatherUsedLocalElementsVisitor extends UnifyingAstVisitor2<void> {
         );
       }
     }
-    super.visitConstructorDeclaration(node);
+    super.visitConstructorDeclaration2(node);
   }
 
   @override
@@ -199,7 +195,7 @@ class GatherUsedLocalElementsVisitor extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+  void visitEnumConstantDeclaration2(EnumConstantDeclaration2 node) {
     usedElements.addElement(node.constructorElement?.baseElement);
 
     var argumentList = node.arguments?.argumentList;
@@ -207,41 +203,18 @@ class GatherUsedLocalElementsVisitor extends UnifyingAstVisitor2<void> {
       _addParametersForArguments(argumentList);
     }
 
-    super.visitEnumConstantDeclaration(node);
-  }
-
-  @override
-  void visitFunctionDeclaration(FunctionDeclaration node) {
-    var enclosingExecOld = _enclosingExec;
-    try {
-      _enclosingExec = node.declaredFragment?.element;
-      super.visitFunctionDeclaration(node);
-    } finally {
-      _enclosingExec = enclosingExecOld;
-    }
+    super.visitEnumConstantDeclaration2(node);
   }
 
   @override
   void visitFunctionExpression(FunctionExpression node) {
-    if (node.parent2 is! FunctionDeclaration) {
-      usedElements.addElement(node.declaredFragment?.element);
-    }
+    usedElements.addElement(node.declaredFragment?.element);
     super.visitFunctionExpression(node);
   }
 
   @override
-  void visitGenericTypeAlias(GenericTypeAlias node) {
-    if (!node.name.lexeme.isPrivateName) {
-      var type = node.type.type;
-      if (type is InterfaceTypeImpl) {
-        for (var constructor in type.constructors) {
-          if (!constructor.name!.isPrivateName) {
-            usedElements.addElement(constructor);
-          }
-        }
-      }
-    }
-    super.visitGenericTypeAlias(node);
+  void visitGetterDeclaration(covariant GetterDeclarationImpl node) {
+    _visitMethodDeclaration(node, () => super.visitGetterDeclaration(node));
   }
 
   @override
@@ -283,14 +256,26 @@ class GatherUsedLocalElementsVisitor extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitMethodDeclaration(MethodDeclaration node) {
+  void visitLocalFunctionDeclaration(LocalFunctionDeclaration node) {
     var enclosingExecOld = _enclosingExec;
     try {
       _enclosingExec = node.declaredFragment?.element;
-      super.visitMethodDeclaration(node);
+      super.visitLocalFunctionDeclaration(node);
     } finally {
       _enclosingExec = enclosingExecOld;
     }
+  }
+
+  @override
+  void visitLocalVariablesDeclaration(LocalVariablesDeclaration node) {
+    node.metadata.accept2(this);
+    node.type?.accept2(this);
+    node.variables.accept2(this);
+  }
+
+  @override
+  void visitMethodDeclaration2(covariant MethodDeclaration2Impl node) {
+    _visitMethodDeclaration(node, () => super.visitMethodDeclaration2(node));
   }
 
   @override
@@ -305,6 +290,11 @@ class GatherUsedLocalElementsVisitor extends UnifyingAstVisitor2<void> {
       _visitNameExpression(node);
     }
     node.visitChildren2(this);
+  }
+
+  @override
+  void visitOperatorDeclaration(covariant OperatorDeclarationImpl node) {
+    _visitMethodDeclaration(node, () => super.visitOperatorDeclaration(node));
   }
 
   @override
@@ -352,6 +342,11 @@ class GatherUsedLocalElementsVisitor extends UnifyingAstVisitor2<void> {
   }
 
   @override
+  void visitSetterDeclaration(covariant SetterDeclarationImpl node) {
+    _visitMethodDeclaration(node, () => super.visitSetterDeclaration(node));
+  }
+
+  @override
   void visitStaticQualifier(StaticQualifier node) {
     _useIdentifierElement(node.element);
     super.visitStaticQualifier(node);
@@ -386,11 +381,33 @@ class GatherUsedLocalElementsVisitor extends UnifyingAstVisitor2<void> {
   }
 
   @override
+  void visitTopLevelFunctionDeclaration(TopLevelFunctionDeclaration node) {
+    var enclosingExecOld = _enclosingExec;
+    try {
+      _enclosingExec = node.declaredFragment?.element;
+      super.visitTopLevelFunctionDeclaration(node);
+    } finally {
+      _enclosingExec = enclosingExecOld;
+    }
+  }
+
+  @override
   void visitTopLevelGetterDeclaration(TopLevelGetterDeclaration node) {
     var enclosingExecOld = _enclosingExec;
     try {
       _enclosingExec = node.declaredFragment?.element;
       super.visitTopLevelGetterDeclaration(node);
+    } finally {
+      _enclosingExec = enclosingExecOld;
+    }
+  }
+
+  @override
+  void visitTopLevelSetterDeclaration(TopLevelSetterDeclaration node) {
+    var enclosingExecOld = _enclosingExec;
+    try {
+      _enclosingExec = node.declaredFragment?.element;
+      super.visitTopLevelSetterDeclaration(node);
     } finally {
       _enclosingExec = enclosingExecOld;
     }
@@ -406,19 +423,6 @@ class GatherUsedLocalElementsVisitor extends UnifyingAstVisitor2<void> {
   void visitUnqualifiedFunctionInvocation(UnqualifiedFunctionInvocation node) {
     _recordNamedFunctionInvocation(node);
     super.visitUnqualifiedFunctionInvocation(node);
-  }
-
-  @override
-  void visitVariableDeclarationList(VariableDeclarationList node) {
-    node.metadata.accept2(this);
-    var enclosingVariableDeclarationOld = _enclosingVariableDeclaration;
-    try {
-      _enclosingVariableDeclaration = node;
-      node.type?.accept2(this);
-    } finally {
-      _enclosingVariableDeclaration = enclosingVariableDeclarationOld;
-    }
-    node.variables.accept2(this);
   }
 
   /// Add [element] as a used member and, if [element] is a setter, add its
@@ -581,6 +585,19 @@ class GatherUsedLocalElementsVisitor extends UnifyingAstVisitor2<void> {
     }
   }
 
+  void _visitMethodDeclaration(
+    MethodDeclarationV1OriginImpl node,
+    void Function() visitSuper,
+  ) {
+    var enclosingExecOld = _enclosingExec;
+    try {
+      _enclosingExec = node.declaredFragment?.element;
+      visitSuper();
+    } finally {
+      _enclosingExec = enclosingExecOld;
+    }
+  }
+
   void _visitNameExpression(NameExpression node) {
     if (node is PropertyExtraction &&
         node.resolution?.elementOrRecovery == null) {
@@ -677,6 +694,9 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor2<void> {
   /// The elements know to be used.
   final UsedLocalElements _usedElements;
 
+  /// The library being verified.
+  final LibraryElement _library;
+
   /// The URI of the library being verified.
   final Uri _libraryUri;
 
@@ -687,12 +707,20 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor2<void> {
   /// within a [PatternVariableDeclaration] are used.
   List<BindPatternVariableElement>? _patternVariableElements;
 
+  /// The constructors of private classes that other libraries can invoke
+  /// through a public alias of the class.
+  ///
+  /// A public type alias makes the constructors of the aliased class
+  /// available under the alias name. A public mixin application forwards the
+  /// constructors of its superclass, which might itself be a private mixin
+  /// application. Only constructors with public names are reachable this way.
+  late final Set<ConstructorElement> _constructorsExposedThroughAliases =
+      _computeConstructorsExposedThroughAliases();
+
   /// Create a new instance of the [UnusedLocalElementsVerifier].
-  UnusedLocalElementsVerifier(
-    this._diagnosticReporter,
-    this._usedElements,
-    LibraryElement library,
-  ) : _libraryUri = library.uri,
+  new(this._diagnosticReporter, this._usedElements, LibraryElement library)
+    : _library = library,
+      _libraryUri = library.uri,
       _wildCardVariablesEnabled = library.featureSet.isEnabled(
         Feature.wildcard_variables,
       );
@@ -704,21 +732,21 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitClassDeclaration(ClassDeclaration node) {
+  void visitClassDeclaration2(ClassDeclaration2 node) {
     var declaredElement = node.declaredFragment!.element;
     _visitClassElement(declaredElement);
 
-    super.visitClassDeclaration(node);
+    super.visitClassDeclaration2(node);
   }
 
   @override
-  void visitConstructorDeclaration(ConstructorDeclaration node) {
+  void visitConstructorDeclaration2(ConstructorDeclaration2 node) {
     if (node.name != null) {
       var declaredElement = node.declaredFragment!.element;
       _visitConstructorElement(declaredElement);
     }
 
-    super.visitConstructorDeclaration(node);
+    super.visitConstructorDeclaration2(node);
   }
 
   @override
@@ -745,36 +773,36 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+  void visitEnumConstantDeclaration2(EnumConstantDeclaration2 node) {
     var declaredElement = node.declaredFragment!.element;
     _visitFieldElement(declaredElement);
 
-    super.visitEnumConstantDeclaration(node);
+    super.visitEnumConstantDeclaration2(node);
   }
 
   @override
-  void visitEnumDeclaration(EnumDeclaration node) {
+  void visitEnumDeclaration2(EnumDeclaration2 node) {
     var declaredElement = node.declaredFragment!.element;
     _visitClassElement(declaredElement);
 
-    super.visitEnumDeclaration(node);
+    super.visitEnumDeclaration2(node);
   }
 
   @override
-  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+  void visitExtensionTypeDeclaration2(ExtensionTypeDeclaration2 node) {
     var declaredElement = node.declaredFragment!.element;
     _visitClassElement(declaredElement);
 
-    super.visitExtensionTypeDeclaration(node);
+    super.visitExtensionTypeDeclaration2(node);
   }
 
   @override
-  void visitFieldDeclaration(FieldDeclaration node) {
-    for (var field in node.fields.variables) {
-      _visitFieldElement(field.declaredFragment!.element as FieldElement);
+  void visitFieldsDeclaration(FieldsDeclaration node) {
+    for (var field in node.fields) {
+      _visitFieldElement(field.declaredFragment!.element);
     }
 
-    super.visitFieldDeclaration(node);
+    super.visitFieldsDeclaration(node);
   }
 
   @override
@@ -792,64 +820,61 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
-    for (var variable in node.variables.variables) {
-      _visitLocalVariableElement(
-        variable.declaredFragment!.element as LocalVariableElement,
-      );
-    }
-
-    super.visitForPartsWithDeclarations(node);
-  }
-
-  @override
-  void visitFunctionDeclaration(FunctionDeclaration node) {
-    var declaredElement = node.declaredFragment?.element;
-    if (declaredElement is LocalFunctionElement) {
-      _visitLocalFunctionElement(declaredElement);
-    } else if (declaredElement is PropertyAccessorElement) {
-      _visitPropertyAccessorElement(declaredElement);
-    } else if (declaredElement is TopLevelFunctionElement) {
-      _visitTopLevelFunctionElement(declaredElement);
-    }
-
-    super.visitFunctionDeclaration(node);
-  }
-
-  @override
-  void visitFunctionTypeAlias(FunctionTypeAlias node) {
+  void visitFunctionTypeAlias2(FunctionTypeAlias2 node) {
     var declaredElement = node.declaredFragment!.element;
     _visitTypeAliasElement(declaredElement);
 
-    super.visitFunctionTypeAlias(node);
+    super.visitFunctionTypeAlias2(node);
   }
 
   @override
-  void visitGenericTypeAlias(GenericTypeAlias node) {
+  void visitGenericTypeAlias2(GenericTypeAlias2 node) {
     var declaredElement = node.declaredFragment?.element as TypeAliasElement;
     _visitTypeAliasElement(declaredElement);
 
-    super.visitGenericTypeAlias(node);
+    super.visitGenericTypeAlias2(node);
   }
 
   @override
-  void visitMethodDeclaration(MethodDeclaration node) {
+  void visitGetterDeclaration(covariant GetterDeclarationImpl node) {
+    _visitMethodDeclaration(node, () => super.visitGetterDeclaration(node));
+  }
+
+  @override
+  void visitLocalFunctionDeclaration(LocalFunctionDeclaration node) {
     var declaredElement = node.declaredFragment?.element;
-    if (declaredElement is MethodElement) {
-      _visitMethodElement(declaredElement);
-    } else if (declaredElement is PropertyAccessorElement) {
-      _visitPropertyAccessorElement(declaredElement);
+    if (declaredElement != null) {
+      _visitLocalFunctionElement(declaredElement);
     }
 
-    super.visitMethodDeclaration(node);
+    super.visitLocalFunctionDeclaration(node);
   }
 
   @override
-  void visitMixinDeclaration(MixinDeclaration node) {
+  void visitLocalVariablesDeclaration(LocalVariablesDeclaration node) {
+    for (var variable in node.variables) {
+      _visitLocalVariableElement(variable.declaredFragment!.element);
+    }
+
+    super.visitLocalVariablesDeclaration(node);
+  }
+
+  @override
+  void visitMethodDeclaration2(covariant MethodDeclaration2Impl node) {
+    _visitMethodDeclaration(node, () => super.visitMethodDeclaration2(node));
+  }
+
+  @override
+  void visitMixinDeclaration2(MixinDeclaration2 node) {
     var declaredElement = node.declaredFragment!.element;
     _visitClassElement(declaredElement);
 
-    super.visitMixinDeclaration(node);
+    super.visitMixinDeclaration2(node);
+  }
+
+  @override
+  void visitOperatorDeclaration(covariant OperatorDeclarationImpl node) {
+    _visitMethodDeclaration(node, () => super.visitOperatorDeclaration(node));
   }
 
   @override
@@ -888,8 +913,8 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor2<void> {
     covariant PrimaryConstructorDeclarationImpl node,
   ) {
     switch (node.parent2) {
-      case ClassDeclarationImpl():
-      case EnumDeclarationImpl():
+      case ClassDeclaration2Impl():
+      case EnumDeclaration2Impl():
         for (var parameter in node.formalParameters.allFormalParameters) {
           var element = parameter.declaredFragment!.element;
           if (element is FieldFormalParameterElementImpl &&
@@ -908,7 +933,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor2<void> {
             }
           }
         }
-      case ExtensionTypeDeclarationImpl():
+      case ExtensionTypeDeclaration2Impl():
         // Do not report a field declared in a primary constructor which is
         // declared in an extension type, since it cannot be removed, and
         // renaming it to be public is not an improvement.
@@ -918,6 +943,21 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor2<void> {
     }
 
     super.visitPrimaryConstructorDeclaration(node);
+  }
+
+  @override
+  void visitSetterDeclaration(covariant SetterDeclarationImpl node) {
+    _visitMethodDeclaration(node, () => super.visitSetterDeclaration(node));
+  }
+
+  @override
+  void visitTopLevelFunctionDeclaration(TopLevelFunctionDeclaration node) {
+    var declaredElement = node.declaredFragment?.element;
+    if (declaredElement != null) {
+      _visitTopLevelFunctionElement(declaredElement);
+    }
+
+    super.visitTopLevelFunctionDeclaration(node);
   }
 
   @override
@@ -931,25 +971,63 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
-    for (var variable in node.variables.variables) {
+  void visitTopLevelSetterDeclaration(TopLevelSetterDeclaration node) {
+    var declaredElement = node.declaredFragment?.element;
+    if (declaredElement != null) {
+      _visitPropertyAccessorElement(declaredElement);
+    }
+
+    super.visitTopLevelSetterDeclaration(node);
+  }
+
+  @override
+  void visitTopLevelVariablesDeclaration(TopLevelVariablesDeclaration node) {
+    for (var variable in node.variables) {
       _visitTopLevelVariableElement(
         variable.declaredFragment?.element as TopLevelVariableElement,
       );
     }
 
-    super.visitTopLevelVariableDeclaration(node);
+    super.visitTopLevelVariablesDeclaration(node);
   }
 
-  @override
-  void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
-    for (var variable in node.variables.variables) {
-      _visitLocalVariableElement(
-        variable.declaredFragment!.element as LocalVariableElement,
-      );
+  Set<ConstructorElement> _computeConstructorsExposedThroughAliases() {
+    var result = <ConstructorElement>{};
+
+    void addConstructorsOf(InterfaceElement element) {
+      for (var constructor in element.constructors) {
+        if (constructor.isPrivate) {
+          continue;
+        }
+        // A forwarding constructor of a mixin application invokes the
+        // superclass constructor with the same name, so that one is exposed
+        // too.
+        ConstructorElement? current = constructor;
+        while (current != null && result.add(current)) {
+          var enclosingElement = current.enclosingElement;
+          if (enclosingElement is ClassElement &&
+              enclosingElement.isMixinApplication) {
+            current = current.superConstructor?.baseElement;
+          } else {
+            current = null;
+          }
+        }
+      }
     }
 
-    super.visitVariableDeclarationStatement(node);
+    for (var class_ in _library.classes) {
+      if (class_.isPublic && class_.isMixinApplication) {
+        addConstructorsOf(class_);
+      }
+    }
+    for (var typeAlias in _library.typeAliases) {
+      if (typeAlias.isPublic) {
+        if (typeAlias.aliasedType case InterfaceTypeImpl(:var element)) {
+          addConstructorsOf(element);
+        }
+      }
+    }
+    return result;
   }
 
   /// Returns the parameter element, if any, that corresponds to the given
@@ -1012,7 +1090,10 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor2<void> {
     }
     if (enclosingElement is InterfaceElement) {
       if (enclosingElement.isPrivate) {
-        if (element.isStatic || element is ConstructorElement) {
+        if (element is ConstructorElement) {
+          return _constructorsExposedThroughAliases.contains(element);
+        }
+        if (element.isStatic) {
           return false;
         }
       }
@@ -1279,6 +1360,20 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor2<void> {
     }
   }
 
+  void _visitMethodDeclaration(
+    MethodDeclarationV1OriginImpl node,
+    void Function() visitSuper,
+  ) {
+    var declaredElement = node.declaredFragment?.element;
+    if (declaredElement is MethodElementImpl) {
+      _visitMethodElement(declaredElement);
+    } else if (declaredElement is PropertyAccessorElementImpl) {
+      _visitPropertyAccessorElement(declaredElement);
+    }
+
+    visitSuper();
+  }
+
   void _visitMethodElement(MethodElement element) {
     if (!_isUsedMember(element)) {
       _reportDiagnosticForElement(
@@ -1353,9 +1448,9 @@ class UsedLocalElements {
   /// Unresolved class members that are read in the library.
   final HashSet<String> unresolvedReadMembers = HashSet<String>();
 
-  UsedLocalElements();
+  new();
 
-  factory UsedLocalElements.merge(List<UsedLocalElements> parts) {
+  factory merge(List<UsedLocalElements> parts) {
     UsedLocalElements result = UsedLocalElements();
     int length = parts.length;
     for (int i = 0; i < length; i++) {

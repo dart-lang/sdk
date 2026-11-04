@@ -9,6 +9,7 @@ import 'package:kernel/type_algebra.dart';
 
 import '../../api_prototype/lowering_predicates.dart';
 import '../../base/modifiers.dart';
+import '../../base/uri_offset.dart';
 import '../../builder/declaration_builders.dart';
 import '../../builder/formal_parameter_builder.dart';
 import '../../builder/function_signature.dart';
@@ -48,13 +49,14 @@ abstract class ConstructorEncoding {
 
   void prependInitializer(Initializer initializer);
 
-  FunctionParameter? getTearOffParameter(int index);
-
   InternalVariable? get thisVariable;
 
   List<TypeParameter>? get thisTypeParameters;
 
-  void registerInitializers(List<Initializer> initializers);
+  void registerInitializers(
+    List<Initializer> initializers, {
+    required bool isErroneous,
+  });
 
   /// Mark the constructor as erroneous.
   ///
@@ -104,8 +106,7 @@ abstract class ConstructorEncoding {
   void addSuperParameterDefaultValueCloners({
     required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
     required Member superTarget,
-    required List<int?>? positionalSuperParameters,
-    required List<String>? namedSuperParameters,
+    required ParameterMapping<Constructor> parameterMapping,
     required SourceLibraryBuilder libraryBuilder,
   });
 
@@ -184,9 +185,15 @@ class RegularConstructorEncoding implements ConstructorEncoding {
   List<Initializer> get initializers => _constructor.initializers;
 
   @override
-  void registerInitializers(List<Initializer> initializers) {
+  void registerInitializers(
+    List<Initializer> initializers, {
+    required bool isErroneous,
+  }) {
     _constructor.initializers.addAll(initializers);
     setParents(initializers, _constructor);
+    if (isErroneous) {
+      markAsErroneous();
+    }
   }
 
   @override
@@ -406,58 +413,27 @@ class RegularConstructorEncoding implements ConstructorEncoding {
     loader.addNativeAnnotation(_constructor, nativeMethodName);
   }
 
-  @override
-  FunctionParameter? getTearOffParameter(int index) {
-    Procedure? constructorTearOff = _constructorTearOff;
-    if (constructorTearOff != null) {
-      if (index < constructorTearOff.function.positionalParameters.length) {
-        return constructorTearOff.function.positionalParameters[index];
-      } else {
-        index -= constructorTearOff.function.positionalParameters.length;
-        if (index < constructorTearOff.function.namedParameters.length) {
-          return constructorTearOff.function.namedParameters[index];
-        }
-      }
-    }
-    return null;
-  }
-
   bool _hasAddedDefaultValueCloners = false;
 
   @override
   void addSuperParameterDefaultValueCloners({
     required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
     required Member superTarget,
-    required List<int?>? positionalSuperParameters,
-    required List<String>? namedSuperParameters,
+    required ParameterMapping<Constructor> parameterMapping,
     required SourceLibraryBuilder libraryBuilder,
   }) {
     if (!_hasAddedDefaultValueCloners) {
       // If this constructor formals are part of a cyclic dependency this
       // might be called more than once.
       delayedDefaultValueCloners.add(
-        new DelayedDefaultValueCloner(
-          superTarget,
-          _constructor,
-          positionalSuperParameters: positionalSuperParameters ?? const <int>[],
-          namedSuperParameters: namedSuperParameters ?? const <String>[],
+        new DelayedDefaultValueCloner<Constructor>(
+          source: superTarget,
+          target: _constructor,
+          parameterMapping: parameterMapping,
           isOutlineNode: true,
           libraryBuilder: libraryBuilder,
         ),
       );
-      if (_constructorTearOff != null) {
-        delayedDefaultValueCloners.add(
-          new DelayedDefaultValueCloner(
-            superTarget,
-            _constructorTearOff,
-            positionalSuperParameters:
-                positionalSuperParameters ?? const <int>[],
-            namedSuperParameters: namedSuperParameters ?? const <String>[],
-            isOutlineNode: true,
-            libraryBuilder: libraryBuilder,
-          ),
-        );
-      }
       _hasAddedDefaultValueCloners = true;
     }
   }
@@ -527,8 +503,14 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
       new FunctionNodeSignature(_constructor.function);
 
   @override
-  void registerInitializers(List<Initializer> initializers) {
+  void registerInitializers(
+    List<Initializer> initializers, {
+    required bool isErroneous,
+  }) {
     this.initializers.addAll(initializers);
+    if (isErroneous) {
+      markAsErroneous();
+    }
   }
 
   @override
@@ -743,22 +725,6 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
     _initializers.insert(0, initializer);
   }
 
-  @override
-  FunctionParameter? getTearOffParameter(int index) {
-    Procedure? constructorTearOff = _constructorTearOff;
-    if (constructorTearOff != null) {
-      if (index < constructorTearOff.function.positionalParameters.length) {
-        return constructorTearOff.function.positionalParameters[index];
-      } else {
-        index -= constructorTearOff.function.positionalParameters.length;
-        if (index < constructorTearOff.function.namedParameters.length) {
-          return constructorTearOff.function.namedParameters[index];
-        }
-      }
-    }
-    return null;
-  }
-
   bool _hasBuiltBody = false;
 
   @override
@@ -826,8 +792,7 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
   void addSuperParameterDefaultValueCloners({
     required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
     required Member superTarget,
-    required List<int?>? positionalSuperParameters,
-    required List<String>? namedSuperParameters,
+    required ParameterMapping parameterMapping,
     required SourceLibraryBuilder libraryBuilder,
   }) {
     throw new UnsupportedError(
@@ -1171,8 +1136,7 @@ abstract class ConstructorEncodingStrategy {
   List<FormalParameterBuilder>? createFormals({
     required SourceLoader loader,
     required List<FormalParameterBuilder>? formals,
-    required Uri fileUri,
-    required int fileOffset,
+    required UriOffsetLength uriOffset,
   });
 
   List<SourceNominalParameterBuilder>? createTypeParameters({
@@ -1201,8 +1165,7 @@ class RegularConstructorEncodingStrategy
   List<FormalParameterBuilder>? createFormals({
     required SourceLoader loader,
     required List<FormalParameterBuilder>? formals,
-    required Uri fileUri,
-    required int fileOffset,
+    required UriOffsetLength uriOffset,
   }) {
     return formals;
   }
@@ -1233,8 +1196,7 @@ class EnumConstructorEncodingStrategy implements ConstructorEncodingStrategy {
   List<FormalParameterBuilder>? createFormals({
     required SourceLoader loader,
     required List<FormalParameterBuilder>? formals,
-    required Uri fileUri,
-    required int fileOffset,
+    required UriOffsetLength uriOffset,
   }) {
     return [
       new FormalParameterBuilder(
@@ -1242,9 +1204,8 @@ class EnumConstructorEncodingStrategy implements ConstructorEncodingStrategy {
         modifiers: Modifiers.empty,
         type: loader.target.intType,
         name: "#index",
-        fileOffset: fileOffset,
-        fileUri: fileUri,
         nameOffset: null,
+        uriOffset: uriOffset,
         hasImmediatelyDeclaredDefaultValue: false,
       ),
       new FormalParameterBuilder(
@@ -1252,9 +1213,8 @@ class EnumConstructorEncodingStrategy implements ConstructorEncodingStrategy {
         modifiers: Modifiers.empty,
         type: loader.target.stringType,
         name: "#name",
-        fileOffset: fileOffset,
-        fileUri: fileUri,
         nameOffset: null,
+        uriOffset: uriOffset,
         hasImmediatelyDeclaredDefaultValue: false,
       ),
       ...?formals,
@@ -1285,8 +1245,7 @@ class ExtensionConstructorEncodingStrategy
   List<FormalParameterBuilder>? createFormals({
     required SourceLoader loader,
     required List<FormalParameterBuilder>? formals,
-    required Uri fileUri,
-    required int fileOffset,
+    required UriOffsetLength uriOffset,
   }) {
     return formals;
   }
@@ -1326,8 +1285,7 @@ class ExtensionTypeConstructorEncodingStrategy
   List<FormalParameterBuilder>? createFormals({
     required SourceLoader loader,
     required List<FormalParameterBuilder>? formals,
-    required Uri fileUri,
-    required int fileOffset,
+    required UriOffsetLength uriOffset,
   }) {
     return formals;
   }

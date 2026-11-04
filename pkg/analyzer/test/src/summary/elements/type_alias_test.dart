@@ -58,7 +58,7 @@ library
         #F3 HasAnnotation (nameOffset:90) (firstTokenOffset:72) (offset:90)
           element: <testLibrary>::@typeAlias::HasAnnotation
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @72
               expression: ConstructorInvocation
                 constructorReference: ConstructorReference2
@@ -83,7 +83,7 @@ library
           element: <testLibrary>::@typeAlias::AnnotationThenComment
           documentationComment: /// Comment 1.\n/// Comment 2.
           metadata
-            Annotation
+            annotation_1: Annotation
               atSign: @ @108
               expression: ConstructorInvocation
                 constructorReference: ConstructorReference2
@@ -108,7 +108,7 @@ library
           element: <testLibrary>::@typeAlias::CommentThenAnnotation
           documentationComment: /// Comment 1.\n/// Comment 2.
           metadata
-            Annotation
+            annotation_2: Annotation
               atSign: @ @212
               expression: ConstructorInvocation
                 constructorReference: ConstructorReference2
@@ -133,7 +133,7 @@ library
           element: <testLibrary>::@typeAlias::CommentAroundAnnotation
           documentationComment: /// Comment 2.
           metadata
-            Annotation
+            annotation_3: Annotation
               atSign: @ @271
               expression: ConstructorInvocation
                 constructorReference: ConstructorReference2
@@ -168,108 +168,28 @@ library
       reference: <testLibrary>::@typeAlias::HasAnnotation
       firstFragment: #F3
       metadata
-        Annotation
-          atSign: @ @72
-          expression: ConstructorInvocation
-            constructorReference: ConstructorReference2
-              typeReference: ConstructorTypeReference
-                name: Object @73
-                element: dart:core::@class::Object
-                type: Object
-              element: dart:core::@class::Object::@constructor::new
-            argumentList: ArgumentList
-              leftParenthesis: ( @79
-              rightParenthesis: ) @80
-            staticType: Object
-          name: SimpleIdentifier
-            token: Object @73
-            element: dart:core::@class::Object
-            staticType: null
-          arguments: ArgumentList
-            leftParenthesis: ( @79
-            rightParenthesis: ) @80
-          element: dart:core::@class::Object::@constructor::new
+        annotation_0
       aliasedType: dynamic Function()
     isSimplyBounded AnnotationThenComment
       reference: <testLibrary>::@typeAlias::AnnotationThenComment
       firstFragment: #F4
       documentationComment: /// Comment 1.\n/// Comment 2.
       metadata
-        Annotation
-          atSign: @ @108
-          expression: ConstructorInvocation
-            constructorReference: ConstructorReference2
-              typeReference: ConstructorTypeReference
-                name: Object @109
-                element: dart:core::@class::Object
-                type: Object
-              element: dart:core::@class::Object::@constructor::new
-            argumentList: ArgumentList
-              leftParenthesis: ( @115
-              rightParenthesis: ) @116
-            staticType: Object
-          name: SimpleIdentifier
-            token: Object @109
-            element: dart:core::@class::Object
-            staticType: null
-          arguments: ArgumentList
-            leftParenthesis: ( @115
-            rightParenthesis: ) @116
-          element: dart:core::@class::Object::@constructor::new
+        annotation_1
       aliasedType: dynamic Function()
     isSimplyBounded CommentThenAnnotation
       reference: <testLibrary>::@typeAlias::CommentThenAnnotation
       firstFragment: #F5
       documentationComment: /// Comment 1.\n/// Comment 2.
       metadata
-        Annotation
-          atSign: @ @212
-          expression: ConstructorInvocation
-            constructorReference: ConstructorReference2
-              typeReference: ConstructorTypeReference
-                name: Object @213
-                element: dart:core::@class::Object
-                type: Object
-              element: dart:core::@class::Object::@constructor::new
-            argumentList: ArgumentList
-              leftParenthesis: ( @219
-              rightParenthesis: ) @220
-            staticType: Object
-          name: SimpleIdentifier
-            token: Object @213
-            element: dart:core::@class::Object
-            staticType: null
-          arguments: ArgumentList
-            leftParenthesis: ( @219
-            rightParenthesis: ) @220
-          element: dart:core::@class::Object::@constructor::new
+        annotation_2
       aliasedType: dynamic Function()
     isSimplyBounded CommentAroundAnnotation
       reference: <testLibrary>::@typeAlias::CommentAroundAnnotation
       firstFragment: #F6
       documentationComment: /// Comment 2.
       metadata
-        Annotation
-          atSign: @ @271
-          expression: ConstructorInvocation
-            constructorReference: ConstructorReference2
-              typeReference: ConstructorTypeReference
-                name: Object @272
-                element: dart:core::@class::Object
-                type: Object
-              element: dart:core::@class::Object::@constructor::new
-            argumentList: ArgumentList
-              leftParenthesis: ( @278
-              rightParenthesis: ) @279
-            staticType: Object
-          name: SimpleIdentifier
-            token: Object @272
-            element: dart:core::@class::Object
-            staticType: null
-          arguments: ArgumentList
-            leftParenthesis: ( @278
-            rightParenthesis: ) @279
-          element: dart:core::@class::Object::@constructor::new
+        annotation_3
       aliasedType: dynamic Function()
 ''');
   }
@@ -316,7 +236,7 @@ library
         #F3 HasAnnotation (nameOffset:112) (firstTokenOffset:94) (offset:112)
           element: <testLibrary>::@typeAlias::HasAnnotation
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @94
               expression: ConstructorInvocation
                 constructorReference: ConstructorReference2
@@ -341,7 +261,7 @@ library
           element: <testLibrary>::@typeAlias::AnnotationThenComment
           documentationComment: /// Comment 1.\n/// Comment 2.
           metadata
-            Annotation
+            annotation_1: Annotation
               atSign: @ @141
               expression: ConstructorInvocation
                 constructorReference: ConstructorReference2
@@ -366,7 +286,7 @@ library
           element: <testLibrary>::@typeAlias::CommentThenAnnotation
           documentationComment: /// Comment 1.\n/// Comment 2.
           metadata
-            Annotation
+            annotation_2: Annotation
               atSign: @ @256
               expression: ConstructorInvocation
                 constructorReference: ConstructorReference2
@@ -391,7 +311,7 @@ library
           element: <testLibrary>::@typeAlias::CommentAroundAnnotation
           documentationComment: /// Comment 2.
           metadata
-            Annotation
+            annotation_3: Annotation
               atSign: @ @326
               expression: ConstructorInvocation
                 constructorReference: ConstructorReference2
@@ -426,108 +346,28 @@ library
       reference: <testLibrary>::@typeAlias::HasAnnotation
       firstFragment: #F3
       metadata
-        Annotation
-          atSign: @ @94
-          expression: ConstructorInvocation
-            constructorReference: ConstructorReference2
-              typeReference: ConstructorTypeReference
-                name: Object @95
-                element: dart:core::@class::Object
-                type: Object
-              element: dart:core::@class::Object::@constructor::new
-            argumentList: ArgumentList
-              leftParenthesis: ( @101
-              rightParenthesis: ) @102
-            staticType: Object
-          name: SimpleIdentifier
-            token: Object @95
-            element: dart:core::@class::Object
-            staticType: null
-          arguments: ArgumentList
-            leftParenthesis: ( @101
-            rightParenthesis: ) @102
-          element: dart:core::@class::Object::@constructor::new
+        annotation_0
       aliasedType: dynamic Function()
     isSimplyBounded AnnotationThenComment
       reference: <testLibrary>::@typeAlias::AnnotationThenComment
       firstFragment: #F4
       documentationComment: /// Comment 1.\n/// Comment 2.
       metadata
-        Annotation
-          atSign: @ @141
-          expression: ConstructorInvocation
-            constructorReference: ConstructorReference2
-              typeReference: ConstructorTypeReference
-                name: Object @142
-                element: dart:core::@class::Object
-                type: Object
-              element: dart:core::@class::Object::@constructor::new
-            argumentList: ArgumentList
-              leftParenthesis: ( @148
-              rightParenthesis: ) @149
-            staticType: Object
-          name: SimpleIdentifier
-            token: Object @142
-            element: dart:core::@class::Object
-            staticType: null
-          arguments: ArgumentList
-            leftParenthesis: ( @148
-            rightParenthesis: ) @149
-          element: dart:core::@class::Object::@constructor::new
+        annotation_1
       aliasedType: dynamic Function()
     isSimplyBounded CommentThenAnnotation
       reference: <testLibrary>::@typeAlias::CommentThenAnnotation
       firstFragment: #F5
       documentationComment: /// Comment 1.\n/// Comment 2.
       metadata
-        Annotation
-          atSign: @ @256
-          expression: ConstructorInvocation
-            constructorReference: ConstructorReference2
-              typeReference: ConstructorTypeReference
-                name: Object @257
-                element: dart:core::@class::Object
-                type: Object
-              element: dart:core::@class::Object::@constructor::new
-            argumentList: ArgumentList
-              leftParenthesis: ( @263
-              rightParenthesis: ) @264
-            staticType: Object
-          name: SimpleIdentifier
-            token: Object @257
-            element: dart:core::@class::Object
-            staticType: null
-          arguments: ArgumentList
-            leftParenthesis: ( @263
-            rightParenthesis: ) @264
-          element: dart:core::@class::Object::@constructor::new
+        annotation_2
       aliasedType: dynamic Function()
     isSimplyBounded CommentAroundAnnotation
       reference: <testLibrary>::@typeAlias::CommentAroundAnnotation
       firstFragment: #F6
       documentationComment: /// Comment 2.
       metadata
-        Annotation
-          atSign: @ @326
-          expression: ConstructorInvocation
-            constructorReference: ConstructorReference2
-              typeReference: ConstructorTypeReference
-                name: Object @327
-                element: dart:core::@class::Object
-                type: Object
-              element: dart:core::@class::Object::@constructor::new
-            argumentList: ArgumentList
-              leftParenthesis: ( @333
-              rightParenthesis: ) @334
-            staticType: Object
-          name: SimpleIdentifier
-            token: Object @327
-            element: dart:core::@class::Object
-            staticType: null
-          arguments: ArgumentList
-            leftParenthesis: ( @333
-            rightParenthesis: ) @334
-          element: dart:core::@class::Object::@constructor::new
+        annotation_3
       aliasedType: dynamic Function()
 ''');
   }
@@ -984,7 +824,7 @@ library
             #F2 X (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E0 X
   typeAliases
-    F
+    hasSelfReference F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       typeParameters
@@ -1012,11 +852,11 @@ library
         #F2 G (nameOffset:34) (firstTokenOffset:26) (offset:34)
           element: <testLibrary>::@typeAlias::G
   typeAliases
-    F
+    hasSelfReference F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       aliasedType: dynamic Function()
-    G
+    hasSelfReference G
       reference: <testLibrary>::@typeAlias::G
       firstFragment: #F2
       aliasedType: dynamic Function()
@@ -1037,7 +877,7 @@ library
         #F1 F (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::F
   typeAliases
-    F
+    hasSelfReference F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       aliasedType: List<dynamic> Function()
@@ -1061,7 +901,7 @@ library
             #F2 T (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E0 T
   typeAliases
-    F
+    hasSelfReference F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       typeParameters
@@ -1137,7 +977,7 @@ library
             #F2 T (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E0 T
   typeAliases
-    F
+    hasSelfReference F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       typeParameters
@@ -1162,7 +1002,7 @@ library
         #F1 F (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::F
   typeAliases
-    F
+    hasSelfReference F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       aliasedType: List<dynamic>
@@ -2317,7 +2157,7 @@ library
             #F2 T (nameOffset:15) (firstTokenOffset:15) (offset:15)
               element: #E0 T
   typeAliases
-    F
+    hasSelfReference F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       typeParameters
@@ -2749,7 +2589,7 @@ library
             #F2 T (nameOffset:15) (firstTokenOffset:15) (offset:15)
               element: #E0 T
   typeAliases
-    F
+    hasSelfReference F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       typeParameters
@@ -2778,7 +2618,7 @@ library
             #F2 T (nameOffset:15) (firstTokenOffset:15) (offset:15)
               element: #E0 T
   typeAliases
-    F
+    hasSelfReference F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       typeParameters
@@ -4980,7 +4820,7 @@ library
         #F1 F (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::F
   typeAliases
-    F
+    hasSelfReference F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       aliasedType: (dynamic, int) Function()

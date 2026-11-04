@@ -27,7 +27,7 @@ final _instructions = _Instructions();
 sealed class _Encoding {
   final String type;
 
-  const _Encoding(this.type);
+  const new(this.type);
 
   @override
   int get hashCode => type.hashCode;
@@ -49,7 +49,7 @@ class _Instruction {
   final List<_Parameter> parameters;
   final int parameterShapeId;
 
-  _Instruction(this.name, this.parameters, this.parameterShapeId);
+  new(this.name, this.parameters, this.parameterShapeId);
 
   String get className => '_${name.capitalized}Instruction';
 
@@ -70,7 +70,7 @@ class _Instructions {
 
   final parameterShapeMap = <_ParameterShape, int>{};
 
-  _Instructions() {
+  new() {
     // Encodings
     var callDescriptor = encoding('CallDescriptorRef');
     var argumentNames = encoding('ArgumentNamesRef');
@@ -195,7 +195,7 @@ mixin IRToStringMixin implements RawIRContainerInterface {
 class Opcode {
   final int index;
 
-  const Opcode._(this.index);
+  const new _(this.index);
 
 ''');
     _instructions.all.forEachIndexed((i, instruction) {
@@ -225,7 +225,7 @@ class Opcode {
     _instructions.parameterShapeMap.forEach((parameterShape, id) {
       output('''
 class _ParameterShape$id extends Opcode {
-  const _ParameterShape$id._(super.index) : super._();
+  const new _(super.index) : super._();
 ''');
       var i = 0;
       for (var parameter in parameterShape._parameters) {
@@ -296,11 +296,7 @@ class _NontrivialEncoding extends _Encoding {
   final String fieldName;
   final String constructorName;
 
-  _NontrivialEncoding(
-    super.type, {
-    required this.fieldName,
-    required this.constructorName,
-  });
+  new(super.type, {required this.fieldName, required this.constructorName});
 
   @override
   String decode(String value) =>
@@ -318,7 +314,7 @@ class _Parameter {
   final String name;
   final _Encoding encoding;
 
-  _Parameter._(this.name, this.encoding);
+  new _(this.name, this.encoding);
 
   String get fieldName => '_$name';
 
@@ -333,7 +329,7 @@ class _Parameter {
 class _ParameterShape {
   final List<_Parameter> _parameters;
 
-  _ParameterShape(this._parameters);
+  new(this._parameters);
 
   @override
   int get hashCode => Object.hashAll(_parameters);
@@ -352,7 +348,7 @@ class _ParameterShape {
 }
 
 class _TrivialEncoding extends _Encoding {
-  const _TrivialEncoding(super.type);
+  const new(super.type);
 
   @override
   String decode(String value) => value;

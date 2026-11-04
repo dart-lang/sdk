@@ -23,7 +23,8 @@ bool _ignoreDeadCode(Diagnostic diagnostic) =>
     diagnostic.diagnosticCode != diag.deadCode;
 
 @reflectiveTest
-class DeadNullAwareAssignmentExpressionTest extends FixProcessorTest {
+class DeadNullAwareAssignmentExpressionTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeIfNullOperator;
 
@@ -112,7 +113,7 @@ void f(int a, int b, int c) => a = b;
 }
 
 @reflectiveTest
-class DeadNullAwareExpressionTest extends FixProcessorTest {
+class DeadNullAwareExpressionTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeIfNullOperator;
 
@@ -175,7 +176,8 @@ var c = a;
 }
 
 @reflectiveTest
-class UnnecessaryNullInIfNullOperatorsTest extends FixProcessorLintTest {
+class UnnecessaryNullInIfNullOperatorsTest
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.removeIfNullOperator;
 

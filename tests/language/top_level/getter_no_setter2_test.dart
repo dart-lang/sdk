@@ -15,7 +15,7 @@ class Class {
   method() {
     getter++;
     // [error column 5, length 6]
-    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_WRITE
     // [cfe] Setter not found: 'getter'.
   }
 }

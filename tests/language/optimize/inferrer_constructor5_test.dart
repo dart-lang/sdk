@@ -8,7 +8,7 @@ class A {
   A() {
     print(field + 42);
     //    ^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
     // [cfe] The getter 'field' isn't defined for the type 'A'.
   }
 }

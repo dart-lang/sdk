@@ -262,9 +262,9 @@ bool OS::SafeReadMemory(void* address,
   if (!ok || bytes_read != size_in_bytes) {
     DWORD err = GetLastError();
     char errbuf[1024];
-    Utils::StrError(static_cast<int>(err), errbuf, sizeof(errbuf));
-    *error = OS::SCreate(nullptr, "ReadProcessMemory failed (error %lu): %s",
-                         err, errbuf);
+    *error = OS::SCreate(
+        nullptr, "ReadProcessMemory failed (error %lu): %s", err,
+        Utils::StrError(static_cast<int>(err), errbuf, sizeof(errbuf)));
     return false;
   }
   return true;
@@ -422,8 +422,9 @@ void OS::Exit(int code) {
 OS::BuildId OS::GetAppBuildId(const uint8_t* snapshot_instructions) {
   // Return the build ID information from the instructions image if available.
   const TextImage instructions_image(snapshot_instructions);
-  if (auto* const image_build_id = instructions_image.build_id()) {
-    return {instructions_image.build_id_length(), image_build_id};
+  const auto build_id = instructions_image.build_id();
+  if (build_id.data != nullptr) {
+    return build_id;
   }
   return {0, nullptr};
 }

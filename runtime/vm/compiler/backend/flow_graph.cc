@@ -1235,12 +1235,8 @@ void FlowGraph::AddCatchEntryParameter(intptr_t var_index,
   } else if (raw_stacktrace_var_envindex == var_index) {
     loc = LocationStackTraceLocation();
   } else {
-    // Catch params will get their own stack slots separate
-    // from parameters and spill slots.
-    // All catch entries are reusing same stack slots.
-    loc = EnvIndexToStackLocation(
-        num_direct_parameters(),
-        variable_count() + catch_entry->initial_definitions()->length());
+    // Stack slot will be assigned in AllocateCatchEntryParameterLocations.
+    loc = Location::RequiresStack();
   }
   auto param = new (Z) ParameterInstr(
       catch_entry, /*env_index=*/var_index,
@@ -1289,10 +1285,6 @@ void FlowGraph::InsertCatchBlockParams(
   // successors to blocks they cover then we could combine Parameter and Phi
   // insertion into a single pass algorithm and remove distinction between
   // OSR and non-OSR case.
-  intptr_t fixed_slot_count = Utils::Maximum(
-      graph_entry_->fixed_slot_count(),
-      (IsCompiledForOsr() ? osr_variable_count() : variable_count()) -
-          num_direct_parameters());
   if (IsCompiledForOsr()) {
     for (auto try_entry : try_entries_) {
       if (try_entry == nullptr) {
@@ -1397,15 +1389,31 @@ void FlowGraph::InsertCatchBlockParams(
     }
   }
 
-  // Count how many catch parameter slots are needed across the whole program.
-  int catch_entries_slots = 0;
+  AllocateCatchEntryParameterLocations();
+}
+
+void FlowGraph::AllocateCatchEntryParameterLocations() {
+  const intptr_t fixed_slot_count =
+      (IsCompiledForOsr() ? osr_variable_count() : variable_count()) -
+      num_direct_parameters();
+  // Assign each catch parameter its own stack slot separate from parameters
+  // and spill slots, and count how many catch parameter slots are needed
+  // across the whole program.
+  intptr_t catch_entries_slots = 0;
   for (intptr_t i = 0; i < try_entries_.length(); i++) {
     if (try_entries_[i] == nullptr) {
       continue;
     }
     CatchBlockEntryInstr* catch_entry = try_entries_[i]->catch_target();
-    if (catch_entry->initial_definitions()->length() > catch_entries_slots) {
-      catch_entries_slots = catch_entry->initial_definitions()->length();
+    for (Definition* defn : *catch_entry->initial_definitions()) {
+      ParameterInstr* param = defn->AsParameter();
+      ASSERT(param != nullptr);
+      if (!param->location().IsRegister()) {
+        param->set_location(EnvIndexToStackLocation(
+            num_direct_parameters(),
+            num_direct_parameters() + fixed_slot_count + catch_entries_slots));
+        catch_entries_slots++;
+      }
     }
   }
   graph_entry_->set_fixed_slot_count(fixed_slot_count + catch_entries_slots);

@@ -14,7 +14,6 @@ import 'package:analysis_server/src/lsp/progress.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_context.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:language_server_protocol/protocol_custom_generated.dart';
-import 'package:language_server_protocol/protocol_generated.dart';
 
 /// A mixin with functionality common to handlers for refactor commands,
 /// such as [RefactorCommandResolver] and [RefactorCommandExecutor].
@@ -26,6 +25,8 @@ mixin RefactorCommandHandlerMixin<T> on HandlerHelperMixin, Handler<T> {
     LspClientCapabilities clientCapabilities,
     RefactoringContext context,
     List<Object?> arguments,
+    CancellationToken cancellationToken,
+    ErrorOr<T>? Function() checkAbort,
   );
 
   Future<ErrorOr<T>> handle(
@@ -63,19 +64,18 @@ mixin RefactorCommandHandlerMixin<T> on HandlerHelperMixin, Handler<T> {
       );
     }
 
-    var library = await requireResolvedLibrary(filePath);
-    return library.mapResult((library) async {
-      var unit = library.unitWithPath(filePath);
-      if (unit == null) {
-        return error(
-          ErrorCodes.InternalError,
-          'The library containing a path did not contain the path.',
-        );
-      }
+    return withResolvedLibrary(cancellationToken, path: filePath, (
+      library,
+      unit,
+      docIdentifier,
+      checkAbort,
+    ) async {
+      var startSessions = await server.currentSessions;
+      if (checkAbort() case var reason?) return reason;
 
       var context = RefactoringContext(
         server: server,
-        startSessions: await server.currentSessions,
+        startSessions: startSessions,
         resolvedLibraryResult: library,
         resolvedUnitResult: unit,
         clientCapabilities: clientCapabilities,
@@ -92,6 +92,8 @@ mixin RefactorCommandHandlerMixin<T> on HandlerHelperMixin, Handler<T> {
         clientCapabilities,
         context,
         arguments,
+        cancellationToken,
+        checkAbort,
       );
     });
   }

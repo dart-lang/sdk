@@ -5,13 +5,31 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:analyzer/file_system/file_system.dart';
 // ignore: implementation_imports
 import 'package:dartpad/src/exceptions.dart' show rethrowAsDartPadException;
 import 'package:json_rpc_2/json_rpc_2.dart';
+import 'package:package_config/package_config.dart';
 
-import '../shared.dart';
+import '../shared.dart' hide FileSystemException;
 import '../util/message_port.dart';
 import '../util/parameters_ext.dart';
+
+/// Read-only workspace file operations exposed as JSON-RPC handlers to the
+/// sandbox.
+abstract interface class WorkspaceFileReader {
+  /// Handles the `readFileAsText` RPC.
+  Object? readFileAsText(Parameters params);
+
+  /// Handles the `readFileAsBytes` RPC.
+  Object? readFileAsBytes(Parameters params);
+
+  /// Handles the `stat` RPC.
+  Object? stat(Parameters params);
+
+  /// Handles the `listDirectory` RPC.
+  Object? listDirectory(Parameters params);
+}
 
 /// Structured `dart:developer.log` entry emitted by the sandbox.
 typedef SandboxLogRecord = ({
@@ -79,9 +97,15 @@ final class SandboxClient {
   /// [port].
   ///
   /// When [port] is closed, [onClosed] will be called.
-  SandboxClient(MessagePort port, void Function() onClosed)
-    : _peer = Peer.withoutJson(port.jsonRpcChannel()),
-      _onClosed = onClosed {
+  SandboxClient(
+    MessagePort port, {
+    required ResourceProvider resourceProvider,
+    required WorkspaceFileReader fileReader,
+    required VersionInfo version,
+    required String? Function() packageConfigPath,
+    required void Function() onClosed,
+  }) : _peer = Peer.withoutJson(port.jsonRpcChannel()),
+       _onClosed = onClosed {
     // Register notification handlers
     _peer.registerMethod('console', (Parameters params) {
       final level = params['level'].asString;
@@ -141,6 +165,52 @@ final class SandboxClient {
       );
     });
 
+    // Register read-only filesystem and package resolution RPC handlers
+    _peer.registerMethod('readFileAsText', fileReader.readFileAsText);
+    _peer.registerMethod('readFileAsBytes', fileReader.readFileAsBytes);
+    _peer.registerMethod('stat', fileReader.stat);
+    _peer.registerMethod('listDirectory', fileReader.listDirectory);
+    _peer.registerMethod('resolvePackage', (Parameters params) {
+      final package = params['package'].asString;
+      final configPath = packageConfigPath();
+      if (configPath == null) {
+        throw InvalidSandboxStateException('No application is running.');
+      }
+      final context = resourceProvider.pathContext;
+      final PackageConfig packages;
+      try {
+        packages = PackageConfig.parseString(
+          resourceProvider.getFile(configPath).readAsStringSync(),
+          context.toUri(configPath),
+        );
+      } on FileSystemException {
+        throw PackageConfigNotFoundException(
+          'Unable to find `.dart_tool/package_config.json`.',
+          data: {'path': configPath},
+        );
+      } on FormatException catch (e) {
+        throw PackageConfigNotFoundException(
+          'Invalid `.dart_tool/package_config.json`: ${e.message}',
+          data: {'path': configPath},
+        );
+      }
+      final pkg = packages[package];
+      return {
+        'package': pkg != null
+            ? {
+                'name': pkg.name,
+                'rootPath': context.normalize(context.fromUri(pkg.root)),
+                'packagePath': context.normalize(
+                  context.fromUri(pkg.packageUriRoot),
+                ),
+                'languageVersion':
+                    pkg.languageVersion?.toString() ??
+                    version.dartVersion.split('.').take(2).join('.'),
+              }
+            : null,
+      };
+    });
+
     // Start listening
     _peer.listen().whenComplete(() {
       _cleanup();
@@ -182,6 +252,12 @@ final class SandboxClient {
       return await _peer.sendRequest(method, params) as T;
     } on RpcException catch (e) {
       rethrowAsDartPadException(e);
+    } finally {
+      // `Client.withoutJson` fails pending requests on a `Completer.sync()`
+      // before `_peer.listen().whenComplete` runs `_cleanup()`.
+      if (_peer.isClosed) {
+        _cleanup();
+      }
     }
   }
 
@@ -215,8 +291,16 @@ final class SandboxClient {
   }
 
   /// Runs the application using the specified mode.
-  Future<void> run(String libraryUri, {required String mode}) async {
-    await _sendRequest<void>('run', {'libraryUri': libraryUri, 'mode': mode});
+  Future<void> run(
+    String libraryUri, {
+    required String mode,
+    required String packageRoot,
+  }) async {
+    await _sendRequest<void>('run', {
+      'libraryUri': libraryUri,
+      'mode': mode,
+      'packageRoot': packageRoot,
+    });
   }
 
   /// Triggers a hot restart, resetting global state.

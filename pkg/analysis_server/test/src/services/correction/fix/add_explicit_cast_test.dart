@@ -17,7 +17,7 @@ void main() {
 }
 
 @reflectiveTest
-class AddExplicitCastMultiTest extends FixProcessorTest {
+class AddExplicitCastMultiTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.addExplicitCastMulti;
 
@@ -231,7 +231,7 @@ class B {}
 }
 
 @reflectiveTest
-class AddExplicitCastTest extends FixProcessorTest {
+class AddExplicitCastTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.addExplicitCast;
 
@@ -274,6 +274,21 @@ f(A a) {
 class A {}
 class B {}
 class C {}
+''');
+  }
+
+  Future<void> test_assignment_downcast() async {
+    await resolveTestCode('''
+void f(num a) {
+  int b = a;
+  b;
+}
+''');
+    await assertHasFix('''
+void f(num a) {
+  int b = a as int;
+  b;
+}
 ''');
   }
 
@@ -533,7 +548,14 @@ f(List<A> a) {
 class A {}
 class B {}
 ''');
-    await assertNoFix();
+    await assertHasFix('''
+f(List<A> a) {
+  List<B> b = a.cast<B>();
+  print(b);
+}
+class A {}
+class B {}
+''');
   }
 
   Future<void> test_declaration_general() async {
@@ -649,6 +671,71 @@ B b = a as B;
 
 class A {}
 class B {}
+''');
+  }
+
+  Future<void> test_indexAssignment_value() async {
+    await resolveTestCode('''
+void f(C c, A a) {
+  c[0] = a;
+}
+class A {}
+class B {}
+class C {
+  void operator []=(int i, B b) {}
+}
+''');
+    await assertHasFix('''
+void f(C c, A a) {
+  c[0] = a as B;
+}
+class A {}
+class B {}
+class C {
+  void operator []=(int i, B b) {}
+}
+''');
+  }
+
+  Future<void> test_indexExpression_assignment() async {
+    await resolveTestCode('''
+class C {
+  void operator []=(int a, int b) {}
+}
+
+void f(C c, num a) {
+  c[a] = 0;
+}
+''');
+    await assertHasFix('''
+class C {
+  void operator []=(int a, int b) {}
+}
+
+void f(C c, num a) {
+  c[a as int] = 0;
+}
+''');
+  }
+
+  Future<void> test_indexExpression_read() async {
+    await resolveTestCode('''
+class C {
+  int operator [](int a) => 0;
+}
+
+void f(C c, num a) {
+  c[a];
+}
+''');
+    await assertHasFix('''
+class C {
+  int operator [](int a) => 0;
+}
+
+void f(C c, num a) {
+  c[a as int];
+}
 ''');
   }
 

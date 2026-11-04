@@ -47,7 +47,8 @@ void f(Object? x) {
 }
 
 @reflectiveTest
-class RemoveUnnecessaryWildcardPatternTest extends FixProcessorTest {
+class RemoveUnnecessaryWildcardPatternTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeUnnecessaryWildcardPattern;
 

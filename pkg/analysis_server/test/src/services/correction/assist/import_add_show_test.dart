@@ -362,6 +362,67 @@ void f(x) {
 ''');
   }
 
+  Future<void> test_hasUnresolvedIdentifier_importInPart() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+part 'test.dart';
+''');
+    await resolveTestCode('''
+part of 'lib.dart';
+
+^import 'dart:math';
+
+void f(x) {
+  pi;
+  return x.foo();
+}
+''');
+    await assertHasAssist('''
+part of 'lib.dart';
+
+import 'dart:math' show pi;
+
+void f(x) {
+  pi;
+  return x.foo();
+}
+''');
+  }
+
+  Future<void> test_hasUnresolvedIdentifier_referencesInParts() async {
+    newFile('$testPackageLibPath/c.dart', '''
+var C0 = 0;
+var C1 = 1;
+var C2 = 2;
+var C3 = 3;
+''');
+    newFile('$testPackageLibPath/a.dart', '''
+part of 'test.dart';
+
+part 'b.dart';
+
+var a = C1;
+''');
+    newFile('$testPackageLibPath/b.dart', '''
+part of 'a.dart';
+
+var b = C2;
+''');
+    await resolveTestCode('''
+^import 'c.dart';
+
+part 'a.dart';
+
+var test = C0;
+''');
+    await assertHasAssist('''
+import 'c.dart' show C0, C1, C2;
+
+part 'a.dart';
+
+var test = C0;
+''');
+  }
+
   Future<void> test_mixinOnDirective() async {
     newFile('$testPackageLibPath/lib.dart', '''
 mixin M {}

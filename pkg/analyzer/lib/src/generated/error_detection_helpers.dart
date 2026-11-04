@@ -25,7 +25,7 @@ import 'package:analyzer/src/utilities/extensions/object.dart';
 
 /// Methods useful in detecting errors.  This mixin exists to allow code to be
 /// more easily shared between the two visitors that do the majority of error
-/// reporting (ResolverVisitor and ErrorVerifier).
+/// reporting (TypeAnalyzer and ErrorVerifier).
 mixin ErrorDetectionHelpers {
   DiagnosticReporter get diagnosticReporter;
 
@@ -371,7 +371,7 @@ mixin ErrorDetectionHelpers {
 /// Concrete derived classes exist for handling the different varieties of
 /// non-assignability errors.
 abstract class NonAssignabilityReporter {
-  const NonAssignabilityReporter();
+  const new();
 
   /// Creates the appropriate [LocatableDiagnostic] to report that the user has
   /// tried to assign [actualStaticType] to [expectedStaticType].
@@ -383,7 +383,7 @@ abstract class NonAssignabilityReporter {
 
 /// Helper class for reporting the error [diag.argumentTypeNotAssignable].
 class NonAssignabilityReporterForArgument extends NonAssignabilityReporter {
-  const NonAssignabilityReporterForArgument();
+  const new();
 
   @override
   LocatableDiagnostic createDiagnostic({
@@ -433,7 +433,7 @@ class NonAssignabilityReporterForArgument extends NonAssignabilityReporter {
 
 /// Helper class for reporting the error [diag.invalidAssignment].
 class NonAssignabilityReporterForAssignment extends NonAssignabilityReporter {
-  const NonAssignabilityReporterForAssignment();
+  const new();
 
   @override
   LocatableDiagnostic createDiagnostic({

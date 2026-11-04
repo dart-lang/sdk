@@ -77,6 +77,18 @@ B21 = TargetBlock() idom:B14 in-loop:B2
 B22 = TargetBlock() idom:B14
   Return(v25)
 
+--- selfLoop
+B0 = EntryBlock() dominates:(B2)
+  Constant(true)
+  v9 = Constant(1)
+  Constant(null)
+  v1 = Parameter(i)
+  Goto(B2)
+B2 = JoinBlock(B0, B2) idom:B0 loop-header (depth:1 body:(B2) back-edges:(B2))
+  v15 = Phi(v1, v10)
+  v10 = BinaryIntOp +(v15, v9)
+  Goto(B2)
+
 --- irreducible
 B0 = EntryBlock() dominates:(B8, B34, B4, B3, B7)
   v5 = Constant(1)

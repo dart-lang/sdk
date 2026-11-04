@@ -25,6 +25,7 @@ aot_snapshot("dartdevc_aot") {
 aot_snapshot("dartdevc_aot_product") {
   main_dart = "../../pkg/dev_compiler/bin/dartdevc.dart"
   name = "dartdevc_aot_product"
+  dill = "$target_gen_dir/dartdevc_aot_product.aot.dill"
   output = "$root_gen_dir/dartdevc_aot_product.dart.snapshot"
 
   # dartaotruntime in the dart sdk has dart_product_config applied to it,
@@ -50,7 +51,11 @@ application_snapshot("dartdevc") {
   ]
 
   training_deps = [ ":ddc_platform" ]
-  training_inputs = [ sdk_outline_dill ]
+  training_inputs = [
+    sdk_outline_dill,
+    "../../pkg/dev_compiler/bin/dartdevc.dart",
+    "../../.dart_tool/package_config.json",
+  ]
 }
 
 template("dart2js_compile") {
@@ -66,8 +71,10 @@ template("dart2js_compile") {
     deps = invoker.deps + [ "../compiler:dart2js_platform" ]
 
     inputs = [
+      main,
       "$root_out_dir/dart2js_platform.dill",
       "$root_out_dir/dart2js_outline.dill",
+      "../../.dart_tool/package_config.json",
     ]
     outputs = [ out ]
 
@@ -215,6 +222,7 @@ template("ddc_compile") {
 
     inputs = [
       sdk_outline_dill,
+      "../../.dart_tool/package_config.json",
       "$target_gen_dir/ddc_files.stamp",
     ]
 
@@ -274,8 +282,7 @@ template("package_kernel_outline") {
   output = "$target_gen_dir/${module}_outline.dill"
   sdk_outline = rebase_path(sdk_outline_dill, root_build_dir)
 
-  package_config =
-      rebase_path("../../.dart_tool/package_config.json", root_build_dir)
+  package_config = "../../.dart_tool/package_config.json"
 
   prebuilt_dart_action(target_name) {
     deps = [
@@ -283,10 +290,11 @@ template("package_kernel_outline") {
       "../bazel:kernel_worker_files_stamp",
     ]
     script = "../bazel/kernel_worker.dart"
+    inputs = [ package_config ]
     outputs = [ output ]
     args = [
       "--packages-file",
-      package_config,
+      rebase_path(package_config, root_build_dir),
       "--summary-only",
       "--target",
       "ddc",
@@ -440,54 +448,61 @@ template("ddc_compile_sdk") {
     js_gen_dir = "$target_gen_dir/stable/sdk"
   }
 
-  prebuilt_dart_action(target_name) {
-    mnemonic = "DDC"
-    deps = [
-      ":ddc_files_stamp",
-      ":ddc_platform",
-    ]
+  # Compiles each module format in its own DDC run, so that each source map can
+  # use a path next to itself (see --multi-root-output-path below).
+  module_targets = []
+  foreach(module, invoker.modules) {
+    module_target = "${target_name}_$module"
+    module_targets += [ ":$module_target" ]
 
-    inputs = [ sdk_full_dill ]
+    prebuilt_dart_action(module_target) {
+      mnemonic = "DDC"
+      deps = [
+        ":ddc_files_stamp",
+        ":ddc_platform",
+      ]
 
-    outputs = []
-    args = []
+      inputs = [
+        sdk_full_dill,
+        "../../.dart_tool/package_config.json",
+      ]
 
-    foreach(module, invoker.modules) {
-      outputs += [
+      outputs = [
         "$js_gen_dir/$module/dart_sdk.js",
         "$js_gen_dir/$module/dart_sdk.js.map",
       ]
 
-      args += [
+      vm_args = [ "-Dsdk_hash=$sdk_hash" ]
+
+      script = "../../pkg/dev_compiler/bin/dartdevc.dart"
+
+      args = [
         "--modules",
         "$module",
         "-o",
         rebase_path("$js_gen_dir/$module/dart_sdk.js", root_build_dir),
+        "--multi-root-scheme",
+        "org-dartlang-sdk",
+        "--multi-root-output-path",
+
+        # The source map locations are made relative to this path. Tools serve
+        # dart_sdk.js and its source map at the web root and the SDK sources
+        # under /dart-sdk/, so this makes them "dart-sdk/lib/...". The SDK test
+        # runner's server serves them the same way.
+        # The "ddc" module format files are also packaged into the released SDK
+        # (see sdk/BUILD.gn).
+        rebase_path("$js_gen_dir/$module/dart-sdk", root_build_dir),
+        rebase_path("$sdk_full_dill", root_build_dir),
       ]
+
+      if (invoker.canary) {
+        args += [ "--canary" ]
+      }
     }
+  }
 
-    vm_args = [ "-Dsdk_hash=$sdk_hash" ]
-
-    script = "../../pkg/dev_compiler/bin/dartdevc.dart"
-
-    args += [
-      "--multi-root-scheme",
-      "org-dartlang-sdk",
-      "--multi-root-output-path",
-
-      # This path is intended to point to a version of source files used to
-      # generate the SDK JavaScript modules.
-      # The intention is that the source map locations can be linked to the
-      # orignal source files while running SDK test suites.
-      # These JavaScript files and source maps are no longer packaged into the
-      # released SDK.
-      rebase_path("$target_gen_dir/../../../dart-sdk", root_build_dir),
-      rebase_path("$sdk_full_dill", root_build_dir),
-    ]
-
-    if (invoker.canary) {
-      args += [ "--canary" ]
-    }
+  group(target_name) {
+    public_deps = module_targets
   }
 }
 

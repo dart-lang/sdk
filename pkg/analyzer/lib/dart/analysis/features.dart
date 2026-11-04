@@ -165,7 +165,7 @@ abstract class Feature {
 abstract class FeatureSet {
   /// Computes the set of features implied by the given set of experimental
   /// enable flags.
-  factory FeatureSet.fromEnableFlags2({
+  factory fromEnableFlags2({
     required Version sdkLanguageVersion,
     required List<String> flags,
   }) = ExperimentStatus.fromStrings2;
@@ -176,7 +176,7 @@ abstract class FeatureSet {
   /// that the code that you process is valid for the latest language version.
   ///
   /// Otherwise, it is recommended to use [FeatureSet.fromEnableFlags2].
-  factory FeatureSet.latestLanguageVersion({List<String> flags}) =
+  factory latestLanguageVersion({List<String> flags}) =
       ExperimentStatus.latestLanguageVersion;
 
   /// Queries whether the given [feature] is contained in this feature set.

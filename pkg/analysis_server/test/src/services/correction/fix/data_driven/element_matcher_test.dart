@@ -201,6 +201,36 @@ class C {
     );
   }
 
+  Future<void> test_docImport() async {
+    await resolveTestCode('''
+/// @docImport 'package:test/a.dart';
+library;
+''');
+    _assertMatcher(
+      'a.dart',
+      expectedComponents: ['package:test/a.dart'],
+      expectedKinds: [.libraryKind],
+    );
+  }
+
+  Future<void> test_docImport_multiple() async {
+    await resolveTestCode('''
+/// @docImport 'package:test/a.dart';
+/// @docImport 'package:test/b.dart';
+library;
+''');
+    _assertHasMatcher(
+      'a.dart',
+      expectedComponents: ['package:test/a.dart'],
+      expectedKinds: [.libraryKind],
+    );
+    _assertHasMatcher(
+      'b.dart',
+      expectedComponents: ['package:test/b.dart'],
+      expectedKinds: [.libraryKind],
+    );
+  }
+
   Future<void> test_dotShorthand_constructor_named() async {
     await resolveTestCode('''
 class A {
@@ -366,6 +396,141 @@ class C {
     _assertMatcher('foo', expectedComponents: ['foo']);
   }
 
+  Future<void> test_getter_withTarget_extensionOverride_unresolved() async {
+    await resolveTestCode('''
+extension E on String {}
+void f(String s) {
+  E(s).foo;
+}
+''');
+    _assertMatcher(
+      'foo',
+      expectedComponents: ['foo', 'E'],
+      expectedKinds: accessorKinds,
+    );
+  }
+
+  Future<void> test_getter_withTarget_prefixed_resolved() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class C {
+  @deprecated
+  static int get foo => 0;
+}
+''');
+    await resolveTestCode('''
+import 'a.dart' as p;
+
+void f() {
+  p.C.foo;
+}
+''');
+    _assertMatcher(
+      'foo',
+      expectedComponents: ['foo', 'C'],
+      expectedKinds: accessorKinds,
+    );
+  }
+
+  Future<void> test_getter_withTarget_prefixed_unresolved() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class C {}
+''');
+    await resolveTestCode('''
+import 'a.dart' as p;
+
+void f() {
+  p.C.foo;
+}
+''');
+    _assertMatcher(
+      'foo',
+      expectedComponents: ['foo', 'C'],
+      expectedKinds: accessorKinds,
+    );
+  }
+
+  Future<void> test_getter_withTarget_propertyAccess_cascade_supertype() async {
+    await resolveTestCode('''
+class A {}
+class B extends A {}
+void f(B b) {
+  b..foo;
+}
+''');
+    _assertHasMatcher(
+      'foo',
+      expectedComponents: ['foo', 'A'],
+      expectedKinds: accessorKinds,
+    );
+  }
+
+  Future<void> test_getter_withTarget_propertyAccess_chained_supertype() async {
+    await resolveTestCode('''
+class A {}
+class B extends A {}
+class C {
+  B get b => B();
+}
+void f(C c) {
+  c.b.foo;
+}
+''');
+    _assertHasMatcher(
+      'foo',
+      expectedComponents: ['foo', 'A'],
+      expectedKinds: accessorKinds,
+    );
+  }
+
+  Future<void> test_getter_withTarget_propertyAccess_super() async {
+    await resolveTestCode('''
+class A {
+  int get foo => 0;
+}
+class B extends A {}
+class C extends B {
+  void f() {
+    super.foo;
+  }
+}
+''');
+    _assertHasMatcher(
+      'foo;',
+      expectedComponents: ['foo', 'A'],
+      expectedKinds: accessorKinds,
+    );
+  }
+
+  Future<void> test_getter_withTarget_propertyAccess_supertype() async {
+    await resolveTestCode('''
+class A {}
+class B extends A {}
+void f(B Function() b) {
+  b().foo;
+}
+''');
+    _assertHasMatcher(
+      'foo',
+      expectedComponents: ['foo', 'A'],
+      expectedKinds: accessorKinds,
+    );
+  }
+
+  Future<void> test_getter_withTarget_propertyAccess_unnamedClass() async {
+    await resolveTestCode('''
+class {
+  void f() {
+    this..bar;
+  }
+}
+''');
+    _assertHasMatcher(
+      'bar',
+      expectedComponents: ['bar', 'Object'],
+      expectedKinds: accessorKinds,
+    );
+  }
+
   Future<void> test_getter_withTarget_resolved() async {
     await resolveTestCode('''
 void f(String s) {
@@ -388,6 +553,48 @@ void f(String s) {
     _assertHasMatcher(
       'foo',
       expectedComponents: ['foo', 'String'],
+      expectedKinds: accessorKinds,
+    );
+  }
+
+  Future<void> test_getter_withTarget_unresolvedPrefix() async {
+    await resolveTestCode('''
+void f() {
+  u.C.foo;
+}
+''');
+    _assertMatcher(
+      'foo',
+      expectedComponents: ['foo'],
+      expectedKinds: accessorKinds,
+    );
+  }
+
+  Future<void> test_getter_withTarget_unresolvedTarget_cascade() async {
+    await resolveTestCode('''
+void f() {
+  C..foo;
+}
+''');
+    _assertMatcher(
+      'foo',
+      expectedComponents: ['foo', 'C'],
+      expectedKinds: accessorKinds,
+    );
+  }
+
+  Future<void> test_getter_withTarget_unresolvedTarget_prefixed() async {
+    newFile('$testPackageLibPath/a.dart', '');
+    await resolveTestCode('''
+import 'a.dart' as p;
+
+void f() {
+  p.C.foo;
+}
+''');
+    _assertMatcher(
+      'foo',
+      expectedComponents: ['foo', 'C'],
       expectedKinds: accessorKinds,
     );
   }
@@ -466,6 +673,88 @@ class C {
     );
   }
 
+  Future<void> test_method_withTarget_extensionOverride_resolved() async {
+    await resolveTestCode('''
+extension E on String {
+  void m() {}
+}
+void f(String s) {
+  E(s).m();
+}
+''');
+    _assertMatcher(
+      'm();',
+      expectedComponents: ['m', 'E'],
+      expectedKinds: methodKinds,
+    );
+  }
+
+  Future<void> test_method_withTarget_extensionOverride_typeArguments() async {
+    await resolveTestCode('''
+extension E<T> on T {}
+void f(String s) {
+  E<String>(s).foo();
+}
+''');
+    _assertMatcher(
+      'foo()',
+      expectedComponents: ['foo', 'E'],
+      expectedKinds: methodKinds,
+    );
+  }
+
+  Future<void> test_method_withTarget_extensionOverride_unresolved() async {
+    await resolveTestCode('''
+extension E on String {}
+void f(String s) {
+  E(s).foo();
+}
+''');
+    _assertMatcher(
+      'foo()',
+      expectedComponents: ['foo', 'E'],
+      expectedKinds: methodKinds,
+    );
+  }
+
+  Future<void> test_method_withTarget_prefixed_resolved() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class C {
+  static void m() {}
+}
+''');
+    await resolveTestCode('''
+import 'a.dart' as p;
+
+void f() {
+  p.C.m();
+}
+''');
+    _assertMatcher(
+      'm()',
+      expectedComponents: ['m', 'C'],
+      expectedKinds: methodKinds,
+    );
+  }
+
+  Future<void> test_method_withTarget_prefixed_unresolved() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class C {}
+''');
+    await resolveTestCode('''
+import 'a.dart' as p;
+
+void f() {
+  p.C.foo();
+}
+''');
+    _assertMatcher(
+      'foo()',
+      expectedComponents: ['foo', 'C'],
+      expectedKinds: methodKinds,
+    );
+  }
+
   Future<void> test_method_withTarget_resolved() async {
     await resolveTestCode('''
 void f(String s) {
@@ -488,6 +777,48 @@ void f(String s) {
     _assertHasMatcher(
       'foo',
       expectedComponents: ['foo', 'String'],
+      expectedKinds: methodKinds,
+    );
+  }
+
+  Future<void> test_method_withTarget_unresolvedPrefix() async {
+    await resolveTestCode('''
+void f() {
+  u.C.foo(2);
+}
+''');
+    _assertMatcher(
+      'foo',
+      expectedComponents: ['foo'],
+      expectedKinds: [.constructorKind, .getterKind, .methodKind],
+    );
+  }
+
+  Future<void> test_method_withTarget_unresolvedTarget() async {
+    await resolveTestCode('''
+void f() {
+  C.foo(2);
+}
+''');
+    _assertMatcher(
+      'foo',
+      expectedComponents: ['foo', 'C'],
+      expectedKinds: methodKinds,
+    );
+  }
+
+  Future<void> test_method_withTarget_unresolvedTarget_prefixed() async {
+    newFile('$testPackageLibPath/a.dart', '');
+    await resolveTestCode('''
+import 'a.dart' as p;
+
+void f() {
+  p.C.foo(2);
+}
+''');
+    _assertMatcher(
+      'foo',
+      expectedComponents: ['foo', 'C'],
       expectedKinds: methodKinds,
     );
   }
@@ -515,6 +846,66 @@ class C {
     _assertMatcher('foo', expectedComponents: ['foo']);
   }
 
+  Future<void> test_setter_withTarget_extensionOverride_resolved() async {
+    await resolveTestCode('''
+extension E on String {
+  set s(String v) {}
+}
+void f(String x) {
+  E(x).s = '';
+}
+''');
+    _assertMatcher(
+      's =',
+      expectedComponents: ['s', 'E'],
+      expectedKinds: accessorKinds,
+    );
+  }
+
+  Future<void> test_setter_withTarget_extensionOverride_unresolved() async {
+    await resolveTestCode('''
+extension E on String {}
+void f(String s) {
+  E(s).foo = '';
+}
+''');
+    _assertMatcher(
+      'foo =',
+      expectedComponents: ['foo', 'E'],
+      expectedKinds: accessorKinds,
+    );
+  }
+
+  Future<void> test_setter_withTarget_propertyAccess_cascade_supertype() async {
+    await resolveTestCode('''
+class A {}
+class B extends A {}
+void f(B b) {
+  b..foo = '';
+}
+''');
+    _assertHasMatcher(
+      'foo =',
+      expectedComponents: ['foo', 'A'],
+      expectedKinds: accessorKinds,
+    );
+  }
+
+  Future<void> test_setter_withTarget_propertyAccess_supertype() async {
+    await resolveTestCode('''
+class A {}
+class B extends A {}
+void f(B Function() b) {
+  b().foo = '';
+}
+''');
+    _assertHasMatcher(
+      'foo =',
+      expectedComponents: ['foo', 'A'],
+      expectedKinds: accessorKinds,
+    );
+  }
+
   Future<void> test_setter_withTarget_resolved() async {
     await resolveTestCode('''
 void f(C c) {
@@ -540,6 +931,19 @@ void f(String s) {
     _assertHasMatcher(
       'foo',
       expectedComponents: ['foo', 'String'],
+      expectedKinds: accessorKinds,
+    );
+  }
+
+  Future<void> test_setter_withTarget_unresolvedPrefix() async {
+    await resolveTestCode('''
+void f() {
+  u.C.foo = '';
+}
+''');
+    _assertMatcher(
+      'foo =',
+      expectedComponents: ['foo'],
       expectedKinds: accessorKinds,
     );
   }

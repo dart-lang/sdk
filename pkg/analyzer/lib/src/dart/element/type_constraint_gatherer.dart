@@ -127,12 +127,12 @@ class TypeConstraintGatherer
   final TypeSystemOperations _typeSystemOperations;
   final TypeConstraintGenerationDataForTesting? dataForTesting;
 
-  TypeConstraintGatherer({
+  new({
     required Iterable<TypeParameterElementImpl> typeParameters,
-    required TypeSystemOperations typeSystemOperations,
+    required this._typeSystemOperations,
     required super.inferenceUsingBoundsIsEnabled,
     required this.dataForTesting,
-  }) : _typeSystemOperations = typeSystemOperations {
+  }) {
     typeParametersToConstrain.addAll(typeParameters);
   }
 

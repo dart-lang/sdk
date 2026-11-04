@@ -11,6 +11,7 @@ import 'debugging_inlined_finally_lib.dart' as testee_lib;
 void main([args = const <String>[]]) =>
     IsolateTestHarness('debugging_inlined_finally_lib.dart', args)
         .hasStoppedAtBreakpoint()
+        // Start of main.
         .stoppedAtLine('LINE_A')
         // Add breakpoint
         .addCustomTestWithParser((
@@ -18,15 +19,11 @@ void main([args = const <String>[]]) =>
           IsolateRef isolateRef,
           TestScriptParser parser,
         ) async {
-          final lineB = parser.lineForTag('LINE_B');
-          final lineC = parser.lineForTag('LINE_C');
-          final lineD = parser.lineForTag('LINE_D');
-
           final isolateId = isolateRef.id!;
-          var isolate = await service.getIsolate(isolateId);
           final rootLib = await service.getObject(
               isolateId,
-              isolate.libraries!
+              (await service.getIsolate(isolateId))
+                  .libraries!
                   .firstWhere(
                       (l) => l.uri!.contains('debugging_inlined_finally_lib'))
                   .id!) as Library;
@@ -34,55 +31,64 @@ void main([args = const <String>[]]) =>
           final scriptId = rootLib.scripts![0].id!;
           final script = await service.getObject(isolateId, scriptId) as Script;
 
-          // Add 3 breakpoints.
-          {
+          int addedBreakpoints = 0;
+          Future<void> addBreakpoint(int line) async {
             final bpt =
-                await service.addBreakpoint(isolateId, script.id!, lineB);
+                await service.addBreakpoint(isolateId, script.id!, line);
+            addedBreakpoints += 1;
+
             expect(bpt.location!.script!.id, scriptId);
             expect(
               script.getLineNumberFromTokenPos(bpt.location!.tokenPos),
-              lineB,
+              line,
             );
 
-            isolate = await service.getIsolate(isolateId);
-            expect(isolate.breakpoints!.length, 1);
+            final isolate = await service.getIsolate(isolateId);
+            expect(isolate.breakpoints!.length, addedBreakpoints);
           }
 
-          {
-            final bpt = await service.addBreakpoint(isolateId, scriptId, lineC);
-            expect(bpt.location!.script!.id, scriptId);
-            expect(
-              script.getLineNumberFromTokenPos(bpt.location!.tokenPos),
-              lineC,
-            );
-
-            isolate = await service.getIsolate(isolateId);
-            expect(isolate.breakpoints!.length, 2);
-          }
-
-          {
-            final bpt = await service.addBreakpoint(isolateId, scriptId, lineD);
-            expect(bpt.location!.script!.id, scriptId);
-            expect(
-              script.getLineNumberFromTokenPos(bpt.location!.tokenPos),
-              lineD,
-            );
-
-            isolate = await service.getIsolate(isolateId);
-            expect(isolate.breakpoints!.length, 3);
+          final lines = [
+            parser.lineForTag('LINE_B'),
+            parser.lineForTag('LINE_C'),
+            parser.lineForTag('LINE_D'),
+            parser.lineForTag('LINE_E'),
+            parser.lineForTag('LINE_F'),
+          ];
+          for (final line in lines) {
+            await addBreakpoint(line);
           }
         })
         .resumeIsolate()
         .hasStoppedAtBreakpoint()
-        // We are at the breakpoint on line LINE_B.
+        // Normal return.
         .stoppedAtLine('LINE_B')
         .resumeIsolate()
         .hasStoppedAtBreakpoint()
-        // We are at the breakpoint on line LINE_C.
+        // Inner finally clause.
         .stoppedAtLine('LINE_C')
         .resumeIsolate()
         .hasStoppedAtBreakpoint()
-        // We are at the breakpoint on line LINE_D.
+        // Outer finally clause.
+        .stoppedAtLine('LINE_D')
+        .resumeIsolate()
+        .hasStoppedAtBreakpoint()
+        // Exceptional return.
+        .stoppedAtLine('LINE_E')
+        .resumeIsolate()
+        .hasStoppedAtBreakpoint()
+        // Inner finally clause.
+        .stoppedAtLine('LINE_C')
+        .resumeIsolate()
+        .hasStoppedAtBreakpoint()
+        // Outer finally clause.
+        .stoppedAtLine('LINE_D')
+        .resumeIsolate()
+        .hasStoppedAtBreakpoint()
+        // Exit from outer finally block
+        .stoppedAtLine('LINE_F')
+        .resumeIsolate()
+        .hasStoppedAtBreakpoint()
+        // Outer finally clause.
         .stoppedAtLine('LINE_D')
         .resumeIsolate()
         .run(testeeMain: testee_lib.main);

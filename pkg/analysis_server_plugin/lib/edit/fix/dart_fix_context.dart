@@ -55,7 +55,7 @@ class DartFixContext implements FixContext {
   @override
   final Diagnostic diagnostic;
 
-  DartFixContext({
+  new({
     required this.instrumentationService,
     required this.workspace,
     required this.libraryResult,

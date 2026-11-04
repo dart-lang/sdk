@@ -82,7 +82,13 @@ mixin M;
 
     var node = result.findNode.singleMixinDeclaration;
     assertResolvedNodeText(node, r'''
-MixinDeclaration
+MixinDeclaration2
+  mixinKeyword: mixin
+  name: M
+  body: SemicolonInstanceDeclarationBody
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> M@6
+V1: MixinDeclaration
   mixinKeyword: mixin
   name: M
   body: EmptyClassBody
@@ -101,7 +107,13 @@ mixin M;
 
     var node = result.findNode.singleMixinDeclaration;
     assertResolvedNodeText(node, r'''
-MixinDeclaration
+MixinDeclaration2
+  mixinKeyword: mixin
+  name: M
+  body: SemicolonInstanceDeclarationBody
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> M@22
+V1: MixinDeclaration
   mixinKeyword: mixin
   name: M
   body: EmptyClassBody
@@ -117,9 +129,20 @@ mixin M<T> {
 }
 ''');
 
-    var node = result.findNode.singleFieldDeclaration;
+    var node = result.findNode.singleFieldsDeclaration;
     assertResolvedNodeText(node, r'''
-FieldDeclaration
+FieldsDeclaration
+  lateKeyword: late
+  type: NamedType
+    name: T
+    element: #E0 T
+    type: T
+  fields
+    Field
+      name: f
+      declaredFragment: <testLibraryFragment> f@22
+  semicolon: ;
+V1: FieldDeclaration
   fields: VariableDeclarationList
     lateKeyword: late
     type: NamedType
@@ -142,9 +165,25 @@ mixin M {
 }
 ''');
 
-    var node = result.findNode.singleMethodDeclaration;
+    var node = result.findNode.singleGetterDeclaration;
     assertResolvedNodeText(node, r'''
-MethodDeclaration
+GetterDeclaration
+  returnType: NamedType
+    name: int
+    element: dart:core::@class::int
+    type: int
+  getKeyword: get
+  name: foo
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression2: IntegerLiteral
+      literal: 0
+      staticType: int
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> foo@20
+    element: <testLibrary>::@mixin::M::@getter::foo
+      type: int Function()
+V1: MethodDeclaration
   returnType: NamedType
     name: int
     element: dart:core::@class::int
@@ -153,7 +192,7 @@ MethodDeclaration
   name: foo
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression2: IntegerLiteral
+    expression: IntegerLiteral
       literal: 0
       staticType: int
     semicolon: ;
@@ -235,7 +274,6 @@ Annotation
     name: a
     resolution: GetterInvocationResolution
       element: <testLibrary>::@getter::a
-      invokeType: int Function()
       type: int
     staticType: int
   name: SimpleIdentifier
@@ -255,7 +293,23 @@ mixin M {
 
     var node = result.findNode.singleMethodDeclaration;
     assertResolvedNodeText(node, r'''
-MethodDeclaration
+MethodDeclaration2
+  returnType: NamedType
+    name: void
+    element: <null>
+    type: void
+  name: foo
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+  declaredFragment: <testLibraryFragment> foo@17
+    element: <testLibrary>::@mixin::M::@method::foo
+      type: void Function()
+V1: MethodDeclaration
   returnType: NamedType
     name: void
     element: <null>
@@ -352,16 +406,16 @@ mixin M {
 }
 ''');
 
-    var node = result.findNode.singleMethodDeclaration;
+    var node = result.findNode.singleSetterDeclaration;
     assertResolvedNodeText(node, r'''
-MethodDeclaration
+SetterDeclaration
   returnType: NamedType
     name: void
     element: <null>
     type: void
-  propertyKeyword: set
+  setKeyword: set
   name: foo
-  parameters: FormalParameterList
+  formalParameters: FormalParameterList
     leftParenthesis: (
     requiredPositionalFormalParameters
       RegularFormalParameter
@@ -374,7 +428,21 @@ MethodDeclaration
           element: isPrivate
             type: int
     rightParenthesis: )
-  parameters(v1): FormalParameterList
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+  declaredFragment: <testLibraryFragment> foo@21
+    element: <testLibrary>::@mixin::M::@setter::foo
+      type: void Function(int)
+V1: MethodDeclaration
+  returnType: NamedType
+    name: void
+    element: <null>
+    type: void
+  propertyKeyword: set
+  name: foo
+  parameters: FormalParameterList
     leftParenthesis: (
     parameter: RegularFormalParameter
       type: NamedType
@@ -420,7 +488,6 @@ ReceiverPropertyExtraction
   name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::A::@getter::foo
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PropertyAccess

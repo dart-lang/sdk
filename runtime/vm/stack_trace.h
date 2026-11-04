@@ -23,11 +23,8 @@ class StackTraceUtils : public AllStatic {
     // or a gap.
     StackFrame* frame;
 
-    // Code object corresponding to this frame.
-    const Code& code;
-
-    // Bytecode object corresponding to this frame.
-    const Bytecode& bytecode;
+    // Code or bytecode object corresponding to this frame.
+    const Object& code_or_bytecode;
 
     // Offset into the code object corresponding to this frame.
     //
@@ -38,6 +35,14 @@ class StackTraceUtils : public AllStatic {
     // Closure corresponding to the awaiter frame or |null| if this is
     // a synchronous frame or a gap.
     const Closure& closure;
+
+    bool HasCode() const { return code_or_bytecode.IsCode(); }
+    bool HasBytecode() const { return code_or_bytecode.IsBytecode(); }
+
+    const Code& code() const { return Code::Cast(code_or_bytecode); }
+    const Bytecode& bytecode() const {
+      return Bytecode::Cast(code_or_bytecode);
+    }
   };
 
   // Returns |true| if this function is needed to correctly unwind through

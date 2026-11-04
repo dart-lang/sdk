@@ -73,7 +73,7 @@ Future<int> g() async => 7;
 }
 
 @reflectiveTest
-class RemoveAwaitTest extends FixProcessorLintTest {
+class RemoveAwaitTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   bool get addMetaPackageDep => true;
 

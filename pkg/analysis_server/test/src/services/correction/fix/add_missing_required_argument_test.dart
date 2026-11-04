@@ -17,7 +17,8 @@ void main() {
 }
 
 @reflectiveTest
-class AddMissingRequiredArgumentTest extends FixProcessorTest {
+class AddMissingRequiredArgumentTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   bool get addFlutterPackageDep => true;
 

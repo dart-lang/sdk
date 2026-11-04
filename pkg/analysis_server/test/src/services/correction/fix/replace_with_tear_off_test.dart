@@ -45,7 +45,7 @@ Function f2() {
 }
 
 @reflectiveTest
-class ReplaceWithTearOffTest extends FixProcessorLintTest {
+class ReplaceWithTearOffTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.replaceWithTearOff;
 

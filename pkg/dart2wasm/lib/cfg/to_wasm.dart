@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:cfg/ir/constant_value.dart';
 import 'package:cfg/ir/flow_graph.dart';
 import 'package:cfg/ir/instructions.dart';
 import 'package:cfg/ir/ir_to_text.dart';
@@ -9,97 +10,45 @@ import 'package:cfg/ir/source_position.dart';
 import 'package:cfg/ir/types.dart';
 import 'package:cfg/ir/visitor.dart';
 import 'package:kernel/ast.dart' as ast;
+import 'package:meta/meta.dart';
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
-import '../reference_extensions.dart';
-import '../translator.dart';
 import 'ir_log.dart';
+import 'utils.dart';
 
 /// Translates a [FlowGraph] (CFG IR) to WebAssembly bytecode.
-class CfgToWasm {
-  final Translator translator;
-  final w.FunctionType functionType;
-  final ast.Member member;
+abstract base class CfgToWasm {
   final FlowGraph graph;
   final w.InstructionsBuilder b;
-  final List<w.Local> paramLocals;
-  final w.Label? returnLabel;
-  final EntryPoint kind;
+  final CfgLog? cfgLog;
 
   Map<Instruction, InstructionTextPosition>? _textPositions;
 
-  final Map<Definition, w.Local> _locals = {};
+  final Map<Definition, w.Local> locals = {};
   final Map<Block, w.Label> _blockLabels = {};
   final Map<Block, w.Label> _loopContinueLabels = {};
 
-  CfgToWasm(
-    this.translator,
-    this.functionType,
-    this.member,
-    this.graph,
-    this.b,
-    this.paramLocals,
-    this.returnLabel, [
-    this.kind = EntryPoint.normal,
-  ]);
+  CfgToWasm(this.graph, this.b, {this.cfgLog});
 
-  bool canTranslate() {
-    if (returnLabel != null) return false;
-    if (kind != EntryPoint.normal) return false;
-    if (member is! ast.Procedure) return false;
-    final procedure = member as ast.Procedure;
-    if (procedure.isInstanceMember) return false;
+  @nonVirtual
+  ast.Member get member => graph.function.member;
 
-    for (final block in graph.preorder) {
-      for (final instr in block) {
-        if (!_WasmInstructionLowerer.canHandle(instr)) {
-          return false;
-        }
-      }
-    }
-    return true;
-  }
+  WasmInstructionLowerer get lowerer;
 
+  @nonVirtual
   void generate() {
-    _textPositions = translator.cfgLog?.append(member, graph);
+    _textPositions = cfgLog?.append(member, graph);
 
-    final entry = graph.entryBlock;
-    _setupParameters(entry);
-
-    // TODO(dart2wasm): The following translation currently assumes reducible
-    // control flow graph. To add support irreducable control flow we can use
-    // node splitting / block duplication.
-    final lowerer = _WasmInstructionLowerer(this);
-    _generateSubtree(entry, lowerer);
+    assert(
+      graph.isReducible,
+      'CFG should have been lowered to reducible control flow',
+    );
+    _generateSubtree(graph.entryBlock, lowerer);
 
     b.end();
   }
 
-  void _setupParameters(EntryBlock entry) {
-    var paramIndex = 0;
-    for (final instr in entry) {
-      if (instr is Parameter) {
-        if (paramIndex >= paramLocals.length) {
-          throw StateError('Parameter index out of range for paramLocals');
-        }
-        final paramLocal = paramLocals[paramIndex++];
-        final expectedType = _wasmTypeOf(instr);
-        if (translator.needsConversion(paramLocal.type, expectedType)) {
-          setDebugPosition(instr);
-          final convertedLocal = b.addLocal(expectedType);
-          b.local_get(paramLocal);
-          translator.convertType(b, paramLocal.type, expectedType);
-          b.local_set(convertedLocal);
-          _locals[instr] = convertedLocal;
-        } else {
-          _locals[instr] = paramLocal;
-        }
-      }
-    }
-    assert(paramIndex == paramLocals.length);
-  }
-
-  void _generateSubtree(Block u, _WasmInstructionLowerer lowerer) {
+  void _generateSubtree(Block u, WasmInstructionLowerer lowerer) {
     setDebugPosition(u);
     final isLoopHeader = graph.loops[u]?.header == u;
 
@@ -141,6 +90,7 @@ class CfgToWasm {
     }
   }
 
+  @nonVirtual
   void assignPhis(Block from, Block to) {
     if (to is JoinBlock && to.hasPhis) {
       final predIndex = to.predecessors.indexOf(from);
@@ -150,10 +100,16 @@ class CfgToWasm {
       for (final phi in to.phis) {
         setDebugPosition(phi, inputIndex: predIndex);
         final inputDef = phi.inputDefAt(predIndex);
-        final inputLocal = getLocal(inputDef);
         final phiLocal = getLocal(phi);
-        b.local_get(inputLocal);
-        translator.convertType(b, inputLocal.type, phiLocal.type);
+        if (isUndefined(inputDef)) {
+          // This value will never be observed. Reset value to default to not
+          // retain stale references.
+          _pushDefaultValue(phiLocal.type);
+        } else {
+          final inputLocal = getLocal(inputDef);
+          b.local_get(inputLocal);
+          convertType(inputLocal.type, phiLocal.type);
+        }
         lastPhi = phi;
       }
 
@@ -166,6 +122,31 @@ class CfgToWasm {
     }
   }
 
+  void _pushDefaultValue(w.ValueType type) {
+    switch (type) {
+      case w.NumType.i32:
+        b.i32_const(0);
+      case w.NumType.i64:
+        b.i64_const(0);
+      case w.NumType.f32:
+        b.f32_const(0);
+      case w.NumType.f64:
+        b.f64_const(0);
+      case w.NumType.v128:
+        b.v128_const_i32x4(0, 0, 0, 0);
+      case w.RefType(:final heapType, nullable: true):
+        b.ref_null(heapType.bottomType);
+      default:
+        throw StateError('Non-defaultable phi local type: $type');
+    }
+  }
+
+  /// Whether [def] is the undefined constant, i.e. a placeholder for a value
+  /// which is never observed on the given path.
+  @nonVirtual
+  bool isUndefined(Definition def) =>
+      def is Constant && def.value.constant is UndefinedConstant;
+
   /// Updates the current debug position in the emitted wasm bytecode stream.
   ///
   /// While we generate code for a given IR instruction we use it's associated
@@ -173,6 +154,7 @@ class CfgToWasm {
   /// code specific to an input of the [instr], we may (if [inputIndex] is
   /// given and it has associated source position) use the instruction input
   /// source position instead.
+  @nonVirtual
   void setDebugPosition(Instruction instr, {int? inputIndex}) {
     if (!b.recordDebugInfo) return;
     final textPositions = _textPositions;
@@ -212,6 +194,7 @@ class CfgToWasm {
     b.clearSourcePosition();
   }
 
+  @nonVirtual
   w.Label targetLabel(Block to) {
     final continueLabel = _loopContinueLabels[to];
     if (continueLabel != null) return continueLabel;
@@ -222,121 +205,156 @@ class CfgToWasm {
     return label;
   }
 
+  @nonVirtual
   w.Local getLocal(Definition def) {
-    return _locals[def] ??= _allocateLocal(def);
+    return locals[def] ??= _allocateLocal(def);
   }
 
   w.Local _allocateLocal(Definition def) {
-    final wasmType = _wasmTypeOf(def).withNullability(true);
+    final wasmType = translateType(def.type).withNullability(true);
     return b.addLocal(wasmType);
   }
 
-  w.ValueType _wasmTypeOf(Definition def) {
-    final ctype = def.type;
-    if (ctype is TopType) {
-      return translator.topType;
-    }
-    return translator.translateType(ctype.dartType);
-  }
+  w.ValueType translateType(CType type);
 
-  w.ValueType get returnType {
-    final outputs = functionType.outputs;
-    return outputs.isEmpty ? translator.voidMarker : outputs.single;
+  void convertType(w.ValueType from, w.ValueType to);
+
+  @nonVirtual
+  w.ValueType? get returnType {
+    final outputs = b.outputs;
+    return outputs.isEmpty ? null : outputs.single;
   }
 }
 
-class _WasmInstructionLowerer extends DefaultInstructionVisitor<void> {
-  final CfgToWasm gen;
+abstract base class WasmInstructionLowerer<T extends CfgToWasm>
+    extends DefaultInstructionVisitor<void> {
+  final T gen;
 
-  _WasmInstructionLowerer(this.gen);
+  WasmInstructionLowerer(this.gen);
 
-  Translator get translator => gen.translator;
+  @nonVirtual
   w.InstructionsBuilder get b => gen.b;
 
-  static bool canHandle(Instruction instr) {
-    return switch (instr) {
-      EntryBlock() => true,
-      TargetBlock() => true,
-      JoinBlock() => true,
-      Parameter() => true,
-      Phi() => true,
-      Constant() => true,
-      Return() => true,
-      Unreachable() => true,
-      Branch() => true,
-      Goto() => true,
-      Comparison(:final op) => switch (op) {
-        ComparisonOpcode.intEqual ||
-        ComparisonOpcode.intNotEqual ||
-        ComparisonOpcode.intLess ||
-        ComparisonOpcode.intLessOrEqual ||
-        ComparisonOpcode.intGreater ||
-        ComparisonOpcode.intGreaterOrEqual => true,
-        _ => false,
-      },
-      BinaryIntOp(:final op) =>
-        !instr.canThrow &&
-            op != BinaryIntOpcode.truncatingDiv &&
-            op != BinaryIntOpcode.mod &&
-            op != BinaryIntOpcode.rem,
-      UnaryIntOp(:final op) =>
-        op == UnaryIntOpcode.neg || op == UnaryIntOpcode.bitNot,
-      _ => false,
-    };
-  }
-
   @override
+  @nonVirtual
   void defaultInstruction(Instruction instr) {
     throw UnimplementedError('Unsupported instruction: ${instr.runtimeType}');
   }
 
   @override
+  @nonVirtual
   void visitEntryBlock(EntryBlock instr) {}
 
   @override
+  @nonVirtual
   void visitTargetBlock(TargetBlock instr) {}
 
   @override
+  @nonVirtual
   void visitJoinBlock(JoinBlock instr) {}
 
   @override
-  void visitParameter(Parameter instr) {}
-
-  @override
+  @nonVirtual
   void visitPhi(Phi instr) {}
 
   @override
+  @nonVirtual
   void visitConstant(Constant instr) {
     if (!instr.hasUses) return;
+    if (instr.value.isTypeArgumentsConstant) {
+      // Any use of of a [TypeArgumentsConstant] in the SSA graph will need to
+      // handle it there, for example passing the individual type arguments
+      // to a generic function invocation.
+      // => So there's no need to try to materialize an object in a wasm local
+      // for a [TypeArgumentsConstant] here.
+      return;
+    }
+    if (gen.isUndefined(instr)) {
+      // The undefined value can only be used as inputs on `Phi`s and we have a
+      // guarantee the value will not be observed. The `Phi` block's
+      // predecessors will populate it to the default value of the wasm local in
+      // `assignPhis`.
+      assert(instr.inputUses.every((u) => u.getInstruction(gen.graph) is Phi));
+      return;
+    }
     final local = gen.getLocal(instr);
-    translator.constants.instantiateConstant(
-      b,
-      instr.value.constant,
-      local.type,
-    );
+    instantiateConstant(instr, local.type);
     b.local_set(local);
   }
 
+  void instantiateConstant(Constant instr, w.ValueType expectedType);
+
   @override
+  @nonVirtual
   void visitBranch(Branch instr) {
     final condLocal = gen.getLocal(instr.condition);
     b.local_get(condLocal);
-    translator.convertType(b, condLocal.type, w.NumType.i32);
+    gen.convertType(condLocal.type, w.NumType.i32);
     b.br_if(gen.targetLabel(instr.trueSuccessor));
     b.br(gen.targetLabel(instr.falseSuccessor));
   }
 
   @override
+  @nonVirtual
   void visitGoto(Goto instr) {
     gen.assignPhis(instr.block!, instr.target);
     b.br(gen.targetLabel(instr.target));
   }
 
   @override
+  @nonVirtual
   void visitComparison(Comparison instr) {
     final leftLocal = gen.getLocal(instr.left);
     final rightLocal = gen.getLocal(instr.right);
     final resultLocal = gen.getLocal(instr);
+
+    switch (instr.op) {
+      case ComparisonOpcode.equal:
+      case ComparisonOpcode.notEqual:
+      case ComparisonOpcode.identical:
+      case ComparisonOpcode.notIdentical:
+        final isNegated =
+            instr.op == ComparisonOpcode.notEqual ||
+            instr.op == ComparisonOpcode.notIdentical;
+        if (instr.right.type is NullType) {
+          if (leftLocal.type.nullable) {
+            b.local_get(leftLocal);
+            b.ref_is_null();
+            if (isNegated) b.i32_eqz();
+          } else {
+            b.i32_const(isNegated ? 1 : 0);
+          }
+          b.local_set(resultLocal);
+          return;
+        }
+        if (instr.left.type is NullType) {
+          if (rightLocal.type.nullable) {
+            b.local_get(rightLocal);
+            b.ref_is_null();
+            if (isNegated) b.i32_eqz();
+          } else {
+            b.i32_const(isNegated ? 1 : 0);
+          }
+          b.local_set(resultLocal);
+          return;
+        }
+        if (!instr.left.type.canBeNum && !instr.right.type.canBeNum) {
+          const eqRefType = w.RefType.eq(nullable: true);
+          b.local_get(leftLocal);
+          gen.convertType(leftLocal.type, eqRefType);
+          b.local_get(rightLocal);
+          gen.convertType(rightLocal.type, eqRefType);
+          b.ref_eq();
+          if (isNegated) b.i32_eqz();
+          b.local_set(resultLocal);
+          return;
+        }
+        throw UnimplementedError(
+          'Comparison ${instr.op} on (${instr.left.type}, ${instr.right.type})',
+        );
+      default:
+        break;
+    }
 
     b.local_get(leftLocal);
     b.local_get(rightLocal);
@@ -354,6 +372,18 @@ class _WasmInstructionLowerer extends DefaultInstructionVisitor<void> {
         b.i64_gt_s();
       case ComparisonOpcode.intGreaterOrEqual:
         b.i64_ge_s();
+      case ComparisonOpcode.doubleEqual:
+        b.f64_eq();
+      case ComparisonOpcode.doubleNotEqual:
+        b.f64_ne();
+      case ComparisonOpcode.doubleLess:
+        b.f64_lt();
+      case ComparisonOpcode.doubleLessOrEqual:
+        b.f64_le();
+      case ComparisonOpcode.doubleGreater:
+        b.f64_gt();
+      case ComparisonOpcode.doubleGreaterOrEqual:
+        b.f64_ge();
       default:
         throw UnimplementedError('Comparison ${instr.op}');
     }
@@ -362,6 +392,7 @@ class _WasmInstructionLowerer extends DefaultInstructionVisitor<void> {
   }
 
   @override
+  @nonVirtual
   void visitBinaryIntOp(BinaryIntOp instr) {
     final leftLocal = gen.getLocal(instr.left);
     final rightLocal = gen.getLocal(instr.right);
@@ -450,6 +481,7 @@ class _WasmInstructionLowerer extends DefaultInstructionVisitor<void> {
   }
 
   @override
+  @nonVirtual
   void visitUnaryIntOp(UnaryIntOp instr) {
     final operandLocal = gen.getLocal(instr.operand);
     final resultLocal = gen.getLocal(instr);
@@ -471,24 +503,49 @@ class _WasmInstructionLowerer extends DefaultInstructionVisitor<void> {
   }
 
   @override
-  void visitReturn(Return instr) {
-    final valueDef = instr.value;
-    final valueLocal = gen.getLocal(valueDef);
-    final returnType = gen.returnType;
+  @nonVirtual
+  void visitUnaryBoolOp(UnaryBoolOp instr) {
+    final operandLocal = gen.getLocal(instr.operand);
+    final resultLocal = gen.getLocal(instr);
 
-    if (returnType != translator.voidMarker) {
-      b.local_get(valueLocal);
-      translator.convertType(b, valueLocal.type, returnType);
+    switch (instr.op) {
+      case UnaryBoolOpcode.not:
+        b.local_get(operandLocal);
+        gen.convertType(operandLocal.type, w.NumType.i32);
+        b.i32_eqz();
     }
 
-    if (gen.returnLabel != null) {
-      b.br(gen.returnLabel!);
-    } else {
-      b.return_();
-    }
+    b.local_set(resultLocal);
   }
 
   @override
+  @nonVirtual
+  void visitTypeCast(TypeCast instr) {
+    assert(!instr.isChecked);
+    if (!instr.hasUses) return;
+    final operandLocal = gen.getLocal(instr.operand);
+    final resultLocal = gen.getLocal(instr);
+    b.local_get(operandLocal);
+    gen.convertType(operandLocal.type, resultLocal.type);
+    b.local_set(resultLocal);
+  }
+
+  @override
+  @nonVirtual
+  void visitReturn(Return instr) {
+    final returnType = gen.returnType;
+
+    if (returnType != null) {
+      final valueLocal = gen.getLocal(instr.value);
+      b.local_get(valueLocal);
+      gen.convertType(valueLocal.type, returnType);
+    }
+
+    b.return_();
+  }
+
+  @override
+  @nonVirtual
   void visitUnreachable(Unreachable instr) {
     b.unreachable();
   }

@@ -13,9 +13,7 @@ import 'package:analyzer/src/error/listener.dart';
 class DoNotSubmitElementUsageReporter implements ElementUsageReporter<()> {
   final DiagnosticReporter _diagnosticReporter;
 
-  DoNotSubmitElementUsageReporter({
-    required DiagnosticReporter diagnosticReporter,
-  }) : _diagnosticReporter = diagnosticReporter;
+  new({required this._diagnosticReporter});
 
   @override
   void report(
@@ -35,7 +33,7 @@ class DoNotSubmitElementUsageReporter implements ElementUsageReporter<()> {
 
 /// Instance of [ElementUsageSet] for elements annotated with `@doNotSubmit`.
 class DoNotSubmitElementUsageSet implements ElementUsageSet<()> {
-  const DoNotSubmitElementUsageSet();
+  const new();
 
   @override
   bool get reliesOnlyOnElementMetadata => true;

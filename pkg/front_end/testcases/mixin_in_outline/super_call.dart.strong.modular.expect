@@ -1,0 +1,109 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/mixin_in_outline/super_call.dart:7:48: Error: The class doesn't have a concrete implementation of the super-accessed member 'field'.
+// abstract class InvalidClass extends Super with Mixin {}
+//                                                ^
+// pkg/front_end/testcases/mixin_in_outline/super_call_lib.dart:14:25: Context: This is the super-access that doesn't have a concrete target.
+//     super.field = super.field;
+//                         ^
+//
+// pkg/front_end/testcases/mixin_in_outline/super_call.dart:7:48: Error: The class doesn't have a concrete implementation of the super-accessed setter 'field'.
+// abstract class InvalidClass extends Super with Mixin {}
+//                                                ^
+// pkg/front_end/testcases/mixin_in_outline/super_call_lib.dart:14:11: Context: This is the super-access that doesn't have a concrete target.
+//     super.field = super.field;
+//           ^
+//
+// pkg/front_end/testcases/mixin_in_outline/super_call.dart:7:48: Error: The class doesn't have a concrete implementation of the super-accessed member 'method'.
+// abstract class InvalidClass extends Super with Mixin {}
+//                                                ^
+// pkg/front_end/testcases/mixin_in_outline/super_call_lib.dart:15:11: Context: This is the super-access that doesn't have a concrete target.
+//     super.method;
+//           ^
+//
+// pkg/front_end/testcases/mixin_in_outline/super_call.dart:7:48: Error: The class doesn't have a concrete implementation of the super-invoked member 'method'.
+// abstract class InvalidClass extends Super with Mixin {}
+//                                                ^
+// pkg/front_end/testcases/mixin_in_outline/super_call_lib.dart:16:11: Context: This is the super-access that doesn't have a concrete target.
+//     super.method();
+//           ^
+//
+// pkg/front_end/testcases/mixin_in_outline/super_call.dart:7:48: Error: The class doesn't have a concrete implementation of the super-accessed member 'getter'.
+// abstract class InvalidClass extends Super with Mixin {}
+//                                                ^
+// pkg/front_end/testcases/mixin_in_outline/super_call_lib.dart:17:26: Context: This is the super-access that doesn't have a concrete target.
+//     super.setter = super.getter;
+//                          ^
+//
+// pkg/front_end/testcases/mixin_in_outline/super_call.dart:7:48: Error: The class doesn't have a concrete implementation of the super-accessed setter 'setter'.
+// abstract class InvalidClass extends Super with Mixin {}
+//                                                ^
+// pkg/front_end/testcases/mixin_in_outline/super_call_lib.dart:17:11: Context: This is the super-access that doesn't have a concrete target.
+//     super.setter = super.getter;
+//           ^
+//
+import self as self;
+import "super_call_lib.dart" as sup;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///super_call_lib.dart";
+
+abstract class InvalidClass extends self::_InvalidClass&Super&Mixin {
+  synthetic constructor •() → self::InvalidClass
+    : super self::_InvalidClass&Super&Mixin::•()
+    ;
+}
+abstract class CompleteSuper extends sup::Super {
+  field core::int field = 42;
+  synthetic constructor •() → self::CompleteSuper
+    : super sup::Super::•()
+    ;
+  method method() → void {}
+  get getter() → core::int
+    return 42;
+  set setter(core::int value) → void {}
+}
+class ValidClass extends self::_ValidClass&CompleteSuper&Mixin {
+  synthetic constructor •() → self::ValidClass
+    : super self::_ValidClass&CompleteSuper&Mixin::•()
+    ;
+}
+abstract class _InvalidClass&Super&Mixin = sup::Super with sup::Mixin /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_InvalidClass&Super&Mixin
+    : super sup::Super::•()
+    ;
+  synthetic mixin-super-stub method test() → void
+    return super.{sup::Mixin::test}();
+}
+abstract class _ValidClass&CompleteSuper&Mixin = self::CompleteSuper with sup::Mixin /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_ValidClass&CompleteSuper&Mixin
+    : super self::CompleteSuper::•()
+    ;
+  synthetic mixin-super-stub method test() → void
+    return super.{sup::Mixin::test}();
+}
+
+library;
+import self as sup;
+import "dart:core" as core;
+
+abstract class Super extends core::Object {
+  synthetic constructor •() → sup::Super
+    : super core::Object::•()
+    ;
+  abstract get field() → core::int;
+  abstract set field(synthesized core::int #externalFieldValue) → void;
+  abstract method method() → void;
+  abstract get getter() → core::int;
+  abstract set setter(core::int value) → void;
+}
+abstract class Mixin extends sup::Super /*isMixinDeclaration*/  {
+  method test() → void {
+    super.{sup::Super::field} = super.{sup::Super::field};
+    super.{sup::Super::method};
+    super.{sup::Super::method}();
+    super.{sup::Super::setter} = super.{sup::Super::getter};
+  }
+}

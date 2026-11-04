@@ -5,9 +5,6 @@
 import 'dart:async';
 import 'dart:collection';
 
-import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/lsp/handlers/handlers.dart';
-import 'package:analysis_server/src/scheduler/scheduled_message.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_parser.dart';
 import 'package:analysis_server/src/session_logger/process_id.dart';
 import 'package:analysis_server/src/session_logger/session_logger.dart';
@@ -34,6 +31,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/manifest/manifest_validator.dart';
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:analyzer/src/workspace/blaze.dart';
 import 'package:analyzer/src/workspace/blaze_watcher.dart';
 import 'package:analyzer/src/workspace/pub.dart';
@@ -110,7 +108,7 @@ abstract class ContextManager {
 
   /// Rebuild the set of contexts from scratch based on the data last sent to
   /// [setRoots].
-  Future<void> refresh();
+  Future<void> refresh(String reason);
 
   /// Unpauses file watchers.
   ///
@@ -119,7 +117,11 @@ abstract class ContextManager {
 
   /// Change the set of paths which should be used as starting points to
   /// determine the context directories.
-  Future<void> setRoots(List<String> includedPaths, List<String> excludedPaths);
+  Future<void> setRoots(
+    List<String> includedPaths,
+    List<String> excludedPaths,
+    String reason,
+  );
 }
 
 /// Callback interface used by [ContextManager] to (a) request that contexts be
@@ -131,9 +133,6 @@ abstract class ContextManager {
 // operations return data structures describing how context state should be
 // modified.
 abstract class ContextManagerCallbacks {
-  /// The analysis server that created this callback object.
-  AnalysisServer get analysisServer;
-
   /// Called after analysis contexts are created, usually when new analysis
   /// roots are set, or after detecting a change that required rebuilding
   /// the set of analysis contexts.
@@ -167,6 +166,9 @@ abstract class ContextManagerCallbacks {
 
   /// Record error information for the file with the given [path].
   void recordAnalysisErrors(String path, List<protocol.AnalysisError> errors);
+
+  /// Schedule the handling of a watch event.
+  void scheduleWatchEvent(WatchEvent event);
 }
 
 /// Class that maintains a mapping from included/excluded paths to a set of
@@ -223,7 +225,7 @@ class ContextManagerImpl implements ContextManager {
   final SessionLogger _sessionLogger;
 
   @override
-  ContextManagerCallbacks callbacks = NoopContextManagerCallbacks();
+  ContextManagerCallbacks callbacks;
 
   @override
   final Map<Folder, AnalysisDriver> driverMap =
@@ -285,6 +287,7 @@ class ContextManagerImpl implements ContextManager {
     this._scheduler,
     this._instrumentationService,
     this._sessionLogger, {
+    this.callbacks = const NoopContextManagerCallbacks(),
     required bool enableBlazeWatcher,
     this.withFineDependencies = false,
   }) : pathContext = resourceProvider.pathContext {
@@ -356,8 +359,8 @@ class ContextManagerImpl implements ContextManager {
 
   /// Starts (an asynchronous) rebuild of analysis contexts.
   @override
-  Future<void> refresh() async {
-    await _createAnalysisContexts();
+  Future<void> refresh(String reason) async {
+    await _createAnalysisContexts(reason);
   }
 
   @override
@@ -378,6 +381,7 @@ class ContextManagerImpl implements ContextManager {
   Future<void> setRoots(
     List<String> includedPaths,
     List<String> excludedPaths,
+    String reason,
   ) async {
     if (_rootsAreUnchanged(includedPaths, excludedPaths)) {
       return;
@@ -386,7 +390,7 @@ class ContextManagerImpl implements ContextManager {
     this.includedPaths = includedPaths;
     this.excludedPaths = excludedPaths;
 
-    await _createAnalysisContexts();
+    await _createAnalysisContexts(reason);
   }
 
   /// Use the given analysis [driver] to analyze the content of the analysis
@@ -690,7 +694,7 @@ class ContextManagerImpl implements ContextManager {
   /// rebuild will occur only once it has exited.
   ///
   /// Returns a [Future] that completes once the requested rebuild completes.
-  Future<void> _createAnalysisContexts() {
+  Future<void> _createAnalysisContexts(String reason) {
     /// A helper that performs a context rebuild while monitoring the included
     /// paths for changes until the contexts file watchers are ready.
     ///
@@ -699,6 +703,9 @@ class ContextManagerImpl implements ContextManager {
     Future<void> performContextRebuildGuarded(
       CancellationToken cancellationToken,
     ) async {
+      var rebuildMessage = '(Re)building analysis contexts: $reason';
+      _sessionLogger.logInfo(rebuildMessage);
+
       /// A helper that performs the context rebuild and waits for all watchers
       /// to be fully initialized.
       Future<void> performContextRebuild() async {
@@ -708,6 +715,7 @@ class ContextManagerImpl implements ContextManager {
         var watchers = <ResourceWatcher>[];
         var collection = _collection = AnalysisContextCollectionImpl(
           includedPaths: includedPaths,
+          excludedPaths: excludedPaths,
           byteStore: _byteStore,
           drainStreams: false,
           enableIndex: true,
@@ -945,7 +953,7 @@ class ContextManagerImpl implements ContextManager {
     if (events
         .map((event) => event.type)
         .any((type) => type == ChangeType.ADD || type == ChangeType.REMOVE)) {
-      refresh();
+      refresh(ContextRebuildReasons.blazeGeneratedFileAddedOrRemoved);
       return;
     }
 
@@ -976,11 +984,18 @@ class ContextManagerImpl implements ContextManager {
     );
 
     var isPubspec = file_paths.isPubspecYaml(pathContext, path);
-    if (file_paths.isAnalysisOptionsYaml(pathContext, path) ||
-        file_paths.isBlazeBuild(pathContext, path) ||
-        file_paths.isPackageConfigJson(pathContext, path) ||
-        isPubspec) {
-      _createAnalysisContexts().then((_) {
+    String? rebuildReason;
+    if (file_paths.isAnalysisOptionsYaml(pathContext, path)) {
+      rebuildReason = ContextRebuildReasons.analysisOptionsChanged;
+    } else if (file_paths.isBlazeBuild(pathContext, path)) {
+      rebuildReason = ContextRebuildReasons.blazeBuildChanged;
+    } else if (file_paths.isPackageConfigJson(pathContext, path)) {
+      rebuildReason = ContextRebuildReasons.packageConfigChanged;
+    } else if (isPubspec) {
+      rebuildReason = ContextRebuildReasons.pubspecChanged;
+    }
+    if (rebuildReason != null) {
+      _createAnalysisContexts(rebuildReason).then((_) {
         if (isPubspec) {
           if (type == ChangeType.REMOVE) {
             callbacks.pubspecRemoved(path);
@@ -1057,7 +1072,7 @@ class ContextManagerImpl implements ContextManager {
       );
     }
     // TODO(mfairhurst): Optimize this, or perhaps be less complete.
-    refresh();
+    refresh(ContextRebuildReasons.watcherError);
   }
 
   /// Checks whether the current roots were built using the same paths as
@@ -1083,7 +1098,7 @@ class ContextManagerImpl implements ContextManager {
   /// can be processed when we're not in the middle of handling some other
   /// message.
   void _scheduleWatchEvent(WatchEvent event) {
-    callbacks.analysisServer.messageScheduler.add(WatcherMessage(event));
+    callbacks.scheduleWatchEvent(event);
   }
 
   /// Listens to files generated by Blaze that were found or searched for.
@@ -1111,11 +1126,70 @@ class ContextManagerImpl implements ContextManager {
   }
 }
 
+/// Constants for reasons why analysis contexts are created/rebuilt.
+///
+/// This list is for server-supplied reasons but the actual set of reasons is
+/// open-ended and can be passed by the client when starting a server
+/// using the `--start-reason` flag.
+///
+/// Some common options passed via `--start-reason` include:
+///
+/// - clean-start - this is the first launch of the server by the IDE plugin
+/// - server-crash-automatic-restart - the server crashed and was automatically restarted
+/// - server-crash-manual-restart - the server crashed and the user was given a prompt to restart
+/// - other-crash-automatic-restart - another service crashed and the IDE plugin restarted everything automatically
+/// - other-crash-manual-restart - another service crashed and the user was given a prompt to restart
+/// - manual-restart - the user invoke a "Restart analysis server"-type command
+abstract final class ContextRebuildReasons {
+  /// Used for initial analysis if the client did not provide a start-reason.
+  static const unknown = 'unknown';
+
+  /// An analysis options file was modified.
+  static const analysisOptionsChanged = 'analysis-options-changed';
+
+  /// Legacy: The client sent a `setAnalysisRoots` request.
+  static const analysisRootsChanged = 'analysis-roots-changed';
+
+  /// A Blaze `BUILD` file was modified.
+  static const blazeBuildChanged = 'blaze-build-changed';
+
+  /// A generated Blaze file was added or removed.
+  static const blazeGeneratedFileAddedOrRemoved =
+      'blaze-generated-file-added-or-removed';
+
+  /// Legacy: The client sent a `setClientCapabilities` request.
+  static const clientCapabilitiesChanged = 'client-capabilities-changed';
+
+  /// LSP: The client sent a `workspace/didChangeConfiguration` request.
+  static const clientConfigurationChanged = 'client-configuration-changed';
+
+  /// A package config file was modified.
+  static const packageConfigChanged = 'package-config-changed';
+
+  /// LSP: A loose file was opened when there are no workspace folders, which
+  /// resulted in an analysis root being added.
+  static const priorityFileAdded = 'priority-file-added';
+
+  /// LSP: A loose closed was opened when there are no workspace folders, which
+  /// resulted in an analysis root being removed.
+  static const priorityFileRemoved = 'priority-file-removed';
+
+  /// A pubspec file was modified.
+  static const pubspecChanged = 'pubspec-changed';
+
+  /// The client sent a request to reanalyze.
+  static const reanalyzeRequest = 'reanalyze-request';
+
+  /// The file system watcher generated an error that could leave us in an
+  /// inconsistent state.
+  static const watcherError = 'watcher-error';
+
+  /// LSP: The client sent a `workspace/didChangeWorkspaceFolders` request.
+  static const workspaceFoldersChanged = 'workspace-folders-changed';
+}
+
 class NoopContextManagerCallbacks implements ContextManagerCallbacks {
-  @override
-  AnalysisServer get analysisServer => throw StateError(
-    'The callback object should have been set by the server.',
-  );
+  const new();
 
   @override
   void afterContextsCreated() {}
@@ -1146,6 +1220,9 @@ class NoopContextManagerCallbacks implements ContextManagerCallbacks {
 
   @override
   void recordAnalysisErrors(String path, List<protocol.AnalysisError> errors) {}
+
+  @override
+  void scheduleWatchEvent(WatchEvent event) {}
 }
 
 class _BlazeWatchedFiles {

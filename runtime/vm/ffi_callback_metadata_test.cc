@@ -29,20 +29,28 @@ FunctionPtr CreateTestFunction(FfiCallbackKind kind) {
       Type::Handle(Type::NewNonParameterizedType(ffi_void));
 
   auto* thread = Thread::Current();
-  const char* kScriptChars =
-      R"(
-      void testFunction() {
-      }
-      )";
-  Dart_Handle library;
-  {
-    TransitionVMToNative transition(thread);
-    library = TestCase::LoadTestScript(kScriptChars, nullptr);
-    EXPECT_VALID(library);
+  // If run with --interpreter, then callback tests that create multiple test
+  // functions crash because BytecodeReaderHelper::ReadLibraryDeclarations
+  // won't reload an already loaded library. Thus, check if the library with
+  // the test uri has been loaded and only load it if it hasn't.
+  const auto& url = String::Handle(String::New(TestCase::url()));
+  auto& lib = Library::Handle(Library::LookupLibrary(thread, url));
+  if (lib.IsNull()) {
+    const char* kScriptChars =
+        R"(
+        void testFunction() {
+        }
+        )";
+    Dart_Handle library;
+    {
+      TransitionVMToNative transition(thread);
+      library = TestCase::LoadTestScript(kScriptChars, nullptr);
+      EXPECT_VALID(library);
+    }
+
+    lib = Library::RawCast(Api::UnwrapHandle(library));
   }
 
-  const auto& lib =
-      Library::Handle(Library::RawCast(Api::UnwrapHandle(library)));
   EXPECT(ClassFinalizer::ProcessPendingClasses());
   const auto& cls = Class::Handle(lib.toplevel_class());
   EXPECT(!cls.IsNull());

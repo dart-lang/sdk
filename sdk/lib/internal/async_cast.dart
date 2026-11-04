@@ -69,7 +69,7 @@ class CastStreamSubscription<S, T> implements StreamSubscription<T> {
     }
   }
 
-  void onDone(void handleDone()?) {
+  void onDone(void Function()? handleDone) {
     _source.onDone(handleDone);
   }
 

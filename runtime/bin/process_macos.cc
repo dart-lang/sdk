@@ -319,6 +319,17 @@ class ProcessStarter {
     return 0;
   }
 
+  static int safe_adddup2(posix_spawn_file_actions_t* facts,
+                          int oldfd,
+                          int newfd) {
+    if (oldfd == newfd) {
+      // dup2(x,x) does not clear CLOEXEC.
+      return posix_spawn_file_actions_addinherit_np(facts, oldfd);
+    } else {
+      return posix_spawn_file_actions_adddup2(facts, oldfd, newfd);
+    }
+  }
+
   int Spawn(pid_t* pid) {
 #define TRY(expr)                                                              \
   do {                                                                         \
@@ -347,12 +358,9 @@ class ProcessStarter {
     DestroyFileActions dfa(&facts);
 
     if (Process::ModeHasStdio(mode_)) {
-      TRY(posix_spawn_file_actions_adddup2(&facts, stdin_pipe_[0],
-                                           STDIN_FILENO));
-      TRY(posix_spawn_file_actions_adddup2(&facts, stdout_pipe_[1],
-                                           STDOUT_FILENO));
-      TRY(posix_spawn_file_actions_adddup2(&facts, stderr_pipe_[1],
-                                           STDERR_FILENO));
+      TRY(safe_adddup2(&facts, stdin_pipe_[0], STDIN_FILENO));
+      TRY(safe_adddup2(&facts, stdout_pipe_[1], STDOUT_FILENO));
+      TRY(safe_adddup2(&facts, stderr_pipe_[1], STDERR_FILENO));
     } else if (mode_ == kDetached) {
       TRY(posix_spawn_file_actions_addopen(&facts, STDIN_FILENO, "/dev/null",
                                            O_RDWR, 0));
@@ -409,8 +417,7 @@ class ProcessStarter {
   void SetChildOsErrorMessage() {
     const int kBufferSize = 1024;
     char* error_message = DartUtils::ScopedCString(kBufferSize);
-    Utils::StrError(errno, error_message, kBufferSize);
-    *os_error_message_ = error_message;
+    *os_error_message_ = Utils::StrError(errno, error_message, kBufferSize);
   }
 
   void ClosePipe(int* fds) {
@@ -517,7 +524,7 @@ bool Process::Wait(intptr_t pid,
   union {
     uint8_t bytes[8];
     int32_t ints[2];
-  } exit_code_data;
+  } exit_code_data = {};
 
   struct pollfd fds[3];
   fds[0].fd = out;
@@ -537,11 +544,11 @@ bool Process::Wait(intptr_t pid,
 
     // Process incoming data.
     for (int i = 0; i < alive; i++) {
-      intptr_t avail;
+      intptr_t avail = 0;
       if ((fds[i].revents & (POLLNVAL | POLLERR)) != 0) {
         return CloseProcessBuffers(fds, alive);
       }
-      if ((fds[i].revents & POLLIN) != 0) {
+      if ((fds[i].revents & (POLLIN | POLLHUP)) != 0) {
         avail = FDUtils::AvailableBytes(fds[i].fd);
         // On Mac OS POLLIN can be set with zero available
         // bytes. POLLHUP is most likely also set in this case.

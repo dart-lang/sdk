@@ -5,121 +5,226 @@
 const int iterations = 100000;
 
 void main() {
-  SyncCallBenchmark('TypeLiteral.GenericFunction.T.dynamic', () {
+  @pragma('vm:align-loops')
+  int genericFunctionTDynamic() {
     for (int i = 0; i < iterations; ++i) {
       getT<dynamic>();
     }
     return iterations;
-  }).report();
-  SyncCallBenchmark('TypeLiteral.GenericFunction.T.int', () {
+  }
+
+  SyncCallBenchmark(
+    'TypeLiteral.GenericFunction.T.dynamic',
+    genericFunctionTDynamic,
+  ).report();
+  @pragma('vm:align-loops')
+  int genericFunctionTInt() {
     for (int i = 0; i < iterations; ++i) {
       getT<int>();
     }
     return iterations;
-  }).report();
-  SyncCallBenchmark('TypeLiteral.GenericFunction.T.nullableInt', () {
+  }
+
+  SyncCallBenchmark(
+    'TypeLiteral.GenericFunction.T.int',
+    genericFunctionTInt,
+  ).report();
+  @pragma('vm:align-loops')
+  int genericFunctionTNullableInt() {
     for (int i = 0; i < iterations; ++i) {
       getT<int?>();
     }
     return iterations;
-  }).report();
-  SyncCallBenchmark('TypeLiteral.GenericFunction.ListOfT.int', () {
+  }
+
+  SyncCallBenchmark(
+    'TypeLiteral.GenericFunction.T.nullableInt',
+    genericFunctionTNullableInt,
+  ).report();
+  @pragma('vm:align-loops')
+  int genericFunctionListOfTInt() {
     for (int i = 0; i < iterations; ++i) {
       getListOfT<int>();
     }
     return iterations;
-  }).report();
-  SyncCallBenchmark('TypeLiteral.GenericFunction.ListOfT.nullableInt', () {
+  }
+
+  SyncCallBenchmark(
+    'TypeLiteral.GenericFunction.ListOfT.int',
+    genericFunctionListOfTInt,
+  ).report();
+  @pragma('vm:align-loops')
+  int genericFunctionListOfTNullableInt() {
     for (int i = 0; i < iterations; ++i) {
       getListOfT<int?>();
     }
     return iterations;
-  }).report();
-  SyncCallBenchmark('TypeLiteral.GenericFunction.NullableT.int', () {
+  }
+
+  SyncCallBenchmark(
+    'TypeLiteral.GenericFunction.ListOfT.nullableInt',
+    genericFunctionListOfTNullableInt,
+  ).report();
+  @pragma('vm:align-loops')
+  int genericFunctionNullableTInt() {
     for (int i = 0; i < iterations; ++i) {
       getNullableT<int>();
     }
     return iterations;
-  }).report();
-  SyncCallBenchmark('TypeLiteral.GenericFunction.NullableT.nullableInt', () {
+  }
+
+  SyncCallBenchmark(
+    'TypeLiteral.GenericFunction.NullableT.int',
+    genericFunctionNullableTInt,
+  ).report();
+  @pragma('vm:align-loops')
+  int genericFunctionNullableTNullableInt() {
     for (int i = 0; i < iterations; ++i) {
       getNullableT<int?>();
     }
     return iterations;
-  }).report();
-  SyncCallBenchmark('TypeLiteral.GenericFunction.ListOfNullableT.int', () {
+  }
+
+  SyncCallBenchmark(
+    'TypeLiteral.GenericFunction.NullableT.nullableInt',
+    genericFunctionNullableTNullableInt,
+  ).report();
+  @pragma('vm:align-loops')
+  int genericFunctionListOfNullableTInt() {
     for (int i = 0; i < iterations; ++i) {
       getListOfT<int>();
     }
     return iterations;
-  }).report();
+  }
+
+  SyncCallBenchmark(
+    'TypeLiteral.GenericFunction.ListOfNullableT.int',
+    genericFunctionListOfNullableTInt,
+  ).report();
+  @pragma('vm:align-loops')
+  int genericFunctionListOfNullableTNullableInt() {
+    for (int i = 0; i < iterations; ++i) {
+      getListOfNullableT<int?>();
+    }
+    return iterations;
+  }
+
   SyncCallBenchmark(
     'TypeLiteral.GenericFunction.ListOfNullableT.nullableInt',
-    () {
-      for (int i = 0; i < iterations; ++i) {
-        getListOfNullableT<int?>();
-      }
-      return iterations;
-    },
+    genericFunctionListOfNullableTNullableInt,
   ).report();
   final foos = <Foo<Object?>>[Foo<int>(), Foo<int?>(), Foo<dynamic>()];
   final Foo fooInt = foos[int.parse('0')];
   final Foo fooNullableInt = foos[int.parse('1')];
   final Foo fooDynamic = foos[int.parse('2')];
-  SyncCallBenchmark('TypeLiteral.GenericClass.T.dynamic', () {
+  @pragma('vm:align-loops')
+  int genericClassTDynamic() {
     for (int i = 0; i < iterations; ++i) {
       fooDynamic.getT();
     }
     return iterations;
-  }).report();
-  SyncCallBenchmark('TypeLiteral.GenericClass.T.int', () {
+  }
+
+  SyncCallBenchmark(
+    'TypeLiteral.GenericClass.T.dynamic',
+    genericClassTDynamic,
+  ).report();
+  @pragma('vm:align-loops')
+  int genericClassTInt() {
     for (int i = 0; i < iterations; ++i) {
       fooInt.getT();
     }
     return iterations;
-  }).report();
-  SyncCallBenchmark('TypeLiteral.GenericClass.T.nullableInt', () {
+  }
+
+  SyncCallBenchmark(
+    'TypeLiteral.GenericClass.T.int',
+    genericClassTInt,
+  ).report();
+  @pragma('vm:align-loops')
+  int genericClassTNullableInt() {
     for (int i = 0; i < iterations; ++i) {
       fooNullableInt.getT();
     }
     return iterations;
-  }).report();
-  SyncCallBenchmark('TypeLiteral.GenericClass.ListOfT.int', () {
+  }
+
+  SyncCallBenchmark(
+    'TypeLiteral.GenericClass.T.nullableInt',
+    genericClassTNullableInt,
+  ).report();
+  @pragma('vm:align-loops')
+  int genericClassListOfTInt() {
     for (int i = 0; i < iterations; ++i) {
       fooInt.getListOfT();
     }
     return iterations;
-  }).report();
-  SyncCallBenchmark('TypeLiteral.GenericClass.ListOfT.nullableInt', () {
+  }
+
+  SyncCallBenchmark(
+    'TypeLiteral.GenericClass.ListOfT.int',
+    genericClassListOfTInt,
+  ).report();
+  @pragma('vm:align-loops')
+  int genericClassListOfTNullableInt() {
     for (int i = 0; i < iterations; ++i) {
       fooNullableInt.getListOfT();
     }
     return iterations;
-  }).report();
-  SyncCallBenchmark('TypeLiteral.GenericClass.NullableT.int', () {
+  }
+
+  SyncCallBenchmark(
+    'TypeLiteral.GenericClass.ListOfT.nullableInt',
+    genericClassListOfTNullableInt,
+  ).report();
+  @pragma('vm:align-loops')
+  int genericClassNullableTInt() {
     for (int i = 0; i < iterations; ++i) {
       fooInt.getNullableT();
     }
     return iterations;
-  }).report();
-  SyncCallBenchmark('TypeLiteral.GenericClass.NullableT.nullableInt', () {
+  }
+
+  SyncCallBenchmark(
+    'TypeLiteral.GenericClass.NullableT.int',
+    genericClassNullableTInt,
+  ).report();
+  @pragma('vm:align-loops')
+  int genericClassNullableTNullableInt() {
     for (int i = 0; i < iterations; ++i) {
       fooNullableInt.getNullableT();
     }
     return iterations;
-  }).report();
-  SyncCallBenchmark('TypeLiteral.GenericClass.ListOfNullableT.int', () {
+  }
+
+  SyncCallBenchmark(
+    'TypeLiteral.GenericClass.NullableT.nullableInt',
+    genericClassNullableTNullableInt,
+  ).report();
+  @pragma('vm:align-loops')
+  int genericClassListOfNullableTInt() {
     for (int i = 0; i < iterations; ++i) {
       fooInt.getListOfT();
     }
     return iterations;
-  }).report();
-  SyncCallBenchmark('TypeLiteral.GenericClass.ListOfNullableT.nullableInt', () {
+  }
+
+  SyncCallBenchmark(
+    'TypeLiteral.GenericClass.ListOfNullableT.int',
+    genericClassListOfNullableTInt,
+  ).report();
+  @pragma('vm:align-loops')
+  int genericClassListOfNullableTNullableInt() {
     for (int i = 0; i < iterations; ++i) {
       fooNullableInt.getListOfNullableT();
     }
     return iterations;
-  }).report();
+  }
+
+  SyncCallBenchmark(
+    'TypeLiteral.GenericClass.ListOfNullableT.nullableInt',
+    genericClassListOfNullableTNullableInt,
+  ).report();
 }
 
 @pragma('vm:never-inline')

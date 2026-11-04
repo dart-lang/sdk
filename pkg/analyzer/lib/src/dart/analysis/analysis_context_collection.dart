@@ -36,12 +36,13 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
   final List<DriverBasedAnalysisContext> contexts = [];
 
   /// Initialize a newly created analysis context manager.
-  AnalysisContextCollectionImpl({
+  new({
     ByteStore? byteStore,
     Map<String, String>? declaredVariables,
     bool drainStreams = true,
     bool enableIndex = false,
     required List<String> includedPaths,
+    List<String> excludedPaths = const [],
     Version? languageVersionOverride,
     List<String>? librarySummaryPaths,
     String? optionsFile,
@@ -75,10 +76,12 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
     this.scheduler = scheduler;
 
     _throwIfAnyNotAbsoluteNormalizedPath(includedPaths);
+    _throwIfAnyNotAbsoluteNormalizedPath(excludedPaths);
     _throwIfNotAbsoluteNormalizedPath(sdkPath);
 
     var roots = locateContextRoots(
       includedPaths: includedPaths,
+      excludedPaths: excludedPaths,
       resourceProvider: this.resourceProvider,
       optionsFile: optionsFile,
       packageConfigFile: packageConfigFile,

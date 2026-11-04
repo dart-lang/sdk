@@ -40,7 +40,7 @@ class BoolState extends InstanceState {
   final bool? value;
 
   /// Initialize a newly created state to represent the given [value].
-  BoolState(this.value);
+  new(this.value);
 
   @override
   int get hashCode => value == null ? 0 : (value! ? 2 : 3);
@@ -149,11 +149,7 @@ class ConstructorInvocationDataImpl implements ConstructorInvocation {
   @override
   final Map<String, DartObjectImpl> namedArguments;
 
-  ConstructorInvocationDataImpl(
-    this.constructor,
-    this.positionalArguments,
-    this.namedArguments,
-  );
+  new(this.constructor, this.positionalArguments, this.namedArguments);
 }
 
 /// A representation of an instance of a Dart class.
@@ -173,7 +169,7 @@ class DartObjectImpl implements DartObject, Constant {
   final VariableElementImpl? variable;
 
   /// Initialize a newly created object to have the given [type] and [state].
-  factory DartObjectImpl(
+  factory(
     TypeSystemImpl typeSystem,
     TypeImpl type,
     InstanceState state, {
@@ -189,10 +185,7 @@ class DartObjectImpl implements DartObject, Constant {
   }
 
   /// Creates a duplicate instance of [other], tied to [variable].
-  factory DartObjectImpl.forVariable(
-    DartObjectImpl other,
-    VariableElementImpl variable,
-  ) {
+  factory forVariable(DartObjectImpl other, VariableElementImpl variable) {
     return DartObjectImpl._(
       other._typeSystem,
       other.type,
@@ -203,10 +196,7 @@ class DartObjectImpl implements DartObject, Constant {
   }
 
   /// Create an object to represent an unknown value.
-  factory DartObjectImpl.validWithUnknownValue(
-    TypeSystemImpl typeSystem,
-    TypeImpl type,
-  ) {
+  factory validWithUnknownValue(TypeSystemImpl typeSystem, TypeImpl type) {
     if (type.isDartCoreBool) {
       return DartObjectImpl(typeSystem, type, BoolState.UNKNOWN_VALUE);
     } else if (type.isDartCoreDouble) {
@@ -240,7 +230,7 @@ class DartObjectImpl implements DartObject, Constant {
     return DartObjectImpl(typeSystem, type, GenericState({}, isUnknown: true));
   }
 
-  factory DartObjectImpl.withExtensionType({
+  factory withExtensionType({
     required TypeSystemImpl typeSystem,
     required TypeImpl type,
     required TypeImpl typeNotExtensionTypeErased,
@@ -257,7 +247,7 @@ class DartObjectImpl implements DartObject, Constant {
   }
 
   /// Initialize a newly created object to have the given [type] and [state].
-  DartObjectImpl._(
+  new _(
     this._typeSystem,
     this.type,
     this.typeNotExtensionTypeErased,
@@ -1090,7 +1080,7 @@ class DoubleState extends NumState {
 
   /// Initialize a newly created state to represent a double with the given
   /// [value].
-  DoubleState(this.value);
+  new(this.value);
 
   @override
   int get hashCode => value == null ? 0 : value.hashCode;
@@ -1389,10 +1379,7 @@ class EvaluationException {
 
   /// Initialize a newly created exception to have the given
   /// [locatableDiagnostic].
-  EvaluationException(
-    this.locatableDiagnostic, {
-    this.isRuntimeException = false,
-  });
+  new(this.locatableDiagnostic, {this.isRuntimeException = false});
 }
 
 /// The state of an object representing a function.
@@ -1414,11 +1401,7 @@ class FunctionState extends InstanceState {
 
   /// Initialize a newly created state to represent the function with the given
   /// [element].
-  FunctionState(
-    this.element, {
-    this.typeArguments,
-    TypeAliasElementImpl? viaTypeAlias,
-  }) : _viaTypeAlias = viaTypeAlias;
+  new(this.element, {this.typeArguments, this._viaTypeAlias});
 
   @override
   int get hashCode => element.hashCode;
@@ -1522,7 +1505,7 @@ class GenericState extends InstanceState {
   @override
   final bool isUnknown;
 
-  GenericState(this._fieldMap, {this.invocation, this.isUnknown = false});
+  new(this._fieldMap, {this.invocation, this.isUnknown = false});
 
   @override
   Map<String, DartObjectImpl> get fields => _fieldMap;
@@ -2033,7 +2016,7 @@ class IntState extends NumState {
 
   /// Initialize a newly created state to represent an int with the given
   /// [value].
-  IntState(this.value);
+  new(this.value);
 
   @override
   int get hashCode => value == null ? 0 : value.hashCode;
@@ -2493,8 +2476,17 @@ class InvalidConstant implements Constant {
   /// Whether the constant evaluation encounters an unresolved expression.
   final bool isUnresolved;
 
+  /// Whether this error is for a named read that resolution has already
+  /// reported as invalid, such as an undefined name.
+  ///
+  /// Diagnostics that say that the expression isn't constant would only
+  /// repeat that report, so the constant verifier doesn't report them. The
+  /// evaluator still reports them to its own diagnostic reporter, because
+  /// clients read them from [ElementAnnotation.constantEvaluationErrors].
+  final bool isInvalidNamedRead;
+
   /// Creates a duplicate instance of [other], with a different [entity].
-  factory InvalidConstant.copyWithEntity({
+  factory copyWithEntity({
     required InvalidConstant other,
     required SyntacticEntity entity,
   }) {
@@ -2503,12 +2495,13 @@ class InvalidConstant implements Constant {
       locatableDiagnostic: other.locatableDiagnostic,
       avoidReporting: other.avoidReporting,
       isUnresolved: other.isUnresolved,
+      isInvalidNamedRead: other.isInvalidNamedRead,
       isRuntimeException: other.isRuntimeException,
     );
   }
 
   /// Creates a constant evaluation error associated with an [element].
-  InvalidConstant.forElement({
+  new forElement({
     required Element element,
     required LocatableDiagnostic locatableDiagnostic,
     bool avoidReporting = false,
@@ -2525,11 +2518,12 @@ class InvalidConstant implements Constant {
 
   /// Creates a constant evaluation error associated with a token or node
   /// [entity].
-  InvalidConstant.forEntity({
+  new forEntity({
     required SyntacticEntity entity,
     required LocatableDiagnostic locatableDiagnostic,
     bool avoidReporting = false,
     bool isUnresolved = false,
+    bool isInvalidNamedRead = false,
     bool isRuntimeException = false,
   }) : this._(
          offset: entity.offset,
@@ -2537,13 +2531,15 @@ class InvalidConstant implements Constant {
          locatableDiagnostic: locatableDiagnostic,
          avoidReporting: avoidReporting,
          isUnresolved: isUnresolved,
+         isInvalidNamedRead: isInvalidNamedRead,
          isRuntimeException: isRuntimeException,
        );
 
   /// Creates a generic error depending on the [node] provided.
-  factory InvalidConstant.genericError({
+  factory genericError({
     required AstNode node,
     bool isUnresolved = false,
+    bool isInvalidNamedRead = false,
   }) {
     var parent = node.parent2;
     // The value of a named argument is in the argument list too.
@@ -2559,6 +2555,7 @@ class InvalidConstant implements Constant {
           entity: node,
           locatableDiagnostic: diag.constWithNonConstantArgument,
           isUnresolved: isUnresolved,
+          isInvalidNamedRead: isInvalidNamedRead,
         );
       }
     }
@@ -2566,15 +2563,17 @@ class InvalidConstant implements Constant {
       entity: node,
       locatableDiagnostic: diag.invalidConstant,
       isUnresolved: isUnresolved,
+      isInvalidNamedRead: isInvalidNamedRead,
     );
   }
 
-  InvalidConstant._({
+  new _({
     required this.offset,
     required this.length,
     required this.locatableDiagnostic,
     this.avoidReporting = false,
     this.isUnresolved = false,
+    this.isInvalidNamedRead = false,
     this.isRuntimeException = false,
   });
 }
@@ -2590,14 +2589,14 @@ class ListState extends InstanceState {
   @override
   late final int hashCode = Object.hashAll(elements);
 
-  ListState({
+  new({
     required TypeImpl elementType,
     required this.elements,
     this.isUnknown = false,
   }) : elementType = elementType.extensionTypeErasure;
 
   /// Creates a state that represents a list whose value is not known.
-  factory ListState.unknown(TypeImpl elementType) =>
+  factory unknown(TypeImpl elementType) =>
       ListState(elementType: elementType, elements: [], isUnknown: true);
 
   @override
@@ -2687,17 +2686,16 @@ class MapState extends InstanceState {
 
   /// Initializes a newly created state to represent a set with the given
   /// [entries].
-  MapState({
+  new({
     required TypeImpl keyType,
     required TypeImpl valueType,
     required this.entries,
-    bool isUnknown = false,
+    this._isUnknown = false,
   }) : _keyType = keyType.extensionTypeErasure,
-       _valueType = valueType.extensionTypeErasure,
-       _isUnknown = isUnknown;
+       _valueType = valueType.extensionTypeErasure;
 
   /// Creates a state that represents a map whose value is not known.
-  factory MapState.unknown(TypeImpl keyType, TypeImpl valueType) => MapState(
+  factory unknown(TypeImpl keyType, TypeImpl valueType) => MapState(
     keyType: keyType,
     valueType: valueType,
     entries: {},
@@ -2788,7 +2786,7 @@ class NullState extends InstanceState {
   @override
   final bool isInvalid;
 
-  NullState({this.isInvalid = false});
+  new({this.isInvalid = false});
 
   @override
   int get hashCode => 0;
@@ -2862,7 +2860,7 @@ class RecordState extends InstanceState {
 
   /// Initialize a newly created state to represent a record with the given
   /// values of [positionalFields] and [namedFields].
-  RecordState(this.positionalFields, this.namedFields);
+  new(this.positionalFields, this.namedFields);
 
   @override
   String get typeName => 'Record';
@@ -2987,15 +2985,14 @@ class SetState extends InstanceState {
 
   /// Initializes a newly created state to represent a set with the given
   /// [elements].
-  SetState({
+  new({
     required TypeImpl elementType,
     required this.elements,
-    bool isUnknown = false,
-  }) : _elementType = elementType.extensionTypeErasure,
-       _isUnknown = isUnknown;
+    this._isUnknown = false,
+  }) : _elementType = elementType.extensionTypeErasure;
 
   /// Creates a state that represents a list whose value is not known.
-  factory SetState.unknown(TypeImpl elementType) =>
+  factory unknown(TypeImpl elementType) =>
       SetState(elementType: elementType, elements: {}, isUnknown: true);
 
   @override
@@ -3078,7 +3075,7 @@ class StringState extends InstanceState {
   final String? value;
 
   /// Initialize a newly created state to represent the given [value].
-  StringState(this.value);
+  new(this.value);
 
   @override
   int get hashCode => value == null ? 0 : value.hashCode;
@@ -3155,7 +3152,7 @@ class SymbolState extends InstanceState {
   final String? value;
 
   /// Initialize a newly created state to represent the given [value].
-  SymbolState(this.value);
+  new(this.value);
 
   @override
   int get hashCode => value == null ? 0 : value.hashCode;
@@ -3211,14 +3208,14 @@ class TypeState extends InstanceState {
   /// But some clients want to know the explicit provided type.
   final TypeImpl? typeNotExtensionTypeErased;
 
-  factory TypeState(TypeImpl? type) {
+  factory(TypeImpl? type) {
     return TypeState._(
       type: type?.extensionTypeErasure,
       typeNotExtensionTypeErased: type,
     );
   }
 
-  TypeState._({required this.type, required this.typeNotExtensionTypeErased});
+  new _({required this.type, required this.typeNotExtensionTypeErased});
 
   @override
   int get hashCode => type?.hashCode ?? 0;

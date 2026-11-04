@@ -3,7 +3,7 @@ name: analyzer_utilities
 publish_to: none
 
 environment:
-  sdk: '^3.13.0-0'
+  sdk: '^3.15.0-0'
 
 resolution: workspace
 
@@ -23,4 +23,5 @@ dependencies:
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dev_dependencies:
   analyzer_plugin: any
+  args: any
   lints: any

@@ -6,9 +6,9 @@ part of "dart:async";
 
 /// Runs user code and takes actions depending on success or failure.
 _runUserCode<T>(
-  T userCode(),
-  onSuccess(T value),
-  onError(Object error, StackTrace stackTrace),
+  T Function() userCode,
+  Function(T value) onSuccess,
+  Function(Object error, StackTrace stackTrace) onError,
 ) {
   try {
     onSuccess(userCode());
@@ -88,18 +88,18 @@ abstract class _ForwardingStream<S, T> extends Stream<T> {
   bool get isBroadcast => _source.isBroadcast;
 
   StreamSubscription<T> listen(
-    void onData(T value)?, {
+    void Function(T value)? onData, {
     Function? onError,
-    void onDone()?,
+    void Function()? onDone,
     bool? cancelOnError,
   }) {
     return _createSubscription(onData, onError, onDone, cancelOnError ?? false);
   }
 
   StreamSubscription<T> _createSubscription(
-    void onData(T data)?,
+    void Function(T data)? onData,
     Function? onError,
-    void onDone()?,
+    void Function()? onDone,
     bool cancelOnError,
   ) {
     return new _ForwardingStreamSubscription<S, T>(
@@ -133,9 +133,9 @@ class _ForwardingStreamSubscription<S, T>
 
   _ForwardingStreamSubscription(
     this._stream,
-    void onData(T data)?,
+    void Function(T data)? onData,
     Function? onError,
-    void onDone()?,
+    void Function()? onDone,
     bool cancelOnError,
   ) : super(onData, onError, onDone, cancelOnError) {
     _subscription = _stream._source.listen(
@@ -213,7 +213,7 @@ void _addErrorWithReplacement(
 class _WhereStream<T> extends _ForwardingStream<T, T> {
   final bool Function(T) _test;
 
-  _WhereStream(Stream<T> source, bool test(T value))
+  _WhereStream(Stream<T> source, bool Function(T value) test)
     : _test = test,
       super(source);
 
@@ -237,7 +237,7 @@ typedef _Transformation<S, T> = T Function(S value);
 class _MapStream<S, T> extends _ForwardingStream<S, T> {
   final _Transformation<S, T> _transform;
 
-  _MapStream(Stream<S> source, T transform(S event))
+  _MapStream(Stream<S> source, T Function(S event) transform)
     : this._transform = transform,
       super(source);
 
@@ -257,7 +257,7 @@ class _MapStream<S, T> extends _ForwardingStream<S, T> {
 class _ExpandStream<S, T> extends _ForwardingStream<S, T> {
   final _Transformation<S, Iterable<T>> _expand;
 
-  _ExpandStream(Stream<S> source, Iterable<T> expand(S event))
+  _ExpandStream(Stream<S> source, Iterable<T> Function(S event) expand)
     : this._expand = expand,
       super(source);
 
@@ -321,9 +321,9 @@ class _TakeStream<T> extends _ForwardingStream<T, T> {
   _TakeStream(Stream<T> source, int count) : this._count = count, super(source);
 
   StreamSubscription<T> _createSubscription(
-    void onData(T data)?,
+    void Function(T data)? onData,
     Function? onError,
-    void onDone()?,
+    void Function()? onDone,
     bool cancelOnError,
   ) {
     if (_count == 0) {
@@ -365,9 +365,9 @@ class _StateStreamSubscription<S, T>
 
   _StateStreamSubscription(
     _ForwardingStream<T, T> stream,
-    void onData(T data)?,
+    void Function(T data)? onData,
     Function? onError,
-    void onDone()?,
+    void Function()? onDone,
     bool cancelOnError,
     this._subState,
   ) : super(stream, onData, onError, onDone, cancelOnError);
@@ -376,7 +376,7 @@ class _StateStreamSubscription<S, T>
 class _TakeWhileStream<T> extends _ForwardingStream<T, T> {
   final bool Function(T) _test;
 
-  _TakeWhileStream(Stream<T> source, bool test(T value))
+  _TakeWhileStream(Stream<T> source, bool Function(T value) test)
     : this._test = test,
       super(source);
 
@@ -410,9 +410,9 @@ class _SkipStream<T> extends _ForwardingStream<T, T> {
   }
 
   StreamSubscription<T> _createSubscription(
-    void onData(T data)?,
+    void Function(T data)? onData,
     Function? onError,
-    void onDone()?,
+    void Function()? onDone,
     bool cancelOnError,
   ) {
     return new _StateStreamSubscription<int, T>(
@@ -439,14 +439,14 @@ class _SkipStream<T> extends _ForwardingStream<T, T> {
 class _SkipWhileStream<T> extends _ForwardingStream<T, T> {
   final bool Function(T) _test;
 
-  _SkipWhileStream(Stream<T> source, bool test(T value))
+  _SkipWhileStream(Stream<T> source, bool Function(T value) test)
     : this._test = test,
       super(source);
 
   StreamSubscription<T> _createSubscription(
-    void onData(T data)?,
+    void Function(T data)? onData,
     Function? onError,
-    void onDone()?,
+    void Function()? onDone,
     bool cancelOnError,
   ) {
     return new _StateStreamSubscription<bool, T>(
@@ -487,14 +487,14 @@ class _DistinctStream<T> extends _ForwardingStream<T, T> {
 
   final bool Function(T, T)? _equals;
 
-  _DistinctStream(Stream<T> source, bool equals(T a, T b)?)
+  _DistinctStream(Stream<T> source, bool Function(T a, T b)? equals)
     : _equals = equals,
       super(source);
 
   StreamSubscription<T> _createSubscription(
-    void onData(T data)?,
+    void Function(T data)? onData,
     Function? onError,
-    void onDone()?,
+    void Function()? onDone,
     bool cancelOnError,
   ) {
     return new _StateStreamSubscription<Object?, T>(

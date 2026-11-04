@@ -16,7 +16,7 @@ final class Fix {
   final SourceChange change;
 
   /// Initializes a newly created fix to have the given [kind] and [change].
-  Fix({required this.kind, required this.change});
+  new({required this.kind, required this.change});
 
   @override
   String toString() {

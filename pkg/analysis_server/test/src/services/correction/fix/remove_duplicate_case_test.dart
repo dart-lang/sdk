@@ -56,7 +56,7 @@ void switchInt() {
 }
 
 @reflectiveTest
-class RemoveDuplicateCaseTest extends FixProcessorLintTest {
+class RemoveDuplicateCaseTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.removeDuplicateCase;
 

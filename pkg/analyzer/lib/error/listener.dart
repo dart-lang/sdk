@@ -54,7 +54,7 @@ class RecordingDiagnosticListener implements DiagnosticListener {
 
 /// A [DiagnosticListener] that ignores everything.
 class _NullDiagnosticListener implements DiagnosticListener {
-  const _NullDiagnosticListener();
+  const new();
 
   @override
   void onDiagnostic(Diagnostic diagnostic) {

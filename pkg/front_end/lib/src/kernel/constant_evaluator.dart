@@ -21,8 +21,8 @@ library;
 import 'dart:io' as io;
 
 import 'package:_fe_analyzer_shared/src/exhaustiveness/exhaustive.dart';
+import 'package:_fe_analyzer_shared/src/exhaustiveness/shape.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/space.dart';
-import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
 import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:front_end/src/kernel/external_effect.dart' show ExternalEffect;
 import 'package:kernel/ast.dart';
@@ -1494,7 +1494,7 @@ class ConstantsTransformer extends RemovingTransformer {
     required bool mustBeExhaustive,
     required bool isSwitchExpression,
   }) {
-    StaticType type = _exhaustivenessCache!.getStaticType(
+    Shape shape = _exhaustivenessCache!.getShapeForType(
       // Treat invalid types as empty.
       expressionType is InvalidType
           ? const NeverType.nonNullable()
@@ -1512,7 +1512,7 @@ class ConstantsTransformer extends RemovingTransformer {
     for (PatternGuard patternGuard in patternGuards) {
       caseIsGuarded.add(patternGuard.guard != null);
       caseSpaces.add(
-        patternConverter.createRootSpace(type, patternGuard.pattern),
+        patternConverter.createRootSpace(shape, patternGuard.pattern),
       );
     }
     // Coverage-ignore(suite): Not run.
@@ -1521,7 +1521,7 @@ class ConstantsTransformer extends RemovingTransformer {
         : null;
     NonExhaustiveness? nonExhaustiveness = computeExhaustiveness(
       _exhaustivenessCache!,
-      type,
+      shape,
       caseIsGuarded,
       caseSpaces,
       caseUnreachabilities: caseUnreachabilities,
@@ -1546,10 +1546,11 @@ class ConstantsTransformer extends RemovingTransformer {
     }
     if (_exhaustivenessDataForTesting != null) {
       // Coverage-ignore-block(suite): Not run.
-      _exhaustivenessDataForTesting.objectFieldLookup ??= _exhaustivenessCache;
+      _exhaustivenessDataForTesting.objectPropertyLookup ??=
+          _exhaustivenessCache;
       _exhaustivenessDataForTesting
           .switchResults[replacement] = new ExhaustivenessResult(
-        type,
+        shape,
         caseSpaces,
         patternGuards.map((c) => c.fileOffset).toList(),
         {

@@ -40,6 +40,10 @@ class CreateMixin extends MultiCorrectionProducer {
       withKeyword = node.parent is WithClause;
       mixinName = node.name.lexeme;
     } else if (node is SimpleIdentifier) {
+      // A mixin can't be invoked.
+      if (node.isInvocationName) {
+        return const [];
+      }
       var parent = node.parent;
       switch (parent) {
         // Not the first identifier or the body of a function

@@ -30,7 +30,7 @@ abstract mixin class MapBase<K, V> implements Map<K, V> {
   void clear();
 
   Map<RK, RV> cast<RK, RV>() => Map.castFrom<K, V, RK, RV>(this);
-  void forEach(void action(K key, V value)) {
+  void forEach(void Function(K key, V value) action) {
     for (K key in keys) {
       action(key, this[key] as V);
     }
@@ -49,14 +49,14 @@ abstract mixin class MapBase<K, V> implements Map<K, V> {
     return false;
   }
 
-  V putIfAbsent(K key, V ifAbsent()) {
+  V putIfAbsent(K key, V Function() ifAbsent) {
     if (containsKey(key)) {
       return this[key] as V;
     }
     return this[key] = ifAbsent();
   }
 
-  V update(K key, V update(V value), {V Function()? ifAbsent}) {
+  V update(K key, V Function(V value) update, {V Function()? ifAbsent}) {
     if (this.containsKey(key)) {
       return this[key] = update(this[key] as V);
     }
@@ -66,7 +66,7 @@ abstract mixin class MapBase<K, V> implements Map<K, V> {
     throw ArgumentError.value(key, "key", "Key not in map.");
   }
 
-  void updateAll(V update(K key, V value)) {
+  void updateAll(V Function(K key, V value) update) {
     for (var key in this.keys) {
       this[key] = update(key, this[key] as V);
     }
@@ -76,7 +76,7 @@ abstract mixin class MapBase<K, V> implements Map<K, V> {
     return keys.map((K key) => MapEntry<K, V>(key, this[key] as V));
   }
 
-  Map<K2, V2> map<K2, V2>(MapEntry<K2, V2> transform(K key, V value)) {
+  Map<K2, V2> map<K2, V2>(MapEntry<K2, V2> Function(K key, V value) transform) {
     var result = <K2, V2>{};
     for (var key in this.keys) {
       var entry = transform(key, this[key] as V);
@@ -91,7 +91,7 @@ abstract mixin class MapBase<K, V> implements Map<K, V> {
     }
   }
 
-  void removeWhere(bool test(K key, V value)) {
+  void removeWhere(bool Function(K key, V value) test) {
     var keysToRemove = <K>[];
     for (var key in keys) {
       if (test(key, this[key] as V)) keysToRemove.add(key);
@@ -295,22 +295,22 @@ mixin _UnmodifiableMapMixin<K, V> implements Map<K, V> {
   }
 
   /// This operation is not supported by an unmodifiable map.
-  void removeWhere(bool test(K key, V value)) {
+  void removeWhere(bool Function(K key, V value) test) {
     throw UnsupportedError("Cannot modify unmodifiable map");
   }
 
   /// This operation is not supported by an unmodifiable map.
-  V putIfAbsent(K key, V ifAbsent()) {
+  V putIfAbsent(K key, V Function() ifAbsent) {
     throw UnsupportedError("Cannot modify unmodifiable map");
   }
 
   /// This operation is not supported by an unmodifiable map.
-  V update(K key, V update(V value), {V Function()? ifAbsent}) {
+  V update(K key, V Function(V value) update, {V Function()? ifAbsent}) {
     throw UnsupportedError("Cannot modify unmodifiable map");
   }
 
   /// This operation is not supported by an unmodifiable map.
-  void updateAll(V update(K key, V value)) {
+  void updateAll(V Function(K key, V value) update) {
     throw UnsupportedError("Cannot modify unmodifiable map");
   }
 }
@@ -342,10 +342,11 @@ class MapView<K, V> implements Map<K, V> {
     _map.clear();
   }
 
-  V putIfAbsent(K key, V ifAbsent()) => _map.putIfAbsent(key, ifAbsent);
+  V putIfAbsent(K key, V Function() ifAbsent) =>
+      _map.putIfAbsent(key, ifAbsent);
   bool containsKey(Object? key) => _map.containsKey(key);
   bool containsValue(Object? value) => _map.containsValue(value);
-  void forEach(void action(K key, V value)) {
+  void forEach(void Function(K key, V value) action) {
     _map.forEach(action);
   }
 
@@ -363,17 +364,18 @@ class MapView<K, V> implements Map<K, V> {
     _map.addEntries(entries);
   }
 
-  Map<K2, V2> map<K2, V2>(MapEntry<K2, V2> transform(K key, V value)) =>
-      _map.map<K2, V2>(transform);
+  Map<K2, V2> map<K2, V2>(
+    MapEntry<K2, V2> Function(K key, V value) transform,
+  ) => _map.map<K2, V2>(transform);
 
-  V update(K key, V update(V value), {V Function()? ifAbsent}) =>
+  V update(K key, V Function(V value) update, {V Function()? ifAbsent}) =>
       _map.update(key, update, ifAbsent: ifAbsent);
 
-  void updateAll(V update(K key, V value)) {
+  void updateAll(V Function(K key, V value) update) {
     _map.updateAll(update);
   }
 
-  void removeWhere(bool test(K key, V value)) {
+  void removeWhere(bool Function(K key, V value) test) {
     _map.removeWhere(test);
   }
 }

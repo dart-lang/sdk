@@ -59,7 +59,8 @@ void f() {}
 }
 
 @reflectiveTest
-class ConvertDocumentationIntoLineTest extends FixProcessorLintTest {
+class ConvertDocumentationIntoLineTest
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.convertToLineComment;
 

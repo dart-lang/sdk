@@ -40,18 +40,18 @@ void main() {
       // x still has type C<String>
       x.dMethod1("hello");
       //^^^^^^^^
-      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
       // [cfe] The method 'dMethod1' isn't defined for the type 'C<String>'.
       x.dMethod2(3);
       //^^^^^^^^
-      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
       // [cfe] The method 'dMethod2' isn't defined for the type 'C<String>'.
 
       var t0 = x.cMethod("hello");
       t0.length;
       t0.arglebargle; // t0 is not dynamic
       // ^^^^^^^^^^^
-      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
       // [cfe] The getter 'arglebargle' isn't defined for the type 'String'.
 
       // y has type D<String, int>
@@ -59,13 +59,13 @@ void main() {
       t1.length;
       t1.arglebargle; // t1 is not dynamic
       // ^^^^^^^^^^^
-      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
       // [cfe] The getter 'arglebargle' isn't defined for the type 'String'.
       var t2 = y.dMethod2(3);
       t2.isEven;
       t2.arglebargle; // t2 is not dynamic
       // ^^^^^^^^^^^
-      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
       // [cfe] The getter 'arglebargle' isn't defined for the type 'int'.
     }
 
@@ -83,13 +83,13 @@ void main() {
       t0.length;
       t0.arglebargle; // t0 is not dynamic
       // ^^^^^^^^^^^
-      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
       // [cfe] The getter 'arglebargle' isn't defined for the type 'String'.
       var t1 = x.dMethod2(3);
       t1.isEven;
       t1.arglebargle; // t1 is not dynamic
       // ^^^^^^^^^^^
-      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
       // [cfe] The getter 'arglebargle' isn't defined for the type 'int'.
 
       // y has type D<String, int>
@@ -97,13 +97,13 @@ void main() {
       t2.length;
       t2.arglebargle; // t2 is not dynamic
       // ^^^^^^^^^^^
-      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
       // [cfe] The getter 'arglebargle' isn't defined for the type 'String'.
       var t3 = y.dMethod2(3);
       t3.isEven;
       t3.arglebargle; // t3 is not dynamic
       // ^^^^^^^^^^^
-      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
       // [cfe] The getter 'arglebargle' isn't defined for the type 'int'.
     }
 
@@ -118,34 +118,34 @@ void main() {
       // x has type C<String>, and not D<String, int>
       x.dMethod1("hello");
       //^^^^^^^^
-      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
       // [cfe] The method 'dMethod1' isn't defined for the type 'C<String>'.
       x.dMethod2(3);
       //^^^^^^^^
-      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
       // [cfe] The method 'dMethod2' isn't defined for the type 'C<String>'.
 
       var t0 = x.cMethod("hello");
       t0.length;
       t0.arglebargle; // t0 is not dynamic
       // ^^^^^^^^^^^
-      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
       // [cfe] The getter 'arglebargle' isn't defined for the type 'String'.
 
       // C<String>, and not D<String, int>
       y.dMethod1("hello");
       //^^^^^^^^
-      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
       // [cfe] The method 'dMethod1' isn't defined for the type 'C<String>'.
       y.dMethod2(3);
       //^^^^^^^^
-      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
       // [cfe] The method 'dMethod2' isn't defined for the type 'C<String>'.
       var t1 = y.cMethod("hello");
       t1.length;
       t1.arglebargle; // t0 is not dynamic
       // ^^^^^^^^^^^
-      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
       // [cfe] The getter 'arglebargle' isn't defined for the type 'String'.
     }
   }

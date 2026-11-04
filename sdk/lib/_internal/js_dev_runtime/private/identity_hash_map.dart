@@ -69,7 +69,7 @@ base class IdentityMap<K, V> extends InternalMap<K, V> {
     }
   }
 
-  V putIfAbsent(K key, V ifAbsent()) {
+  V putIfAbsent(K key, V Function() ifAbsent) {
     if (JS<bool>('!', '#.has(#)', _map, key)) {
       return JS('', '#.get(#)', _map, key);
     }

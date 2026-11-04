@@ -19,7 +19,7 @@ import 'package:meta/meta.dart';
 class InterfaceLeastUpperBoundHelper {
   final TypeSystemImpl typeSystem;
 
-  InterfaceLeastUpperBoundHelper(this.typeSystem);
+  new(this.typeSystem);
 
   /// This currently does not implement a very complete least upper bound
   /// algorithm, but handles a couple of the very common cases that are
@@ -360,7 +360,7 @@ class InterfaceLeastUpperBoundHelper {
 class LeastUpperBoundHelper {
   final TypeSystemImpl _typeSystem;
 
-  LeastUpperBoundHelper(this._typeSystem);
+  new(this._typeSystem);
 
   InterfaceTypeImpl get _interfaceTypeFunctionNone {
     return _typeSystem.typeProvider.functionType.element.instantiateImpl(

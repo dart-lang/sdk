@@ -88,7 +88,7 @@ class Instruction {
   final CodedIRContainer ir;
   final int address;
 
-  Instruction(this.ir, this.address);
+  new(this.ir, this.address);
 
   Opcode get opcode => ir.opcodeAt(address);
 
@@ -110,7 +110,7 @@ class InstructionRange {
   /// If [start] is equal to [end], the range is empty.
   final int end;
 
-  InstructionRange({required this.ir, required this.start, required this.end});
+  new({required this.ir, required this.start, required this.end});
 
   bool containsAddress(int address) => start <= address && address < end;
 
@@ -123,7 +123,7 @@ class InstructionRange {
 class TestFunctionType {
   final int parameterCount;
 
-  TestFunctionType(this.parameterCount);
+  new(this.parameterCount);
 }
 
 /// Container for a sequence of IR instructions that aren't connected to an
@@ -139,7 +139,7 @@ class TestIRContainer extends BaseIRContainer {
   final List<TestFunctionType> _functionTypes;
   final Map<String, int> _labelToAddress;
 
-  TestIRContainer(TestIRWriter super.writer)
+  new(TestIRWriter super.writer)
     : _addressToLabel = writer._addressToLabel,
       _allocNames = writer._allocNames,
       _functionTypes = writer._functionTypes,
@@ -263,7 +263,7 @@ extension SubjectAstNodes on Subject<AstNodes> {
 extension SubjectInstruction on Subject<Instruction> {
   @meta.useResult
   Subject<Opcode> get opcode =>
-      has((instruction) => instruction.opcode, 'opcode');
+      has2('opcode', (instruction) => instruction.opcode);
 }
 
 /// Testing methods for `Iterable<Instruction>`.
@@ -286,19 +286,19 @@ extension SubjectInstructionIterable on Subject<Iterable<Instruction>> {
 /// Testing methods for [InstructionRange].
 extension SubjectInstructionRange on Subject<InstructionRange> {
   @meta.useResult
-  Subject<int> get end => has((range) => range.end, 'end');
+  Subject<int> get end => has2('end', (range) => range.end);
 
   @meta.useResult
-  Subject<List<Instruction>> get instructions => has(
+  Subject<List<Instruction>> get instructions => has2(
+    'instructions',
     (range) => [
       for (var address = range.start; address < range.end; address++)
         Instruction(range.ir, address),
     ],
-    'instructions',
   );
 
   @meta.useResult
-  Subject<int> get start => has((range) => range.start, 'start');
+  Subject<int> get start => has2('start', (range) => range.start);
 
   /// Verifies that [subrange] is contained within the subject range.
   ///

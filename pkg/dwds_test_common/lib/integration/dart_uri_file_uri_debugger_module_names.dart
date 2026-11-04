@@ -25,10 +25,14 @@ void testAll({
     final appServerPath = context.usesFrontendServer
         ? 'web/main.dart'
         : 'main.dart';
-    final serverPath =
-        'packages/${testPackageProject.packageDirectory}/lib/test_library.dart';
-    final anotherServerPath =
-        'packages/${testProject.packageDirectory}/lib/library.dart';
+    // Debugger module names are only used by the frontend server.
+    final serverPath = context.usesFrontendServer
+        ? 'packages/${testPackageProject.packageDirectory}/lib/'
+              'test_library.dart'
+        : 'packages/${testPackageProject.packageName}/test_library.dart';
+    final anotherServerPath = context.usesFrontendServer
+        ? 'packages/${testProject.packageDirectory}/lib/library.dart'
+        : 'packages/${testProject.packageName}/library.dart';
 
     setUpAll(() async {
       await context.setUp(

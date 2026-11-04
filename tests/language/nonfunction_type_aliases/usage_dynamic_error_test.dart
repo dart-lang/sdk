@@ -57,7 +57,7 @@ main() {
 
   T.named();
   //^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
   // [cfe] The method 'named' isn't defined for the type 'Type'.
 
   T v17 = foo<T>(T());
@@ -67,6 +67,6 @@ main() {
 
   T.staticMethod<T>();
   //^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
   // [cfe] The method 'staticMethod' isn't defined for the type 'Type'.
 }

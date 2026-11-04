@@ -29,7 +29,15 @@ augment enum E2 {
 }
 
 main() {
+  expect(0, E1.e0.x);
+  expect(0, E1.e0.y);
+  expect(1, E1.e1.x);
+  expect(2, E1.e1.y);
 
+  expect(1, E2.e0.x);
+  expect(0, E2.e0.y);
+  expect(1, E2.e1.x);
+  expect(2, E2.e1.y);
 }
 
 expect(expected, actual) {

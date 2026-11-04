@@ -8,7 +8,7 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:browser_launcher/browser_launcher.dart';
-import 'package:dart_runtime_service/dart_runtime_service.dart' as drs;
+import 'package:dart_runtime_service/dart_runtime_service_io.dart' as drs;
 import 'package:devtools_shared/devtools_extensions_io.dart';
 import 'package:devtools_shared/devtools_shared.dart';
 import 'package:http_multi_server/http_multi_server.dart';
@@ -50,6 +50,7 @@ final class DevToolsServer implements drs.DevToolsServer {
   static const argTryPorts = 'try-ports';
   static const argVerbose = 'verbose';
   static const argVersion = 'version';
+  static const argDisableServiceOriginCheck = 'disable-service-origin-check';
   static const launchDevToolsService = 'launchDevTools';
 
   String? _devToolsUrl;
@@ -60,8 +61,10 @@ final class DevToolsServer implements drs.DevToolsServer {
   @override
   drs.DevToolsClientManager? clientManager;
 
+  @override
   String? get devToolsUrl => _devToolsUrl;
 
+  @override
   bool get headlessMode => _headlessMode;
   final bool _isChromeOS = File('/dev/.cros_milestone').existsSync();
 
@@ -134,6 +137,15 @@ final class DevToolsServer implements drs.DevToolsServer {
         argMachine,
         negatable: false,
         help: 'Sets output format to JSON for consumption in tools.',
+      )
+      ..addFlag(
+        argDisableServiceOriginCheck,
+        negatable: false,
+        help:
+            'Disables the requirements for Host and Origin header validation '
+            'for DevTools server connections. Host and Origin validation helps '
+            'protect against DNS-rebinding and CSRF attacks, so it is not '
+            'recommended to disable them.',
       )
       ..addSeparator('Memory profiling options:')
       ..addOption(
@@ -289,6 +301,7 @@ final class DevToolsServer implements drs.DevToolsServer {
     String? appSizeBase,
     String? appSizeTest,
     DtdInfo? dtdInfo,
+    bool disableServiceOriginCheck = false,
   }) async {
     hostname ??= 'localhost';
     _machineMode = machineMode;
@@ -318,19 +331,14 @@ final class DevToolsServer implements drs.DevToolsServer {
       requestNotificationPermissions: enableNotifications,
     );
 
-    dtdInfo ??= await drs.startDtd(
-      machineMode: machineMode,
-      printDtdUri: printDtdUri,
-    );
-
-    final buildDir = customDevToolsPath ?? _getDevToolsAssetPath().toFilePath();
-
-    handler ??= await drs.defaultHandler(
-      buildDir: buildDir,
-      clientManager: clientManager,
-      dtd: dtdInfo,
-      devtoolsExtensionsManager: ExtensionsManager(),
-    );
+    drs.HostedDtdInfo? hostedDtdInfo;
+    if (dtdInfo == null) {
+      hostedDtdInfo = await drs.startDtd(
+        machineMode: machineMode,
+        printDtdUri: printDtdUri,
+      );
+      dtdInfo = hostedDtdInfo;
+    }
 
     HttpServer? server;
     SocketException? ex;
@@ -350,11 +358,24 @@ final class DevToolsServer implements drs.DevToolsServer {
 
     // Re-throw the last exception if we failed to bind.
     if (server == null && ex != null) {
+      await hostedDtdInfo?.shutdown();
       throw ex;
     }
 
     // Type promote server.
     server!;
+
+    final serverUri = Uri(scheme: 'http', host: hostname, port: server.port);
+    final buildDir = customDevToolsPath ?? _getDevToolsAssetPath().toFilePath();
+
+    handler ??= await drs.defaultHandler(
+      buildDir: buildDir,
+      clientManager: clientManager,
+      disableServiceOriginCheck: disableServiceOriginCheck,
+      dtd: dtdInfo,
+      devtoolsExtensionsManager: ExtensionsManager(),
+      serverUri: serverUri,
+    );
 
     if (allowEmbedding) {
       server.defaultResponseHeaders.remove('x-frame-options', 'SAMEORIGIN');
@@ -388,7 +409,17 @@ final class DevToolsServer implements drs.DevToolsServer {
     // Serve requests in an error zone to prevent failures
     // when running from another error zone.
     runZonedGuarded(
-      () => shelf.serveRequests(server!, handler!),
+      () => shelf.serveRequests(
+        server!.transform(
+          StreamTransformer<HttpRequest, HttpRequest>.fromHandlers(
+            handleDone: (sink) {
+              unawaited(hostedDtdInfo?.shutdown());
+              sink.close();
+            },
+          ),
+        ),
+        handler!,
+      ),
       (e, _) => print('Error serving requests: $e'),
     );
 
@@ -533,6 +564,10 @@ final class DevToolsServer implements drs.DevToolsServer {
     final disableCors = args.wasParsed(argDisableCors)
         ? args[argDisableCors] as bool
         : false;
+    final disableServiceOriginCheck =
+        args.wasParsed(argDisableServiceOriginCheck)
+        ? args[argDisableServiceOriginCheck] as bool
+        : false;
 
     final port = switch (args[argPort]) {
       final String portStr => int.tryParse(portStr) ?? 0,
@@ -650,6 +685,7 @@ final class DevToolsServer implements drs.DevToolsServer {
           ? DtdInfo(dtdUri, exposedUri: dtdExposedUri)
           : null,
       printDtdUri: printDtdUri,
+      disableServiceOriginCheck: disableServiceOriginCheck,
     );
   }
 
@@ -699,17 +735,13 @@ final class DevToolsServer implements drs.DevToolsServer {
     }
 
     final uriParams = <String, Object?>{
-      if (params['queryParams'] case final Map<dynamic, dynamic> queryParams)
+      if (params['queryParams'] case final Map<Object?, Object?> queryParams)
         for (final MapEntry(:key, :value) in queryParams.entries) '$key': value,
       'uri': vmServiceUri.toString(),
     };
 
     final devToolsUri = Uri.parse(devToolsUrl);
     final uriToLaunch = buildUriToLaunch(devToolsUri, page, uriParams);
-    print(
-      'DevToolsServer.launchDevTools launching Chrome with uriToLaunch: '
-      '$uriToLaunch',
-    );
 
     // TODO(dantup): When ChromeOS has support for tunneling all ports we can
     // change this to always use the native browser for ChromeOS and may wish to
@@ -818,7 +850,7 @@ final class DevToolsServer implements drs.DevToolsServer {
   static String buildUriToLaunch(
     Uri devToolsUri,
     String? page,
-    Map<String, dynamic>? params,
+    Map<String, Object?>? params,
   ) {
     page ??= '';
     final pathSep = devToolsUri.path.endsWith('/') ? '' : '/';

@@ -42,7 +42,8 @@ class B extends A {
 }
 
 @reflectiveTest
-class RemoveUnnecessaryFinalMultiTest extends FixProcessorTest {
+class RemoveUnnecessaryFinalMultiTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeUnnecessaryFinalMulti;
 
@@ -65,7 +66,7 @@ class A {
 }
 
 @reflectiveTest
-class RemoveUnnecessaryFinalTest extends FixProcessorTest {
+class RemoveUnnecessaryFinalTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeUnnecessaryFinal;
 

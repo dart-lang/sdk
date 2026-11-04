@@ -29,7 +29,7 @@ class Sort {
    * The function's behavior must be consistent. It must not return different
    * results for the same values.
    */
-  static void sort<E>(List<E> a, int compare(E a, E b)) {
+  static void sort<E>(List<E> a, int Function(E a, E b) compare) {
     _doSort(a, 0, a.length - 1, compare);
   }
 
@@ -42,7 +42,12 @@ class Sort {
    *
    * See [:sort:] for requirements of the [:compare:] function.
    */
-  static void sortRange<E>(List<E> a, int from, int to, int compare(E a, E b)) {
+  static void sortRange<E>(
+    List<E> a,
+    int from,
+    int to,
+    int Function(E a, E b) compare,
+  ) {
     if ((from < 0) || (to > a.length) || (to < from)) {
       throw "OutOfRange";
     }
@@ -56,7 +61,7 @@ class Sort {
     List<E> a,
     int left,
     int right,
-    int compare(E a, E b),
+    int Function(E a, E b) compare,
   ) {
     if ((right - left) <= _INSERTION_SORT_THRESHOLD) {
       _insertionSort(a, left, right, compare);
@@ -69,7 +74,7 @@ class Sort {
     List<E> a,
     int left,
     int right,
-    int compare(E a, E b),
+    int Function(E a, E b) compare,
   ) {
     for (int i = left + 1; i <= right; i++) {
       var el = a[i];
@@ -86,7 +91,7 @@ class Sort {
     List<E> a,
     int left,
     int right,
-    int compare(E a, E b),
+    int Function(E a, E b) compare,
   ) {
     assert(right - left > _INSERTION_SORT_THRESHOLD);
 

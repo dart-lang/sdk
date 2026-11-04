@@ -90,11 +90,9 @@ class _Visitor(final MultiAnalysisRule rule, final TypeSystem typeSystem)
 
 extension on DartType {
   bool get isFixnumIntX {
-    var self = this;
     // TODO(pq): add tests that ensure this predicate works with fixnum >= 1.1.0-dev
     // See: https://github.com/dart-lang/linter/issues/3868
-    if (self is! InterfaceType) return false;
-    var element = self.element;
+    if (this is! InterfaceType) return false;
     if (element.name != 'Int32' && element.name != 'Int64') return false;
     var uri = element.library.uri;
     if (!uri.isScheme('package')) return false;

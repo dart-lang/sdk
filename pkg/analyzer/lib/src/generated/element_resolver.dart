@@ -7,15 +7,14 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/comment_reference_resolver.dart';
-import 'package:analyzer/src/dart/resolver/method_invocation_resolver.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
+import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/super_context.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 
-/// An object used by instances of [ResolverVisitor] to resolve references
+/// An object used by instances of [TypeAnalyzer] to resolve references
 /// within the AST structure to the elements being referenced. The requirements
 /// for the element resolver are:
 ///
@@ -72,61 +71,28 @@ import 'package:analyzer/src/utilities/extensions/object.dart';
 /// combinators that are not defined in the imported library (which is not an
 /// error).
 class ElementResolver {
-  /// The resolver driving this participant.
-  final ResolverVisitor _resolver;
+  /// The type analyzer driving this participant.
+  final TypeAnalyzer _typeAnalyzer;
 
   /// The element for the library containing the compilation unit being visited.
   final LibraryElementImpl _definingLibrary;
 
-  final MethodInvocationResolver _methodInvocationResolver;
+  late final _commentReferenceResolver = CommentReferenceResolver(
+    _typeAnalyzer,
+  );
 
-  late final _commentReferenceResolver = CommentReferenceResolver(_resolver);
+  /// Initialize a newly created visitor to work for the given [_typeAnalyzer]
+  /// to resolve the nodes in a compilation unit.
+  new(this._typeAnalyzer) : _definingLibrary = _typeAnalyzer.definingLibrary;
 
-  /// Initialize a newly created visitor to work for the given [_resolver] to
-  /// resolve the nodes in a compilation unit.
-  ElementResolver(this._resolver)
-    : _definingLibrary = _resolver.definingLibrary,
-      _methodInvocationResolver = MethodInvocationResolver(_resolver);
-
-  DiagnosticReporter get _diagnosticReporter => _resolver.diagnosticReporter;
-
-  void resolveCascadeInvocation(
-    ParsedValueArgumentsImpl node,
-    CascadeExpressionImpl cascade, {
-    required List<WhyNotPromotedGetter> whyNotPromotedArguments,
-    required TypeImpl contextType,
-  }) {
-    _methodInvocationResolver.resolveCascade(
-      node,
-      cascade,
-      whyNotPromotedArguments,
-      contextType: contextType,
-    );
-  }
-
-  void resolveParsedReceiverInvocation(
-    ParsedValueArgumentsImpl node,
-    NamedReceiverImpl receiver, {
-    required List<WhyNotPromotedGetter> whyNotPromotedArguments,
-    required TypeImpl contextType,
-  }) {
-    _methodInvocationResolver.resolveReceiver(
-      node,
-      receiver,
-      whyNotPromotedArguments,
-      contextType: contextType,
-    );
-  }
-
-  void visitClassDeclaration(ClassDeclaration node) {}
-
-  void visitClassTypeAlias(ClassTypeAlias node) {}
+  DiagnosticReporter get _diagnosticReporter =>
+      _typeAnalyzer.diagnosticReporter;
 
   void visitCommentReference(CommentReferenceImpl node) {
     _commentReferenceResolver.resolve(node);
   }
 
-  void visitConstructorDeclaration(ConstructorDeclarationImpl node) {
+  void visitConstructorDeclaration2(ConstructorDeclaration2Impl node) {
     var element = node.declaredFragment!.element;
     var redirectedNode = node.factoryRedirectionTarget;
     if (redirectedNode != null) {
@@ -166,8 +132,6 @@ class ElementResolver {
     }
   }
 
-  void visitDeclaredIdentifier(DeclaredIdentifier node) {}
-
   void visitDotShorthandConstructorInvocation2(
     covariant DotShorthandConstructorInvocation2Impl node,
   ) {
@@ -180,10 +144,6 @@ class ElementResolver {
     }
   }
 
-  void visitEnumConstantDeclaration(EnumConstantDeclaration node) {}
-
-  void visitEnumDeclaration(EnumDeclaration node) {}
-
   void visitExportDirective(ExportDirectiveImpl node) {
     var exportElement = node.libraryExport;
     if (exportElement != null) {
@@ -193,20 +153,6 @@ class ElementResolver {
       _resolveCombinators(exportElement.exportedLibrary, node.combinators);
     }
   }
-
-  void visitExtensionDeclaration(ExtensionDeclaration node) {}
-
-  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {}
-
-  void visitFieldDeclaration(FieldDeclaration node) {}
-
-  void visitFieldFormalParameter(FieldFormalParameter node) {}
-
-  void visitFunctionDeclaration(FunctionDeclaration node) {}
-
-  void visitFunctionTypeAlias(FunctionTypeAlias node) {}
-
-  void visitGenericTypeAlias(GenericTypeAlias node) {}
 
   void visitImportDirective(covariant ImportDirectiveImpl node) {
     var importElement = node.libraryImport;
@@ -219,40 +165,10 @@ class ElementResolver {
     }
   }
 
-  void visitImportPrefixedFunctionInvocation(
-    ImportPrefixedFunctionInvocationImpl node, {
-    required List<WhyNotPromotedGetter> whyNotPromotedArguments,
-    required TypeImpl contextType,
-  }) {
-    _methodInvocationResolver.resolveImportPrefixed(
-      node,
-      whyNotPromotedArguments,
-      contextType: contextType,
-    );
-  }
-
-  void visitLibraryDirective(LibraryDirective node) {}
-
-  void visitMethodDeclaration(MethodDeclaration node) {}
-
-  void visitMixinDeclaration(MixinDeclaration node) {}
-
-  void visitPartDirective(PartDirective node) {}
-
-  void visitPartOfDirective(PartOfDirective node) {}
-
-  void visitRecordTypeAnnotationNamedField(
-    RecordTypeAnnotationNamedField node,
-  ) {}
-
-  void visitRecordTypeAnnotationPositionalField(
-    RecordTypeAnnotationPositionalField node,
-  ) {}
-
   void visitRedirectingConstructorInvocation(
     covariant RedirectingConstructorInvocationImpl node,
   ) {
-    var enclosingInterface = _resolver.enclosingInstanceElement;
+    var enclosingInterface = _typeAnalyzer.enclosingInstanceElement;
     if (enclosingInterface is! InterfaceElementImpl) {
       // TODO(brianwilkerson): Report this error.
       return;
@@ -279,12 +195,10 @@ class ElementResolver {
     }
   }
 
-  void visitRegularFormalParameter(RegularFormalParameter node) {}
-
   void visitSuperConstructorInvocation(
     covariant SuperConstructorInvocationImpl node,
   ) {
-    var enclosingInterface = _resolver.enclosingInstanceElement;
+    var enclosingInterface = _typeAnalyzer.enclosingInstanceElement;
     if (enclosingInterface is! InterfaceElementImpl) {
       // TODO(brianwilkerson): Report this error.
       return;
@@ -329,10 +243,10 @@ class ElementResolver {
     node.element = element;
     // TODO(brianwilkerson): Defer this check until we know there's an error (by
     // in-lining _resolveArgumentsToFunction below).
-    var declaration = node.thisOrAncestorOfType2<ClassDeclaration>();
+    var declaration = node.thisOrAncestorOfType2<ClassDeclaration2>();
     var extendedNamedType = declaration?.extendsClause?.superclass;
     if (extendedNamedType != null &&
-        _resolver.libraryFragment.shouldIgnoreUndefinedNamedType(
+        _typeAnalyzer.libraryFragment.shouldIgnoreUndefinedNamedType(
           extendedNamedType,
         )) {
       return;
@@ -342,9 +256,11 @@ class ElementResolver {
       argumentList,
       element,
       enclosingConstructorFormalParameterList:
-          node.parent2.tryCast<ConstructorDeclarationImpl>()?.parameters ??
           node.parent2
-              .tryCast<PrimaryConstructorBodyImpl>()
+              .tryCast<ConstructorDeclaration2Impl>()
+              ?.formalParameters ??
+          node.parent2
+              .tryCast<PrimaryConstructorBody2Impl>()
               ?.declaration
               ?.formalParameters,
     );
@@ -367,24 +283,6 @@ class ElementResolver {
     }
   }
 
-  void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {}
-
-  void visitTypeParameter(TypeParameter node) {}
-
-  void visitUnqualifiedFunctionInvocation(
-    UnqualifiedFunctionInvocationImpl node, {
-    required List<WhyNotPromotedGetter> whyNotPromotedArguments,
-    required TypeImpl contextType,
-  }) {
-    _methodInvocationResolver.resolveUnqualified(
-      node,
-      whyNotPromotedArguments,
-      contextType: contextType,
-    );
-  }
-
-  void visitVariableDeclarationList(VariableDeclarationList node) {}
-
   /// Given an [argumentList] and the [executableElement] that will be invoked
   /// using those argument, compute the list of parameters that correspond to
   /// the list of arguments. An error will be reported if any of the arguments
@@ -398,7 +296,7 @@ class ElementResolver {
     if (executableElement == null) {
       return null;
     }
-    return ResolverVisitor.resolveArgumentsToParameters(
+    return TypeAnalyzer.resolveArgumentsToParameters(
       argumentList: argumentList,
       formalParameters: executableElement.formalParameters,
       diagnosticReporter: _diagnosticReporter,

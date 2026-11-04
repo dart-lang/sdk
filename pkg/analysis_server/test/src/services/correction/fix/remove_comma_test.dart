@@ -34,7 +34,7 @@ f() {
 }
 
 @reflectiveTest
-class RemoveCommaTest extends FixProcessorTest {
+class RemoveCommaTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeComma;
 

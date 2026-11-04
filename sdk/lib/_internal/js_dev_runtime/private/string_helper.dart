@@ -235,8 +235,8 @@ String stringReplaceAllFuncUnchecked(
 @notNull
 String stringReplaceAllEmptyFuncUnchecked(
   String receiver,
-  String onMatch(Match match),
-  String onNonMatch(String nonMatch),
+  String Function(Match match) onMatch,
+  String Function(String nonMatch) onNonMatch,
 ) {
   // Pattern is the empty string.
   StringBuffer buffer = StringBuffer();
@@ -269,8 +269,8 @@ String stringReplaceAllEmptyFuncUnchecked(
 String stringReplaceAllStringFuncUnchecked(
   String receiver,
   String pattern,
-  String onMatch(Match match),
-  String onNonMatch(String nonMatch),
+  String Function(Match match) onMatch,
+  String Function(String nonMatch) onNonMatch,
 ) {
   int patternLength = pattern.length;
   if (patternLength == 0) {
@@ -320,7 +320,7 @@ String stringReplaceFirstUnchecked(
 String stringReplaceFirstMappedUnchecked(
   String receiver,
   Pattern pattern,
-  String replace(Match current),
+  String Function(Match current) replace,
   int startIndex,
 ) {
   Iterator<Match> matches = pattern.allMatches(receiver, startIndex).iterator;

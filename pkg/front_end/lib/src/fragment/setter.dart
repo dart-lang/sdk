@@ -5,12 +5,8 @@
 part of 'fragment.dart';
 
 class SetterFragment implements Fragment, FunctionFragment {
-  @override
-  final String name;
-
-  final Uri fileUri;
+  final UriOffsetName _uriOffsetName;
   final int startOffset;
-  final int nameOffset;
   final int formalsOffset;
   final int endOffset;
   final bool isTopLevel;
@@ -60,23 +56,18 @@ class SetterFragment implements Fragment, FunctionFragment {
   SourcePropertyBuilder? _builder;
   SetterFragmentDeclaration? _declaration;
 
-  @override
-  late final UriOffsetLength uriOffset = new UriOffsetLength(
-    fileUri,
-    nameOffset,
-    name.length,
-  );
-
   late final List<SourceNominalParameterBuilder>?
   declaredTypeParameterBuilders = declaredTypeParameters
       // Coverage-ignore(suite): Not run.
       ?.computeBuilderList;
 
+  Token? _bodyToken;
+
+  bool _hasBuiltBody = false;
+
   new({
-    required this.name,
-    required this.fileUri,
+    required this._uriOffsetName,
     required this.startOffset,
-    required this.nameOffset,
     required this.formalsOffset,
     required this.endOffset,
     required this.isTopLevel,
@@ -92,7 +83,18 @@ class SetterFragment implements Fragment, FunctionFragment {
     required this.nativeMethodName,
     required this.enclosingDeclaration,
     required this.enclosingCompilationUnit,
+    required this._bodyToken,
   });
+
+  Uri get fileUri => _uriOffsetName.fileUri;
+
+  @override
+  String get name => _uriOffsetName.name;
+
+  int get nameOffset => _uriOffsetName.nameOffset;
+
+  @override
+  UriOffsetLength get uriOffset => _uriOffsetName;
 
   @override
   SourcePropertyBuilder get builder {
@@ -122,8 +124,31 @@ class SetterFragment implements Fragment, FunctionFragment {
   }
 
   @override
-  FunctionBodyBuildingContext createFunctionBodyBuildingContext() {
+  FunctionBodyBuildingContext? createFunctionBodyBuildingContext() {
+    if (_hasBuiltBody) return null;
+    _hasBuiltBody = true;
     return new _SetterFunctionBodyBuildingContext(this);
+  }
+
+  void buildBodyForOutline(
+    SourceLibraryBuilder libraryBuilder, {
+    required bool includeBody,
+  }) {
+    Token? bodyToken = _bodyToken;
+    if (includeBody && bodyToken != null) {
+      FunctionBodyBuildingContext? functionBodyBuildingContext =
+          createFunctionBodyBuildingContext();
+      if (functionBodyBuildingContext != null) {
+        libraryBuilder.loader.createResolver().buildFunctionBody(
+          libraryBuilder: libraryBuilder,
+          functionBodyBuildingContext: functionBodyBuildingContext,
+          fileUri: fileUri,
+          startToken: bodyToken,
+          metadata: null,
+        );
+      }
+    }
+    _bodyToken = null;
   }
 
   @override
@@ -132,9 +157,6 @@ class SetterFragment implements Fragment, FunctionFragment {
 
 class _SetterFunctionBodyBuildingContext(final SetterFragment _fragment)
     implements FunctionBodyBuildingContext {
-  @override
-  bool get isImplementation => _fragment.declaration.isImplementation;
-
   @override
   ExtensionScope get extensionScope {
     return _fragment.enclosingCompilationUnit.extensionScope;

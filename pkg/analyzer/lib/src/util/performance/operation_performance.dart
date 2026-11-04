@@ -6,13 +6,12 @@ import 'dart:developer' as developer;
 import 'package:collection/collection.dart';
 
 /// Callback type for [OperationPerformanceImpl.runAsyncHook].
-typedef RunAsyncHook =
-    Future<R> Function<R, T>(
-      String name,
-      Future<R> Function(T) operation,
-      T arg, {
-      Map<String, Object?>? arguments,
-    });
+typedef RunAsyncHook = Future<R> Function<R, T>(
+  String name,
+  Future<R> Function(T) operation,
+  T arg, {
+  Map<String, Object?>? arguments,
+});
 
 /// The performance of an operation.
 abstract class OperationPerformance {
@@ -55,7 +54,7 @@ abstract class OperationPerformanceDataImpl<T>
   @override
   final String name;
 
-  OperationPerformanceDataImpl(this.name);
+  new(this.name);
 
   @override
   String toString() {
@@ -70,7 +69,7 @@ class OperationPerformanceDataImpl_int
   @override
   int value = 0;
 
-  OperationPerformanceDataImpl_int(super.name);
+  new(super.name);
 
   void add(int item) {
     value += item;
@@ -88,7 +87,7 @@ class OperationPerformanceDataImpl_Set<T>
   @override
   final Set<T> value = {};
 
-  OperationPerformanceDataImpl_Set(super.name);
+  new(super.name);
 
   void add(T item) {
     value.add(item);
@@ -102,8 +101,12 @@ class OperationPerformanceDataImpl_Set<T>
 
 class OperationPerformanceImpl implements OperationPerformance {
   /// This closure can be overriden to intercept [runAsync] invocations.
-  static RunAsyncHook runAsyncHook =
-      <R, T>(name, operation, arg, {arguments}) => operation(arg);
+  static RunAsyncHook runAsyncHook = <R, T>(
+    name,
+    operation,
+    arg, {
+    arguments,
+  }) => operation(arg);
 
   @override
   final String name;
@@ -114,7 +117,7 @@ class OperationPerformanceImpl implements OperationPerformance {
 
   final Map<String, OperationPerformanceData<Object>> _data = {};
 
-  OperationPerformanceImpl(this.name);
+  new(this.name);
 
   @override
   List<OperationPerformance> get children {

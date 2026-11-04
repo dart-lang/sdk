@@ -392,7 +392,7 @@ class _Future<T> implements Future<T> {
     _resultOrListeners = source;
   }
 
-  Future<R> then<R>(FutureOr<R> f(T value), {Function? onError}) {
+  Future<R> then<R>(FutureOr<R> Function(T value) f, {Function? onError}) {
     Zone currentZone = Zone.current;
     if (identical(currentZone, _rootZone)) {
       if (onError != null &&
@@ -423,7 +423,7 @@ class _Future<T> implements Future<T> {
   ///
   /// Used by the implementation of `await` to listen to a future.
   /// The system created listeners are not registered in the zone.
-  Future<E> _thenAwait<E>(FutureOr<E> f(T value), Function onError) {
+  Future<E> _thenAwait<E>(FutureOr<E> Function(T value) f, Function onError) {
     _Future<E> result = _Future<E>();
     _addListener(_FutureListener<T, E>.thenAwait(result, f, onError));
     return result;
@@ -444,7 +444,7 @@ class _Future<T> implements Future<T> {
     }
   }
 
-  Future<T> catchError(Function onError, {bool test(Object error)?}) {
+  Future<T> catchError(Function onError, {bool Function(Object error)? test}) {
     _Future<T> result = _Future<T>();
     var resultZone = result._zone;
     if (!identical(resultZone, _rootZone)) {
@@ -475,7 +475,7 @@ class _Future<T> implements Future<T> {
     return result;
   }
 
-  Future<T> whenComplete(dynamic action()) {
+  Future<T> whenComplete(dynamic Function() action) {
     _Future<T> result = _Future<T>();
     var resultZone = result._zone;
     if (!identical(resultZone, _rootZone)) {
@@ -775,39 +775,22 @@ class _Future<T> implements Future<T> {
     _asyncCompleteWithValue(value);
   }
 
-  /// Internal helper function used by the implementation of `async` functions.
+  /// Internal helper function used by the implementation of `async` functions
+  /// when the return value is a [Future].
   ///
-  /// Like [_asyncComplete], but avoids type checks that are guaranteed to
-  /// succeed by the way the function is called.
-  /// Should be used judiciously.
-  void _asyncCompleteUnchecked(/*FutureOr<T>*/ dynamic value) {
-    // Ensure [value] is FutureOr<T>, do so using an `as` check so it works
-    // also correctly in non-sound null-safety mode.
-    assert(identical(value as FutureOr<T>, value));
-    final typedValue = unsafeCast<FutureOr<T>>(value);
-
-    // Doing just "is Future" is not sufficient.
-    // If `T` is Object` and `value` is `Future<Object?>.value(null)`,
-    // then value is a `Future`, but not a `Future<T>`, and going through the
-    // `_chainFuture` branch would end up assigning `null` to `Object`.
-    if (typedValue is Future<T>) {
-      _chainFuture(typedValue);
+  /// Since the returned value is a [Future] we have to check whether it
+  ///   * is a `Future<T>`, so we have to chain the future
+  ///   * or else we complete with the value which happens to be a future.
+  ///
+  /// This method is used by VM/Wasm backends that do not have `T` available to
+  /// perform the check on the call site.
+  void _chainFutureOrCompleteWithValue(Future<dynamic> value) {
+    assert(value is FutureOr<T>);
+    if (value is Future<T>) {
+      _chainFuture(value);
       return;
     }
-    _asyncCompleteWithValue(unsafeCast<T>(typedValue));
-  }
-
-  /// Internal helper function used to implement `async` functions.
-  ///
-  /// Like [_asyncCompleteUnchecked], but avoids a `is Future<T>` check due to
-  /// having a static guarantee on the callsite that the [value] cannot be a
-  /// [Future].
-  /// Should be used judiciously.
-  void _asyncCompleteUncheckedNoFuture(/*T*/ dynamic value) {
-    // Ensure [value] is T, do so using an `as` check so it works also correctly
-    // in non-sound null-safety mode.
-    assert(identical(value as T, value));
-    _asyncCompleteWithValue(unsafeCast<T>(value));
+    _completeWithValue(unsafeCast<T>(value));
   }
 
   void _asyncCompleteWithValue(T value) {
@@ -1042,7 +1025,7 @@ class _Future<T> implements Future<T> {
       _Future<T>.zone(zone ?? _zone);
 
   @pragma("vm:entry-point")
-  Future<T> timeout(Duration timeLimit, {FutureOr<T> onTimeout()?}) {
+  Future<T> timeout(Duration timeLimit, {FutureOr<T> Function()? onTimeout}) {
     if (_isComplete) return _Future.immediate(this);
     @pragma('vm:awaiter-link')
     _Future<T> _future = _Future<T>();

@@ -8,7 +8,7 @@ import 'package:analyzer/dart/element/type.dart';
 ///
 /// Clients may not extend, implement, or mix-in this class.
 abstract class TypeVisitor<R> {
-  const TypeVisitor();
+  const new();
 
   R visitDynamicType(DynamicType type);
 
@@ -31,7 +31,7 @@ abstract class TypeVisitor<R> {
 ///
 /// Clients may not extend, implement, or mix-in this class.
 abstract class TypeVisitorWithArgument<R, A> {
-  const TypeVisitorWithArgument();
+  const new();
 
   R visitDynamicType(DynamicType type, A argument);
 
@@ -54,7 +54,7 @@ abstract class TypeVisitorWithArgument<R, A> {
 ///
 /// Clients may extend this class.
 abstract class UnifyingTypeVisitor<R> implements TypeVisitor<R> {
-  const UnifyingTypeVisitor();
+  const new();
 
   /// By default other `visitXyz` methods invoke this method.
   R visitDartType(DartType type);
@@ -89,7 +89,7 @@ abstract class UnifyingTypeVisitor<R> implements TypeVisitor<R> {
 /// Clients may extend this class.
 abstract class UnifyingTypeVisitorWithArgument<R, A>
     implements TypeVisitorWithArgument<R, A> {
-  const UnifyingTypeVisitorWithArgument();
+  const new();
 
   /// By default other `visitXyz` methods invoke this method.
   R visitDartType(DartType type, A argument);

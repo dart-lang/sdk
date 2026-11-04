@@ -47,7 +47,7 @@ void g() async {
 }
 
 @reflectiveTest
-class AddExplicitCallTest extends FixProcessorLintTest {
+class AddExplicitCallTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.addExplicitCall;
 

@@ -2407,6 +2407,136 @@ ASSEMBLER_TEST_RUN(Uminv4S, test) {
       "ret\n");
 }
 
+ASSEMBLER_TEST_GENERATE(Tbl1, assembler) {
+  __ fldrq(V1, Address(R0, 0));
+  __ fldrq(V2, Address(R0, 16));
+  __ vtbl1(V0, V1, V2);
+  __ fstrq(V0, Address(R0, 32));
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Tbl1, test) {
+  struct {
+    uint8_t table[16];
+    uint8_t indices[16];
+    uint8_t result[16];
+  } buffer = {{0x85, 0x98, 0xAB, 0xBE, 0xD1, 0xE4, 0xF7, 0x8A, 0x9D, 0xB0, 0xC3,
+               0xD6, 0xE9, 0xFC, 0x8F, 0xA2},
+              {0x0F, 0x00, 0x07, 0x08, 0x10, 0x03, 0xFF, 0x0C, 0x01, 0x0E, 0x80,
+               0x05, 0x0A, 0x1F, 0x06, 0x0B},
+              {0x5A, 0x5A, 0x5A, 0x5A, 0x5A, 0x5A, 0x5A, 0x5A, 0x5A, 0x5A, 0x5A,
+               0x5A, 0x5A, 0x5A, 0x5A, 0x5A}};
+  typedef void (*Tbl1Code)(void* buffer) DART_UNUSED;
+  reinterpret_cast<Tbl1Code>(test->entry())(&buffer);
+  EXPECT_EQ(0xA2, buffer.result[0]);
+  EXPECT_EQ(0x85, buffer.result[1]);
+  EXPECT_EQ(0x8A, buffer.result[2]);
+  EXPECT_EQ(0x9D, buffer.result[3]);
+  EXPECT_EQ(0x00, buffer.result[4]);
+  EXPECT_EQ(0xBE, buffer.result[5]);
+  EXPECT_EQ(0x00, buffer.result[6]);
+  EXPECT_EQ(0xE9, buffer.result[7]);
+  EXPECT_EQ(0x98, buffer.result[8]);
+  EXPECT_EQ(0x8F, buffer.result[9]);
+  EXPECT_EQ(0x00, buffer.result[10]);
+  EXPECT_EQ(0xE4, buffer.result[11]);
+  EXPECT_EQ(0xC3, buffer.result[12]);
+  EXPECT_EQ(0x00, buffer.result[13]);
+  EXPECT_EQ(0xF7, buffer.result[14]);
+  EXPECT_EQ(0xD6, buffer.result[15]);
+  EXPECT_DISASSEMBLY(
+      "fldrq v1, [r0]\n"
+      "fldrq v2, [r0, #16]\n"
+      "vtbl1 v0, v1, v2\n"
+      "fstrq v0, [r0, #32]\n"
+      "ret\n");
+}
+
+ASSEMBLER_TEST_GENERATE(Rev64S, assembler) {
+  __ fldrq(V1, Address(R0, 0));
+  __ vrev64_4s(V0, V1);
+  __ fstrq(V0, Address(R0, 16));
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Rev64S, test) {
+  typedef void (*Rev64SCode)(uint32_t* buffer) DART_UNUSED;
+  uint32_t buffer[8] = {0x01234567, 0x89ABCDEF, 0x76543210, 0xFEDCBA98,
+                        0x5A5A5A5A, 0x5A5A5A5A, 0x5A5A5A5A, 0x5A5A5A5A};
+  reinterpret_cast<Rev64SCode>(test->entry())(buffer);
+  EXPECT_EQ(0x89ABCDEFu, buffer[4]);
+  EXPECT_EQ(0x01234567u, buffer[5]);
+  EXPECT_EQ(0xFEDCBA98u, buffer[6]);
+  EXPECT_EQ(0x76543210u, buffer[7]);
+  EXPECT_DISASSEMBLY(
+      "fldrq v1, [r0]\n"
+      "vrev64s v0, v1\n"
+      "fstrq v0, [r0, #16]\n"
+      "ret\n");
+}
+
+ASSEMBLER_TEST_GENERATE(Ext, assembler) {
+  __ fldrq(V1, Address(R0, 0));
+  __ fldrq(V2, Address(R0, 16));
+  __ vext(V0, V1, V2, 1);
+  __ fstrq(V0, Address(R0, 32));
+  __ vext(V0, V1, V2, 4);
+  __ fstrq(V0, Address(R0, 48));
+  __ vext(V0, V1, V2, 8);
+  __ fstrq(V0, Address(R0, 64));
+  __ vext(V0, V1, V2, 12);
+  __ fstrq(V0, Address(R0, 80));
+  __ vext(V0, V1, V2, 15);
+  __ fstrq(V0, Address(R0, 96));
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Ext, test) {
+  typedef void (*ExtCode)(intptr_t buffer) DART_UNUSED;
+  // Byte i of Vn is i and byte i of Vm is 16 + i, so the result for an index
+  // is the 16 bytes that start at that index.
+  struct {
+    uint32_t vn[4];
+    uint32_t vm[4];
+    uint32_t result[5][4];
+  } buffer = {{0x03020100, 0x07060504, 0x0B0A0908, 0x0F0E0D0C},
+              {0x13121110, 0x17161514, 0x1B1A1918, 0x1F1E1D1C},
+              {}};
+  for (auto& result : buffer.result) {
+    for (auto& lane : result) {
+      lane = 0x5A5A5A5A;
+    }
+  }
+  EXECUTE_TEST_CODE_INTPTR_INTPTR(ExtCode, test->entry(),
+                                  reinterpret_cast<intptr_t>(&buffer));
+  const uint32_t expected[5][4] = {
+      {0x04030201, 0x08070605, 0x0C0B0A09, 0x100F0E0D},  // Index 1.
+      {0x07060504, 0x0B0A0908, 0x0F0E0D0C, 0x13121110},  // Index 4.
+      {0x0B0A0908, 0x0F0E0D0C, 0x13121110, 0x17161514},  // Index 8.
+      {0x0F0E0D0C, 0x13121110, 0x17161514, 0x1B1A1918},  // Index 12.
+      {0x1211100F, 0x16151413, 0x1A191817, 0x1E1D1C1B},  // Index 15.
+  };
+  for (intptr_t i = 0; i < 5; i++) {
+    for (intptr_t j = 0; j < 4; j++) {
+      EXPECT_EQ(expected[i][j], buffer.result[i][j]);
+    }
+  }
+  EXPECT_DISASSEMBLY(
+      "fldrq v1, [r0]\n"
+      "fldrq v2, [r0, #16]\n"
+      "vext v0, v1, v2, #1\n"
+      "fstrq v0, [r0, #32]\n"
+      "vext v0, v1, v2, #4\n"
+      "fstrq v0, [r0, #48]\n"
+      "vext v0, v1, v2, #8\n"
+      "fstrq v0, [r0, #64]\n"
+      "vext v0, v1, v2, #12\n"
+      "fstrq v0, [r0, #80]\n"
+      "vext v0, v1, v2, #15\n"
+      "fstrq v0, [r0, #96]\n"
+      "ret\n");
+}
+
 // Comparisons, branching.
 ASSEMBLER_TEST_GENERATE(BranchALForward, assembler) {
   Label l;
@@ -7129,6 +7259,52 @@ ASSEMBLER_TEST_RUN(VsshlxLargeNegativeCount, test) {
       "ret\n");
 }
 
+ASSEMBLER_TEST_GENERATE(Vushlw, assembler) {
+  __ fldrq(V0, Address(R0, 0));
+  __ fldrq(V1, Address(R0, 16));
+  __ vushlw(V2, V0, V1);
+  __ fstrq(V2, Address(R0, 32));
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Vushlw, test) {
+  typedef void (*VushlwCode)(intptr_t) DART_UNUSED;
+  struct {
+    uint32_t values[4];
+    int32_t shifts[4];
+    uint32_t result[4];
+  } buffer;
+  auto check = [&](const uint32_t (&values)[4], const int32_t (&shifts)[4],
+                   const uint32_t (&expected)[4]) {
+    for (intptr_t i = 0; i < 4; i++) {
+      buffer.values[i] = values[i];
+      buffer.shifts[i] = shifts[i];
+      buffer.result[i] = 0xAAAAAAAA;
+    }
+    EXECUTE_TEST_CODE_INTPTR_INTPTR(VushlwCode, test->entry(),
+                                    reinterpret_cast<intptr_t>(&buffer));
+    for (intptr_t i = 0; i < 4; i++) {
+      EXPECT_EQ(expected[i], buffer.result[i]);
+    }
+  };
+  const uint32_t values[4] = {0xFFFFFFF8, 8, 0x80000000, 0x7FFFFFFF};
+  // A positive count shifts left.
+  check(values, {2, 2, 2, 2}, {0xFFFFFFE0, 32, 0, 0xFFFFFFFC});
+  // A negative count shifts right, filling with zeros.
+  check(values, {-1, -1, -1, -1}, {0x7FFFFFFC, 4, 0x40000000, 0x3FFFFFFF});
+  // A shift of 32 or more in either direction shifts every bit out.
+  check(values, {32, 32, 32, 32}, {0, 0, 0, 0});
+  check(values, {-32, -32, -32, -32}, {0, 0, 0, 0});
+  // Each lane uses its own count.
+  check(values, {2, -1, 32, -32}, {0xFFFFFFE0, 4, 0, 0});
+  EXPECT_DISASSEMBLY(
+      "fldrq v0, [r0]\n"
+      "fldrq v1, [r0, #16]\n"
+      "vushlw v2, v0, v1\n"
+      "fstrq v2, [r0, #32]\n"
+      "ret\n");
+}
+
 ASSEMBLER_TEST_GENERATE(Vsubw, assembler) {
   __ LoadImmediate(R4, 31);
   __ LoadImmediate(R5, 10);
@@ -7373,6 +7549,84 @@ ASSEMBLER_TEST_RUN(Vceqw, test) {
       "addw r0, r0, r1\n"
       "addw r0, r0, r2\n"
       "addw r0, r0, r3\n"
+      "ret\n");
+}
+
+ASSEMBLER_TEST_GENERATE(Vcgtw, assembler) {
+  __ fldrq(V0, Address(R0, 0));
+  __ fldrq(V1, Address(R0, 16));
+  __ vcgtw(V2, V0, V1);
+  __ fstrq(V2, Address(R0, 32));
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Vcgtw, test) {
+  typedef void (*VcgtwCode)(intptr_t) DART_UNUSED;
+  struct {
+    int32_t left[4];
+    int32_t right[4];
+    int32_t result[4];
+  } buffer;
+  auto check = [&](const int32_t (&left)[4], const int32_t (&right)[4],
+                   const int32_t (&expected)[4]) {
+    for (intptr_t i = 0; i < 4; i++) {
+      buffer.left[i] = left[i];
+      buffer.right[i] = right[i];
+      buffer.result[i] = static_cast<int32_t>(0xAAAAAAAA);
+    }
+    EXECUTE_TEST_CODE_INTPTR_INTPTR(VcgtwCode, test->entry(),
+                                    reinterpret_cast<intptr_t>(&buffer));
+    for (intptr_t i = 0; i < 4; i++) {
+      EXPECT_EQ(expected[i], buffer.result[i]);
+    }
+  };
+  check({5, -6, 7, kMinInt32}, {5, 0, 3, kMaxInt32}, {0, 0, -1, 0});
+  check({5, 0, 3, kMaxInt32}, {5, -6, 7, kMinInt32}, {0, -1, 0, -1});
+  check({0, -1, kMinInt32, 1}, {-1, 0, kMaxInt32, -1}, {-1, 0, 0, -1});
+  EXPECT_DISASSEMBLY(
+      "fldrq v0, [r0]\n"
+      "fldrq v1, [r0, #16]\n"
+      "vcgtw v2, v0, v1\n"
+      "fstrq v2, [r0, #32]\n"
+      "ret\n");
+}
+
+ASSEMBLER_TEST_GENERATE(Vcgew, assembler) {
+  __ fldrq(V0, Address(R0, 0));
+  __ fldrq(V1, Address(R0, 16));
+  __ vcgew(V2, V0, V1);
+  __ fstrq(V2, Address(R0, 32));
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Vcgew, test) {
+  typedef void (*VcgewCode)(intptr_t) DART_UNUSED;
+  struct {
+    int32_t left[4];
+    int32_t right[4];
+    int32_t result[4];
+  } buffer;
+  auto check = [&](const int32_t (&left)[4], const int32_t (&right)[4],
+                   const int32_t (&expected)[4]) {
+    for (intptr_t i = 0; i < 4; i++) {
+      buffer.left[i] = left[i];
+      buffer.right[i] = right[i];
+      buffer.result[i] = static_cast<int32_t>(0xAAAAAAAA);
+    }
+    EXECUTE_TEST_CODE_INTPTR_INTPTR(VcgewCode, test->entry(),
+                                    reinterpret_cast<intptr_t>(&buffer));
+    for (intptr_t i = 0; i < 4; i++) {
+      EXPECT_EQ(expected[i], buffer.result[i]);
+    }
+  };
+  check({5, -6, 7, kMinInt32}, {5, 0, 3, kMaxInt32}, {-1, 0, -1, 0});
+  check({5, 0, 3, kMaxInt32}, {5, -6, 7, kMinInt32}, {-1, -1, 0, -1});
+  check({0, -1, kMinInt32, 1}, {-1, 0, kMaxInt32, -1}, {-1, 0, 0, -1});
+  EXPECT_DISASSEMBLY(
+      "fldrq v0, [r0]\n"
+      "fldrq v1, [r0, #16]\n"
+      "vcgew v2, v0, v1\n"
+      "fstrq v2, [r0, #32]\n"
       "ret\n");
 }
 

@@ -78,7 +78,7 @@ class Package {
   /// The language version for this package, `null` not specified explicitly.
   final Version? languageVersion;
 
-  Package({
+  new({
     required this.name,
     required this.rootFolder,
     required this.libFolder,
@@ -91,7 +91,7 @@ class Packages {
 
   final Map<String, Package> _map;
 
-  Packages(Map<String, Package> map) : _map = map;
+  new(Map<String, Package> map) : _map = map;
 
   Iterable<Package> get packages => _map.values;
 

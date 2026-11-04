@@ -36,13 +36,22 @@ final class BoxedDouble implements double {
   }
 
   @pragma("wasm:prefer-inline")
-  double operator +(num other) => this + other.toDouble(); // Intrinsic +
+  double operator +(num other) => _add(this, other.toDouble());
   @pragma("wasm:prefer-inline")
-  double operator -(num other) => this - other.toDouble(); // Intrinsic -
+  double operator -(num other) => _sub(this, other.toDouble());
   @pragma("wasm:prefer-inline")
-  double operator *(num other) => this * other.toDouble(); // Intrinsic *
+  double operator *(num other) => _mul(this, other.toDouble());
   @pragma("wasm:prefer-inline")
-  double operator /(num other) => this / other.toDouble(); // Intrinsic /
+  double operator /(num other) => _div(this, other.toDouble());
+
+  @pragma("wasm:intrinsic")
+  external static double _add(double a, double b);
+  @pragma("wasm:intrinsic")
+  external static double _sub(double a, double b);
+  @pragma("wasm:intrinsic")
+  external static double _mul(double a, double b);
+  @pragma("wasm:intrinsic")
+  external static double _div(double a, double b);
 
   @pragma("wasm:prefer-inline")
   int operator ~/(num other) {
@@ -187,23 +196,31 @@ final class BoxedDouble implements double {
   @pragma("wasm:prefer-inline")
   bool operator ==(Object other) {
     return other is double
-        ? this ==
-              other // Intrinsic ==
+        ? _equals(this, other)
         : other is int
-        ? this ==
-              other
-                  .toDouble() // Intrinsic ==
+        ? _equals(this, other.toDouble())
         : false;
   }
 
   @pragma("wasm:prefer-inline")
-  bool operator <(num other) => this < other.toDouble(); // Intrinsic <
+  bool operator <(num other) => _lt(this, other.toDouble());
   @pragma("wasm:prefer-inline")
-  bool operator >(num other) => this > other.toDouble(); // Intrinsic >
+  bool operator >(num other) => _gt(this, other.toDouble());
   @pragma("wasm:prefer-inline")
-  bool operator >=(num other) => this >= other.toDouble(); // Intrinsic >=
+  bool operator >=(num other) => _ge(this, other.toDouble());
   @pragma("wasm:prefer-inline")
-  bool operator <=(num other) => this <= other.toDouble(); // Intrinsic <=
+  bool operator <=(num other) => _le(this, other.toDouble());
+
+  @pragma("wasm:intrinsic")
+  external static bool _equals(double a, double b);
+  @pragma("wasm:intrinsic")
+  external static bool _lt(double a, double b);
+  @pragma("wasm:intrinsic")
+  external static bool _gt(double a, double b);
+  @pragma("wasm:intrinsic")
+  external static bool _ge(double a, double b);
+  @pragma("wasm:intrinsic")
+  external static bool _le(double a, double b);
 
   @pragma("wasm:prefer-inline")
   bool get isNegative {

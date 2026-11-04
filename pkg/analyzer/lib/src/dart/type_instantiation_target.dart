@@ -26,7 +26,7 @@ class InvocationTargetConstructorElement
   @override
   final FunctionTypeImpl rawType;
 
-  InvocationTargetConstructorElement(super.element, this.rawType);
+  new(super.element, this.rawType);
 
   @override
   diag.LocatableDiagnostic wrongNumberOfTypeArgumentsError({
@@ -53,7 +53,7 @@ class InvocationTargetExecutableElement extends TypeInstantiationTargetElement
   @override
   final ExecutableElement element;
 
-  InvocationTargetExecutableElement(this.element) {
+  new(this.element) {
     assert(
       this is InvocationTargetConstructorElement ||
           element is! ConstructorElement,
@@ -92,10 +92,7 @@ class InvocationTargetExtensionOverride extends InvocationTarget {
   final ExtensionElementImpl element;
   final FunctionTypeImpl type;
 
-  InvocationTargetExtensionOverride({
-    required this.element,
-    required this.type,
-  });
+  new({required this.element, required this.type});
 
   @override
   FunctionTypeImpl get rawType => type;
@@ -125,7 +122,7 @@ class InvocationTargetExtensionOverride extends InvocationTarget {
 class InvocationTargetFunctionTypedExpression extends InvocationTarget {
   final FunctionTypeImpl type;
 
-  InvocationTargetFunctionTypedExpression(this.type);
+  new(this.type);
 
   @override
   FunctionTypeImpl get rawType => type;
@@ -155,7 +152,7 @@ class InvocationTargetFunctionTypedExpression extends InvocationTarget {
 /// An entity in the program being analyzed that might have type arguments
 /// applied to it.
 sealed class TypeInstantiationTarget {
-  const TypeInstantiationTarget();
+  const new();
 
   /// Creates the appropriate diagnostic message when the wrong number of type
   /// arguments is applied.
@@ -168,7 +165,7 @@ sealed class TypeInstantiationTarget {
 /// Type instantiation target representing the type `dynamic`.
 class TypeInstantiationTargetDynamicTypeElement
     extends TypeInstantiationTargetTypeDefiningElement {
-  const TypeInstantiationTargetDynamicTypeElement();
+  const new();
 
   @override
   DynamicElementImpl get element => DynamicElementImpl.instance;
@@ -176,7 +173,7 @@ class TypeInstantiationTargetDynamicTypeElement
 
 /// Type instantiation target backed by an element.
 sealed class TypeInstantiationTargetElement extends TypeInstantiationTarget {
-  const TypeInstantiationTargetElement();
+  const new();
 
   Element get element;
 }
@@ -187,13 +184,13 @@ class TypeInstantiationTargetInterfaceElement
   @override
   final InterfaceElement element;
 
-  TypeInstantiationTargetInterfaceElement(this.element);
+  new(this.element);
 }
 
 /// Type instantiation target representing the type `Never`.
 class TypeInstantiationTargetNeverTypeElement
     extends TypeInstantiationTargetTypeDefiningElement {
-  const TypeInstantiationTargetNeverTypeElement();
+  const new();
 
   @override
   NeverElementImpl get element => NeverElementImpl.instance;
@@ -205,13 +202,13 @@ class TypeInstantiationTargetTypeAliasElement
   @override
   final TypeAliasElement element;
 
-  TypeInstantiationTargetTypeAliasElement(this.element);
+  new(this.element);
 }
 
 /// Type instantiation target representing a type in the program being analyzed.
 sealed class TypeInstantiationTargetTypeDefiningElement
     extends TypeInstantiationTargetElement {
-  const TypeInstantiationTargetTypeDefiningElement();
+  const new();
 
   @override
   diag.LocatableDiagnostic wrongNumberOfTypeArgumentsError({
@@ -232,5 +229,5 @@ class TypeInstantiationTargetTypeParameterElement
   @override
   final TypeParameterElement element;
 
-  TypeInstantiationTargetTypeParameterElement(this.element);
+  new(this.element);
 }

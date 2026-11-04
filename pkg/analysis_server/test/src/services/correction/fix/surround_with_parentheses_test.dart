@@ -15,7 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class SurroundWithParenthesesTest extends FixProcessorTest {
+class SurroundWithParenthesesTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.surroundWithParentheses;
 

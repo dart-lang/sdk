@@ -6,7 +6,6 @@ import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart'
     show CfeSeverity;
-import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart';
@@ -45,9 +44,11 @@ import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/property_builder.dart';
 import '../builder/type_builder.dart';
+import '../codes/diagnostic.dart' as diag;
 import '../dill/dill_target.dart' show DillTarget;
 import '../fragment/constructor/declaration.dart';
 import '../source/name_scheme.dart';
+import '../source/parameters.dart';
 import '../source/source_class_builder.dart' show SourceClassBuilder;
 import '../source/source_constructor_builder.dart';
 import '../source/source_declaration_builder.dart';
@@ -151,7 +152,14 @@ class KernelTarget {
   bool get errorOnUnevaluatedConstant =>
       context.options.errorOnUnevaluatedConstant;
 
-  final Map<Member, DelayedDefaultValueCloner> _delayedDefaultValueCloners = {};
+  /// Map from [Member] or [FunctionNode] to the [DelayedDefaultValueCloner]
+  /// responsible for cloning its parameter default values.
+  ///
+  /// This is used for synthesized functions and constructors with super
+  /// parameters where the parameter default values are copied from another
+  /// parameters.
+  final Map<TreeNode, DelayedDefaultValueCloner> _delayedDefaultValueCloners =
+      {};
 
   final UriTranslator uriTranslator;
 
@@ -557,12 +565,7 @@ class KernelTarget {
         benchmarker
         // Coverage-ignore(suite): Not run.
         ?.enterPhase(BenchmarkPhases.outline_installTypedefTearOffs);
-        List<DelayedDefaultValueCloner>?
-        typedefTearOffsDelayedDefaultValueCloners = loader
-            .installTypedefTearOffs();
-        typedefTearOffsDelayedDefaultValueCloners?.forEach(
-          registerDelayedDefaultValueCloner,
-        );
+        loader.installTypedefTearOffs();
 
         benchmarker
         // Coverage-ignore(suite): Not run.
@@ -1164,8 +1167,9 @@ class KernelTarget {
     ;
     DelayedDefaultValueCloner delayedDefaultValueCloner =
         new DelayedDefaultValueCloner(
-          superConstructor,
-          constructor,
+          source: superConstructor,
+          target: constructor,
+          parameterMapping: const DirectParameterMapping(),
           libraryBuilder: libraryBuilder,
         );
 
@@ -1223,6 +1227,7 @@ class KernelTarget {
       nameScheme: nameScheme,
       declarations: [declaration],
       implementation: declaration,
+      parameters: new Parameters(hasAugmentations: false),
       isConst: isConst,
     );
 
@@ -1233,10 +1238,8 @@ class KernelTarget {
   }
 
   void registerDelayedDefaultValueCloner(DelayedDefaultValueCloner cloner) {
-    // TODO(cstefantsova): Investigate the reason for the assumption breakage
-    // and uncomment the following line.
-    // assert(!_delayedDefaultValueCloners.containsKey(cloner.synthesized));
-    _delayedDefaultValueCloners[cloner.synthesized] ??= cloner;
+    assert(!_delayedDefaultValueCloners.containsKey(cloner.target));
+    _delayedDefaultValueCloners[cloner.target] = cloner;
   }
 
   void finishSynthesizedParameters({bool forOutline = false}) {
@@ -1244,7 +1247,7 @@ class KernelTarget {
       DelayedDefaultValueCloner delayedDefaultValueCloner,
     ) {
       DelayedDefaultValueCloner? originalCloner =
-          _delayedDefaultValueCloners[delayedDefaultValueCloner.original];
+          _delayedDefaultValueCloners[delayedDefaultValueCloner.source];
       if (originalCloner != null) {
         cloneDefaultValues(originalCloner);
       }
@@ -1342,6 +1345,7 @@ class KernelTarget {
       nameScheme: nameScheme,
       declarations: [declaration],
       implementation: declaration,
+      parameters: new Parameters(hasAugmentations: false),
       isConst: false,
     );
   }
@@ -1989,7 +1993,7 @@ class KernelTarget {
     List<Uri>? patches = uriTranslator.getDartPatches(originImportUri.path);
     if (patches != null) {
       for (Uri patch in patches) {
-        compilationUnit.registerAugmentation(
+        compilationUnit.registerPatch(
           loader.read(
             patch,
             -1,
@@ -2044,7 +2048,13 @@ class KernelDiagnosticReporter
     Uri? fileUri, {
     List<LocatedMessage>? context,
   }) {
-    loader.addProblem(message, charOffset, noLength, fileUri, context: context);
+    loader.addComponentProblem(
+      message,
+      charOffset,
+      noLength,
+      fileUri,
+      context: context,
+    );
   }
 }
 

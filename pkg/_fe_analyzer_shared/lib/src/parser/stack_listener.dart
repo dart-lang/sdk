@@ -758,7 +758,7 @@ class DebugStack implements Stack {
 /// returns null instead of empty lists, and the lists returned are of fixed
 /// length.
 class FixedNullableList<T> {
-  const FixedNullableList();
+  const new();
 
   List<T?>? pop(Stack stack, int count, [NullValue? nullValue]) {
     if (count == 0) return null;
@@ -808,7 +808,7 @@ class FixedNullableList<T> {
 /// Helper constant for popping a list of the top of a [Stack].  This helper
 /// returns growable lists (also when empty).
 class GrowableList<T> {
-  const GrowableList();
+  const new();
 
   List<T?>? pop(Stack stack, int count, [NullValue? nullValue]) {
     return stack.popList(
@@ -829,7 +829,7 @@ class GrowableList<T> {
 
 class ParserRecovery {
   final int charOffset;
-  ParserRecovery(this.charOffset);
+  new(this.charOffset);
 
   @override
   String toString() => "ParserRecovery(@$charOffset)";

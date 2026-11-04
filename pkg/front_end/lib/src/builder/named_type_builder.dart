@@ -23,7 +23,6 @@ import '../base/scope.dart';
 import '../base/uris.dart';
 import '../dill/dill_class_builder.dart';
 import '../dill/dill_type_alias_builder.dart';
-import '../kernel/implicit_field_type.dart';
 import '../kernel/type_algorithms.dart';
 import '../source/source_library_builder.dart';
 import '../source/source_loader.dart';
@@ -31,7 +30,6 @@ import '../source/type_parameter_factory.dart';
 import '../util/helpers.dart';
 import 'builder.dart';
 import 'declaration_builders.dart';
-import 'inferable_type_builder.dart';
 import 'library_builder.dart';
 import 'nullability_builder.dart';
 import 'prefix_builder.dart';
@@ -81,7 +79,7 @@ enum InstanceTypeParameterAccessState {
   Unexpected,
 }
 
-abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
+class NamedTypeBuilderImpl extends NamedTypeBuilder {
   @override
   final TypeName typeName;
 
@@ -106,43 +104,23 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
   /// Set to `true` if the type was resolved through a deferred import prefix.
   bool _isDeferred = false;
 
-  factory(
+  DartType? _type;
+
+  new(
     TypeName name,
     NullabilityBuilder nullabilityBuilder, {
     List<TypeBuilder>? arguments,
     Uri? fileUri,
     int? charOffset,
     required InstanceTypeParameterAccessState instanceTypeParameterAccess,
-  }) {
-    bool isExplicit = true;
-    if (arguments != null) {
-      for (int i = 0; i < arguments.length; i++) {
-        TypeBuilder argument = arguments[i];
-        if (!argument.isExplicit) {
-          isExplicit = false;
-        }
-      }
-    }
-    return isExplicit
-        ? new _ExplicitNamedTypeBuilder(
-            name,
-            nullabilityBuilder,
-            arguments: arguments,
-            fileUri: fileUri,
-            charOffset: charOffset,
-            instanceTypeParameterAccess: instanceTypeParameterAccess,
-          )
-        :
-          // Coverage-ignore(suite): Not run.
-          new _InferredNamedTypeBuilder(
-            name,
-            nullabilityBuilder,
-            arguments: arguments,
-            fileUri: fileUri,
-            charOffset: charOffset,
-            instanceTypeParameterAccess: instanceTypeParameterAccess,
-          );
-  }
+  }) : this._(
+         typeName: name,
+         nullabilityBuilder: nullabilityBuilder,
+         typeArguments: arguments,
+         fileUri: fileUri,
+         charOffset: charOffset,
+         instanceTypeParameterAccess: instanceTypeParameterAccess,
+       );
 
   new _({
     required this.typeName,
@@ -152,20 +130,31 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
     this.charOffset,
     required InstanceTypeParameterAccessState instanceTypeParameterAccess,
     TypeDeclarationBuilder? declaration,
+    this._type,
   }) : this._instanceTypeParameterAccess = instanceTypeParameterAccess,
        this.hasExplicitTypeArguments = typeArguments != null,
        this._declaration = declaration;
 
-  factory forDartType(
+  new forDartType(
     DartType type,
-    TypeDeclarationBuilder _declaration,
+    TypeDeclarationBuilder declaration,
     NullabilityBuilder nullabilityBuilder, {
     List<TypeBuilder>? arguments,
     Uri? fileUri,
     int? charOffset,
-  }) = _ExplicitNamedTypeBuilder.forDartType;
+  }) : this._(
+         declaration: declaration,
+         typeName: new PredefinedTypeName(declaration.name),
+         nullabilityBuilder: nullabilityBuilder,
+         typeArguments: arguments,
+         instanceTypeParameterAccess:
+             InstanceTypeParameterAccessState.Unexpected,
+         fileUri: fileUri,
+         charOffset: charOffset,
+         type: type,
+       );
 
-  factory fromTypeDeclarationBuilder(
+  new fromTypeDeclarationBuilder(
     TypeDeclarationBuilder declaration,
     NullabilityBuilder nullabilityBuilder, {
     List<TypeBuilder>? arguments,
@@ -173,14 +162,44 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
     int? charOffset,
     required InstanceTypeParameterAccessState instanceTypeParameterAccess,
     DartType? type,
-  }) = _ExplicitNamedTypeBuilder.fromTypeDeclarationBuilder;
+  }) : this._(
+         typeName: new PredefinedTypeName(declaration.name),
+         declaration: declaration,
+         nullabilityBuilder: nullabilityBuilder,
+         typeArguments: arguments,
+         fileUri: fileUri,
+         charOffset: charOffset,
+         instanceTypeParameterAccess: instanceTypeParameterAccess,
+         type: type,
+       );
 
-  factory forInvalidType(
+  new forInvalidType(
     String name,
     NullabilityBuilder nullabilityBuilder,
     LocatedMessage message, {
     List<LocatedMessage>? context,
-  }) = _ExplicitNamedTypeBuilder.forInvalidType;
+  }) : this._(
+         typeName: new PredefinedTypeName(name),
+         nullabilityBuilder: nullabilityBuilder,
+         declaration: new InvalidBuilder(name, message, context: context),
+         fileUri: message.uri,
+         charOffset: message.charOffset,
+         instanceTypeParameterAccess:
+             InstanceTypeParameterAccessState.Unexpected,
+         type: const InvalidType(),
+       );
+
+  @override
+  bool get isExplicit => true;
+
+  @override
+  DartType build(
+    LibraryBuilder library,
+    TypeUse typeUse, {
+    ClassHierarchyBase? hierarchy,
+  }) {
+    return _type ??= _buildInternal(library, typeUse, hierarchy);
+  }
 
   @override
   TypeDeclarationBuilder get declaration {
@@ -1272,143 +1291,5 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
       }
     }
     return typesAndDependencies;
-  }
-}
-
-/// A named type that is defined without the need for type inference.
-///
-/// This is the normal function type whose type arguments are either explicit or
-/// omitted.
-class _ExplicitNamedTypeBuilder extends NamedTypeBuilderImpl {
-  DartType? _type;
-
-  new(
-    TypeName name,
-    NullabilityBuilder nullabilityBuilder, {
-    List<TypeBuilder>? arguments,
-    Uri? fileUri,
-    int? charOffset,
-    required InstanceTypeParameterAccessState instanceTypeParameterAccess,
-  }) : super._(
-         typeName: name,
-         nullabilityBuilder: nullabilityBuilder,
-         typeArguments: arguments,
-         fileUri: fileUri,
-         charOffset: charOffset,
-         instanceTypeParameterAccess: instanceTypeParameterAccess,
-       );
-
-  new forDartType(
-    DartType type,
-    TypeDeclarationBuilder declaration,
-    NullabilityBuilder nullabilityBuilder, {
-    List<TypeBuilder>? arguments,
-    Uri? fileUri,
-    int? charOffset,
-  }) : _type = type,
-       super._(
-         declaration: declaration,
-         typeName: new PredefinedTypeName(declaration.name),
-         nullabilityBuilder: nullabilityBuilder,
-         typeArguments: arguments,
-         instanceTypeParameterAccess:
-             InstanceTypeParameterAccessState.Unexpected,
-         fileUri: fileUri,
-         charOffset: charOffset,
-       );
-
-  new fromTypeDeclarationBuilder(
-    TypeDeclarationBuilder declaration,
-    NullabilityBuilder nullabilityBuilder, {
-    List<TypeBuilder>? arguments,
-    Uri? fileUri,
-    int? charOffset,
-    required InstanceTypeParameterAccessState instanceTypeParameterAccess,
-    DartType? type,
-  }) : this._type = type,
-       super._(
-         typeName: new PredefinedTypeName(declaration.name),
-         declaration: declaration,
-         nullabilityBuilder: nullabilityBuilder,
-         typeArguments: arguments,
-         fileUri: fileUri,
-         charOffset: charOffset,
-         instanceTypeParameterAccess: instanceTypeParameterAccess,
-       );
-
-  new forInvalidType(
-    String name,
-    NullabilityBuilder nullabilityBuilder,
-    LocatedMessage message, {
-    List<LocatedMessage>? context,
-  }) : _type = const InvalidType(),
-       super._(
-         typeName: new PredefinedTypeName(name),
-         nullabilityBuilder: nullabilityBuilder,
-         declaration: new InvalidBuilder(name, message, context: context),
-         fileUri: message.uri,
-         charOffset: message.charOffset,
-         instanceTypeParameterAccess:
-             InstanceTypeParameterAccessState.Unexpected,
-       );
-
-  @override
-  bool get isExplicit => true;
-
-  @override
-  DartType build(
-    LibraryBuilder library,
-    TypeUse typeUse, {
-    ClassHierarchyBase? hierarchy,
-  }) {
-    return _type ??= _buildInternal(library, typeUse, hierarchy);
-  }
-}
-
-// Coverage-ignore(suite): Not run.
-/// A named type that needs type inference to be fully defined.
-///
-/// This occurs through macros where type arguments can be defined in terms of
-/// inferred types, making this type indirectly depend on type inference.
-class _InferredNamedTypeBuilder extends NamedTypeBuilderImpl
-    with InferableTypeBuilderMixin {
-  new(
-    TypeName name,
-    NullabilityBuilder nullabilityBuilder, {
-    List<TypeBuilder>? arguments,
-    Uri? fileUri,
-    int? charOffset,
-    required InstanceTypeParameterAccessState instanceTypeParameterAccess,
-  }) : super._(
-         typeName: name,
-         nullabilityBuilder: nullabilityBuilder,
-         typeArguments: arguments,
-         fileUri: fileUri,
-         charOffset: charOffset,
-         instanceTypeParameterAccess: instanceTypeParameterAccess,
-       );
-
-  @override
-  bool get isExplicit => false;
-
-  @override
-  DartType build(
-    LibraryBuilder library,
-    TypeUse typeUse, {
-    ClassHierarchyBase? hierarchy,
-  }) {
-    if (hasType) {
-      return type;
-    } else if (hierarchy != null) {
-      return registerType(_buildInternal(library, typeUse, hierarchy));
-    } else {
-      InferableTypeUse inferableTypeUse = new InferableTypeUse(
-        library as SourceLibraryBuilder,
-        this,
-        typeUse,
-      );
-      library.loader.inferableTypes.registerInferableType(inferableTypeUse);
-      return new InferredType.fromInferableTypeUse(inferableTypeUse);
-    }
   }
 }

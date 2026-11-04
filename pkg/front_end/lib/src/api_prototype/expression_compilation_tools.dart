@@ -304,9 +304,9 @@ class ParsedType {
           _getDartNullability(),
           arguments == null
               ? null
-              : new DartTypeList.generate(
-                  arguments!.length,
-                  (i) => arguments![i].createDartType(libraryIndex),
+              : DartTypeList.mapped(
+                  arguments!,
+                  (a) => a.createDartType(libraryIndex),
                 ),
         );
     }

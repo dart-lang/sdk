@@ -6,6 +6,7 @@ import 'package:front_end/src/source/source_library_builder.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 
+import '../base/uri_offset.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/type_builder.dart';
@@ -42,6 +43,8 @@ class SourceNominalParameterBuilder extends NominalParameterBuilder {
 
   @override
   String get name => _declaration.name;
+
+  UriOffsetLength get uriOffset => _declaration.uriOffset;
 
   @override
   TypeParameterKind get kind => _declaration.kind;
@@ -104,6 +107,8 @@ abstract class NominalParameterDeclaration {
 
   Uri get fileUri;
 
+  UriOffsetLength get uriOffset;
+
   void buildOutlineExpressions({
     required SourceLibraryBuilder libraryBuilder,
     required BodyBuilderContext bodyBuilderContext,
@@ -124,6 +129,9 @@ class RegularNominalParameterDeclaration
 
   @override
   Uri get fileUri => _fragment.fileUri;
+
+  @override
+  UriOffsetLength get uriOffset => _fragment.uriOffset;
 
   @override
   bool get isWildcard => _fragment.isWildcard;
@@ -171,12 +179,16 @@ class DirectNominalParameterDeclaration implements NominalParameterDeclaration {
   @override
   final Uri fileUri;
 
+  @override
+  final UriOffsetLength uriOffset;
+
   new({
     required this.name,
     required this.kind,
     required this.isWildcard,
     required this.fileOffset,
     required this.fileUri,
+    required this.uriOffset,
   });
 
   @override
@@ -195,20 +207,18 @@ class SyntheticNominalParameterDeclaration
   final NominalParameterBuilder _builder;
 
   @override
-  final int fileOffset;
-
-  @override
-  final Uri fileUri;
+  final UriOffsetLength uriOffset;
 
   @override
   final TypeParameterKind kind;
 
-  new(
-    this._builder, {
-    required this.kind,
-    required this.fileOffset,
-    required this.fileUri,
-  });
+  new(this._builder, {required this.kind, required this.uriOffset});
+
+  @override
+  int get fileOffset => uriOffset.fileOffset;
+
+  @override
+  Uri get fileUri => uriOffset.fileUri;
 
   @override
   bool get isWildcard => _builder.isWildcard;

@@ -230,6 +230,10 @@ class UnifiedAnalyticsService extends InternalService {
         dartVersion: dartVersion,
         fs: fs,
         enableAsserts: false,
+        // Respect DTD's own process environment (for example
+        // `DASH__SUPPRESS_ANALYTICS`) the same way the real [Analytics]
+        // instances do, so that the suppression behavior can be tested.
+        environment: Platform.environment,
       );
     }
 

@@ -22,12 +22,12 @@ class RecordLiteralResolutionTest extends PubPackageResolutionTest {
 final x = (0);
 ''');
 
-    var node = result.findNode.singleVariableDeclaration;
+    var node = result.findNode.singleTopLevelVariable;
     assertResolvedNodeText(node, r'''
-VariableDeclaration
+TopLevelVariable
   name: x
   equals: =
-  initializer2: ParenthesizedExpression
+  initializer: ParenthesizedExpression
     leftParenthesis: (
     expression2: IntegerLiteral
       literal: 0
@@ -48,12 +48,12 @@ final x = const (0);
 // [diag.recordLiteralOnePositionalNoTrailingComma] A record literal with exactly one positional field requires a trailing comma.
 ''');
 
-    var node = result.findNode.singleVariableDeclaration;
+    var node = result.findNode.singleTopLevelVariable;
     assertResolvedNodeText(node, r'''
-VariableDeclaration
+TopLevelVariable
   name: x
   equals: =
-  initializer2: ParenthesizedExpression
+  initializer: ParenthesizedExpression
     leftParenthesis: (
     expression2: IntegerLiteral
       literal: 0
@@ -72,12 +72,12 @@ final x = (0,);
 // [diag.experimentNotEnabled] This requires the 'records' language feature to be enabled.
 ''');
 
-    var node = result.findNode.singleVariableDeclaration;
+    var node = result.findNode.singleTopLevelVariable;
     assertResolvedNodeText(node, r'''
-VariableDeclaration
+TopLevelVariable
   name: x
   equals: =
-  initializer2: ParenthesizedExpression
+  initializer: ParenthesizedExpression
     leftParenthesis: (
     expression2: IntegerLiteral
       literal: 0
@@ -96,12 +96,12 @@ final x = (0, 1);
 // [diag.experimentNotEnabled] This requires the 'records' language feature to be enabled.
 ''');
 
-    var node = result.findNode.singleVariableDeclaration;
+    var node = result.findNode.singleTopLevelVariable;
     assertResolvedNodeText(node, r'''
-VariableDeclaration
+TopLevelVariable
   name: x
   equals: =
-  initializer2: ParenthesizedExpression
+  initializer: ParenthesizedExpression
     leftParenthesis: (
     expression2: IntegerLiteral
       literal: 0
@@ -120,12 +120,12 @@ final x = ();
 // [diag.experimentNotEnabled] This requires the 'records' language feature to be enabled.
 ''');
 
-    var node = result.findNode.singleVariableDeclaration;
+    var node = result.findNode.singleTopLevelVariable;
     assertResolvedNodeText(node, r'''
-VariableDeclaration
+TopLevelVariable
   name: x
   equals: =
-  initializer2: ParenthesizedExpression
+  initializer: ParenthesizedExpression
     leftParenthesis: (
     expression2: UnqualifiedNameExpression
       name: <empty> <synthetic>
@@ -359,7 +359,6 @@ RecordLiteral
           name: a
           resolution: GetterInvocationResolution
             element: <testLibrary>::@getter::a
-            invokeType: A Function()
             type: A
           staticType: A
         element: <testLibrary>::@class::A::@method::call
@@ -396,7 +395,6 @@ RecordLiteral
         name: a
         resolution: GetterInvocationResolution
           element: <testLibrary>::@getter::a
-          invokeType: A Function()
           type: A
         staticType: A
       element: <testLibrary>::@class::A::@method::call
@@ -432,7 +430,6 @@ RecordLiteral
         name: a
         resolution: GetterInvocationResolution
           element: <testLibrary>::@getter::a
-          invokeType: dynamic Function()
           type: dynamic
         staticType: dynamic
       fieldExpression(v1): SimpleIdentifier
@@ -459,7 +456,6 @@ RecordLiteral
       name: a
       resolution: GetterInvocationResolution
         element: <testLibrary>::@getter::a
-        invokeType: dynamic Function()
         type: dynamic
       staticType: dynamic
   fields(v1)
@@ -1138,7 +1134,6 @@ RecordLiteral
         name: a
         resolution: GetterInvocationResolution
           element: <testLibrary>::@getter::a
-          invokeType: dynamic Function()
           type: dynamic
         staticType: dynamic
       fieldExpression(v1): SimpleIdentifier
@@ -1165,7 +1160,6 @@ RecordLiteral
       name: a
       resolution: GetterInvocationResolution
         element: <testLibrary>::@getter::a
-        invokeType: dynamic Function()
         type: dynamic
       staticType: dynamic
   fields(v1)

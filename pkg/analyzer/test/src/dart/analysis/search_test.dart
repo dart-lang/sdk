@@ -6929,6 +6929,31 @@ main() {
 ''');
   }
 
+  test_searchReferences_FunctionElement_local_invalidWrite() async {
+    makeFilePriority(testFile);
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void f() {
+  void foo() {}
+  foo = 0;
+//^^^
+// [diag.undefinedUnqualifiedNameWriteWrongKind] The function 'foo' can't be assigned to.
+  for (foo in [0]) {}
+//     ^^^
+// [diag.undefinedUnqualifiedNameWriteWrongKind] The function 'foo' can't be assigned to.
+}
+''');
+    var element = result.findElement.localFunction('foo');
+    await assertElementReferencesText(element, r'''
+void f() {
+  void foo() {}
+  foo = 0;
+  ^^^ REFERENCE
+  for (foo in [0]) {}
+       ^^^ REFERENCE
+}
+''');
+  }
+
   test_searchReferences_GetterElement_ofClass_instance_invalidWrite() async {
     var result = await resolveTestCode('''
 class A {
@@ -7697,7 +7722,7 @@ class A {
 void f(A a) {
   (a).foo ??= () {};
 //    ^^^
-// [diag.assignmentToMethod] Methods can't be assigned a value.
+// [diag.undefinedInstanceMemberWriteWrongKind] The method 'foo' of the type 'A' can't be assigned to.
 //            ^^^^^
 // [diag.deadCode] Dead code.
 // [diag.deadNullAwareExpression] The left operand can't be null, so the right operand is never executed.
@@ -7714,7 +7739,7 @@ void f(A a) {
   (a).foo ??= () {};
       ^^^ REFERENCE qualified
 //    ^^^
-// [diag.assignmentToMethod] Methods can't be assigned a value.
+// [diag.undefinedInstanceMemberWriteWrongKind] The method 'foo' of the type 'A' can't be assigned to.
 //            ^^^^^
 // [diag.deadCode] Dead code.
 // [diag.deadNullAwareExpression] The left operand can't be null, so the right operand is never executed.
@@ -8267,6 +8292,124 @@ void useOperator(A a) {
 ''');
   }
 
+  test_searchReferences_MethodElement_operator_ofClass_binary_otherFile() async {
+    newFile('$testPackageLibPath/other.dart', '''
+import 'test.dart';
+
+void useOperator(A a) {
+  a + 1;
+}
+''');
+    var result = await resolveTestCode('''
+class A {
+  A operator +(other) => this;
+}
+''');
+    var element = result.findElement.method('+');
+
+    await assertElementReferencesText(element, r'''
+package:test/other.dart
+-----------------------
+import 'test.dart';
+
+void useOperator(A a) {
+  a + 1;
+    ^ INVOCATION qualified
+}
+''');
+  }
+
+  test_searchReferences_MethodElement_operator_ofClass_cascadeIndexAssignmentTarget_otherFile() async {
+    newFile('$testPackageLibPath/other.dart', '''
+import 'test.dart';
+
+void useOperator(A a) {
+  a..[0] = 1;
+  a..[1] += 2;
+}
+''');
+    var result = await resolveTestCode('''
+class A {
+  num operator [](int i) => 0;
+  void operator []=(int i, num v) {}
+}
+''');
+    await assertElementsReferencesText(
+      {
+        'read': result.findElement.method('[]'),
+        'write': result.findElement.method('[]='),
+      },
+      r'''
+package:test/other.dart
+-----------------------
+import 'test.dart';
+
+void useOperator(A a) {
+  a..[0] = 1;
+     ^ write INVOCATION qualified
+  a..[1] += 2;
+     ^ read INVOCATION qualified
+     ^ write INVOCATION qualified
+}
+''',
+    );
+  }
+
+  test_searchReferences_MethodElement_operator_ofClass_cascadeIndexExpression_otherFile() async {
+    newFile('$testPackageLibPath/other.dart', '''
+import 'test.dart';
+
+void useOperator(A a) {
+  a..[0];
+}
+''');
+    var result = await resolveTestCode('''
+class A {
+  num operator [](int i) => 0;
+}
+''');
+    var element = result.findElement.method('[]');
+
+    await assertElementReferencesText(element, r'''
+package:test/other.dart
+-----------------------
+import 'test.dart';
+
+void useOperator(A a) {
+  a..[0];
+     ^ INVOCATION qualified
+}
+''');
+  }
+
+  test_searchReferences_MethodElement_operator_ofClass_equal_otherFile() async {
+    newFile('$testPackageLibPath/other.dart', '''
+import 'test.dart';
+
+void useOperator(A a, A b) {
+  a == b;
+}
+''');
+    var result = await resolveTestCode('''
+class A {
+  @override
+  bool operator ==(Object other) => true;
+}
+''');
+    var element = result.findElement.method('==');
+
+    await assertElementReferencesText(element, r'''
+package:test/other.dart
+-----------------------
+import 'test.dart';
+
+void useOperator(A a, A b) {
+  a == b;
+    ^^ INVOCATION qualified
+}
+''');
+  }
+
   test_searchReferences_MethodElement_operator_ofClass_indexExpression() async {
     var result = await resolveTestCode('''
 /// [operator []] and [A.operator []]
@@ -8290,6 +8433,64 @@ void useOperator(A a, A? b) {
    ^ INVOCATION qualified
   b?[1];
     ^ INVOCATION qualified
+}
+''');
+  }
+
+  test_searchReferences_MethodElement_operator_ofClass_indexExpression_otherFile() async {
+    newFile('$testPackageLibPath/other.dart', '''
+import 'test.dart';
+
+void useOperator(A a, A? b) {
+  a[0];
+  b?[1];
+}
+''');
+    var result = await resolveTestCode('''
+class A {
+  num operator [](int i) => 0;
+}
+''');
+    var element = result.findElement.method('[]');
+
+    await assertElementReferencesText(element, r'''
+package:test/other.dart
+-----------------------
+import 'test.dart';
+
+void useOperator(A a, A? b) {
+  a[0];
+   ^ INVOCATION qualified
+  b?[1];
+    ^ INVOCATION qualified
+}
+''');
+  }
+
+  test_searchReferences_MethodElement_operator_ofClass_notEqual_otherFile() async {
+    newFile('$testPackageLibPath/other.dart', '''
+import 'test.dart';
+
+void useOperator(A a, A b) {
+  a != b;
+}
+''');
+    var result = await resolveTestCode('''
+class A {
+  @override
+  bool operator ==(Object other) => true;
+}
+''');
+    var element = result.findElement.method('==');
+
+    await assertElementReferencesText(element, r'''
+package:test/other.dart
+-----------------------
+import 'test.dart';
+
+void useOperator(A a, A b) {
+  a != b;
+    ^^ INVOCATION qualified
 }
 ''');
   }
@@ -8318,6 +8519,41 @@ void useOperator(A a) {
   ^ INVOCATION qualified
 }
 ''');
+  }
+
+  test_searchReferences_MethodElement_operator_ofClass_prefix_otherFile() async {
+    newFile('$testPackageLibPath/other.dart', '''
+import 'test.dart';
+
+void useOperator(A a) {
+  ~a;
+  -a;
+}
+''');
+    var result = await resolveTestCode('''
+class A {
+  A operator ~() => this;
+  A operator -() => this;
+}
+''');
+    await assertElementsReferencesText(
+      {
+        'tilde': result.findElement.method('~'),
+        'negate': result.findElement.method('-'),
+      },
+      r'''
+package:test/other.dart
+-----------------------
+import 'test.dart';
+
+void useOperator(A a) {
+  ~a;
+  ^ tilde INVOCATION qualified
+  -a;
+  ^ negate INVOCATION qualified
+}
+''',
+    );
   }
 
   test_searchReferences_MethodElement_operator_ofClass_receiverIndexAssignmentTarget() async {
@@ -8375,6 +8611,42 @@ void useOperator(A a, A? nullableA, B b, B? nullableB) {
   nullableB?[5] ??= 6;
             ^ bRead INVOCATION qualified
             ^ bWrite INVOCATION qualified
+}
+''',
+    );
+  }
+
+  test_searchReferences_MethodElement_operator_ofClass_receiverIndexAssignmentTarget_otherFile() async {
+    newFile('$testPackageLibPath/other.dart', '''
+import 'test.dart';
+
+void useOperator(A a) {
+  a[0] = 1;
+  a[1] += 2;
+}
+''');
+    var result = await resolveTestCode('''
+class A {
+  num operator [](int i) => 0;
+  void operator []=(int i, num v) {}
+}
+''');
+    await assertElementsReferencesText(
+      {
+        'read': result.findElement.method('[]'),
+        'write': result.findElement.method('[]='),
+      },
+      r'''
+package:test/other.dart
+-----------------------
+import 'test.dart';
+
+void useOperator(A a) {
+  a[0] = 1;
+   ^ write INVOCATION qualified
+  a[1] += 2;
+   ^ read INVOCATION qualified
+   ^ write INVOCATION qualified
 }
 ''',
     );
@@ -9615,7 +9887,10 @@ void foo() {}
 void f() {
   foo = 0;
 //^^^
-// [diag.assignmentToFunction] Functions can't be assigned a value.
+// [diag.undefinedUnqualifiedNameWriteWrongKind] The function 'foo' can't be assigned to.
+  for (foo in [0]) {}
+//     ^^^
+// [diag.undefinedUnqualifiedNameWriteWrongKind] The function 'foo' can't be assigned to.
 }
 ''');
     var element = result.findElement.topFunction('foo');
@@ -9625,6 +9900,8 @@ void foo() {}
 void f() {
   foo = 0;
   ^^^ REFERENCE
+  for (foo in [0]) {}
+       ^^^ REFERENCE
 }
 ''');
   }
@@ -9731,10 +10008,7 @@ void foo() {}
 void f() {
   foo ??= () {};
 //^^^
-// [diag.assignmentToFunction] Functions can't be assigned a value.
-//        ^^^^^
-// [diag.deadCode] Dead code.
-// [diag.deadNullAwareExpression] The left operand can't be null, so the right operand is never executed.
+// [diag.undefinedUnqualifiedNameWriteWrongKind] The function 'foo' can't be assigned to.
 }
 ''');
     var element = result.findElement.topFunction('foo');
@@ -9793,7 +10067,7 @@ int get foo => 0;
 void f() {
   foo = 1;
 //^^^
-// [diag.assignmentToFinal] 'foo' can't be used as a setter because it's final.
+// [diag.undefinedUnqualifiedNameWriteGetterOnly] There's a getter 'foo', but no setter.
 }
 ''');
 
@@ -10917,7 +11191,7 @@ class _SearchAnnotation {
   final int order;
   final String text;
 
-  _SearchAnnotation({
+  new({
     required this.offset,
     required this.length,
     this.order = 0,

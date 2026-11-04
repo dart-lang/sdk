@@ -9,22 +9,29 @@ import 'package:test/test.dart';
 
 import '../../../lsp/code_actions_mixin.dart';
 import '../../../lsp/server_abstract.dart';
+import '../../../shared/shared_code_actions_refactor_tests.dart';
 import '../../../utils/test_code_extensions.dart';
 
 abstract class RefactoringTest extends AbstractLspAnalysisServerTest
-    with LspSharedTestMixin, CodeActionsTestMixin {
+    with
+        LspSharedTestMixin,
+        CodeActionsTestMixin,
+        SharedRefactorCodeActionsTests {
   /// Position of the marker where the refactor will be invoked.
   Position? _position;
 
   /// The range of characters that were selected.
   Range? _range;
 
+  /// The parsed test source code.
+  late TestCode testCode;
+
   /// Return the command ID of the refactoring command that is expected to be
   /// available.
   String get refactoringCommandId;
 
   void addTestSource(String markedCode) {
-    var testCode = TestCode.parse(markedCode);
+    testCode = TestCode.parse(markedCode);
     var positions = testCode.positions;
     if (positions.isNotEmpty) {
       _position = positions[0].position;

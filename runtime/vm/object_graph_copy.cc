@@ -2192,6 +2192,10 @@ class FastObjectCopy : public ObjectCopy<FastObjectCopyBase, false> {
                                    to_weak_property.ptr(),
                                    OFFSET_OF(UntaggedWeakProperty, value_));
 
+          if (exception_msg_ != nullptr) {
+            return root_copy;
+          }
+
           // We don't need to process this [WeakProperty] again.
           const intptr_t last = weak_properties.length() - 1;
           if (i < last) {
@@ -2318,11 +2322,6 @@ class SlowObjectCopy : public ObjectCopy<SlowObjectCopyBase, true> {
     Object& from = Object::Handle(Z);
     Object& to = Object::Handle(Z);
     while (true) {
-      if (slow_forward_map_.fill_cursor_ ==
-          slow_forward_map_.from_to_.Length()) {
-        break;
-      }
-
       // Run fixpoint to copy all objects.
       while (slow_forward_map_.fill_cursor_ <
              slow_forward_map_.from_to_.Length()) {
@@ -2367,6 +2366,14 @@ class SlowObjectCopy : public ObjectCopy<SlowObjectCopyBase, true> {
           }
         }
         i++;
+      }
+
+      // Must look at WeakProperty list at least once before terminating in case
+      // the transition to slow copy happened in the middle of weak property
+      // processing.
+      if (slow_forward_map_.fill_cursor_ ==
+          slow_forward_map_.from_to_.Length()) {
+        break;
       }
     }
 

@@ -988,8 +988,6 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph() {
       return flow_graph_builder_->BuildGraphOfFfiTrampoline(function);
     case UntaggedFunction::kRecordFieldGetter:
       return flow_graph_builder_->BuildGraphOfRecordFieldGetter(function);
-    case UntaggedFunction::kIrregexpFunction:
-      break;
   }
   UNREACHABLE();
   return nullptr;
@@ -1034,7 +1032,7 @@ void StreamingFlowGraphBuilder::ParseKernelASTFunction() {
         SetupDefaultParameterValues();
       }
       break;
-    case UntaggedFunction::kIrregexpFunction:
+    default:
       UNREACHABLE();
       break;
   }

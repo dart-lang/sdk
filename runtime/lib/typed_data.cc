@@ -186,8 +186,6 @@ DEFINE_NATIVE_ENTRY(TypedDataBase_memEquals, 0, 5) {
   TYPED_DATA_GETTER(Get##type_name, object, ctor)                              \
   TYPED_DATA_SETTER(Set##type_name, object, get_object_value, access_type)
 
-TYPED_DATA_NATIVES(Float32, Double, New, value, float)
-TYPED_DATA_NATIVES(Float64, Double, New, value, double)
 TYPED_DATA_NATIVES(Float32x4, Float32x4, New, value, simd128_value_t)
 TYPED_DATA_NATIVES(Int32x4, Int32x4, New, value, simd128_value_t)
 TYPED_DATA_NATIVES(Float64x2, Float64x2, New, value, simd128_value_t)

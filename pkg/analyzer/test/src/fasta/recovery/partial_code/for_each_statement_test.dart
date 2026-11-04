@@ -26,6 +26,49 @@ f() async { await for (A a in assert (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  type: NamedType
+                    name: A
+                  name: a
+                inKeyword: in
+                iterable2: CallInvocation
+                  receiver: ParsedUnqualifiedName
+                    name: assert
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    arguments2
+                      BooleanLiteral
+                        literal: true
+                    rightParenthesis: )
+                iterable(v1): FunctionExpressionInvocation
+                  function: SimpleIdentifier
+                    token: assert
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    arguments
+                      BooleanLiteral
+                        literal: true
+                    rightParenthesis: )
+              rightParenthesis: ) <synthetic>
+              body2: EmptyStatement
+                semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -47,16 +90,7 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in
-                  iterable2: CallInvocation
-                    receiver: ParsedUnqualifiedName
-                      name: assert
-                    argumentList: ArgumentList
-                      leftParenthesis: (
-                      arguments2
-                        BooleanLiteral
-                          literal: true
-                      rightParenthesis: )
-                  iterable(v1): FunctionExpressionInvocation
+                  iterable: FunctionExpressionInvocation
                     function: SimpleIdentifier
                       token: assert
                     argumentList: ArgumentList
@@ -85,6 +119,39 @@ f() async { await for (A a in {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  type: NamedType
+                    name: A
+                  name: a
+                inKeyword: in
+                iterable2: SetOrMapLiteral
+                  leftBracket: {
+                  rightBracket: }
+                  isMap: false
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -106,15 +173,13 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in
-                  iterable2: SetOrMapLiteral
+                  iterable: SetOrMapLiteral
                     leftBracket: {
                     rightBracket: }
                     isMap: false
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  expression(v1): SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -133,6 +198,36 @@ f() async { await for (A a in break; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  type: NamedType
+                    name: A
+                  name: a
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                iterable(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: BreakStatement
+                breakKeyword: break
+                semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -154,9 +249,7 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in
-                  iterable2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: BreakStatement
@@ -178,6 +271,36 @@ f() async { await for (A a in continue; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  type: NamedType
+                    name: A
+                  name: a
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                iterable(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ContinueStatement
+                continueKeyword: continue
+                semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -199,9 +322,7 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in
-                  iterable2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ContinueStatement
@@ -223,6 +344,44 @@ f() async { await for (A a in do {} while (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  type: NamedType
+                    name: A
+                  name: a
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                iterable(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: DoStatement
+                doKeyword: do
+                body2: Block
+                  leftBracket: {
+                  rightBracket: }
+                whileKeyword: while
+                leftParenthesis: (
+                condition2: BooleanLiteral
+                  literal: true
+                rightParenthesis: )
+                semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -244,9 +403,7 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in
-                  iterable2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: DoStatement
@@ -256,7 +413,7 @@ CompilationUnit
                     rightBracket: }
                   whileKeyword: while
                   leftParenthesis: (
-                  condition2: BooleanLiteral
+                  condition: BooleanLiteral
                     literal: true
                   rightParenthesis: )
                   semicolon: ;
@@ -277,6 +434,39 @@ f() async { await for (A a in }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  type: NamedType
+                    name: A
+                  name: a
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                iterable(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -298,15 +488,11 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in
-                  iterable2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  expression(v1): SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -325,6 +511,49 @@ f() async { await for (A a in for (var x in y) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  type: NamedType
+                    name: A
+                  name: a
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                iterable(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ForStatement
+                forKeyword: for
+                leftParenthesis: (
+                forLoopParts: ForEachPartsWithDeclaration
+                  loopVariable: DeclaredIdentifier
+                    keyword: var
+                    name: x
+                  inKeyword: in
+                  iterable2: ParsedUnqualifiedName
+                    name: y
+                  iterable(v1): SimpleIdentifier
+                    token: y
+                rightParenthesis: )
+                body2: Block
+                  leftBracket: {
+                  rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -346,9 +575,7 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in
-                  iterable2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ForStatement
@@ -359,9 +586,7 @@ CompilationUnit
                       keyword: var
                       name: x
                     inKeyword: in
-                    iterable2: ParsedUnqualifiedName
-                      name: y
-                    iterable(v1): SimpleIdentifier
+                    iterable: SimpleIdentifier
                       token: y
                   rightParenthesis: )
                   body: Block
@@ -383,6 +608,42 @@ f() async { await for (A a in if (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  type: NamedType
+                    name: A
+                  name: a
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                iterable(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: IfStatement
+                ifKeyword: if
+                leftParenthesis: (
+                expression2: BooleanLiteral
+                  literal: true
+                rightParenthesis: )
+                thenStatement2: Block
+                  leftBracket: {
+                  rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -404,15 +665,13 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in
-                  iterable2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: IfStatement
                   ifKeyword: if
                   leftParenthesis: (
-                  expression2: BooleanLiteral
+                  expression: BooleanLiteral
                     literal: true
                   rightParenthesis: )
                   thenStatement: Block
@@ -436,6 +695,48 @@ f() async { await for (A a in l: {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  type: NamedType
+                    name: A
+                  name: a
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: l
+                iterable(v1): SimpleIdentifier
+                  token: l
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+            ExpressionStatement
+              expression2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              expression(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            Block
+              leftBracket: {
+              rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -457,21 +758,15 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in
-                  iterable2: ParsedUnqualifiedName
-                    name: l
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: l
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  expression(v1): SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
               ExpressionStatement
-                expression2: ParsedUnqualifiedName
-                  name: <empty> <synthetic>
-                expression(v1): SimpleIdentifier
+                expression: SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
               Block
@@ -496,6 +791,43 @@ f() async { await for (A a in int f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  type: NamedType
+                    name: A
+                  name: a
+                inKeyword: in
+                iterable2: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -517,7 +849,7 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in
-                  iterable2: FunctionExpression
+                  iterable: FunctionExpression
                     parameters: FormalParameterList
                       leftParenthesis: (
                       rightParenthesis: )
@@ -527,9 +859,7 @@ CompilationUnit
                         rightBracket: }
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  expression(v1): SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -551,6 +881,43 @@ f() async { await for (A a in void f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  type: NamedType
+                    name: A
+                  name: a
+                inKeyword: in
+                iterable2: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -572,7 +939,7 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in
-                  iterable2: FunctionExpression
+                  iterable: FunctionExpression
                     parameters: FormalParameterList
                       leftParenthesis: (
                       rightParenthesis: )
@@ -582,9 +949,7 @@ CompilationUnit
                         rightBracket: }
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  expression(v1): SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -603,6 +968,47 @@ f() async { await for (A a in var x; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  type: NamedType
+                    name: A
+                  name: a
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                iterable(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: LocalVariablesDeclarationStatement
+                declaration: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: x
+                semicolon: ;
+              body(v1): VariableDeclarationStatement
+                variables: VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: x
+                semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -624,9 +1030,7 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in
-                  iterable2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: VariableDeclarationStatement
@@ -653,6 +1057,35 @@ f() async { await for (A a in return; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  type: NamedType
+                    name: A
+                  name: a
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                iterable(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: EmptyStatement
+                semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -674,9 +1107,7 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in
-                  iterable2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: EmptyStatement
@@ -698,6 +1129,45 @@ f() async { await for (A a in switch (x) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  type: NamedType
+                    name: A
+                  name: a
+                inKeyword: in
+                iterable2: SwitchExpression
+                  switchKeyword: switch
+                  leftParenthesis: (
+                  expression2: ParsedUnqualifiedName
+                    name: x
+                  expression(v1): SimpleIdentifier
+                    token: x
+                  rightParenthesis: )
+                  leftBracket: {
+                  rightBracket: }
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -719,21 +1189,17 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in
-                  iterable2: SwitchExpression
+                  iterable: SwitchExpression
                     switchKeyword: switch
                     leftParenthesis: (
-                    expression2: ParsedUnqualifiedName
-                      name: x
-                    expression(v1): SimpleIdentifier
+                    expression: SimpleIdentifier
                       token: x
                     rightParenthesis: )
                     leftBracket: {
                     rightBracket: }
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  expression(v1): SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -752,6 +1218,42 @@ f() async { await for (A a in try {} finally {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  type: NamedType
+                    name: A
+                  name: a
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                iterable(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: TryStatement
+                tryKeyword: try
+                body: Block
+                  leftBracket: {
+                  rightBracket: }
+                finallyKeyword: finally
+                finallyBlock: Block
+                  leftBracket: {
+                  rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -773,9 +1275,7 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in
-                  iterable2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: TryStatement
@@ -803,6 +1303,42 @@ f() async { await for (A a in while (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  type: NamedType
+                    name: A
+                  name: a
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                iterable(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: WhileStatement
+                whileKeyword: while
+                leftParenthesis: (
+                condition2: BooleanLiteral
+                  literal: true
+                rightParenthesis: )
+                body2: Block
+                  leftBracket: {
+                  rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -824,15 +1360,13 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in
-                  iterable2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: WhileStatement
                   whileKeyword: while
                   leftParenthesis: (
-                  condition2: BooleanLiteral
+                  condition: BooleanLiteral
                     literal: true
                   rightParenthesis: )
                   body: Block
@@ -852,6 +1386,46 @@ f() async { await for assert (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: ( <synthetic>
+              forLoopParts: ForEachPartsWithIdentifier
+                target: UnqualifiedNameAssignmentTarget
+                  name: <empty> <synthetic>
+                inKeyword: in <synthetic>
+                iterable2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                iterable(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                identifier: SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+            AssertStatement
+              assertKeyword: assert
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -868,25 +1442,20 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: ( <synthetic>
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: <empty> <synthetic>
-                  identifier(v1): SimpleIdentifier
+                  identifier: SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
-                  iterable2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  expression(v1): SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -904,6 +1473,42 @@ f() async { await for {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: ( <synthetic>
+              forLoopParts: ForEachPartsWithIdentifier
+                target: UnqualifiedNameAssignmentTarget
+                  name: <empty> <synthetic>
+                inKeyword: in <synthetic>
+                iterable2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                iterable(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                identifier: SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+            Block
+              leftBracket: {
+              rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -920,19 +1525,14 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: ( <synthetic>
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: <empty> <synthetic>
-                  identifier(v1): SimpleIdentifier
+                  identifier: SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
-                  iterable2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  expression(v1): SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
               Block
@@ -953,6 +1553,42 @@ f() async { await for break; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: ( <synthetic>
+              forLoopParts: ForEachPartsWithIdentifier
+                target: UnqualifiedNameAssignmentTarget
+                  name: <empty> <synthetic>
+                inKeyword: in <synthetic>
+                iterable2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                iterable(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                identifier: SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+            BreakStatement
+              breakKeyword: break
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -969,19 +1605,14 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: ( <synthetic>
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: <empty> <synthetic>
-                  identifier(v1): SimpleIdentifier
+                  identifier: SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
-                  iterable2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  expression(v1): SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
               BreakStatement
@@ -1002,6 +1633,42 @@ f() async { await for continue; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: ( <synthetic>
+              forLoopParts: ForEachPartsWithIdentifier
+                target: UnqualifiedNameAssignmentTarget
+                  name: <empty> <synthetic>
+                inKeyword: in <synthetic>
+                iterable2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                iterable(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                identifier: SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+            ContinueStatement
+              continueKeyword: continue
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1018,19 +1685,14 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: ( <synthetic>
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: <empty> <synthetic>
-                  identifier(v1): SimpleIdentifier
+                  identifier: SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
-                  iterable2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  expression(v1): SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
               ContinueStatement
@@ -1050,6 +1712,50 @@ f() async { await for do {} while (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: ( <synthetic>
+              forLoopParts: ForEachPartsWithIdentifier
+                target: UnqualifiedNameAssignmentTarget
+                  name: <empty> <synthetic>
+                inKeyword: in <synthetic>
+                iterable2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                iterable(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                identifier: SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1066,19 +1772,14 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: ( <synthetic>
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: <empty> <synthetic>
-                  identifier(v1): SimpleIdentifier
+                  identifier: SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
-                  iterable2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  expression(v1): SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
               DoStatement
@@ -1088,7 +1789,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -1106,6 +1807,39 @@ f() async { await for }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: ( <synthetic>
+              forLoopParts: ForEachPartsWithIdentifier
+                target: UnqualifiedNameAssignmentTarget
+                  name: <empty> <synthetic>
+                inKeyword: in <synthetic>
+                iterable2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                iterable(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                identifier: SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1122,19 +1856,14 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: ( <synthetic>
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: <empty> <synthetic>
-                  identifier(v1): SimpleIdentifier
+                  identifier: SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
-                  iterable2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  expression(v1): SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -1151,6 +1880,55 @@ f() async { await for for (var x in y) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: ( <synthetic>
+              forLoopParts: ForEachPartsWithIdentifier
+                target: UnqualifiedNameAssignmentTarget
+                  name: <empty> <synthetic>
+                inKeyword: in <synthetic>
+                iterable2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                iterable(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                identifier: SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: x
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: y
+                iterable(v1): SimpleIdentifier
+                  token: y
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1167,19 +1945,14 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: ( <synthetic>
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: <empty> <synthetic>
-                  identifier(v1): SimpleIdentifier
+                  identifier: SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
-                  iterable2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  expression(v1): SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
               ForStatement
@@ -1190,9 +1963,7 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable2: ParsedUnqualifiedName
-                    name: y
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: y
                 rightParenthesis: )
                 body: Block
@@ -1212,6 +1983,48 @@ f() async { await for if (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: ( <synthetic>
+              forLoopParts: ForEachPartsWithIdentifier
+                target: UnqualifiedNameAssignmentTarget
+                  name: <empty> <synthetic>
+                inKeyword: in <synthetic>
+                iterable2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                iterable(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                identifier: SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              thenStatement2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1228,25 +2041,20 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: ( <synthetic>
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: <empty> <synthetic>
-                  identifier(v1): SimpleIdentifier
+                  identifier: SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
-                  iterable2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  expression(v1): SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: BooleanLiteral
+                expression: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 thenStatement: Block
@@ -1266,6 +2074,47 @@ f() async { await for l: {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: ( <synthetic>
+              forLoopParts: ForEachPartsWithIdentifier
+                target: UnqualifiedNameAssignmentTarget
+                  name: <empty> <synthetic>
+                inKeyword: in <synthetic>
+                iterable2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                iterable(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                identifier: SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+            LabeledStatement
+              labels
+                Label
+                  name: l
+                  colon: :
+              statement2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1282,19 +2131,14 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: ( <synthetic>
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: <empty> <synthetic>
-                  identifier(v1): SimpleIdentifier
+                  identifier: SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
-                  iterable2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  expression(v1): SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
               LabeledStatement
@@ -1319,6 +2163,79 @@ f() async { await for int f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: ( <synthetic>
+              forLoopParts: ForEachPartsWithIdentifier
+                target: UnqualifiedNameAssignmentTarget
+                  name: <empty> <synthetic>
+                inKeyword: in <synthetic>
+                iterable2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                iterable(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                identifier: SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: ( <synthetic>
+              forLoopParts: ForEachPartsWithIdentifier
+                identifier: SimpleIdentifier
+                  token: <empty> <synthetic>
+                inKeyword: in <synthetic>
+                iterable: SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body: ExpressionStatement
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+            FunctionDeclarationStatement
+              functionDeclaration: FunctionDeclaration
+                returnType: NamedType
+                  name: int
+                name: f
+                functionExpression: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1335,19 +2252,14 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: ( <synthetic>
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: <empty> <synthetic>
-                  identifier(v1): SimpleIdentifier
+                  identifier: SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
-                  iterable2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  expression(v1): SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
               FunctionDeclarationStatement
@@ -1377,6 +2289,79 @@ f() async { await for void f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: ( <synthetic>
+              forLoopParts: ForEachPartsWithIdentifier
+                target: UnqualifiedNameAssignmentTarget
+                  name: <empty> <synthetic>
+                inKeyword: in <synthetic>
+                iterable2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                iterable(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                identifier: SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: ( <synthetic>
+              forLoopParts: ForEachPartsWithIdentifier
+                identifier: SimpleIdentifier
+                  token: <empty> <synthetic>
+                inKeyword: in <synthetic>
+                iterable: SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body: ExpressionStatement
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+            FunctionDeclarationStatement
+              functionDeclaration: FunctionDeclaration
+                returnType: NamedType
+                  name: void
+                name: f
+                functionExpression: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1393,19 +2378,14 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: ( <synthetic>
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: <empty> <synthetic>
-                  identifier(v1): SimpleIdentifier
+                  identifier: SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
-                  iterable2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  expression(v1): SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
               FunctionDeclarationStatement
@@ -1435,6 +2415,69 @@ f() async { await for var x; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: ( <synthetic>
+              forLoopParts: ForEachPartsWithIdentifier
+                target: UnqualifiedNameAssignmentTarget
+                  name: <empty> <synthetic>
+                inKeyword: in <synthetic>
+                iterable2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                iterable(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                identifier: SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: ( <synthetic>
+              forLoopParts: ForEachPartsWithIdentifier
+                identifier: SimpleIdentifier
+                  token: <empty> <synthetic>
+                inKeyword: in <synthetic>
+                iterable: SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body: ExpressionStatement
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: var
+                variables
+                  VariableDeclaration
+                    name: x
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1451,19 +2494,14 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: ( <synthetic>
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: <empty> <synthetic>
-                  identifier(v1): SimpleIdentifier
+                  identifier: SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
-                  iterable2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  expression(v1): SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
               VariableDeclarationStatement
@@ -1487,6 +2525,42 @@ f() async { await for return; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: ( <synthetic>
+              forLoopParts: ForEachPartsWithIdentifier
+                target: UnqualifiedNameAssignmentTarget
+                  name: <empty> <synthetic>
+                inKeyword: in <synthetic>
+                iterable2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                iterable(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                identifier: SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+            ReturnStatement
+              returnKeyword: return
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1503,19 +2577,14 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: ( <synthetic>
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: <empty> <synthetic>
-                  identifier(v1): SimpleIdentifier
+                  identifier: SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
-                  iterable2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  expression(v1): SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
               ReturnStatement
@@ -1535,6 +2604,49 @@ f() async { await for switch (x) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: ( <synthetic>
+              forLoopParts: ForEachPartsWithIdentifier
+                target: UnqualifiedNameAssignmentTarget
+                  name: <empty> <synthetic>
+                inKeyword: in <synthetic>
+                iterable2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                iterable(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                identifier: SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+            SwitchStatement
+              switchKeyword: switch
+              leftParenthesis: (
+              expression2: ParsedUnqualifiedName
+                name: x
+              expression(v1): SimpleIdentifier
+                token: x
+              rightParenthesis: )
+              leftBracket: {
+              rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1551,27 +2663,20 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: ( <synthetic>
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: <empty> <synthetic>
-                  identifier(v1): SimpleIdentifier
+                  identifier: SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
-                  iterable2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  expression(v1): SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: ParsedUnqualifiedName
-                  name: x
-                expression(v1): SimpleIdentifier
+                expression: SimpleIdentifier
                   token: x
                 rightParenthesis: )
                 leftBracket: {
@@ -1590,6 +2695,48 @@ f() async { await for try {} finally {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: ( <synthetic>
+              forLoopParts: ForEachPartsWithIdentifier
+                target: UnqualifiedNameAssignmentTarget
+                  name: <empty> <synthetic>
+                inKeyword: in <synthetic>
+                iterable2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                iterable(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                identifier: SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1606,19 +2753,14 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: ( <synthetic>
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: <empty> <synthetic>
-                  identifier(v1): SimpleIdentifier
+                  identifier: SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
-                  iterable2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  expression(v1): SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
               TryStatement
@@ -1644,6 +2786,48 @@ f() async { await for while (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: ( <synthetic>
+              forLoopParts: ForEachPartsWithIdentifier
+                target: UnqualifiedNameAssignmentTarget
+                  name: <empty> <synthetic>
+                inKeyword: in <synthetic>
+                iterable2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                iterable(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                identifier: SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+            WhileStatement
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1660,25 +2844,20 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: ( <synthetic>
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: <empty> <synthetic>
-                  identifier(v1): SimpleIdentifier
+                  identifier: SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
-                  iterable2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  expression(v1): SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
               WhileStatement
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 body: Block
@@ -1703,6 +2882,53 @@ f() async { await for ( assert (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithExpression
+                initialization2: CallInvocation
+                  receiver: ParsedUnqualifiedName
+                    name: assert
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    arguments2
+                      BooleanLiteral
+                        literal: true
+                    rightParenthesis: )
+                initialization(v1): FunctionExpressionInvocation
+                  function: SimpleIdentifier
+                    token: assert
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    arguments
+                      BooleanLiteral
+                        literal: true
+                    rightParenthesis: )
+                leftSeparator: ;
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1718,16 +2944,7 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForPartsWithExpression
-                  initialization2: CallInvocation
-                    receiver: ParsedUnqualifiedName
-                      name: assert
-                    argumentList: ArgumentList
-                      leftParenthesis: (
-                      arguments2
-                        BooleanLiteral
-                          literal: true
-                      rightParenthesis: )
-                  initialization(v1): FunctionExpressionInvocation
+                  initialization: FunctionExpressionInvocation
                     function: SimpleIdentifier
                       token: assert
                     argumentList: ArgumentList
@@ -1737,16 +2954,12 @@ CompilationUnit
                           literal: true
                       rightParenthesis: )
                   leftSeparator: ;
-                  condition2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  condition(v1): SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  expression(v1): SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -1769,6 +2982,39 @@ f() async { await for ( {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithIdentifier
+                target: UnqualifiedNameAssignmentTarget
+                  name: <empty> <synthetic>
+                inKeyword: in <synthetic>
+                iterable2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                iterable(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                identifier: SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1785,19 +3031,14 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: <empty> <synthetic>
-                  identifier(v1): SimpleIdentifier
+                  identifier: SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
-                  iterable2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  expression(v1): SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -1817,6 +3058,36 @@ f() async { await for ( break; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithIdentifier
+                target: UnqualifiedNameAssignmentTarget
+                  name: <empty> <synthetic>
+                inKeyword: in <synthetic>
+                iterable2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                iterable(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                identifier: SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: BreakStatement
+                breakKeyword: break
+                semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1833,13 +3104,10 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: <empty> <synthetic>
-                  identifier(v1): SimpleIdentifier
+                  identifier: SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
-                  iterable2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: BreakStatement
@@ -1862,6 +3130,36 @@ f() async { await for ( continue; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithIdentifier
+                target: UnqualifiedNameAssignmentTarget
+                  name: <empty> <synthetic>
+                inKeyword: in <synthetic>
+                iterable2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                iterable(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                identifier: SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ContinueStatement
+                continueKeyword: continue
+                semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1878,13 +3176,10 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: <empty> <synthetic>
-                  identifier(v1): SimpleIdentifier
+                  identifier: SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
-                  iterable2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ContinueStatement
@@ -1907,6 +3202,44 @@ f() async { await for ( do {} while (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithIdentifier
+                target: UnqualifiedNameAssignmentTarget
+                  name: <empty> <synthetic>
+                inKeyword: in <synthetic>
+                iterable2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                iterable(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                identifier: SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: DoStatement
+                doKeyword: do
+                body2: Block
+                  leftBracket: {
+                  rightBracket: }
+                whileKeyword: while
+                leftParenthesis: (
+                condition2: BooleanLiteral
+                  literal: true
+                rightParenthesis: )
+                semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1923,13 +3256,10 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: <empty> <synthetic>
-                  identifier(v1): SimpleIdentifier
+                  identifier: SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
-                  iterable2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: DoStatement
@@ -1939,7 +3269,7 @@ CompilationUnit
                     rightBracket: }
                   whileKeyword: while
                   leftParenthesis: (
-                  condition2: BooleanLiteral
+                  condition: BooleanLiteral
                     literal: true
                   rightParenthesis: )
                   semicolon: ;
@@ -1961,6 +3291,39 @@ f() async { await for ( }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithIdentifier
+                target: UnqualifiedNameAssignmentTarget
+                  name: <empty> <synthetic>
+                inKeyword: in <synthetic>
+                iterable2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                iterable(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                identifier: SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1977,19 +3340,14 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: <empty> <synthetic>
-                  identifier(v1): SimpleIdentifier
+                  identifier: SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
-                  iterable2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  expression(v1): SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -2009,6 +3367,49 @@ f() async { await for ( for (var x in y) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithIdentifier
+                target: UnqualifiedNameAssignmentTarget
+                  name: <empty> <synthetic>
+                inKeyword: in <synthetic>
+                iterable2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                iterable(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                identifier: SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ForStatement
+                forKeyword: for
+                leftParenthesis: (
+                forLoopParts: ForEachPartsWithDeclaration
+                  loopVariable: DeclaredIdentifier
+                    keyword: var
+                    name: x
+                  inKeyword: in
+                  iterable2: ParsedUnqualifiedName
+                    name: y
+                  iterable(v1): SimpleIdentifier
+                    token: y
+                rightParenthesis: )
+                body2: Block
+                  leftBracket: {
+                  rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2025,13 +3426,10 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: <empty> <synthetic>
-                  identifier(v1): SimpleIdentifier
+                  identifier: SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
-                  iterable2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ForStatement
@@ -2042,9 +3440,7 @@ CompilationUnit
                       keyword: var
                       name: x
                     inKeyword: in
-                    iterable2: ParsedUnqualifiedName
-                      name: y
-                    iterable(v1): SimpleIdentifier
+                    iterable: SimpleIdentifier
                       token: y
                   rightParenthesis: )
                   body: Block
@@ -2067,6 +3463,42 @@ f() async { await for ( if (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithIdentifier
+                target: UnqualifiedNameAssignmentTarget
+                  name: <empty> <synthetic>
+                inKeyword: in <synthetic>
+                iterable2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                iterable(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                identifier: SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: IfStatement
+                ifKeyword: if
+                leftParenthesis: (
+                expression2: BooleanLiteral
+                  literal: true
+                rightParenthesis: )
+                thenStatement2: Block
+                  leftBracket: {
+                  rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2083,19 +3515,16 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: <empty> <synthetic>
-                  identifier(v1): SimpleIdentifier
+                  identifier: SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
-                  iterable2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: IfStatement
                   ifKeyword: if
                   leftParenthesis: (
-                  expression2: BooleanLiteral
+                  expression: BooleanLiteral
                     literal: true
                   rightParenthesis: )
                   thenStatement: Block
@@ -2120,6 +3549,39 @@ f() async { await for ( l: {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithIdentifier
+                target: UnqualifiedNameAssignmentTarget
+                  name: l
+                inKeyword: :
+                iterable2: SetOrMapLiteral
+                  leftBracket: {
+                  rightBracket: }
+                  isMap: false
+                identifier: SimpleIdentifier
+                  token: l
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2136,19 +3598,16 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: l
-                  identifier(v1): SimpleIdentifier
+                  identifier: SimpleIdentifier
                     token: l
                   inKeyword: :
-                  iterable2: SetOrMapLiteral
+                  iterable: SetOrMapLiteral
                     leftBracket: {
                     rightBracket: }
                     isMap: false
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  expression(v1): SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -2170,6 +3629,43 @@ f() async { await for ( int f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  type: NamedType
+                    name: int
+                  name: f
+                inKeyword: in <synthetic>
+                iterable2: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2191,7 +3687,7 @@ CompilationUnit
                       name: int
                     name: f
                   inKeyword: in <synthetic>
-                  iterable2: FunctionExpression
+                  iterable: FunctionExpression
                     parameters: FormalParameterList
                       leftParenthesis: (
                       rightParenthesis: )
@@ -2201,9 +3697,7 @@ CompilationUnit
                         rightBracket: }
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  expression(v1): SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -2225,6 +3719,43 @@ f() async { await for ( void f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  type: NamedType
+                    name: void
+                  name: f
+                inKeyword: in <synthetic>
+                iterable2: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2246,7 +3777,7 @@ CompilationUnit
                       name: void
                     name: f
                   inKeyword: in <synthetic>
-                  iterable2: FunctionExpression
+                  iterable: FunctionExpression
                     parameters: FormalParameterList
                       leftParenthesis: (
                       rightParenthesis: )
@@ -2256,9 +3787,7 @@ CompilationUnit
                         rightBracket: }
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  expression(v1): SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -2280,6 +3809,45 @@ f() async { await for ( var x; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: x
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: x
+                leftSeparator: ;
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2301,16 +3869,12 @@ CompilationUnit
                       VariableDeclaration
                         name: x
                   leftSeparator: ;
-                  condition2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  condition(v1): SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  expression(v1): SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -2335,6 +3899,39 @@ f() async { await for ( return; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithExpression
+                initialization2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                initialization(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                leftSeparator: ;
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2350,21 +3947,15 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForPartsWithExpression
-                  initialization2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  initialization(v1): SimpleIdentifier
+                  initialization: SimpleIdentifier
                     token: <empty> <synthetic>
                   leftSeparator: ;
-                  condition2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  condition(v1): SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  expression(v1): SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -2387,6 +3978,39 @@ f() async { await for ( switch (x) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithIdentifier
+                target: UnqualifiedNameAssignmentTarget
+                  name: <empty> <synthetic>
+                inKeyword: in <synthetic>
+                iterable2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                iterable(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                identifier: SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2403,19 +4027,14 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: <empty> <synthetic>
-                  identifier(v1): SimpleIdentifier
+                  identifier: SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
-                  iterable2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  expression(v1): SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -2435,6 +4054,42 @@ f() async { await for ( try {} finally {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithIdentifier
+                target: UnqualifiedNameAssignmentTarget
+                  name: <empty> <synthetic>
+                inKeyword: in <synthetic>
+                iterable2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                iterable(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                identifier: SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: TryStatement
+                tryKeyword: try
+                body: Block
+                  leftBracket: {
+                  rightBracket: }
+                finallyKeyword: finally
+                finallyBlock: Block
+                  leftBracket: {
+                  rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2451,13 +4106,10 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: <empty> <synthetic>
-                  identifier(v1): SimpleIdentifier
+                  identifier: SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
-                  iterable2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: TryStatement
@@ -2486,6 +4138,42 @@ f() async { await for ( while (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithIdentifier
+                target: UnqualifiedNameAssignmentTarget
+                  name: <empty> <synthetic>
+                inKeyword: in <synthetic>
+                iterable2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                iterable(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                identifier: SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: WhileStatement
+                whileKeyword: while
+                leftParenthesis: (
+                condition2: BooleanLiteral
+                  literal: true
+                rightParenthesis: )
+                body2: Block
+                  leftBracket: {
+                  rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2502,19 +4190,16 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: <empty> <synthetic>
-                  identifier(v1): SimpleIdentifier
+                  identifier: SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
-                  iterable2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: WhileStatement
                   whileKeyword: while
                   leftParenthesis: (
-                  condition2: BooleanLiteral
+                  condition: BooleanLiteral
                     literal: true
                   rightParenthesis: )
                   body: Block
@@ -2534,6 +4219,40 @@ f() async { await for (A a in b assert (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  type: NamedType
+                    name: A
+                  name: a
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: b
+                iterable(v1): SimpleIdentifier
+                  token: b
+              rightParenthesis: ) <synthetic>
+              body2: AssertStatement
+                assertKeyword: assert
+                leftParenthesis: (
+                condition2: BooleanLiteral
+                  literal: true
+                rightParenthesis: )
+                semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2555,15 +4274,13 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in
-                  iterable2: ParsedUnqualifiedName
-                    name: b
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: b
                 rightParenthesis: ) <synthetic>
                 body: AssertStatement
                   assertKeyword: assert
                   leftParenthesis: (
-                  condition2: BooleanLiteral
+                  condition: BooleanLiteral
                     literal: true
                   rightParenthesis: )
                   semicolon: ;
@@ -2581,6 +4298,36 @@ f() async { await for (A a in b {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  type: NamedType
+                    name: A
+                  name: a
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: b
+                iterable(v1): SimpleIdentifier
+                  token: b
+              rightParenthesis: ) <synthetic>
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2602,9 +4349,7 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in
-                  iterable2: ParsedUnqualifiedName
-                    name: b
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: b
                 rightParenthesis: ) <synthetic>
                 body: Block
@@ -2624,6 +4369,36 @@ f() async { await for (A a in b break; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  type: NamedType
+                    name: A
+                  name: a
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: b
+                iterable(v1): SimpleIdentifier
+                  token: b
+              rightParenthesis: ) <synthetic>
+              body2: BreakStatement
+                breakKeyword: break
+                semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2645,9 +4420,7 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in
-                  iterable2: ParsedUnqualifiedName
-                    name: b
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: b
                 rightParenthesis: ) <synthetic>
                 body: BreakStatement
@@ -2667,6 +4440,36 @@ f() async { await for (A a in b continue; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  type: NamedType
+                    name: A
+                  name: a
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: b
+                iterable(v1): SimpleIdentifier
+                  token: b
+              rightParenthesis: ) <synthetic>
+              body2: ContinueStatement
+                continueKeyword: continue
+                semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2688,9 +4491,7 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in
-                  iterable2: ParsedUnqualifiedName
-                    name: b
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: b
                 rightParenthesis: ) <synthetic>
                 body: ContinueStatement
@@ -2710,6 +4511,44 @@ f() async { await for (A a in b do {} while (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  type: NamedType
+                    name: A
+                  name: a
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: b
+                iterable(v1): SimpleIdentifier
+                  token: b
+              rightParenthesis: ) <synthetic>
+              body2: DoStatement
+                doKeyword: do
+                body2: Block
+                  leftBracket: {
+                  rightBracket: }
+                whileKeyword: while
+                leftParenthesis: (
+                condition2: BooleanLiteral
+                  literal: true
+                rightParenthesis: )
+                semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2731,9 +4570,7 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in
-                  iterable2: ParsedUnqualifiedName
-                    name: b
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: b
                 rightParenthesis: ) <synthetic>
                 body: DoStatement
@@ -2743,7 +4580,7 @@ CompilationUnit
                     rightBracket: }
                   whileKeyword: while
                   leftParenthesis: (
-                  condition2: BooleanLiteral
+                  condition: BooleanLiteral
                     literal: true
                   rightParenthesis: )
                   semicolon: ;
@@ -2764,6 +4601,39 @@ f() async { await for (A a in b }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  type: NamedType
+                    name: A
+                  name: a
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: b
+                iterable(v1): SimpleIdentifier
+                  token: b
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2785,15 +4655,11 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in
-                  iterable2: ParsedUnqualifiedName
-                    name: b
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: b
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  expression(v1): SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -2810,6 +4676,49 @@ f() async { await for (A a in b for (var x in y) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  type: NamedType
+                    name: A
+                  name: a
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: b
+                iterable(v1): SimpleIdentifier
+                  token: b
+              rightParenthesis: ) <synthetic>
+              body2: ForStatement
+                forKeyword: for
+                leftParenthesis: (
+                forLoopParts: ForEachPartsWithDeclaration
+                  loopVariable: DeclaredIdentifier
+                    keyword: var
+                    name: x
+                  inKeyword: in
+                  iterable2: ParsedUnqualifiedName
+                    name: y
+                  iterable(v1): SimpleIdentifier
+                    token: y
+                rightParenthesis: )
+                body2: Block
+                  leftBracket: {
+                  rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2831,9 +4740,7 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in
-                  iterable2: ParsedUnqualifiedName
-                    name: b
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: b
                 rightParenthesis: ) <synthetic>
                 body: ForStatement
@@ -2844,9 +4751,7 @@ CompilationUnit
                       keyword: var
                       name: x
                     inKeyword: in
-                    iterable2: ParsedUnqualifiedName
-                      name: y
-                    iterable(v1): SimpleIdentifier
+                    iterable: SimpleIdentifier
                       token: y
                   rightParenthesis: )
                   body: Block
@@ -2866,6 +4771,42 @@ f() async { await for (A a in b if (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  type: NamedType
+                    name: A
+                  name: a
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: b
+                iterable(v1): SimpleIdentifier
+                  token: b
+              rightParenthesis: ) <synthetic>
+              body2: IfStatement
+                ifKeyword: if
+                leftParenthesis: (
+                expression2: BooleanLiteral
+                  literal: true
+                rightParenthesis: )
+                thenStatement2: Block
+                  leftBracket: {
+                  rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2887,15 +4828,13 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in
-                  iterable2: ParsedUnqualifiedName
-                    name: b
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: b
                 rightParenthesis: ) <synthetic>
                 body: IfStatement
                   ifKeyword: if
                   leftParenthesis: (
-                  expression2: BooleanLiteral
+                  expression: BooleanLiteral
                     literal: true
                   rightParenthesis: )
                   thenStatement: Block
@@ -2915,6 +4854,41 @@ f() async { await for (A a in b l: {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  type: NamedType
+                    name: A
+                  name: a
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: b
+                iterable(v1): SimpleIdentifier
+                  token: b
+              rightParenthesis: ) <synthetic>
+              body2: LabeledStatement
+                labels
+                  Label
+                    name: l
+                    colon: :
+                statement2: Block
+                  leftBracket: {
+                  rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2936,9 +4910,7 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in
-                  iterable2: ParsedUnqualifiedName
-                    name: b
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: b
                 rightParenthesis: ) <synthetic>
                 body: LabeledStatement
@@ -2963,6 +4935,57 @@ f() async { await for (A a in b int f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  type: NamedType
+                    name: A
+                  name: a
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: b
+                iterable(v1): SimpleIdentifier
+                  token: b
+              rightParenthesis: ) <synthetic>
+              body2: LocalFunctionDeclaration
+                returnType: NamedType
+                  name: int
+                name: f
+                formalParameters: FormalParameterList
+                  leftParenthesis: (
+                  rightParenthesis: )
+                body: BlockFunctionBody
+                  block: Block
+                    leftBracket: {
+                    rightBracket: }
+              body(v1): FunctionDeclarationStatement
+                functionDeclaration: FunctionDeclaration
+                  returnType: NamedType
+                    name: int
+                  name: f
+                  functionExpression: FunctionExpression
+                    parameters: FormalParameterList
+                      leftParenthesis: (
+                      rightParenthesis: )
+                    body: BlockFunctionBody
+                      block: Block
+                        leftBracket: {
+                        rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2984,9 +5007,7 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in
-                  iterable2: ParsedUnqualifiedName
-                    name: b
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: b
                 rightParenthesis: ) <synthetic>
                 body: FunctionDeclarationStatement
@@ -3016,6 +5037,57 @@ f() async { await for (A a in b void f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  type: NamedType
+                    name: A
+                  name: a
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: b
+                iterable(v1): SimpleIdentifier
+                  token: b
+              rightParenthesis: ) <synthetic>
+              body2: LocalFunctionDeclaration
+                returnType: NamedType
+                  name: void
+                name: f
+                formalParameters: FormalParameterList
+                  leftParenthesis: (
+                  rightParenthesis: )
+                body: BlockFunctionBody
+                  block: Block
+                    leftBracket: {
+                    rightBracket: }
+              body(v1): FunctionDeclarationStatement
+                functionDeclaration: FunctionDeclaration
+                  returnType: NamedType
+                    name: void
+                  name: f
+                  functionExpression: FunctionExpression
+                    parameters: FormalParameterList
+                      leftParenthesis: (
+                      rightParenthesis: )
+                    body: BlockFunctionBody
+                      block: Block
+                        leftBracket: {
+                        rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3037,9 +5109,7 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in
-                  iterable2: ParsedUnqualifiedName
-                    name: b
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: b
                 rightParenthesis: ) <synthetic>
                 body: FunctionDeclarationStatement
@@ -3069,6 +5139,47 @@ f() async { await for (A a in b var x; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  type: NamedType
+                    name: A
+                  name: a
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: b
+                iterable(v1): SimpleIdentifier
+                  token: b
+              rightParenthesis: ) <synthetic>
+              body2: LocalVariablesDeclarationStatement
+                declaration: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: x
+                semicolon: ;
+              body(v1): VariableDeclarationStatement
+                variables: VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: x
+                semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3090,9 +5201,7 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in
-                  iterable2: ParsedUnqualifiedName
-                    name: b
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: b
                 rightParenthesis: ) <synthetic>
                 body: VariableDeclarationStatement
@@ -3116,6 +5225,36 @@ f() async { await for (A a in b return; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  type: NamedType
+                    name: A
+                  name: a
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: b
+                iterable(v1): SimpleIdentifier
+                  token: b
+              rightParenthesis: ) <synthetic>
+              body2: ReturnStatement
+                returnKeyword: return
+                semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3137,9 +5276,7 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in
-                  iterable2: ParsedUnqualifiedName
-                    name: b
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: b
                 rightParenthesis: ) <synthetic>
                 body: ReturnStatement
@@ -3159,6 +5296,43 @@ f() async { await for (A a in b switch (x) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  type: NamedType
+                    name: A
+                  name: a
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: b
+                iterable(v1): SimpleIdentifier
+                  token: b
+              rightParenthesis: ) <synthetic>
+              body2: SwitchStatement
+                switchKeyword: switch
+                leftParenthesis: (
+                expression2: ParsedUnqualifiedName
+                  name: x
+                expression(v1): SimpleIdentifier
+                  token: x
+                rightParenthesis: )
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3180,17 +5354,13 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in
-                  iterable2: ParsedUnqualifiedName
-                    name: b
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: b
                 rightParenthesis: ) <synthetic>
                 body: SwitchStatement
                   switchKeyword: switch
                   leftParenthesis: (
-                  expression2: ParsedUnqualifiedName
-                    name: x
-                  expression(v1): SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: x
                   rightParenthesis: )
                   leftBracket: {
@@ -3209,6 +5379,42 @@ f() async { await for (A a in b try {} finally {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  type: NamedType
+                    name: A
+                  name: a
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: b
+                iterable(v1): SimpleIdentifier
+                  token: b
+              rightParenthesis: ) <synthetic>
+              body2: TryStatement
+                tryKeyword: try
+                body: Block
+                  leftBracket: {
+                  rightBracket: }
+                finallyKeyword: finally
+                finallyBlock: Block
+                  leftBracket: {
+                  rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3230,9 +5436,7 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in
-                  iterable2: ParsedUnqualifiedName
-                    name: b
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: b
                 rightParenthesis: ) <synthetic>
                 body: TryStatement
@@ -3258,6 +5462,42 @@ f() async { await for (A a in b while (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  type: NamedType
+                    name: A
+                  name: a
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: b
+                iterable(v1): SimpleIdentifier
+                  token: b
+              rightParenthesis: ) <synthetic>
+              body2: WhileStatement
+                whileKeyword: while
+                leftParenthesis: (
+                condition2: BooleanLiteral
+                  literal: true
+                rightParenthesis: )
+                body2: Block
+                  leftBracket: {
+                  rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3279,15 +5519,13 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in
-                  iterable2: ParsedUnqualifiedName
-                    name: b
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: b
                 rightParenthesis: ) <synthetic>
                 body: WhileStatement
                   whileKeyword: while
                   leftParenthesis: (
-                  condition2: BooleanLiteral
+                  condition: BooleanLiteral
                     literal: true
                   rightParenthesis: )
                   body: Block
@@ -3309,6 +5547,49 @@ f() async { await for (A a assert (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  type: NamedType
+                    name: A
+                  name: a
+                inKeyword: in <synthetic>
+                iterable2: CallInvocation
+                  receiver: ParsedUnqualifiedName
+                    name: assert
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    arguments2
+                      BooleanLiteral
+                        literal: true
+                    rightParenthesis: )
+                iterable(v1): FunctionExpressionInvocation
+                  function: SimpleIdentifier
+                    token: assert
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    arguments
+                      BooleanLiteral
+                        literal: true
+                    rightParenthesis: )
+              rightParenthesis: ) <synthetic>
+              body2: EmptyStatement
+                semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3330,16 +5611,7 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in <synthetic>
-                  iterable2: CallInvocation
-                    receiver: ParsedUnqualifiedName
-                      name: assert
-                    argumentList: ArgumentList
-                      leftParenthesis: (
-                      arguments2
-                        BooleanLiteral
-                          literal: true
-                      rightParenthesis: )
-                  iterable(v1): FunctionExpressionInvocation
+                  iterable: FunctionExpressionInvocation
                     function: SimpleIdentifier
                       token: assert
                     argumentList: ArgumentList
@@ -3370,6 +5642,39 @@ f() async { await for (A a {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  type: NamedType
+                    name: A
+                  name: a
+                inKeyword: in <synthetic>
+                iterable2: SetOrMapLiteral
+                  leftBracket: {
+                  rightBracket: }
+                  isMap: false
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3391,15 +5696,13 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in <synthetic>
-                  iterable2: SetOrMapLiteral
+                  iterable: SetOrMapLiteral
                     leftBracket: {
                     rightBracket: }
                     isMap: false
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  expression(v1): SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -3419,6 +5722,36 @@ f() async { await for (A a break; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  type: NamedType
+                    name: A
+                  name: a
+                inKeyword: in <synthetic>
+                iterable2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                iterable(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: BreakStatement
+                breakKeyword: break
+                semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3440,9 +5773,7 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in <synthetic>
-                  iterable2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: BreakStatement
@@ -3465,6 +5796,36 @@ f() async { await for (A a continue; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  type: NamedType
+                    name: A
+                  name: a
+                inKeyword: in <synthetic>
+                iterable2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                iterable(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ContinueStatement
+                continueKeyword: continue
+                semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3486,9 +5847,7 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in <synthetic>
-                  iterable2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ContinueStatement
@@ -3511,6 +5870,44 @@ f() async { await for (A a do {} while (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  type: NamedType
+                    name: A
+                  name: a
+                inKeyword: in <synthetic>
+                iterable2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                iterable(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: DoStatement
+                doKeyword: do
+                body2: Block
+                  leftBracket: {
+                  rightBracket: }
+                whileKeyword: while
+                leftParenthesis: (
+                condition2: BooleanLiteral
+                  literal: true
+                rightParenthesis: )
+                semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3532,9 +5929,7 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in <synthetic>
-                  iterable2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: DoStatement
@@ -3544,7 +5939,7 @@ CompilationUnit
                     rightBracket: }
                   whileKeyword: while
                   leftParenthesis: (
-                  condition2: BooleanLiteral
+                  condition: BooleanLiteral
                     literal: true
                   rightParenthesis: )
                   semicolon: ;
@@ -3566,6 +5961,39 @@ f() async { await for (A a }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  type: NamedType
+                    name: A
+                  name: a
+                inKeyword: in <synthetic>
+                iterable2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                iterable(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3587,15 +6015,11 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in <synthetic>
-                  iterable2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  expression(v1): SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -3615,6 +6039,49 @@ f() async { await for (A a for (var x in y) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  type: NamedType
+                    name: A
+                  name: a
+                inKeyword: in <synthetic>
+                iterable2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                iterable(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ForStatement
+                forKeyword: for
+                leftParenthesis: (
+                forLoopParts: ForEachPartsWithDeclaration
+                  loopVariable: DeclaredIdentifier
+                    keyword: var
+                    name: x
+                  inKeyword: in
+                  iterable2: ParsedUnqualifiedName
+                    name: y
+                  iterable(v1): SimpleIdentifier
+                    token: y
+                rightParenthesis: )
+                body2: Block
+                  leftBracket: {
+                  rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3636,9 +6103,7 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in <synthetic>
-                  iterable2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ForStatement
@@ -3649,9 +6114,7 @@ CompilationUnit
                       keyword: var
                       name: x
                     inKeyword: in
-                    iterable2: ParsedUnqualifiedName
-                      name: y
-                    iterable(v1): SimpleIdentifier
+                    iterable: SimpleIdentifier
                       token: y
                   rightParenthesis: )
                   body: Block
@@ -3674,6 +6137,42 @@ f() async { await for (A a if (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  type: NamedType
+                    name: A
+                  name: a
+                inKeyword: in <synthetic>
+                iterable2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                iterable(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: IfStatement
+                ifKeyword: if
+                leftParenthesis: (
+                expression2: BooleanLiteral
+                  literal: true
+                rightParenthesis: )
+                thenStatement2: Block
+                  leftBracket: {
+                  rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3695,15 +6194,13 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in <synthetic>
-                  iterable2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: IfStatement
                   ifKeyword: if
                   leftParenthesis: (
-                  expression2: BooleanLiteral
+                  expression: BooleanLiteral
                     literal: true
                   rightParenthesis: )
                   thenStatement: Block
@@ -3728,6 +6225,48 @@ f() async { await for (A a l: {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  type: NamedType
+                    name: A
+                  name: a
+                inKeyword: in <synthetic>
+                iterable2: ParsedUnqualifiedName
+                  name: l
+                iterable(v1): SimpleIdentifier
+                  token: l
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+            ExpressionStatement
+              expression2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              expression(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            Block
+              leftBracket: {
+              rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3749,21 +6288,15 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in <synthetic>
-                  iterable2: ParsedUnqualifiedName
-                    name: l
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: l
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  expression(v1): SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
               ExpressionStatement
-                expression2: ParsedUnqualifiedName
-                  name: <empty> <synthetic>
-                expression(v1): SimpleIdentifier
+                expression: SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
               Block
@@ -3790,6 +6323,43 @@ f() async { await for (A a int f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  type: NamedType
+                    name: A
+                  name: a
+                inKeyword: in <synthetic>
+                iterable2: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3811,7 +6381,7 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in <synthetic>
-                  iterable2: FunctionExpression
+                  iterable: FunctionExpression
                     parameters: FormalParameterList
                       leftParenthesis: (
                       rightParenthesis: )
@@ -3821,9 +6391,7 @@ CompilationUnit
                         rightBracket: }
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  expression(v1): SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -3847,6 +6415,43 @@ f() async { await for (A a void f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  type: NamedType
+                    name: A
+                  name: a
+                inKeyword: in <synthetic>
+                iterable2: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3868,7 +6473,7 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in <synthetic>
-                  iterable2: FunctionExpression
+                  iterable: FunctionExpression
                     parameters: FormalParameterList
                       leftParenthesis: (
                       rightParenthesis: )
@@ -3878,9 +6483,7 @@ CompilationUnit
                         rightBracket: }
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  expression(v1): SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -3900,6 +6503,47 @@ f() async { await for (A a var x; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  type: NamedType
+                    name: A
+                  name: a
+                inKeyword: in <synthetic>
+                iterable2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                iterable(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: LocalVariablesDeclarationStatement
+                declaration: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: x
+                semicolon: ;
+              body(v1): VariableDeclarationStatement
+                variables: VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: x
+                semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3921,9 +6565,7 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in <synthetic>
-                  iterable2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: VariableDeclarationStatement
@@ -3951,6 +6593,35 @@ f() async { await for (A a return; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  type: NamedType
+                    name: A
+                  name: a
+                inKeyword: in <synthetic>
+                iterable2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                iterable(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: EmptyStatement
+                semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3972,9 +6643,7 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in <synthetic>
-                  iterable2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: EmptyStatement
@@ -3998,6 +6667,45 @@ f() async { await for (A a switch (x) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  type: NamedType
+                    name: A
+                  name: a
+                inKeyword: in <synthetic>
+                iterable2: SwitchExpression
+                  switchKeyword: switch
+                  leftParenthesis: (
+                  expression2: ParsedUnqualifiedName
+                    name: x
+                  expression(v1): SimpleIdentifier
+                    token: x
+                  rightParenthesis: )
+                  leftBracket: {
+                  rightBracket: }
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4019,21 +6727,17 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in <synthetic>
-                  iterable2: SwitchExpression
+                  iterable: SwitchExpression
                     switchKeyword: switch
                     leftParenthesis: (
-                    expression2: ParsedUnqualifiedName
-                      name: x
-                    expression(v1): SimpleIdentifier
+                    expression: SimpleIdentifier
                       token: x
                     rightParenthesis: )
                     leftBracket: {
                     rightBracket: }
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  expression(v1): SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -4053,6 +6757,42 @@ f() async { await for (A a try {} finally {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  type: NamedType
+                    name: A
+                  name: a
+                inKeyword: in <synthetic>
+                iterable2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                iterable(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: TryStatement
+                tryKeyword: try
+                body: Block
+                  leftBracket: {
+                  rightBracket: }
+                finallyKeyword: finally
+                finallyBlock: Block
+                  leftBracket: {
+                  rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4074,9 +6814,7 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in <synthetic>
-                  iterable2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: TryStatement
@@ -4105,6 +6843,42 @@ f() async { await for (A a while (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  type: NamedType
+                    name: A
+                  name: a
+                inKeyword: in <synthetic>
+                iterable2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                iterable(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: WhileStatement
+                whileKeyword: while
+                leftParenthesis: (
+                condition2: BooleanLiteral
+                  literal: true
+                rightParenthesis: )
+                body2: Block
+                  leftBracket: {
+                  rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4126,15 +6900,13 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in <synthetic>
-                  iterable2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: WhileStatement
                   whileKeyword: while
                   leftParenthesis: (
-                  condition2: BooleanLiteral
+                  condition: BooleanLiteral
                     literal: true
                   rightParenthesis: )
                   body: Block
@@ -4156,6 +6928,49 @@ f() async { await for (a assert (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithIdentifier
+                target: UnqualifiedNameAssignmentTarget
+                  name: a
+                inKeyword: in <synthetic>
+                iterable2: CallInvocation
+                  receiver: ParsedUnqualifiedName
+                    name: assert
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    arguments2
+                      BooleanLiteral
+                        literal: true
+                    rightParenthesis: )
+                iterable(v1): FunctionExpressionInvocation
+                  function: SimpleIdentifier
+                    token: assert
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    arguments
+                      BooleanLiteral
+                        literal: true
+                    rightParenthesis: )
+                identifier: SimpleIdentifier
+                  token: a
+              rightParenthesis: ) <synthetic>
+              body2: EmptyStatement
+                semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4172,20 +6987,10 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: a
-                  identifier(v1): SimpleIdentifier
+                  identifier: SimpleIdentifier
                     token: a
                   inKeyword: in <synthetic>
-                  iterable2: CallInvocation
-                    receiver: ParsedUnqualifiedName
-                      name: assert
-                    argumentList: ArgumentList
-                      leftParenthesis: (
-                      arguments2
-                        BooleanLiteral
-                          literal: true
-                      rightParenthesis: )
-                  iterable(v1): FunctionExpressionInvocation
+                  iterable: FunctionExpressionInvocation
                     function: SimpleIdentifier
                       token: assert
                     argumentList: ArgumentList
@@ -4216,6 +7021,39 @@ f() async { await for (a {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithIdentifier
+                target: UnqualifiedNameAssignmentTarget
+                  name: a
+                inKeyword: in <synthetic>
+                iterable2: SetOrMapLiteral
+                  leftBracket: {
+                  rightBracket: }
+                  isMap: false
+                identifier: SimpleIdentifier
+                  token: a
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4232,19 +7070,16 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: a
-                  identifier(v1): SimpleIdentifier
+                  identifier: SimpleIdentifier
                     token: a
                   inKeyword: in <synthetic>
-                  iterable2: SetOrMapLiteral
+                  iterable: SetOrMapLiteral
                     leftBracket: {
                     rightBracket: }
                     isMap: false
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  expression(v1): SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -4264,6 +7099,36 @@ f() async { await for (a break; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithIdentifier
+                target: UnqualifiedNameAssignmentTarget
+                  name: a
+                inKeyword: in <synthetic>
+                iterable2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                iterable(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                identifier: SimpleIdentifier
+                  token: a
+              rightParenthesis: ) <synthetic>
+              body2: BreakStatement
+                breakKeyword: break
+                semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4280,13 +7145,10 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: a
-                  identifier(v1): SimpleIdentifier
+                  identifier: SimpleIdentifier
                     token: a
                   inKeyword: in <synthetic>
-                  iterable2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: BreakStatement
@@ -4309,6 +7171,36 @@ f() async { await for (a continue; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithIdentifier
+                target: UnqualifiedNameAssignmentTarget
+                  name: a
+                inKeyword: in <synthetic>
+                iterable2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                iterable(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                identifier: SimpleIdentifier
+                  token: a
+              rightParenthesis: ) <synthetic>
+              body2: ContinueStatement
+                continueKeyword: continue
+                semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4325,13 +7217,10 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: a
-                  identifier(v1): SimpleIdentifier
+                  identifier: SimpleIdentifier
                     token: a
                   inKeyword: in <synthetic>
-                  iterable2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ContinueStatement
@@ -4354,6 +7243,44 @@ f() async { await for (a do {} while (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithIdentifier
+                target: UnqualifiedNameAssignmentTarget
+                  name: a
+                inKeyword: in <synthetic>
+                iterable2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                iterable(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                identifier: SimpleIdentifier
+                  token: a
+              rightParenthesis: ) <synthetic>
+              body2: DoStatement
+                doKeyword: do
+                body2: Block
+                  leftBracket: {
+                  rightBracket: }
+                whileKeyword: while
+                leftParenthesis: (
+                condition2: BooleanLiteral
+                  literal: true
+                rightParenthesis: )
+                semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4370,13 +7297,10 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: a
-                  identifier(v1): SimpleIdentifier
+                  identifier: SimpleIdentifier
                     token: a
                   inKeyword: in <synthetic>
-                  iterable2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: DoStatement
@@ -4386,7 +7310,7 @@ CompilationUnit
                     rightBracket: }
                   whileKeyword: while
                   leftParenthesis: (
-                  condition2: BooleanLiteral
+                  condition: BooleanLiteral
                     literal: true
                   rightParenthesis: )
                   semicolon: ;
@@ -4408,6 +7332,39 @@ f() async { await for (a }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithIdentifier
+                target: UnqualifiedNameAssignmentTarget
+                  name: a
+                inKeyword: in <synthetic>
+                iterable2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                iterable(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                identifier: SimpleIdentifier
+                  token: a
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4424,19 +7381,14 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: a
-                  identifier(v1): SimpleIdentifier
+                  identifier: SimpleIdentifier
                     token: a
                   inKeyword: in <synthetic>
-                  iterable2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  expression(v1): SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -4456,6 +7408,49 @@ f() async { await for (a for (var x in y) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithIdentifier
+                target: UnqualifiedNameAssignmentTarget
+                  name: a
+                inKeyword: in <synthetic>
+                iterable2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                iterable(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                identifier: SimpleIdentifier
+                  token: a
+              rightParenthesis: ) <synthetic>
+              body2: ForStatement
+                forKeyword: for
+                leftParenthesis: (
+                forLoopParts: ForEachPartsWithDeclaration
+                  loopVariable: DeclaredIdentifier
+                    keyword: var
+                    name: x
+                  inKeyword: in
+                  iterable2: ParsedUnqualifiedName
+                    name: y
+                  iterable(v1): SimpleIdentifier
+                    token: y
+                rightParenthesis: )
+                body2: Block
+                  leftBracket: {
+                  rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4472,13 +7467,10 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: a
-                  identifier(v1): SimpleIdentifier
+                  identifier: SimpleIdentifier
                     token: a
                   inKeyword: in <synthetic>
-                  iterable2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ForStatement
@@ -4489,9 +7481,7 @@ CompilationUnit
                       keyword: var
                       name: x
                     inKeyword: in
-                    iterable2: ParsedUnqualifiedName
-                      name: y
-                    iterable(v1): SimpleIdentifier
+                    iterable: SimpleIdentifier
                       token: y
                   rightParenthesis: )
                   body: Block
@@ -4514,6 +7504,42 @@ f() async { await for (a if (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithIdentifier
+                target: UnqualifiedNameAssignmentTarget
+                  name: a
+                inKeyword: in <synthetic>
+                iterable2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                iterable(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                identifier: SimpleIdentifier
+                  token: a
+              rightParenthesis: ) <synthetic>
+              body2: IfStatement
+                ifKeyword: if
+                leftParenthesis: (
+                expression2: BooleanLiteral
+                  literal: true
+                rightParenthesis: )
+                thenStatement2: Block
+                  leftBracket: {
+                  rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4530,19 +7556,16 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: a
-                  identifier(v1): SimpleIdentifier
+                  identifier: SimpleIdentifier
                     token: a
                   inKeyword: in <synthetic>
-                  iterable2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: IfStatement
                   ifKeyword: if
                   leftParenthesis: (
-                  expression2: BooleanLiteral
+                  expression: BooleanLiteral
                     literal: true
                   rightParenthesis: )
                   thenStatement: Block
@@ -4567,6 +7590,39 @@ f() async { await for (a l: {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  type: NamedType
+                    name: a
+                  name: l
+                inKeyword: :
+                iterable2: SetOrMapLiteral
+                  leftBracket: {
+                  rightBracket: }
+                  isMap: false
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4588,15 +7644,13 @@ CompilationUnit
                       name: a
                     name: l
                   inKeyword: :
-                  iterable2: SetOrMapLiteral
+                  iterable: SetOrMapLiteral
                     leftBracket: {
                     rightBracket: }
                     isMap: false
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  expression(v1): SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -4619,6 +7673,43 @@ f() async { await for (a int f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  type: NamedType
+                    name: a
+                  name: int
+                inKeyword: in <synthetic>
+                iterable2: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4640,7 +7731,7 @@ CompilationUnit
                       name: a
                     name: int
                   inKeyword: in <synthetic>
-                  iterable2: FunctionExpression
+                  iterable: FunctionExpression
                     parameters: FormalParameterList
                       leftParenthesis: (
                       rightParenthesis: )
@@ -4650,9 +7741,7 @@ CompilationUnit
                         rightBracket: }
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  expression(v1): SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -4676,6 +7765,43 @@ f() async { await for (a void f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithIdentifier
+                target: UnqualifiedNameAssignmentTarget
+                  name: a
+                inKeyword: in <synthetic>
+                iterable2: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+                identifier: SimpleIdentifier
+                  token: a
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4692,11 +7818,10 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: a
-                  identifier(v1): SimpleIdentifier
+                  identifier: SimpleIdentifier
                     token: a
                   inKeyword: in <synthetic>
-                  iterable2: FunctionExpression
+                  iterable: FunctionExpression
                     parameters: FormalParameterList
                       leftParenthesis: (
                       rightParenthesis: )
@@ -4706,9 +7831,7 @@ CompilationUnit
                         rightBracket: }
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  expression(v1): SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -4728,6 +7851,47 @@ f() async { await for (a var x; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithIdentifier
+                target: UnqualifiedNameAssignmentTarget
+                  name: a
+                inKeyword: in <synthetic>
+                iterable2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                iterable(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                identifier: SimpleIdentifier
+                  token: a
+              rightParenthesis: ) <synthetic>
+              body2: LocalVariablesDeclarationStatement
+                declaration: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: x
+                semicolon: ;
+              body(v1): VariableDeclarationStatement
+                variables: VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: x
+                semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4744,13 +7908,10 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: a
-                  identifier(v1): SimpleIdentifier
+                  identifier: SimpleIdentifier
                     token: a
                   inKeyword: in <synthetic>
-                  iterable2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: VariableDeclarationStatement
@@ -4778,6 +7939,35 @@ f() async { await for (a return; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithIdentifier
+                target: UnqualifiedNameAssignmentTarget
+                  name: a
+                inKeyword: in <synthetic>
+                iterable2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                iterable(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                identifier: SimpleIdentifier
+                  token: a
+              rightParenthesis: ) <synthetic>
+              body2: EmptyStatement
+                semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4794,13 +7984,10 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: a
-                  identifier(v1): SimpleIdentifier
+                  identifier: SimpleIdentifier
                     token: a
                   inKeyword: in <synthetic>
-                  iterable2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: EmptyStatement
@@ -4824,6 +8011,45 @@ f() async { await for (a switch (x) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithIdentifier
+                target: UnqualifiedNameAssignmentTarget
+                  name: a
+                inKeyword: in <synthetic>
+                iterable2: SwitchExpression
+                  switchKeyword: switch
+                  leftParenthesis: (
+                  expression2: ParsedUnqualifiedName
+                    name: x
+                  expression(v1): SimpleIdentifier
+                    token: x
+                  rightParenthesis: )
+                  leftBracket: {
+                  rightBracket: }
+                identifier: SimpleIdentifier
+                  token: a
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4840,25 +8066,20 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: a
-                  identifier(v1): SimpleIdentifier
+                  identifier: SimpleIdentifier
                     token: a
                   inKeyword: in <synthetic>
-                  iterable2: SwitchExpression
+                  iterable: SwitchExpression
                     switchKeyword: switch
                     leftParenthesis: (
-                    expression2: ParsedUnqualifiedName
-                      name: x
-                    expression(v1): SimpleIdentifier
+                    expression: SimpleIdentifier
                       token: x
                     rightParenthesis: )
                     leftBracket: {
                     rightBracket: }
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  expression(v1): SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -4878,6 +8099,42 @@ f() async { await for (a try {} finally {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithIdentifier
+                target: UnqualifiedNameAssignmentTarget
+                  name: a
+                inKeyword: in <synthetic>
+                iterable2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                iterable(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                identifier: SimpleIdentifier
+                  token: a
+              rightParenthesis: ) <synthetic>
+              body2: TryStatement
+                tryKeyword: try
+                body: Block
+                  leftBracket: {
+                  rightBracket: }
+                finallyKeyword: finally
+                finallyBlock: Block
+                  leftBracket: {
+                  rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4894,13 +8151,10 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: a
-                  identifier(v1): SimpleIdentifier
+                  identifier: SimpleIdentifier
                     token: a
                   inKeyword: in <synthetic>
-                  iterable2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: TryStatement
@@ -4929,6 +8183,42 @@ f() async { await for (a while (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithIdentifier
+                target: UnqualifiedNameAssignmentTarget
+                  name: a
+                inKeyword: in <synthetic>
+                iterable2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                iterable(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                identifier: SimpleIdentifier
+                  token: a
+              rightParenthesis: ) <synthetic>
+              body2: WhileStatement
+                whileKeyword: while
+                leftParenthesis: (
+                condition2: BooleanLiteral
+                  literal: true
+                rightParenthesis: )
+                body2: Block
+                  leftBracket: {
+                  rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4945,19 +8235,16 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: a
-                  identifier(v1): SimpleIdentifier
+                  identifier: SimpleIdentifier
                     token: a
                   inKeyword: in <synthetic>
-                  iterable2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: WhileStatement
                   whileKeyword: while
                   leftParenthesis: (
-                  condition2: BooleanLiteral
+                  condition: BooleanLiteral
                     literal: true
                   rightParenthesis: )
                   body: Block
@@ -4977,6 +8264,46 @@ f() { for (var a in assert (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: a
+                inKeyword: in
+                iterable2: CallInvocation
+                  receiver: ParsedUnqualifiedName
+                    name: assert
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    arguments2
+                      BooleanLiteral
+                        literal: true
+                    rightParenthesis: )
+                iterable(v1): FunctionExpressionInvocation
+                  function: SimpleIdentifier
+                    token: assert
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    arguments
+                      BooleanLiteral
+                        literal: true
+                    rightParenthesis: )
+              rightParenthesis: ) <synthetic>
+              body2: EmptyStatement
+                semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4995,16 +8322,7 @@ CompilationUnit
                     keyword: var
                     name: a
                   inKeyword: in
-                  iterable2: CallInvocation
-                    receiver: ParsedUnqualifiedName
-                      name: assert
-                    argumentList: ArgumentList
-                      leftParenthesis: (
-                      arguments2
-                        BooleanLiteral
-                          literal: true
-                      rightParenthesis: )
-                  iterable(v1): FunctionExpressionInvocation
+                  iterable: FunctionExpressionInvocation
                     function: SimpleIdentifier
                       token: assert
                     argumentList: ArgumentList
@@ -5033,6 +8351,36 @@ f() { for (var a in {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: a
+                inKeyword: in
+                iterable2: SetOrMapLiteral
+                  leftBracket: {
+                  rightBracket: }
+                  isMap: false
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -5051,15 +8399,13 @@ CompilationUnit
                     keyword: var
                     name: a
                   inKeyword: in
-                  iterable2: SetOrMapLiteral
+                  iterable: SetOrMapLiteral
                     leftBracket: {
                     rightBracket: }
                     isMap: false
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  expression(v1): SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -5078,6 +8424,33 @@ f() { for (var a in break; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: a
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                iterable(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: BreakStatement
+                breakKeyword: break
+                semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -5096,9 +8469,7 @@ CompilationUnit
                     keyword: var
                     name: a
                   inKeyword: in
-                  iterable2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: BreakStatement
@@ -5120,6 +8491,33 @@ f() { for (var a in continue; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: a
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                iterable(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ContinueStatement
+                continueKeyword: continue
+                semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -5138,9 +8536,7 @@ CompilationUnit
                     keyword: var
                     name: a
                   inKeyword: in
-                  iterable2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ContinueStatement
@@ -5162,6 +8558,41 @@ f() { for (var a in do {} while (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: a
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                iterable(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: DoStatement
+                doKeyword: do
+                body2: Block
+                  leftBracket: {
+                  rightBracket: }
+                whileKeyword: while
+                leftParenthesis: (
+                condition2: BooleanLiteral
+                  literal: true
+                rightParenthesis: )
+                semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -5180,9 +8611,7 @@ CompilationUnit
                     keyword: var
                     name: a
                   inKeyword: in
-                  iterable2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: DoStatement
@@ -5192,7 +8621,7 @@ CompilationUnit
                     rightBracket: }
                   whileKeyword: while
                   leftParenthesis: (
-                  condition2: BooleanLiteral
+                  condition: BooleanLiteral
                     literal: true
                   rightParenthesis: )
                   semicolon: ;
@@ -5213,6 +8642,36 @@ f() { for (var a in }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: a
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                iterable(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -5231,15 +8690,11 @@ CompilationUnit
                     keyword: var
                     name: a
                   inKeyword: in
-                  iterable2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  expression(v1): SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -5258,6 +8713,46 @@ f() { for (var a in for (var x in y) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: a
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                iterable(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ForStatement
+                forKeyword: for
+                leftParenthesis: (
+                forLoopParts: ForEachPartsWithDeclaration
+                  loopVariable: DeclaredIdentifier
+                    keyword: var
+                    name: x
+                  inKeyword: in
+                  iterable2: ParsedUnqualifiedName
+                    name: y
+                  iterable(v1): SimpleIdentifier
+                    token: y
+                rightParenthesis: )
+                body2: Block
+                  leftBracket: {
+                  rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -5276,9 +8771,7 @@ CompilationUnit
                     keyword: var
                     name: a
                   inKeyword: in
-                  iterable2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ForStatement
@@ -5289,9 +8782,7 @@ CompilationUnit
                       keyword: var
                       name: x
                     inKeyword: in
-                    iterable2: ParsedUnqualifiedName
-                      name: y
-                    iterable(v1): SimpleIdentifier
+                    iterable: SimpleIdentifier
                       token: y
                   rightParenthesis: )
                   body: Block
@@ -5313,6 +8804,39 @@ f() { for (var a in if (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: a
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                iterable(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: IfStatement
+                ifKeyword: if
+                leftParenthesis: (
+                expression2: BooleanLiteral
+                  literal: true
+                rightParenthesis: )
+                thenStatement2: Block
+                  leftBracket: {
+                  rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -5331,15 +8855,13 @@ CompilationUnit
                     keyword: var
                     name: a
                   inKeyword: in
-                  iterable2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: IfStatement
                   ifKeyword: if
                   leftParenthesis: (
-                  expression2: BooleanLiteral
+                  expression: BooleanLiteral
                     literal: true
                   rightParenthesis: )
                   thenStatement: Block
@@ -5363,6 +8885,45 @@ f() { for (var a in l: {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: a
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: l
+                iterable(v1): SimpleIdentifier
+                  token: l
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+            ExpressionStatement
+              expression2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              expression(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            Block
+              leftBracket: {
+              rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -5381,21 +8942,15 @@ CompilationUnit
                     keyword: var
                     name: a
                   inKeyword: in
-                  iterable2: ParsedUnqualifiedName
-                    name: l
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: l
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  expression(v1): SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
               ExpressionStatement
-                expression2: ParsedUnqualifiedName
-                  name: <empty> <synthetic>
-                expression(v1): SimpleIdentifier
+                expression: SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
               Block
@@ -5420,6 +8975,40 @@ f() { for (var a in int f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: a
+                inKeyword: in
+                iterable2: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -5438,7 +9027,7 @@ CompilationUnit
                     keyword: var
                     name: a
                   inKeyword: in
-                  iterable2: FunctionExpression
+                  iterable: FunctionExpression
                     parameters: FormalParameterList
                       leftParenthesis: (
                       rightParenthesis: )
@@ -5448,9 +9037,7 @@ CompilationUnit
                         rightBracket: }
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  expression(v1): SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -5472,6 +9059,40 @@ f() { for (var a in void f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: a
+                inKeyword: in
+                iterable2: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -5490,7 +9111,7 @@ CompilationUnit
                     keyword: var
                     name: a
                   inKeyword: in
-                  iterable2: FunctionExpression
+                  iterable: FunctionExpression
                     parameters: FormalParameterList
                       leftParenthesis: (
                       rightParenthesis: )
@@ -5500,9 +9121,7 @@ CompilationUnit
                         rightBracket: }
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  expression(v1): SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -5521,6 +9140,44 @@ f() { for (var a in var x; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: a
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                iterable(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: LocalVariablesDeclarationStatement
+                declaration: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: x
+                semicolon: ;
+              body(v1): VariableDeclarationStatement
+                variables: VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: x
+                semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -5539,9 +9196,7 @@ CompilationUnit
                     keyword: var
                     name: a
                   inKeyword: in
-                  iterable2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: VariableDeclarationStatement
@@ -5568,6 +9223,32 @@ f() { for (var a in return; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: a
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                iterable(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: EmptyStatement
+                semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -5586,9 +9267,7 @@ CompilationUnit
                     keyword: var
                     name: a
                   inKeyword: in
-                  iterable2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: EmptyStatement
@@ -5610,6 +9289,42 @@ f() { for (var a in switch (x) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: a
+                inKeyword: in
+                iterable2: SwitchExpression
+                  switchKeyword: switch
+                  leftParenthesis: (
+                  expression2: ParsedUnqualifiedName
+                    name: x
+                  expression(v1): SimpleIdentifier
+                    token: x
+                  rightParenthesis: )
+                  leftBracket: {
+                  rightBracket: }
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -5628,21 +9343,17 @@ CompilationUnit
                     keyword: var
                     name: a
                   inKeyword: in
-                  iterable2: SwitchExpression
+                  iterable: SwitchExpression
                     switchKeyword: switch
                     leftParenthesis: (
-                    expression2: ParsedUnqualifiedName
-                      name: x
-                    expression(v1): SimpleIdentifier
+                    expression: SimpleIdentifier
                       token: x
                     rightParenthesis: )
                     leftBracket: {
                     rightBracket: }
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  expression(v1): SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -5661,6 +9372,39 @@ f() { for (var a in try {} finally {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: a
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                iterable(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: TryStatement
+                tryKeyword: try
+                body: Block
+                  leftBracket: {
+                  rightBracket: }
+                finallyKeyword: finally
+                finallyBlock: Block
+                  leftBracket: {
+                  rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -5679,9 +9423,7 @@ CompilationUnit
                     keyword: var
                     name: a
                   inKeyword: in
-                  iterable2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: TryStatement
@@ -5709,6 +9451,39 @@ f() { for (var a in while (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: a
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                iterable(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: WhileStatement
+                whileKeyword: while
+                leftParenthesis: (
+                condition2: BooleanLiteral
+                  literal: true
+                rightParenthesis: )
+                body2: Block
+                  leftBracket: {
+                  rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -5727,15 +9502,13 @@ CompilationUnit
                     keyword: var
                     name: a
                   inKeyword: in
-                  iterable2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: WhileStatement
                   whileKeyword: while
                   leftParenthesis: (
-                  condition2: BooleanLiteral
+                  condition: BooleanLiteral
                     literal: true
                   rightParenthesis: )
                   body: Block
@@ -5755,6 +9528,37 @@ f() { for (var a in b assert (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: a
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: b
+                iterable(v1): SimpleIdentifier
+                  token: b
+              rightParenthesis: ) <synthetic>
+              body2: AssertStatement
+                assertKeyword: assert
+                leftParenthesis: (
+                condition2: BooleanLiteral
+                  literal: true
+                rightParenthesis: )
+                semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -5773,15 +9577,13 @@ CompilationUnit
                     keyword: var
                     name: a
                   inKeyword: in
-                  iterable2: ParsedUnqualifiedName
-                    name: b
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: b
                 rightParenthesis: ) <synthetic>
                 body: AssertStatement
                   assertKeyword: assert
                   leftParenthesis: (
-                  condition2: BooleanLiteral
+                  condition: BooleanLiteral
                     literal: true
                   rightParenthesis: )
                   semicolon: ;
@@ -5799,6 +9601,33 @@ f() { for (var a in b {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: a
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: b
+                iterable(v1): SimpleIdentifier
+                  token: b
+              rightParenthesis: ) <synthetic>
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -5817,9 +9646,7 @@ CompilationUnit
                     keyword: var
                     name: a
                   inKeyword: in
-                  iterable2: ParsedUnqualifiedName
-                    name: b
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: b
                 rightParenthesis: ) <synthetic>
                 body: Block
@@ -5839,6 +9666,33 @@ f() { for (var a in b break; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: a
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: b
+                iterable(v1): SimpleIdentifier
+                  token: b
+              rightParenthesis: ) <synthetic>
+              body2: BreakStatement
+                breakKeyword: break
+                semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -5857,9 +9711,7 @@ CompilationUnit
                     keyword: var
                     name: a
                   inKeyword: in
-                  iterable2: ParsedUnqualifiedName
-                    name: b
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: b
                 rightParenthesis: ) <synthetic>
                 body: BreakStatement
@@ -5879,6 +9731,33 @@ f() { for (var a in b continue; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: a
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: b
+                iterable(v1): SimpleIdentifier
+                  token: b
+              rightParenthesis: ) <synthetic>
+              body2: ContinueStatement
+                continueKeyword: continue
+                semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -5897,9 +9776,7 @@ CompilationUnit
                     keyword: var
                     name: a
                   inKeyword: in
-                  iterable2: ParsedUnqualifiedName
-                    name: b
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: b
                 rightParenthesis: ) <synthetic>
                 body: ContinueStatement
@@ -5919,6 +9796,41 @@ f() { for (var a in b do {} while (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: a
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: b
+                iterable(v1): SimpleIdentifier
+                  token: b
+              rightParenthesis: ) <synthetic>
+              body2: DoStatement
+                doKeyword: do
+                body2: Block
+                  leftBracket: {
+                  rightBracket: }
+                whileKeyword: while
+                leftParenthesis: (
+                condition2: BooleanLiteral
+                  literal: true
+                rightParenthesis: )
+                semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -5937,9 +9849,7 @@ CompilationUnit
                     keyword: var
                     name: a
                   inKeyword: in
-                  iterable2: ParsedUnqualifiedName
-                    name: b
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: b
                 rightParenthesis: ) <synthetic>
                 body: DoStatement
@@ -5949,7 +9859,7 @@ CompilationUnit
                     rightBracket: }
                   whileKeyword: while
                   leftParenthesis: (
-                  condition2: BooleanLiteral
+                  condition: BooleanLiteral
                     literal: true
                   rightParenthesis: )
                   semicolon: ;
@@ -5970,6 +9880,36 @@ f() { for (var a in b }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: a
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: b
+                iterable(v1): SimpleIdentifier
+                  token: b
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -5988,15 +9928,11 @@ CompilationUnit
                     keyword: var
                     name: a
                   inKeyword: in
-                  iterable2: ParsedUnqualifiedName
-                    name: b
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: b
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  expression(v1): SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -6013,6 +9949,46 @@ f() { for (var a in b for (var x in y) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: a
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: b
+                iterable(v1): SimpleIdentifier
+                  token: b
+              rightParenthesis: ) <synthetic>
+              body2: ForStatement
+                forKeyword: for
+                leftParenthesis: (
+                forLoopParts: ForEachPartsWithDeclaration
+                  loopVariable: DeclaredIdentifier
+                    keyword: var
+                    name: x
+                  inKeyword: in
+                  iterable2: ParsedUnqualifiedName
+                    name: y
+                  iterable(v1): SimpleIdentifier
+                    token: y
+                rightParenthesis: )
+                body2: Block
+                  leftBracket: {
+                  rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -6031,9 +10007,7 @@ CompilationUnit
                     keyword: var
                     name: a
                   inKeyword: in
-                  iterable2: ParsedUnqualifiedName
-                    name: b
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: b
                 rightParenthesis: ) <synthetic>
                 body: ForStatement
@@ -6044,9 +10018,7 @@ CompilationUnit
                       keyword: var
                       name: x
                     inKeyword: in
-                    iterable2: ParsedUnqualifiedName
-                      name: y
-                    iterable(v1): SimpleIdentifier
+                    iterable: SimpleIdentifier
                       token: y
                   rightParenthesis: )
                   body: Block
@@ -6066,6 +10038,39 @@ f() { for (var a in b if (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: a
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: b
+                iterable(v1): SimpleIdentifier
+                  token: b
+              rightParenthesis: ) <synthetic>
+              body2: IfStatement
+                ifKeyword: if
+                leftParenthesis: (
+                expression2: BooleanLiteral
+                  literal: true
+                rightParenthesis: )
+                thenStatement2: Block
+                  leftBracket: {
+                  rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -6084,15 +10089,13 @@ CompilationUnit
                     keyword: var
                     name: a
                   inKeyword: in
-                  iterable2: ParsedUnqualifiedName
-                    name: b
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: b
                 rightParenthesis: ) <synthetic>
                 body: IfStatement
                   ifKeyword: if
                   leftParenthesis: (
-                  expression2: BooleanLiteral
+                  expression: BooleanLiteral
                     literal: true
                   rightParenthesis: )
                   thenStatement: Block
@@ -6112,6 +10115,38 @@ f() { for (var a in b l: {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: a
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: b
+                iterable(v1): SimpleIdentifier
+                  token: b
+              rightParenthesis: ) <synthetic>
+              body2: LabeledStatement
+                labels
+                  Label
+                    name: l
+                    colon: :
+                statement2: Block
+                  leftBracket: {
+                  rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -6130,9 +10165,7 @@ CompilationUnit
                     keyword: var
                     name: a
                   inKeyword: in
-                  iterable2: ParsedUnqualifiedName
-                    name: b
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: b
                 rightParenthesis: ) <synthetic>
                 body: LabeledStatement
@@ -6157,6 +10190,54 @@ f() { for (var a in b int f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: a
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: b
+                iterable(v1): SimpleIdentifier
+                  token: b
+              rightParenthesis: ) <synthetic>
+              body2: LocalFunctionDeclaration
+                returnType: NamedType
+                  name: int
+                name: f
+                formalParameters: FormalParameterList
+                  leftParenthesis: (
+                  rightParenthesis: )
+                body: BlockFunctionBody
+                  block: Block
+                    leftBracket: {
+                    rightBracket: }
+              body(v1): FunctionDeclarationStatement
+                functionDeclaration: FunctionDeclaration
+                  returnType: NamedType
+                    name: int
+                  name: f
+                  functionExpression: FunctionExpression
+                    parameters: FormalParameterList
+                      leftParenthesis: (
+                      rightParenthesis: )
+                    body: BlockFunctionBody
+                      block: Block
+                        leftBracket: {
+                        rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -6175,9 +10256,7 @@ CompilationUnit
                     keyword: var
                     name: a
                   inKeyword: in
-                  iterable2: ParsedUnqualifiedName
-                    name: b
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: b
                 rightParenthesis: ) <synthetic>
                 body: FunctionDeclarationStatement
@@ -6207,6 +10286,54 @@ f() { for (var a in b void f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: a
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: b
+                iterable(v1): SimpleIdentifier
+                  token: b
+              rightParenthesis: ) <synthetic>
+              body2: LocalFunctionDeclaration
+                returnType: NamedType
+                  name: void
+                name: f
+                formalParameters: FormalParameterList
+                  leftParenthesis: (
+                  rightParenthesis: )
+                body: BlockFunctionBody
+                  block: Block
+                    leftBracket: {
+                    rightBracket: }
+              body(v1): FunctionDeclarationStatement
+                functionDeclaration: FunctionDeclaration
+                  returnType: NamedType
+                    name: void
+                  name: f
+                  functionExpression: FunctionExpression
+                    parameters: FormalParameterList
+                      leftParenthesis: (
+                      rightParenthesis: )
+                    body: BlockFunctionBody
+                      block: Block
+                        leftBracket: {
+                        rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -6225,9 +10352,7 @@ CompilationUnit
                     keyword: var
                     name: a
                   inKeyword: in
-                  iterable2: ParsedUnqualifiedName
-                    name: b
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: b
                 rightParenthesis: ) <synthetic>
                 body: FunctionDeclarationStatement
@@ -6257,6 +10382,44 @@ f() { for (var a in b var x; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: a
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: b
+                iterable(v1): SimpleIdentifier
+                  token: b
+              rightParenthesis: ) <synthetic>
+              body2: LocalVariablesDeclarationStatement
+                declaration: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: x
+                semicolon: ;
+              body(v1): VariableDeclarationStatement
+                variables: VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: x
+                semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -6275,9 +10438,7 @@ CompilationUnit
                     keyword: var
                     name: a
                   inKeyword: in
-                  iterable2: ParsedUnqualifiedName
-                    name: b
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: b
                 rightParenthesis: ) <synthetic>
                 body: VariableDeclarationStatement
@@ -6301,6 +10462,33 @@ f() { for (var a in b return; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: a
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: b
+                iterable(v1): SimpleIdentifier
+                  token: b
+              rightParenthesis: ) <synthetic>
+              body2: ReturnStatement
+                returnKeyword: return
+                semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -6319,9 +10507,7 @@ CompilationUnit
                     keyword: var
                     name: a
                   inKeyword: in
-                  iterable2: ParsedUnqualifiedName
-                    name: b
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: b
                 rightParenthesis: ) <synthetic>
                 body: ReturnStatement
@@ -6341,6 +10527,40 @@ f() { for (var a in b switch (x) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: a
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: b
+                iterable(v1): SimpleIdentifier
+                  token: b
+              rightParenthesis: ) <synthetic>
+              body2: SwitchStatement
+                switchKeyword: switch
+                leftParenthesis: (
+                expression2: ParsedUnqualifiedName
+                  name: x
+                expression(v1): SimpleIdentifier
+                  token: x
+                rightParenthesis: )
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -6359,17 +10579,13 @@ CompilationUnit
                     keyword: var
                     name: a
                   inKeyword: in
-                  iterable2: ParsedUnqualifiedName
-                    name: b
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: b
                 rightParenthesis: ) <synthetic>
                 body: SwitchStatement
                   switchKeyword: switch
                   leftParenthesis: (
-                  expression2: ParsedUnqualifiedName
-                    name: x
-                  expression(v1): SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: x
                   rightParenthesis: )
                   leftBracket: {
@@ -6388,6 +10604,39 @@ f() { for (var a in b try {} finally {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: a
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: b
+                iterable(v1): SimpleIdentifier
+                  token: b
+              rightParenthesis: ) <synthetic>
+              body2: TryStatement
+                tryKeyword: try
+                body: Block
+                  leftBracket: {
+                  rightBracket: }
+                finallyKeyword: finally
+                finallyBlock: Block
+                  leftBracket: {
+                  rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -6406,9 +10655,7 @@ CompilationUnit
                     keyword: var
                     name: a
                   inKeyword: in
-                  iterable2: ParsedUnqualifiedName
-                    name: b
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: b
                 rightParenthesis: ) <synthetic>
                 body: TryStatement
@@ -6434,6 +10681,39 @@ f() { for (var a in b while (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: a
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: b
+                iterable(v1): SimpleIdentifier
+                  token: b
+              rightParenthesis: ) <synthetic>
+              body2: WhileStatement
+                whileKeyword: while
+                leftParenthesis: (
+                condition2: BooleanLiteral
+                  literal: true
+                rightParenthesis: )
+                body2: Block
+                  leftBracket: {
+                  rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -6452,15 +10732,13 @@ CompilationUnit
                     keyword: var
                     name: a
                   inKeyword: in
-                  iterable2: ParsedUnqualifiedName
-                    name: b
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: b
                 rightParenthesis: ) <synthetic>
                 body: WhileStatement
                   whileKeyword: while
                   leftParenthesis: (
-                  condition2: BooleanLiteral
+                  condition: BooleanLiteral
                     literal: true
                   rightParenthesis: )
                   body: Block

@@ -148,7 +148,8 @@ Set<int> f(int x, int y) {
 }
 
 @reflectiveTest
-class ReplaceWithNotNullAwareElementOrEntryTest extends FixProcessorTest {
+class ReplaceWithNotNullAwareElementOrEntryTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.replaceWithNotNullAwareElementOrEntry;
 

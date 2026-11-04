@@ -8,45 +8,46 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
-import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/error/lookup_failure_reporter.dart';
 
 /// A resolver for [ConstructorTearOff] nodes.
 class ConstructorTearOffResolver {
-  /// The resolver driving this participant.
-  final ResolverVisitor _resolver;
+  /// The type analyzer driving this participant.
+  final TypeAnalyzer _typeAnalyzer;
 
-  ConstructorTearOffResolver(this._resolver);
+  new(this._typeAnalyzer);
 
   void resolve(ConstructorTearOffImpl node, {required DartType contextType}) {
-    if (!_resolver.isConstructorTearoffsEnabled &&
+    if (!_typeAnalyzer.isConstructorTearoffsEnabled &&
         node.typeReference.typeArguments == null) {
       // Only report this if [node] has no explicit type arguments; otherwise
       // the parser has already reported an error.
-      _resolver.diagnosticReporter.report(
+      _typeAnalyzer.diagnosticReporter.report(
         diag.sdkVersionConstructorTearoffs.at(node),
       );
     }
-    node.typeReference.typeArguments?.accept2(_resolver);
+    node.typeReference.typeArguments?.accept2(_typeAnalyzer);
     var type = node.typeReference.type;
     node.element = type is InterfaceTypeImpl
         ? type.lookUpConstructor(
             node.selector.name2.lexeme,
-            _resolver.definingLibrary,
+            _typeAnalyzer.definingLibrary,
           )
         : null;
     var element = node.element;
     if (element != null && !element.isFactory) {
       var enclosingElement = element.enclosingElement;
       if (enclosingElement is ClassElementImpl && enclosingElement.isAbstract) {
-        _resolver.diagnosticReporter.report(
+        _typeAnalyzer.diagnosticReporter.report(
           diag.tearoffOfGenerativeConstructorOfAbstractClass.at(node),
         );
       }
     }
     var name = node.selector.name2;
-    if (element == null && _resolver.isConstructorTearoffsEnabled) {
+    if (element == null && _typeAnalyzer.isConstructorTearoffsEnabled) {
       // The illegal construction, which looks like a type-instantiated
       // constructor tearoff, may be an attempt to reference a member on
       // [enclosingElement]. Try to provide a helpful error, and fall back to
@@ -59,26 +60,25 @@ class ConstructorTearOffResolver {
         var aliasedType = enclosingElement.aliasedType;
         if (aliasedType is FunctionType) {
           var typeReference = node.typeReference;
-          var aliasName = switch (typeReference.importPrefix) {
-            var prefix? => '${prefix.name.lexeme}.${typeReference.name.lexeme}',
-            _ => typeReference.name.lexeme,
-          };
-          var isWriteOnly = switch (node.parent2) {
-            AssignmentTarget(hasRead: false) => true,
-            _ => false,
-          };
-          _resolver.diagnosticReporter.report(
-            (isWriteOnly
-                    ? diag.undefinedSetterOnFunctionType.withArguments(
-                        setterName: name.lexeme,
-                        functionTypeAliasName: aliasName,
-                      )
-                    : diag.undefinedGetterOnFunctionType.withArguments(
-                        getterName: name.lexeme,
-                        functionTypeAliasName: aliasName,
-                      ))
-                .at(name),
-          );
+          if (node.parent2 case AssignmentTarget(hasRead: false)) {
+            _typeAnalyzer.lookupFailureReporter.reportWriteFailure(
+              domain: FunctionTypeAliasLookupDomain(
+                importPrefix: typeReference.importPrefix,
+                name: typeReference.name,
+              ),
+              name: name,
+              foundInstead: null,
+            );
+          } else {
+            _typeAnalyzer.lookupFailureReporter.reportReadFailure(
+              domain: FunctionTypeAliasLookupDomain(
+                importPrefix: typeReference.importPrefix,
+                name: typeReference.name,
+              ),
+              name: name,
+              foundInstead: null,
+            );
+          }
         }
         enclosingElement = aliasedType is InterfaceType
             ? aliasedType.element
@@ -93,11 +93,11 @@ class ConstructorTearOffResolver {
           var error = method.isStatic
               ? diag.classInstantiationAccessToStaticMember
               : diag.classInstantiationAccessToInstanceMember;
-          _resolver.diagnosticReporter.report(
+          _typeAnalyzer.diagnosticReporter.report(
             error.withArguments(name: name.lexeme).at(node),
           );
         } else if (!name.isSynthetic) {
-          _resolver.diagnosticReporter.report(
+          _typeAnalyzer.diagnosticReporter.report(
             diag.classInstantiationAccessToUnknownMember
                 .withArguments(
                   className: enclosingElement.name!,
@@ -115,11 +115,12 @@ class ConstructorTearOffResolver {
     ConstructorTearOffImpl node, {
     required DartType contextType,
   }) {
-    var elementToInfer = _resolver.inferenceHelper.constructorElementToInfer(
-      typeElement: node.typeReference.element,
-      constructorName: node.selector.name2,
-      definingLibrary: _resolver.definingLibrary,
-    );
+    var elementToInfer = _typeAnalyzer.inferenceHelper
+        .constructorElementToInfer(
+          typeElement: node.typeReference.element,
+          constructorName: node.selector.name2,
+          definingLibrary: _typeAnalyzer.definingLibrary,
+        );
 
     // If the constructor is generic, we'll have a
     // SubstitutedConstructorElementImpl that substitutes in type arguments
@@ -147,9 +148,9 @@ class ConstructorTearOffResolver {
         rawElement,
         constructorType.returnType as InterfaceType,
       );
-      node.recordStaticType(constructorType, resolver: _resolver);
+      node.recordStaticType(constructorType, typeAnalyzer: _typeAnalyzer);
       var typeArgumentTypes = <TypeImpl>[];
-      _resolver.inferenceHelper.inferTearOff(
+      _typeAnalyzer.inferenceHelper.inferTearOff(
         node,
         constructorType,
         contextType: contextType,
@@ -158,7 +159,7 @@ class ConstructorTearOffResolver {
         },
       );
       if (typeArgumentTypes.isNotEmpty) {
-        _resolver.wrapFunctionInstantiation(node, typeArgumentTypes);
+        _typeAnalyzer.wrapFunctionInstantiation(node, typeArgumentTypes);
       }
     } else {
       var constructorElement = node.element;
@@ -166,7 +167,7 @@ class ConstructorTearOffResolver {
         constructorElement == null
             ? InvalidTypeImpl.instance
             : constructorElement.type,
-        resolver: _resolver,
+        typeAnalyzer: _typeAnalyzer,
       );
     }
   }

@@ -5363,125 +5363,104 @@ DART_EXPORT void Dart_SetWeakHandleReturnValue(Dart_NativeArguments args,
 
 // --- Environment ---
 StringPtr Api::GetEnvironmentValue(Thread* thread, const String& name) {
-  String& result = String::Handle(CallEnvironmentCallback(thread, name));
-  if (result.IsNull()) {
-    // Every 'dart:X' library introduces an environment variable
-    // 'dart.library.X' that is set to 'true'.
-    // We just need to make sure to hide private libraries (starting with
-    // "_", and the mirrors library, if it is not supported.
-
-    if (!FLAG_enable_mirrors && name.Equals(Symbols::DartLibraryMirrors())) {
-      return Symbols::False().ptr();
-    }
-
-    if (!Api::IsFfiEnabled() && name.Equals(Symbols::DartLibraryFfi())) {
-      return Symbols::False().ptr();
-    }
-
-    if (name.Equals(Symbols::DartVMProduct())) {
-#ifdef PRODUCT
-      return Symbols::True().ptr();
-#else
-      return Symbols::False().ptr();
-#endif
-    }
-
-    if (name.Equals(Symbols::DartVMASAN())) {
-#ifdef USING_ADDRESS_SANITIZER
-      return Symbols::True().ptr();
-#else
-      return Symbols::False().ptr();
-#endif
-    }
-
-    if (name.Equals(Symbols::DartVMMSAN())) {
-#ifdef USING_MEMORY_SANITIZER
-      return Symbols::True().ptr();
-#else
-      return Symbols::False().ptr();
-#endif
-    }
-
-    if (name.Equals(Symbols::DartVMTSAN())) {
-#ifdef USING_THREAD_SANITIZER
-      return Symbols::True().ptr();
-#else
-      return Symbols::False().ptr();
-#endif
-    }
-
-    if (name.Equals(Symbols::DartDeveloperTimeline())) {
-#ifdef SUPPORT_TIMELINE
-      return Symbols::True().ptr();
-#else
-      return Symbols::False().ptr();
-#endif
-    }
-
-    const String& prefix = Symbols::DartLibrary();
-    if (name.StartsWith(prefix)) {
-      const String& library_name =
-          String::Handle(String::SubString(name, prefix.Length()));
-
-      // Private libraries (starting with "_") are not exposed to the user.
-      if (!library_name.IsNull() && library_name.CharAt(0) != '_') {
-        const String& dart_library_name =
-            String::Handle(String::Concat(Symbols::DartScheme(), library_name));
-        const Library& library =
-            Library::Handle(Library::LookupLibrary(thread, dart_library_name));
-        if (!library.IsNull()) {
-          return Symbols::True().ptr();
-        }
-      }
-    }
-    // Check for default VM provided values. If it was not overridden on the
-    // command line.
-    if (Symbols::DartIsVM().Equals(name)) {
-      return Symbols::True().ptr();
-    }
-  }
-  return result.ptr();
-}
-
-StringPtr Api::CallEnvironmentCallback(Thread* thread, const String& name) {
   Isolate* isolate = thread->isolate();
   if (isolate == nullptr) {
     ThrowCantRunWithoutIsolateError();
     UNREACHABLE();
   }
-  Dart_EnvironmentCallback callback = isolate->environment_callback();
-  if (callback != nullptr) {
-    Scope api_scope(thread);
-    Dart_Handle api_name = Api::NewHandle(thread, name.ptr());
-    Dart_Handle api_response;
-    {
-      TransitionVMToNative transition(thread);
-      api_response = callback(api_name);
-    }
-    const Object& response =
-        Object::Handle(thread->zone(), Api::UnwrapHandle(api_response));
-    if (response.IsString()) {
-      return String::Cast(response).ptr();
-    } else if (response.IsError()) {
-      Exceptions::ThrowArgumentError(
-          String::Handle(String::New(Error::Cast(response).ToErrorCString())));
-    } else if (!response.IsNull()) {
-      // At this point everything except null are invalid environment values.
-      Exceptions::ThrowArgumentError(
-          String::Handle(String::New("Illegal environment value")));
+  const char* value = isolate->LookupEnvironment(name.ToCString());
+  if (value != nullptr) {
+    return String::New(value);
+  }
+
+  // Every 'dart:X' library introduces an environment variable
+  // 'dart.library.X' that is set to 'true'.
+  // We just need to make sure to hide private libraries (starting with
+  // "_", and the mirrors library, if it is not supported.
+
+  if (!FLAG_enable_mirrors && name.Equals(Symbols::DartLibraryMirrors())) {
+    return Symbols::False().ptr();
+  }
+
+  if (!Api::IsFfiEnabled() && name.Equals(Symbols::DartLibraryFfi())) {
+    return Symbols::False().ptr();
+  }
+
+  // Keep these implicit defines in sync with kImplicitEnvironmentDefines
+  // in runtime/vm/kernel_isolate.cc, which are passed to the kernel service for
+  // CFE constant evaluation.
+  if (name.Equals(Symbols::DartVMProduct())) {
+#ifdef PRODUCT
+    return Symbols::True().ptr();
+#else
+    return Symbols::False().ptr();
+#endif
+  }
+
+  if (name.Equals(Symbols::DartVMASAN())) {
+#ifdef USING_ADDRESS_SANITIZER
+    return Symbols::True().ptr();
+#else
+    return Symbols::False().ptr();
+#endif
+  }
+
+  if (name.Equals(Symbols::DartVMMSAN())) {
+#ifdef USING_MEMORY_SANITIZER
+    return Symbols::True().ptr();
+#else
+    return Symbols::False().ptr();
+#endif
+  }
+
+  if (name.Equals(Symbols::DartVMTSAN())) {
+#ifdef USING_THREAD_SANITIZER
+    return Symbols::True().ptr();
+#else
+    return Symbols::False().ptr();
+#endif
+  }
+
+  if (name.Equals(Symbols::DartDeveloperTimeline())) {
+#ifdef SUPPORT_TIMELINE
+    return Symbols::True().ptr();
+#else
+    return Symbols::False().ptr();
+#endif
+  }
+
+  const String& prefix = Symbols::DartLibrary();
+  if (name.StartsWith(prefix)) {
+    const String& library_name =
+        String::Handle(String::SubString(name, prefix.Length()));
+
+    // Private libraries (starting with "_") are not exposed to the user.
+    if (!library_name.IsNull() && library_name.CharAt(0) != '_') {
+      const String& dart_library_name =
+          String::Handle(String::Concat(Symbols::DartScheme(), library_name));
+      const Library& library =
+          Library::Handle(Library::LookupLibrary(thread, dart_library_name));
+      if (!library.IsNull()) {
+        return Symbols::True().ptr();
+      }
     }
   }
+  // Check for default VM provided values. If it was not overridden on the
+  // command line.
+  if (Symbols::DartIsVM().Equals(name)) {
+    return Symbols::True().ptr();
+  }
+
   return String::null();
 }
 
-DART_EXPORT Dart_Handle
-Dart_SetEnvironmentCallback(Dart_EnvironmentCallback callback) {
+DART_EXPORT Dart_Handle Dart_SetEnvironment(const char** environment) {
   Isolate* isolate = Isolate::Current();
   if (isolate == nullptr) {
     ThrowCantRunWithoutIsolateError();
     UNREACHABLE();
   }
-  isolate->set_environment_callback(callback);
+  isolate->SetEnvironment(environment);
   return Api::Success();
 }
 

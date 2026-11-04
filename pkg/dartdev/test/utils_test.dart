@@ -23,18 +23,6 @@ void main() {
     });
   });
 
-  group('relativePath', () {
-    test('direct', () {
-      var dir = Directory('foo');
-      expect(relativePath('path', dir), 'path');
-    });
-
-    test('nested', () {
-      var dir = Directory('foo');
-      expect(relativePath(path.join(dir.absolute.path, 'path'), dir), 'path');
-    });
-  });
-
   group('trimEnd', () {
     test('null suffix', () {
       expect(trimEnd('string', null), 'string');

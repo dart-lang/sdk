@@ -27,7 +27,7 @@ typedef DiagnosticMessageHandler = void Function(CfeDiagnosticMessage);
 /// licensing, informal, or logging information. This allows a well-behaved
 /// tool to never directly write to stdout or stderr.
 abstract class CfeDiagnosticMessage {
-  CfeDiagnosticMessage._(); // Prevent subclassing.
+  new _(); // Prevent subclassing.
 
   Iterable<String> get ansiFormatted;
 

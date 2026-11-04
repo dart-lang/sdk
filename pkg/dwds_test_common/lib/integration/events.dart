@@ -209,6 +209,37 @@ void testWithDwds({
           setCurrentLogWriter(debug: provider.verbose);
         });
 
+        /// Adds a breakpoint at [breakpointId] in the main script and waits
+        /// for the program to pause there.
+        ///
+        /// Removes the breakpoint and resumes when the test ends, even if it
+        /// fails, so the next test doesn't start with the program paused.
+        Future<void> pauseAtBreakpoint(String breakpointId) async {
+          final line = await context.findBreakpointLine(
+            breakpointId,
+            isolateId,
+            mainScript,
+          );
+          final bp = await service.addBreakpoint(
+            isolateId,
+            mainScript.id!,
+            line,
+          );
+          addTearDown(() async {
+            await service.removeBreakpoint(isolateId, bp.id!);
+            try {
+              await service.resume(isolateId);
+            } on RPCError catch (e) {
+              // The program is already running.
+              if (e.code != RPCErrorKind.kIsolateMustBePaused.code) rethrow;
+            }
+          });
+          // Wait for breakpoint to trigger.
+          await stream.firstWhere(
+            (event) => event.kind == EventKind.kPauseBreakpoint,
+          );
+        }
+
         test('emits EVALUATE_IN_FRAME events on RPC error', () async {
           final expression = 'some-bad-expression';
           await expectEventDuring(
@@ -229,20 +260,7 @@ void testWithDwds({
         });
 
         test('emits EVALUATE_IN_FRAME events on evaluation error', () async {
-          final line = await context.findBreakpointLine(
-            'callPrintCount',
-            isolateId,
-            mainScript,
-          );
-          final bp = await service.addBreakpoint(
-            isolateId,
-            mainScript.id!,
-            line,
-          );
-          // Wait for breakpoint to trigger.
-          await stream.firstWhere(
-            (event) => event.kind == EventKind.kPauseBreakpoint,
-          );
+          await pauseAtBreakpoint('callPrintCount');
 
           // Evaluation succeeds and return ErrorRef containing compilation
           // error, so event is marked as success.
@@ -258,26 +276,10 @@ void testWithDwds({
                 .evaluateInFrame(isolateId, 0, expression)
                 .catchError((_) => Future.value(Response())),
           );
-
-          await service.removeBreakpoint(isolateId, bp.id!);
-          await service.resume(isolateId);
         });
 
         test('emits EVALUATE_IN_FRAME events on evaluation success', () async {
-          final line = await context.findBreakpointLine(
-            'callPrintCount',
-            isolateId,
-            mainScript,
-          );
-          final bp = await service.addBreakpoint(
-            isolateId,
-            mainScript.id!,
-            line,
-          );
-          // Wait for breakpoint to trigger.
-          await stream.firstWhere(
-            (event) => event.kind == EventKind.kPauseBreakpoint,
-          );
+          await pauseAtBreakpoint('callPrintCount');
 
           // Evaluation succeeds and return InstanceRef,
           // so event is marked as success.
@@ -292,9 +294,6 @@ void testWithDwds({
                 .evaluateInFrame(isolateId, 0, expression)
                 .catchError((_) => Future.value(Response())),
           );
-
-          await service.removeBreakpoint(isolateId, bp.id!);
-          await service.resume(isolateId);
         });
       });
 
@@ -427,11 +426,20 @@ void testWithDwds({
             mainScript.id!,
             line,
           );
+          // Remove the breakpoint even if the pause below never arrives, so it
+          // can't pause later tests.
+          var breakpointRemoved = false;
+          addTearDown(() async {
+            if (!breakpointRemoved) {
+              await service.removeBreakpoint(isolateId, bp.id!);
+            }
+          });
           // Wait for breakpoint to trigger.
           await stream.firstWhere(
             (event) => event.kind == EventKind.kPauseBreakpoint,
           );
           await service.removeBreakpoint(isolateId, bp.id!);
+          breakpointRemoved = true;
         });
 
         tearDown(() async {

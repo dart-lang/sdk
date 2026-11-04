@@ -1394,14 +1394,7 @@ part of "${newEntryUri}";
       if (builder.importUri.isScheme("dart") && !builder.isSynthetic) continue;
       builders[builder.fileUri] = builder;
       for (LibraryPart part in builder.library.parts) {
-        Uri thisPartUri = builder.importUri.resolve(part.partUri);
-        if (thisPartUri.isScheme("package")) {
-          thisPartUri = incrementalCompiler
-              .kernelTargetForTesting!
-              .uriTranslator
-              .translate(thisPartUri)!;
-        }
-        builders[thisPartUri] = builder;
+        builders[part.fileUri] = builder;
       }
     }
 
@@ -1572,14 +1565,7 @@ part of "${newEntryUri}";
       }
       builders[builder.fileUri] = builder;
       for (LibraryPart part in builder.library.parts) {
-        Uri thisPartUri = builder.importUri.resolve(part.partUri);
-        if (thisPartUri.isScheme("package")) {
-          thisPartUri = incrementalCompiler
-              .kernelTargetForTesting!
-              .uriTranslator
-              .translate(thisPartUri)!;
-        }
-        builders[thisPartUri] = builder;
+        builders[part.fileUri] = builder;
       }
     }
 
@@ -2344,6 +2330,7 @@ Target createTarget(FolderOptions folderOptions, FastaContext context) {
         folderOptions.forceNoExplicitGetterCalls,
     forceConstructorTearOffLoweringForTesting:
         folderOptions.forceConstructorTearOffLowering,
+    forceMixinInOutlineForTesting: folderOptions.forceMixinInOutline,
     isClosureContextLoweringEnabled: folderOptions.forceClosureContextLowering,
     supportedDartLibraries: {'_supported.by.target'},
     unsupportedDartLibraries: {'unsupported.by.target'},

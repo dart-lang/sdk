@@ -33,7 +33,7 @@ Element? getElementOfNode(AstNode? node) {
       return MockLibraryImportElement(node.libraryImport!);
     case ImportPrefixReference():
       element = node.element;
-    case ConstructorDeclaration():
+    case ConstructorDeclaration2():
       return node.declaredFragment?.element;
     case PrimaryConstructorDeclaration():
       return node.declaredFragment?.element;
@@ -50,7 +50,7 @@ Element? getElementOfNode(AstNode? node) {
 
 /// Return the [Element] of the given V1 [node], or `null` if [node] is `null`
 /// or does not have an element.
-@ToBeDeprecated('Use getElementOfNode2 instead')
+@V1Ast('The V2 counterpart is getElementOfNode2.')
 Element? getElementOfNodeV1(AstNode? node) {
   if (node == null) {
     return null;
@@ -163,7 +163,7 @@ MockLibraryImportElement? _getImportElementInfoFromReference(
 
 /// Returns the [MockLibraryImportElement] that is referenced by the V1
 /// [prefixNode] with a [PrefixElement], maybe `null`.
-@ToBeDeprecated('Use _getImportElementInfoFromReference instead')
+@V1Ast('The V2 counterpart is _getImportElementInfoFromReference.')
 MockLibraryImportElement? _getImportElementInfoFromReferenceV1(
   ImportPrefixReference prefixNode,
 ) {
@@ -199,7 +199,7 @@ MockLibraryImportElement? _getImportElementInfoFromReferenceV1(
 
 /// Returns the [MockLibraryImportElement] that is referenced by the V1
 /// [prefixNode] with a [PrefixElement], maybe `null`.
-@ToBeDeprecated('Use _getImportElementInfo2 instead')
+@V1Ast('The V2 counterpart is _getImportElementInfo2.')
 MockLibraryImportElement? _getImportElementInfoV1(SimpleIdentifier prefixNode) {
   // prepare environment
   var parent = prefixNode.parent;
@@ -311,7 +311,7 @@ class MatchInfo {
   final int length;
   final MatchKind matchKind;
 
-  MatchInfo(this.offset, this.length, this.matchKind);
+  new(this.offset, this.length, this.matchKind);
 }
 
 /// Instances of the enum [MatchKind] represent the kind of reference that was
@@ -347,7 +347,7 @@ class MatchKind {
 
   final String name;
 
-  const MatchKind(this.name);
+  const new(this.name);
 
   @override
   String toString() => name;
@@ -357,7 +357,7 @@ class ReferencesCollector extends RecursiveAstVisitor2<void> {
   final Element element;
   final List<MatchInfo> references = [];
 
-  ReferencesCollector(this.element);
+  new(this.element);
 
   @override
   void visitCascadeMethodInvocation(CascadeMethodInvocation node) {
@@ -391,9 +391,9 @@ class ReferencesCollector extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  visitConstructorDeclaration(covariant ConstructorDeclarationImpl node) {
+  visitConstructorDeclaration2(covariant ConstructorDeclaration2Impl node) {
     var constructorElement = node.declaredFragment?.element;
-    if (node.typeName2 case var typeName?) {
+    if (node.typeName case var typeName?) {
       if (constructorElement?.enclosingElement == element &&
           typeName.lexeme == element.name) {
         references.add(
@@ -408,11 +408,11 @@ class ReferencesCollector extends RecursiveAstVisitor2<void> {
         var length = name.end - offset;
         references.add(MatchInfo(offset, length, MatchKind.DECLARATION));
       } else {
-        var end = (node.typeName2 ?? node.newKeyword)!.end;
+        var end = (node.typeName ?? node.newKeyword)!.end;
         references.add(MatchInfo(end, 0, MatchKind.DECLARATION));
       }
     }
-    super.visitConstructorDeclaration(node);
+    super.visitConstructorDeclaration2(node);
   }
 
   @override
@@ -502,7 +502,7 @@ class ReferencesCollector extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+  void visitEnumConstantDeclaration2(EnumConstantDeclaration2 node) {
     var constructorElement = node.constructorElement;
     if (constructorElement != null && constructorElement == element) {
       int offset;
@@ -544,9 +544,8 @@ class ReferencesCollector extends RecursiveAstVisitor2<void> {
       (false, true) => MatchKind.WRITE,
       (false, false) => null,
     };
-    if (node.write case InvalidNamedWriteResolution(
-      :var recoveryElement,
-    ) when kind == null && _matches(recoveryElement)) {
+    if (node.write case InvalidNamedWriteResolution(:var recoveryElement)
+        when kind == null && _matches(recoveryElement)) {
       kind = MatchKind.REFERENCE;
     }
     if (kind != null) {
@@ -663,7 +662,7 @@ class ReferencesCollector extends RecursiveAstVisitor2<void> {
   MatchKind _constructorReferenceKind(ConstructorReference2 node) {
     return switch (node.parent2) {
       ConstructorInvocation() => MatchKind.INVOCATION,
-      ConstructorDeclaration() => MatchKind.REFERENCE,
+      ConstructorDeclaration2() => MatchKind.REFERENCE,
       _ => throw StateError(
         'Unexpected ConstructorReference2 parent: ${node.parent2.runtimeType}',
       ),

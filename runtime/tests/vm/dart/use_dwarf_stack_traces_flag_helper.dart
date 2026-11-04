@@ -28,6 +28,24 @@ Object get skipAssembly {
       : "no process for assembling snapshots on this platform";
 }
 
+/// Returns false if tests involving PE/COFF snapshots should be run
+/// and a String describing why the tests should be skipped otherwise.
+Object get skipPECoff {
+  if (!Platform.isWindows) {
+    return "PE/COFF snapshots are only linked on Windows";
+  }
+  if (isSimulator) {
+    return "running on a simulated architecture";
+  }
+  if (!buildDir.endsWith('X64') && !buildDir.endsWith('X64C')) {
+    return "PE/COFF snapshots are only supported on X64";
+  }
+  if (clangBuildToolsDir == null) {
+    return "no //buildtools to link PE/COFF snapshots with";
+  }
+  return false;
+}
+
 /// Returns false if tests involving MacOS universal binaries should be run
 /// and a String describing why the tests should be skipped otherwise.
 Object get skipUniversalBinary {
@@ -96,6 +114,27 @@ abstract class ElfState<T> extends DwarfState<T> {
 
   @override
   String get description => 'ELF';
+}
+
+abstract class PECoffState<T> extends DwarfState<T> {
+  // The debugging information of PE images is in their PDB, so the PDB is
+  // used both as the separate debugging information and for the snapshot.
+  PECoffState(
+    DwarfTestOutput output,
+    DwarfTestOutput outputWithOppositeFlag,
+    T pdb,
+  ) : super(output, outputWithOppositeFlag, pdb, pdb);
+
+  @override
+  String get description => 'PE/COFF';
+
+  @override
+  Future<void> makeTests(Trace nonDwarfTrace) async {
+    test(
+      'Testing $description traces with PDB',
+      () async => await check(nonDwarfTrace, debugInfo),
+    );
+  }
 }
 
 abstract class MultiArchDwarfState<T> extends DwarfState<T> {

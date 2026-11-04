@@ -40,6 +40,8 @@ class SharedInteropTransformer extends Transformer {
   final Procedure _isJSObject;
   final Procedure _isJSArray;
   final Procedure _isNullableJSArray;
+  final Procedure _isJSError;
+  final Procedure _isNullableJSError;
   final Procedure _isJSTypedArray;
   final Procedure _isNullableJSAny;
   final Procedure _isNullableJSBoxedDartObject;
@@ -124,6 +126,10 @@ class SharedInteropTransformer extends Transformer {
         'dart:js_interop',
         '_isJSTypedArray',
       ),
+      _isJSError = _typeEnvironment.coreTypes.index.getTopLevelProcedure(
+        'dart:js_interop',
+        '_isJSError',
+      ),
       _isNullableJSAny = _typeEnvironment.coreTypes.index.getTopLevelProcedure(
         'dart:js_interop',
         '_isNullableJSAny',
@@ -144,6 +150,8 @@ class SharedInteropTransformer extends Transformer {
           .getTopLevelProcedure('dart:js_interop', '_isNullableJSArray'),
       _isNullableJSTypedArray = _typeEnvironment.coreTypes.index
           .getTopLevelProcedure('dart:js_interop', '_isNullableJSTypedArray'),
+      _isNullableJSError = _typeEnvironment.coreTypes.index
+          .getTopLevelProcedure('dart:js_interop', '_isNullableJSError'),
       _jsAny = _typeEnvironment.coreTypes.index.getExtensionType(
         'dart:js_interop',
         'JSAny',
@@ -853,6 +861,16 @@ class SharedInteropTransformer extends Transformer {
         nullChecksNeeded = false;
         check = StaticInvocation(
           interopTypeNullable ? _isNullableJSTypedArray : _isJSTypedArray,
+          Arguments(ExpressionList(VariableGet(receiverVar))),
+        );
+        break;
+      case 'JSError' when interopTypeDecl == jsType:
+        // Only do this special case when users are referring directly to the
+        // `dart:js_interop` type and not some wrapper.
+        isJSAnyCheck = null;
+        nullChecksNeeded = false;
+        check = StaticInvocation(
+          interopTypeNullable ? _isNullableJSError : _isJSError,
           Arguments(ExpressionList(VariableGet(receiverVar))),
         );
         break;

@@ -26,6 +26,14 @@ void breakInterfaceCycles(Linker linker, List<AstNode> declarations) {
     var node = walker.getNode(element);
     walker.walk(node);
   }
+
+  // Class hierarchies might have been computed before breaking cycles, e.g.
+  // during mixin inference, so they include the removed supertypes.
+  if (elements.any((element) => element.interfaceCycle != null)) {
+    for (var element in elements) {
+      element.library.session.classHierarchy.remove(element);
+    }
+  }
 }
 
 class _ImplementsNode extends graph.Node<_ImplementsNode> {
@@ -35,7 +43,7 @@ class _ImplementsNode extends graph.Node<_ImplementsNode> {
   @override
   bool isEvaluated = false;
 
-  _ImplementsNode(this.walker, this.element);
+  new(this.walker, this.element);
 
   @override
   List<_ImplementsNode> computeDependencies() {

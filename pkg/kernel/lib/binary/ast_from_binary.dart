@@ -256,6 +256,7 @@ class BinaryBuilder {
   }
 
   Uint8List readBytes(int length) {
+    if (length == 0) return emptyUint8List;
     Uint8List bytes = new Uint8List(length);
     bytes.setRange(0, bytes.length, _bytes, _byteOffset);
     _byteOffset += bytes.length;
@@ -268,6 +269,7 @@ class BinaryBuilder {
 
   Uint8List readOrViewByteList() {
     int length = readUInt30();
+    if (length == 0) return emptyUint8List;
     List<int> source = _bytes;
     if (source is Uint8List) {
       Uint8List view = source.buffer.asUint8List(
@@ -1068,14 +1070,13 @@ class BinaryBuilder {
       String uriString = readString();
       Uri uri = Uri.parse(uriString);
       _sourceUriTable[i] = uri;
-      Uint8List sourceCode = readOrViewByteList();
+      Uint8List sourceCode = _disableLazyReading
+          ? readByteList()
+          : readOrViewByteList();
       int lineCount = readUInt30();
-      List<int> lineStarts = new List<int>.filled(
-        lineCount,
-        // Use `-1` as a dummy default value.
-        -1,
-        growable: false,
-      );
+      Uint32List lineStarts = lineCount == 0
+          ? emptyUint32List
+          : new Uint32List(lineCount);
       int previousLineStart = 0;
       for (int j = 0; j < lineCount; ++j) {
         int lineStart = readUInt30() + previousLineStart;

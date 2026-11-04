@@ -20,7 +20,7 @@ import '../../util/element_printer.dart';
 /// Prints AST as a tree, with properties and children.
 class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     implements
-        // ignore: analyzer_to_be_deprecated_use
+        // ignore: analyzer_v1_ast_use
         AstVisitor<void> {
   final TreeStringSink _sink;
   final ElementPrinter _elementPrinter;
@@ -42,16 +42,22 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
 
   final Map<Token, String> _tokenIdMap = Map.identity();
 
-  ResolvedAstPrinter({
-    required TreeStringSink sink,
-    required ElementPrinter elementPrinter,
+  /// The V1 parents of shared nodes, requested bottom-up before any V1 child
+  /// entities are read.
+  ///
+  /// Reading V1 child entities can establish V1 parent links, so checking
+  /// parents top-down cannot detect a link that is established only by a V1
+  /// getter. Clients that reach a shared node through V2 and then ask for its
+  /// V1 parent depend on the link existing without that getter.
+  final Map<AstNode, AstNode?> _bottomUpV1Parents = Map.identity();
+
+  new({
+    required this._sink,
+    required this._elementPrinter,
     required this.configuration,
-    bool withOffsets = false,
-    bool withResolution = true,
-  }) : _sink = sink,
-       _elementPrinter = elementPrinter,
-       _withOffsets = withOffsets,
-       _withResolution = withResolution;
+    this._withOffsets = false,
+    this._withResolution = true,
+  });
 
   @override
   void visitAdjacentStrings(AdjacentStrings node) {
@@ -69,7 +75,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     _sink.writeln('Annotation');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
-      // ignore: analyzer_to_be_deprecated_use
+      // ignore: analyzer_v1_ast_use
       _writeElement('element', node.element);
     });
   }
@@ -123,7 +129,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
-  @ToBeDeprecated('Prints a V1 node.')
+  @V1Ast('Prints a V1 node.')
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
     _sink.writeln('AssignmentExpression');
@@ -149,7 +155,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
-  @ToBeDeprecated('Prints a V1 node.')
+  @V1Ast('Prints a V1 node.')
   @override
   void visitBinaryExpression(BinaryExpression node) {
     _sink.writeln('BinaryExpression');
@@ -168,7 +174,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
       _writeParameterElement(node);
-      _writeRaw('binaryOperator', node.binaryOperator.name);
+      _writeRaw('binaryOperator', node.binaryOperator?.name);
       _writeElement('element', node.element);
       _writeType('staticType', node.staticType);
     });
@@ -183,6 +189,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
+  @V1Ast('Prints a V1 node.')
   @override
   void visitBlockClassBody(BlockClassBody node) {
     _sink.writeln('BlockClassBody');
@@ -191,6 +198,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
+  @V1Ast('Prints a V1 node.')
   @override
   void visitBlockEnumBody(BlockEnumBody node) {
     _sink.writeln('BlockEnumBody');
@@ -200,8 +208,24 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitBlockEnumDeclarationBody(BlockEnumDeclarationBody node) {
+    _sink.writeln('BlockEnumDeclarationBody');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
   void visitBlockFunctionBody(BlockFunctionBody node) {
     _sink.writeln('BlockFunctionBody');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
+  void visitBlockInstanceDeclarationBody(BlockInstanceDeclarationBody node) {
+    _sink.writeln('BlockInstanceDeclarationBody');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
     });
@@ -364,6 +388,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
+  @V1Ast('Prints a V1 node.')
   @override
   void visitClassDeclaration(ClassDeclaration node) {
     _sink.writeln('ClassDeclaration');
@@ -374,8 +399,27 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitClassDeclaration2(ClassDeclaration2 node) {
+    _sink.writeln('ClassDeclaration2');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeDeclaredFragment(node.declaredFragment);
+    });
+  }
+
+  @V1Ast('Prints a V1 node.')
+  @override
   void visitClassTypeAlias(ClassTypeAlias node) {
     _sink.writeln('ClassTypeAlias');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeDeclaredFragment(node.declaredFragment);
+    });
+  }
+
+  @override
+  void visitClassTypeAlias2(ClassTypeAlias2 node) {
+    _sink.writeln('ClassTypeAlias2');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
       _writeDeclaredFragment(node.declaredFragment);
@@ -516,9 +560,19 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
+  @V1Ast('Prints a V1 node.')
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     _sink.writeln('ConstructorDeclaration');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeDeclaredFragment(node.declaredFragment);
+    });
+  }
+
+  @override
+  void visitConstructorDeclaration2(ConstructorDeclaration2 node) {
+    _sink.writeln('ConstructorDeclaration2');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
       _writeDeclaredFragment(node.declaredFragment);
@@ -544,7 +598,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
-  @ToBeDeprecated('Prints a V1 node.')
+  @V1Ast('Prints a V1 node.')
   @override
   void visitConstructorName(ConstructorName node) {
     _sink.writeln('ConstructorName');
@@ -554,7 +608,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
-  @ToBeDeprecated('Prints a V1 node.')
+  @V1Ast('Prints a V1 node.')
   @override
   void visitConstructorReference(ConstructorReference node) {
     _sink.writeln('ConstructorReference');
@@ -665,7 +719,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
-  @ToBeDeprecated('Prints a V1 node.')
+  @V1Ast('Prints a V1 node.')
   @override
   void visitDotShorthandConstructorInvocation(
     covariant DotShorthandConstructorInvocationImpl node,
@@ -697,7 +751,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
-  @ToBeDeprecated('Prints a V1 node.')
+  @V1Ast('Prints a V1 node.')
   @override
   void visitDotShorthandInvocation(covariant DotShorthandInvocationImpl node) {
     _sink.writeln('DotShorthandInvocation');
@@ -749,7 +803,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
-  @ToBeDeprecated('Prints a V1 node.')
+  @V1Ast('Prints a V1 node.')
   @override
   void visitDotShorthandPropertyAccess(
     covariant DotShorthandPropertyAccessImpl node,
@@ -780,6 +834,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
+  @V1Ast('Prints a V1 node.')
   @override
   void visitEmptyClassBody(EmptyClassBody node) {
     _sink.writeln('EmptyClassBody');
@@ -788,6 +843,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
+  @V1Ast('Prints a V1 node.')
   @override
   void visitEmptyEnumBody(EmptyEnumBody node) {
     _sink.writeln('EmptyEnumBody');
@@ -822,6 +878,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
+  @V1Ast('Prints a V1 node.')
   @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
     _checkChildrenEntitiesLinking(node);
@@ -836,8 +893,31 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitEnumConstantDeclaration2(EnumConstantDeclaration2 node) {
+    _checkChildrenEntitiesLinking(node);
+    _sink.writeln('EnumConstantDeclaration2');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      if (_withResolution) {
+        _writeElement('constructorElement', node.constructorElement);
+        _writeDeclaredFragment(node.declaredFragment);
+      }
+    });
+  }
+
+  @V1Ast('Prints a V1 node.')
+  @override
   void visitEnumDeclaration(EnumDeclaration node) {
     _sink.writeln('EnumDeclaration');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeDeclaredFragment(node.declaredFragment);
+    });
+  }
+
+  @override
+  void visitEnumDeclaration2(EnumDeclaration2 node) {
+    _sink.writeln('EnumDeclaration2');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
       _writeDeclaredFragment(node.declaredFragment);
@@ -880,9 +960,19 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
+  @V1Ast('Prints a V1 node.')
   @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
     _sink.writeln('ExtensionDeclaration');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeDeclaredFragment(node.declaredFragment);
+    });
+  }
+
+  @override
+  void visitExtensionDeclaration2(ExtensionDeclaration2 node) {
+    _sink.writeln('ExtensionDeclaration2');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
       _writeDeclaredFragment(node.declaredFragment);
@@ -897,7 +987,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
-  @ToBeDeprecated('Prints a V1 node.')
+  @V1Ast('Prints a V1 node.')
   @override
   void visitExtensionOverride(ExtensionOverride node) {
     _sink.writeln('ExtensionOverride');
@@ -921,6 +1011,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
+  @V1Ast('Prints a V1 node.')
   @override
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
     _sink.writeln('ExtensionTypeDeclaration');
@@ -930,6 +1021,25 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
+  @override
+  void visitExtensionTypeDeclaration2(ExtensionTypeDeclaration2 node) {
+    _sink.writeln('ExtensionTypeDeclaration2');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeDeclaredFragment(node.declaredFragment);
+    });
+  }
+
+  @override
+  void visitField2(Field2 node) {
+    _sink.writeln('Field');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeDeclaredFragment(node.declaredFragment);
+    });
+  }
+
+  @V1Ast('Prints a V1 node.')
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
     _sink.writeln('FieldDeclaration');
@@ -950,6 +1060,14 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitFieldsDeclaration(FieldsDeclaration node) {
+    _sink.writeln('FieldsDeclaration');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
   void visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) {
     _sink.writeln('ForEachPartsWithDeclaration');
     _sink.withIndent(() {
@@ -962,12 +1080,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     _sink.writeln('ForEachPartsWithIdentifier');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
-      if (_withResolution) {
-        _writeNamedWriteResolution(
-          'write',
-          (node as ForEachPartsWithIdentifierImpl).write,
-        );
-      }
     });
   }
 
@@ -1036,6 +1148,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
+  @V1Ast('Prints a V1 node.')
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     _sink.writeln('FunctionDeclaration');
@@ -1045,6 +1158,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
+  @V1Ast('Prints a V1 node.')
   @override
   void visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
     _sink.writeln('FunctionDeclarationStatement');
@@ -1065,7 +1179,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
-  @ToBeDeprecated('Prints a V1 node.')
+  @V1Ast('Prints a V1 node.')
   @override
   void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     _sink.writeln('FunctionExpressionInvocation');
@@ -1089,7 +1203,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
-  @ToBeDeprecated('Prints a V1 node.')
+  @V1Ast('Prints a V1 node.')
   @override
   void visitFunctionReference(FunctionReference node) {
     _sink.writeln('FunctionReference');
@@ -1101,9 +1215,19 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
+  @V1Ast('Prints a V1 node.')
   @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
     _sink.writeln('FunctionTypeAlias');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeDeclaredFragment(node.declaredFragment);
+    });
+  }
+
+  @override
+  void visitFunctionTypeAlias2(FunctionTypeAlias2 node) {
+    _sink.writeln('FunctionTypeAlias2');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
       _writeDeclaredFragment(node.declaredFragment);
@@ -1135,9 +1259,28 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
+  @V1Ast('Prints a V1 node.')
   @override
   void visitGenericTypeAlias(GenericTypeAlias node) {
     _sink.writeln('GenericTypeAlias');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeDeclaredFragment(node.declaredFragment);
+    });
+  }
+
+  @override
+  void visitGenericTypeAlias2(GenericTypeAlias2 node) {
+    _sink.writeln('GenericTypeAlias2');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeDeclaredFragment(node.declaredFragment);
+    });
+  }
+
+  @override
+  void visitGetterDeclaration(GetterDeclaration node) {
+    _sink.writeln('GetterDeclaration');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
       _writeDeclaredFragment(node.declaredFragment);
@@ -1205,7 +1348,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
-  @ToBeDeprecated('Prints a V1 node.')
+  @V1Ast('Prints a V1 node.')
   @override
   void visitImplicitCallReference(ImplicitCallReference node) {
     _sink.writeln('ImplicitCallReference');
@@ -1321,7 +1464,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
-  @ToBeDeprecated('Prints a V1 node.')
+  @V1Ast('Prints a V1 node.')
   @override
   void visitIndexExpression(IndexExpression node) {
     _sink.writeln('IndexExpression');
@@ -1333,7 +1476,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
-  @ToBeDeprecated('Prints a V1 node.')
+  @V1Ast('Prints a V1 node.')
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     _sink.writeln('InstanceCreationExpression');
@@ -1513,6 +1656,44 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitLocalFunctionDeclaration(LocalFunctionDeclaration node) {
+    _sink.writeln('LocalFunctionDeclaration');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeDeclaredFragment(node.declaredFragment);
+      _writeMayCompleteNormally(node);
+    });
+  }
+
+  @override
+  void visitLocalVariable(LocalVariable node) {
+    _sink.writeln('LocalVariable');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeDeclaredFragment(node.declaredFragment);
+    });
+  }
+
+  @override
+  void visitLocalVariablesDeclaration(LocalVariablesDeclaration node) {
+    _sink.writeln('LocalVariablesDeclaration');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
+  void visitLocalVariablesDeclarationStatement(
+    LocalVariablesDeclarationStatement node,
+  ) {
+    _sink.writeln('LocalVariablesDeclarationStatement');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeMayCompleteNormally(node);
+    });
+  }
+
+  @override
   void visitLogicalAnd(LogicalAnd node) {
     _sink.writeln('LogicalAnd');
     _sink.withIndent(() {
@@ -1586,6 +1767,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
+  @V1Ast('Prints a V1 node.')
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
     _sink.writeln('MethodDeclaration');
@@ -1595,7 +1777,16 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
-  @ToBeDeprecated('Prints a V1 node.')
+  @override
+  void visitMethodDeclaration2(MethodDeclaration2 node) {
+    _sink.writeln('MethodDeclaration2');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeDeclaredFragment(node.declaredFragment);
+    });
+  }
+
+  @V1Ast('Prints a V1 node.')
   @override
   void visitMethodInvocation(MethodInvocation node) {
     _sink.writeln('MethodInvocation');
@@ -1608,9 +1799,19 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
+  @V1Ast('Prints a V1 node.')
   @override
   void visitMixinDeclaration(MixinDeclaration node) {
     _sink.writeln('MixinDeclaration');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeDeclaredFragment(node.declaredFragment);
+    });
+  }
+
+  @override
+  void visitMixinDeclaration2(MixinDeclaration2 node) {
+    _sink.writeln('MixinDeclaration2');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
       _writeDeclaredFragment(node.declaredFragment);
@@ -1716,6 +1917,15 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitOperatorDeclaration(OperatorDeclaration node) {
+    _sink.writeln('OperatorDeclaration');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeDeclaredFragment(node.declaredFragment);
+    });
+  }
+
+  @override
   void visitParenthesizedExpression(ParenthesizedExpression node) {
     _sink.writeln('ParenthesizedExpression');
     _sink.withIndent(() {
@@ -1778,14 +1988,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   @override
   void visitParsedUnqualifiedName(ParsedUnqualifiedName node) {
     _sink.writeln('ParsedUnqualifiedName');
-    _sink.withIndent(() => _writeNamedChildEntities(node));
-  }
-
-  @override
-  void visitParsedUnqualifiedNameAssignmentTarget(
-    ParsedUnqualifiedNameAssignmentTarget node,
-  ) {
-    _sink.writeln('ParsedUnqualifiedNameAssignmentTarget');
     _sink.withIndent(() => _writeNamedChildEntities(node));
   }
 
@@ -1863,7 +2065,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
-  @ToBeDeprecated('Prints a V1 node.')
+  @V1Ast('Prints a V1 node.')
   @override
   void visitPostfixExpression(PostfixExpression node) {
     _sink.writeln('PostfixExpression');
@@ -1881,7 +2083,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
-  @ToBeDeprecated('Prints a V1 node.')
+  @V1Ast('Prints a V1 node.')
   @override
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
     _sink.writeln('PrefixedIdentifier');
@@ -1893,7 +2095,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
-  @ToBeDeprecated('Prints a V1 node.')
+  @V1Ast('Prints a V1 node.')
   @override
   void visitPrefixExpression(PrefixExpression node) {
     _sink.writeln('PrefixExpression');
@@ -1911,9 +2113,18 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
+  @V1Ast('Prints a V1 node.')
   @override
   void visitPrimaryConstructorBody(PrimaryConstructorBody node) {
     _sink.writeln('PrimaryConstructorBody');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
+  void visitPrimaryConstructorBody2(PrimaryConstructorBody2 node) {
+    _sink.writeln('PrimaryConstructorBody2');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
     });
@@ -1936,7 +2147,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
-  @ToBeDeprecated('Prints a V1 node.')
+  @V1Ast('Prints a V1 node.')
   @override
   void visitPropertyAccess(PropertyAccess node) {
     _sink.writeln('PropertyAccess');
@@ -2152,6 +2363,24 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitSemicolonEnumDeclarationBody(SemicolonEnumDeclarationBody node) {
+    _sink.writeln('SemicolonEnumDeclarationBody');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
+  void visitSemicolonInstanceDeclarationBody(
+    SemicolonInstanceDeclarationBody node,
+  ) {
+    _sink.writeln('SemicolonInstanceDeclarationBody');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
   void visitSetOrMapLiteral(SetOrMapLiteral node) {
     _sink.writeln('SetOrMapLiteral');
     _sink.withIndent(() {
@@ -2163,6 +2392,15 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitSetterDeclaration(SetterDeclaration node) {
+    _sink.writeln('SetterDeclaration');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeDeclaredFragment(node.declaredFragment);
+    });
+  }
+
+  @override
   void visitShowCombinator(ShowCombinator node) {
     _sink.writeln('ShowCombinator');
     _sink.withIndent(() {
@@ -2170,7 +2408,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
-  @ToBeDeprecated('Prints a V1 node.')
+  @V1Ast('Prints a V1 node.')
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     _sink.writeln('SimpleIdentifier');
@@ -2230,7 +2468,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
-  @ToBeDeprecated('Prints a V1 node.')
+  @V1Ast('Prints a V1 node.')
   @override
   void visitSuperExpression(SuperExpression node) {
     _sink.writeln('SuperExpression');
@@ -2338,6 +2576,15 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitTopLevelFunctionDeclaration(TopLevelFunctionDeclaration node) {
+    _sink.writeln('TopLevelFunctionDeclaration');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeDeclaredFragment(node.declaredFragment);
+    });
+  }
+
+  @override
   void visitTopLevelGetterDeclaration(TopLevelGetterDeclaration node) {
     _sink.writeln('TopLevelGetterDeclaration');
     _sink.withIndent(() {
@@ -2347,11 +2594,38 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitTopLevelSetterDeclaration(TopLevelSetterDeclaration node) {
+    _sink.writeln('TopLevelSetterDeclaration');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeDeclaredFragment(node.declaredFragment);
+    });
+  }
+
+  @override
+  void visitTopLevelVariable2(TopLevelVariable2 node) {
+    _sink.writeln('TopLevelVariable');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeDeclaredFragment(node.declaredFragment);
+    });
+  }
+
+  @V1Ast('Prints a V1 node.')
+  @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     _sink.writeln('TopLevelVariableDeclaration');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
       _writeDeclaredFragment(node.declaredFragment);
+    });
+  }
+
+  @override
+  void visitTopLevelVariablesDeclaration(TopLevelVariablesDeclaration node) {
+    _sink.writeln('TopLevelVariablesDeclaration');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
     });
   }
 
@@ -2456,6 +2730,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
+  @V1Ast('Prints a V1 node.')
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
     _sink.writeln('VariableDeclaration');
@@ -2465,6 +2740,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
+  @V1Ast('Prints a V1 node.')
   @override
   void visitVariableDeclarationList(VariableDeclarationList node) {
     _sink.writeln('VariableDeclarationList');
@@ -2473,6 +2749,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
+  @V1Ast('Prints a V1 node.')
   @override
   void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
     _sink.writeln('VariableDeclarationStatement');
@@ -2526,6 +2803,11 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   void writeNode(AstNode node) {
+    _recordBottomUpV1Parents(node);
+    if (configuration.withCheckingTokenStream) {
+      _checkChildEntityRanges(node);
+      _checkTokenLinks(node);
+    }
     var view = node is AstNodeImpl && node.astNodeApi == AstNodeApi.v1
         ? _AstView.v1
         : _AstView.v2;
@@ -2544,32 +2826,57 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     }
   }
 
-  /// Writes [node] and its V1 compatibility view when the V2 root has a
-  /// distinct projection.
-  void writeNodeWithV1Projection(AstNode node) {
-    AstNode? v1;
-    if (node case TopLevelDeclarationImpl declaration) {
-      // ignore: analyzer_to_be_deprecated_use
-      v1 = V1Projection.toV1CompilationUnitMember(declaration);
-    } else if (node case ExpressionImpl expression) {
-      // ignore: analyzer_to_be_deprecated_use
-      v1 = V1Projection.toV1Expression(expression);
-    }
-
-    if (v1 == null || identical(v1, node)) {
+  /// Writes [node], and returns its V1 view returned by [getV1], if it is a
+  /// different node, for the caller to write with [writeNode].
+  ///
+  /// [getV1] is invoked after the V1 parents of the shared nodes under [node]
+  /// are requested bottom-up, so that computing the V1 view does not establish
+  /// them first.
+  T? writeNodeBeforeV1<T extends AstNode>(AstNode node, T Function() getV1) {
+    _recordBottomUpV1Parents(node);
+    var v1 = getV1();
+    if (identical(v1, node)) {
       writeNode(node);
-      return;
+      return null;
     }
 
     _withInlineV1ChildEntities(false, () => writeNode(node));
-    _sink.writeWithIndent('V1: ');
-    writeNode(v1);
+    return v1;
+  }
+
+  /// Writes [node] and its V1 compatibility view when the V2 root has a
+  /// distinct projection.
+  void writeNodeWithV1Projection(AstNode node) {
+    var v1 = writeNodeBeforeV1(node, () {
+      if (node case TopLevelDeclarationImpl declaration) {
+        // ignore: analyzer_v1_ast_use
+        return V1Projection.toV1CompilationUnitMember(declaration);
+      } else if (node case MemberDeclarationImpl declaration) {
+        // ignore: analyzer_v1_ast_use
+        return V1Projection.toV1ClassMember(declaration);
+      } else if (node case EnumConstantDeclaration2Impl declaration) {
+        // ignore: analyzer_v1_ast_use
+        return declaration.v1Projection;
+      } else if (node case ExpressionImpl expression) {
+        // ignore: analyzer_v1_ast_use
+        return V1Projection.toV1Expression(expression);
+      } else if (node case StatementImpl statement) {
+        // ignore: analyzer_v1_ast_use
+        return V1Projection.toV1Statement(statement);
+      }
+      return node;
+    });
+
+    if (v1 != null) {
+      _sink.writeWithIndent('V1: ');
+      writeNode(v1);
+    }
   }
 
   void _acceptInView(AstNode node) {
     switch (_view) {
       case _AstView.v1:
-        // ignore: analyzer_to_be_deprecated_use
+        // ignore: analyzer_v1_ast_use
         node.accept(this);
       case _AstView.v2:
         node.accept2(this);
@@ -2581,6 +2888,36 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
       var declaredFragment = node.declaredFragment;
       var expected = _expectedFormalParameterElements(node);
       _assertHasIdenticalElement(expected, declaredFragment);
+    }
+  }
+
+  /// Check that each child entity under [root], in each view of [root], is
+  /// within the range of its parent.
+  ///
+  /// This reads V1 child entities, so it must follow
+  /// [_recordBottomUpV1Parents].
+  void _checkChildEntityRanges(AstNode root) {
+    void checkChildren(AstNode node) {
+      for (var entity in _viewChildEntities(node)) {
+        if (entity.offset < node.offset || entity.end > node.end) {
+          fail('''
+Child entity outside of its parent in ${_view.name}.
+Child: ${_describeEntity(entity)}
+Parent: ${_describeEntity(node)}
+''');
+        }
+        if (entity is AstNode) {
+          checkChildren(entity);
+        }
+      }
+    }
+
+    var api = (root as AstNodeImpl).astNodeApi;
+    if (api != AstNodeApi.v1) {
+      _withView(_AstView.v2, () => checkChildren(root));
+    }
+    if (api != AstNodeApi.v2) {
+      _withView(_AstView.v1, () => checkChildren(root));
     }
   }
 
@@ -2602,6 +2939,18 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
 
   /// Check that the actual parent of [child] is [parent].
   void _checkParentOfChild(AstNode parent, AstNode child) {
+    if (_view == _AstView.v1 && _bottomUpV1Parents.containsKey(child)) {
+      var bottomUpParent = _bottomUpV1Parents[child];
+      if (!identical(bottomUpParent, parent)) {
+        fail('''
+Wrong bottom-up V1 parent.
+Child: (${child.runtimeType}) $child
+Bottom-up parent: (${bottomUpParent.runtimeType}) $bottomUpParent
+Expected parent: (${parent.runtimeType}) $parent
+''');
+      }
+    }
+
     var actualParent = _viewParent(child);
     if (actualParent == null) {
       fail('''
@@ -2619,6 +2968,39 @@ Expected parent: (${parent.runtimeType}) $parent
     }
   }
 
+  /// Check that each token of [root], and the token after it, has the
+  /// previous token as its [Token.previous].
+  void _checkTokenLinks(AstNode root) {
+    var token = root.beginToken;
+    if (token case CommentToken(:var parent?)) {
+      // Comments are not in the token stream, they precede its tokens.
+      token = parent;
+    }
+    var visited = Set<Token>.identity();
+    while (!token.isEof) {
+      if (!visited.add(token)) {
+        fail('Token cycle.\nToken: ${_describeEntity(token)}');
+      }
+      var next = token.next;
+      if (next == null) {
+        fail('No next token.\nToken: ${_describeEntity(token)}');
+      }
+      if (!identical(next.previous, token)) {
+        var previous = next.previous;
+        fail('''
+Wrong previous token.
+Token: ${_describeEntity(next)}
+Actual previous: ${previous != null ? _describeEntity(previous) : null}
+Expected previous: ${_describeEntity(token)}
+''');
+      }
+      if (identical(token, root.endToken)) {
+        return;
+      }
+      token = next;
+    }
+  }
+
   String _getTokenId(Token? token) {
     if (token == null) {
       return '<null>';
@@ -2628,15 +3010,15 @@ Expected parent: (${parent.runtimeType}) $parent
 
   bool _isCorrespondingParameterValue(AstNode parent, Expression node) {
     return switch (parent) {
-      // ignore: analyzer_to_be_deprecated_use
+      // ignore: analyzer_v1_ast_use
       AssignmentExpression parent => identical(switch (_view) {
-        // ignore: analyzer_to_be_deprecated_use
+        // ignore: analyzer_v1_ast_use
         _AstView.v1 => parent.rightHandSide,
         _AstView.v2 => parent.rightHandSide2,
       }, node),
-      // ignore: analyzer_to_be_deprecated_use
+      // ignore: analyzer_v1_ast_use
       BinaryExpression parent => identical(switch (_view) {
-        // ignore: analyzer_to_be_deprecated_use
+        // ignore: analyzer_v1_ast_use
         _AstView.v1 => parent.rightOperand,
         _AstView.v2 => parent.rightOperand2,
       }, node),
@@ -2649,9 +3031,9 @@ Expected parent: (${parent.runtimeType}) $parent
       ),
       IndexAssignmentTarget(:var index) ||
       IndexExpression2(:var index) => identical(index, node),
-      // ignore: analyzer_to_be_deprecated_use
+      // ignore: analyzer_v1_ast_use
       IndexExpression parent => identical(switch (_view) {
-        // ignore: analyzer_to_be_deprecated_use
+        // ignore: analyzer_v1_ast_use
         _AstView.v1 => parent.index,
         _AstView.v2 => parent.index2,
       }, node),
@@ -2659,9 +3041,32 @@ Expected parent: (${parent.runtimeType}) $parent
     };
   }
 
+  /// Requests the V1 parents of the shared nodes under [root], reaching them
+  /// only through V2, so that [_checkParentOfChild] can compare them with the
+  /// parents seen top-down.
+  void _recordBottomUpV1Parents(AstNode root) {
+    if (root is! AstNodeImpl || root.astNodeApi == AstNodeApi.v1) {
+      return;
+    }
+
+    void recordChildren(AstNode node) {
+      for (var entity in node.childEntities2) {
+        if (entity is AstNodeImpl) {
+          if (entity.astNodeApi == AstNodeApi.shared) {
+            // ignore: analyzer_v1_ast_use
+            _bottomUpV1Parents.putIfAbsent(entity, () => entity.parent);
+          }
+          recordChildren(entity);
+        }
+      }
+    }
+
+    recordChildren(root);
+  }
+
   Iterable<SyntacticEntity> _viewChildEntities(AstNode node) {
     return switch (_view) {
-      // ignore: analyzer_to_be_deprecated_use
+      // ignore: analyzer_v1_ast_use
       _AstView.v1 => node.childEntities,
       _AstView.v2 => node.childEntities2,
     };
@@ -2669,7 +3074,7 @@ Expected parent: (${parent.runtimeType}) $parent
 
   AstNode? _viewParent(AstNode node) {
     return switch (_view) {
-      // ignore: analyzer_to_be_deprecated_use
+      // ignore: analyzer_v1_ast_use
       _AstView.v1 => node.parent,
       _AstView.v2 => node.parent2,
     };
@@ -2800,16 +3205,19 @@ Expected parent: (${parent.runtimeType}) $parent
     switch (resolution) {
       case null:
         _sink.writelnWithIndent('$name: <null>');
+      case MissingDotShorthandContextResolutionImpl():
+        _sink.writelnWithIndent('$name: MissingDotShorthandContextResolution');
+      case InvalidDotShorthandContextResolutionImpl():
+        _sink.writelnWithIndent('$name: InvalidDotShorthandContextResolution');
+        _sink.withIndent(() {
+          _writeType('contextType', resolution.contextType);
+          _writeType('lookupType', resolution.lookupType);
+        });
       case ValidDotShorthandContextResolutionImpl():
         _sink.writelnWithIndent('$name: ValidDotShorthandContextResolution');
         _sink.withIndent(() {
           _writeType('contextType', resolution.contextType);
           _writeType('lookupType', resolution.lookupType);
-        });
-      case InvalidDotShorthandContextResolutionImpl():
-        _sink.writelnWithIndent('$name: InvalidDotShorthandContextResolution');
-        _sink.withIndent(() {
-          _writeType('contextType', resolution.contextType);
         });
     }
   }
@@ -2893,7 +3301,6 @@ Expected parent: (${parent.runtimeType}) $parent
         _sink.writelnWithIndent('$name: MethodIndexReadResolution');
         _sink.withIndent(() {
           _writeElement('element', resolution.element);
-          _writeType('invokeType', resolution.invokeType);
           _writeType('type', resolution.type);
         });
     }
@@ -2921,7 +3328,6 @@ Expected parent: (${parent.runtimeType}) $parent
         _sink.writelnWithIndent('$name: MethodIndexWriteResolution');
         _sink.withIndent(() {
           _writeElement('element', resolution.element);
-          _writeType('invokeType', resolution.invokeType);
           _writeType('acceptedType', resolution.acceptedType);
         });
     }
@@ -3007,7 +3413,7 @@ Expected parent: (${parent.runtimeType}) $parent
   void _writeNamedChildEntities(AstNode node) {
     node as AstNodeImpl;
     if (_view == _AstView.v1) {
-      // ignore: analyzer_to_be_deprecated_use
+      // ignore: analyzer_v1_ast_use
       for (var entity in node.namedChildEntities) {
         _writeNamedChildEntity(node, entity);
       }
@@ -3018,7 +3424,7 @@ Expected parent: (${parent.runtimeType}) $parent
     var entities =
         !_includeInlineV1ChildEntities || node.astNodeApi == AstNodeApi.v2
         ? <ChildEntity>[]
-        // ignore: analyzer_to_be_deprecated_use
+        // ignore: analyzer_v1_ast_use
         : node.namedChildEntities.toList();
     var entitiesByName = {for (var entity in entities) entity.name: entity};
     var matchedV1Names = <String>{};
@@ -3131,7 +3537,6 @@ Expected parent: (${parent.runtimeType}) $parent
         _sink.writelnWithIndent('$name: GetterInvocationResolution');
         _sink.withIndent(() {
           _writeElement('element', resolution.element);
-          _writeType('invokeType', resolution.invokeType);
           _writeType('type', resolution.type);
         });
       case InvalidNamedReadResolutionImpl():
@@ -3356,6 +3761,11 @@ Expected parent: (${parent.runtimeType}) $parent
     fail('No $expected in $elements');
   }
 
+  static String _describeEntity(SyntacticEntity entity) {
+    var name = entity is Token ? "'${entity.lexeme}'" : '${entity.runtimeType}';
+    return '$name ${entity.offset}..${entity.end}';
+  }
+
   static Token _entityBeginToken(SyntacticEntity entity) {
     if (entity is Token) {
       return entity;
@@ -3378,13 +3788,13 @@ Expected parent: (${parent.runtimeType}) $parent
 
   /// Every [FormalParameter] declares an element, and this element must be
   /// in the list of formal parameter elements of some declaration, e.g. of
-  /// [ConstructorDeclaration], [MethodDeclaration], or a local
-  /// [FunctionDeclaration].
+  /// [ConstructorDeclaration], [MethodDeclaration2], a local
+  /// [FunctionDeclaration], or a [TopLevelFunctionDeclaration].
   static List<FormalParameterFragment> _expectedFormalParameterElements(
     FormalParameter node,
   ) {
     var parametersParent = node.parentFormalParameterList2.parent2;
-    if (parametersParent is ConstructorDeclaration) {
+    if (parametersParent is ConstructorDeclaration2) {
       var declaredFragment = parametersParent.declaredFragment!;
       return declaredFragment.formalParameters;
     } else if (parametersParent is FormalParameter) {
@@ -3400,12 +3810,18 @@ Expected parent: (${parent.runtimeType}) $parent
     } else if (parametersParent is GenericFunctionTypeImpl) {
       var declaredFragment = parametersParent.declaredFragment!;
       return declaredFragment.formalParameters;
-    } else if (parametersParent is MethodDeclaration) {
-      var declaredFragment = parametersParent.declaredFragment!;
-      return declaredFragment.formalParameters;
     } else if (parametersParent is PrimaryConstructorDeclaration) {
       var declaredFragment = parametersParent.declaredFragment!;
       return declaredFragment.formalParameters;
+    } else if (parametersParent is LocalFunctionDeclaration) {
+      var declaredFragment = parametersParent.declaredFragment!;
+      return declaredFragment.formalParameters;
+    } else if (parametersParent
+        case (TopLevelDeclaration() || MemberDeclaration()) &&
+            FragmentDeclaringNode(
+              declaredFragment: ExecutableFragment fragment,
+            )) {
+      return fragment.formalParameters;
     }
     throw UnimplementedError(
       '(${parametersParent.runtimeType}) $parametersParent',
@@ -3433,6 +3849,16 @@ Expected parent: (${parent.runtimeType}) $parent
 
 class ResolvedNodeTextConfiguration {
   bool skipArgumentList = false;
+
+  /// If `true`, check that the printed AST is consistent with its token
+  /// stream: each child entity is within the range of its parent, and each
+  /// token is the [Token.previous] of its [Token.next]. This prints nothing;
+  /// use [withTokenPreviousNext] to print the links.
+  ///
+  /// This holds for parsed and resolved ASTs, but not for ASTs of the element
+  /// model: they are detached from the token stream, and some of their nodes
+  /// are synthesized.
+  bool withCheckingTokenStream = true;
 
   /// If `true`, elements of [InterfaceType] should be printed.
   bool withInterfaceTypeElements = false;

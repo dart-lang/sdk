@@ -18,7 +18,7 @@ void main() {
 }
 
 @reflectiveTest
-class CreateGetterEnumTest extends FixProcessorTest {
+class CreateGetterEnumTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.createGetter;
 
@@ -87,7 +87,7 @@ void f(E e) {
 }
 
 @reflectiveTest
-class CreateGetterMixinTest extends FixProcessorTest {
+class CreateGetterMixinTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.createGetter;
 
@@ -132,7 +132,8 @@ void f() {
 }
 ''',
       filter: (e) {
-        return e.diagnosticCode == diag.dotShorthandUndefinedGetter;
+        return e.diagnosticCode ==
+            diag.undefinedStaticMemberReadNotFoundDotShorthand;
       },
     );
   }
@@ -292,7 +293,7 @@ mixin M {
 }
 
 @reflectiveTest
-class CreateGetterTest extends FixProcessorTest {
+class CreateGetterTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.createGetter;
 
@@ -335,6 +336,15 @@ class C {
     await assertNoFix();
   }
 
+  Future<void> test_constant() async {
+    await resolveTestCode('''
+class A {
+  static const x = foo;
+}
+''');
+    await assertNoFix();
+  }
+
   Future<void> test_dotShorthand_class() async {
     await resolveTestCode('''
 class A {
@@ -353,6 +363,14 @@ void f() {
   print(v);
 }
 ''');
+  }
+
+  Future<void> test_dotShorthand_constant() async {
+    await resolveTestCode('''
+class A {}
+const A v = .getter;
+''');
+    await assertNoFix();
   }
 
   Future<void> test_dotShorthand_extensionType() async {
@@ -1016,7 +1034,8 @@ class A {
 }
 ''',
       filter: (diagnostic) =>
-          diagnostic.diagnosticCode == diag.undefinedIdentifier,
+          diagnostic.diagnosticCode ==
+          diag.undefinedUnqualifiedNameReadNotFound,
     );
   }
 
@@ -1460,7 +1479,8 @@ class A {
 }
 ''',
       filter: (diagnostic) =>
-          diagnostic.diagnosticCode == diag.undefinedIdentifier,
+          diagnostic.diagnosticCode ==
+          diag.undefinedUnqualifiedNameReadNotFound,
     );
   }
 
@@ -1483,7 +1503,8 @@ class A {
 }
 ''',
       filter: (diagnostic) =>
-          diagnostic.diagnosticCode == diag.undefinedIdentifier,
+          diagnostic.diagnosticCode ==
+          diag.undefinedUnqualifiedNameReadNotFound,
     );
   }
 
@@ -1506,7 +1527,8 @@ class A {
 }
 ''',
       filter: (diagnostic) =>
-          diagnostic.diagnosticCode == diag.undefinedIdentifier,
+          diagnostic.diagnosticCode ==
+          diag.undefinedUnqualifiedNameReadNotFound,
     );
   }
 
@@ -1529,7 +1551,8 @@ class A {
 }
 ''',
       filter: (diagnostic) =>
-          diagnostic.diagnosticCode == diag.undefinedIdentifier,
+          diagnostic.diagnosticCode ==
+          diag.undefinedUnqualifiedNameReadNotFound,
     );
   }
 
@@ -1571,7 +1594,8 @@ class A {
 }
 ''',
       filter: (diagnostic) =>
-          diagnostic.diagnosticCode == diag.undefinedIdentifier,
+          diagnostic.diagnosticCode ==
+          diag.undefinedUnqualifiedNameReadNotFound,
     );
   }
 
@@ -1594,7 +1618,8 @@ class A {
 }
 ''',
       filter: (diagnostic) =>
-          diagnostic.diagnosticCode == diag.undefinedIdentifier,
+          diagnostic.diagnosticCode ==
+          diag.undefinedUnqualifiedNameReadNotFound,
     );
   }
 
@@ -1617,7 +1642,8 @@ class A {
 }
 ''',
       filter: (diagnostic) =>
-          diagnostic.diagnosticCode == diag.undefinedIdentifier,
+          diagnostic.diagnosticCode ==
+          diag.undefinedUnqualifiedNameReadNotFound,
     );
   }
 
@@ -1640,7 +1666,8 @@ class A {
 }
 ''',
       filter: (diagnostic) =>
-          diagnostic.diagnosticCode == diag.undefinedIdentifier,
+          diagnostic.diagnosticCode ==
+          diag.undefinedUnqualifiedNameReadNotFound,
     );
   }
 
@@ -1663,7 +1690,8 @@ class A {
 }
 ''',
       filter: (diagnostic) =>
-          diagnostic.diagnosticCode == diag.undefinedIdentifier,
+          diagnostic.diagnosticCode ==
+          diag.undefinedUnqualifiedNameReadNotFound,
     );
   }
 

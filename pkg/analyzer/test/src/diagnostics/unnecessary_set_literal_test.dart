@@ -279,4 +279,12 @@ void f() => {1};
 // [diag.unnecessarySetLiteral] Braces unnecessarily wrap this expression in a set literal.
 ''');
   }
+
+  test_topLevelSetter_void() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void set foo(int _) => {1};
+//                     ^^^
+// [diag.unnecessarySetLiteral] Braces unnecessarily wrap this expression in a set literal.
+''');
+  }
 }

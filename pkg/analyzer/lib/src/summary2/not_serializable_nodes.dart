@@ -13,16 +13,22 @@ bool isNotSerializableMarker(UnqualifiedNameExpression node) {
   return node.name.lexeme == _notSerializableName;
 }
 
+/// Whether [node] can be serialized, so that
+/// [replaceNotSerializableExpression] keeps it.
+bool isSerializable(AstNode node) {
+  var visitor = _IsSerializableNodeVisitor();
+  node.accept2(visitor);
+  return visitor.result;
+}
+
 /// If [node] is fully serializable, returns it.
 /// Otherwise returns a marker node.
 ExpressionImpl replaceNotSerializableExpression(ExpressionImpl node) {
-  var visitor = _IsSerializableNodeVisitor();
-  node.accept2(visitor);
-  if (visitor.result) {
+  if (isSerializable(node)) {
     return node;
   }
   return UnqualifiedNameExpressionImpl(
-    name: StringToken(TokenType.STRING, _notSerializableName, -1),
+    name: StringToken(TokenType.IDENTIFIER, _notSerializableName, -1),
   );
 }
 

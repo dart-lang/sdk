@@ -10,6 +10,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer_plugin/channel/channel.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as protocol;
+import 'package:analyzer_plugin/protocol/protocol_constants.dart' as protocol;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as protocol;
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart'
     as protocol;
@@ -43,8 +44,11 @@ class FakeChannel implements PluginCommunicationChannel {
     _onRequest = onRequest;
   }
 
+  void Function(protocol.Notification)? onNotificationSent;
+
   @override
   void sendNotification(protocol.Notification notification) {
+    onNotificationSent?.call(notification);
     _notificationsController.add(notification);
   }
 
@@ -74,6 +78,10 @@ class PluginServerTestBase with ResourceProviderMixin {
 
   late final PluginServer pluginServer;
 
+  /// Whether to fail the test immediately if an unexpected
+  /// [protocol.PLUGIN_NOTIFICATION_ERROR] is sent across the channel.
+  bool failOnPluginErrors = true;
+
   Folder get byteStoreRoot => getFolder('/byteStore');
 
   Folder get sdkRoot => getFolder('/sdk');
@@ -87,6 +95,20 @@ class PluginServerTestBase with ResourceProviderMixin {
     await pluginServer.initialize();
     pluginServer.start(channel);
 
+    if (failOnPluginErrors) {
+      channel.onNotificationSent = (notification) {
+        if (notification.event == protocol.PLUGIN_NOTIFICATION_ERROR) {
+          var errorParams = protocol.PluginErrorParams.fromNotification(
+            notification,
+          );
+          fail(
+            'Unexpected plugin error occurred: ${errorParams.message}\n'
+            '${errorParams.stackTrace}',
+          );
+        }
+      };
+    }
+
     await pluginServer.handlePluginVersionCheck(
       protocol.PluginVersionCheckParams(
         byteStoreRoot.path,
@@ -97,6 +119,8 @@ class PluginServerTestBase with ResourceProviderMixin {
   }
 
   void tearDown() {
+    channel.onNotificationSent = null;
+    PluginServer.registries.clear();
     registeredFixGenerators.clearLintProducers();
     registeredFixGenerators.clearWarningProducers();
   }

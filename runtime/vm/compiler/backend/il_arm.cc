@@ -4910,43 +4910,6 @@ DEFINE_EMIT(Simd32x4ToSimd32x4Conversion, (SameAsFirstInput, QRegister left)) {
   // code generation.
 }
 
-DEFINE_EMIT(
-    Float32x4Clamp,
-    (QRegister result, QRegister left, QRegister lower, QRegister upper)) {
-  __ vminqs(result, left, upper);
-  __ vmaxqs(result, result, lower);
-}
-
-DEFINE_EMIT(Float64x2Clamp,
-            (QRegisterView result,
-             QRegisterView left,
-             QRegisterView lower,
-             QRegisterView upper)) {
-  compiler::Label done0, done1;
-  // result = max(min(left, upper), lower) |
-  //          lower if (upper is NaN || left is NaN) |
-  //          upper if lower is NaN
-  __ vcmpd(left.d(0), upper.d(0));
-  __ vmstat();
-  __ vmovd(result.d(0), upper.d(0), GE);
-  __ vmovd(result.d(0), left.d(0), LT);  // less than or unordered(NaN)
-  __ b(&done0, VS);                      // at least one argument was NaN
-  __ vcmpd(result.d(0), lower.d(0));
-  __ vmstat();
-  __ vmovd(result.d(0), lower.d(0), LE);
-  __ Bind(&done0);
-
-  __ vcmpd(left.d(1), upper.d(1));
-  __ vmstat();
-  __ vmovd(result.d(1), upper.d(1), GE);
-  __ vmovd(result.d(1), left.d(1), LT);  // less than or unordered(NaN)
-  __ b(&done1, VS);                      // at least one argument was NaN
-  __ vcmpd(result.d(1), lower.d(1));
-  __ vmstat();
-  __ vmovd(result.d(1), lower.d(1), LE);
-  __ Bind(&done1);
-}
-
 // Low (< 7) Q registers are needed for the vmovs instruction.
 // TODO(dartbug.com/30953) support register range constraints in the regalloc.
 DEFINE_EMIT(Float32x4With,
@@ -5277,13 +5240,17 @@ DEFINE_EMIT(Int32x4Shift,
              Register shift,
              Temp<QRegister> shift_vector)) {
   __ and_(TMP, shift, compiler::Operand(31));
-  if (instr->kind() == SimdOpInstr::kInt32x4ShrS) {
-    // vshlqi shifts right when the per-lane count is negative.
+  if (instr->kind() != SimdOpInstr::kInt32x4Shl) {
+    // vshlqi and vshlqu shift right when the per-lane count is negative.
     __ rsb(TMP, TMP, compiler::Operand(0));
   }
   __ vmovdr(DTMP, 0, TMP);
   __ vdup(compiler::kFourBytes, shift_vector, DTMP, 0);
-  __ vshlqi(compiler::kFourBytes, result, value, shift_vector);
+  if (instr->kind() == SimdOpInstr::kInt32x4ShrU) {
+    __ vshlqu(compiler::kFourBytes, result, value, shift_vector);
+  } else {
+    __ vshlqi(compiler::kFourBytes, result, value, shift_vector);
+  }
 }
 
 // Map SimdOpInstr::Kind-s to corresponding emit functions. Uses the following
@@ -5295,6 +5262,7 @@ DEFINE_EMIT(Int32x4Shift,
 #define SIMD_OP_VARIANTS(CASE, ____, SIMPLE)                                   \
   CASE(Int32x4Shl)                                                             \
   CASE(Int32x4ShrS)                                                            \
+  CASE(Int32x4ShrU)                                                            \
   ____(Int32x4Shift)                                                           \
   CASE(Float32x4Add)                                                           \
   CASE(Float32x4Sub)                                                           \
@@ -5350,8 +5318,6 @@ DEFINE_EMIT(Int32x4Shift,
   CASE(Float32x4ToInt32x4)                                                     \
   CASE(Int32x4ToFloat32x4)                                                     \
   ____(Simd32x4ToSimd32x4Conversion)                                           \
-  SIMPLE(Float32x4Clamp)                                                       \
-  SIMPLE(Float64x2Clamp)                                                       \
   CASE(Float32x4WithX)                                                         \
   CASE(Float32x4WithY)                                                         \
   CASE(Float32x4WithZ)                                                         \
@@ -5556,6 +5522,9 @@ void UnaryDoubleOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const DRegister result = EvenDRegisterOf(locs()->out(0).fpu_reg());
   const DRegister value = EvenDRegisterOf(locs()->in(0).fpu_reg());
   switch (op_kind()) {
+    case Token::kABS:
+      __ vabsd(result, value);
+      break;
     case Token::kNEGATE:
       __ vnegd(result, value);
       break;

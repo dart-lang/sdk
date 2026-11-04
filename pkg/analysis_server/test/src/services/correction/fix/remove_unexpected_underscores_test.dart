@@ -33,7 +33,8 @@ var b = 1_000_000;
 }
 
 @reflectiveTest
-class RemoveUnexpectedUnderscoresTest extends FixProcessorTest {
+class RemoveUnexpectedUnderscoresTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeUnexpectedUnderscores;
 

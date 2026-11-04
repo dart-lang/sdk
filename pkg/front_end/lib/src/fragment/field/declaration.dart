@@ -67,7 +67,7 @@ abstract class FieldDeclaration {
     required DeclarationBuilder? declarationBuilder,
     required List<Annotatable> annotatables,
     required Uri annotatablesFileUri,
-    required bool forConstantConstructor,
+    required bool includeBody,
   });
 
   int computeFieldDefaultTypes(ComputeDefaultTypeContext context);
@@ -335,7 +335,7 @@ class RegularFieldDeclaration
     required DeclarationBuilder? declarationBuilder,
     required List<Annotatable> annotatables,
     required Uri annotatablesFileUri,
-    required bool forConstantConstructor,
+    required bool includeBody,
   }) {
     BodyBuilderContext bodyBuilderContext = createBodyBuilderContext();
     for (Annotatable annotatable in annotatables) {
@@ -355,7 +355,7 @@ class RegularFieldDeclaration
     // into the outline.
     Token? token = _fragment.takeInitializerTokenForOutline();
     if (!hasBodyBeenBuilt && token != null) {
-      if (_fragment.modifiers.isConst || forConstantConstructor) {
+      if (_fragment.modifiers.isConst || includeBody) {
         if (hasInitializerBeenComputed) {
           buildBody(
             classHierarchy.coreTypes,
@@ -462,8 +462,7 @@ class RegularFieldDeclaration
       isInstanceMember: !isStatic,
       hasSetter: hasSetter,
       isCovariantByDeclaration: _fragment.modifiers.isCovariant,
-      fileUri: fileUri,
-      fileOffset: nameOffset,
+      uriOffset: uriOffset,
     );
   }
 
@@ -624,9 +623,7 @@ class RegularFieldDeclaration
         typeBuilder,
         [...?getterOverrideDependencies, ...?setterOverrideDependencies],
         name: _fragment.name,
-        fileUri: fileUri,
-        nameOffset: nameOffset,
-        nameLength: _fragment.name.length,
+        uriOffset: uriOffset,
         isAssignable: hasSetter,
       );
     } else {
@@ -670,6 +667,7 @@ class RegularFieldDeclaration
     required SourcePropertyBuilder propertyBuilder,
     required Annotatable annotatable,
     required Uri annotatableFileUri,
+    required bool includeBody,
   }) {}
 
   @override
@@ -701,6 +699,7 @@ class RegularFieldDeclaration
     required SourcePropertyBuilder propertyBuilder,
     required Annotatable annotatable,
     required Uri annotatableFileUri,
+    required bool includeBody,
   }) {}
 
   @override
@@ -768,7 +767,6 @@ class RegularFieldDeclaration
     required SourcePropertyBuilder builder,
     required PropertyEncodingStrategy encodingStrategy,
     required TypeParameterFactory typeParameterFactory,
-    required bool isImplementation,
   }) {}
 
   @override
@@ -777,7 +775,6 @@ class RegularFieldDeclaration
     required SourcePropertyBuilder builder,
     required PropertyEncodingStrategy encodingStrategy,
     required TypeParameterFactory typeParameterFactory,
-    required bool isImplementation,
   }) {}
 
   @override

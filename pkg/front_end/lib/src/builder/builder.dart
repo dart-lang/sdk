@@ -199,6 +199,8 @@ abstract class NamedBuilder implements Builder {
   /// Used when multiple things with the same name are declared within the same
   /// parent. Only used for top-level and class-member declarations, not for
   /// block scopes.
+  // TODO(johnniwinther): Avoid using [next] and just mark builders as duplicate
+  // when necessary.
   NamedBuilder? next;
 
   /// Return `true` if this builder is a duplicate of another with the same

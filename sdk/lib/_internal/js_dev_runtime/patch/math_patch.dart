@@ -64,6 +64,11 @@ double log(@nullCheck num x) => JS<double>('!', r'Math.log(#)', x);
 num pow(@nullCheck num x, @nullCheck num exponent) =>
     JS<num>('!', r'Math.pow(#, #)', x, exponent);
 
+@patch
+@notNull
+int imul32(@nullCheck int a, @nullCheck int b) =>
+    JS<int>('!', r'Math.imul(#, #)', a, b);
+
 const int _POW2_32 = 0x100000000;
 
 @patch

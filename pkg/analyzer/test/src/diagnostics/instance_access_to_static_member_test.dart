@@ -105,7 +105,7 @@ extension E on int {
 f(int a) {
   a.m<int>;
 //  ^
-// [diag.undefinedGetter] The getter 'm' isn't defined for the type 'int'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'm' isn't defined for the type 'int'.
 }
 ''');
   }

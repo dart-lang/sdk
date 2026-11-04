@@ -77,6 +77,12 @@ extension type const ConstantList._(List<Constant> _list)
       List.generate(constants.length, (i) => constants[i], growable: false),
     );
   }
+
+  /// Copies [constants] into a new fixed-length list.
+  factory of(Iterable<Constant> constants) {
+    final List<Constant> list = List<Constant>.of(constants, growable: false);
+    return list.isEmpty ? empty : ConstantList._(list);
+  }
 }
 
 /// A fixed-length list of [ConstantMapEntry]s.
@@ -162,6 +168,15 @@ extension type const ConstantMapEntryList._(List<ConstantMapEntry> _list)
     return ConstantMapEntryList._(
       List.generate(entries.length, (i) => entries[i], growable: false),
     );
+  }
+
+  /// Copies [entries] into a new fixed-length list.
+  factory of(Iterable<ConstantMapEntry> entries) {
+    final List<ConstantMapEntry> list = List<ConstantMapEntry>.of(
+      entries,
+      growable: false,
+    );
+    return list.isEmpty ? empty : ConstantMapEntryList._(list);
   }
 }
 
@@ -747,27 +762,17 @@ class RecordConstant extends Constant {
     this.named,
     StaticTypeContext staticTypeContext,
   ) : recordType = new RecordType(
-        DartTypeList.generate(
-          positional.length,
-          (i) => positional[i].getType(staticTypeContext),
-        ),
-        _computeNamedTypes(named, staticTypeContext),
+        DartTypeList.mapped(positional, (c) => c.getType(staticTypeContext)),
+        named.isEmpty
+            ? NamedDartTypeList.empty
+            : NamedDartTypeList.of(
+                named.entries.map(
+                  (e) =>
+                      new NamedType(e.key, e.value.getType(staticTypeContext)),
+                ),
+              ),
         staticTypeContext.nonNullable,
       );
-
-  static NamedDartTypeList _computeNamedTypes(
-    Map<String, Constant> named,
-    StaticTypeContext staticTypeContext,
-  ) {
-    if (named.isEmpty) return NamedDartTypeList.empty;
-    final Iterator<MapEntry<String, Constant>> iterator =
-        named.entries.iterator;
-    return NamedDartTypeList.generate(named.length, (_) {
-      iterator.moveNext();
-      final MapEntry<String, Constant> entry = iterator.current;
-      return new NamedType(entry.key, entry.value.getType(staticTypeContext));
-    });
-  }
 
   @override
   void visitChildren(Visitor v) {

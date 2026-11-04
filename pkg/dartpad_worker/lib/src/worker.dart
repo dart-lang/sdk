@@ -23,6 +23,7 @@ import 'tools/file_watch.dart';
 import 'tools/language_server.dart';
 import 'tools/pub.dart';
 import 'tools/sandbox.dart';
+import 'util/log.dart';
 import 'util/parameters_ext.dart';
 import 'worker_protocol_version.dart';
 
@@ -144,20 +145,20 @@ class _Session {
     );
     _registerMethod(
       'workspace/readFileAsText',
-      _forwardToWorkspace((ws) => ws._readFileAsText),
+      _forwardToWorkspace((ws) => ws.readFileAsText),
     );
     _registerMethod(
       'workspace/readFileAsBytes',
-      _forwardToWorkspace((ws) => ws._readFileAsBytes),
+      _forwardToWorkspace((ws) => ws.readFileAsBytes),
     );
     _registerMethod(
       'workspace/deleteFileSystemEntity',
       _forwardToWorkspace((ws) => ws._deleteFileSystemEntity),
     );
-    _registerMethod('workspace/stat', _forwardToWorkspace((ws) => ws._stat));
+    _registerMethod('workspace/stat', _forwardToWorkspace((ws) => ws.stat));
     _registerMethod(
       'workspace/listDirectory',
-      _forwardToWorkspace((ws) => ws._listDirectory),
+      _forwardToWorkspace((ws) => ws.listDirectory),
     );
     _registerMethod(
       'workspace/importTarArchive',
@@ -236,6 +237,8 @@ class _Session {
     unawaited(() async {
       try {
         await _rpc.listen();
+      } catch (e, st) {
+        _onUnhandledError(e, st);
       } finally {
         idleTimer.cancel();
         confirmTimer?.cancel();
@@ -325,11 +328,11 @@ class _Session {
   }
 
   void _onUnhandledError(Object? e, Object? st) {
-    print('Unhandled error not forwarded to the client: $e, $st');
+    logWarning('Unhandled error not forwarded to the client: $e, $st');
   }
 }
 
-class _Workspace {
+class _Workspace implements WorkspaceFileReader {
   final Worker _worker;
   final _Session _session;
   final int _workspaceId;
@@ -374,7 +377,8 @@ class _Workspace {
     return <String, Object?>{};
   }
 
-  Object? _readFileAsText(Parameters params) async {
+  @override
+  Object? readFileAsText(Parameters params) async {
     final path = _resolvePath(params['path'].asString);
     try {
       return {'text': _rp.getFile(path).readAsStringSync()};
@@ -383,7 +387,8 @@ class _Workspace {
     }
   }
 
-  Object? _readFileAsBytes(Parameters params) async {
+  @override
+  Object? readFileAsBytes(Parameters params) async {
     final path = _resolvePath(params['path'].asString);
     try {
       return {'bytes': _rp.getFile(path).readAsBytesSync()};
@@ -406,7 +411,8 @@ class _Workspace {
     return <String, Object?>{};
   }
 
-  Object? _stat(Parameters params) async {
+  @override
+  Object? stat(Parameters params) async {
     final path = _resolvePath(params['path'].asString);
     final resource = _rp.getResource(path);
     if (!resource.exists) {
@@ -434,7 +440,8 @@ class _Workspace {
     return <String, Object?>{};
   }
 
-  Object? _listDirectory(Parameters params) async {
+  @override
+  Object? listDirectory(Parameters params) async {
     final path = _resolvePath(params['path'].asString);
     final recursive = params['recursive'].asBoolOr(false);
     final ignoreHidden = params['ignoreHidden'].asBoolOr(false);
@@ -592,6 +599,7 @@ class _Workspace {
     final sandbox = _sandboxes[sandboxId] = await Sandbox.create(
       port: port,
       resourceProvider: _rp,
+      fileReader: this,
       config: _worker._config,
       version: _worker._version,
       onClosed: () => _sandboxes.remove(sandboxId),

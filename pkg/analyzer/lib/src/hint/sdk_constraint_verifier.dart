@@ -29,7 +29,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
 
   /// Initialize a newly created verifier to use the given [_errorReporter] to
   /// report errors.
-  SdkConstraintVerifier(this._errorReporter, this._versionConstraint);
+  new(this._errorReporter, this._versionConstraint);
 
   /// Return a range covering every version up to, but not including, 2.14.0.
   VersionRange get before_2_14_0 => VersionRange(max: Version.parse('2.14.0'));
@@ -155,6 +155,11 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitGetterDeclaration(covariant GetterDeclarationImpl node) {
+    _visitMethodDeclaration(node, () => super.visitGetterDeclaration(node));
+  }
+
+  @override
   void visitHideCombinator(HideCombinator node) {
     // Don't flag references to either `Future` or `Stream` within a combinator.
   }
@@ -189,11 +194,8 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitMethodDeclaration(MethodDeclaration node) {
-    if (checkTripleShift && node.isOperator && node.name.lexeme == '>>>') {
-      _errorReporter.report(diag.sdkVersionGtGtGtOperator.at(node.name));
-    }
-    super.visitMethodDeclaration(node);
+  void visitMethodDeclaration2(covariant MethodDeclaration2Impl node) {
+    _visitMethodDeclaration(node, () => super.visitMethodDeclaration2(node));
   }
 
   @override
@@ -213,6 +215,11 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitOperatorDeclaration(covariant OperatorDeclarationImpl node) {
+    _visitMethodDeclaration(node, () => super.visitOperatorDeclaration(node));
+  }
+
+  @override
   void visitReceiverIndexExpression(ReceiverIndexExpression node) {
     _checkIndexRead(node);
     super.visitReceiverIndexExpression(node);
@@ -229,6 +236,11 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
     var element = node.resolution?.element;
     _checkSinceSdkVersion(element, node);
     super.visitReceiverPropertyExtraction(node);
+  }
+
+  @override
+  void visitSetterDeclaration(covariant SetterDeclarationImpl node) {
+    _visitMethodDeclaration(node, () => super.visitSetterDeclaration(node));
   }
 
   @override
@@ -334,6 +346,18 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
         );
       }
     }
+  }
+
+  void _visitMethodDeclaration(
+    MethodDeclarationV1OriginImpl node,
+    void Function() visitSuper,
+  ) {
+    if (checkTripleShift &&
+        (node is OperatorDeclarationImpl) &&
+        node.nameToken.lexeme == '>>>') {
+      _errorReporter.report(diag.sdkVersionGtGtGtOperator.at(node.nameToken));
+    }
+    visitSuper();
   }
 
   /// Returns `false` if [element] is the `index` property, and the target

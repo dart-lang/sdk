@@ -5,9 +5,9 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
+import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 
 /// Resolves an annotation, and checks that it denotes a valid annotation.
 ///
@@ -19,16 +19,16 @@ import 'package:analyzer/src/generated/resolver.dart';
 /// invocations are verified by constant verification, like other constant
 /// constructor invocations.
 class AnnotationResolver {
-  final ResolverVisitor _resolver;
+  final TypeAnalyzer _typeAnalyzer;
 
-  AnnotationResolver(this._resolver);
+  new(this._typeAnalyzer);
 
   void resolve(AnnotationImpl node) {
-    _resolver.analyzeExpression(
+    _typeAnalyzer.analyzeExpression(
       node.expression,
-      _resolver.operations.unknownType,
+      _typeAnalyzer.operations.unknownType,
     );
-    _resolver.popRewrite();
+    _typeAnalyzer.popRewrite();
     _verify(node);
   }
 
@@ -53,9 +53,9 @@ class AnnotationResolver {
       case NameExpressionImpl expression:
         // A read from a receiver that couldn't be resolved, such as
         // `@undefined.foo`, was reported with the receiver.
-        if (expression case ReceiverPropertyExtractionImpl(
-          :NameExpressionImpl receiver,
-        ) when receiver.resolution?.element == null) {
+        if (expression
+            case ReceiverPropertyExtractionImpl(:NameExpressionImpl receiver)
+            when receiver.resolution?.element == null) {
           return;
         }
         // Only a valid read is checked; the resolution of the expression
@@ -70,6 +70,6 @@ class AnnotationResolver {
       default:
         break;
     }
-    _resolver.diagnosticReporter.report(diag.invalidAnnotation.at(node));
+    _typeAnalyzer.diagnosticReporter.report(diag.invalidAnnotation.at(node));
   }
 }

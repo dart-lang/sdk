@@ -225,6 +225,54 @@ void f() {
     result.assertResolvedNodes(['void f() {C c = const .name()();}']);
   }
 
+  test_enum_constantDeclaration_argument() async {
+    var result = await _resolveTestCode(r'''
+enum E {
+  a(0),
+  b(foo^),
+  c(1);
+
+  const E(int x);
+}
+''');
+
+    result.assertResolvedNodes(['b(foo)']);
+  }
+
+  test_enum_methodDeclaration_body() async {
+    var result = await _resolveTestCode(r'''
+enum E {
+  a;
+
+  void foo1() {}
+
+  void foo2() {
+    print(0);
+    bar^
+    print(1);
+  }
+
+  void foo3() {}
+}
+''');
+
+    result.assertResolvedNodes(['void foo2() {print(0); bar print; (1);}']);
+  }
+
+  test_enumDeclaration_implementsClause() async {
+    var result = await _resolveTestCode(r'''
+class A {}
+
+enum E implements A^ {
+  a;
+}
+
+void f() {}
+''');
+
+    result.assertResolvedNodes(['enum E implements A {a;}']);
+  }
+
   test_extension_methodDeclaration_body() async {
     var result = await _resolveTestCode(r'''
 extension E on int {
@@ -241,6 +289,34 @@ extension E on int {
 ''');
 
     result.assertResolvedNodes(['void foo2() {print(0); bar print; (1);}']);
+  }
+
+  test_extensionType_methodDeclaration_body() async {
+    var result = await _resolveTestCode(r'''
+extension type E(int it) {
+  void foo1() {}
+
+  void foo2() {
+    print(0);
+    bar^
+    print(1);
+  }
+
+  void foo3() {}
+}
+''');
+
+    result.assertResolvedNodes(['void foo2() {print(0); bar print; (1);}']);
+  }
+
+  test_extensionTypeDeclaration_representation_type() async {
+    var result = await _resolveTestCode(r'''
+extension type E(Str^ it) {}
+
+void f() {}
+''');
+
+    result.assertResolvedNodes(['extension type E(Str it) {}']);
   }
 
   test_functionDeclaration_body() async {

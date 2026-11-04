@@ -1,0 +1,12 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef ExternalDartReferenceType<unrelated T extends core::Object? = dynamic> = self::JSValue?;
+class JSValue extends core::Object {
+  constructor •(final core::Object? ref) → self::JSValue
+    : super core::Object::•()
+    ;
+}
+static synthetic method _#ExternalDartReferenceType#new#tearOff<unrelated T extends core::Object? = dynamic>(final core::Object? ref) → self::JSValue
+  return new self::JSValue::•(ref);

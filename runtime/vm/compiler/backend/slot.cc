@@ -371,11 +371,12 @@ const Slot& Slot::Get(const Field& field,
     }
   }
 
-  AbstractType& field_type = AbstractType::ZoneHandle(zone, field.exact_type());
-  bool is_exact_type = true;
+  AbstractType& field_type =
+      AbstractType::ZoneHandle(zone, field.inferred_type());
+  bool is_exact_type = field.is_inferred_type_exact();
   if (field_type.IsNull()) {
     field_type = field.type();
-    is_exact_type = false;
+    ASSERT(!is_exact_type);
   }
   if (field_type.IsStrictlyNonNullable()) {
     is_nullable = false;

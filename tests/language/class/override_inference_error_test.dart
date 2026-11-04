@@ -124,7 +124,7 @@ class CInherit1 implements IOptx {
     // And not dynamic.
     x.arglebargle();
     //^^^^^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
     // [cfe] The method 'arglebargle' isn't defined for the type 'int'.
 
     // Return type is exactly int.

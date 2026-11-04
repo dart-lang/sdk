@@ -5,6 +5,11 @@
 import 'package:platform/platform.dart' as platform;
 import 'package:unified_analytics/unified_analytics.dart';
 
+/// The name of the AI coding agent running the analysis server, if any.
+///
+/// Detected from the environment using [AiAgent.detectAgentName].
+String? get aiAgent => AiAgent.detectAgentName(_locaEnvironment);
+
 DashTool? get topLevelTool {
   var toolValue = _readEnv(DashEnvVar.tool.name);
   if (toolValue != null) {

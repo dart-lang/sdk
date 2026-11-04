@@ -23,7 +23,8 @@ void main() {
 /// `AddMissingSwitchCasesTest_SwitchStatement` because the error/fix are
 /// different for pattern-enabled code.
 @reflectiveTest
-class AddMissingEnumCaseClausesTest extends FixProcessorTest {
+class AddMissingEnumCaseClausesTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.addMissingEnumCaseClauses;
 

@@ -4338,24 +4338,17 @@ final class UriData {
   ) {
     // Encode the string into bytes then generate an ASCII only string
     // by percent encoding selected bytes.
-    int byteOr = 0;
     for (int i = 0; i < bytes.length; i++) {
       int byte = bytes[i];
-      byteOr |= byte;
+      if (byte < 0 || byte > 255) {
+        throw ArgumentError.value(byte, "non-byte value");
+      }
       if (byte < 128 && ((_charTables.codeUnitAt(byte) & canonicalMask) != 0)) {
         buffer.writeCharCode(byte);
       } else {
         buffer.writeCharCode(_PERCENT);
         buffer.writeCharCode(_hexDigits.codeUnitAt(byte >> 4));
         buffer.writeCharCode(_hexDigits.codeUnitAt(byte & 0x0f));
-      }
-    }
-    if ((byteOr & ~0xFF) != 0) {
-      for (int i = 0; i < bytes.length; i++) {
-        var byte = bytes[i];
-        if (byte < 0 || byte > 255) {
-          throw ArgumentError.value(byte, "non-byte value");
-        }
       }
     }
   }

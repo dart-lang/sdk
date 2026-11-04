@@ -129,6 +129,32 @@ extension ExecutableElement2Extension on ExecutableElement {
     var enclosing = enclosingElement;
     return enclosing is ClassElement && enclosing.isDartCoreObject;
   }
+
+  /// Returns the formal parameter of this executable that corresponds to
+  /// [parameter] at [index] in another executable, or `null` if none.
+  ///
+  /// Positional parameters correspond by position, named parameters by name.
+  FormalParameterElement? correspondingParameter(
+    FormalParameterElement parameter,
+    int index,
+  ) {
+    var formalParameters = this.formalParameters;
+    if (parameter.isPositional) {
+      if (index < formalParameters.length) {
+        var result = formalParameters[index];
+        if (result.isPositional) {
+          return result;
+        }
+      }
+    } else {
+      for (var result in formalParameters) {
+        if (result.isNamed && result.name == parameter.name) {
+          return result;
+        }
+      }
+    }
+    return null;
+  }
 }
 
 extension FormalParameterElementMixinExtension

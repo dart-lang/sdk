@@ -99,7 +99,7 @@ abstract class DiagnosticCode {
   /// message associated with the error will be created from the given
   /// [problemMessage] template. The correction associated with the error will
   /// be created from the given [correctionMessage] template.
-  const DiagnosticCode({
+  const new({
     String? correctionMessage,
     this.hasPublishedDocs = false,
     this.isUnresolvedIdentifier = false,
@@ -188,7 +188,7 @@ abstract class DiagnosticCodeImpl extends DiagnosticCode {
   @override
   final DiagnosticType type;
 
-  const DiagnosticCodeImpl({
+  const new({
     super.correctionMessage,
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
@@ -256,12 +256,7 @@ class DiagnosticSeverity implements Comparable<DiagnosticSeverity> {
   /// The name of the severity used when producing readable output.
   final String displayName;
 
-  const DiagnosticSeverity(
-    this.name,
-    this.ordinal,
-    this.machineCode,
-    this.displayName,
-  );
+  const new(this.name, this.ordinal, this.machineCode, this.displayName);
 
   @override
   int get hashCode => ordinal;
@@ -361,7 +356,7 @@ class DiagnosticType implements Comparable<DiagnosticType> {
 
   /// Initialize a newly created error type to have the given [name] and
   /// [severity].
-  const DiagnosticType(this.name, this.ordinal, this.severity);
+  const new(this.name, this.ordinal, this.severity);
 
   String get displayName => name.toLowerCase().replaceAll('_', ' ');
 

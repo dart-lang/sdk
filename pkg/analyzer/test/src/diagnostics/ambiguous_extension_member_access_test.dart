@@ -122,7 +122,6 @@ ReceiverPropertyExtraction
   name: a
   resolution: GetterInvocationResolution
     element: <testLibrary>::@extension::E1::@getter::a
-    invokeType: void Function()
     type: void
   staticType: void
 V1: PropertyAccess

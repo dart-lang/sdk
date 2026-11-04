@@ -15,13 +15,11 @@ class DartObjectPrinter {
   final TreeStringSink _sink;
   final ElementPrinter _elementPrinter;
 
-  DartObjectPrinter({
-    required DartObjectPrinterConfiguration configuration,
-    required TreeStringSink sink,
-    required ElementPrinter elementPrinter,
-  }) : _configuration = configuration,
-       _sink = sink,
-       _elementPrinter = elementPrinter;
+  new({
+    required this._configuration,
+    required this._sink,
+    required this._elementPrinter,
+  });
 
   void write(DartObjectImpl? object) {
     if (object != null) {

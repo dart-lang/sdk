@@ -185,7 +185,7 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
   DartType? typeFound;
 
   /// Construct a new instance to search for a declaration
-  _LocalBestTypeVisitor(this.targetName, int offset) : super(offset);
+  new(this.targetName, int offset) : super(offset);
 
   @override
   void declaredClass(ClassDeclaration declaration) {
@@ -342,11 +342,8 @@ class _SuggestionBuilder {
   /// The builder used to build suggestions.
   final SuggestionBuilder builder;
 
-  _SuggestionBuilder(
-    this.resourceProvider,
-    this.collector,
-    this.containingLibrary,
-  ) : builder = SuggestionBuilderImpl(resourceProvider);
+  new(this.resourceProvider, this.collector, this.containingLibrary)
+    : builder = SuggestionBuilderImpl(resourceProvider);
 
   Iterable<CompletionSuggestion> get suggestions => _suggestionMap.values;
 

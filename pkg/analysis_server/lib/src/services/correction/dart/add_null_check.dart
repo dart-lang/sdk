@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -112,8 +113,8 @@ class AddNullCheck extends ResolvedCorrectionProducer {
       toType = parent.staticType;
     } else if (parent is VariableDeclaration && _target == parent.initializer) {
       toType = parent.declaredFragment!.element.type;
-    } else if (parent is ArgumentList) {
-      toType = _target.correspondingParameter?.type;
+    } else if (_target.argumentParameterType case var argumentType?) {
+      toType = argumentType;
     } else if (parent is IndexExpression) {
       toType = parent.realTarget.typeOrThrow;
     } else if (parent is ForEachPartsWithDeclaration) {
@@ -160,7 +161,8 @@ class AddNullCheck extends ResolvedCorrectionProducer {
         (parent is CascadeExpression && _target == parent.target) ||
         (parent is MethodInvocation && _target == parent.target) ||
         (parent is FunctionExpressionInvocation &&
-            _target == parent.function)) {
+            _target == parent.function) ||
+        (parent is FunctionReference && _target == parent.function)) {
       // No need to set the `toType` because there isn't any need for a type
       // check.
     } else {
@@ -250,7 +252,8 @@ class AddNullCheck extends ResolvedCorrectionProducer {
         target = coveringNode;
       }
     } else if (coveringNode is Expression &&
-        parent is FunctionExpressionInvocation) {
+        (parent is FunctionExpressionInvocation ||
+            parent is FunctionReference)) {
       target = coveringNode;
     } else if (parent is AssignmentExpression) {
       target = parent.rightHandSide;

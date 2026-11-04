@@ -13,12 +13,12 @@ library;
 // pkg/front_end/testcases/regress/issue_59870_02.dart:18:7: Error: The mixin 'MBCiIJ' must be 'base' because the supertype 'Function' is 'final'.
 // Try adding 'base' to the mixin.
 // mixin MBCiIJ on B, Function implements I, J {}
-//       ^
+//       ^^^^^^
 //
 // pkg/front_end/testcases/regress/issue_59870_02.dart:22:7: Error: The type 'CAaMAiBCaMBCiIJ_2' must be 'base', 'final' or 'sealed' because the supertype 'Function' is 'final'.
 // Try adding 'base', 'final', or 'sealed' to the type.
 // class CAaMAiBCaMBCiIJ_2 extends CAaMAiBC with MBCiIJ {}
-//       ^
+//       ^^^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/regress/issue_59870_02.dart:22:7: Error: 'CAaMAiBC' doesn't implement '_MBCiIJ&B&Function' so it can't be used with 'MBCiIJ'.
 //  - 'CAaMAiBC' is from 'pkg/front_end/testcases/regress/issue_59870_02.dart'.

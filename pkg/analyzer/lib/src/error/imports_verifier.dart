@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/dart/analysis/file_analysis.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -42,9 +43,10 @@ class ImportsVerifier {
   /// proper subset of the unused imports that are listed more than once.
   final List<ImportDirective> _duplicateImports = [];
 
-  /// This list is a proper subset of the unused exports that are listed more
-  /// than once.
-  final List<ExportDirective> _duplicateExports = [];
+  /// The map of export directives that are duplicates, either of an export
+  /// directive within the same compilation unit, or of an export directive
+  /// in an ancestor in the part hierarchy, mapped to duplicate export metadata.
+  final Map<ExportDirective, _DuplicateExport> _duplicateExports = {};
 
   /// A map of names that are hidden more than once.
   final Map<NamespaceDirective, List<CombinatorName>> _duplicateHiddenNamesMap =
@@ -54,7 +56,7 @@ class ImportsVerifier {
   final Map<NamespaceDirective, List<CombinatorName>> _duplicateShownNamesMap =
       {};
 
-  ImportsVerifier({required this.fileAnalysis});
+  new({required this.fileAnalysis});
 
   void addImports(CompilationUnit node) {
     var importsWithLibraries = <_NamespaceDirective>[];
@@ -87,25 +89,40 @@ class ImportsVerifier {
       }
     }
     var importDuplicates = _duplicates(importsWithLibraries);
-    for (var duplicate in importDuplicates) {
+    for (var duplicate in importDuplicates.keys) {
       _duplicateImports.add(duplicate as ImportDirective);
     }
     var exportDuplicates = _duplicates(exportsWithLibraries);
-    for (var duplicate in exportDuplicates) {
-      _duplicateExports.add(duplicate as ExportDirective);
+    for (var entry in exportDuplicates.entries) {
+      var duplicate = entry.key as ExportDirective;
+      var previous = entry.value as ExportDirective;
+      _duplicateExports[duplicate] = _DuplicateExport(
+        contextMessage: _contextMessageForExport(
+          filePath: fileAnalysis.file.source.fullName,
+          exportKeywordOffset: previous.exportKeyword.offset,
+        ),
+      );
     }
+
+    _addAncestorDuplicateExports(node);
   }
 
   /// Any time after the defining compilation unit has been visited by this
   /// visitor, this method can be called to report an
   /// [diag.duplicateExport] hint for each of the export
-  /// directives in the [_duplicateExports] list.
+  /// directives in the [_duplicateExports] map.
   void generateDuplicateExportWarnings(DiagnosticReporter diagnosticReporter) {
-    var length = _duplicateExports.length;
-    for (var i = 0; i < length; i++) {
-      diagnosticReporter.report(
-        diag.duplicateExport.at(_duplicateExports[i].uri),
-      );
+    for (var MapEntry(key: duplicate, value: duplicateExport)
+        in _duplicateExports.entries) {
+      var contextMessage = duplicateExport.contextMessage;
+      var ancestorFileName = duplicateExport.ancestorFileName;
+      var locatable = ancestorFileName != null
+          ? diag.duplicateExportInPart.withArguments(fileName: ancestorFileName)
+          : diag.duplicateExport;
+      if (contextMessage != null) {
+        locatable = locatable.withContextMessages([contextMessage]);
+      }
+      diagnosticReporter.report(locatable.at(duplicate.uri));
     }
   }
 
@@ -323,6 +340,73 @@ class ImportsVerifier {
     }
   }
 
+  /// Add duplicate export directives from [node] that match export directives
+  /// in ancestor parts in the part hierarchy into [_duplicateExports].
+  void _addAncestorDuplicateExports(CompilationUnit node) {
+    if (isGeneratedSource(fileAnalysis.file.source)) {
+      return;
+    }
+    var parent = fileAnalysis.fragment.enclosingFragment;
+    if (parent == null) {
+      return;
+    }
+
+    for (var directive in node.directives.whereType<ExportDirective>()) {
+      if (directive.configurations.isNotEmpty) {
+        continue;
+      }
+      if (_duplicateExports.containsKey(directive)) {
+        continue;
+      }
+      var currentExport = directive.libraryExport;
+      if (currentExport is! LibraryExportImpl) {
+        continue;
+      }
+      var currentLibrary = currentExport.exportedLibrary;
+      if (currentLibrary == null) {
+        continue;
+      }
+
+      var seen = <LibraryFragmentImpl>{};
+      for (
+        LibraryFragmentImpl? ancestor = parent;
+        ancestor != null && seen.add(ancestor);
+        ancestor = ancestor.enclosingFragment
+      ) {
+        var matchingExports = ancestor.libraryExports
+            .where((export) => export.exportedLibrary == currentLibrary)
+            .toList();
+
+        if (matchingExports.isEmpty) {
+          continue;
+        }
+
+        if (!isGeneratedSource(ancestor.source)) {
+          LibraryExportImpl? matchingExport;
+          for (var export in matchingExports) {
+            if (ElementDirectiveImpl.areIdenticalExceptUri(
+              currentExport,
+              export,
+            )) {
+              matchingExport = export;
+              break;
+            }
+          }
+          if (matchingExport != null) {
+            _duplicateExports[directive] = _DuplicateExport(
+              ancestorFileName: ancestor.source.shortName,
+              contextMessage: _contextMessageForExport(
+                filePath: ancestor.source.fullName,
+                exportKeywordOffset: matchingExport.exportKeywordOffset,
+              ),
+            );
+          }
+        }
+        break;
+      }
+    }
+  }
+
   /// Add duplicate shown and hidden names from [directive] into
   /// [_duplicateHiddenNamesMap] and [_duplicateShownNamesMap].
   void _addDuplicateShownHiddenNames(NamespaceDirective directive) {
@@ -357,37 +441,67 @@ class ImportsVerifier {
     }
   }
 
-  /// Return the duplicates in [directives].
-  List<NamespaceDirective> _duplicates(List<_NamespaceDirective> directives) {
-    var duplicates = <NamespaceDirective>[];
+  /// Return the duplicates in [directives], mapped to the directive that they
+  /// duplicate.
+  Map<NamespaceDirective, NamespaceDirective> _duplicates(
+    List<_NamespaceDirective> directives,
+  ) {
+    var duplicates = <NamespaceDirective, NamespaceDirective>{};
     if (directives.length > 1) {
       // order the list of directives to find duplicates in faster than
       // O(n^2) time
-      directives.sort((import1, import2) {
-        return import1.libraryUriStr.compareTo(import2.libraryUriStr);
+      directives.sort((d1, d2) {
+        var compare = d1.libraryUriStr.compareTo(d2.libraryUriStr);
+        if (compare != 0) return compare;
+        return d1.node.offset.compareTo(d2.node.offset);
       });
       var currentDirective = directives[0];
       for (var i = 1; i < directives.length; i++) {
         var nextDirective = directives[i];
+        var currentElementDirective = switch (currentDirective.node) {
+          ImportDirective node => node.libraryImport as LibraryImportImpl,
+          ExportDirective node => node.libraryExport as LibraryExportImpl,
+        };
+        var nextElementDirective = switch (nextDirective.node) {
+          ImportDirective node => node.libraryImport as LibraryImportImpl,
+          ExportDirective node => node.libraryExport as LibraryExportImpl,
+        };
         if (currentDirective.libraryUriStr == nextDirective.libraryUriStr &&
-            ImportDirectiveImpl.areSyntacticallyIdenticalExceptUri(
-              currentDirective.node,
-              nextDirective.node,
+            ElementDirectiveImpl.areIdenticalExceptUri(
+              currentElementDirective,
+              nextElementDirective,
             )) {
-          // Add either the currentDirective or nextDirective depending on which
-          // comes second, this guarantees that the first of the duplicates
-          // won't be highlighted.
-          if (currentDirective.node.offset < nextDirective.node.offset) {
-            duplicates.add(nextDirective.node);
-          } else {
-            duplicates.add(currentDirective.node);
-          }
+          // The nextDirective comes second because directives are sorted by offset.
+          duplicates[nextDirective.node] = currentDirective.node;
         }
         currentDirective = nextDirective;
       }
     }
     return duplicates;
   }
+
+  static diag.DiagnosticMessageImpl? _contextMessageForExport({
+    required String filePath,
+    required int exportKeywordOffset,
+  }) {
+    if (exportKeywordOffset < 0) {
+      return null;
+    }
+    return diag.DiagnosticMessageImpl(
+      filePath: filePath,
+      length: 'export'.length,
+      message: 'The previous export that is being duplicated.',
+      offset: exportKeywordOffset,
+      url: null,
+    );
+  }
+}
+
+class _DuplicateExport {
+  final diag.DiagnosticMessageImpl? contextMessage;
+  final String? ancestorFileName;
+
+  new({this.contextMessage, this.ancestorFileName});
 }
 
 /// [NamespaceDirective] with non-null imported or exported [LibraryElement].
@@ -395,7 +509,7 @@ class _NamespaceDirective {
   final NamespaceDirective node;
   final LibraryElement library;
 
-  _NamespaceDirective({required this.node, required this.library});
+  new({required this.node, required this.library});
 
   /// Returns the absolute URI of the library.
   String get libraryUriStr => '${library.uri}';

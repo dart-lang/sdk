@@ -607,22 +607,20 @@ extension on CompilationUnitMember {
 
   /// Gets all [NamedType]s that are superclasses of this member.
   List<NamedType?> get superclasses {
-    var declaration = this;
-
-    if (declaration is ClassDeclaration) {
-      var extendsType = declaration.extendsClause?.superclass;
-      var implementsTypes = declaration.implementsClause?.interfaces;
-      var mixesInTypes = declaration.withClause?.mixinTypes;
+    if (this is ClassDeclaration) {
+      var extendsType = extendsClause?.superclass;
+      var implementsTypes = implementsClause?.interfaces;
+      var mixesInTypes = withClause?.mixinTypes;
 
       return [?extendsType, ...?implementsTypes, ...?mixesInTypes];
-    } else if (declaration is EnumDeclaration) {
-      var implementsTypes = declaration.implementsClause?.interfaces;
-      var mixesInTypes = declaration.withClause?.mixinTypes;
+    } else if (this is EnumDeclaration) {
+      var implementsTypes = implementsClause?.interfaces;
+      var mixesInTypes = withClause?.mixinTypes;
 
       return [...?implementsTypes, ...?mixesInTypes];
-    } else if (declaration is MixinDeclaration) {
-      var interfaceTypes = declaration.implementsClause?.interfaces;
-      var constraintTypes = declaration.onClause?.superclassConstraints;
+    } else if (this is MixinDeclaration) {
+      var interfaceTypes = implementsClause?.interfaces;
+      var constraintTypes = onClause?.superclassConstraints;
 
       return [...?interfaceTypes, ...?constraintTypes];
     }

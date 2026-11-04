@@ -7144,8 +7144,7 @@ class FileSystemStateTest with ResourceProviderMixin {
 
     var analysisOptions =
         (AnalysisOptionsBuilder()
-              ..contextFeatures = FeatureSet.latestLanguageVersion()
-              ..nonPackageFeatureSet = FeatureSet.latestLanguageVersion())
+              ..contextFeatures = FeatureSet.latestLanguageVersion())
             .build();
     var featureSetProvider = FeatureSetProvider.build(
       sourceFactory: sourceFactory,
@@ -7242,6 +7241,44 @@ enum E2 {
     var uri = Uri.parse('package:x');
     var resolution = fileSystemState.getFileForUri(uri);
     expect(resolution, isNull);
+  }
+
+  test_getFilesSubtypingName_changeFile() {
+    String a = convertPath('/a.dart');
+    String b = convertPath('/b.dart');
+
+    newFile(a, r'''
+class A {}
+class B extends A {}
+''');
+    newFile(b, r'''
+class A {}
+class D implements A {}
+''');
+
+    FileState aFile = fileSystemState.getFileForPath(a);
+    FileState bFile = fileSystemState.getFileForPath(b);
+
+    expect(
+      fileSystemState.getFilesSubtypingName('A'),
+      unorderedEquals([aFile, bFile]),
+    );
+
+    // Change b.dart so that it does not subtype A.
+    newFile(b, r'''
+class C {}
+class D implements C {}
+''');
+    fileSystemState.changeFile(b);
+    bFile = fileSystemState.getFileForPath(b);
+    expect(
+      fileSystemState.getFilesSubtypingName('A'),
+      unorderedEquals([aFile]),
+    );
+    expect(
+      fileSystemState.getFilesSubtypingName('C'),
+      unorderedEquals([bFile]),
+    );
   }
 
   test_getFilesSubtypingName_class() {

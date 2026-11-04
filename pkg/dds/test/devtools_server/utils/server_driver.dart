@@ -84,15 +84,12 @@ class DevToolsServerDriver {
       '--machine',
       '--port',
       '$port',
+      '--headless',
       ...additionalArgs,
     ];
 
     if (tryPorts != null) {
       args.addAll(['--try-ports', '$tryPorts']);
-    }
-
-    if (useChromeHeadless && headlessModeIsSupported) {
-      args.add('--headless');
     }
     final Process process = await Process.start(
       Platform.resolvedExecutable,
@@ -186,10 +183,12 @@ class DevToolsServerTestController {
     browserPids
       ..forEach((pid) => Process.killPid(pid, ProcessSignal.sigkill))
       ..clear();
-    for (final tempDir in _tempDirs) {
+    for (final tempDir in _tempDirs.toList()) {
       try {
         await tempDir.delete(recursive: true);
-      } catch (_) {}
+      } on FileSystemException {
+        // Ignore cleanup failures if files are still locked on exit.
+      }
     }
     _tempDirs.clear();
     await stdoutSub.cancel();
@@ -241,24 +240,41 @@ class DevToolsServerTestController {
     final chromeProcess = await bl.Chrome.start([
       url
     ], args: [
-      '--user-data-dir=${tempDir.path}', // Ensures process isolation
-      '--no-first-run', // Prevents welcome dialogs
-      '--no-default-browser-check', // Prevents default browser prompts
-      if (useChromeHeadless && headlessModeIsSupported) ...[
-        '--headless',
-        '--disable-gpu',
-        '--no-sandbox',
-      ],
-      if (Platform.isMacOS) '--use-mock-keychain',
+      // Use an isolated profile directory so concurrent launches do not collide
+      // on SingletonLock or attach to an existing Chrome process.
+      '--user-data-dir=${tempDir.path}',
+      // Suppress first-run welcome dialogs and default-browser prompts.
+      '--no-first-run',
+      '--no-default-browser-check',
+      // Bypass system proxy settings for local DevTools/VM service connections.
+      '--no-proxy-server',
+      // Avoid blocking on OS credential dialogs (macOS Keychain) or D-Bus
+      // keyring initialization (Linux) when using a fresh profile directory.
+      '--password-store=basic',
+      '--use-mock-keychain',
+      // Prevent Chromium from throttling timers or pausing
+      // requestAnimationFrame when tabs/windows are backgrounded or occluded,
+      // which would prevent Flutter from rendering frames and reporting page
+      // changes to the DevTools server.
+      '--disable-background-timer-throttling',
+      '--disable-backgrounding-occluded-windows',
+      '--disable-renderer-backgrounding',
+      '--headless',
+      // Keep headless Chrome alive after loading the page using an ephemeral
+      // debug port that will not collide across concurrent runs.
+      '--remote-debugging-port=0',
+      '--disable-gpu',
+      '--no-sandbox',
     ]);
 
     browserPids.add(chromeProcess.pid);
     chromeProcess.exitCode.then((_) {
       browserPids.remove(chromeProcess.pid);
-      if (_tempDirs.remove(tempDir)) {
-        try {
-          tempDir.deleteSync(recursive: true);
-        } catch (_) {}
+      try {
+        tempDir.deleteSync(recursive: true);
+        _tempDirs.remove(tempDir);
+      } on FileSystemException {
+        // Ignore cleanup failures if files are still locked on exit.
       }
     });
     return chromeProcess;

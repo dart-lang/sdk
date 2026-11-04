@@ -449,38 +449,46 @@ class ProcessStarter {
     // Create environment block if an environment is supplied.
     environment_block_ = nullptr;
     if (environment != nullptr) {
-      wchar_t** system_environment;
-      system_environment = reinterpret_cast<wchar_t**>(
-          malloc(environment_length * sizeof(*system_environment)));
-      // Convert environment strings to system strings.
-      for (intptr_t i = 0; i < environment_length; i++) {
-        StringUtilsWin::Utf8ToWide(environment[i], &(system_environment[i]));
-      }
-
       // An environment block is a sequence of zero-terminated strings
-      // followed by a block-terminating zero char.
-      intptr_t block_size = 1;
-      for (intptr_t i = 0; i < environment_length; i++) {
-        block_size += wcslen(system_environment[i]) + 1;
-      }
-      environment_block_ = reinterpret_cast<wchar_t*>(
-          malloc(block_size * sizeof(*environment_block_)));
-      intptr_t block_index = 0;
-      for (intptr_t i = 0; i < environment_length; i++) {
-        intptr_t len = wcslen(system_environment[i]);
-        intptr_t result = _snwprintf(environment_block_ + block_index, len,
-                                     L"%s", system_environment[i]);
-        ASSERT(result == len);
-        block_index += len;
+      // followed by a block-terminating zero char. An empty environment
+      // block is terminated by two zero chars.
+      if (environment_length == 0) {
+        environment_block_ =
+            reinterpret_cast<wchar_t*>(malloc(2 * sizeof(*environment_block_)));
+        environment_block_[0] = '\0';
+        environment_block_[1] = '\0';
+      } else {
+        wchar_t** system_environment;
+        system_environment = reinterpret_cast<wchar_t**>(
+            malloc(environment_length * sizeof(*system_environment)));
+        // Convert environment strings to system strings.
+        for (intptr_t i = 0; i < environment_length; i++) {
+          StringUtilsWin::Utf8ToWide(environment[i], &(system_environment[i]));
+        }
+
+        intptr_t block_size = 1;
+        for (intptr_t i = 0; i < environment_length; i++) {
+          block_size += wcslen(system_environment[i]) + 1;
+        }
+        environment_block_ = reinterpret_cast<wchar_t*>(
+            malloc(block_size * sizeof(*environment_block_)));
+        intptr_t block_index = 0;
+        for (intptr_t i = 0; i < environment_length; i++) {
+          intptr_t len = wcslen(system_environment[i]);
+          intptr_t result = _snwprintf(environment_block_ + block_index, len,
+                                       L"%s", system_environment[i]);
+          ASSERT(result == len);
+          block_index += len;
+          environment_block_[block_index++] = '\0';
+        }
+        // Block-terminating zero char.
         environment_block_[block_index++] = '\0';
+        ASSERT(block_index == block_size);
+        for (intptr_t i = 0; i < environment_length; i++) {
+          free(system_environment[i]);
+        }
+        free(system_environment);
       }
-      // Block-terminating zero char.
-      environment_block_[block_index++] = '\0';
-      ASSERT(block_index == block_size);
-      for (intptr_t i = 0; i < environment_length; i++) {
-        free(system_environment[i]);
-      }
-      free(system_environment);
     }
 
     system_working_directory_ = nullptr;

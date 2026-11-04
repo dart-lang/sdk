@@ -31,8 +31,10 @@ const String outputLanguageDart = 'Dart';
 /// This ID is displayed if the compiler crashes and in verbose mode, and is
 /// an aid in reproducing bug reports.
 ///
-/// The actual string is rewritten by a wrapper script when included in the sdk.
-String? buildID;
+/// The actual string is provided by GN when included in the sdk.
+String? buildID = const bool.hasEnvironment("buildID")
+    ? const String.fromEnvironment("buildID")
+    : null;
 
 /// The data passed to the [HandleOption] callback is either a single
 /// string argument, or the arguments iterator for multiple arguments

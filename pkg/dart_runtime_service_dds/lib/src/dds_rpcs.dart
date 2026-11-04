@@ -42,13 +42,19 @@ class DdsRpcHandlers {
       'getRequireUserPermissionToResume';
   static const _kGetStreamHistory = 'getStreamHistory';
   static const _kGetSupportedProtocols = 'getSupportedProtocols';
+  static const _kLookupResolvedPackageUris = 'lookupResolvedPackageUris';
   static const _kPostEvent = 'postEvent';
   static const _kReadyToResume = 'readyToResume';
   static const _kRequirePermissionToResume = 'requirePermissionToResume';
   static const _kRequireUserPermissionToResume =
       'requireUserPermissionToResume';
   static const _kResume = 'resume';
+  static const _kSendDapRequest = 'sendDapRequest';
   static const _kSetLogHistorySize = 'setLogHistorySize';
+
+  static const _kHistoryKey = 'history';
+  static const _kStreamHistoryType = 'StreamHistory';
+  static const _kTypeKey = 'type';
 
   /// Returns the unmodifiable list of RPC handlers provided by DDS.
   UnmodifiableListView<ServiceRpcHandler> get rpcs => UnmodifiableListView([
@@ -64,11 +70,13 @@ class DdsRpcHandlers {
     (_kGetRequireUserPermissionToResume, getRequireUserPermissionToResume),
     (_kGetStreamHistory, getStreamHistory),
     (_kGetSupportedProtocols, getSupportedProtocols),
+    (_kLookupResolvedPackageUris, lookupResolvedPackageUris),
     (_kPostEvent, postEvent),
     (_kReadyToResume, readyToResume),
     (_kRequirePermissionToResume, requirePermissionToResume),
     (_kRequireUserPermissionToResume, requireUserPermissionToResume),
     (_kResume, resume),
+    (_kSendDapRequest, sendDapRequest),
     (_kSetLogHistorySize, setLogHistorySize),
   ]);
 
@@ -145,18 +153,16 @@ class DdsRpcHandlers {
     return Size(size: backend.streamManager.getLogHistorySize()).toJson();
   }
 
-  /// Handles the `getPerfettoVMTimelineWithCpuSamples` RPC.
+  /// Handles the `getPerfettoVMTimelineWithCpuSamples` custom DDS RPC.
   ///
-  /// Forwards the timeline request to the VM Service with the provided time
-  /// origin and extent parameters.
+  /// Delegates to [DdsIsolateManager.getPerfettoVMTimelineWithCpuSamples] to
+  /// retrieve the VM's Perfetto timeline trace combined with CPU sample traces
+  /// from all tracked isolates.
   Future<RpcResponse> getPerfettoVMTimelineWithCpuSamples(
     json_rpc.Parameters parameters,
   ) {
-    return backend.callVmService(
-      'getPerfettoVMTimelineWithCpuSamples',
-      args: parameters.value == null
-          ? null
-          : parameters.asMap.cast<String, Object?>(),
+    return backend.isolateManager.getPerfettoVMTimelineWithCpuSamples(
+      parameters,
     );
   }
 
@@ -189,9 +195,12 @@ class DdsRpcHandlers {
         "Event history is not collected for stream '$stream'",
       );
     }
-    return StreamHistory(
-      history: history.map(vm.Event.parse).whereType<vm.Event>().toList(),
-    ).toJson();
+    // Return the raw event maps directly rather than parsing each map into a
+    // [vm.Event] just to pass into [StreamHistory.toJson].
+    return <String, Object?>{
+      _kTypeKey: _kStreamHistoryType,
+      _kHistoryKey: history,
+    };
   }
 
   /// Handles the `getSupportedProtocols` RPC.
@@ -211,6 +220,40 @@ class DdsRpcHandlers {
       ),
     );
     return protocolList.toJson();
+  }
+
+  /// Handles the `lookupResolvedPackageUris` RPC.
+  ///
+  /// Forwards the request to the VM Service and, when `local` is `true` and a
+  /// custom [DartRuntimeServiceDdsBackend.uriConverter] is configured, applies
+  /// the converter to resolve package and custom scheme URIs to local `file://`
+  /// URIs.
+  Future<RpcResponse> lookupResolvedPackageUris(
+    json_rpc.Parameters parameters,
+  ) async {
+    final isolateId = parameters['isolateId'].asString;
+    final uris = parameters['uris'].asList.cast<String>();
+    final local = parameters['local'].asBoolOr(false);
+
+    final result = await backend.callVmService(
+      _kLookupResolvedPackageUris,
+      args: <String, Object?>{'isolateId': isolateId, 'uris': uris},
+    );
+
+    final converter = backend.uriConverter;
+    if (converter != null && local) {
+      if (result case {'uris': final List<Object?> vmUris}) {
+        final resultUris = <String?>[
+          for (final (i, uri) in uris.indexed)
+            if (converter(uri) case final String localPath)
+              Uri.file(localPath).toString()
+            else
+              i < vmUris.length ? vmUris[i] as String? : null,
+        ];
+        return vm.UriList(uris: resultUris).toJson();
+      }
+    }
+    return result;
   }
 
   /// Handles the `postEvent` custom DDS RPC.
@@ -268,6 +311,15 @@ class DdsRpcHandlers {
   /// and resume the isolate if all required approvals are satisfied.
   Future<RpcResponse> resume(json_rpc.Parameters parameters, Client client) {
     return backend.isolateManager.resume(parameters, client);
+  }
+
+  /// Handles the `sendDapRequest` custom DDS RPC.
+  ///
+  /// Forwards the serialized DAP request message to
+  /// [DartRuntimeServiceDdsBackend.dapHandler] and returns the resulting
+  /// `DapResponse`.
+  Future<RpcResponse> sendDapRequest(json_rpc.Parameters parameters) {
+    return backend.dapHandler.sendRequest(parameters);
   }
 
   /// Handles the `setLogHistorySize` custom DDS RPC.

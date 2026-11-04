@@ -23,7 +23,7 @@ class ValidationError extends Error {
   final String instructionString;
   final String message;
 
-  ValidationError({
+  new({
     required this.address,
     required this.instructionString,
     required this.message,
@@ -65,9 +65,9 @@ class ValueCount {
 
   final int _depth;
 
-  ValueCount(this._depth) : assert(_depth >= 0);
+  new(this._depth) : assert(_depth >= 0);
 
-  const ValueCount._(this._depth);
+  const new _(this._depth);
 
   @override
   int get hashCode => _depth.hashCode;
@@ -120,7 +120,7 @@ class _ControlFlowElement {
   /// Whether the control flow instruction was a `function` instruction.
   final bool isFunction;
 
-  _ControlFlowElement({
+  new({
     required this.localCountBefore,
     required this.functionFlagsBefore,
     required this.valueStackDepthAfter,
@@ -142,7 +142,7 @@ class _Validator {
   var localCount = 0;
   var valueStackDepth = ValueCount(0);
 
-  _Validator(this.ir, {required this.eventListener});
+  new(this.ir, {required this.eventListener});
 
   /// Validates a `br` or `brIf` instruction.
   void branch(int nesting, {required bool conditional}) {

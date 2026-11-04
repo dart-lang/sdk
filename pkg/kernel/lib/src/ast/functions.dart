@@ -501,21 +501,17 @@ class FunctionNode extends TreeNode implements ScopeProvider, ContextConsumer {
       Substitution substitution = freshStructuralParameters.substitution;
       functionReturnType = substitution.substituteType(returnType);
 
-      positionalParameterTypes = DartTypeList.generate(
-        positionalParameters.length,
-        (index) => substitution.substituteType(
-          _getTypeOfVariable(positionalParameters[index]),
-        ),
+      positionalParameterTypes = DartTypeList.mapped(
+        positionalParameters,
+        (p) => substitution.substituteType(_getTypeOfVariable(p)),
       );
       if (namedParameters.isEmpty) {
         namedParameterTypes = NamedDartTypeList.empty;
       } else {
-        namedParameterTypes = NamedDartTypeList.generate(
-          namedParameters.length,
-          (index) =>
-              _getNamedTypeOfVariable(namedParameters[index], substitution),
-        );
-        namedParameterTypes.sort();
+        namedParameterTypes = NamedDartTypeList.mapped(
+          namedParameters,
+          (p) => _getNamedTypeOfVariable(p, substitution),
+        )..sort();
       }
     }
     return new FunctionType(

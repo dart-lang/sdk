@@ -39,7 +39,7 @@ import 'package:analyzer/src/summary2/link.dart';
 class EnclosingTypeParameterReferenceFlag {
   final Linker _linker;
 
-  EnclosingTypeParameterReferenceFlag(this._linker);
+  new(this._linker);
 
   void perform() {
     for (var builder in _linker.builders.values) {
@@ -89,8 +89,7 @@ class _ReferencesTypeParameterVisitor extends RecursiveTypeVisitor {
   final InstanceElementImpl instanceElement;
   bool result = false;
 
-  _ReferencesTypeParameterVisitor(this.instanceElement)
-    : super(includeTypeAliasArguments: true);
+  new(this.instanceElement) : super(includeTypeAliasArguments: true);
 
   @override
   bool visitTypeParameterType(TypeParameterType type) {

@@ -271,6 +271,6 @@ executable("gen_regexp_special_case") {
     "../platform:libdart_platform_jit",
     "//third_party/icu:icuuc",
   ]
-  sources = [ "regexp/gen_regexp_special_case.cc" ]
+  sources = [ "regexp/gen-regexp-special-case.cc" ]
   include_dirs = [ ".." ]
 }

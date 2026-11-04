@@ -17,7 +17,7 @@ main() {
 }
 
 class _VerifyTests extends VerifyTests {
-  _VerifyTests(super.testDirPath);
+  new(super.testDirPath);
 
   @override
   bool isExpensive(Resource resource) =>

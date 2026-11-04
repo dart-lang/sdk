@@ -20,7 +20,7 @@ class B {
 main() {
   A.x = 2;
   //^
-  // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_CONST
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_WRITE
   // [cfe] Setter not found: 'x'.
   new B();
   print(B.b);

@@ -34,6 +34,23 @@ class A implements B extends C {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      extendsClause: ExtendsClause
+        extendsKeyword: extends
+        superclass: NamedType
+          name: C
+      implementsClause: ImplementsClause
+        implementsKeyword: implements
+        interfaces
+          NamedType
+            name: B
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -64,6 +81,28 @@ class A extends B implements C with D {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      extendsClause: ExtendsClause
+        extendsKeyword: extends
+        superclass: NamedType
+          name: B
+      withClause: WithClause
+        withKeyword: with
+        mixinTypes
+          NamedType
+            name: D
+      implementsClause: ImplementsClause
+        implementsKeyword: implements
+        interfaces
+          NamedType
+            name: C
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -101,6 +140,28 @@ class A implements B with C extends D {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      extendsClause: ExtendsClause
+        extendsKeyword: extends
+        superclass: NamedType
+          name: D
+      withClause: WithClause
+        withKeyword: with
+        mixinTypes
+          NamedType
+            name: C
+      implementsClause: ImplementsClause
+        implementsKeyword: implements
+        interfaces
+          NamedType
+            name: B
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -136,6 +197,18 @@ class A extends B extends C {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      extendsClause: ExtendsClause
+        extendsKeyword: extends
+        superclass: NamedType
+          name: B
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -161,23 +234,40 @@ class A implements B implements C, D {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
-      classKeyword: class
+    ClassDeclaration2
+      classKeyword: class @0
       namePart: NameWithTypeParameters
-        typeName: A
+        typeName: A @6
       implementsClause: ImplementsClause
-        implementsKeyword: implements
+        implementsKeyword: implements @8
         interfaces
           NamedType
-            name: B
+            name: B @19
           NamedType
-            name: C
+            name: C @32
           NamedType
-            name: D
+            name: D @35
+      body: BlockInstanceDeclarationBody
+        leftBracket: { @37
+        rightBracket: } @38
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class @0
+      namePart: NameWithTypeParameters
+        typeName: A @6
+      implementsClause: ImplementsClause
+        implementsKeyword: implements @8
+        interfaces
+          NamedType
+            name: B @19
+          NamedType
+            name: C @32
+          NamedType
+            name: D @35
       body: BlockClassBody
-        leftBracket: {
-        rightBracket: }
-''');
+        leftBracket: { @37
+        rightBracket: } @38
+''', withOffsets: true);
   }
 
   void test_multipleWith() {
@@ -191,27 +281,48 @@ class A extends B with C, D with E {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
-      classKeyword: class
+    ClassDeclaration2
+      classKeyword: class @0
       namePart: NameWithTypeParameters
-        typeName: A
+        typeName: A @6
       extendsClause: ExtendsClause
-        extendsKeyword: extends
+        extendsKeyword: extends @8
         superclass: NamedType
-          name: B
+          name: B @16
       withClause: WithClause
-        withKeyword: with
+        withKeyword: with @18
         mixinTypes
           NamedType
-            name: C
+            name: C @23
           NamedType
-            name: D
+            name: D @26
           NamedType
-            name: E
+            name: E @33
+      body: BlockInstanceDeclarationBody
+        leftBracket: { @35
+        rightBracket: } @36
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class @0
+      namePart: NameWithTypeParameters
+        typeName: A @6
+      extendsClause: ExtendsClause
+        extendsKeyword: extends @8
+        superclass: NamedType
+          name: B @16
+      withClause: WithClause
+        withKeyword: with @18
+        mixinTypes
+          NamedType
+            name: C @23
+          NamedType
+            name: D @26
+          NamedType
+            name: E @33
       body: BlockClassBody
-        leftBracket: {
-        rightBracket: }
-''');
+        leftBracket: { @35
+        rightBracket: } @36
+''', withOffsets: true);
   }
 
   void test_typing_extends() {
@@ -229,6 +340,30 @@ class UnrelatedClass extends Bar {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: Foo
+      body: BlockInstanceDeclarationBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
+    TopLevelVariablesDeclaration
+      variables
+        TopLevelVariable
+          name: exte
+      semicolon: ; <synthetic>
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: UnrelatedClass
+      extendsClause: ExtendsClause
+        extendsKeyword: extends
+        superclass: NamedType
+          name: Bar
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -268,6 +403,29 @@ class UnrelatedClass extends Bar {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: Foo
+      extendsClause: ExtendsClause
+        extendsKeyword: extends
+        superclass: NamedType
+          name: CurrentlyTypingHere
+      body: BlockInstanceDeclarationBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: UnrelatedClass
+      extendsClause: ExtendsClause
+        extendsKeyword: extends
+        superclass: NamedType
+          name: Bar
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -304,6 +462,23 @@ class A with B extends C {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      extendsClause: ExtendsClause
+        extendsKeyword: extends
+        superclass: NamedType
+          name: C
+      withClause: WithClause
+        withKeyword: with
+        mixinTypes
+          NamedType
+            name: B
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -345,6 +520,14 @@ CompilationUnit
         literal: 'bar.dart'
       semicolon: ;
   declarations2
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -372,6 +555,14 @@ CompilationUnit
         literal: 'bar.dart'
       semicolon: ;
   declarations2
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -399,6 +590,14 @@ CompilationUnit
         literal: 'bar.dart'
       semicolon: ;
   declarations2
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -430,6 +629,14 @@ CompilationUnit
           foo
       semicolon: ;
   declarations2
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -807,19 +1014,17 @@ class B {
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: A
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         members
-          ConstructorDeclaration
+          ConstructorDeclaration2
             constKeyword: const
-            typeName2: A
-            typeName(v1): SimpleIdentifier
-              token: A
-            parameters: FormalParameterList
+            typeName: A
+            formalParameters: FormalParameterList
               leftParenthesis: (
               delimitedFormalParameters: DelimitedFormalParameters
                 leftDelimiter: [
@@ -828,30 +1033,22 @@ CompilationUnit
                     name: x
                 rightDelimiter: ]
               rightParenthesis: )
-            parameters(v1): FormalParameterList
-              leftParenthesis: (
-              leftDelimiter: [
-              parameter: RegularFormalParameter
-                name: x
-              rightDelimiter: ]
-              rightParenthesis: )
             body: EmptyFunctionBody
               semicolon: ;
         rightBracket: }
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: B
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         members
-          FieldDeclaration
-            fields: VariableDeclarationList
-              variables
-                VariableDeclaration
-                  name: dynamic
+          FieldsDeclaration
+            fields
+              Field
+                name: dynamic
             semicolon: ; <synthetic>
-          FieldDeclaration
+          FieldsDeclaration
             metadata
               Annotation
                 atSign: @
@@ -894,6 +1091,64 @@ CompilationUnit
                         leftParenthesis: (
                         rightParenthesis: )
                   rightParenthesis: )
+            fields
+              Field
+                name: x
+            semicolon: ;
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            constKeyword: const
+            typeName: SimpleIdentifier
+              token: A
+            parameters: FormalParameterList
+              leftParenthesis: (
+              leftDelimiter: [
+              parameter: RegularFormalParameter
+                name: x
+              rightDelimiter: ]
+              rightParenthesis: )
+            body: EmptyFunctionBody
+              semicolon: ;
+        rightBracket: }
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: B
+      body: BlockClassBody
+        leftBracket: {
+        members
+          FieldDeclaration
+            fields: VariableDeclarationList
+              variables
+                VariableDeclaration
+                  name: dynamic
+            semicolon: ; <synthetic>
+          FieldDeclaration
+            metadata
+              Annotation
+                atSign: @
+                name: SimpleIdentifier
+                  token: A
+                arguments: ArgumentList
+                  leftParenthesis: (
+                  arguments
+                    InstanceCreationExpression
+                      keyword: const
+                      constructorName: ConstructorName
+                        type: NamedType
+                          name: A
+                      argumentList: ArgumentList
+                        leftParenthesis: (
+                        rightParenthesis: )
+                  rightParenthesis: )
             fields: VariableDeclarationList
               variables
                 VariableDeclaration
@@ -919,6 +1174,23 @@ mixin A implements B on C {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: A
+      onClause: MixinOnClause
+        onKeyword: on
+        superclassConstraints
+          NamedType
+            name: C
+      implementsClause: ImplementsClause
+        implementsKeyword: implements
+        interfaces
+          NamedType
+            name: B
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: A
@@ -949,22 +1221,38 @@ mixin A implements B implements C, D {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
-      mixinKeyword: mixin
-      name: A
+    MixinDeclaration2
+      mixinKeyword: mixin @0
+      name: A @6
       implementsClause: ImplementsClause
-        implementsKeyword: implements
+        implementsKeyword: implements @8
         interfaces
           NamedType
-            name: B
+            name: B @19
           NamedType
-            name: C
+            name: C @32
           NamedType
-            name: D
+            name: D @35
+      body: BlockInstanceDeclarationBody
+        leftBracket: { @37
+        rightBracket: } @38
+  declarations(v1)
+    MixinDeclaration
+      mixinKeyword: mixin @0
+      name: A @6
+      implementsClause: ImplementsClause
+        implementsKeyword: implements @8
+        interfaces
+          NamedType
+            name: B @19
+          NamedType
+            name: C @32
+          NamedType
+            name: D @35
       body: BlockClassBody
-        leftBracket: {
-        rightBracket: }
-''');
+        leftBracket: { @37
+        rightBracket: } @38
+''', withOffsets: true);
   }
 
   void test_multipleOn() {
@@ -978,20 +1266,34 @@ mixin A on B on C {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
-      mixinKeyword: mixin
-      name: A
+    MixinDeclaration2
+      mixinKeyword: mixin @0
+      name: A @6
       onClause: MixinOnClause
-        onKeyword: on
+        onKeyword: on @8
         superclassConstraints
           NamedType
-            name: B
+            name: B @11
           NamedType
-            name: C
+            name: C @16
+      body: BlockInstanceDeclarationBody
+        leftBracket: { @18
+        rightBracket: } @19
+  declarations(v1)
+    MixinDeclaration
+      mixinKeyword: mixin @0
+      name: A @6
+      onClause: MixinOnClause
+        onKeyword: on @8
+        superclassConstraints
+          NamedType
+            name: B @11
+          NamedType
+            name: C @16
       body: BlockClassBody
-        leftBracket: {
-        rightBracket: }
-''');
+        leftBracket: { @18
+        rightBracket: } @19
+''', withOffsets: true);
   }
 
   void test_typing_implements() {
@@ -1009,6 +1311,31 @@ mixin UnrelatedMixin on Bar {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: Foo
+      body: BlockInstanceDeclarationBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
+    TopLevelVariablesDeclaration
+      type: NamedType
+        name: imple
+      variables
+        TopLevelVariable
+          name: <empty> <synthetic>
+      semicolon: ; <synthetic>
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: UnrelatedMixin
+      onClause: MixinOnClause
+        onKeyword: on
+        superclassConstraints
+          NamedType
+            name: Bar
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: Foo
@@ -1049,6 +1376,29 @@ mixin UnrelatedMixin on Bar {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: Foo
+      implementsClause: ImplementsClause
+        implementsKeyword: implements
+        interfaces
+          NamedType
+            name: CurrentlyTypingHere
+      body: BlockInstanceDeclarationBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: UnrelatedMixin
+      onClause: MixinOnClause
+        onKeyword: on
+        superclassConstraints
+          NamedType
+            name: Bar
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: Foo
@@ -1097,6 +1447,52 @@ f() {
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: {
+                rightBracket: }
+            ExpressionStatement
+              expression2: ParsedValueArguments
+                operand: ParsedUnqualifiedName
+                  name: catch
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  arguments2
+                    ParsedUnqualifiedName
+                      name: e
+                  arguments(v1)
+                    SimpleIdentifier
+                      token: e
+                  rightParenthesis: )
+              expression(v1): MethodInvocation
+                methodName: SimpleIdentifier
+                  token: catch
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  arguments
+                    SimpleIdentifier
+                      token: e
+                  rightParenthesis: )
+              semicolon: ; <synthetic>
+            Block
+              leftBracket: {
+              rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1117,19 +1513,7 @@ CompilationUnit
                   leftBracket: {
                   rightBracket: }
               ExpressionStatement
-                expression2: ParsedValueArguments
-                  operand: ParsedUnqualifiedName
-                    name: catch
-                  argumentList: ArgumentList
-                    leftParenthesis: (
-                    arguments2
-                      ParsedUnqualifiedName
-                        name: e
-                    arguments(v1)
-                      SimpleIdentifier
-                        token: e
-                    rightParenthesis: )
-                expression(v1): MethodInvocation
+                expression: MethodInvocation
                   methodName: SimpleIdentifier
                     token: catch
                   argumentList: ArgumentList
@@ -1162,6 +1546,58 @@ f() {
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: {
+                rightBracket: }
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                type: NamedType
+                  name: on
+                variables
+                  LocalVariable
+                    name: String
+              semicolon: ; <synthetic>
+            Block
+              leftBracket: {
+              rightBracket: }
+          statements(v1)
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: {
+                rightBracket: }
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                type: NamedType
+                  name: on
+                variables
+                  VariableDeclaration
+                    name: String
+              semicolon: ; <synthetic>
+            Block
+              leftBracket: {
+              rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression

@@ -1236,14 +1236,21 @@ class BodyBuilderImpl extends StackListenerImpl
     List<InternalExpression>? annotations = pop() as List<InternalExpression>?;
     String? typeParameterName;
     int typeParameterNameOffset;
+    UriOffsetLength uriOffset;
     if (name is Identifier) {
       typeParameterName = name.name;
       typeParameterNameOffset = name.nameOffset;
+      uriOffset = new UriOffsetLength(
+        uri,
+        name.nameOffset,
+        typeParameterName.length,
+      );
     } else if (name is ParserRecovery) {
       typeParameterName = inFunctionType
           ? StructuralParameterBuilder.noNameSentinel
           : NominalParameterBuilder.noNameSentinel;
       typeParameterNameOffset = name.charOffset;
+      uriOffset = new UriOffset(uri, name.charOffset);
     } else {
       unhandled(
         "${name.runtimeType}",
@@ -1277,6 +1284,7 @@ class BodyBuilderImpl extends StackListenerImpl
               isWildcard: isWildcard,
               fileOffset: typeParameterNameOffset,
               fileUri: uri,
+              uriOffset: uriOffset,
             ),
           );
     if (annotations != null) {
@@ -1927,10 +1935,9 @@ class BodyBuilderImpl extends StackListenerImpl
         if (_context.formals != null) {
           for (FormalParameterBuilder formal in _context.formals!) {
             if (formal.isSuperInitializingFormal) {
-              addProblem(
+              problemReporting.addProblem2(
                 diag.unexpectedSuperParametersInGenerativeConstructors,
-                formal.fileOffset,
-                noLength,
+                formal.uriOffset,
               );
               _context.markAsErroneous();
             }
@@ -3828,6 +3835,9 @@ class BodyBuilderImpl extends StackListenerImpl
         return;
       }
     } else {
+      UriOffsetLength uriOffset = name != null
+          ? new UriOffsetLength(uri, nameOffset, name.name.length)
+          : new UriOffset(uri, nameOffset);
       String parameterName = name?.name ?? '';
       bool isWildcard =
           libraryFeatures.wildcardVariables.isEnabled && parameterName == '_';
@@ -3895,9 +3905,8 @@ class BodyBuilderImpl extends StackListenerImpl
             modifiers: modifiers,
             type: type ?? const ImplicitTypeBuilder(),
             name: parameterName,
-            fileOffset: nameOffset,
             nameOffset: nameOffset,
-            fileUri: uri,
+            uriOffset: uriOffset,
             hasImmediatelyDeclaredDefaultValue: initializerStart != null,
             wildcardIndex: wildcardIndex,
             publicName: publicName,
@@ -5141,7 +5150,7 @@ class BodyBuilderImpl extends StackListenerImpl
       for (Object? element in elements) {
         if (element is InternalNamedExpression) {
           if (forbiddenObjectMemberNames.contains(element.name)) {
-            libraryBuilder.addProblem(
+            problemReporting.addProblem(
               diag.objectMemberNameUsedForRecordField,
               element.fileOffset,
               element.name.length,
@@ -5149,7 +5158,7 @@ class BodyBuilderImpl extends StackListenerImpl
             );
           }
           if (element.name.startsWith("_")) {
-            libraryBuilder.addProblem(
+            problemReporting.addProblem(
               diag.recordFieldsCantBePrivate,
               element.fileOffset,
               element.name.length,
@@ -5203,7 +5212,7 @@ class BodyBuilderImpl extends StackListenerImpl
                 positionalCount,
               ) !=
               null) {
-            libraryBuilder.addProblem(
+            problemReporting.addProblem(
               diag.namedFieldClashesWithPositionalFieldInRecord,
               element.fileOffset,
               element.name.length,
@@ -8742,7 +8751,7 @@ class BodyBuilderImpl extends StackListenerImpl
       String displayName = debugName(name, suffix.lexeme);
       int offset = offsetForToken(beginToken);
       Message message = diag.notAType.withArguments(name: displayName);
-      libraryBuilder.addProblem(
+      problemReporting.addProblem(
         message,
         offset,
         lengthOfSpan(beginToken, suffix),
@@ -10250,12 +10259,9 @@ class BodyBuilderImpl extends StackListenerImpl
         aliasBuilder.typedef,
         Nullability.nonNullable,
         typeArgumentBuilders != null
-            ? new DartTypeList.generate(
-                typeArgumentBuilders.length,
-                (int index) => typeArgumentBuilders[index].build(
-                  libraryBuilder,
-                  TypeUse.constructorTypeArgument,
-                ),
+            ? DartTypeList.mapped(
+                typeArgumentBuilders,
+                (a) => a.build(libraryBuilder, TypeUse.constructorTypeArgument),
               )
             : null,
       );

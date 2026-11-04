@@ -36,7 +36,32 @@ class X = A with B implements C;
 
     var node = result.findNode.classTypeAlias('X =');
     assertResolvedNodeText(node, r'''
-ClassTypeAlias
+ClassTypeAlias2
+  classKeyword: class
+  name: X
+  equals: =
+  superclass: NamedType
+    name: A
+    element: <testLibrary>::@class::A
+    type: A
+  withClause: WithClause
+    withKeyword: with
+    mixinTypes
+      NamedType
+        name: B
+        element: <testLibrary>::@class::B
+        type: B
+  implementsClause: ImplementsClause
+    implementsKeyword: implements
+    interfaces
+      NamedType
+        name: C
+        element: <testLibrary>::@class::C
+        type: C
+  body: SemicolonInstanceDeclarationBody
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> X@46
+V1: ClassTypeAlias
   typedefKeyword: class
   name: X
   equals: =

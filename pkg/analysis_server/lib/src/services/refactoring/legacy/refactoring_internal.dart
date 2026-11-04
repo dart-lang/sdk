@@ -8,6 +8,9 @@ import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/analysis/session.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/source/source_range.dart';
@@ -31,6 +34,32 @@ List<SourceReference> getSourceReferences(List<SearchMatch> matches) {
     }
   }
   return uniqueReferences.keys.toList();
+}
+
+/// Returns the text that replaces [reference] when renaming it to [newName].
+///
+/// An identifier in a simple interpolation (`$name`) can't contain `$`, so in
+/// that case the new name is wrapped in braces (`${new$name}`).
+String referenceReplacement(
+  AnalysisSession session,
+  SourceReference reference,
+  String newName,
+) {
+  if (!newName.contains(r'$')) {
+    return newName;
+  }
+  var unitResult = session.getParsedUnit(reference.file);
+  if (unitResult is! ParsedUnitResult) {
+    return newName;
+  }
+  var node = unitResult.unit.nodeCovering(offset: reference.range.offset);
+  if (node is SimpleIdentifier) {
+    var parent = node.parent;
+    if (parent is InterpolationExpression && parent.rightBracket == null) {
+      return '{$newName}';
+    }
+  }
+  return newName;
 }
 
 /// Abstract implementation of [Refactoring].

@@ -773,43 +773,6 @@ class AnalysisCommandOutput extends CommandOutput with _StaticErrorOutput {
   }
 }
 
-class CompareAnalyzerCfeCommandOutput extends CommandOutput {
-  CompareAnalyzerCfeCommandOutput(
-    Command command,
-    int exitCode,
-    bool timedOut,
-    List<int> stdout,
-    List<int> stderr,
-    Duration time,
-    bool compilationSkipped,
-  ) : super(
-        command,
-        exitCode,
-        timedOut,
-        stdout,
-        stderr,
-        time,
-        compilationSkipped,
-        0,
-      );
-
-  @override
-  Expectation result(TestCase testCase) {
-    // Handle crashes and timeouts first
-    if (hasCrashed) return Expectation.crash;
-    if (hasTimedOut) return Expectation.timeout;
-    if (hasNonUtf8) return Expectation.nonUtf8Error;
-    if (truncatedOutput) return Expectation.truncatedOutput;
-
-    if (exitCode != 0) return Expectation.fail;
-    for (var line in decodeUtf8(stdout).split('\n')) {
-      if (line.contains('No differences found')) return Expectation.pass;
-      if (line.contains('Differences found')) return Expectation.fail;
-    }
-    return Expectation.fail;
-  }
-}
-
 class SpecParseCommandOutput extends CommandOutput with _StaticErrorOutput {
   SpecParseCommandOutput(
     Command command,
@@ -1577,6 +1540,7 @@ mixin _StaticErrorOutput on CommandOutput {
       Compiler.dart2analyzer: ErrorSource.analyzer,
       Compiler.dart2js: ErrorSource.web,
       Compiler.dart2wasm: ErrorSource.web,
+      Compiler.dart2wasmDev: ErrorSource.web,
       Compiler.ddc: ErrorSource.web,
       Compiler.fasta: ErrorSource.cfe,
       Compiler.specParser: ErrorSource.specParser,

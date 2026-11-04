@@ -16,6 +16,9 @@ void main() {
   Expect.equals(record1, record2);
   Expect.equals(record1.hashCode, record2.hashCode);
 
+  Expect.notEquals(getType<Record>(), getType<Record?>());
+  Expect.notEquals(getType<(int,)>(), getType<(int,)?>());
+
   // Check that implementation type details of record field types do not leak
   // into record type equality and hash codes.
   final record3 = (List<int>.filled(3, 1, growable: false), "a");

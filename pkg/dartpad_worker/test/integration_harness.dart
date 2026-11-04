@@ -58,11 +58,13 @@ final class TestContext {
   }
 }
 
+const _integrationTestTimeout = Timeout(Duration(seconds: 120));
+
 void testDartIntegration(
   String description,
   Future<void> Function(TestContext ctx) fn,
 ) {
-  test(description, () async {
+  test(description, timeout: _integrationTestTimeout, () async {
     final server = await AssetServerClient.spawnHybrid(stayAlive: false);
 
     // Initialize DartPad Worker
@@ -93,7 +95,7 @@ void testFlutterIntegration(
   String description,
   Future<void> Function(TestContext ctx) fn,
 ) {
-  test(description, timeout: const Timeout(Duration(seconds: 120)), () async {
+  test(description, timeout: _integrationTestTimeout, () async {
     final server = await AssetServerClient.spawnHybrid(stayAlive: false);
 
     if (!server.hasFlutter) {

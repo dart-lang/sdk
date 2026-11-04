@@ -16,6 +16,6 @@ main() {
   // Variable should not be visible.
   lib12.top_level11;
   //    ^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_PREFIXED_NAME
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_PREFIXED_NAME_READ
   // [cfe] Undefined name 'top_level11'.
 }

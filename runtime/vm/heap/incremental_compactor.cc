@@ -601,12 +601,14 @@ class EpilogueTask : public SafepointTask {
  public:
   EpilogueTask(ThreadBarrier* barrier,
                IsolateGroup* isolate_group,
+               Scavenger* new_space,
                PageSpace* old_space,
                FreeList* freelist,
                EpilogueState* state)
       : SafepointTask(isolate_group,
                       barrier,
                       Thread::kIncrementalCompactorTask),
+        new_space_(new_space),
         old_space_(old_space),
         freelist_(freelist),
         state_(state) {}
@@ -757,14 +759,14 @@ class EpilogueTask : public SafepointTask {
     TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "ForwardNewSpace");
     Page* page;
     while (state_->NextNewPage(&page)) {
-      intptr_t free = ForwardAndSweepNewPage(visitor, page);
-      state_->AddNewFreeSize(free);
+      ForwardAndSweepNewPage(visitor, page);
     }
+    new_space_->AddSweepResults(free_, free_head_, free_tail_);
   }
 
   DART_NOINLINE
-  intptr_t ForwardAndSweepNewPage(IncrementalForwardingVisitor* visitor,
-                                  Page* page) {
+  void ForwardAndSweepNewPage(IncrementalForwardingVisitor* visitor,
+                              Page* page) {
     ASSERT(!page->is_image());
     ASSERT(!page->is_old());
     ASSERT(!page->is_executable());
@@ -772,7 +774,6 @@ class EpilogueTask : public SafepointTask {
     uword start = page->object_start();
     uword end = page->object_end();
     uword current = start;
-    intptr_t free = 0;
     while (current < end) {
       ObjectPtr raw_obj = UntaggedObject::FromAddr(current);
       ASSERT(Page::Of(raw_obj) == page);
@@ -798,23 +799,36 @@ class EpilogueTask : public SafepointTask {
 #if defined(DEBUG)
         memset(reinterpret_cast<void*>(current), Heap::kZapByte, obj_size);
 #endif  // DEBUG
-        FreeListElement::AsElementNew(current, obj_size);
-        free += obj_size;
+        free_ += obj_size;
+        FreeListElement* element =
+            FreeListElement::AsElementNew(current, obj_size);
+        if (obj_size >= Scavenger::kMinTlabReuseSize) {
+          element->set_next(free_head_);
+          free_head_ = element;
+          if (free_tail_ == nullptr) free_tail_ = element;
+        }
       }
       current += obj_size;
     }
-    return free;
   }
 
  private:
+  Scavenger* new_space_;
   PageSpace* old_space_;
   FreeList* freelist_;
   EpilogueState* state_;
+
+  intptr_t free_ = 0;
+  FreeListElement* free_head_ = nullptr;
+  FreeListElement* free_tail_ = nullptr;
 };
 
 void GCIncrementalCompactor::Evacuate(PageSpace* old_space) {
   IsolateGroup* isolate_group = IsolateGroup::Current();
+  Scavenger* new_space = old_space->heap_->new_space();
   isolate_group->ReleaseStoreBuffers();
+  isolate_group->AbandonRemainingTLABs(new_space);
+  new_space->ResetForSweep();
   EpilogueState state(
       old_space->pages_, isolate_group->store_buffer()->PopAll(),
       old_space->heap_->new_space()->head(), &old_space->pages_lock_);
@@ -827,13 +841,10 @@ void GCIncrementalCompactor::Evacuate(PageSpace* old_space) {
   ThreadBarrier* barrier = new ThreadBarrier(num_tasks, /*initial=*/1);
   IntrusiveDList<SafepointTask> tasks;
   for (intptr_t i = 0; i < num_tasks; i++) {
-    tasks.Append(new EpilogueTask(barrier, isolate_group, old_space,
+    tasks.Append(new EpilogueTask(barrier, isolate_group, new_space, old_space,
                                   old_space->DataFreeList(i), &state));
   }
   isolate_group->safepoint_handler()->RunTasks(&tasks);
-
-  old_space->heap_->new_space()->set_freed_in_words(state.NewFreeSize() >>
-                                                    kWordSizeLog2);
 }
 
 void GCIncrementalCompactor::CheckPostEvacuate(PageSpace* old_space) {

@@ -26,7 +26,7 @@ class PackageMapUriResolver extends UriResolver {
   ///
   /// [packageMap] is a table mapping package names to the path of the
   /// directory containing the package.
-  PackageMapUriResolver(this.resourceProvider, this.packageMap);
+  new(this.resourceProvider, this.packageMap);
 
   @override
   Uri? pathToUri(String path) {

@@ -33,9 +33,7 @@ String? normalizeDeprecationMessage(String message) {
 class DeprecatedElementUsageReporter implements ElementUsageReporter<String> {
   final DiagnosticReporter _diagnosticReporter;
 
-  DeprecatedElementUsageReporter({
-    required DiagnosticReporter diagnosticReporter,
-  }) : _diagnosticReporter = diagnosticReporter;
+  new({required this._diagnosticReporter});
 
   @override
   void report(
@@ -78,7 +76,7 @@ class DeprecatedElementUsageReporter implements ElementUsageReporter<String> {
 
 /// Instance of [ElementUsageSet] for deprecated elements.
 class DeprecatedElementUsageSet implements ElementUsageSet<String> {
-  const DeprecatedElementUsageSet();
+  const new();
 
   @override
   bool get reliesOnlyOnElementMetadata => true;

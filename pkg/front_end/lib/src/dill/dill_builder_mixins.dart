@@ -34,17 +34,13 @@ mixin DillDeclarationBuilderMixin implements IDeclarationBuilder {
     // [cls.typeParameters].
     if (arguments == null) {
       // TODO(johnniwinther): Use i2b here when needed.
-      return new DartTypeList.generate(
-        typeParameterNodes.length,
-        (int i) => typeParameterNodes[i].defaultType,
-      );
+      return DartTypeList.mapped(typeParameterNodes, (t) => t.defaultType);
     }
 
     // [arguments] != null
-    return new DartTypeList.generate(
-      arguments.length,
-      (int i) =>
-          arguments[i].buildAliased(library, TypeUse.typeArgument, hierarchy),
+    return DartTypeList.mapped(
+      arguments,
+      (a) => a.buildAliased(library, TypeUse.typeArgument, hierarchy),
     );
   }
 }

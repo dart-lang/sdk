@@ -9,7 +9,6 @@ abstract class A extends core::Object {
     ;
 
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]
-  [@vm.unboxing-info.metadata=()->i]
   abstract method foo() → core::int;
 }
 class B extends self::A {
@@ -17,11 +16,12 @@ class B extends self::A {
     : super self::A::•()
     ;
 
-  [@vm.inferred-return-type.metadata=int]
+  [@vm.inferred-return-type.metadata=!]
   [@vm.procedure-attributes.metadata=getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]
-  [@vm.unboxing-info.metadata=()->i]
   method foo() → core::int
-    return [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=! (skip check)] 1.{core::num::+}([@vm.direct-call.metadata=#lib::B.foo] [@vm.inferred-type.metadata=? (receiver not int)] [@vm.inferred-type.metadata=#lib::B] self::knownResult(){dynamic}.foo() as{TypeError,ForDynamic} core::num){(core::num) → core::num} as core::int;
+    return _in::unsafeCast<core::int>( block {
+      _in::unsafeCast<core::num>([@vm.direct-call.metadata=#lib::B.foo] [@vm.inferred-type.metadata=! (receiver not int)] [@vm.inferred-type.metadata=#lib::B] self::knownResult(){dynamic}.foo());
+    } =>throw "Attempt to execute code removed by Dart AOT compiler (TFA)");
 }
 class C extends core::Object implements self::A {
 }
@@ -30,11 +30,12 @@ abstract class Base extends core::Object {
     : super core::Object::•()
     ;
 
-  [@vm.inferred-return-type.metadata=int]
+  [@vm.inferred-return-type.metadata=!]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]
-  [@vm.unboxing-info.metadata=()->i]
   method foo() → core::int
-    return _in::unsafeCast<core::int>([@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] 3.{core::num::+}(_in::unsafeCast<core::num>([@vm.direct-call.metadata=#lib::B.foo] [@vm.inferred-type.metadata=int (receiver not int)] [@vm.inferred-type.metadata=#lib::B] self::knownResult(){dynamic}.foo())){(core::num) → core::num});
+    return _in::unsafeCast<core::int>( block {
+      _in::unsafeCast<core::num>([@vm.direct-call.metadata=#lib::B.foo] [@vm.inferred-type.metadata=! (receiver not int)] [@vm.inferred-type.metadata=#lib::B] self::knownResult(){dynamic}.foo());
+    } =>throw "Attempt to execute code removed by Dart AOT compiler (TFA)");
 
   [@vm.inferred-return-type.metadata=int?]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6]

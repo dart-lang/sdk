@@ -667,22 +667,20 @@ final class Arm64CodeGenerator extends CodeGenerator {
       if (pendingReg == invalidReg) {
         pendingReg = reg;
       } else {
-        // TODO: support large offsets
-        _asm.stp(pendingReg, reg, RegOffsetAddress(stackPointerReg, offset));
+        _asm.stp(pendingReg, reg, _asm.pairAddress(stackPointerReg, offset));
         pendingReg = invalidReg;
         offset += 2 * wordSize;
       }
     }
     if (pendingReg != invalidReg) {
-      // TODO: support large offsets
-      _asm.str(pendingReg, RegOffsetAddress(stackPointerReg, offset));
+      _asm.str(pendingReg, _asm.address(stackPointerReg, offset));
       offset += wordSize;
     }
     int numArgs = instr.inputCount;
     if (instr is DynamicCall && !instr.hasTypeArguments) {
       // Reserve extra slot to pass default type arguments (in case target method is generic).
       // TODO: pass type arguments on register.
-      _asm.str(nullReg, RegOffsetAddress(stackPointerReg, offset));
+      _asm.str(nullReg, _asm.address(stackPointerReg, offset));
       offset += wordSize;
       ++numArgs;
     }
@@ -868,6 +866,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
 
     final fieldOffset = objectLayout.getFieldOffset(field);
     final memoryOrder = objectLayout.getFieldMemoryOrder(field);
+    final isUnboxed = objectLayout.isUnboxedField(field);
     switch (memoryOrder) {
       case .relaxed:
         // TODO: compressed pointers, unboxed fields
@@ -879,6 +878,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
     if (instr.checkInitialized) {
       assert(valueReg != objectReg);
       assert(memoryOrder == .relaxed);
+      assert(!isUnboxed);
 
       _asm.loadFromPool(tempReg, SentinelConstant());
       _asm.cmp(valueReg, tempReg);
@@ -1025,9 +1025,11 @@ final class Arm64CodeGenerator extends CodeGenerator {
     final field = instr.field;
     final memoryOrder = objectLayout.getFieldMemoryOrder(field);
     final fieldOffset = objectLayout.getFieldOffset(field);
+    final isUnboxed = objectLayout.isUnboxedField(field);
 
     if (instr.checkNotInitialized) {
       assert(memoryOrder == .relaxed);
+      assert(!isUnboxed);
       assert(field.isLate && field.isFinal);
 
       _asm.ldr(scratch1Reg, _asm.fieldAddress(objectReg, fieldOffset));
@@ -1057,7 +1059,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
         _asm.addImmediate(tempReg, objectReg, fieldOffset - heapObjectTag);
         _asm.stlr(valueReg, tempReg);
     }
-    if (!_canSkipWriteBarrier(instr.object, instr.value)) {
+    if (!isUnboxed && !_canSkipWriteBarrier(instr.object, instr.value)) {
       _writeBarrier(
         objectReg,
         valueReg,
@@ -1302,7 +1304,18 @@ final class Arm64CodeGenerator extends CodeGenerator {
         final resultReg = outputFPReg(instr);
         _asm.fldr(resultReg, elementAddr, sz);
         _asm.fcvt(resultReg, resultReg, .s32, .s64);
-      case .float64List || .float64ListView || .float64ByteData:
+      case .float64List ||
+          .float64ListView ||
+          .float64ByteData ||
+          .float32x4List ||
+          .float32x4ListView ||
+          .float32x4ByteData ||
+          .float64x2List ||
+          .float64x2ListView ||
+          .float64x2ByteData ||
+          .int32x4List ||
+          .int32x4ListView ||
+          .int32x4ByteData:
         _asm.fldr(outputFPReg(instr), elementAddr, sz);
       default:
         _asm.ldr(outputReg(instr), elementAddr, sz);
@@ -1341,7 +1354,18 @@ final class Arm64CodeGenerator extends CodeGenerator {
         _asm.fcvt(fpTempReg, inputFPReg(instr, 2), .s64, .s32);
         _asm.fstr(fpTempReg, elementAddr, sz);
 
-      case .float64List || .float64ListView || .float64ByteData:
+      case .float64List ||
+          .float64ListView ||
+          .float64ByteData ||
+          .float32x4List ||
+          .float32x4ListView ||
+          .float32x4ByteData ||
+          .float64x2List ||
+          .float64x2ListView ||
+          .float64x2ByteData ||
+          .int32x4List ||
+          .int32x4ListView ||
+          .int32x4ByteData:
         _asm.fstr(inputFPReg(instr, 2), elementAddr, sz);
 
       default:
@@ -2517,6 +2541,65 @@ final class Arm64CodeGenerator extends CodeGenerator {
   }
 
   @override
+  void visitBoxSimd(BoxSimd instr) {
+    final operandReg = inputFPReg(instr, 0);
+    final tagsReg = temporaryReg(instr, 0);
+    final scratch1Reg = temporaryReg(instr, 1);
+    final scratch2Reg = temporaryReg(instr, 2);
+    final resultReg = outputReg(instr);
+    final done = Label();
+    final type = instr.type;
+    final instanceSize = roundUp(
+      type.unalignedInstanceSize(vmOffsets),
+      objectAlignment(wordSize),
+    );
+
+    Label slowPath = addSlowPath(() {
+      _asm.fstr(
+        operandReg,
+        _asm.address(
+          threadReg,
+          vmOffsets.Thread_unboxed_runtime_arg_offset,
+          .simd128,
+        ),
+        .simd128,
+      );
+      _asm.str(
+        nullReg, // Space for result.
+        RegOffsetAddress(stackPointerReg, 0),
+      );
+      final runtimeEntry = switch (instr.type) {
+        Float32x4Type() => RuntimeEntry.BoxFloat32x4,
+        Float64x2Type() => RuntimeEntry.BoxFloat64x2,
+        Int32x4Type() => RuntimeEntry.BoxInt32x4,
+      };
+      _callRuntime(runtimeEntry, 0);
+      _asm.ldr(resultReg, RegOffsetAddress(stackPointerReg, 0));
+      _asm.b(done);
+    });
+
+    _asm.loadImmediate(
+      tagsReg,
+      vmOffsets.computeNewObjectTags(type.classId, instanceSize, log2wordSize),
+    );
+    _asm.inlineAllocation(
+      resultReg,
+      tagsReg,
+      scratch1Reg,
+      scratch2Reg,
+      instanceSize,
+      slowPath,
+      initializeFields: false,
+    );
+    _asm.fstr(
+      operandReg,
+      _asm.fieldAddress(resultReg, type.valueOffset(vmOffsets), .simd128),
+      .simd128,
+    );
+    _asm.bind(done);
+  }
+
+  @override
   void visitUnboxInt(UnboxInt instr) {
     var operandReg = inputReg(instr, 0);
     final resultReg = outputReg(instr);
@@ -2546,6 +2629,103 @@ final class Arm64CodeGenerator extends CodeGenerator {
       resultReg,
       _asm.fieldAddress(operandReg, vmOffsets.Double_value_offset),
     );
+  }
+
+  @override
+  void visitUnboxSimd(UnboxSimd instr) {
+    final operandReg = inputReg(instr, 0);
+    final resultReg = outputFPReg(instr);
+    _asm.fldr(
+      resultReg,
+      _asm.fieldAddress(
+        operandReg,
+        instr.type.valueOffset(vmOffsets),
+        .simd128,
+      ),
+      .simd128,
+    );
+  }
+
+  @override
+  void visitSimdOp(SimdOp instr) {
+    switch (instr.op) {
+      case .float32x4Factory:
+        final resultReg = outputFPReg(instr);
+        var converted = false;
+        for (var i = 0; i < 4; ++i) {
+          final operandReg = inputFPReg(instr, i);
+          if (operandReg == resultReg) {
+            if (!converted) {
+              _asm.fcvt(fpTempReg, operandReg, .s64, .s32);
+              converted = true;
+            }
+            _asm.ins(
+              VectorElement(resultReg, i, .s32),
+              VectorElement(fpTempReg, 0, .s32),
+            );
+          }
+        }
+        for (var i = 0; i < 4; ++i) {
+          final operandReg = inputFPReg(instr, i);
+          if (operandReg != resultReg) {
+            _asm.fcvt(fpTempReg, operandReg, .s64, .s32);
+            _asm.ins(
+              VectorElement(resultReg, i, .s32),
+              VectorElement(fpTempReg, 0, .s32),
+            );
+          }
+        }
+      case .float64x2Factory:
+        final resultReg = outputFPReg(instr);
+        // No need to insert operand 0 if it is allocated to the same register.
+        if (inputFPReg(instr, 1) == resultReg) {
+          _asm.ins(
+            VectorElement(resultReg, 1, .s64),
+            VectorElement(resultReg, 0, .s64),
+          );
+        }
+        for (var i = 0; i < 2; ++i) {
+          final operandReg = inputFPReg(instr, i);
+          if (operandReg != resultReg) {
+            _asm.ins(
+              VectorElement(resultReg, i, .s64),
+              VectorElement(operandReg, 0, .s64),
+            );
+          }
+        }
+      case .int32x4Factory:
+        final resultReg = outputFPReg(instr);
+        for (var i = 0; i < 4; ++i) {
+          _asm.ins(VectorElement(resultReg, i, .s32), inputReg(instr, i));
+        }
+      case .float32x4GetX || .float32x4GetY || .float32x4GetZ || .float32x4GetW:
+        final resultReg = outputFPReg(instr);
+        final operandReg = inputFPReg(instr, 0);
+        final index = instr.op.index - SimdOpcode.float32x4GetX.index;
+        if (index == 0) {
+          _asm.fcvt(resultReg, operandReg, .s32, .s64);
+        } else {
+          _asm.ins(
+            VectorElement(resultReg, 0, .s32),
+            VectorElement(operandReg, index, .s32),
+          );
+          _asm.fcvt(resultReg, resultReg, .s32, .s64);
+        }
+      case .float64x2GetX || .float64x2GetY:
+        final resultReg = outputFPReg(instr);
+        final operandReg = inputFPReg(instr, 0);
+        final index = instr.op.index - SimdOpcode.float64x2GetX.index;
+        if (index != 0 || resultReg != operandReg) {
+          _asm.ins(
+            VectorElement(resultReg, 0, .s64),
+            VectorElement(operandReg, index, .s64),
+          );
+        }
+      case .int32x4GetX || .int32x4GetY || .int32x4GetZ || .int32x4GetW:
+        final resultReg = outputReg(instr);
+        final index = instr.op.index - SimdOpcode.int32x4GetX.index;
+        _asm.smov(resultReg, VectorElement(inputFPReg(instr, 0), index, .s32));
+    }
   }
 
   @override
@@ -2645,10 +2825,42 @@ final class Arm64CodeGenerator extends CodeGenerator {
       case .unsignedShiftRight:
         final done = Label();
         late final Label slowPath = addSlowPath(() {
-          _asm.unimplemented(
-            'Unimplemented: code generation for slow path of BinaryIntOp ${instr.op.token}',
-          );
-          _asm.b(done);
+          final bool canBeNegative = right.canBeNegative;
+          Register rightReg;
+          if (right is Constant) {
+            assert(canBeNegative);
+            _asm.loadImmediate(tempReg, right.value.intValue);
+            rightReg = tempReg;
+          } else {
+            rightReg = inputReg(instr, 1);
+            final isNegative = Label();
+            if (canBeNegative) {
+              _asm.tbnz(rightReg, 63, isNegative);
+            }
+            if (instr.op == .shiftRight) {
+              _asm.asr(resultReg, leftReg, 63);
+            } else {
+              _asm.mov(resultReg, ZR);
+            }
+            _asm.b(done);
+            _asm.bind(isNegative);
+          }
+          if (canBeNegative) {
+            _asm.str(
+              rightReg,
+              _asm.address(
+                threadReg,
+                vmOffsets.Thread_unboxed_runtime_arg_offset,
+              ),
+            );
+            assert(stackFrame.maxArgumentsStackSlots >= 1);
+            _asm.str(
+              nullReg, // Space for result.
+              RegOffsetAddress(stackPointerReg, 0),
+            );
+            _callRuntime(RuntimeEntry.ArgumentErrorUnboxedInt64, 0);
+            _asm.breakpoint();
+          }
         });
         if (right is Constant) {
           final shift = right.value.intValue;
@@ -2695,6 +2907,20 @@ final class Arm64CodeGenerator extends CodeGenerator {
     }
   }
 
+  void _generateIntHash(
+    Register resultReg,
+    Register operandReg,
+    Register scratch1,
+    Register scratch2,
+  ) {
+    _asm.loadImmediate(scratch1, 0x2d51);
+    _asm.mul(scratch2, operandReg, scratch1);
+    _asm.umulh(resultReg, operandReg, scratch1);
+    _asm.eor(resultReg, resultReg, scratch2);
+    _asm.eor(resultReg, resultReg, ShiftedRegOperand(resultReg, .LSR, 32));
+    _asm.ubfm(resultReg, resultReg, 63, 29);
+  }
+
   @override
   void visitUnaryIntOp(UnaryIntOp instr) {
     final operandReg = inputReg(instr, 0);
@@ -2708,12 +2934,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
       case .hash:
         final scratch = temporaryReg(instr, 0);
         final resultReg = outputReg(instr);
-        _asm.loadImmediate(scratch, 0x2d51);
-        _asm.mul(tempReg, operandReg, scratch);
-        _asm.umulh(resultReg, operandReg, scratch);
-        _asm.eor(resultReg, resultReg, tempReg);
-        _asm.eor(resultReg, resultReg, ShiftedRegOperand(resultReg, .LSR, 32));
-        _asm.ubfm(resultReg, resultReg, 63, 29);
+        _generateIntHash(resultReg, operandReg, scratch, tempReg);
       case .bitLength:
         final resultReg = outputReg(instr);
         // XOR with sign bit to complement bits if value is negative.
@@ -2750,10 +2971,64 @@ final class Arm64CodeGenerator extends CodeGenerator {
         _asm.fmul(outputFPReg(instr), leftReg, rightReg);
       case .div:
         _asm.fdiv(outputFPReg(instr), leftReg, rightReg);
-      default:
-        _asm.unimplemented(
-          'Unimplemented: code generation for BinaryDoubleOp ${instr.op.token}',
-        );
+      case .pow:
+        final done = Label();
+        final callPow = Label();
+        // pow(x, 0.0) == 1.0
+        final rightIsZero = addSlowPath(() {
+          _asm.loadDoubleImmediate(outputFPReg(instr), 1.0);
+          _asm.b(done);
+        });
+        _asm.fcmp(rightReg, Immediate(0));
+        _asm.b(rightIsZero, .equal);
+        // pow(x, 1.0) == x
+        assert(outputFPReg(instr) == leftReg);
+        _asm.loadDoubleImmediate(fpTempReg, 1.0);
+        _asm.fcmp(rightReg, fpTempReg);
+        _asm.b(done, .equal);
+        // pow(1.0, x) == 1.0
+        _asm.fcmp(leftReg, fpTempReg);
+        _asm.b(done, .equal);
+        // pow(x, 2.0) == x*x
+        final rightIsTwo = addSlowPath(() {
+          _asm.fmul(outputFPReg(instr), leftReg, leftReg);
+          _asm.b(done);
+        });
+        _asm.loadDoubleImmediate(fpTempReg, 2.0);
+        _asm.fcmp(rightReg, fpTempReg);
+        _asm.b(rightIsTwo, .equal);
+        // pow(x, 3.0) == x*x*x
+        final rightIsThree = addSlowPath(() {
+          _asm.fmul(fpTempReg, leftReg, leftReg);
+          _asm.fmul(outputFPReg(instr), fpTempReg, leftReg);
+          _asm.b(done);
+        });
+        _asm.loadDoubleImmediate(fpTempReg, 3.0);
+        _asm.fcmp(rightReg, fpTempReg);
+        _asm.b(rightIsThree, .equal);
+        // pow(x, 0.5) when (x != -inf && x != 0.0) == sqrt(x)
+        final rightIsHalf = addSlowPath(() {
+          _asm.loadDoubleImmediate(fpTempReg, double.negativeInfinity);
+          _asm.fcmp(leftReg, fpTempReg);
+          _asm.b(callPow, .equal);
+          _asm.fcmp(leftReg, Immediate(0));
+          _asm.b(callPow, .equal);
+          _asm.fsqrt(outputFPReg(instr), leftReg);
+          _asm.b(done);
+        });
+        _asm.loadDoubleImmediate(fpTempReg, 0.5);
+        _asm.fcmp(rightReg, fpTempReg);
+        _asm.b(rightIsHalf, .equal);
+        // default case - call pow()
+        _asm.bind(callPow);
+        _asm.callLeafRuntime(LeafRuntimeEntry.LibcPow);
+        _asm.bind(done);
+      case .mod:
+        _asm.callLeafRuntime(LeafRuntimeEntry.DartModulo);
+      case .rem:
+        _asm.callLeafRuntime(LeafRuntimeEntry.LibcFmod);
+      case .atan2:
+        _asm.callLeafRuntime(LeafRuntimeEntry.LibcAtan2);
     }
   }
 
@@ -2832,6 +3107,33 @@ final class Arm64CodeGenerator extends CodeGenerator {
         _asm.frintp(outputFPReg(instr), operandReg);
       case .truncateToDouble:
         _asm.frintz(outputFPReg(instr), operandReg);
+      case .hash:
+        final scratch = temporaryReg(instr, 0);
+        final resultReg = outputReg(instr);
+        final hashInt = Label();
+        _asm.fcvtzs(resultReg, operandReg);
+        _asm.scvtf(fpTempReg, resultReg);
+        _asm.fcmp(operandReg, fpTempReg);
+        _asm.b(hashInt, .equal);
+        _asm.fmov(resultReg, operandReg);
+        _asm.bind(hashInt);
+        _generateIntHash(resultReg, resultReg, scratch, tempReg);
+      case .sin:
+        _asm.callLeafRuntime(LeafRuntimeEntry.LibcSin);
+      case .cos:
+        _asm.callLeafRuntime(LeafRuntimeEntry.LibcCos);
+      case .tan:
+        _asm.callLeafRuntime(LeafRuntimeEntry.LibcTan);
+      case .asin:
+        _asm.callLeafRuntime(LeafRuntimeEntry.LibcAsin);
+      case .acos:
+        _asm.callLeafRuntime(LeafRuntimeEntry.LibcAcos);
+      case .atan:
+        _asm.callLeafRuntime(LeafRuntimeEntry.LibcAtan);
+      case .exp:
+        _asm.callLeafRuntime(LeafRuntimeEntry.LibcExp);
+      case .log:
+        _asm.callLeafRuntime(LeafRuntimeEntry.LibcLog);
     }
   }
 
@@ -2959,7 +3261,20 @@ final class Arm64CodeGenerator extends CodeGenerator {
             _asm.mov(to, from);
             return;
           case StackLocation():
+            assert(to is! SimdSpillSlot);
             _asm.str(from, _asm.address(FP, stackFrame.offsetFromFP(to)));
+            return;
+          default:
+            break;
+        }
+      case SimdSpillSlot():
+        switch (to) {
+          case FPRegister():
+            _asm.fldr(
+              to,
+              _asm.address(FP, stackFrame.offsetFromFP(from), .simd128),
+              .simd128,
+            );
             return;
           default:
             break;
@@ -2978,7 +3293,15 @@ final class Arm64CodeGenerator extends CodeGenerator {
       case FPRegister():
         switch (to) {
           case FPRegister():
-            _asm.fmov(to, from);
+            // TODO: distinguish between SIMD and double values.
+            _asm.vmov(to, from, .simd128);
+            return;
+          case SimdSpillSlot():
+            _asm.fstr(
+              from,
+              _asm.address(FP, stackFrame.offsetFromFP(to), .simd128),
+              .simd128,
+            );
             return;
           case StackLocation():
             _asm.fstr(from, _asm.address(FP, stackFrame.offsetFromFP(to)));
@@ -3350,5 +3673,25 @@ extension on ArrayKind {
     .float32x4ByteData ||
     .float64x2ByteData ||
     .int32x4ByteData => throw 'Unexpected array kind ${this}',
+  };
+}
+
+extension on SimdType {
+  ClassId get classId => switch (this) {
+    Float32x4Type() => ClassId.Float32x4Cid,
+    Float64x2Type() => ClassId.Float64x2Cid,
+    Int32x4Type() => ClassId.Int32x4Cid,
+  };
+
+  int unalignedInstanceSize(VMOffsets vmOffsets) => switch (this) {
+    Float32x4Type() => vmOffsets.Float32x4_InstanceSize,
+    Float64x2Type() => vmOffsets.Float64x2_InstanceSize,
+    Int32x4Type() => vmOffsets.Int32x4_InstanceSize,
+  };
+
+  int valueOffset(VMOffsets vmOffsets) => switch (this) {
+    Float32x4Type() => vmOffsets.Float32x4_value_offset,
+    Float64x2Type() => vmOffsets.Float64x2_value_offset,
+    Int32x4Type() => vmOffsets.Int32x4_value_offset,
   };
 }
