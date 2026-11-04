@@ -1,0 +1,75 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/new_as_selector_2.dart:8:7: Error: 'new' can't be used as an identifier because it's a keyword.
+// Try renaming this to be an identifier that isn't a keyword.
+//   int new = 42; // error
+//       ^^^
+//
+// pkg/front_end/testcases/general/new_as_selector_2.dart:16:16: Error: 'new' can't be used as an identifier because it's a keyword.
+// Try renaming this to be an identifier that isn't a keyword.
+//   external int new; // error
+//                ^^^
+//
+// pkg/front_end/testcases/general/new_as_selector_2.dart:22:16: Error: 'new' can't be used as an identifier because it's a keyword.
+// Try renaming this to be an identifier that isn't a keyword.
+//   external int new; // error
+//                ^^^
+//
+// pkg/front_end/testcases/general/new_as_selector_2.dart:11:10: Error: The 'constructor-tearoffs' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.15 or higher.
+//     this.new(); // error
+//          ^^^
+// pkg/front_end/testcases/general/new_as_selector_2.dart:5:1: Context: This is the annotation that opts out this library from the 'constructor-tearoffs' language feature.
+// // @dart=2.14
+// ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/new_as_selector_2.dart:11:13: Error: The method 'call' is defined in multiple extensions for 'int' and neither is more specific.
+// Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.
+//     this.new(); // error
+//             ^^^^
+// pkg/front_end/testcases/general/new_as_selector_2.dart:18:3: Context: This is one of the extension members.
+//   call<T>() {}
+//   ^^^^
+// pkg/front_end/testcases/general/new_as_selector_2.dart:24:3: Context: This is one of the extension members.
+//   call<T>() {}
+//   ^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  field core::int new = 42;
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+  method method() → dynamic {
+    invalid-expression "pkg/front_end/testcases/general/new_as_selector_2.dart:11:13: Error: The method 'call' is defined in multiple extensions for 'int' and neither is more specific.
+Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.
+    this.new(); // error
+            ^^^^" in this.{self::C::new}{core::int}{<unresolved>}.call();
+  }
+}
+extension E1 on core::int {
+  get new = self::E1|get#new;
+  set new = self::E1|set#new;
+  method call = self::E1|call;
+  method tearoff call = self::E1|get#call;
+}
+extension E2 on core::int {
+  get new = self::E2|get#new;
+  set new = self::E2|set#new;
+  method call = self::E2|call;
+  method tearoff call = self::E2|get#call;
+}
+external static extension-member method E1|get#new(lowered core::int #this) → core::int;
+external static extension-member method E1|set#new(lowered core::int #this, synthesized core::int #externalFieldValue) → void;
+static extension-member method E1|call<T extends core::Object? = dynamic>(lowered final core::int #this) → dynamic {}
+static extension-member method E1|get#call(lowered final core::int #this) → <T extends core::Object? = dynamic>() → dynamic
+  return <T extends core::Object? = dynamic>() → dynamic => self::E1|call<T%>(#this);
+external static extension-member method E2|get#new(lowered core::int #this) → core::int;
+external static extension-member method E2|set#new(lowered core::int #this, synthesized core::int #externalFieldValue) → void;
+static extension-member method E2|call<T extends core::Object? = dynamic>(lowered final core::int #this) → dynamic {}
+static extension-member method E2|get#call(lowered final core::int #this) → <T extends core::Object? = dynamic>() → dynamic
+  return <T extends core::Object? = dynamic>() → dynamic => self::E2|call<T%>(#this);

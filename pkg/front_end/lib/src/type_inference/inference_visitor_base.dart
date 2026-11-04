@@ -5305,8 +5305,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       (receiver == null) == (arguments == null),
       "Receiver and arguments must be supplied together.",
     );
-    if (implicitInvocationPropertyName != null) {
-      assert(extensionAccessCandidates == null);
+    if (extensionAccessCandidates == null &&
+        implicitInvocationPropertyName != null) {
       if (receiver != null) {
         return extern.createInvalidExpressionFromErrorText(
           problemReporting.buildProblem(

@@ -1,0 +1,53 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/constructor_tearoffs/new_as_selector_2.dart:6:7: Error: 'new' can't be used as an identifier because it's a keyword.
+// Try renaming this to be an identifier that isn't a keyword.
+//   int new = 42; // error
+//       ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/new_as_selector_2.dart:9:10: Error: 'new' can only be used as a constructor reference.
+//     this.new(); // error
+//          ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/new_as_selector_2.dart:9:13: Error: The method 'call' is defined in multiple extensions for 'int' and neither is more specific.
+// Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.
+//     this.new(); // error
+//             ^^^^
+// pkg/front_end/testcases/constructor_tearoffs/new_as_selector_2.dart:14:3: Context: This is one of the extension members.
+//   call<T>() {}
+//   ^^^^
+// pkg/front_end/testcases/constructor_tearoffs/new_as_selector_2.dart:18:3: Context: This is one of the extension members.
+//   call<T>() {}
+//   ^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  field core::int new = 42;
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+  method method() → dynamic {
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/new_as_selector_2.dart:9:13: Error: The method 'call' is defined in multiple extensions for 'int' and neither is more specific.
+Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.
+    this.new(); // error
+            ^^^^" in this.{self::C::new}{core::int}{<unresolved>}.call();
+  }
+}
+extension E1 on core::int {
+  method call = self::E1|call;
+  method tearoff call = self::E1|get#call;
+}
+extension E2 on core::int {
+  method call = self::E2|call;
+  method tearoff call = self::E2|get#call;
+}
+static extension-member method E1|call<T extends core::Object? = dynamic>(lowered final core::int #this) → dynamic {}
+static extension-member method E1|get#call(lowered final core::int #this) → <T extends core::Object? = dynamic>() → dynamic
+  return <T extends core::Object? = dynamic>() → dynamic => self::E1|call<T%>(#this);
+static extension-member method E2|call<T extends core::Object? = dynamic>(lowered final core::int #this) → dynamic {}
+static extension-member method E2|get#call(lowered final core::int #this) → <T extends core::Object? = dynamic>() → dynamic
+  return <T extends core::Object? = dynamic>() → dynamic => self::E2|call<T%>(#this);
