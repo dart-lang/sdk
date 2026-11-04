@@ -15,9 +15,19 @@ bool typeTest<T>(dynamic val) => val is T;
 @pragma('dart2js:noInline')
 bool futureOrTypeTest<T>(dynamic val) => val is FutureOr<T>;
 
+Type typeOf<T>() => T;
+
 void main() {
   Expect.isTrue(typeTest<FutureOr<Never?>>(null));
   Expect.isTrue(futureOrTypeTest<Never?>(null));
   Expect.isFalse(typeTest<FutureOr<Never>>(null));
   Expect.isFalse(futureOrTypeTest<Never>(null));
+  Expect.isTrue(typeTest<FutureOr<Never>?>(null));
+
+  final nullable = typeOf<FutureOr<Never>?>();
+  Expect.equals(typeOf<Future<Never>?>(), nullable);
+  Expect.notEquals(typeOf<Future<Never>>(), nullable);
+
+  final values = <FutureOr<Never>?>[null];
+  Expect.isFalse(values is List<Future<Never>>);
 }
