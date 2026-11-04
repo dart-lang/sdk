@@ -5,6 +5,7 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'analysis_options/test_all.dart' as analysis_options;
+import 'binary/test_all.dart' as binary;
 import 'clients/test_all.dart' as clients;
 import 'context/test_all.dart' as context;
 import 'dart/test_all.dart' as dart;
@@ -29,6 +30,7 @@ import 'workspace/test_all.dart' as workspace;
 main() {
   defineReflectiveSuite(() {
     analysis_options.main();
+    binary.main();
     clients.main();
     context.main();
     dart.main();

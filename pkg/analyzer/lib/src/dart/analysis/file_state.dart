@@ -507,6 +507,10 @@ class FileState {
   /// The language version for the package that contains this file.
   final Version packageLanguageVersion;
 
+  /// The resource of [path], cached because it is requested several times
+  /// for each file.
+  late final File resource = _fsState.resourceProvider.getFile(path);
+
   FileContent? _fileContent;
   LineInfo? _lineInfo;
   Uint8List? _unlinkedSignature;
@@ -569,10 +573,6 @@ class FileState {
   /// The external names referenced by the file.
   Set<String> get referencedNames {
     return _driverUnlinkedUnit!.referencedNames;
-  }
-
-  File get resource {
-    return _fsState.resourceProvider.getFile(path);
   }
 
   /// The [featureSet] restricted to the [packageLanguageVersion].

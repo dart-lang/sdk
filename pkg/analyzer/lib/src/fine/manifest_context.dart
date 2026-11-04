@@ -9,6 +9,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/fine/library_manifest_ids.dart';
 import 'package:analyzer/src/fine/lookup_name.dart';
 import 'package:analyzer/src/fine/manifest_id.dart';
+import 'package:analyzer/src/fine/manifest_item.dart';
 import 'package:analyzer/src/fine/manifest_type.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
@@ -18,7 +19,26 @@ class EncodeContext {
   final Map<TypeParameterElement, int> _typeParameters = Map.identity();
   final Map<FormalParameterElement, int> _formalParameters = Map.identity();
 
+  /// The encodings of unqualified name annotations, keyed by the element.
+  final Map<Element, ManifestAnnotation> _unqualifiedNameAnnotations =
+      Map.identity();
+
   new({required this.elementFactory});
+
+  /// Returns the encoding of an annotation that is just the unqualified name
+  /// of [element], like `@override`, computed by [encode] once per context.
+  ///
+  /// The encoding depends only on [element], except for type and formal
+  /// parameters, which are encoded relative to their declarations.
+  ManifestAnnotation encodeUnqualifiedNameAnnotation(
+    Element element,
+    ManifestAnnotation Function() encode,
+  ) {
+    if (element is TypeParameterElement || element is FormalParameterElement) {
+      return encode();
+    }
+    return _unqualifiedNameAnnotations[element] ??= encode();
+  }
 
   /// Returns the id of [element], or `null` if from this bundle.
   ManifestItemId? getElementId(Element element) {
