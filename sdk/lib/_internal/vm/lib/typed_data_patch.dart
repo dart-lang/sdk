@@ -536,11 +536,7 @@ final class _ByteBuffer implements ByteBuffer {
   @pragma("vm:prefer-inline")
   Int8List asInt8List([int offsetInBytes = 0, int? length]) {
     length ??= (this.lengthInBytes - offsetInBytes) ~/ Int8List.bytesPerElement;
-    _rangeCheck(
-      this.lengthInBytes,
-      offsetInBytes,
-      length * Int8List.bytesPerElement,
-    );
+    _rangeCheck(this.lengthInBytes, offsetInBytes, length, elementSizeLog2: 0);
     return _Int8ArrayView._(this._data, offsetInBytes, length);
   }
 
@@ -548,11 +544,7 @@ final class _ByteBuffer implements ByteBuffer {
   Uint8List asUint8List([int offsetInBytes = 0, int? length]) {
     length ??=
         (this.lengthInBytes - offsetInBytes) ~/ Uint8List.bytesPerElement;
-    _rangeCheck(
-      this.lengthInBytes,
-      offsetInBytes,
-      length * Uint8List.bytesPerElement,
-    );
+    _rangeCheck(this.lengthInBytes, offsetInBytes, length, elementSizeLog2: 0);
     return _Uint8ArrayView._(this._data, offsetInBytes, length);
   }
 
@@ -561,11 +553,7 @@ final class _ByteBuffer implements ByteBuffer {
     length ??=
         (this.lengthInBytes - offsetInBytes) ~/
         Uint8ClampedList.bytesPerElement;
-    _rangeCheck(
-      this.lengthInBytes,
-      offsetInBytes,
-      length * Uint8ClampedList.bytesPerElement,
-    );
+    _rangeCheck(this.lengthInBytes, offsetInBytes, length, elementSizeLog2: 0);
     return _Uint8ClampedArrayView._(this._data, offsetInBytes, length);
   }
 
@@ -573,11 +561,7 @@ final class _ByteBuffer implements ByteBuffer {
   Int16List asInt16List([int offsetInBytes = 0, int? length]) {
     length ??=
         (this.lengthInBytes - offsetInBytes) ~/ Int16List.bytesPerElement;
-    _rangeCheck(
-      this.lengthInBytes,
-      offsetInBytes,
-      length * Int16List.bytesPerElement,
-    );
+    _rangeCheck(this.lengthInBytes, offsetInBytes, length, elementSizeLog2: 1);
     _offsetAlignmentCheck(offsetInBytes, Int16List.bytesPerElement);
     return _Int16ArrayView._(this._data, offsetInBytes, length);
   }
@@ -586,11 +570,7 @@ final class _ByteBuffer implements ByteBuffer {
   Uint16List asUint16List([int offsetInBytes = 0, int? length]) {
     length ??=
         (this.lengthInBytes - offsetInBytes) ~/ Uint16List.bytesPerElement;
-    _rangeCheck(
-      this.lengthInBytes,
-      offsetInBytes,
-      length * Uint16List.bytesPerElement,
-    );
+    _rangeCheck(this.lengthInBytes, offsetInBytes, length, elementSizeLog2: 1);
     _offsetAlignmentCheck(offsetInBytes, Uint16List.bytesPerElement);
     return _Uint16ArrayView._(this._data, offsetInBytes, length);
   }
@@ -599,11 +579,7 @@ final class _ByteBuffer implements ByteBuffer {
   Int32List asInt32List([int offsetInBytes = 0, int? length]) {
     length ??=
         (this.lengthInBytes - offsetInBytes) ~/ Int32List.bytesPerElement;
-    _rangeCheck(
-      this.lengthInBytes,
-      offsetInBytes,
-      length * Int32List.bytesPerElement,
-    );
+    _rangeCheck(this.lengthInBytes, offsetInBytes, length, elementSizeLog2: 2);
     _offsetAlignmentCheck(offsetInBytes, Int32List.bytesPerElement);
     return _Int32ArrayView._(this._data, offsetInBytes, length);
   }
@@ -612,11 +588,7 @@ final class _ByteBuffer implements ByteBuffer {
   Uint32List asUint32List([int offsetInBytes = 0, int? length]) {
     length ??=
         (this.lengthInBytes - offsetInBytes) ~/ Uint32List.bytesPerElement;
-    _rangeCheck(
-      this.lengthInBytes,
-      offsetInBytes,
-      length * Uint32List.bytesPerElement,
-    );
+    _rangeCheck(this.lengthInBytes, offsetInBytes, length, elementSizeLog2: 2);
     _offsetAlignmentCheck(offsetInBytes, Uint32List.bytesPerElement);
     return _Uint32ArrayView._(this._data, offsetInBytes, length);
   }
@@ -625,11 +597,7 @@ final class _ByteBuffer implements ByteBuffer {
   Int64List asInt64List([int offsetInBytes = 0, int? length]) {
     length ??=
         (this.lengthInBytes - offsetInBytes) ~/ Int64List.bytesPerElement;
-    _rangeCheck(
-      this.lengthInBytes,
-      offsetInBytes,
-      length * Int64List.bytesPerElement,
-    );
+    _rangeCheck(this.lengthInBytes, offsetInBytes, length, elementSizeLog2: 3);
     _offsetAlignmentCheck(offsetInBytes, Int64List.bytesPerElement);
     return _Int64ArrayView._(this._data, offsetInBytes, length);
   }
@@ -638,11 +606,7 @@ final class _ByteBuffer implements ByteBuffer {
   Uint64List asUint64List([int offsetInBytes = 0, int? length]) {
     length ??=
         (this.lengthInBytes - offsetInBytes) ~/ Uint64List.bytesPerElement;
-    _rangeCheck(
-      this.lengthInBytes,
-      offsetInBytes,
-      length * Uint64List.bytesPerElement,
-    );
+    _rangeCheck(this.lengthInBytes, offsetInBytes, length, elementSizeLog2: 3);
     _offsetAlignmentCheck(offsetInBytes, Uint64List.bytesPerElement);
     return _Uint64ArrayView._(this._data, offsetInBytes, length);
   }
@@ -651,11 +615,7 @@ final class _ByteBuffer implements ByteBuffer {
   Float32List asFloat32List([int offsetInBytes = 0, int? length]) {
     length ??=
         (this.lengthInBytes - offsetInBytes) ~/ Float32List.bytesPerElement;
-    _rangeCheck(
-      this.lengthInBytes,
-      offsetInBytes,
-      length * Float32List.bytesPerElement,
-    );
+    _rangeCheck(this.lengthInBytes, offsetInBytes, length, elementSizeLog2: 2);
     _offsetAlignmentCheck(offsetInBytes, Float32List.bytesPerElement);
     return _Float32ArrayView._(this._data, offsetInBytes, length);
   }
@@ -664,11 +624,7 @@ final class _ByteBuffer implements ByteBuffer {
   Float64List asFloat64List([int offsetInBytes = 0, int? length]) {
     length ??=
         (this.lengthInBytes - offsetInBytes) ~/ Float64List.bytesPerElement;
-    _rangeCheck(
-      this.lengthInBytes,
-      offsetInBytes,
-      length * Float64List.bytesPerElement,
-    );
+    _rangeCheck(this.lengthInBytes, offsetInBytes, length, elementSizeLog2: 3);
     _offsetAlignmentCheck(offsetInBytes, Float64List.bytesPerElement);
     return _Float64ArrayView._(this._data, offsetInBytes, length);
   }
@@ -677,11 +633,7 @@ final class _ByteBuffer implements ByteBuffer {
   Float32x4List asFloat32x4List([int offsetInBytes = 0, int? length]) {
     length ??=
         (this.lengthInBytes - offsetInBytes) ~/ Float32x4List.bytesPerElement;
-    _rangeCheck(
-      this.lengthInBytes,
-      offsetInBytes,
-      length * Float32x4List.bytesPerElement,
-    );
+    _rangeCheck(this.lengthInBytes, offsetInBytes, length, elementSizeLog2: 4);
     _offsetAlignmentCheck(offsetInBytes, Float32x4List.bytesPerElement);
     return _Float32x4ArrayView._(this._data, offsetInBytes, length);
   }
@@ -690,11 +642,7 @@ final class _ByteBuffer implements ByteBuffer {
   Int32x4List asInt32x4List([int offsetInBytes = 0, int? length]) {
     length ??=
         (this.lengthInBytes - offsetInBytes) ~/ Int32x4List.bytesPerElement;
-    _rangeCheck(
-      this.lengthInBytes,
-      offsetInBytes,
-      length * Int32x4List.bytesPerElement,
-    );
+    _rangeCheck(this.lengthInBytes, offsetInBytes, length, elementSizeLog2: 4);
     _offsetAlignmentCheck(offsetInBytes, Int32x4List.bytesPerElement);
     return _Int32x4ArrayView._(this._data, offsetInBytes, length);
   }
@@ -703,11 +651,7 @@ final class _ByteBuffer implements ByteBuffer {
   Float64x2List asFloat64x2List([int offsetInBytes = 0, int? length]) {
     length ??=
         (this.lengthInBytes - offsetInBytes) ~/ Float64x2List.bytesPerElement;
-    _rangeCheck(
-      this.lengthInBytes,
-      offsetInBytes,
-      length * Float64x2List.bytesPerElement,
-    );
+    _rangeCheck(this.lengthInBytes, offsetInBytes, length, elementSizeLog2: 4);
     _offsetAlignmentCheck(offsetInBytes, Float64x2List.bytesPerElement);
     return _Float64x2ArrayView._(this._data, offsetInBytes, length);
   }
@@ -3342,15 +3286,26 @@ int _byteDataByteOffsetCheck(ByteData indexable, int byteOffset, int length) {
   return byteOffset;
 }
 
-void _rangeCheck(int listLength, int start, int length) {
+// Checks that [length] elements of `1 << elementSizeLog2` bytes each fit in
+// a list of [lengthInBytes] bytes from byte offset [offsetInBytes].
+//
+// The end offset in bytes, `offsetInBytes + (length << elementSizeLog2)`, is
+// not computed: it can wrap around and pass the check.
+@pragma("vm:prefer-inline")
+void _rangeCheck(
+  int lengthInBytes,
+  int offsetInBytes,
+  int length, {
+  int elementSizeLog2 = 0,
+}) {
   if (length < 0) {
     throw RangeError.value(length);
   }
-  if (start < 0) {
-    throw RangeError.value(start);
+  if (offsetInBytes < 0 || offsetInBytes > lengthInBytes) {
+    throw RangeError.value(offsetInBytes);
   }
-  if (start + length > listLength) {
-    throw RangeError.value(start + length);
+  if (length > (lengthInBytes - offsetInBytes) >> elementSizeLog2) {
+    throw RangeError.value(length);
   }
 }
 
