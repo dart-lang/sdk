@@ -176,6 +176,11 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
   return result;
 }
 
+VirtualMemory* VirtualMemory::AllocateMTE(intptr_t size, const char* name) {
+  UNREACHABLE();
+  return nullptr;
+}
+
 VirtualMemory::~VirtualMemory() {
 #if defined(DART_COMPRESSED_POINTERS)
   if (cage_ != nullptr) {

@@ -116,6 +116,7 @@ class VirtualMemory {
                                         intptr_t alignment,
                                         bool is_executable,
                                         const char* name);
+  static VirtualMemory* AllocateMTE(intptr_t size, const char* name);
 
   // Duplicates `this` memory into the `target` memory using Mach specific
   // vm_remap call.
