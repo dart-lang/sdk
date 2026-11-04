@@ -169,6 +169,37 @@ main() {
     _assertTypeStr(f.type, 'Stream<num> Function()');
   }
 
+  test_blockBodiedLambdas_asyncStar_yieldStarDynamic() async {
+    // https://github.com/dart-lang/sdk/issues/64825
+    var result = await resolveTestCodeWithDiagnostics(r'''
+main() {
+  var f = (dynamic d) async* {
+    yield 1;
+    yield* d;
+  };
+  print(f);
+}
+''');
+
+    var f = result.findElement.localVar('f');
+    _assertTypeStr(f.type, 'Stream<dynamic> Function(dynamic)');
+  }
+
+  test_blockBodiedLambdas_asyncStar_yieldStarNever() async {
+    // https://github.com/dart-lang/sdk/issues/64825
+    var result = await resolveTestCodeWithDiagnostics(r'''
+main() {
+  var f = () async* {
+    yield* (throw 0);
+  };
+  print(f);
+}
+''');
+
+    var f = result.findElement.localVar('f');
+    _assertTypeStr(f.type, 'Stream<Never> Function()');
+  }
+
   test_blockBodiedLambdas_basic() async {
     await resolveTestCodeWithDiagnostics(r'''
 test1() {
@@ -394,6 +425,37 @@ main() {
 
     var f = result.findElement.localVar('f');
     _assertTypeStr(f.type, 'Iterable<num> Function()');
+  }
+
+  test_blockBodiedLambdas_syncStar_yieldStarDynamic() async {
+    // https://github.com/dart-lang/sdk/issues/64825
+    var result = await resolveTestCodeWithDiagnostics(r'''
+main() {
+  var f = (dynamic d) sync* {
+    yield 1;
+    yield* d;
+  };
+  print(f);
+}
+''');
+
+    var f = result.findElement.localVar('f');
+    _assertTypeStr(f.type, 'Iterable<dynamic> Function(dynamic)');
+  }
+
+  test_blockBodiedLambdas_syncStar_yieldStarNever() async {
+    // https://github.com/dart-lang/sdk/issues/64825
+    var result = await resolveTestCodeWithDiagnostics(r'''
+main() {
+  var f = () sync* {
+    yield* (throw 0);
+  };
+  print(f);
+}
+''');
+
+    var f = result.findElement.localVar('f');
+    _assertTypeStr(f.type, 'Iterable<Never> Function()');
   }
 
   test_bottom() async {
