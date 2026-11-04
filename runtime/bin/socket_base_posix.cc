@@ -31,6 +31,8 @@ SocketAddress::SocketAddress(const RawAddr& addr) : addr_(addr) {
     as_string_[0] = 0;
   } else if (addr.ss.ss_family == AF_UNIX) {
     memmove(as_string_, addr.un.sun_path, sizeof(addr.un.sun_path));
+    // sun_path is not necessarily NUL-terminated if it fills the whole field.
+    as_string_[sizeof(addr.un.sun_path)] = '\0';
   } else {
     if (!SocketBase::FormatNumericAddress(addr, as_string_,
                                           kMaxAddressStringLength)) {
