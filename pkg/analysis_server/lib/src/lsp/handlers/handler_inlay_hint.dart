@@ -42,10 +42,18 @@ class InlayHintHandler
       _,
     ) async {
       var config = server.lspClientConfiguration.global.inlayHints;
-      var computer = DartInlayHintComputer(pathContext, result, config);
-      var hints = computer.compute();
+      var range = toSourceRange(result.lineInfo, params.range);
+      return range.mapResultSync((range) {
+        var computer = DartInlayHintComputer(
+          pathContext,
+          result,
+          config,
+          range,
+        );
+        var hints = computer.compute();
 
-      return success(hints);
+        return success(hints);
+      });
     });
   }
 }
