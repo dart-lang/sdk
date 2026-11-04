@@ -542,6 +542,11 @@ TokenPosition ActivationFrame::TokenPos() {
     if (IsInterpreted()) {
       token_pos_ = bytecode().GetTokenIndexOfPC(pc_);
       try_index_ = bytecode().GetTryIndexAtPc(pc_);
+      // Implicit field accessors run shared bytecode without source
+      // positions, so use the position of the field, as the JIT does.
+      if (!token_pos_.IsReal() && function().IsImplicitGetterOrSetter()) {
+        token_pos_ = function().token_pos();
+      }
     } else {
       GetPcDescriptors();
       PcDescriptors::Iterator iter(pc_desc_, UntaggedPcDescriptors::kAnyKind);
