@@ -55,9 +55,25 @@ Block combineStatements(Statement statement, Statement body) {
     return createBlock(
       [if (statement is Block) ...statement.statements else statement, body],
       fileOffset: statement.fileOffset,
-      fileEndOffset: body.fileOffset,
+      fileEndOffset: _blockEndOffset(body, after: statement.fileOffset),
     );
   }
+}
+
+/// The end offset of [statement] if it is a block, possibly labeled, that ends
+/// after [after], and [TreeNode.noOffset] otherwise.
+///
+/// For example, the body of a for-in loop with `continue` is a labeled block.
+/// The start offset of the labeled statement is the offset of the loop, which
+/// is before the start of a block that combines the body with statements for
+/// the loop variable.
+int _blockEndOffset(Statement statement, {required int after}) {
+  while (statement is LabeledStatement) {
+    statement = statement.body;
+  }
+  return statement is Block && statement.fileEndOffset > after
+      ? statement.fileEndOffset
+      : TreeNode.noOffset;
 }
 
 /// Creates a logical and expression of [left] and [right].
