@@ -103,3 +103,44 @@ rt.findTarget(o.classId, greetId)(o);
 // Greeter.greet
 print(rt.findTarget(this.classId, messageId)(this));
 ```
+
+## Calling convention
+
+Every function accepts its parameters: the receiver (for instance members and
+constructors), positional parameters (in order), then named parameters (sorted).
+Omitted optional parameters are passed a sentinel, which callees replace with
+their default value.
+
+Besides the receiver, all arguments and return values are top-typed (and so
+boxed when necessary).
+
+```dart
+class Greeter {
+  String greet(String name, {String? title = 'Dr.', bool loud = false}) =>
+      name;
+}
+
+String staticGreet(String name, {String? title = 'Dr.', bool loud = false}) =>
+    name;
+
+void greetAll(Greeter g) {
+  g.greet('Jekyll', title: null);
+  staticGreet('Jekyll', title: null);
+}
+```
+
+compiles to:
+
+```
+// Greeter.greet(this, name, loud, title)
+final loud_ = identical(loud, sentinel) ? false : unbox(loud);
+title = identical(title, sentinel) ? box('Dr.') : title;
+
+// staticGreet(name, loud, title)
+final loud_ = identical(loud, sentinel) ? false : unbox(loud);
+title = identical(title, sentinel) ? box('Dr.') : title;
+
+// greetAll
+rt.findTarget(g.classId, greetId)(g, box('Jekyll'), sentinel, null);
+rt.lookupStatic(staticGreetId)(box('Jekyll'), sentinel, null);
+```

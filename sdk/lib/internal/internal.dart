@@ -1104,12 +1104,15 @@ class DoubleLinkedQueueEntry<E> {
 /// Annotation on a class preventing instances from being sent between isolates.
 ///
 /// Applies to class, mixin or enum declarations, and is inherited by subclasses
-/// along extends, with and implements relations.
+/// along extends, with, implements and mixin `on` relations.
 ///
 /// An instance of a class with this annotation will be prevented from being
 /// part of isolate communication. It cannot be sent through a SendPort,
 /// not even if both ends are in the same isolate, and it cannot be part of
 /// the initial message of isolate spawn operations.
+///
+/// Constant instances are not affected by this annotation. Constants are
+/// shared between isolates rather than copied, so they can always be sent.
 ///
 /// The annotation is intended for classes which have a dynamic link
 /// to the current isolate, for example being tied to the event loop

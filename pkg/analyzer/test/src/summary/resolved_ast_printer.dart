@@ -2826,36 +2826,51 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     }
   }
 
-  /// Writes [node] and its V1 compatibility view when the V2 root has a
-  /// distinct projection.
-  void writeNodeWithV1Projection(AstNode node) {
+  /// Writes [node], and returns its V1 view returned by [getV1], if it is a
+  /// different node, for the caller to write with [writeNode].
+  ///
+  /// [getV1] is invoked after the V1 parents of the shared nodes under [node]
+  /// are requested bottom-up, so that computing the V1 view does not establish
+  /// them first.
+  T? writeNodeBeforeV1<T extends AstNode>(AstNode node, T Function() getV1) {
     _recordBottomUpV1Parents(node);
-    AstNode? v1;
-    if (node case TopLevelDeclarationImpl declaration) {
-      // ignore: analyzer_v1_ast_use
-      v1 = V1Projection.toV1CompilationUnitMember(declaration);
-    } else if (node case MemberDeclarationImpl declaration) {
-      // ignore: analyzer_v1_ast_use
-      v1 = V1Projection.toV1ClassMember(declaration);
-    } else if (node case EnumConstantDeclaration2Impl declaration) {
-      // ignore: analyzer_v1_ast_use
-      v1 = declaration.v1Projection;
-    } else if (node case ExpressionImpl expression) {
-      // ignore: analyzer_v1_ast_use
-      v1 = V1Projection.toV1Expression(expression);
-    } else if (node case StatementImpl statement) {
-      // ignore: analyzer_v1_ast_use
-      v1 = V1Projection.toV1Statement(statement);
-    }
-
-    if (v1 == null || identical(v1, node)) {
+    var v1 = getV1();
+    if (identical(v1, node)) {
       writeNode(node);
-      return;
+      return null;
     }
 
     _withInlineV1ChildEntities(false, () => writeNode(node));
-    _sink.writeWithIndent('V1: ');
-    writeNode(v1);
+    return v1;
+  }
+
+  /// Writes [node] and its V1 compatibility view when the V2 root has a
+  /// distinct projection.
+  void writeNodeWithV1Projection(AstNode node) {
+    var v1 = writeNodeBeforeV1(node, () {
+      if (node case TopLevelDeclarationImpl declaration) {
+        // ignore: analyzer_v1_ast_use
+        return V1Projection.toV1CompilationUnitMember(declaration);
+      } else if (node case MemberDeclarationImpl declaration) {
+        // ignore: analyzer_v1_ast_use
+        return V1Projection.toV1ClassMember(declaration);
+      } else if (node case EnumConstantDeclaration2Impl declaration) {
+        // ignore: analyzer_v1_ast_use
+        return declaration.v1Projection;
+      } else if (node case ExpressionImpl expression) {
+        // ignore: analyzer_v1_ast_use
+        return V1Projection.toV1Expression(expression);
+      } else if (node case StatementImpl statement) {
+        // ignore: analyzer_v1_ast_use
+        return V1Projection.toV1Statement(statement);
+      }
+      return node;
+    });
+
+    if (v1 != null) {
+      _sink.writeWithIndent('V1: ');
+      writeNode(v1);
+    }
   }
 
   void _acceptInView(AstNode node) {

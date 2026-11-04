@@ -548,7 +548,14 @@ f(List<A> a) {
 class A {}
 class B {}
 ''');
-    await assertNoFix();
+    await assertHasFix('''
+f(List<A> a) {
+  List<B> b = a.cast<B>();
+  print(b);
+}
+class A {}
+class B {}
+''');
   }
 
   Future<void> test_declaration_general() async {

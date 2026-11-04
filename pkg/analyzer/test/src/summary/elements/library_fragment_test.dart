@@ -88,7 +88,7 @@ library
       libraryExports
         dart:math
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @21
               expression: UnqualifiedNameExpression
                 name: deprecated @22
@@ -168,7 +168,7 @@ library
       libraryImports
         dart:math
           metadata
-            Annotation
+            annotation_0: Annotation
               atSign: @ @21
               expression: UnqualifiedNameExpression
                 name: deprecated @22

@@ -6774,9 +6774,7 @@ abstract final class CaseClause implements AstNode {
     GenerateNodeProperty('guardedPattern'),
   ],
 )
-final class CaseClauseImpl extends AstNodeImpl
-    with AstNodeWithNameScopeMixin
-    implements CaseClause {
+final class CaseClauseImpl extends AstNodeImpl implements CaseClause {
   @generated
   @override
   final Token caseKeyword;
@@ -29545,7 +29543,9 @@ abstract final class GuardedPattern implements AstNode {
     GenerateNodeProperty('whenClause'),
   ],
 )
-final class GuardedPatternImpl extends AstNodeImpl implements GuardedPattern {
+final class GuardedPatternImpl extends AstNodeImpl
+    with AstNodeWithNameScopeMixin
+    implements GuardedPattern {
   @generated
   DartPatternImpl _pattern;
 

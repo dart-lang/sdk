@@ -514,7 +514,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
       names.addAll(
         getVariableNameSuggestionsForText(
           stringLiteralPart,
-          _excludedVariableNames,
+          _excludedVariableNames.contains,
         ),
       );
     } else if (singleExpression != null) {
@@ -522,7 +522,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
         getVariableNameSuggestionsForExpression(
           singleExpression.staticType,
           singleExpression,
-          _excludedVariableNames,
+          _excludedVariableNames.contains,
         ),
       );
     }

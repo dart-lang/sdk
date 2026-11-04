@@ -1193,7 +1193,11 @@ final _builtInNonLintMultiGenerators = {
     DataDriven.new,
     ImportLibrary.forTypeOrMember,
   ],
-  diag.constWithNonType: [CreateClass.new, ImportLibrary.forTypeOrMember],
+  diag.constWithNonType: [
+    CreateClass.new,
+    DataDriven.new,
+    ImportLibrary.forTypeOrMember,
+  ],
   diag.extendsNonClass: [
     CreateClass.new,
     DataDriven.new,
@@ -1228,16 +1232,21 @@ final _builtInNonLintMultiGenerators = {
   ],
   diag.mixinWithNonClassSuperclass: [
     CreateClass.new,
+    DataDriven.new,
     ImportLibrary.forTypeOrMember,
   ],
-  diag.newWithNonType: [CreateClass.new, ImportLibrary.forTypeOrMember],
+  diag.newWithNonType: [
+    CreateClass.new,
+    DataDriven.new,
+    ImportLibrary.forTypeOrMember,
+  ],
   diag.newWithUndefinedConstructorDefault: [DataDriven.new],
   diag.noDefaultSuperConstructorExplicit: [AddSuperConstructorInvocation.new],
   diag.noDefaultSuperConstructorImplicit: [
     AddSuperConstructorInvocation.new,
     CreateConstructorSuper.new,
   ],
-  diag.nonTypeInCatchClause: [ImportLibrary.forTypeOrMember],
+  diag.nonTypeInCatchClause: [DataDriven.new, ImportLibrary.forTypeOrMember],
   diag.nonTypeAsTypeArgument: [
     CreateClass.new,
     CreateMixin.new,
@@ -1256,6 +1265,7 @@ final _builtInNonLintMultiGenerators = {
   diag.typeTestWithUndefinedName: [
     CreateClass.new,
     CreateMixin.new,
+    DataDriven.new,
     ImportLibrary.forTypeOrMember,
   ],
   diag.positionalSuperFormalParameterWithPositionalArgument: [

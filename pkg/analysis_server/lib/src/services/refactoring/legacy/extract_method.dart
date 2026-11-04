@@ -943,7 +943,7 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
         getVariableNameSuggestionsForExpression(
           selectionExpression.typeOrThrow,
           selectionExpression,
-          _excludedNames,
+          _excludedNames.contains,
           isMethod: true,
         ),
       );

@@ -224,6 +224,9 @@ abstract class FutureOr<T> {
 /// A future may also fail to ever complete. In that case, no callbacks are
 /// called. That situation should generally be avoided if possible, unless
 /// it's very clearly documented.
+///
+/// Futures cannot be sent to other isolates unless they are constants
+/// (see `SendPort.send` in `dart:isolate`).
 @pragma("wasm:entry-point")
 @vmIsolateUnsendable
 abstract interface class Future<T> {
@@ -1214,6 +1217,9 @@ class TimeoutException implements Exception {
 ///   }
 /// }
 /// ```
+///
+/// Completers cannot be sent to other isolates unless they are constants
+/// (see `SendPort.send` in `dart:isolate`).
 @vmIsolateUnsendable
 abstract interface class Completer<T> {
   /// Creates a new completer.

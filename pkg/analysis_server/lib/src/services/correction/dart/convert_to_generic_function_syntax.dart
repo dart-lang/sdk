@@ -30,7 +30,7 @@ class ConvertToGenericFunctionSyntax extends ParsedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    for (var node in this.node.withAncestors) {
+    for (var node in node.withAncestors) {
       if (node is FunctionTypeAlias) {
         return _convertFunctionTypeAlias(builder, node);
       } else if (node is FormalParameter && node.functionTypedSuffix != null) {

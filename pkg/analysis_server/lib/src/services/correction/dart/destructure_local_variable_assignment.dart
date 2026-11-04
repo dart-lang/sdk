@@ -11,7 +11,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -61,26 +60,30 @@ class DestructureLocalVariableAssignment extends ResolvedCorrectionProducer {
         .findReferencesIn(function);
     if (objectReferences.isNotEmpty) return;
 
-    var scopedNameFinder = ScopedNameFinder(node.offset);
-    node.accept(scopedNameFinder);
-    var namesInScope = <String>{};
-    namesInScope.addAll(scopedNameFinder.locals);
-
+    var isConflict = node.nameConflictPredicateForNewLocal();
     var varMap = <ObjectFieldName, List<AstNode>>{};
 
     for (var propertyReference in propertyReferences.entries) {
-      var excludes = unit.findPossibleLocalVariableConflicts(node.offset);
-      excludes.addAll(namesInScope);
-
       var references = propertyReference.value;
+      // The new variable replaces each reference, so its name must also not
+      // conflict at the references.
+      var referenceIsConflict = <bool Function(String)>[];
       for (var reference in references) {
         if (reference.inSetterContext) return;
-        excludes.addAll(
-          unit.findPossibleLocalVariableConflicts(reference.offset),
-        );
+        referenceIsConflict.add(reference.nameConflictPredicateForNewLocal());
       }
 
-      var fieldName = ObjectFieldName.forName(propertyReference.key, excludes);
+      bool isExcluded(String name) {
+        return isConflict(name) ||
+            referenceIsConflict.any(
+              (isConflictAtReference) => isConflictAtReference(name),
+            );
+      }
+
+      var fieldName = ObjectFieldName.forName(
+        propertyReference.key,
+        isExcluded,
+      );
       if (fieldName == null) return;
 
       varMap[fieldName] = references;
@@ -122,29 +125,28 @@ class DestructureLocalVariableAssignment extends ResolvedCorrectionProducer {
     VariableDeclaration node,
     ChangeBuilder builder,
   ) async {
-    var excluded = <String>{};
-    var offset = node.offset;
-
-    var scopedNameFinder = ScopedNameFinder(offset);
-    node.accept(scopedNameFinder);
-    excluded.addAll(scopedNameFinder.locals);
+    var isConflict = node.nameConflictPredicateForNewLocal();
+    var chosenNames = <String>{};
+    bool isExcluded(String name) {
+      return chosenNames.contains(name) || isConflict(name);
+    }
 
     var variables = <RecordField>[];
     for (var i = 1; i <= type.positionalFields.length; ++i) {
       var varName = '\$$i';
-      if (excluded.contains(varName)) {
-        varName = getIndexedVariableName(i, excluded) ?? varName;
+      if (isExcluded(varName)) {
+        varName = getIndexedVariableName(i, isExcluded) ?? varName;
       }
       variables.add(PositionalField(varName));
-      excluded.add(varName);
+      chosenNames.add(varName);
     }
 
     for (var namedField in type.namedFields) {
       var name = namedField.name;
-      if (!excluded.contains(name)) {
+      if (!isExcluded(name)) {
         variables.add(NamedField(field: name));
       } else {
-        var suggestions = getVariableNameSuggestionsForText(name, excluded);
+        var suggestions = getVariableNameSuggestionsForText(name, isExcluded);
         if (suggestions.isEmpty) return;
         var suggestion = suggestions.first;
         variables.add(NamedField(field: name, variable: suggestion));
@@ -165,10 +167,13 @@ class DestructureLocalVariableAssignment extends ResolvedCorrectionProducer {
     });
   }
 
-  static String? getIndexedVariableName(int index, Set<String> excluded) {
+  static String? getIndexedVariableName(
+    int index,
+    bool Function(String name) isExcluded,
+  ) {
     for (var c = 97 /* a */; c < 0x7A; ++c) {
       var name = '\$$index${String.fromCharCode(c)}';
-      if (!excluded.contains(name)) return name;
+      if (!isExcluded(name)) return name;
     }
     return null;
   }
@@ -224,8 +229,11 @@ class ObjectFieldName {
     );
   }
 
-  static ObjectFieldName? forName(String name, Set<String> excludes) {
-    var suggestions = getVariableNameSuggestionsForText(name, excludes);
+  static ObjectFieldName? forName(
+    String name,
+    bool Function(String name) isExcluded,
+  ) {
+    var suggestions = getVariableNameSuggestionsForText(name, isExcluded);
     var suggestion = suggestions.firstOrNull;
     if (suggestion == null) return null;
     return ObjectFieldName._(suggestion, name);

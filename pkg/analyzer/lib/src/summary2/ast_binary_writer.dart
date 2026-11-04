@@ -341,7 +341,16 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
 
   @override
   void visitDoubleLiteral(DoubleLiteral node) {
-    _sink.writeEnum(AstNodeTag.DoubleLiteral);
+    // Almost all literals are spelled as their values print, so writing every
+    // lexeme would only grow summaries. It is written when it is different,
+    // such as `.5` or `1e3`.
+    var lexeme = node.literal.lexeme;
+    if (lexeme == '${node.value}') {
+      _sink.writeEnum(AstNodeTag.DoubleLiteral);
+    } else {
+      _sink.writeEnum(AstNodeTag.DoubleLiteralWithLexeme);
+      _writeStringReference(lexeme);
+    }
     _writeDouble(node.value);
     _storeExpression(node);
   }

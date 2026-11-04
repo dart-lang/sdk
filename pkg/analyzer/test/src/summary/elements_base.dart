@@ -103,12 +103,6 @@ abstract class ElementsBaseTest extends PubPackageResolutionTest {
     return elementFactory.elementOfReference3(reference);
   }
 
-  @override
-  void setUp() {
-    super.setUp();
-    nodeTextConfiguration.withCheckingTokenStream = false;
-  }
-
   Future<LibraryElementImpl> testContextLibrary(String uriStr) async {
     var analysisContext = contextFor(testFile);
     var analysisSession = analysisContext.currentSession;

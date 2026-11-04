@@ -1533,12 +1533,74 @@ class A {
 ''');
   }
 
+  test_constructorPrivate_privateClass_exposedViaMixinApplication() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class _A {
+  _A();
+  _A._named();
+//   ^^^^^^
+// [diag.unusedElement] The declaration '_A._named' isn't referenced.
+}
+mixin _M {}
+class B = _A with _M;
+''');
+  }
+
+  test_constructorPublic_privateClass_exposedViaMixinApplication() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class _A {
+  _A();
+  _A.redirect() : this();
+  _A.generative();
+}
+mixin _M {}
+class B = _A with _M;
+''');
+  }
+
+  test_constructorPublic_privateClass_exposedViaMixinApplication_abstract() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class _A {
+  _A.first();
+  _A.second();
+}
+mixin _M {}
+abstract class B = _A with _M;
+''');
+  }
+
+  test_constructorPublic_privateClass_exposedViaMixinApplication_indirect() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class _A {
+  _A.first();
+  _A.second();
+}
+mixin _M1 {}
+mixin _M2 {}
+class _B = _A with _M1;
+class C = _B with _M2;
+''');
+  }
+
   test_constructorPublic_privateClass_exposedViaTypeAlias() async {
     await resolveTestCodeWithDiagnostics(r'''
 class _A {
-  _A.constructor();
+  _A.first();
+  _A.second();
 }
 typedef T = _A;
+''');
+  }
+
+  test_constructorPublic_privateClass_exposedViaTypeAlias_ofMixinApplication() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class _A {
+  _A.first();
+  _A.second();
+}
+mixin _M {}
+class _B = _A with _M;
+typedef T = _B;
 ''');
   }
 
@@ -1551,6 +1613,33 @@ class _A {
   _A();
 }
 var a = _A();
+''');
+  }
+
+  test_constructorPublic_privateClass_notUsed_privateMixinApplication() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class _A {
+  _A();
+  _A.named();
+//   ^^^^^
+// [diag.unusedElement] The declaration '_A.named' isn't referenced.
+}
+mixin _M {}
+class _B = _A with _M;
+var b = _B();
+''');
+  }
+
+  test_constructorPublic_privateClass_notUsed_privateTypeAlias() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class _A {
+  _A();
+  _A.named();
+//   ^^^^^
+// [diag.unusedElement] The declaration '_A.named' isn't referenced.
+}
+typedef _T = _A;
+var a = _T();
 ''');
   }
 
@@ -3143,6 +3232,36 @@ mixin _M {}
 ''');
   }
 
+  test_parameter_isUsed_constructor_privateClass_exposedViaMixinApplication() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class _A {
+  _A();
+  _A.named([int? a]);
+}
+mixin _M {}
+class B = _A with _M;
+''');
+  }
+
+  test_parameter_isUsed_constructor_privateClass_exposedViaTypeAlias() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class _A {
+  _A();
+  _A.named([int? a]);
+}
+typedef T = _A;
+''');
+  }
+
+  test_parameter_isUsed_constructor_privateExtensionType_exposedViaTypeAlias() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type _E(int i) {
+  _E.named(this.i, [int? a]);
+}
+typedef T = _E;
+''');
+  }
+
   test_parameter_isUsed_functionTearoff() async {
     await resolveTestCodeWithDiagnostics(r'''
 f() {
@@ -4001,6 +4120,8 @@ enum _E {
   one(), two();
   const _E();
   const _E.named();
+//         ^^^^^
+// [diag.unusedElement] The declaration '_E.named' isn't referenced.
 }
 typedef T = _E;
 void f() {

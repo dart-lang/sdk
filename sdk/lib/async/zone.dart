@@ -143,6 +143,12 @@ final class _ZoneValues {
 /// Similarly, zones provide [bindCallbackGuarded] (and the corresponding
 /// [bindUnaryCallbackGuarded] and [bindBinaryCallbackGuarded]), when the
 /// callback should be invoked through [Zone.runGuarded].
+///
+/// Zones cannot be sent to other isolates unless they are constants
+/// (see `SendPort.send` in `dart:isolate`). The only constant zone is
+/// [Zone.root], so it can be sent, while every other zone cannot.
+/// This means that an object which stores [Zone.current] can only be sent
+/// to another isolate if it was created while running in the root zone.
 @vmIsolateUnsendable
 final class Zone {
   /// Parent zone. Is only `null` for the root zone.
@@ -301,6 +307,9 @@ final class Zone {
   /// function, and are only provided as a hook for custom zones. Others, like
   /// [scheduleMicrotask], interact with the underlying system to implement the
   /// desired behavior.
+  ///
+  /// Unlike other zones, the root zone can be sent to other isolates,
+  /// because it is a constant, and constants can always be sent.
   static const Zone root = _rootZone;
 
   /// The currently running zone.

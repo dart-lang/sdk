@@ -758,14 +758,6 @@ class ClassFragmentImpl extends InterfaceFragmentImpl implements ClassFragment {
   }
 }
 
-// TODO(scheglov): remove this
-class ConstantInitializerImpl {
-  final VariableFragmentImpl fragment;
-  final ExpressionImpl expression;
-
-  new({required this.fragment, required this.expression});
-}
-
 @elementClass
 @GenerateElementFlags(flags: _ConstructorElementFlags.values)
 class ConstructorElementImpl extends ExecutableElementImpl
@@ -5306,7 +5298,7 @@ sealed class InstanceElementImpl extends ElementImpl
   @override
   @trackedIncludedInId
   MetadataImpl get metadata {
-    return _firstFragment.metadata;
+    return _firstFragment.elementMetadata;
   }
 
   @override
@@ -11779,8 +11771,6 @@ class TypeParameterFragmentImpl extends FragmentImpl
 abstract class VariableElementImpl extends ElementImpl
     with InternalVariableElement
     implements ConstantEvaluationTarget {
-  ConstantInitializerImpl? _constantInitializerData;
-
   /// The result of evaluating [constantInitializer2].
   ///
   /// Is `null` if [constantInitializer2] is `null`, or if the value could not
@@ -11801,26 +11791,11 @@ abstract class VariableElementImpl extends ElementImpl
   @override
   @trackedIncludedInId
   ExpressionImpl? get constantInitializer2 {
-    return constantInitializerData?.expression;
-  }
-
-  // TODO(scheglov): remove this wrapper once fragment provenance is no longer
-  // needed by top-level inference and element text output.
-  @trackedIncludedInId
-  ConstantInitializerImpl? get constantInitializerData {
-    if (_constantInitializerData case var result?) {
-      return result;
-    }
-
     for (var fragment in _fragments.reversed) {
-      if (fragment.constantInitializer2 case ExpressionImpl expression) {
-        return _constantInitializerData = ConstantInitializerImpl(
-          fragment: fragment,
-          expression: expression,
-        );
+      if (fragment.constantInitializer2 case var expression?) {
+        return expression;
       }
     }
-
     return null;
   }
 
@@ -11938,11 +11913,6 @@ abstract class VariableElementImpl extends ElementImpl
     return null;
   }
 
-  @trackedInternal
-  void resetConstantInitializer() {
-    _constantInitializerData = null;
-  }
-
   @override
   @trackedDirectlyOpaque
   void visitChildren<T>(ElementVisitor2<T> visitor) {
@@ -12014,11 +11984,6 @@ abstract class VariableFragmentImpl extends FragmentImpl
   @generated
   set hasImplicitType(bool value) {
     setFlag(_FragmentStorageFlag.variableFragment_hasImplicitType, value);
-  }
-
-  // TODO(scheglov): remove this
-  ExpressionImpl? get initializer {
-    return constantInitializer2;
   }
 
   /// Whether the executable element is abstract.

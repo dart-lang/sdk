@@ -3,9 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:io' show WebSocketException;
 
 import 'package:dwds/src/debugging/remote_debugger.dart';
-import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
+import 'package:logging/logging.dart';
+import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart'
+    hide StackTrace;
 
 typedef _EventStreamState = ({
   StreamController controller,
@@ -20,6 +23,10 @@ class WebkitDebugger implements RemoteDebugger {
   ///
   /// All subsequent calls to [close] will return this future.
   Future<void>? _closed;
+
+  /// Completes when [close] is called, or when the connection is lost and
+  /// can't be reestablished.
+  final _disconnected = Completer<void>();
 
   // We need to forward the events from the [WipDebugger] instance rather than
   // directly expose its streams as it may need to be recreated due to an
@@ -56,10 +63,23 @@ class WebkitDebugger implements RemoteDebugger {
 
   final _streamSubscriptions = <StreamSubscription>[];
 
+  final _logger = Logger('WebkitDebugger');
+
+  /// How often [enable] resends `Debugger.enable` while waiting for Chrome to
+  /// respond.
+  final Duration _enableRetryInterval;
+
+  /// How long [enable] waits for Chrome to respond to `Debugger.enable`.
+  final Duration _enableTimeout;
+
   @override
   Future<void> Function()? onReconnect;
 
-  WebkitDebugger(this._wipDebugger) {
+  WebkitDebugger(
+    this._wipDebugger, {
+    this._enableRetryInterval = const Duration(seconds: 5),
+    this._enableTimeout = const Duration(minutes: 3),
+  }) {
     _initialize();
   }
 
@@ -72,23 +92,45 @@ class WebkitDebugger implements RemoteDebugger {
         await _shutdown(connection);
         return;
       }
+      final previousDebugger = _wipDebugger;
       var retry = false;
       var retryCount = 0;
       const maxAttempts = 5;
       do {
         retry = false;
+        WipConnection? newConnection;
         try {
-          _wipDebugger = WipDebugger(
-            await WipConnection.connect(connection.url),
-          );
-          await onReconnect?.call();
+          newConnection = await WipConnection.connect(connection.url);
+          // Stop if the debugger was closed while reconnecting.
+          if (_closed != null) break;
+          _wipDebugger = WipDebugger(newConnection);
+          // Requests on a closed connection never complete, so stop waiting for
+          // onReconnect if the debugger is closed or the connection is lost.
+          await Future.any([
+            onReconnect?.call() ?? Future<void>.value(),
+            _disconnected.future,
+            newConnection.onClose.first.then(
+              (_) => throw const WebSocketException(
+                'The connection to Chrome was lost while reconnecting.',
+              ),
+            ),
+          ]);
+          if (_closed != null) break;
+          newConnection = null; // Reconnected, so keep it open.
         } on Exception {
           await Future<void>.delayed(Duration(milliseconds: 25 << retryCount));
           retry = true;
           retryCount++;
+        } finally {
+          // Unless we reconnected, go back to the previous connection and
+          // close the new one.
+          if (newConnection != null) {
+            _wipDebugger = previousDebugger;
+            await newConnection.close();
+          }
         }
-      } while (retry && retryCount <= maxAttempts);
-      if (retryCount > maxAttempts) {
+      } while (retry && retryCount <= maxAttempts && _closed == null);
+      if (_closed != null || retryCount > maxAttempts) {
         await _shutdown(connection);
       } else {
         _initialize();
@@ -124,6 +166,7 @@ class WebkitDebugger implements RemoteDebugger {
   }
 
   Future<void> _shutdown(WipConnection connection) async {
+    if (!_disconnected.isCompleted) _disconnected.complete();
     _onClosedController.add(connection);
     await Future.wait([
       for (final controller in _controllers) controller.close(),
@@ -149,6 +192,7 @@ class WebkitDebugger implements RemoteDebugger {
 
   @override
   Future<void> close() => _closed ??= () async {
+    if (!_disconnected.isCompleted) _disconnected.complete();
     await _wipDebugger.connection.close();
     await Future.wait([for (final sub in _streamSubscriptions) sub.cancel()]);
   }();
@@ -156,20 +200,46 @@ class WebkitDebugger implements RemoteDebugger {
   @override
   Future<void> disable() => _wipDebugger.disable();
 
+  /// Sends `Debugger.enable` and waits for Chrome to respond.
+  ///
+  /// Lost requests are resent every [_enableRetryInterval].
+  /// Chrome can take a long time to respond to the first request (for large
+  /// apps). Complete when any response arrives for any resent request.
+  ///
+  /// Throws a [TimeoutException] if Chrome doesn't respond within
+  /// [_enableTimeout]. Throws a [WebSocketException] when the debugger is
+  /// closed or its connection is lost.
   @override
   Future<void> enable() async {
-    // TODO(markzipan): Handle race conditions more gracefully.
-    // Try to enable the debugger multiple times.
-    var attempts = 3;
-    while (true) {
+    final stopwatch = Stopwatch()..start();
+    final requests = <Future<void>>[];
+    while (!_disconnected.isCompleted) {
+      if (stopwatch.elapsed >= _enableTimeout) {
+        throw TimeoutException(
+          'Debugger.enable did not complete',
+          _enableTimeout,
+        );
+      }
+      requests.add(_wipDebugger.enable());
       try {
-        await _wipDebugger.enable().timeout(const Duration(seconds: 5));
-        return;
+        // Wait for Chrome to respond to any of the requests, or for the
+        // debugger to be disconnected.
+        await Future.any([...requests, _disconnected.future])
+            .timeout(_enableRetryInterval);
+        if (!_disconnected.isCompleted) return;
       } on TimeoutException {
-        if (attempts-- == 0) rethrow;
+        _logger.fine(
+          'Debugger.enable has not completed after ${stopwatch.elapsed}. '
+          'Resending.',
+        );
       }
     }
+    throw _connectionClosedException;
   }
+
+  static const _connectionClosedException = WebSocketException(
+    'The connection to Chrome was closed before Debugger.enable completed.',
+  );
 
   @override
   Future<String> getScriptSource(String scriptId) =>

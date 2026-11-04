@@ -35,6 +35,16 @@ void main() {
   try {} on JSObject catch (e) {
     print(e);
   }
+  final jsNumbers = <JSNumber>[jsNum];
+  // DRY_RUN: 8, Cast from 'JSNumber' to 'int' casts a JS interop value to a
+  // Dart type
+  List<int>.from(jsNumbers);
+  // DRY_RUN: 8, Cast from 'JSNumber' to 'int' casts a JS interop value to a
+  // Dart type
+  jsNumbers.cast<int>();
+  // DRY_RUN: 9, Runtime check between 'JSNumber' and 'int' checks whether a JS
+  // interop value is a Dart type
+  jsNumbers.whereType<int>();
   // Users are allowed to ignore lints still.
   // ignore: invalid_runtime_check_with_js_interop_types
   dartInt as JSString;

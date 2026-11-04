@@ -13,6 +13,7 @@ import 'package:cfg/passes/value_numbering.dart';
 import 'package:kernel/ast.dart';
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
+import '../../cfg/passes/lower_irreducible_control_flow.dart';
 import '../../code_generator.dart';
 import '../../intrinsics.dart';
 import '../../reference_extensions.dart';
@@ -120,6 +121,7 @@ class CfgMemberCodeGenerator implements CodeGenerator {
       SSAComputation(),
       ValueNumbering(simplification: Simplification()),
       ConstantPropagation(),
+      LowerIrreducibleControlFlow(),
       ControlFlowOptimizations(),
     ]);
 
