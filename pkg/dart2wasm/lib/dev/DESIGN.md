@@ -48,10 +48,12 @@ rt.lookupStatic(barId)();
 
 ## Instance calls
 
-The runtime maps class labels and member names to IDs.
-Each class defines its superclass and members.
-Calls are dispatched by resolving a member ID from the receiver's class,
-walking its superclass hierarchy.
+The runtime maps class labels, member names, and shapes to IDs.
+A shape is a member's positional parameter count and named parameters (sorted),
+like `1,a,b` for `foo(x, {b, a})`.
+Each class defines its superclass and members by name and shape.
+Calls are dispatched by resolving a member ID and shape ID from the receiver's
+class, walking its superclass hierarchy.
 
 ```dart
 // package:foo/foo.dart
@@ -81,9 +83,10 @@ greeterNewId = rt.staticId('package:foo/foo.dart::Greeter.new');
 rt.defineStatic(greeterNewId, Greeter.new);
 messageId = rt.instanceMemberId('message');
 greetId = rt.instanceMemberId('greet');
+shape0Id = rt.shapeId('0');
 rt.startInstanceMemberDefinitions(greeterId);
-rt.defineInstanceMember(greeterId, messageId, Greeter.message);
-rt.defineInstanceMember(greeterId, greetId, Greeter.greet);
+rt.defineInstanceMember(greeterId, messageId, shape0Id, Greeter.message);
+rt.defineInstanceMember(greeterId, greetId, shape0Id, Greeter.greet);
 rt.endInstanceMemberDefinitions(greeterId);
 
 // WorldGreeter
@@ -92,16 +95,17 @@ rt.defineClassSupers(worldGreeterId, greeterId);
 worldGreeterNewId = rt.staticId('package:foo/foo.dart::WorldGreeter.new');
 rt.defineStatic(worldGreeterNewId, WorldGreeter.new);
 rt.startInstanceMemberDefinitions(worldGreeterId);
-rt.defineInstanceMember(worldGreeterId, messageId, WorldGreeter.message);
+rt.defineInstanceMember(
+    worldGreeterId, messageId, shape0Id, WorldGreeter.message);
 rt.endInstanceMemberDefinitions(worldGreeterId);
 
 // main
 o = {classId: worldGreeterId};
 rt.lookupStatic(worldGreeterNewId)(o);
-rt.findTarget(o.classId, greetId)(o);
+rt.findTarget(o.classId, greetId, shape0Id)(o);
 
 // Greeter.greet
-print(rt.findTarget(this.classId, messageId)(this));
+print(rt.findTarget(this.classId, messageId, shape0Id)(this));
 ```
 
 ## Calling convention
@@ -132,6 +136,9 @@ void greetAll(Greeter g) {
 compiles to:
 
 ```
+// Once on module init
+greetShapeId = rt.shapeId('1,loud,title');
+
 // Greeter.greet(this, name, loud, title)
 final loud_ = identical(loud, sentinel) ? false : unbox(loud);
 title = identical(title, sentinel) ? box('Dr.') : title;
@@ -141,6 +148,7 @@ final loud_ = identical(loud, sentinel) ? false : unbox(loud);
 title = identical(title, sentinel) ? box('Dr.') : title;
 
 // greetAll
-rt.findTarget(g.classId, greetId)(g, box('Jekyll'), sentinel, null);
+rt.findTarget(g.classId, greetId, greetShapeId)(
+    g, box('Jekyll'), sentinel, null);
 rt.lookupStatic(staticGreetId)(box('Jekyll'), sentinel, null);
 ```

@@ -90,21 +90,35 @@ int instanceMemberId(String name) {
   return id;
 }
 
+/// Returns the ID of parameter shape [label] or assigns one.
+///
+/// Formatted like: `1,a,b` for `foo(x, {a, b}) {}`
+int shapeId(String label) {
+  final existing = shapeIds[label];
+  if (existing != null) return existing;
+  final id = shapeLabels.length;
+  shapeLabels.add(label);
+  shapeIds[label] = id;
+  return id;
+}
+
 /// Starts defining class [id]'s instance members.
 void startInstanceMemberDefinitions(int id) => classes[id].changeState(
   ClassState.typeInitialized,
   ClassState.initializingMembers,
 );
 
-/// Defines [function] as class [classId]'s instance member [instanceMemberId].
+/// Defines [function] as class [classId]'s instance member [instanceMemberId]
+/// with shape [shapeId].
 ///
-/// Members are defined once, between [startInstanceMemberDefinitions] and
-/// [endInstanceMemberDefinitions].
+/// Members are defined once per shape, between [startInstanceMemberDefinitions]
+/// and [endInstanceMemberDefinitions].
 void defineInstanceMember(
   int classId,
   int instanceMemberId,
+  int shapeId,
   WasmFuncRef function,
-) => classes[classId].defineInstanceMember(instanceMemberId, function);
+) => classes[classId].defineInstanceMember(instanceMemberId, shapeId, function);
 
 /// Ends defining class [id]'s instance members, making it ready to use.
 void endInstanceMemberDefinitions(int id) => classes[id].changeState(
@@ -112,21 +126,33 @@ void endInstanceMemberDefinitions(int id) => classes[id].changeState(
   ClassState.initialized,
 );
 
-/// Returns [instanceMemberId] in class [classId] or its superclasses.
-// TODO: Check the caller's arguments against the parameter shape.
-WasmFuncRef findTarget(int classId, int instanceMemberId) {
+/// Returns [instanceMemberId] with shape [shapeId] in class [classId] or its
+/// superclasses.
+WasmFuncRef findTarget(int classId, int instanceMemberId, int shapeId) {
   int id = classId;
   while (id != -1) {
     final cls = classes[id]..expectState(ClassState.initialized);
-    final member = cls.members[instanceMemberId];
-    if (member != null) return member.ref;
+    final shapes = cls.members[instanceMemberId];
+    if (shapes != null) {
+      // TODO(dart2wasm): Add forwarders for overrides that change the shape.
+      final member = shapes[shapeId];
+      if (member == null) break;
+      return member.ref;
+    }
     id = cls.superclassId;
   }
   throw StateError(
     'Class ${classes[classId].label} has no member '
-    '${instanceMemberNames[instanceMemberId]}',
+    '${memberLabel(instanceMemberId, shapeId)}',
   );
 }
+
+/// Returns the label of instance member [instanceMemberId] with shape
+/// [shapeId].
+///
+/// Formatted like: `bar(1,a,b)` for `bar(x, {a, b}) {}`.
+String memberLabel(int instanceMemberId, int shapeId) =>
+    '${instanceMemberNames[instanceMemberId]}(${shapeLabels[shapeId]})';
 
 // TODO: Remove when dart:core is compiled.
 const objectLabel = 'dart:core::Object';
@@ -145,6 +171,12 @@ final Map<String, int> instanceMemberIds = {};
 /// Maps an instance member ID to its name.
 final List<String> instanceMemberNames = [];
 
+/// Maps a shape's label to its ID.
+final Map<String, int> shapeIds = {};
+
+/// Maps a shape ID to its label.
+final List<String> shapeLabels = [];
+
 final class ClassInfo {
   final String label;
 
@@ -153,21 +185,27 @@ final class ClassInfo {
   /// The superclass's ID or -1 for `Object`.
   int superclassId = -1;
 
-  /// Maps member IDs to their function.
-  final Map<int, FunctionInfo> members = {};
+  /// Maps member IDs to their functions by shape ID.
+  final Map<int, Map<int, FunctionInfo>> members = {};
 
   ClassInfo(this.label);
 
-  /// Defines [function] as instance member [instanceMemberId].
-  void defineInstanceMember(int instanceMemberId, WasmFuncRef function) {
+  /// Defines [function] as instance member [instanceMemberId] with shape
+  /// [shapeId].
+  void defineInstanceMember(
+    int instanceMemberId,
+    int shapeId,
+    WasmFuncRef function,
+  ) {
     expectState(ClassState.initializingMembers);
-    if (members.containsKey(instanceMemberId)) {
+    final shapes = members[instanceMemberId] ??= {};
+    if (shapes.containsKey(shapeId)) {
       throw StateError(
         'Class $label already defines '
-        '${instanceMemberNames[instanceMemberId]}',
+        '${memberLabel(instanceMemberId, shapeId)}',
       );
     }
-    members[instanceMemberId] = FunctionInfo(function);
+    shapes[shapeId] = FunctionInfo(function);
   }
 
   /// Changes this class's state from [from] to [to].

@@ -40,7 +40,17 @@ class C {
   int sum3(int a, [int b = 20, int c = 300]) => a + b + c;
 
   int named(int a, {int b = 20, required int c, int d = 4000}) => a + b + c + d;
+
+  int order({int a = 1, int b = 2}) => 10 * a + b;
 }
+
+class D extends C {
+  // Reorders C.order's named parameters.
+  @override
+  int order({int b = 3, int a = 4}) => 10 * a + b;
+}
+
+int callOrder(C c) => c.order(a: 5);
 
 void main() {
   // Optional positional parameters.
@@ -65,4 +75,8 @@ void main() {
   // Instance methods.
   expectEquals(1 + 1 + 300, C().sum3(1, 1));
   expectEquals(1 + 1 + 1 + 4000, C().named(1, c: 1, b: 1));
+
+  // Ensure dispatch is not affected by declaration order.
+  expectEquals(5 * 10 + 2, callOrder(C()));
+  expectEquals(5 * 10 + 3, callOrder(D()));
 }
