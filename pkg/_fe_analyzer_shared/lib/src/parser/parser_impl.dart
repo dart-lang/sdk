@@ -1599,11 +1599,14 @@ class Parser {
         }
         token = type.ensureTypeOrVoid(equals, this);
       } else {
-        // A rewrite caused the = to disappear
-        token = parseFormalParametersRequiredOpt(
-          next,
-          MemberKind.FunctionTypeAlias,
-        );
+        // Recovery: A rewrite caused the `=` to disappear. Listeners rely on
+        // `equals` to tell which events were sent, and the name and the type
+        // variables were sent as for a new style typedef, so finish it as one.
+        equals = rewriter.insertSyntheticToken(token, TokenType.EQ);
+        token = computeType(
+          equals,
+          /* required = */ true,
+        ).ensureTypeOrVoid(equals, this);
       }
     } else {
       // Old style typedef, e.g. "typedef void foo();".
