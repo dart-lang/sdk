@@ -266,6 +266,7 @@ final class EmbedderStringImpl
 
   @override
   String replaceFirst(Pattern from, String to, [int startIndex = 0]) {
+    RangeErrorUtils.checkValueBetweenZeroAndPositiveMax(startIndex, length);
     Iterator<Match> matches = from.allMatches(this, startIndex).iterator;
     if (!matches.moveNext()) return this;
     Match match = matches.current;
