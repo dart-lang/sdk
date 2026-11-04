@@ -13,10 +13,7 @@ import 'package:collection/collection.dart';
 /// IDs are deduplicated by identity, not by value, to avoid hash lookups.
 /// So the table can contain equal values more than once.
 class ManifestIdTableBuilder {
-  static int _nextStamp = 0;
-
-  /// Unique for each builder, never `0`.
-  final int _stamp = ++_nextStamp;
+  final _TableStamp _stamp = _TableStamp.next();
 
   final List<ManifestItemId> _ids = [];
 
@@ -71,8 +68,8 @@ class ManifestItemId implements Comparable<ManifestItemId> {
   final int lo32;
 
   /// The stamp of the last [ManifestIdTableBuilder] that this object was
-  /// added to, or `0` if none.
-  int _tableStamp = 0;
+  /// added to, or [_TableStamp.none].
+  _TableStamp _tableStamp = _TableStamp.none;
 
   /// The index of this object in the table of [ManifestIdTableBuilder] with
   /// the stamp [_tableStamp].
@@ -165,6 +162,20 @@ class ManifestItemIdList {
 
   static ManifestItemIdList? readOptional(BinaryReader reader) {
     return reader.readOptionalObject(() => ManifestItemIdList.read(reader));
+  }
+}
+
+/// Identifies a [ManifestIdTableBuilder], so that the indexes that it
+/// remembers in [ManifestItemId]s are not used by other builders.
+extension type const _TableStamp._(int _value) {
+  /// Not equal to any stamp returned by [_TableStamp.next].
+  static const none = _TableStamp._(0);
+
+  static int _last = 0;
+
+  /// Returns a stamp that is not equal to any previously returned one.
+  factory next() {
+    return _TableStamp._(++_last);
   }
 }
 
