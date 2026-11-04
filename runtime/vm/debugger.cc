@@ -3639,6 +3639,15 @@ void Debugger::HandleSteppingRequest() {
     }
     NotifySingleStepping(true);
     SetSyncSteppingFramePointer(sync_caller);
+    // The bytecode interpreter checks for single stepping at every
+    // instruction, so without this it pauses again in the caller after
+    // the return. Compiled code has no pause point there, so setting
+    // this is harmless in that case.
+    //
+    // Note: there is one case where a pause immediately after stepping out
+    // is wanted: a call to debugger(). Thus, PauseDeveloper must reset the last
+    // stepping information after calling this method.
+    SetLastSteppingInformation(sync_caller);
     if (FLAG_verbose_debug) {
       OS::PrintErr("HandleSteppingRequest- kStepOut %" Px "\n", stepping_fp_);
     }
@@ -4275,9 +4284,10 @@ void Debugger::PauseDeveloper(const String& msg) {
   // gets a better experience by not seeing this call. To accomplish
   // this, we continue execution until the call exits (step out).
   SetResumeAction(kStepOut);
-  // Reset the last stepping information to ensure we pause after stepping out.
-  ResetLastSteppingInformation();
   HandleSteppingRequest();
+  // HandleSteppingRequest sets the last stepping information, so reset
+  // it, otherwise the debugger does not pause after stepping out.
+  ResetLastSteppingInformation();
   ClearCachedStackTraces();
 }
 
