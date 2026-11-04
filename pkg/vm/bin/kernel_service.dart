@@ -707,8 +707,8 @@ Future _processExpressionCompilationRequest(request) async {
         bytes = bytecodeGenerator!.call(
           component,
           component.libraries,
-          compiler.generator!.lastKnownGoodResult!.coreTypes,
-          compiler.generator!.lastKnownGoodResult!.classHierarchy,
+          compiler.generator!.coreTypes!,
+          compiler.generator!.classHierarchy!,
           compiler.options.target!,
           compiler.enableAsserts,
         );
