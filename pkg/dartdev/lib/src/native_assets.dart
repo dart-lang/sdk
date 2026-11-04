@@ -285,7 +285,9 @@ class DartNativeAssetsBuilder {
   final Target target;
 
   late final _macOSConfig = target.os == OS.macOS
-      ? MacOSCodeConfig(targetVersion: minimumSupportedMacOSVersion)
+      ? MacOSCodeConfig(
+          deploymentVersion: AppleVersion(minimumSupportedMacOSVersion),
+        )
       : null;
 
   late final _cCompilerConfig = _getCCompilerConfig(target.os);
