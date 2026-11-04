@@ -344,14 +344,7 @@ extension CheckHelper on ProblemReporting {
     }
 
     if (problem != null) {
-      TypeName? typeName = returnTypeBuilder.typeName;
-      addProblem(
-        problem,
-        typeName?.fullNameOffset ?? // Coverage-ignore(suite): Not run.
-            returnTypeBuilder.charOffset!,
-        typeName?.fullNameLength ?? noLength,
-        fileUri,
-      );
+      addProblem2(problem, returnTypeBuilder.uriOffset);
     }
   }
 

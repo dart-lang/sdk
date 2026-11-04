@@ -4,39 +4,39 @@ library;
 //
 // pkg/front_end/testcases/class_modifiers/final/typedef/main.dart:7:46: Error: The class 'A' can't be extended outside of its library because it's a final class.
 // final class ExtendsFinalClassTypedef extends ATypeDef {}
-//                                              ^
+//                                              ^^^^^^^^
 //
 // pkg/front_end/testcases/class_modifiers/final/typedef/main.dart:9:47: Error: The class 'A' can't be extended outside of its library because it's a final class.
 // final class ExtendsFinalClassTypedef2 extends ATypeDef2 {}
-//                                               ^
+//                                               ^^^^^^^^^
 //
 // pkg/front_end/testcases/class_modifiers/final/typedef/main.dart:11:52: Error: The class 'A' can't be implemented outside of its library because it's a final class.
 // final class ImplementsFinalClassTypedef implements ATypeDef {}
-//                                                    ^
+//                                                    ^^^^^^^^
 //
 // pkg/front_end/testcases/class_modifiers/final/typedef/main.dart:13:53: Error: The class 'A' can't be implemented outside of its library because it's a final class.
 // final class ImplementsFinalClassTypedef2 implements ATypeDef2 {}
-//                                                     ^
+//                                                     ^^^^^^^^^
 //
 // pkg/front_end/testcases/class_modifiers/final/typedef/main.dart:15:49: Error: The class 'A' can't be implemented outside of its library because it's a final class.
 // enum EnumImplementsFinalClassTypedef implements ATypeDef { x }
-//                                                 ^
+//                                                 ^^^^^^^^
 //
 // pkg/front_end/testcases/class_modifiers/final/typedef/main.dart:17:50: Error: The class 'A' can't be implemented outside of its library because it's a final class.
 // enum EnumImplementsFinalClassTypedef2 implements ATypeDef2 { x }
-//                                                  ^
+//                                                  ^^^^^^^^^
 //
 // pkg/front_end/testcases/class_modifiers/final/typedef/main.dart:21:53: Error: The class 'A' can't be extended outside of its library because it's a final class.
 // final class ExtendsFinalClassTypedefOutside extends AOutsideTypedef {}
-//                                                     ^
+//                                                     ^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/class_modifiers/final/typedef/main.dart:23:59: Error: The class 'A' can't be implemented outside of its library because it's a final class.
 // final class ImplementsFinalClassTypedefOutside implements AOutsideTypedef {}
-//                                                           ^
+//                                                           ^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/class_modifiers/final/typedef/main.dart:25:56: Error: The class 'A' can't be implemented outside of its library because it's a final class.
 // enum EnumImplementsFinalClassTypedefOutside implements AOutsideTypedef { x }
-//                                                        ^
+//                                                        ^^^^^^^^^^^^^^^
 //
 import self as self;
 import "main_lib.dart" as mai;

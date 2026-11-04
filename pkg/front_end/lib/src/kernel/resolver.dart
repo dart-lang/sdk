@@ -909,13 +909,14 @@ class Resolver {
       if (parameter == extensionThis) {
         internalExtensionThis = formal;
       }
+      UriOffsetLength uriOffset = new UriOffset(fileUri, formal.fileOffset);
       return new FormalParameterBuilder(
         kind: FormalParameterKind.requiredPositional,
         modifiers: Modifiers.empty,
-        type: const ImplicitTypeBuilder(),
+        type: new ImplicitTypeBuilder(uriOffset),
         name: formalName,
         nameOffset: null,
-        uriOffset: new UriOffset(fileUri, formal.fileOffset),
+        uriOffset: uriOffset,
         hasImmediatelyDeclaredDefaultValue: false,
         wildcardIndex: wildcardIndex,
         variable: formal,
@@ -989,6 +990,7 @@ class Resolver {
         new DillNominalParameterBuilder(
           typeParameter,
           loader: libraryBuilder.loader,
+          uriOffset: new UriOffset(fileUri, typeParameter.fileOffset),
         ),
       );
     }

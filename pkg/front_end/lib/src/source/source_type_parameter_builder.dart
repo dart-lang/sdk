@@ -44,6 +44,7 @@ class SourceNominalParameterBuilder extends NominalParameterBuilder {
   @override
   String get name => _declaration.name;
 
+  @override
   UriOffsetLength get uriOffset => _declaration.uriOffset;
 
   @override
@@ -165,9 +166,6 @@ class RegularNominalParameterDeclaration
 
 class DirectNominalParameterDeclaration implements NominalParameterDeclaration {
   @override
-  final int fileOffset;
-
-  @override
   final String name;
 
   @override
@@ -177,19 +175,20 @@ class DirectNominalParameterDeclaration implements NominalParameterDeclaration {
   final bool isWildcard;
 
   @override
-  final Uri fileUri;
-
-  @override
   final UriOffsetLength uriOffset;
 
   new({
     required this.name,
     required this.kind,
     required this.isWildcard,
-    required this.fileOffset,
-    required this.fileUri,
     required this.uriOffset,
   });
+
+  @override
+  Uri get fileUri => uriOffset.fileUri;
+
+  @override
+  int get fileOffset => uriOffset.fileOffset;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -263,6 +262,9 @@ class SourceStructuralParameterBuilder extends StructuralParameterBuilder {
             ..variance = parameterVariance;
 
   @override
+  UriOffsetLength get uriOffset => _declaration.uriOffset;
+
+  @override
   // Coverage-ignore(suite): Not run.
   TypeParameterKind get kind => TypeParameterKind.function;
 
@@ -284,6 +286,8 @@ abstract class StructuralParameterDeclaration {
 
   bool get isWildcard;
 
+  UriOffsetLength get uriOffset;
+
   int get fileOffset;
 
   Uri? get fileUri;
@@ -297,10 +301,7 @@ class RegularStructuralParameterDeclaration
   final String name;
 
   @override
-  final int fileOffset;
-
-  @override
-  final Uri fileUri;
+  final UriOffsetLength uriOffset;
 
   @override
   final bool isWildcard;
@@ -308,10 +309,15 @@ class RegularStructuralParameterDeclaration
   new({
     required this.metadata,
     required this.name,
-    required this.fileOffset,
-    required this.fileUri,
+    required this.uriOffset,
     required this.isWildcard,
   });
+
+  @override
+  Uri get fileUri => uriOffset.fileUri;
+
+  @override
+  int get fileOffset => uriOffset.fileOffset;
 }
 
 class SyntheticStructuralParameterDeclaration
@@ -319,6 +325,9 @@ class SyntheticStructuralParameterDeclaration
   final StructuralParameterBuilder _builder;
 
   new(this._builder);
+
+  @override
+  UriOffsetLength get uriOffset => _builder.uriOffset;
 
   @override
   int get fileOffset => _builder.fileOffset;

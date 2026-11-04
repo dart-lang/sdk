@@ -17,19 +17,19 @@ library;
 //
 // pkg/front_end/testcases/extension_types/implement_all.dart:29:44: Error: The type 'Null' can't be implemented by an extension type.
 // extension type ET_Null(Null it) implements Null /* Error */ {}
-//                                            ^
+//                                            ^^^^
 //
 // pkg/front_end/testcases/extension_types/implement_all.dart:31:50: Error: The type 'dynamic' can't be implemented by an extension type.
 // extension type ET_Dynamic(dynamic it) implements dynamic /* Error */ {}
-//                                                  ^
+//                                                  ^^^^^^^
 //
 // pkg/front_end/testcases/extension_types/implement_all.dart:33:44: Error: The type 'void' can't be implemented by an extension type.
 // extension type ET_Void(Null it) implements void /* Error */ {}
-//                                            ^
+//                                            ^^^^
 //
 // pkg/front_end/testcases/extension_types/implement_all.dart:35:46: Error: The type 'Never' can't be implemented by an extension type.
 // extension type ET_Never(Never it) implements Never /* Error */ {}
-//                                              ^
+//                                              ^^^^^
 //
 // pkg/front_end/testcases/extension_types/implement_all.dart:35:31: Error: The representation type can't be a bottom type.
 // extension type ET_Never(Never it) implements Never /* Error */ {}
@@ -37,47 +37,47 @@ library;
 //
 // pkg/front_end/testcases/extension_types/implement_all.dart:39:48: Error: The type 'Record' can't be implemented by an extension type.
 // extension type ET_Record(Record it) implements Record /* Error */ {}
-//                                                ^
+//                                                ^^^^^^
 //
 // pkg/front_end/testcases/extension_types/implement_all.dart:41:56: Error: The type 'RecordType' which is an alias of '(int, String)' can't be implemented by an extension type.
 // extension type ET_RecordType(RecordType it) implements RecordType /* Error */ {}
-//                                                        ^
+//                                                        ^^^^^^^^^^
 // pkg/front_end/testcases/extension_types/implement_all.dart:7:9: Context: The issue arises via this type alias.
 // typedef RecordType = (int, String);
 //         ^
 //
 // pkg/front_end/testcases/extension_types/implement_all.dart:43:52: Error: The type 'Function' can't be implemented by an extension type.
 // extension type ET_Function(Function it) implements Function /* Error */ {}
-//                                                    ^
+//                                                    ^^^^^^^^
 //
 // pkg/front_end/testcases/extension_types/implement_all.dart:46:16: Error: The type 'FunctionType' which is an alias of 'void Function()' can't be implemented by an extension type.
 //     implements FunctionType /* Error */ {}
-//                ^
+//                ^^^^^^^^^^^^
 // pkg/front_end/testcases/extension_types/implement_all.dart:9:9: Context: The issue arises via this type alias.
 // typedef FunctionType = void Function();
 //         ^
 //
 // pkg/front_end/testcases/extension_types/implement_all.dart:49:16: Error: The type 'NullableInterfaceType' which is an alias of 'String?' can't be implemented by an extension type because it is nullable.
 //     implements NullableInterfaceType /* Error */ {}
-//                ^
+//                ^^^^^^^^^^^^^^^^^^^^^
 // pkg/front_end/testcases/extension_types/implement_all.dart:11:9: Context: The issue arises via this type alias.
 // typedef NullableInterfaceType = String?;
 //         ^
 //
 // pkg/front_end/testcases/extension_types/implement_all.dart:52:16: Error: The type 'NullableExtensionType' which is an alias of 'ExtensionType?' can't be implemented by an extension type because it is nullable.
 //     implements NullableExtensionType /* Error */ {}
-//                ^
+//                ^^^^^^^^^^^^^^^^^^^^^
 // pkg/front_end/testcases/extension_types/implement_all.dart:13:9: Context: The issue arises via this type alias.
 // typedef NullableExtensionType = ExtensionType?;
 //         ^
 //
 // pkg/front_end/testcases/extension_types/implement_all.dart:55:16: Error: The type 'FutureOr<int>' can't be implemented by an extension type.
 //     implements FutureOr<int> /* Error */ {}
-//                ^
+//                ^^^^^^^^
 //
 // pkg/front_end/testcases/extension_types/implement_all.dart:57:48: Error: The type 'Extension' can't be implemented by an extension type.
 // extension type ET_Extension(int it) implements Extension /* Error */ {}
-//                                                ^
+//                                                ^^^^^^^^^
 //
 // pkg/front_end/testcases/extension_types/implement_all.dart:59:52: Error: The type variable 'T' can't be implemented by an extension type.
 // extension type ET_TypeVariable<T>(T it) implements T /* Error */ {}

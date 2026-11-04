@@ -1244,12 +1244,12 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       importer: this,
       importedCompilationUnit: compilationUnit,
       deferred: deferred,
-      prefix: prefix,
       combinators: combinators,
       configurations: null,
-      fileUri: fileUri,
-      importOffset: -1,
-      prefixOffset: -1,
+      importUriOffset: new UriOffset(fileUri, TreeNode.noOffset),
+      prefixUriOffsetName: prefix != null
+          ? new SyntheticUriOffsetName(fileUri, prefix)
+          : null,
       nativeImportPath: null,
     );
     _compilationUnitData.registerImport(import);

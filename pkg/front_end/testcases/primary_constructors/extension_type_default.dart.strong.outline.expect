@@ -13,7 +13,7 @@ library;
 //  - 'Object' is from 'dart:core'.
 // Try changing the representation type to a subtype of 'int?'.
 // extension type ET3(name) implements ET2 {}
-//                                     ^
+//                                     ^^^
 //
 import self as self;
 import "dart:core" as core;

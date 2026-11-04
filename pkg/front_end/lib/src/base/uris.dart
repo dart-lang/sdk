@@ -4,8 +4,28 @@
 
 import 'package:kernel/ast.dart';
 
+import 'uri_offset.dart';
+
 final Uri dartCore = Uri.parse('dart:core');
+// Coverage-ignore(suite): Not run.
+final Uri dartAsync = Uri.parse('dart:async');
 final Uri missingUri = Uri.parse('org-dartlang-internal:missing');
+
+final UriOffsetLength dartCoreUriOffset = new UriOffset(
+  dartCore,
+  TreeNode.noOffset,
+);
+
+// Coverage-ignore(suite): Not run.
+final UriOffsetLength dartAsyncUriOffset = new UriOffset(
+  dartAsync,
+  TreeNode.noOffset,
+);
+
+final UriOffsetLength missingUriOffset = new UriOffset(
+  missingUri,
+  TreeNode.noOffset,
+);
 
 const String MALFORMED_URI_SCHEME = "org-dartlang-malformed-uri";
 

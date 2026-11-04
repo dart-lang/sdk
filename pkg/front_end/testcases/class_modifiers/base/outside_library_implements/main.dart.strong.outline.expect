@@ -4,35 +4,35 @@ library;
 //
 // pkg/front_end/testcases/class_modifiers/base/outside_library_implements/main.dart:10:16: Error: The class 'A' can't be implemented outside of its library because it's a base class.
 //     implements SealedClassExtendsBase {} /* Error */
-//                ^
+//                ^^^^^^^^^^^^^^^^^^^^^^
 // pkg/front_end/testcases/class_modifiers/base/outside_library_implements/main_lib.dart:5:12: Context: The type 'SealedClassExtendsBase' is a subtype of 'A', and 'A' is defined here.
 // base class A {}
 //            ^
 //
 // pkg/front_end/testcases/class_modifiers/base/outside_library_implements/main.dart:13:16: Error: The class 'A' can't be implemented outside of its library because it's a base class.
 //     implements SealedClassExtendsBase {} /* Error */
-//                ^
+//                ^^^^^^^^^^^^^^^^^^^^^^
 // pkg/front_end/testcases/class_modifiers/base/outside_library_implements/main_lib.dart:5:12: Context: The type 'SealedClassExtendsBase' is a subtype of 'A', and 'A' is defined here.
 // base class A {}
 //            ^
 //
 // pkg/front_end/testcases/class_modifiers/base/outside_library_implements/main.dart:16:16: Error: The class 'A' can't be implemented outside of its library because it's a base class.
 //     implements SealedClassExtendsBase {} /* Error */
-//                ^
+//                ^^^^^^^^^^^^^^^^^^^^^^
 // pkg/front_end/testcases/class_modifiers/base/outside_library_implements/main_lib.dart:5:12: Context: The type 'SealedClassExtendsBase' is a subtype of 'A', and 'A' is defined here.
 // base class A {}
 //            ^
 //
 // pkg/front_end/testcases/class_modifiers/base/outside_library_implements/main.dart:19:16: Error: The class 'A' can't be implemented outside of its library because it's a base class.
 //     implements SealedClassExtendsBase {} /* Error */
-//                ^
+//                ^^^^^^^^^^^^^^^^^^^^^^
 // pkg/front_end/testcases/class_modifiers/base/outside_library_implements/main_lib.dart:5:12: Context: The type 'SealedClassExtendsBase' is a subtype of 'A', and 'A' is defined here.
 // base class A {}
 //            ^
 //
 // pkg/front_end/testcases/class_modifiers/base/outside_library_implements/main.dart:22:16: Error: The class 'A' can't be implemented outside of its library because it's a base class.
 //     implements SealedClassExtendsBase {} /* Error */
-//                ^
+//                ^^^^^^^^^^^^^^^^^^^^^^
 // pkg/front_end/testcases/class_modifiers/base/outside_library_implements/main_lib.dart:5:12: Context: The type 'SealedClassExtendsBase' is a subtype of 'A', and 'A' is defined here.
 // base class A {}
 //            ^

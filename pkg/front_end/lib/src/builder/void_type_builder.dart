@@ -7,7 +7,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/src/bounds_checks.dart' show VarianceCalculationValue;
 
-import '../codes/cfe_codes.dart';
+import '../base/uri_offset.dart';
 import '../kernel/type_algorithms.dart';
 import '../source/source_loader.dart';
 import '../source/type_parameter_factory.dart';
@@ -19,13 +19,20 @@ import 'type_builder.dart';
 class VoidTypeBuilder extends FixedTypeBuilder {
   @override
   final TypeName typeName;
-  @override
-  final Uri? fileUri;
-  @override
-  final int? charOffset;
 
-  new(this.fileUri, this.charOffset)
-    : typeName = new SyntheticTypeName('void', charOffset ?? TreeNode.noOffset);
+  @override
+  final UriOffsetLength uriOffset;
+
+  new(this.uriOffset)
+    : typeName = new SyntheticTypeName('void', uriOffset.fileOffset);
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Uri get fileUri => uriOffset.fileUri;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  int get charOffset => uriOffset.fileOffset;
 
   @override
   NullabilityBuilder get nullabilityBuilder =>
@@ -60,22 +67,18 @@ class VoidTypeBuilder extends FixedTypeBuilder {
 
   @override
   Supertype? buildSupertype(LibraryBuilder library, TypeUse typeUse) {
-    library.addProblem(
+    library.addProblem2(
       diag.supertypeIsIllegal.withArguments(typeName: 'void'),
-      charOffset!,
-      noLength,
-      fileUri,
+      uriOffset,
     );
     return null;
   }
 
   @override
   Supertype? buildMixedInType(LibraryBuilder library) {
-    library.addProblem(
+    library.addProblem2(
       diag.supertypeIsIllegal.withArguments(typeName: 'void'),
-      charOffset!,
-      noLength,
-      fileUri,
+      uriOffset,
     );
     return null;
   }

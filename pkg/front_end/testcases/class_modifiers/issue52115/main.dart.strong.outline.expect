@@ -4,14 +4,14 @@ library;
 //
 // pkg/front_end/testcases/class_modifiers/issue52115/main.dart:11:16: Error: The class 'LinkedList' can't be implemented outside of its library because it's a base class.
 //     implements LegacyImplementBaseCore<E> {}
-//                ^
+//                ^^^^^^^^^^^^^^^^^^^^^^^
 // sdk/lib/collection/linked_list.dart:*: Context: The type 'LegacyImplementBaseCore' is a subtype of 'LinkedList', and 'LinkedList' is defined here.
 // base class LinkedList<E extends LinkedListEntry<E>> extends Iterable<E> {
 //            ^
 //
 // pkg/front_end/testcases/class_modifiers/issue52115/main.dart:14:45: Error: The class 'MapEntry' can't be implemented outside of its library because it's a final class.
 // final class LegacyImplementFinal implements LegacyImplementFinalCore {
-//                                             ^
+//                                             ^^^^^^^^^^^^^^^^^^^^^^^^
 // sdk/lib/core/map.dart:*: Context: The type 'LegacyImplementFinalCore' is a subtype of 'MapEntry', and 'MapEntry' is defined here.
 // final class MapEntry<K, V> {
 //             ^
@@ -23,14 +23,14 @@ library;
 //
 // pkg/front_end/testcases/class_modifiers/issue52115/main.dart:22:16: Error: The class 'LinkedList' can't be implemented outside of its library because it's a base class.
 //     implements LegacyImplementBaseCore<E> {}
-//                ^
+//                ^^^^^^^^^^^^^^^^^^^^^^^
 // sdk/lib/collection/linked_list.dart:*: Context: The type 'LegacyImplementBaseCore' is a subtype of 'LinkedList', and 'LinkedList' is defined here.
 // base class LinkedList<E extends LinkedListEntry<E>> extends Iterable<E> {
 //            ^
 //
 // pkg/front_end/testcases/class_modifiers/issue52115/main.dart:25:49: Error: The class 'MapEntry' can't be implemented outside of its library because it's a final class.
 // class LegacyImplementFinalNoModifier implements LegacyImplementFinalCore {
-//                                                 ^
+//                                                 ^^^^^^^^^^^^^^^^^^^^^^^^
 // sdk/lib/core/map.dart:*: Context: The type 'LegacyImplementFinalCore' is a subtype of 'MapEntry', and 'MapEntry' is defined here.
 // final class MapEntry<K, V> {
 //             ^

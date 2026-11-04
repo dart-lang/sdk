@@ -296,33 +296,28 @@ final MetadataBuilder dummyMetadataBuilder = new MetadataBuilder(
 );
 final TypeBuilder dummyTypeBuilder = new FixedTypeBuilderImpl(
   dummyDartType,
-  dummyUri,
-  -1,
+  dummyUriOffset,
 );
 final CatchParameterBuilder dummyCatchParameterBuilder =
     new CatchParameterBuilder(
       modifiers: Modifiers.empty,
-      type: const ImplicitTypeBuilder(),
+      type: new ImplicitTypeBuilder(dummyUriOffset),
       name: '',
-      fileOffset: -1,
-      nameOffset: null,
-      fileUri: dummyUri,
+      uriOffset: dummyUriOffset,
     );
 final AnonymousMethodParameterBuilder dummyAnonymousMethodParameterBuilder =
     new AnonymousMethodParameterBuilder(
       modifiers: Modifiers.empty,
-      type: const ImplicitTypeBuilder(),
+      type: new ImplicitTypeBuilder(dummyUriOffset),
       name: '',
-      fileOffset: -1,
-      nameOffset: null,
-      fileUri: dummyUri,
+      uriOffset: dummyUriOffset,
       kind: FormalParameterKind.requiredPositional,
     );
 final FormalParameterBuilder dummyFormalParameterBuilder =
     new FormalParameterBuilder(
       kind: FormalParameterKind.requiredPositional,
       modifiers: Modifiers.empty,
-      type: const ImplicitTypeBuilder(),
+      type: new ImplicitTypeBuilder(dummyUriOffset),
       name: '',
       uriOffset: dummyUriOffset,
       nameOffset: null,
@@ -331,9 +326,9 @@ final FormalParameterBuilder dummyFormalParameterBuilder =
 final FunctionTypeParameterBuilder dummyFunctionTypeParameterBuilder =
     new FunctionTypeParameterBuilder(
       kind: FormalParameterKind.requiredPositional,
-      type: const ImplicitTypeBuilder(),
+      type: new ImplicitTypeBuilder(dummyUriOffset),
       name: '',
-      fileOffset: -1,
+      uriOffset: dummyUriOffset,
       isWildcard: false,
     );
 final NominalParameterBuilder dummyNominalVariableBuilder =
@@ -342,8 +337,6 @@ final NominalParameterBuilder dummyNominalVariableBuilder =
         name: NominalParameterBuilder.noNameSentinel,
         kind: TypeParameterKind.function,
         isWildcard: false,
-        fileOffset: -1,
-        fileUri: dummyUri,
         uriOffset: dummyUriOffset,
       ),
     );
@@ -362,8 +355,7 @@ final SourceStructuralParameterBuilder dummyStructuralVariableBuilder =
       new RegularStructuralParameterDeclaration(
         metadata: null,
         name: StructuralParameterBuilder.noNameSentinel,
-        fileOffset: -1,
-        fileUri: dummyUri,
+        uriOffset: dummyUriOffset,
         isWildcard: false,
       ),
     );

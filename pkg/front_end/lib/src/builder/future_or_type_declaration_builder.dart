@@ -5,6 +5,7 @@
 import 'package:kernel/ast.dart' show DartType, FutureOrType, Nullability;
 import 'package:kernel/class_hierarchy.dart';
 
+import '../base/uris.dart';
 import 'declaration_builders.dart';
 import 'library_builder.dart';
 import 'nullability_builder.dart';
@@ -12,8 +13,8 @@ import 'type_builder.dart';
 
 // Coverage-ignore(suite): Not run.
 class FutureOrTypeDeclarationBuilder extends BuiltinTypeDeclarationBuilder {
-  new(DartType type, LibraryBuilder compilationUnit, int charOffset)
-    : super("FutureOr", type, compilationUnit, charOffset);
+  new(DartType type, LibraryBuilder compilationUnit)
+    : super("FutureOr", type, compilationUnit, dartAsyncUriOffset);
 
   @override
   DartType buildAliasedType(

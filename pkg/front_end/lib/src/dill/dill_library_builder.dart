@@ -393,7 +393,6 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
       DynamicTypeDeclarationBuilder builder = new DynamicTypeDeclarationBuilder(
         const DynamicType(),
         this,
-        -1,
       );
       _nameSpace.addLocalMember(dynamicName, builder);
       _exportNameSpace.addLocalMember(dynamicName, builder, setter: false);
@@ -404,7 +403,6 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
       NeverTypeDeclarationBuilder builder = new NeverTypeDeclarationBuilder(
         const NeverType.nonNullable(),
         this,
-        -1,
       );
       _nameSpace.addLocalMember(neverName, builder);
       _exportNameSpace.addLocalMember(neverName, builder, setter: false);
@@ -453,7 +451,11 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
         if (!suppressFinalizationErrors) {
           addProblem(message, -1, noLength, null);
         }
-        declaration = new InvalidBuilder(name, message.withoutLocation());
+        declaration = new InvalidBuilder(
+          name,
+          message.withoutLocation(),
+          missingUriOffset,
+        );
       }
       _exportNameSpace.addLocalMember(name, declaration, setter: false);
     });

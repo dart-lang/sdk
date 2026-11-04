@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/base/uri_offset.dart';
 import 'package:front_end/src/codes/diagnostic.dart' as diag;
 
 import '../builder/builder.dart';
@@ -42,6 +43,24 @@ abstract class LookupResult {
     }
     Message message = diag.duplicatedDeclarationUse.withArguments(name: name);
     return message.withLocation(fileUri, fileOffset, length);
+  }
+
+  static LocatedMessage createDuplicateMessage2(
+    LookupResult lookupResult, {
+    DeclarationBuilder? enclosingDeclaration,
+    required String name,
+    required UriOffsetLength uriOffset,
+  }) {
+    if (name.isEmpty) {
+      // Coverage-ignore-block(suite): Not run.
+      if (enclosingDeclaration != null) {
+        name = enclosingDeclaration.name;
+      } else {
+        name = 'new';
+      }
+    }
+    Message message = diag.duplicatedDeclarationUse.withArguments(name: name);
+    return message.withLocation2(uriOffset);
   }
 
   static ErrorText createDuplicateErrorText(

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:kernel/ast.dart';
+
 import 'messages.dart';
 
 /// Source location pointer used for messaging.
@@ -42,6 +44,21 @@ class UriOffsetName(
 
   @override
   int get length => name.length;
+}
+
+// Coverage-ignore(suite): Not run.
+class SyntheticUriOffsetName(
+  @override final Uri fileUri,
+  @override final String name,
+) implements UriOffsetName {
+  @override
+  int get fileOffset => TreeNode.noOffset;
+
+  @override
+  int get nameOffset => TreeNode.noOffset;
+
+  @override
+  int get length => noLength;
 }
 
 extension ProblemReportingExtension on ProblemReporting {

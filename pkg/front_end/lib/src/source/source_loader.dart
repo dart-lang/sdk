@@ -2447,38 +2447,27 @@ severity: $severity
           if (cls.libraryBuilder != supertypeDeclaration.libraryBuilder &&
               !mayIgnoreClassModifiers(supertypeDeclaration)) {
             if (supertypeDeclaration.isInterface && !cls.isMixinDeclaration) {
-              cls.libraryBuilder.addProblem(
+              cls.libraryBuilder.addProblem2(
                 diag.interfaceClassExtendedOutsideOfLibrary.withArguments(
                   interfaceClassName: supertypeDeclaration.fullNameForErrors,
                 ),
-                supertypeBuilder.charOffset ?? TreeNode.noOffset,
-                noLength,
-                supertypeBuilder.fileUri ?? // Coverage-ignore(suite): Not run.
-                    cls.fileUri,
+                supertypeBuilder.uriOffset,
               );
             } else if (supertypeDeclaration.isFinal) {
               if (cls.isMixinDeclaration) {
-                cls.libraryBuilder.addProblem(
+                cls.libraryBuilder.addProblem2(
                   diag.finalClassUsedAsMixinConstraintOutsideOfLibrary
                       .withArguments(
                         className: supertypeDeclaration.fullNameForErrors,
                       ),
-                  supertypeBuilder.charOffset ?? TreeNode.noOffset,
-                  noLength,
-                  supertypeBuilder
-                          .fileUri ?? // Coverage-ignore(suite): Not run.
-                      cls.fileUri,
+                  supertypeBuilder.uriOffset,
                 );
               } else {
-                cls.libraryBuilder.addProblem(
+                cls.libraryBuilder.addProblem2(
                   diag.finalClassExtendedOutsideOfLibrary.withArguments(
                     className: supertypeDeclaration.fullNameForErrors,
                   ),
-                  supertypeBuilder.charOffset ?? TreeNode.noOffset,
-                  noLength,
-                  supertypeBuilder
-                          .fileUri ?? // Coverage-ignore(suite): Not run.
-                      cls.fileUri,
+                  supertypeBuilder.uriOffset,
                 );
               }
             }
@@ -2489,14 +2478,11 @@ severity: $severity
         if (isSealedClassEnabled(supertypeDeclaration) &&
             supertypeDeclaration.isSealed &&
             cls.libraryBuilder != supertypeDeclaration.libraryBuilder) {
-          cls.libraryBuilder.addProblem(
+          cls.libraryBuilder.addProblem2(
             diag.sealedClassSubtypeOutsideOfLibrary.withArguments(
               sealedClassName: supertypeDeclaration.fullNameForErrors,
             ),
-            supertypeBuilder.charOffset ?? TreeNode.noOffset,
-            noLength,
-            supertypeBuilder.fileUri ?? // Coverage-ignore(suite): Not run.
-                cls.fileUri,
+            supertypeBuilder.uriOffset,
           );
         }
       }
@@ -2516,14 +2502,11 @@ severity: $severity
               !mixedInTypeDeclaration.isMixinDeclaration &&
               !mixedInTypeDeclaration.isMixinClass &&
               !mayIgnoreClassModifiers(mixedInTypeDeclaration)) {
-            cls.libraryBuilder.addProblem(
+            cls.libraryBuilder.addProblem2(
               diag.cantUseClassAsMixin.withArguments(
                 className: mixedInTypeDeclaration.fullNameForErrors,
               ),
-              mixedInTypeBuilder.charOffset ?? TreeNode.noOffset,
-              noLength,
-              mixedInTypeBuilder.fileUri ?? // Coverage-ignore(suite): Not run.
-                  cls.fileUri,
+              mixedInTypeBuilder.uriOffset,
             );
           }
         }
@@ -2532,14 +2515,11 @@ severity: $severity
         if (isSealedClassEnabled(mixedInTypeDeclaration) &&
             mixedInTypeDeclaration.isSealed &&
             cls.libraryBuilder != mixedInTypeDeclaration.libraryBuilder) {
-          cls.libraryBuilder.addProblem(
+          cls.libraryBuilder.addProblem2(
             diag.sealedClassSubtypeOutsideOfLibrary.withArguments(
               sealedClassName: mixedInTypeDeclaration.fullNameForErrors,
             ),
-            mixedInTypeBuilder.charOffset ?? TreeNode.noOffset,
-            noLength,
-            mixedInTypeBuilder.fileUri ?? // Coverage-ignore(suite): Not run.
-                cls.fileUri,
+            mixedInTypeBuilder.uriOffset,
           );
         }
       }
@@ -2581,15 +2561,11 @@ severity: $severity
                 template = checkedClass.isMixinDeclaration
                     ? diag.baseMixinImplementedOutsideOfLibrary
                     : diag.baseClassImplementedOutsideOfLibrary;
-                cls.libraryBuilder.addProblem(
+                cls.libraryBuilder.addProblem2(
                   template.withArguments(
                     typeName: checkedClass.fullNameForErrors,
                   ),
-                  interfaceBuilder.charOffset ?? TreeNode.noOffset,
-                  noLength,
-                  interfaceBuilder
-                          .fileUri ?? // Coverage-ignore(suite): Not run.
-                      cls.fileUri,
+                  interfaceBuilder.uriOffset,
                   context: context,
                 );
                 // Break to only report one error.
@@ -2603,15 +2579,11 @@ severity: $severity
                         checkedClass == interfaceDeclaration
                     ? diag.finalClassUsedAsMixinConstraintOutsideOfLibrary
                     : diag.finalClassImplementedOutsideOfLibrary;
-                cls.libraryBuilder.addProblem(
+                cls.libraryBuilder.addProblem2(
                   template.withArguments(
                     className: checkedClass.fullNameForErrors,
                   ),
-                  interfaceBuilder.charOffset ?? TreeNode.noOffset,
-                  noLength,
-                  interfaceBuilder
-                          .fileUri ?? // Coverage-ignore(suite): Not run.
-                      cls.fileUri,
+                  interfaceBuilder.uriOffset,
                   context: context,
                 );
                 // Break to only report one error.
@@ -2626,14 +2598,11 @@ severity: $severity
           if (isSealedClassEnabled(interfaceDeclaration) &&
               interfaceDeclaration.isSealed &&
               cls.libraryBuilder != interfaceDeclaration.libraryBuilder) {
-            cls.libraryBuilder.addProblem(
+            cls.libraryBuilder.addProblem2(
               diag.sealedClassSubtypeOutsideOfLibrary.withArguments(
                 sealedClassName: interfaceDeclaration.fullNameForErrors,
               ),
-              interfaceBuilder.charOffset ?? TreeNode.noOffset,
-              noLength,
-              interfaceBuilder.fileUri ?? // Coverage-ignore(suite): Not run.
-                  cls.fileUri,
+              interfaceBuilder.uriOffset,
             );
           }
         }
@@ -3308,8 +3277,11 @@ severity: $severity
   late TypeBuilderComputer _typeBuilderComputer = new TypeBuilderComputer(this);
 
   @override
-  TypeBuilder computeTypeBuilder(DartType type) {
-    return _typeBuilderComputer.visit(type);
+  TypeBuilder computeTypeBuilder({
+    required DartType type,
+    required UriOffsetLength uriOffset,
+  }) {
+    return _typeBuilderComputer.visit(type: type, uriOffset: uriOffset);
   }
 }
 
@@ -3675,11 +3647,9 @@ class _CheckSuperAccess extends RecursiveVisitor {
       isSetter: isSetter,
     );
     if (member == null) {
-      _sourceLibraryBuilder.addProblem(
+      _sourceLibraryBuilder.addProblem2(
         template.withArguments(memberName: name.text),
-        _typeBuilder.charOffset!,
-        noLength,
-        _typeBuilder.fileUri!,
+        _typeBuilder.uriOffset,
         context: [
           diag.mixinApplicationNoConcreteMemberContext.withLocation(
             _enclosingMember.fileUri,

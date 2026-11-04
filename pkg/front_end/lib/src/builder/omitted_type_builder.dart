@@ -6,6 +6,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/src/bounds_checks.dart' show VarianceCalculationValue;
 
+import '../base/uri_offset.dart';
 import '../kernel/hierarchy/hierarchy_builder.dart';
 import '../kernel/implicit_field_type.dart';
 import '../kernel/type_algorithms.dart';
@@ -20,7 +21,10 @@ import 'nullability_builder.dart';
 import 'type_builder.dart';
 
 abstract class OmittedTypeBuilderImpl extends OmittedTypeBuilder {
-  const new();
+  @override
+  final UriOffsetLength uriOffset;
+
+  new(this.uriOffset);
 
   @override
   Supertype? buildMixedInType(LibraryBuilder library) {
@@ -33,11 +37,11 @@ abstract class OmittedTypeBuilderImpl extends OmittedTypeBuilder {
   }
 
   @override
-  int? get charOffset => null;
+  int get charOffset => uriOffset.fileOffset;
 
   @override
   // Coverage-ignore(suite): Not run.
-  Uri? get fileUri => null;
+  Uri get fileUri => uriOffset.fileUri;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -111,7 +115,7 @@ abstract class OmittedTypeBuilderImpl extends OmittedTypeBuilder {
 /// instead. This should be created through
 /// [SourceLibraryBuilder.addInferableType] to ensure the type is inferred.
 class ImplicitTypeBuilder extends OmittedTypeBuilderImpl {
-  const new();
+  new(super.uriOffset);
 
   @override
   DartType build(
@@ -167,7 +171,8 @@ class InferableTypeBuilder extends OmittedTypeBuilderImpl
 
   List<InferredTypeListener>? _listeners;
 
-  new(this.inferenceDefaultType);
+  new({required this.inferenceDefaultType, required UriOffsetLength uriOffset})
+    : super(uriOffset);
 
   @override
   bool get hasType => _type != null;
@@ -320,11 +325,13 @@ abstract class Inferable {
 class InferableTypes {
   final List<InferableType> _inferableTypes = [];
 
-  InferableTypeBuilder addInferableType(
-    InferenceDefaultType inferenceDefaultType,
-  ) {
+  InferableTypeBuilder addInferableType({
+    required InferenceDefaultType inferenceDefaultType,
+    required UriOffsetLength uriOffset,
+  }) {
     InferableTypeBuilder typeBuilder = new InferableTypeBuilder(
-      inferenceDefaultType,
+      inferenceDefaultType: inferenceDefaultType,
+      uriOffset: uriOffset,
     );
     registerInferableType(typeBuilder);
     return typeBuilder;

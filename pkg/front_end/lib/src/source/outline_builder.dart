@@ -21,8 +21,7 @@ import 'package:_fe_analyzer_shared/src/types/shared_type.dart' show Variance;
 import 'package:_fe_analyzer_shared/src/util/link.dart';
 import 'package:_fe_analyzer_shared/src/util/value_kind.dart';
 import 'package:front_end/src/codes/diagnostic.dart' as diag;
-import 'package:kernel/ast.dart'
-    show InvalidType, Nullability, ProcedureKind, TreeNode;
+import 'package:kernel/ast.dart' show InvalidType, Nullability, ProcedureKind;
 
 import '../api_prototype/experimental_flags.dart';
 import '../base/combinator.dart' show CombinatorBuilder;
@@ -768,11 +767,20 @@ class OutlineBuilder extends StackListenerImpl {
       metadata: metadata,
       uri: uri,
       configurations: configurations,
-      prefix: prefix?.name,
       combinators: combinators,
       deferred: isDeferred,
-      charOffset: importKeyword.charOffset,
-      prefixCharOffset: prefix?.nameOffset ?? TreeNode.noOffset,
+      importUriOffset: new UriOffsetLength(
+        _compilationUnit.fileUri,
+        importKeyword.charOffset,
+        importKeyword.length,
+      ),
+      prefixUriOffsetName: prefix != null
+          ? new UriOffsetName(
+              _compilationUnit.fileUri,
+              prefix.name,
+              prefix.nameOffset,
+            )
+          : null,
       uriOffset: uriOffset,
     );
   }
@@ -1668,8 +1676,7 @@ class OutlineBuilder extends StackListenerImpl {
     if (onKeyword == null) {
       onType = new FixedTypeBuilderImpl(
         const InvalidType(),
-        uri,
-        extensionKeyword.charOffset,
+        new UriOffset(uri, extensionKeyword.charOffset),
       );
     } else {
       onType = pop();
@@ -1677,8 +1684,7 @@ class OutlineBuilder extends StackListenerImpl {
         ParserRecovery parserRecovery = onType;
         onType = new FixedTypeBuilderImpl(
           const InvalidType(),
-          uri,
-          parserRecovery.charOffset,
+          new UriOffset(uri, parserRecovery.charOffset),
         );
       }
     }
@@ -1883,10 +1889,7 @@ class OutlineBuilder extends StackListenerImpl {
                 diag.expectedRepresentationType,
                 formal.uriOffset,
               );
-              formal.type = new InvalidTypeBuilderImpl(
-                formal.fileUri,
-                formal.fileOffset,
-              );
+              formal.type = new InvalidTypeBuilderImpl(type.uriOffset);
             }
             if (formal.modifiers.containsSyntacticModifiers(
               // Already reported in the parser.
@@ -2692,11 +2695,9 @@ class OutlineBuilder extends StackListenerImpl {
     }
 
     if (returnType != null) {
-      addProblem(
+      _problemReporting.addProblem2(
         diag.constructorWithReturnType,
-        returnType.charOffset ?? // Coverage-ignore(suite): Not run.
-            beginToken.offset,
-        noLength,
+        returnType.uriOffset,
       );
       returnType = null;
     }
@@ -2948,14 +2949,19 @@ class OutlineBuilder extends StackListenerImpl {
       push(name);
     } else {
       Identifier identifier = name as Identifier;
+      TypeName typeName = identifier.typeName;
       push(
         _builderFactory.addNamedType(
-          identifier.typeName,
+          typeName,
           isMarkedAsNullable
               ? const NullabilityBuilder.nullable()
               : const NullabilityBuilder.omitted(),
           arguments,
-          identifier.qualifierOffset,
+          new UriOffsetLength(
+            uri,
+            typeName.fullNameOffset,
+            typeName.fullNameLength,
+          ),
           instanceTypeParameterAccess:
               declarationContext.instanceTypeParameterAccessState,
         ),
@@ -3022,7 +3028,11 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void handleVoidKeyword(Token token) {
     debugEvent("VoidKeyword");
-    push(_builderFactory.addVoidType(token.charOffset));
+    push(
+      _builderFactory.addVoidType(
+        new UriOffsetLength(uri, token.charOffset, token.length),
+      ),
+    );
   }
 
   @override
@@ -3030,7 +3040,11 @@ class OutlineBuilder extends StackListenerImpl {
     debugEvent("VoidKeyword");
     /*List<TypeBuilder> arguments =*/
     pop();
-    push(_builderFactory.addVoidType(token.charOffset));
+    push(
+      _builderFactory.addVoidType(
+        new UriOffsetLength(uri, token.charOffset, token.length),
+      ),
+    );
   }
 
   @override
@@ -3092,6 +3106,10 @@ class OutlineBuilder extends StackListenerImpl {
     } else if (memberKind.isFunctionType) {
       Identifier? identifier = name as Identifier?;
       String? parameterName = identifier?.name;
+      UriOffsetLength uriOffset = new UriOffset(
+        _compilationUnit.fileUri,
+        identifier?.nameOffset ?? nameToken.charOffset,
+      );
       push(
         _builderFactory.addFunctionTypeParameter(
           kind: kind,
@@ -3100,8 +3118,11 @@ class OutlineBuilder extends StackListenerImpl {
               _createOmittedParameterTypeBuilder(
                 memberKind,
                 isDeclaringParameter: modifiers.isDeclaringParameter,
+                uriOffset: uriOffset,
               ),
           name: parameterName,
+          uriOffset: uriOffset,
+
           fileOffset: identifier?.nameOffset ?? nameToken.charOffset,
         ),
       );
@@ -3125,6 +3146,11 @@ class OutlineBuilder extends StackListenerImpl {
         fileUri: _compilationUnit.fileUri,
       );
 
+      UriOffsetLength uriOffset = new UriOffsetLength(
+        _compilationUnit.fileUri,
+        identifier.nameOffset,
+        identifier.name.length,
+      );
       push(
         _builderFactory.addFormalParameter(
           metadata: metadata,
@@ -3135,17 +3161,14 @@ class OutlineBuilder extends StackListenerImpl {
               _createOmittedParameterTypeBuilder(
                 memberKind,
                 isDeclaringParameter: modifiers.isDeclaringParameter,
+                uriOffset: uriOffset,
               ),
           name: parameterName,
           publicName: publicName,
           hasThis: thisKeyword != null,
           hasSuper: superKeyword != null,
           nameOffset: identifier.nameOffset,
-          uriOffset: new UriOffsetLength(
-            _compilationUnit.fileUri,
-            identifier.nameOffset,
-            identifier.name.length,
-          ),
+          uriOffset: uriOffset,
           initializerToken: initializerStart,
         ),
       );
@@ -3157,6 +3180,7 @@ class OutlineBuilder extends StackListenerImpl {
   TypeBuilder _createOmittedParameterTypeBuilder(
     MemberKind kind, {
     bool isDeclaringParameter = false,
+    required UriOffsetLength uriOffset,
   }) {
     switch (kind) {
       case MemberKind.Catch:
@@ -3171,7 +3195,7 @@ class OutlineBuilder extends StackListenerImpl {
       case MemberKind.ExtensionStaticMethod:
       case MemberKind.ExtensionTypeStaticMethod:
         // Parameter type is not inferred.
-        return const ImplicitTypeBuilder();
+        return new ImplicitTypeBuilder(uriOffset);
       case MemberKind.NonStaticMethod:
       case MemberKind.ExtensionTypeNonStaticMethod:
       // TODO(eernst): Write a test such that this does run.
@@ -3182,18 +3206,22 @@ class OutlineBuilder extends StackListenerImpl {
       case MemberKind.StaticField:
       case MemberKind.TopLevelField:
         // Parameter type is inferred with `dynamic` as default.
-        return _builderFactory.addInferableType(InferenceDefaultType.Dynamic);
+        return _builderFactory.addInferableType(
+          inferenceDefaultType: InferenceDefaultType.Dynamic,
+          uriOffset: uriOffset,
+        );
       case MemberKind.PrimaryConstructor:
         if (libraryFeatures.primaryConstructors.isEnabled) {
           // Parameter type is inferred with `Object?` as default.
           return _builderFactory.addInferableType(
-            isDeclaringParameter
+            inferenceDefaultType: isDeclaringParameter
                 ? InferenceDefaultType.NullableObject
                 : InferenceDefaultType.Dynamic,
+            uriOffset: uriOffset,
           );
         } else {
           // Parameter type is not inferred.
-          return const ImplicitTypeBuilder();
+          return new ImplicitTypeBuilder(uriOffset);
         }
     }
   }
@@ -3664,13 +3692,11 @@ class OutlineBuilder extends StackListenerImpl {
       if (interfaces != null) {
         for (TypeBuilder interface in interfaces) {
           if (interface.nullabilityBuilder.build() == Nullability.nullable) {
-            _problemReporting.addProblem(
+            _problemReporting.addProblem2(
               diag.nullableInterfaceError.withArguments(
                 interfaceName: interface.fullNameForErrors,
               ),
-              interface.charOffset ?? startOffset,
-              identifier.name.length,
-              uri,
+              interface.uriOffset,
             );
           }
         }
@@ -3767,8 +3793,7 @@ class OutlineBuilder extends StackListenerImpl {
         questionMark != null
             ? const NullabilityBuilder.nullable()
             : const NullabilityBuilder.omitted(),
-        uri,
-        leftBracket.charOffset,
+        new UriOffset(uri, leftBracket.charOffset),
       ),
     );
   }
@@ -3795,7 +3820,7 @@ class OutlineBuilder extends StackListenerImpl {
       new RecordTypeFieldBuilder(
         metadata,
         type is ParserRecovery
-            ? new InvalidTypeBuilderImpl(uri, type.charOffset)
+            ? new InvalidTypeBuilderImpl(new UriOffset(uri, type.charOffset))
             : type as TypeBuilder,
         fieldName,
         identifier is Identifier ? identifier.nameOffset : -1,
@@ -3831,16 +3856,16 @@ class OutlineBuilder extends StackListenerImpl {
     TypeBuilder? returnType = pop() as TypeBuilder?;
     StructuralParameters? typeParameters =
         pop(NullValues.StructuralParameters) as StructuralParameters?;
+    UriOffsetLength uriOffset = new UriOffset(uri, functionToken.charOffset);
     push(
       _builderFactory.addFunctionType(
-        returnType ?? const ImplicitTypeBuilder(),
+        returnType ?? new ImplicitTypeBuilder(uriOffset),
         typeParameters?.builders,
         formals,
         questionMark != null
             ? const NullabilityBuilder.nullable()
             : const NullabilityBuilder.omitted(),
-        uri,
-        functionToken.charOffset,
+        uriOffset,
         hasFunctionFormalParameterSyntax: false,
       ),
     );
@@ -3855,16 +3880,16 @@ class OutlineBuilder extends StackListenerImpl {
     TypeBuilder? returnType = pop() as TypeBuilder?;
     StructuralParameters? typeParameters =
         pop(NullValues.StructuralParameters) as StructuralParameters?;
+    UriOffsetLength uriOffset = new UriOffset(uri, formalsOffset);
     push(
       _builderFactory.addFunctionType(
-        returnType ?? const ImplicitTypeBuilder(),
+        returnType ?? new ImplicitTypeBuilder(uriOffset),
         typeParameters?.builders,
         formals,
         question != null
             ? const NullabilityBuilder.nullable()
             : const NullabilityBuilder.omitted(),
-        uri,
-        formalsOffset,
+        uriOffset,
         hasFunctionFormalParameterSyntax: true,
       ),
     );
@@ -3925,14 +3950,14 @@ class OutlineBuilder extends StackListenerImpl {
       }
       identifier = name as Identifier;
       _builderFactory.beginFunctionType();
+      UriOffsetLength uriOffset = new UriOffset(uri, identifier.nameOffset);
       // TODO(cstefantsova): Make sure that RHS of typedefs can't have '?'.
       aliasedType = _builderFactory.addFunctionType(
-        returnType ?? const ImplicitTypeBuilder(),
+        returnType ?? new ImplicitTypeBuilder(uriOffset),
         null,
         formals,
         const NullabilityBuilder.omitted(),
-        uri,
-        identifier.nameOffset,
+        uriOffset,
         hasFunctionFormalParameterSyntax: true,
       );
     } else {
@@ -3950,23 +3975,22 @@ class OutlineBuilder extends StackListenerImpl {
       if (type is FunctionTypeBuilder &&
           !libraryFeatures.nonfunctionTypeAliases.isEnabled) {
         if (type.nullabilityBuilder.build() == Nullability.nullable) {
-          addProblem(
-            diag.typedefNullableType,
+          UriOffsetLength uriOffset = new UriOffsetLength(
+            uri,
             equals.charOffset,
             equals.length,
           );
+          _problemReporting.addProblem2(diag.typedefNullableType, uriOffset);
           aliasedType = new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
             new InvalidBuilder(
               identifier.name,
-              diag.typedefNullableType.withLocation(
-                uri,
-                equals.charOffset,
-                equals.length,
-              ),
+              diag.typedefNullableType.withLocation2(uriOffset),
+              uriOffset,
             ),
             const NullabilityBuilder.omitted(),
             instanceTypeParameterAccess:
                 InstanceTypeParameterAccessState.Allowed,
+            uriOffset: uriOffset,
           );
         } else {
           // TODO(ahe): We need to start a nested declaration when parsing the
@@ -3980,53 +4004,62 @@ class OutlineBuilder extends StackListenerImpl {
         if (type is TypeBuilder) {
           aliasedType = type;
         } else {
-          addProblem(diag.typedefNotType, equals.charOffset, equals.length);
+          UriOffsetLength uriOffset = new UriOffsetLength(
+            uri,
+            equals.charOffset,
+            equals.length,
+          );
+          _problemReporting.addProblem2(diag.typedefNotType, uriOffset);
           aliasedType = new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
             new InvalidBuilder(
               "${name}",
-              diag.typedefNotType.withLocation(
-                uri,
-                equals.charOffset,
-                equals.length,
-              ),
+              diag.typedefNotType.withLocation2(uriOffset),
+              uriOffset,
             ),
             const NullabilityBuilder.omitted(),
             instanceTypeParameterAccess:
                 InstanceTypeParameterAccessState.Allowed,
+            uriOffset: uriOffset,
           );
         }
       } else {
         assert(type is! FunctionTypeBuilder);
         // TODO(ahe): Improve this error message.
         if (type is TypeBuilder) {
-          addProblem(diag.typedefNotFunction, equals.charOffset, equals.length);
+          UriOffsetLength uriOffset = new UriOffsetLength(
+            uri,
+            equals.charOffset,
+            equals.length,
+          );
+          _problemReporting.addProblem2(diag.typedefNotFunction, uriOffset);
           aliasedType = new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
             new InvalidBuilder(
               identifier.name,
-              diag.typedefNotFunction.withLocation(
-                uri,
-                equals.charOffset,
-                equals.length,
-              ),
+              diag.typedefNotFunction.withLocation2(uriOffset),
+              uriOffset,
             ),
             const NullabilityBuilder.omitted(),
             instanceTypeParameterAccess:
                 InstanceTypeParameterAccessState.Allowed,
+            uriOffset: uriOffset,
           );
         } else {
-          addProblem(diag.typedefNotType, equals.charOffset, equals.length);
+          UriOffsetLength uriOffset = new UriOffsetLength(
+            uri,
+            equals.charOffset,
+            equals.length,
+          );
+          _problemReporting.addProblem2(diag.typedefNotType, uriOffset);
           aliasedType = new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
             new InvalidBuilder(
               identifier.name,
-              diag.typedefNotType.withLocation(
-                uri,
-                equals.charOffset,
-                equals.length,
-              ),
+              diag.typedefNotType.withLocation2(uriOffset),
+              uriOffset,
             ),
             const NullabilityBuilder.omitted(),
             instanceTypeParameterAccess:
                 InstanceTypeParameterAccessState.Allowed,
+            uriOffset: uriOffset,
           );
         }
       }
@@ -4344,24 +4377,23 @@ class OutlineBuilder extends StackListenerImpl {
       push(name);
     } else {
       Identifier identifier = name as Identifier;
+      UriOffsetName uriOffsetName = new UriOffsetName(
+        uri,
+        identifier.name,
+        identifier.nameOffset,
+      );
       if (inFunctionType) {
         push(
           _builderFactory.addStructuralParameter(
             metadata: metadata,
-            name: identifier.name,
-            nameOffset: identifier.nameOffset,
-            fileUri: uri,
+            uriOffsetName: uriOffsetName,
           ),
         );
       } else {
         push(
           _builderFactory.addNominalParameter(
             metadata: metadata,
-            uriOffsetName: new UriOffsetName(
-              uri,
-              identifier.name,
-              identifier.nameOffset,
-            ),
+            uriOffsetName: uriOffsetName,
             kind: declarationContext.typeParameterKind,
           ),
         );

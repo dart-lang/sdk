@@ -23,6 +23,8 @@ import 'declaration_builders.dart';
 class PrefixBuilder extends NamedBuilderImpl
     with LookupResultMixin
     implements LookupResult {
+  final UriOffsetName _uriOffsetName;
+
   @override
   final String name;
 
@@ -60,6 +62,7 @@ class PrefixBuilder extends NamedBuilderImpl
     this.deferred,
     this.parent,
     this.loadLibraryBuilder, {
+    required this._uriOffsetName,
     required this.fileUri,
     required int prefixOffset,
     required int importOffset,
@@ -75,6 +78,7 @@ class PrefixBuilder extends NamedBuilderImpl
         loadLibraryBuilder!.name,
         loadLibraryBuilder!,
         importOffset: importOffset,
+        prefixUriOffset: _uriOffsetName,
         prefixOffset: prefixOffset,
       );
     }
@@ -97,6 +101,7 @@ class PrefixBuilder extends NamedBuilderImpl
     String name,
     NamedBuilder member, {
     required int importOffset,
+    required UriOffsetLength prefixUriOffset,
     required int prefixOffset,
   }) {
     if (deferred && member is ExtensionBuilder) {
@@ -120,7 +125,7 @@ class PrefixBuilder extends NamedBuilderImpl
         name,
         existing,
         member,
-        uriOffset: new UriOffset(fileUri, prefixOffset),
+        uriOffset: prefixUriOffset,
       );
       _prefixNameSpace.replaceLocalMember(name, result, setter: isSetter);
     } else {
@@ -143,27 +148,32 @@ class PrefixBuilder extends NamedBuilderImpl
 }
 
 class PrefixFragment {
-  final String name;
   final SourceCompilationUnit importer;
   final CompilationUnit? imported;
   final List<CombinatorBuilder>? combinators;
   final bool deferred;
-  final Uri fileUri;
-  final int importOffset;
-  final int prefixOffset;
+  final UriOffsetLength importUriOffset;
+  final UriOffsetName _prefixUriOffsetName;
 
   PrefixBuilder? _builder;
 
   new({
-    required this.name,
     required this.importer,
     required this.imported,
     required this.combinators,
     required this.deferred,
-    required this.fileUri,
-    required this.importOffset,
-    required this.prefixOffset,
+    required this.importUriOffset,
+    required this._prefixUriOffsetName,
   });
+
+  Uri get fileUri => importUriOffset.fileUri;
+  int get importOffset => importUriOffset.fileOffset;
+
+  UriOffsetLength get uriOffset => _prefixUriOffsetName;
+
+  String get name => _prefixUriOffsetName.name;
+
+  int get prefixOffset => _prefixUriOffsetName.nameOffset;
 
   PrefixBuilder createPrefixBuilder(PrefixBuilder? parentPrefixBuilder) {
     LoadLibraryBuilder? loadLibraryBuilder;
@@ -185,6 +195,7 @@ class PrefixFragment {
       importer.libraryBuilder,
       loadLibraryBuilder,
       fileUri: fileUri,
+      uriOffsetName: _prefixUriOffsetName,
       prefixOffset: prefixOffset,
       importOffset: importOffset,
       parentPrefixBuilder: parentPrefixBuilder,

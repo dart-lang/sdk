@@ -476,9 +476,7 @@ class EnumElementFragment implements Fragment {
 
   EnumElementDeclaration? _declaration;
 
-  final TypeBuilder type = new InferableTypeBuilder(
-    InferenceDefaultType.Dynamic,
-  );
+  final TypeBuilder type;
 
   new({
     required this.metadata,
@@ -488,7 +486,11 @@ class EnumElementFragment implements Fragment {
     required this.enclosingScope,
     required this.enclosingDeclaration,
     required this.enclosingCompilationUnit,
-  }) : _argumentsBeginToken = argumentsBeginToken;
+  }) : _argumentsBeginToken = argumentsBeginToken,
+       type = new InferableTypeBuilder(
+         inferenceDefaultType: InferenceDefaultType.Dynamic,
+         uriOffset: _uriOffsetName,
+       );
 
   @override
   String get name => _uriOffsetName.name;

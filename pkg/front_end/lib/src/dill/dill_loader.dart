@@ -22,6 +22,7 @@ import '../base/messages.dart'
         Template;
 import '../base/problems.dart' show internalProblem;
 import '../base/ticker.dart' show Ticker;
+import '../base/uri_offset.dart';
 import '../base/uris.dart';
 import '../builder/compilation_unit.dart';
 import '../builder/declaration_builders.dart';
@@ -417,8 +418,11 @@ severity: $severity
   late TypeBuilderComputer _typeBuilderComputer = new TypeBuilderComputer(this);
 
   @override
-  TypeBuilder computeTypeBuilder(DartType type) {
-    return _typeBuilderComputer.visit(type);
+  TypeBuilder computeTypeBuilder({
+    required DartType type,
+    required UriOffsetLength uriOffset,
+  }) {
+    return _typeBuilderComputer.visit(type: type, uriOffset: uriOffset);
   }
 
   // Coverage-ignore(suite): Not run.

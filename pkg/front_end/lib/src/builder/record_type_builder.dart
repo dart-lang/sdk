@@ -18,7 +18,7 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/src/bounds_checks.dart' show VarianceCalculationValue;
 import 'package:kernel/src/unaliasing.dart';
 
-import '../codes/cfe_codes.dart' show noLength;
+import '../base/uri_offset.dart';
 import '../kernel/type_algorithms.dart';
 import '../source/source_library_builder.dart';
 import '../source/source_loader.dart';
@@ -38,17 +38,21 @@ class RecordTypeBuilderImpl extends RecordTypeBuilder {
   @override
   final NullabilityBuilder nullabilityBuilder;
   @override
-  final Uri fileUri;
-  @override
-  final int charOffset;
+  final UriOffsetLength uriOffset;
 
   new(
     this.positionalFields,
     this.namedFields,
     this.nullabilityBuilder,
-    this.fileUri,
-    this.charOffset,
+    this.uriOffset,
   );
+
+  @override
+  Uri get fileUri => uriOffset.fileUri;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  int get charOffset => uriOffset.fileOffset;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -288,7 +292,7 @@ class RecordTypeBuilderImpl extends RecordTypeBuilder {
   @override
   // Coverage-ignore(suite): Not run.
   Supertype? buildSupertype(LibraryBuilder library, TypeUse typeUse) {
-    library.addProblem(diag.supertypeIsFunction, charOffset, noLength, fileUri);
+    library.addProblem2(diag.supertypeIsFunction, uriOffset);
     return null;
   }
 
@@ -306,8 +310,7 @@ class RecordTypeBuilderImpl extends RecordTypeBuilder {
       positionalFields,
       namedFields,
       nullabilityBuilder,
-      fileUri,
-      charOffset,
+      uriOffset,
     );
   }
 
@@ -438,8 +441,7 @@ class RecordTypeBuilderImpl extends RecordTypeBuilder {
         newPositionalFields ?? positionalFields,
         newNamedFields ?? namedFields,
         this.nullabilityBuilder,
-        this.fileUri,
-        this.charOffset,
+        this.uriOffset,
       );
     }
     return null;

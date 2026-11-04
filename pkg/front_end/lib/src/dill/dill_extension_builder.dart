@@ -204,7 +204,6 @@ class DillExtensionBuilder extends ExtensionBuilderImpl
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   UriOffsetLength get uriOffset => new UriOffset(fileUri, fileOffset);
 
   @override
@@ -259,6 +258,7 @@ class DillExtensionBuilder extends ExtensionBuilderImpl
       _typeParameters = computeTypeParameterBuilders(
         extension.typeParameters,
         libraryBuilder.loader,
+        fileUri: fileUri,
       );
     }
     return _typeParameters;
@@ -267,7 +267,8 @@ class DillExtensionBuilder extends ExtensionBuilderImpl
   @override
   TypeBuilder get onType {
     return _onType ??= libraryBuilder.loader.computeTypeBuilder(
-      extension.onType,
+      type: extension.onType,
+      uriOffset: uriOffset,
     );
   }
 

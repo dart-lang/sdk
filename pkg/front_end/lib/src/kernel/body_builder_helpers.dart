@@ -175,6 +175,7 @@ class LabelTarget implements JumpTarget {
 
 class FunctionTypeParameters(
   final List<ParameterBuilder>? parameters,
+  final UriOffsetLength uriOffset,
   final int charOffset,
   final int length,
   final Uri uri,
@@ -196,8 +197,7 @@ class FunctionTypeParameters(
       structuralVariableBuilders,
       parameters,
       nullabilityBuilder,
-      uri,
-      charOffset,
+      uriOffset,
       hasFunctionFormalParameterSyntax: hasFunctionFormalParameterSyntax,
     );
   }

@@ -8,6 +8,7 @@ import 'package:kernel/class_hierarchy.dart';
 
 import '../base/messages.dart';
 import '../base/problems.dart' show unhandled;
+import '../base/uri_offset.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/invalid_type_builder.dart';
@@ -29,15 +30,6 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
   @override
   final SourceLibraryBuilder parent;
 
-  @override
-  final int fileOffset;
-
-  @override
-  final String name;
-
-  @override
-  final Uri fileUri;
-
   late TypeBuilder _type;
 
   final Reference _reference;
@@ -56,19 +48,27 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
   final TypedefFragment _introductory;
 
   new({
-    required this.name,
     required SourceLibraryBuilder enclosingLibraryBuilder,
-    required this.fileUri,
-    required int fileOffset,
     required TypedefFragment fragment,
     required Reference? reference,
-  }) : fileOffset = fileOffset,
-       parent = enclosingLibraryBuilder,
+  }) : parent = enclosingLibraryBuilder,
        _reference = reference ?? new Reference(),
        _introductory = fragment,
        _type = fragment.type {
     _introductory.builder = this;
   }
+
+  @override
+  Uri get fileUri => _introductory.fileUri;
+
+  @override
+  int get fileOffset => _introductory.nameOffset;
+
+  @override
+  String get name => _introductory.name;
+
+  @override
+  UriOffsetLength get uriOffset => _introductory.uriOffset;
 
   @override
   TypeBuilder get type => _type;
@@ -115,7 +115,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
     )..fileOffset = fileOffset;
     if (_checkCyclicTypedefDependency(type, this, {this})) {
       typedef.type = new InvalidType();
-      _type = new InvalidTypeBuilderImpl(fileUri, fileOffset);
+      _type = new InvalidTypeBuilderImpl(type.uriOffset);
     }
     if (typeParameters != null) {
       for (TypeParameterBuilder typeParameter in typeParameters!) {
@@ -123,15 +123,22 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
           // The bound is erroneous and should be set to [InvalidType].
           typeParameter.parameterBound = new InvalidType();
           typeParameter.parameterDefaultType = new InvalidType();
-          typeParameter.bound = new InvalidTypeBuilderImpl(fileUri, fileOffset);
+          typeParameter.bound = new InvalidTypeBuilderImpl(
+            typeParameter
+                    .bound
+                    ?.uriOffset ?? // Coverage-ignore(suite): Not run.
+                typeParameter.uriOffset,
+          );
           typeParameter.defaultType = new InvalidTypeBuilderImpl(
-            fileUri,
-            fileOffset,
+            typeParameter
+                    .defaultType
+                    ?.uriOffset ?? // Coverage-ignore(suite): Not run.
+                typeParameter.uriOffset,
           );
           // The typedef itself can't be used without proper bounds of its type
           // variables, so we set it to mean [InvalidType] too.
           typedef.type = new InvalidType();
-          _type = new InvalidTypeBuilderImpl(fileUri, fileOffset);
+          _type = new InvalidTypeBuilderImpl(type.uriOffset);
         }
       }
     }
@@ -174,13 +181,11 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
               ...seenTypeAliasBuilders,
               declaration,
             }) {
-              seenTypeAliasBuilder.libraryBuilder.addProblem(
+              seenTypeAliasBuilder.libraryBuilder.addProblem2(
                 diag.cyclicTypedef.withArguments(
                   name: seenTypeAliasBuilder.name,
                 ),
-                seenTypeAliasBuilder.fileOffset,
-                seenTypeAliasBuilder.name.length,
-                seenTypeAliasBuilder.fileUri,
+                seenTypeAliasBuilder.uriOffset,
               );
             }
             return true;

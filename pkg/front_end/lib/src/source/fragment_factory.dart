@@ -202,11 +202,10 @@ abstract class FragmentFactory {
     required List<MetadataBuilder>? metadata,
     required String uri,
     required List<Configuration>? configurations,
-    required String? prefix,
     required List<CombinatorBuilder>? combinators,
     required bool deferred,
-    required int charOffset,
-    required int prefixCharOffset,
+    required UriOffsetLength importUriOffset,
+    required UriOffsetName? prefixUriOffsetName,
     required int uriOffset,
   });
 
@@ -502,6 +501,7 @@ abstract class FragmentFactory {
     required FormalParameterKind kind,
     required TypeBuilder type,
     required String? name,
+    required UriOffsetLength uriOffset,
     required int fileOffset,
   });
 
@@ -522,7 +522,7 @@ abstract class FragmentFactory {
     TypeName typeName,
     NullabilityBuilder nullabilityBuilder,
     List<TypeBuilder>? arguments,
-    int charOffset, {
+    UriOffsetLength uriOffset, {
     required InstanceTypeParameterAccessState instanceTypeParameterAccess,
   });
 
@@ -531,16 +531,16 @@ abstract class FragmentFactory {
     List<SourceStructuralParameterBuilder>? structuralParameterBuilders,
     List<FunctionTypeParameterBuilder>? formals,
     NullabilityBuilder nullabilityBuilder,
-    Uri fileUri,
-    int charOffset, {
+    UriOffsetLength uriOffset, {
     required bool hasFunctionFormalParameterSyntax,
   });
 
-  TypeBuilder addVoidType(int charOffset);
+  TypeBuilder addVoidType(UriOffsetLength uriOffset);
 
-  InferableTypeBuilder addInferableType(
-    InferenceDefaultType inferenceDefaultType,
-  );
+  InferableTypeBuilder addInferableType({
+    required InferenceDefaultType inferenceDefaultType,
+    required UriOffsetLength uriOffset,
+  });
 
   TypeParameterFragment addNominalParameter({
     required List<MetadataBuilder>? metadata,
@@ -550,9 +550,7 @@ abstract class FragmentFactory {
 
   StructuralParameterBuilder addStructuralParameter({
     required List<MetadataBuilder>? metadata,
-    required String name,
-    required int nameOffset,
-    required Uri fileUri,
+    required UriOffsetName uriOffsetName,
   });
 }
 
@@ -643,10 +641,12 @@ class SynthesizedExtensionTypeSignature {
                     const NullabilityBuilder.omitted(),
                     instanceTypeParameterAccess:
                         InstanceTypeParameterAccessState.Allowed,
+                    uriOffset: clonedDeclarationTypeParameters[index].uriOffset,
                   ),
             )
           : null,
       instanceTypeParameterAccess: InstanceTypeParameterAccessState.Allowed,
+      uriOffset: uriOffset,
     );
 
     if (nominalVariableCopy != null) {

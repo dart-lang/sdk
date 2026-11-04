@@ -29,6 +29,7 @@ import 'package:front_end/src/kernel/expression_generator_helper.dart';
 import 'package:front_end/src/kernel/internal_ast.dart';
 import 'package:front_end/src/kernel/kernel_target.dart' show KernelTarget;
 import 'package:front_end/src/kernel/load_library_builder.dart';
+import 'package:front_end/src/kernel/utils.dart';
 import 'package:front_end/src/source/name_space_builder.dart';
 import 'package:front_end/src/source/source_compilation_unit.dart'
     show SourceCompilationUnitImpl;
@@ -184,6 +185,7 @@ Future<void> main() async {
       libraryBuilder,
       null,
       fileUri: uri,
+      uriOffsetName: dummyUriOffsetName,
       prefixOffset: -1,
       importOffset: -1,
       parentPrefixBuilder: null,
@@ -192,6 +194,7 @@ Future<void> main() async {
     TypeDeclarationBuilder declaration = new DillNominalParameterBuilder(
       new TypeParameter("T", const DynamicType(), const DynamicType()),
       loader: null,
+      uriOffset: dummyUriOffset,
     );
     InternalVariable variable = new InternalSyntheticVariable(
       isImplicitlyTyped: false,

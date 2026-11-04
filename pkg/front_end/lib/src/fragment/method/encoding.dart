@@ -13,6 +13,7 @@ import 'package:kernel/type_environment.dart';
 import '../../base/local_scope.dart';
 import '../../base/messages.dart';
 import '../../base/scope.dart';
+import '../../base/uri_offset.dart';
 import '../../builder/declaration_builders.dart';
 import '../../builder/formal_parameter_builder.dart';
 import '../../builder/omitted_type_builder.dart';
@@ -240,11 +241,9 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
       );
       if (_fragment.name == indexSetName.text) {
         if (returnType is! VoidType) {
-          problemReporting.addProblem(
+          problemReporting.addProblem2(
             diag.nonVoidReturnOperator,
-            _fragment.returnType.charOffset!,
-            noLength,
-            _fragment.fileUri,
+            _fragment.returnType.uriOffset,
           );
           returnType = const VoidType();
         }
@@ -583,11 +582,9 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
       );
       if (_fragment.name == indexSetName.text) {
         if (returnType is! VoidType) {
-          problemReporting.addProblem(
+          problemReporting.addProblem2(
             diag.nonVoidReturnOperator,
-            _fragment.returnType.charOffset!,
-            noLength,
-            _fragment.fileUri,
+            _fragment.returnType.uriOffset,
           );
           returnType = const VoidType();
         }

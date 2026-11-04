@@ -7,7 +7,9 @@ part of 'fragment.dart';
 class PrimaryConstructorFragment implements Fragment, FunctionFragment {
   final ConstructorName constructorName;
 
-  final Uri fileUri;
+  @override
+  final UriOffsetLength uriOffset;
+
   final int startOffset;
   final int endOffset;
   final int formalsOffset;
@@ -27,16 +29,11 @@ class PrimaryConstructorFragment implements Fragment, FunctionFragment {
 
   PrimaryConstructorBodyFragment? _primaryConstructorBodyFragment;
 
-  @override
-  late final UriOffsetLength uriOffset = new UriOffsetLength(
-    fileUri,
-    constructorName.fullNameOffset,
-    constructorName.fullNameLength,
-  );
+  Uri get fileUri => uriOffset.fileUri;
 
   new({
     required this.constructorName,
-    required this.fileUri,
+    required this.uriOffset,
     required this.startOffset,
     required this.endOffset,
     required this.formalsOffset,
