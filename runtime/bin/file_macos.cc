@@ -51,8 +51,8 @@ File::~File() {
 
 void File::Close() {
   ASSERT(handle_->fd() >= 0);
-  if (handle_->fd() == STDOUT_FILENO) {
-    // If stdout, redirect fd to /dev/null.
+  if (handle_->fd() == STDOUT_FILENO || handle_->fd() == STDERR_FILENO) {
+    // If stdout/err, redirect fd to /dev/null.
     intptr_t null_fd = TEMP_FAILURE_RETRY(open("/dev/null", O_WRONLY));
     ASSERT(null_fd >= 0);
     VOID_TEMP_FAILURE_RETRY(dup2(null_fd, handle_->fd()));

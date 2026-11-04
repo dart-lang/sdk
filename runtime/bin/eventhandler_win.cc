@@ -22,6 +22,7 @@
 #include "bin/socket.h"
 #include "bin/thread.h"
 #include "bin/utils.h"
+#include "bin/utils_win.h"
 #include "platform/syslog.h"
 
 #include "platform/utils.h"
@@ -736,9 +737,31 @@ StdHandle* StdHandle::Stdin(HANDLE handle) {
 }
 
 void StdHandle::DoCloseLocked(MonitorLocker* ml) {
-  Handle::DoCloseLocked(ml);
-
   MutexLocker stdin_mutex_locker(stdin_mutex_);
+
+  HANDLE nul_handle = INVALID_HANDLE_VALUE;
+  if (handle_ == GetStdHandle(STD_INPUT_HANDLE)) {
+    nul_handle = OpenNul();
+    SetStdHandle(STD_INPUT_HANDLE, nul_handle);
+  }
+  if (handle_ == reinterpret_cast<HANDLE>(_get_osfhandle(STDIN_FILENO))) {
+    int nul_fd = _open("NUL", _O_RDONLY);
+    ASSERT(nul_fd >= 0);
+    _dup2(nul_fd, STDIN_FILENO);
+    _close(nul_fd);
+
+    // dup2 closes the handle which is overwritten.
+    handle_ = INVALID_HANDLE_VALUE;
+
+    // If CRT overwrote STD_INPUT_HANDLE, then close nul_handle.
+    if ((nul_handle != INVALID_HANDLE_VALUE) &&
+        (nul_handle != GetStdHandle(STD_INPUT_HANDLE))) {
+      CloseHandle(nul_handle);
+    }
+  } else {
+    Handle::DoCloseLocked(ml);
+  }
+
   stdin_->Release();
   StdHandle::stdin_ = nullptr;
 }

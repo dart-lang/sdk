@@ -30,6 +30,21 @@
 namespace dart {
 namespace bin {
 
+void DescriptorInfo::Close() {
+  ASSERT(fd_ != STDOUT_FILENO);
+  ASSERT(fd_ != STDERR_FILENO);
+  if (fd_ == STDIN_FILENO) {
+    // If stdin, redirect fd to /dev/null.
+    int null_fd = TEMP_FAILURE_RETRY(open("/dev/null", O_RDONLY));
+    ASSERT(null_fd >= 0);
+    VOID_TEMP_FAILURE_RETRY(dup2(null_fd, STDIN_FILENO));
+    close(null_fd);
+  } else {
+    close(fd_);
+  }
+  fd_ = -1;
+}
+
 intptr_t DescriptorInfo::GetPollEvents() {
   // Do not ask for EPOLLERR and EPOLLHUP explicitly as they are
   // triggered anyway.
