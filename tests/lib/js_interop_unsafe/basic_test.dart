@@ -2,9 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// Requirements=checked-implicit-downcasts
+
 import 'dart:js_interop';
 import 'dart:js_interop_unsafe';
-import 'dart:typed_data';
 
 import 'package:expect/expect.dart';
 
@@ -28,8 +29,14 @@ void createObjectTest() {
     Expect.isFalse(o.hasProperty(property.toJS).toDart);
     o.setProperty(property.toJS, value?.toJS);
     Expect.isTrue(o.hasProperty(property.toJS).toDart);
-    Expect.equals(value, (o.getProperty(property.toJS) as JSString?)?.toDart);
+    Expect.equals(value, o.getProperty<JSString?>(property.toJS)?.toDart);
+    if (value == null) {
+      Expect.throwsTypeError(() => o.getProperty<JSString>(property.toJS));
+    } else {
+      Expect.equals(value, o.getProperty<JSString>(property.toJS).toDart);
+    }
     Expect.isTrue(o.delete(property.toJS).toDart);
+    Expect.throwsTypeError(() => o.getProperty<JSString>(property.toJS));
   }
 
   testHasGetSet('foo', 'bar');
@@ -147,6 +154,7 @@ void methodsAndConstructorsTest() {
         console.log(a + ' ' + b);
         return `${a}${b}${this.c}`;
       }
+      this.getC = () => this.c;
     }
     globalThis.JSClass = JSClass;
   ''');
@@ -184,7 +192,9 @@ void methodsAndConstructorsTest() {
   );
   // Var args no args
   jsObj1 = constructor.callAsConstructorVarArgs<JSObject>();
-  Expect.equals(jsObj1['c'], null);
+  Expect.isNull(jsObj1['c']);
+  Expect.isNull(jsObj1.callMethodVarArgs<JSString?>('getC'.toJS));
+  Expect.throwsTypeError(() => jsObj1.callMethodVarArgs<JSString>('getC'.toJS));
 
   // Fixed args one arg
   jsObj1 = constructor.callAsConstructor<JSObject>('world!'.toJS);
@@ -206,7 +216,9 @@ void methodsAndConstructorsTest() {
   );
   // Fixed args no args
   jsObj1 = constructor.callAsConstructor<JSObject>();
-  Expect.equals(jsObj1['c'], null);
+  Expect.isNull(jsObj1['c']);
+  Expect.isNull(jsObj1.callMethod<JSString?>('getC'.toJS));
+  Expect.throwsTypeError(() => jsObj1.callMethod<JSString>('getC'.toJS));
 }
 
 @JS('Symbol')
