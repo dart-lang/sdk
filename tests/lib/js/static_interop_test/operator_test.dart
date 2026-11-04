@@ -66,7 +66,15 @@ void dartJsInteropOperatorsTest() {
   Expect.equals(100, toInt(i10.exponentiate(2.toJS)));
 
   // Bitwise.
-  Expect.equals(5, toInt(i10.unsignedRightShift(1.toJS)));
+  Expect.equals(20, toInt(i10.leftShift(1.toJS)));
+  // Use a negative operand to distinguish >> from >>>.
+  final negative = (-10).toJS;
+  Expect.equals(-5, toInt(negative.rightShift(1.toJS)));
+  Expect.equals(2147483643, toInt(negative.unsignedRightShift(1.toJS)));
+  Expect.equals(2, toInt(i10.bitwiseAnd(3.toJS)));
+  Expect.equals(11, toInt(i10.bitwiseOr(3.toJS)));
+  Expect.equals(9, toInt(i10.bitwiseXor(3.toJS)));
+  Expect.equals(-11, toInt(i10.bitwiseNot));
 
   // Comparison/relational.
   final t = true.toJS;
@@ -92,7 +100,13 @@ void dartJsInteropOperatorsTest() {
   Expect.isTrue(isNaN(null.divide(null)));
   Expect.isTrue(isNaN(null.modulo(null)));
   Expect.equals(1, toInt(null.exponentiate(null)));
+  Expect.equals(0, toInt(null.leftShift(null)));
+  Expect.equals(0, toInt(null.rightShift(null)));
   Expect.equals(0, toInt(null.unsignedRightShift(null)));
+  Expect.equals(0, toInt(null.bitwiseAnd(null)));
+  Expect.equals(0, toInt(null.bitwiseOr(null)));
+  Expect.equals(0, toInt(null.bitwiseXor(null)));
+  Expect.equals(-1, toInt(null.bitwiseNot));
   Expect.isTrue(null.equals(null).toDart);
   Expect.isFalse(null.notEquals(null).toDart);
   Expect.isTrue(null.strictEquals(null).toDart);
@@ -114,6 +128,12 @@ void dartJsInteropOperatorsTest() {
   Expect.equals(1.toBigInt, b10.divide(10.toBigInt));
   Expect.equals(0.toBigInt, b10.modulo(5.toBigInt));
   Expect.equals(100.toBigInt, b10.exponentiate(2.toBigInt));
+  Expect.isTrue(b10.leftShift(1.toBigInt).strictEquals(20.toBigInt).toDart);
+  Expect.isTrue(b10.rightShift(1.toBigInt).strictEquals(5.toBigInt).toDart);
+  Expect.isTrue(b10.bitwiseAnd(3.toBigInt).strictEquals(2.toBigInt).toDart);
+  Expect.isTrue(b10.bitwiseOr(3.toBigInt).strictEquals(11.toBigInt).toDart);
+  Expect.isTrue(b10.bitwiseXor(3.toBigInt).strictEquals(9.toBigInt).toDart);
+  Expect.isTrue(b10.bitwiseNot.strictEquals((-11).toBigInt).toDart);
   // Note that `unsignedRightShift` can not be used with BigInts and always
   // returns a number.
   Expect.equals(1, toInt(t.unsignedRightShift(f)));

@@ -735,8 +735,37 @@ extension JSAnyOperatorExtension on JSAny? {
 
   @patch
   @pragma('dart2js:prefer-inline')
+  JSAny leftShift(JSAny? any) =>
+      foreign_helper.JS('Object', '# << #', this, any);
+
+  @patch
+  @pragma('dart2js:prefer-inline')
+  JSAny rightShift(JSAny? any) =>
+      foreign_helper.JS('Object', '# >> #', this, any);
+
+  @patch
+  @pragma('dart2js:prefer-inline')
   JSNumber unsignedRightShift(JSAny? any) =>
       js_util.unsignedRightShift(this, any).toJS;
+
+  @patch
+  @pragma('dart2js:prefer-inline')
+  JSAny bitwiseAnd(JSAny? any) =>
+      foreign_helper.JS('Object', '# & #', this, any);
+
+  @patch
+  @pragma('dart2js:prefer-inline')
+  JSAny bitwiseOr(JSAny? any) =>
+      foreign_helper.JS('Object', '# | #', this, any);
+
+  @patch
+  @pragma('dart2js:prefer-inline')
+  JSAny bitwiseXor(JSAny? any) =>
+      foreign_helper.JS('Object', '# ^ #', this, any);
+
+  @patch
+  @pragma('dart2js:prefer-inline')
+  JSAny get bitwiseNot => foreign_helper.JS('Object', '~#', this);
 
   @patch
   @pragma('dart2js:prefer-inline')
