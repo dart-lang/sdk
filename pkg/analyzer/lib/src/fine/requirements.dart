@@ -798,6 +798,30 @@ class LibraryRequirements {
   }
 }
 
+/// Names that libraries must not export, unless recorded otherwise.
+///
+/// For each library from [libraryUris] and each name from [names], as a
+/// getter and as a setter: if [LibraryRequirements.exportMap] of the library
+/// has no entry for the name, the library must not export it.
+class NotExportedNamesRequirement {
+  final List<Uri> libraryUris;
+  final List<String> names;
+
+  new({required this.libraryUris, required this.names});
+
+  factory read(BinaryReader reader) {
+    return NotExportedNamesRequirement(
+      libraryUris: reader.readUriList(),
+      names: reader.readStringReferenceList(),
+    );
+  }
+
+  void write(BinaryWriter writer) {
+    writer.writeUriList(libraryUris);
+    writer.writeList(names, writer.writeStringReference);
+  }
+}
+
 /// Information about an API usage that is not supported by fine-grained
 /// dependencies. If such API is used, we have to decide that the requirements
 /// are not satisfied, because we don't know for sure.
@@ -840,25 +864,40 @@ class OpaqueApiUse {
   }
 }
 
-/// Mutable state [RequirementsManifest] uses whenever a prefix-scope lookup
-/// happens. It binds to the current [RequirementsManifest] and suppresses
-/// duplicate recordings for the same identifier during that run.
+/// Collects the names looked up in a `PrefixScope` while a
+/// [RequirementsManifest] records, until [RequirementsManifest.stopRecording]
+/// records them as a [NotExportedNamesRequirement].
 class PrefixScopeRequirementState {
   RequirementsManifest? _owner;
 
-  /// The set of names for which we already recorded requirements.
-  HashSet<String> _idSet = HashSet();
+  /// The names looked up in this scope, in the order of recording.
+  Set<String> _names = {};
+
+  /// The imported libraries that had manifests at the first lookup.
+  ///
+  /// Taken at lookup time, so that the libraries of the cycle being linked,
+  /// which get manifests before [RequirementsManifest.stopRecording], are not
+  /// included.
+  List<LibraryElementImpl> _libraries = const [];
 
   void _dispose() {
     _owner = null;
-    _idSet = HashSet();
+    _names = {};
+    _libraries = const [];
   }
 
-  void _ensureFor(RequirementsManifest owner) {
+  void _ensureFor(
+    RequirementsManifest owner,
+    List<LibraryElementImpl> importedLibraries,
+  ) {
     if (!identical(_owner, owner)) {
       owner._prefixScopeStates.add(this);
       _owner = owner;
-      _idSet = HashSet();
+      _names = {};
+      _libraries = [
+        for (var library in importedLibraries)
+          if (library.manifest?.ids != null) library,
+      ];
     }
   }
 }
@@ -870,6 +909,8 @@ class RequirementsManifest {
   final Map<Uri, LibraryRequirements> libraries;
 
   final List<LibraryExportRequirements> exportRequirements;
+
+  final List<NotExportedNamesRequirement> notExportedNames;
 
   /// If this list is not empty, [isSatisfied] returns `false`.
   final List<OpaqueApiUse> opaqueApiUses;
@@ -887,6 +928,7 @@ class RequirementsManifest {
         id: ManifestItemId.generate(),
         libraries: {},
         exportRequirements: [],
+        notExportedNames: [],
         opaqueApiUses: [],
       );
 
@@ -906,6 +948,9 @@ class RequirementsManifest {
       exportRequirements: reader.readTypedList(
         () => LibraryExportRequirements.read(reader),
       ),
+      notExportedNames: reader.readTypedList(
+        () => NotExportedNamesRequirement.read(reader),
+      ),
       opaqueApiUses: reader.readTypedList(() => OpaqueApiUse.read(reader)),
     );
   }
@@ -914,6 +959,7 @@ class RequirementsManifest {
     required this.id,
     required this.libraries,
     required this.exportRequirements,
+    required this.notExportedNames,
     required this.opaqueApiUses,
   });
 
@@ -1063,6 +1109,29 @@ class RequirementsManifest {
               expectedId: expectedId,
               actualId: actualId,
             );
+          }
+        }
+
+        // Names that are not in `exportMap` must not be exported.
+        for (var requirement in notExportedNames) {
+          if (!requirement.libraryUris.contains(libraryUri)) {
+            continue;
+          }
+          for (var id in requirement.names) {
+            for (var name in [id.asLookupName, '$id='.asLookupName]) {
+              if (libraryRequirements.exportMap.containsKey(name)) {
+                continue;
+              }
+              var actualId = libraryManifest.getExportedId(name);
+              if (actualId != null) {
+                return TopLevelIdMismatch(
+                  libraryUri: libraryUri,
+                  name: name,
+                  expectedId: null,
+                  actualId: actualId,
+                );
+              }
+            }
           }
         }
       }
@@ -1753,33 +1822,8 @@ class RequirementsManifest {
       return;
     }
 
-    state._ensureFor(this);
-    if (!state._idSet.add(id)) {
-      return;
-    }
-
-    var getterLookupName = id.asLookupName;
-    var setterLookupName = '$id='.asLookupName;
-
-    for (var importedLibrary in importedLibraries) {
-      if (importedLibrary.manifest?.ids case var manifest?) {
-        var libraryRequirements = _getLibraryRequirements(importedLibrary);
-
-        var getterId = manifest.getExportedId(getterLookupName);
-        libraryRequirements.exportMap[getterLookupName] = getterId;
-        if (getterId != null) {
-          libraryRequirements.reExportDeprecatedOnly[getterLookupName] =
-              manifest.reExportDeprecatedOnly.contains(getterLookupName);
-        }
-
-        var setterId = manifest.getExportedId(setterLookupName);
-        libraryRequirements.exportMap[setterLookupName] = setterId;
-        if (setterId != null) {
-          libraryRequirements.reExportDeprecatedOnly[setterLookupName] =
-              manifest.reExportDeprecatedOnly.contains(setterLookupName);
-        }
-      }
-    }
+    state._ensureFor(this, importedLibraries);
+    state._names.add(id);
   }
 
   void record_instanceElement_constructors({
@@ -2252,15 +2296,35 @@ class RequirementsManifest {
     requirements.exportedLibraryUris = manifest.exportedLibraryUris;
   }
 
+  /// Records that [element] was asked whether it exports [name].
+  ///
+  /// Records both the getter and the setter, with `null` for a name that is
+  /// not exported. A [NotExportedNamesRequirement] for a single library and
+  /// name would be larger than these entries.
   void record_library_exportScope_get({
     required LibraryElementImpl element,
     required String name,
   }) {
-    record_importPrefixScope_lookup(
-      state: PrefixScopeRequirementState(),
-      importedLibraries: [element],
-      id: name.removeSuffix('=') ?? name,
-    );
+    if (_recordingLockLevel != 0) {
+      return;
+    }
+
+    var manifest = element.manifest?.ids;
+    if (manifest == null) {
+      return;
+    }
+
+    var id = name.removeSuffix('=') ?? name;
+    var libraryRequirements = _getLibraryRequirements(element);
+    for (var lookupName in [id.asLookupName, '$id='.asLookupName]) {
+      var exportedId = manifest.getExportedId(lookupName);
+      libraryRequirements.exportMap[lookupName] = exportedId;
+      if (exportedId != null) {
+        libraryRequirements.reExportDeprecatedOnly[lookupName] = manifest
+            .reExportDeprecatedOnly
+            .contains(lookupName);
+      }
+    }
   }
 
   void record_library_featureSet({required LibraryElementImpl element}) {
@@ -2587,6 +2651,13 @@ class RequirementsManifest {
     for (var libUri in bundleLibraryUriSet) {
       libraries.remove(libUri);
     }
+
+    for (var requirement in notExportedNames) {
+      requirement.libraryUris.removeWhere(bundleLibraryUriSet.contains);
+    }
+    notExportedNames.removeWhere(
+      (requirement) => requirement.libraryUris.isEmpty,
+    );
   }
 
   void stopRecording() {
@@ -2600,6 +2671,7 @@ class RequirementsManifest {
     }
     _libraryElementStates.clear();
 
+    _recordPrefixScopeLookups();
     for (var state in _prefixScopeStates) {
       state._dispose();
     }
@@ -2640,6 +2712,10 @@ class RequirementsManifest {
   }
 
   void write(BinaryWriter writer) {
+    // Prefix scope states hold looked-up names until stopRecording()
+    // records them, so writing earlier would lose these names.
+    assert(_prefixScopeStates.isEmpty, 'Call stopRecording() before write().');
+
     id.write(writer);
     writer.writeMap(
       libraries,
@@ -2650,6 +2726,11 @@ class RequirementsManifest {
     writer.writeList(
       exportRequirements,
       (requirements) => requirements.write(writer),
+    );
+
+    writer.writeList(
+      notExportedNames,
+      (requirement) => requirement.write(writer),
     );
 
     writer.writeList(opaqueApiUses, (use) => use.write(writer));
@@ -2759,6 +2840,45 @@ class RequirementsManifest {
     return '${element.library.uri} '
         '${element.displayName}.'
         '${methodName.asString}';
+  }
+
+  /// Records export requirements for names looked up in prefix scopes.
+  ///
+  /// Only found IDs are added to [LibraryRequirements.exportMap], names
+  /// that are not exported are implied by the [NotExportedNamesRequirement]
+  /// of each scope.
+  void _recordPrefixScopeLookups() {
+    for (var state in _prefixScopeStates) {
+      var libraries = state._libraries;
+      if (libraries.isEmpty) {
+        continue;
+      }
+
+      var names = state._names.toList();
+      notExportedNames.add(
+        NotExportedNamesRequirement(
+          libraryUris: [for (var library in libraries) library.uri],
+          names: names,
+        ),
+      );
+
+      var lookupNames = [
+        for (var id in names) ...[id.asLookupName, '$id='.asLookupName],
+      ];
+
+      for (var library in libraries) {
+        var manifest = library.manifest!.ids!;
+        var requirements = _getLibraryRequirements(library);
+        for (var lookupName in lookupNames) {
+          if (manifest.getExportedId(lookupName) case var id?) {
+            requirements.exportMap[lookupName] = id;
+            requirements.reExportDeprecatedOnly[lookupName] = manifest
+                .reExportDeprecatedOnly
+                .contains(lookupName);
+          }
+        }
+      }
+    }
   }
 }
 

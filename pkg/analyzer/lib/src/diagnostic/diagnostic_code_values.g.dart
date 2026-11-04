@@ -276,6 +276,7 @@ const List<DiagnosticCode> diagnosticCodeValues = [
   diag.duplicateDeferred,
   diag.duplicateDefinition,
   diag.duplicateExport,
+  diag.duplicateExportInPart,
   diag.duplicateFieldFormalParameter,
   diag.duplicateFieldName,
   diag.duplicateHiddenName,

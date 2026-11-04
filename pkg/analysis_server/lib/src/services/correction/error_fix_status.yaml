@@ -3853,6 +3853,10 @@ duplicate_export:
   status: needsFix
   notes: |-
     One fix is to remove the duplicated export.
+duplicate_export_in_part:
+  status: needsFix
+  notes: |-
+    One fix is to remove the duplicated export.
 duplicate_hidden_name:
   status: hasFix
 duplicate_ignore:

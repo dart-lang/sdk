@@ -4394,6 +4394,24 @@ const DiagnosticWithoutArguments duplicateExport =
       expectedTypes: [],
     );
 
+/// Duplicate exports.
+///
+/// Parameters:
+/// String fileName: the name of the file containing the duplicated export
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String fileName})
+>
+duplicateExportInPart = DiagnosticWithArguments(
+  name: 'duplicate_export',
+  problemMessage: "Duplicate of export in '{0}'.",
+  correctionMessage: "Try removing all but one export of the library.",
+  hasPublishedDocs: true,
+  type: DiagnosticType.STATIC_WARNING,
+  uniqueName: 'duplicate_export_in_part',
+  withArguments: _withArgumentsDuplicateExportInPart,
+  expectedTypes: [ExpectedType.string],
+);
+
 /// Parameters:
 /// String name: the name of the field
 const DiagnosticWithArguments<
@@ -20710,6 +20728,12 @@ LocatableDiagnostic _withArgumentsDuplicateConstructorName({
 
 LocatableDiagnostic _withArgumentsDuplicateDefinition({required String name}) {
   return LocatableDiagnosticImpl(diag.duplicateDefinition, [name]);
+}
+
+LocatableDiagnostic _withArgumentsDuplicateExportInPart({
+  required String fileName,
+}) {
+  return LocatableDiagnosticImpl(diag.duplicateExportInPart, [fileName]);
 }
 
 LocatableDiagnostic _withArgumentsDuplicateFieldFormalParameter({
