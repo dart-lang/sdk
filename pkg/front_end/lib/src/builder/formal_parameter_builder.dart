@@ -44,7 +44,7 @@ class AnonymousMethodParameterBuilder extends NamedBuilderImpl
     with LookupResultMixin
     implements ParameterVariableBuilder, InferredTypeListener {
   @override
-  final int fileOffset;
+  final UriOffsetLength uriOffset;
 
   final Modifiers modifiers;
 
@@ -53,9 +53,6 @@ class AnonymousMethodParameterBuilder extends NamedBuilderImpl
 
   @override
   final String name;
-
-  @override
-  final Uri fileUri;
 
   @override
   final FormalParameterKind kind;
@@ -67,21 +64,24 @@ class AnonymousMethodParameterBuilder extends NamedBuilderImpl
   /// uniquely named kernel variable for it.
   final int? _wildcardIndex;
 
-  final int? nameOffset;
-
   new({
     required this.modifiers,
     required this.type,
     required this.name,
-    required this.fileOffset,
-    required this.fileUri,
+    required this.uriOffset,
     Token? defaultValueToken,
     int? wildcardIndex,
-    required this.nameOffset,
     required this.kind,
   }) : this._wildcardIndex = wildcardIndex {
     type.registerInferredTypeListener(this);
   }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Uri get fileUri => uriOffset.fileUri;
+
+  @override
+  int get fileOffset => uriOffset.fileOffset;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -161,7 +161,7 @@ class CatchParameterBuilder extends NamedBuilderImpl
     with LookupResultMixin
     implements ParameterVariableBuilder, InferredTypeListener {
   @override
-  final int fileOffset;
+  final UriOffsetLength uriOffset;
 
   final Modifiers modifiers;
 
@@ -171,9 +171,6 @@ class CatchParameterBuilder extends NamedBuilderImpl
   @override
   final String name;
 
-  @override
-  final Uri fileUri;
-
   /// The variable declaration created for this catch parameter.
   InternalCatchVariable? _variable;
 
@@ -181,20 +178,23 @@ class CatchParameterBuilder extends NamedBuilderImpl
   /// uniquely named kernel variable for it.
   final int? _wildcardIndex;
 
-  final int? nameOffset;
-
   new({
     required this.modifiers,
     required this.type,
     required this.name,
-    required this.fileOffset,
-    required this.fileUri,
+    required this.uriOffset,
     Token? defaultValueToken,
     int? wildcardIndex,
-    required this.nameOffset,
   }) : this._wildcardIndex = wildcardIndex {
     type.registerInferredTypeListener(this);
   }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Uri get fileUri => uriOffset.fileUri;
+
+  @override
+  int get fileOffset => uriOffset.fileOffset;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -332,6 +332,7 @@ class FormalParameterBuilder extends NamedBuilderImpl
   @override
   final bool isPrimaryConstructorParameter;
 
+  @override
   final UriOffsetLength uriOffset;
 
   new({
@@ -573,7 +574,8 @@ class FormalParameterBuilder extends NamedBuilderImpl
             : modifiers,
         type: isDeclaring
             ? builderFactory.addInferableType(
-                InferenceDefaultType.NullableObject,
+                inferenceDefaultType: InferenceDefaultType.NullableObject,
+                uriOffset: uriOffset,
               )
             : type,
         name: name,
@@ -621,7 +623,7 @@ class FunctionTypeParameterBuilder implements ParameterBuilder {
   final String? name;
 
   @override
-  final int fileOffset;
+  final UriOffsetLength uriOffset;
 
   @override
   final bool isWildcard;
@@ -630,9 +632,12 @@ class FunctionTypeParameterBuilder implements ParameterBuilder {
     required this.kind,
     required this.type,
     required this.name,
-    required this.fileOffset,
+    required this.uriOffset,
     required this.isWildcard,
   });
+
+  @override
+  int get fileOffset => uriOffset.fileOffset;
 
   @override
   InternalVariable build(SourceLibraryBuilder library) {
@@ -658,6 +663,11 @@ class ComputedParameterBuilder implements ParameterBuilder {
   }
 
   @override
+  UriOffsetLength get uriOffset {
+    throw new UnsupportedError("${this.runtimeType}.uriOffset");
+  }
+
+  @override
   // Coverage-ignore(suite): Not run.
   bool get isWildcard => false;
 
@@ -668,6 +678,8 @@ class ComputedParameterBuilder implements ParameterBuilder {
 }
 
 abstract class ParameterBuilder {
+  UriOffsetLength get uriOffset;
+
   int get fileOffset;
 
   /// Whether this formal parameter is a wildcard variable.

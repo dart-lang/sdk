@@ -895,9 +895,7 @@ abstract class FactoryEncodingStrategy {
     required List<TypeParameterFragment>? declarationTypeParameterFragments,
     required TypeParameterFactory typeParameterFactory,
     required String fullName,
-    required Uri fileUri,
-    required int fullNameOffset,
-    required int fullNameLength,
+    required UriOffsetLength uriOffset,
   });
 }
 
@@ -911,9 +909,7 @@ class RegularFactoryEncodingStrategy implements FactoryEncodingStrategy {
     required List<TypeParameterFragment>? declarationTypeParameterFragments,
     required TypeParameterFactory typeParameterFactory,
     required String fullName,
-    required Uri fileUri,
-    required int fullNameOffset,
-    required int fullNameLength,
+    required UriOffsetLength uriOffset,
   }) {
     NominalParameterCopy? nominalParameterCopy = typeParameterFactory
         .copyTypeParameters(
@@ -929,8 +925,7 @@ class RegularFactoryEncodingStrategy implements FactoryEncodingStrategy {
           declarationBuilder,
           const NullabilityBuilder.omitted(),
           arguments: nominalParameterCopy?.newTypeArguments,
-          fileUri: fileUri,
-          charOffset: fullNameOffset,
+          uriOffset: uriOffset,
           instanceTypeParameterAccess: InstanceTypeParameterAccessState.Allowed,
         );
     return (typeParameters, returnType);
@@ -946,10 +941,8 @@ class ExtensionFactoryEncodingStrategy implements FactoryEncodingStrategy {
     required DeclarationBuilder declarationBuilder,
     required List<TypeParameterFragment>? declarationTypeParameterFragments,
     required TypeParameterFactory typeParameterFactory,
+    required UriOffsetLength uriOffset,
     required String fullName,
-    required Uri fileUri,
-    required int fullNameOffset,
-    required int fullNameLength,
   }) {
     NominalParameterCopy? nominalParameterCopy = typeParameterFactory
         .copyTypeParameters(
@@ -963,11 +956,8 @@ class ExtensionFactoryEncodingStrategy implements FactoryEncodingStrategy {
     TypeBuilder returnType = new NamedTypeBuilderImpl.forInvalidType(
       fullName,
       const NullabilityBuilder.omitted(),
-      diag.extensionDeclaresConstructor.withLocation(
-        fileUri,
-        fullNameOffset,
-        fullNameLength,
-      ),
+      diag.extensionDeclaresConstructor.withLocation2(uriOffset),
+      uriOffset: uriOffset,
     );
     return (typeParameters, returnType);
   }

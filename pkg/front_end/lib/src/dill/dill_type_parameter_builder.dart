@@ -7,6 +7,7 @@
 import 'package:kernel/ast.dart';
 
 import '../base/loader.dart';
+import '../base/uri_offset.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/type_builder.dart';
@@ -24,6 +25,9 @@ class DillNominalParameterBuilder extends NominalParameterBuilder {
   @override
   final TypeParameter parameter;
 
+  @override
+  final UriOffsetLength uriOffset;
+
   /// Restores a [NominalParameterBuilder] from kernel
   ///
   /// The [loader] parameter is supposed to be passed by the clients and be not
@@ -34,13 +38,23 @@ class DillNominalParameterBuilder extends NominalParameterBuilder {
   /// the example below.
   ///
   ///   class A<X extends A<X>> {}
-  new(this.parameter, {required Loader? loader, this.isWildcard = false})
-    : this.bound = loader?.computeTypeBuilder(parameter.bound),
-      this.defaultType = loader?.computeTypeBuilder(parameter.defaultType),
-      super(
-        variableVariance: parameter.variance,
-        nullability: parameter.computeNullabilityFromBound(),
-      );
+  new(
+    this.parameter, {
+    required Loader? loader,
+    this.isWildcard = false,
+    required this.uriOffset,
+  }) : this.bound = loader?.computeTypeBuilder(
+         type: parameter.bound,
+         uriOffset: uriOffset,
+       ),
+       this.defaultType = loader?.computeTypeBuilder(
+         type: parameter.defaultType,
+         uriOffset: uriOffset,
+       ),
+       super(
+         variableVariance: parameter.variance,
+         nullability: parameter.computeNullabilityFromBound(),
+       );
 
   @override
   String get name => parameter.name ?? "";
@@ -81,7 +95,10 @@ class DillStructuralParameterBuilder extends StructuralParameterBuilder {
   @override
   final StructuralParameter parameter;
 
-  new(this.parameter, {this.isWildcard = false})
+  @override
+  final UriOffsetLength uriOffset;
+
+  new(this.parameter, {this.isWildcard = false, required this.uriOffset})
     : super(nullability: parameter.computeNullabilityFromBound());
 
   @override

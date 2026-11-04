@@ -226,7 +226,6 @@ class DillClassBuilder extends ClassBuilderImpl {
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   UriOffsetLength get uriOffset => cls.isAnonymousMixin
       ? new UriOffset(fileUri, fileOffset)
       : new UriOffsetLength(fileUri, fileOffset, name.length);
@@ -307,6 +306,7 @@ class DillClassBuilder extends ClassBuilderImpl {
       typeParameters = _typeParameters = computeTypeParameterBuilders(
         cls.typeParameters,
         libraryBuilder.loader,
+        fileUri: cls.fileUri,
       );
     }
     return typeParameters;
@@ -321,6 +321,7 @@ class DillClassBuilder extends ClassBuilderImpl {
       _supertypeBuilder = supertype = computeTypeBuilder(
         libraryBuilder,
         targetSupertype,
+        uriOffset: uriOffset,
       );
     }
     return supertype;
@@ -361,7 +362,11 @@ class DillClassBuilder extends ClassBuilderImpl {
 
   @override
   TypeBuilder? get mixedInTypeBuilder {
-    return computeTypeBuilder(libraryBuilder, cls.mixedInType);
+    return computeTypeBuilder(
+      libraryBuilder,
+      cls.mixedInType,
+      uriOffset: uriOffset,
+    );
   }
 
   @override
@@ -371,7 +376,11 @@ class DillClassBuilder extends ClassBuilderImpl {
     if (interfaceBuilders == null) {
       interfaceBuilders = _interfaceBuilders = new List<TypeBuilder>.generate(
         cls.implementedTypes.length,
-        (int i) => computeTypeBuilder(libraryBuilder, cls.implementedTypes[i])!,
+        (int i) => computeTypeBuilder(
+          libraryBuilder,
+          cls.implementedTypes[i],
+          uriOffset: uriOffset,
+        )!,
         growable: false,
       );
     }
@@ -390,20 +399,29 @@ class DillClassBuilder extends ClassBuilderImpl {
 
 TypeBuilder? computeTypeBuilder(
   DillLibraryBuilder library,
-  Supertype? supertype,
-) {
+  Supertype? supertype, {
+  required UriOffsetLength uriOffset,
+}) {
   return supertype == null
       ? null
-      : library.loader.computeTypeBuilder(supertype.asInterfaceType);
+      : library.loader.computeTypeBuilder(
+          type: supertype.asInterfaceType,
+          uriOffset: uriOffset,
+        );
 }
 
 List<DillNominalParameterBuilder>? computeTypeParameterBuilders(
   List<TypeParameter> typeParameters,
-  Loader loader,
-) {
+  Loader loader, {
+  required Uri fileUri,
+}) {
   if (typeParameters.length == 0) return null;
   return <DillNominalParameterBuilder>[
     for (TypeParameter typeParameter in typeParameters)
-      new DillNominalParameterBuilder(typeParameter, loader: loader),
+      new DillNominalParameterBuilder(
+        typeParameter,
+        loader: loader,
+        uriOffset: new UriOffset(fileUri, typeParameter.fileOffset),
+      ),
   ];
 }

@@ -11,6 +11,7 @@ import 'package:kernel/type_environment.dart';
 import '../../base/local_scope.dart';
 import '../../base/messages.dart';
 import '../../base/scope.dart';
+import '../../base/uri_offset.dart';
 import '../../builder/declaration_builders.dart';
 import '../../builder/formal_parameter_builder.dart';
 import '../../builder/omitted_type_builder.dart';
@@ -302,11 +303,9 @@ mixin _DirectSetterEncodingMixin implements SetterEncoding {
         TypeUse.returnType,
       );
       if (returnType is! VoidType) {
-        problemReporting.addProblem(
+        problemReporting.addProblem2(
           diag.nonVoidReturnSetter,
-          _fragment.returnType.charOffset!,
-          noLength,
-          _fragment.fileUri,
+          _fragment.returnType.uriOffset,
         );
         returnType = const VoidType();
       }
@@ -645,11 +644,9 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
         TypeUse.returnType,
       );
       if (returnType is! VoidType) {
-        problemReporting.addProblem(
+        problemReporting.addProblem2(
           diag.nonVoidReturnSetter,
-          _fragment.returnType.charOffset!,
-          noLength,
-          _fragment.fileUri,
+          _fragment.returnType.uriOffset,
         );
         returnType = const VoidType();
       }

@@ -18,7 +18,7 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/src/bounds_checks.dart' show VarianceCalculationValue;
 import 'package:kernel/src/unaliasing.dart';
 
-import '../codes/cfe_codes.dart' show noLength;
+import '../base/uri_offset.dart';
 import '../kernel/type_algorithms.dart';
 import '../source/source_loader.dart';
 import '../source/source_type_parameter_builder.dart';
@@ -40,9 +40,7 @@ class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
   @override
   final NullabilityBuilder nullabilityBuilder;
   @override
-  final Uri? fileUri;
-  @override
-  final int charOffset;
+  final UriOffsetLength uriOffset;
   @override
   final bool hasFunctionFormalParameterSyntax;
 
@@ -51,10 +49,17 @@ class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
     this.typeParameters,
     this.formals,
     this.nullabilityBuilder,
-    this.fileUri,
-    this.charOffset, {
+    this.uriOffset, {
     this.hasFunctionFormalParameterSyntax = false,
   });
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Uri get fileUri => uriOffset.fileUri;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  int get charOffset => uriOffset.fileOffset;
 
   @override
   TypeName? get typeName => null;
@@ -174,7 +179,7 @@ class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
 
   @override
   Supertype? buildSupertype(LibraryBuilder library, TypeUse typeUse) {
-    library.addProblem(diag.supertypeIsFunction, charOffset, noLength, fileUri);
+    library.addProblem2(diag.supertypeIsFunction, uriOffset);
     return null;
   }
 
@@ -192,8 +197,7 @@ class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
       typeParameters,
       formals,
       nullabilityBuilder,
-      fileUri,
-      charOffset,
+      uriOffset,
     );
   }
 
@@ -336,6 +340,7 @@ class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
                     const NullabilityBuilder.omitted(),
                     instanceTypeParameterAccess:
                         InstanceTypeParameterAccessState.Unexpected,
+                    uriOffset: newTypeParameterBuilder.uriOffset,
                   );
         }
       }
@@ -374,8 +379,7 @@ class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
         newTypeParameters ?? typeParameters,
         newFormals ?? formals,
         this.nullabilityBuilder,
-        this.fileUri,
-        this.charOffset,
+        this.uriOffset,
       );
     }
     return null;

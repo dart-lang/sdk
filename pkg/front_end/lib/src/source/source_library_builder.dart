@@ -487,17 +487,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       uri: firstUri,
       uri2: secondUri,
     );
-    addProblem(message, uriOffset.fileOffset, noLength, uriOffset.fileUri);
+    addProblem2(message, uriOffset);
     // We report the error lazily (setting errorHasBeenReported to false)
     // because the spec 18.1 states that 'It is not an error if N is introduced
     // by two or more imports but never referred to.'
     return new InvalidBuilder(
       name,
-      message.withLocation(
-        uriOffset.fileUri,
-        uriOffset.fileOffset,
-        name.length,
-      ),
+      message.withLocation2(uriOffset),
+      uriOffset,
       errorHasBeenReported: false,
     );
   }
@@ -948,7 +945,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       DynamicTypeDeclarationBuilder builder = new DynamicTypeDeclarationBuilder(
         const DynamicType(),
         this,
-        -1,
       );
       _libraryNameSpace!.addLocalMember("dynamic", builder);
       _memberBuilders.add(builder);
@@ -957,7 +953,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       NeverTypeDeclarationBuilder builder = new NeverTypeDeclarationBuilder(
         const NeverType.nonNullable(),
         this,
-        -1,
       );
       _libraryNameSpace!.addLocalMember("Never", builder);
       _memberBuilders.add(builder);

@@ -304,7 +304,10 @@ class ClassHierarchyNodeBuilder extends HierarchyNodeBuilder {
       classBuilder.setInferredMixedInTypeArguments(
         new List<TypeBuilder>.generate(
           typeArguments.length,
-          (int i) => _hierarchy.loader.computeTypeBuilder(typeArguments[i]),
+          (int i) => _hierarchy.loader.computeTypeBuilder(
+            type: typeArguments[i],
+            uriOffset: classBuilder.uriOffset,
+          ),
           growable: false,
         ),
       );

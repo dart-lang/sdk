@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:kernel/ast.dart' show LibraryDependency;
+import 'package:kernel/kernel.dart';
 
 import '../builder/builder.dart';
 import '../builder/compilation_unit.dart';
@@ -11,6 +11,7 @@ import '../builder/prefix_builder.dart';
 import '../source/source_library_builder.dart';
 import 'combinator.dart' show CombinatorBuilder;
 import 'configuration.dart' show Configuration;
+import 'uri_offset.dart';
 
 class Import({
   required SourceCompilationUnit importer,
@@ -18,12 +19,10 @@ class Import({
   /// The library being imported.
   required var CompilationUnit? importedCompilationUnit,
   required final bool deferred,
-  required final String? prefix,
   required final List<CombinatorBuilder>? combinators,
   required final List<Configuration>? configurations,
-  required Uri fileUri,
-  required final int importOffset,
-  required final int prefixOffset,
+  required final UriOffsetLength importUriOffset,
+  required final UriOffsetName? prefixUriOffsetName,
 
   /// The LibraryBuilder for the imported library ('imported') may be null when
   /// this field is set.
@@ -38,15 +37,19 @@ class Import({
 
   this
     : prefixFragment = createPrefixFragment(
-        prefix,
         importer,
         importedCompilationUnit,
         combinators,
         deferred,
-        fileUri,
-        importOffset,
-        prefixOffset,
+        importUriOffset,
+        prefixUriOffsetName,
       );
+
+  int get importOffset => importUriOffset.fileOffset;
+
+  String? get prefix => prefixUriOffsetName?.name;
+
+  int get prefixOffset => prefixUriOffsetName?.fileOffset ?? TreeNode.noOffset;
 
   LibraryBuilder? get importedLibraryBuilder =>
       importedCompilationUnit?.libraryBuilder;
@@ -83,6 +86,7 @@ class Import({
           name,
           member,
           importOffset: importOffset,
+          prefixUriOffset: prefixFragment.uriOffset,
           prefixOffset: prefixOffset,
         );
       };
@@ -115,24 +119,20 @@ class Import({
 }
 
 PrefixFragment? createPrefixFragment(
-  String? prefix,
   SourceCompilationUnit importer,
   CompilationUnit? imported,
   List<CombinatorBuilder>? combinators,
   bool deferred,
-  Uri fileUri,
-  int charOffset,
-  int prefixCharOffset,
+  UriOffsetLength importUriOffset,
+  UriOffsetName? prefixUriOffsetName,
 ) {
-  if (prefix == null) return null;
+  if (prefixUriOffsetName == null) return null;
   return new PrefixFragment(
-    name: prefix,
     importer: importer,
     imported: imported,
     combinators: combinators,
     deferred: deferred,
-    fileUri: fileUri,
-    importOffset: charOffset,
-    prefixOffset: prefixCharOffset,
+    importUriOffset: importUriOffset,
+    prefixUriOffsetName: prefixUriOffsetName,
   );
 }

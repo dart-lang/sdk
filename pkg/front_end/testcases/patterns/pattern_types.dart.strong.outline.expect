@@ -4,7 +4,7 @@ library;
 //
 // pkg/front_end/testcases/patterns/pattern_types.dart:6:1: Error: 'Invalid' is imported from both 'pkg/front_end/testcases/patterns/pattern_types_lib1.dart' and 'pkg/front_end/testcases/patterns/pattern_types_lib2.dart'.
 // import 'pattern_types_lib2.dart';
-// ^^^^^^^
+// ^
 //
 import self as self;
 import "dart:core" as core;

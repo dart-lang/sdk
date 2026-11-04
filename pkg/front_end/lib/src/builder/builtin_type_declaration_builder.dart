@@ -10,18 +10,22 @@ abstract class BuiltinTypeDeclarationBuilder extends TypeDeclarationBuilderImpl
   final LibraryBuilder parent;
 
   @override
-  final int fileOffset;
+  final UriOffsetLength uriOffset;
 
   @override
   final String name;
 
   final DartType type;
 
-  @override
-  final Uri fileUri;
+  new(this.name, this.type, this.parent, this.uriOffset);
 
-  new(this.name, this.type, this.parent, this.fileOffset)
-    : fileUri = parent.fileUri;
+  @override
+  // Coverage-ignore(suite): Not run.
+  Uri get fileUri => uriOffset.fileUri;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  int get fileOffset => uriOffset.fileOffset;
 
   @override
   int get typeParametersCount => 0;

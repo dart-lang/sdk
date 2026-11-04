@@ -4,11 +4,11 @@ library;
 //
 // pkg/front_end/testcases/enhanced_enums/enum_as_supertype.dart:6:32: Error: The class 'Enum' can't be extended outside of its library because it's an interface class.
 // abstract mixin class A extends Enum {
-//                                ^
+//                                ^^^^
 //
 // pkg/front_end/testcases/enhanced_enums/enum_as_supertype.dart:6:32: Error: The class 'A' can't be used as a mixin because it extends a class other than 'Object'.
 // abstract mixin class A extends Enum {
-//                                ^
+//                                ^^^^
 //
 // pkg/front_end/testcases/enhanced_enums/enum_as_supertype.dart:10:14: Error: The class 'A' can't be used as a mixin because it extends a class other than 'Object'.
 // enum EA with A { element } // Error.

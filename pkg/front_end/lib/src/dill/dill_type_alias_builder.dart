@@ -5,6 +5,7 @@
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 
+import '../base/uri_offset.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/library_builder.dart';
 import '../builder/type_builder.dart';
@@ -47,10 +48,15 @@ class DillTypeAliasBuilder extends TypeAliasBuilderImpl {
       _typeParameters = computeTypeParameterBuilders(
         typedef.typeParameters,
         libraryBuilder.loader,
+        fileUri: fileUri,
       );
     }
     return _typeParameters;
   }
+
+  @override
+  UriOffsetLength get uriOffset =>
+      new UriOffsetLength(fileUri, fileOffset, name.length);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -61,7 +67,10 @@ class DillTypeAliasBuilder extends TypeAliasBuilderImpl {
 
   @override
   TypeBuilder get type {
-    return _type ??= libraryBuilder.loader.computeTypeBuilder(typedef.type!);
+    return _type ??= libraryBuilder.loader.computeTypeBuilder(
+      type: typedef.type!,
+      uriOffset: uriOffset,
+    );
   }
 
   @override

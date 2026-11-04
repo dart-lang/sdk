@@ -136,6 +136,7 @@ class TypeParameterFactory {
             newVariableBuilders[i],
             const NullabilityBuilder.omitted(),
             instanceTypeParameterAccess: instanceTypeParameterAccess,
+            uriOffset: oldVariableBuilder.uriOffset,
           );
       substitutionMap[oldVariableBuilder] = newTypeArgument;
       newTypeArguments.add(newTypeArgument);
@@ -211,11 +212,9 @@ void checkTypeParameterDependencies(
             typeName: dependency.typeParameterBoundOfItself.name,
           );
         }
-        problemReporting.addProblem(
+        problemReporting.addProblem2(
           message,
-          dependency.typeParameterBoundOfItself.fileOffset,
-          dependency.typeParameterBoundOfItself.name.length,
-          dependency.typeParameterBoundOfItself.fileUri,
+          dependency.typeParameterBoundOfItself.uriOffset,
         );
 
         typeParameter.bound =
@@ -225,19 +224,17 @@ void checkTypeParameterDependencies(
                 typeParameter.fileOffset,
               ),
               const NullabilityBuilder.omitted(),
-              fileUri: typeParameter.fileUri,
-              charOffset: typeParameter.fileOffset,
+              uriOffset: typeParameter.uriOffset,
               instanceTypeParameterAccess:
                   InstanceTypeParameterAccessState.Unexpected,
             )..bind(
               problemReporting,
               new InvalidBuilder(
                 typeParameter.name,
-                message.withLocation(
-                  dependency.typeParameterBoundOfItself.fileUri!,
-                  dependency.typeParameterBoundOfItself.fileOffset,
-                  dependency.typeParameterBoundOfItself.name.length,
+                message.withLocation2(
+                  dependency.typeParameterBoundOfItself.uriOffset,
                 ),
+                dependency.typeParameterBoundOfItself.uriOffset,
               ),
             );
       }

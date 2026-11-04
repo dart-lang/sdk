@@ -144,9 +144,7 @@ class FactoryDeclarationImpl
               _fragment.enclosingDeclaration.typeParameters,
           typeParameterFactory: typeParameterFactory,
           fullName: _fragment.constructorName.fullName,
-          fileUri: _fragment.fileUri,
-          fullNameOffset: _fragment.constructorName.fullNameOffset,
-          fullNameLength: _fragment.constructorName.fullNameLength,
+          uriOffset: _fragment.uriOffset,
         );
     _typeParameters = typeParameters;
     _returnType = returnType;

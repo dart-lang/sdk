@@ -355,6 +355,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       problemReporting: problemReporting,
       objectTypeBuilder: loader.target.objectType,
       enclosingLibraryBuilder: libraryBuilder,
+      uriOffset: _introductory.uriOffset,
       fileUri: _introductory.fileUri,
       indexedLibrary: indexedLibrary,
       supertype: _supertypeBuilder,
@@ -396,6 +397,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       objectClass,
       const NullabilityBuilder.omitted(),
       instanceTypeParameterAccess: InstanceTypeParameterAccessState.Unexpected,
+      uriOffset: uriOffset,
     );
     _interfaceBuilders = null;
     _mixedInTypeBuilder = null;
@@ -437,6 +439,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         const NullabilityBuilder.omitted(),
         instanceTypeParameterAccess:
             InstanceTypeParameterAccessState.Unexpected,
+        uriOffset: uriOffset,
       );
     }
     if (isMixinApplication) {
@@ -577,13 +580,12 @@ class SourceClassBuilder extends ClassBuilderImpl
       mixedInTypeBuilder.declaration!,
       new NullabilityBuilder.fromNullability(Nullability.nonNullable),
       arguments: typeArguments,
-      fileUri: mixedInTypeBuilder.fileUri,
-      charOffset: mixedInTypeBuilder.charOffset,
+      uriOffset: mixedInTypeBuilder.uriOffset,
     );
     libraryBuilder.registerBoundsCheck(
       mixedInType,
-      mixedInTypeBuilder.fileUri!,
-      mixedInTypeBuilder.charOffset!,
+      mixedInTypeBuilder.fileUri,
+      mixedInTypeBuilder.charOffset,
       TypeUse.classWithType,
       inferred: true,
     );
@@ -925,30 +927,15 @@ class SourceClassBuilder extends ClassBuilderImpl
       Message message,
       TypeDeclarationBuilder? aliasBuilder,
     ) {
-      int nameOffset = target.typeName!.nameOffset;
-      int nameLength = target.typeName!.nameLength;
       if (aliasBuilder is TypeAliasBuilder) {
         // Coverage-ignore-block(suite): Not run.
-        libraryBuilder.addProblem(
+        libraryBuilder.addProblem2(
           message,
-          nameOffset,
-          nameLength,
-          target.fileUri,
-          context: [
-            diag.typedefCause.withLocation(
-              aliasBuilder.fileUri,
-              aliasBuilder.fileOffset,
-              noLength,
-            ),
-          ],
+          target.uriOffset,
+          context: [diag.typedefCause.withLocation2(aliasBuilder.uriOffset)],
         );
       } else {
-        libraryBuilder.addProblem(
-          message,
-          nameOffset,
-          nameLength,
-          target.fileUri,
-        );
+        libraryBuilder.addProblem2(message, target.uriOffset);
       }
     }
 
@@ -996,12 +983,9 @@ class SourceClassBuilder extends ClassBuilderImpl
       if (superClass != null &&
           superClassType != null &&
           superClass.cls != objectClass) {
-        libraryBuilder.addProblem(
+        libraryBuilder.addProblem2(
           diag.mixinInheritsFromNotObject.withArguments(className: name),
-          superClassType.charOffset ?? TreeNode.noOffset,
-          noLength,
-          superClassType.fileUri ?? // Coverage-ignore(suite): Not run.
-              fileUri,
+          superClassType.uriOffset,
         );
       }
     }
@@ -1016,14 +1000,11 @@ class SourceClassBuilder extends ClassBuilderImpl
       if (mixinSuperClassNode != null &&
           mixinSuperClassNode.classBuilder.cls != objectClass &&
           !mixedInNode.classBuilder.cls.isMixinDeclaration) {
-        libraryBuilder.addProblem(
+        libraryBuilder.addProblem2(
           diag.mixinInheritsFromNotObject.withArguments(
             className: mixedInNode.classBuilder.name,
           ),
-          _mixedInTypeBuilder!.charOffset ?? TreeNode.noOffset,
-          noLength,
-          _mixedInTypeBuilder!.fileUri ?? // Coverage-ignore(suite): Not run.
-              fileUri,
+          _mixedInTypeBuilder!.uriOffset,
         );
       }
     }
@@ -1060,9 +1041,7 @@ class SourceClassBuilder extends ClassBuilderImpl
               problem.extraCount++;
             case null:
               problems[interface] = new RepeatedImplements(
-                uriOffset:
-                    type.uriOffset ?? // Coverage-ignore(suite): Not run.
-                    uriOffset,
+                uriOffset: type.uriOffset,
               );
           }
         } else {
@@ -1176,15 +1155,15 @@ class SourceClassBuilder extends ClassBuilderImpl
       return new NamedTypeBuilderImpl(
         typeName,
         const NullabilityBuilder.omitted(),
-        fileUri: fileUri,
-        charOffset: fileOffset,
+        uriOffset: uriOffset,
         instanceTypeParameterAccess:
             InstanceTypeParameterAccessState.Unexpected,
       )..bind(
         libraryBuilder,
         new InvalidBuilder(
           typeName.name,
-          message.withLocation(fileUri, fileOffset, noLength),
+          message.withLocation2(uriOffset),
+          uriOffset,
         ),
       );
     }
@@ -2369,6 +2348,7 @@ TypeBuilder? _applyMixins({
   required TypeParameterFactory typeParameterFactory,
   required TypeBuilder? supertype,
   required List<TypeBuilder>? mixins,
+  required UriOffsetLength uriOffset,
   required int startOffset,
   required int nameOffset,
   required int endOffset,
@@ -2502,8 +2482,7 @@ TypeBuilder? _applyMixins({
               // the class that extend the anonymous mixin application.
               typeParameter,
               const NullabilityBuilder.omitted(),
-              fileUri: fileUri,
-              charOffset: nameOffset,
+              uriOffset: uriOffset,
               instanceTypeParameterAccess:
                   InstanceTypeParameterAccessState.Allowed,
             );
@@ -2534,9 +2513,7 @@ TypeBuilder? _applyMixins({
       extensionScope: extensionScope,
       compilationUnitScope: compilationUnitScope,
       uriOffset: new UriOffset(fileUri, nameOffset),
-      fileUri: fileUri,
       startOffset: computedStartOffset,
-      nameOffset: nameOffset,
       endOffset: endOffset,
     );
 
@@ -2576,8 +2553,7 @@ TypeBuilder? _applyMixins({
       application,
       const NullabilityBuilder.omitted(),
       arguments: applicationTypeArguments,
-      fileUri: fileUri,
-      charOffset: nameOffset,
+      uriOffset: uriOffset,
       instanceTypeParameterAccess: InstanceTypeParameterAccessState.Allowed,
     );
     mixinApplications[application] = mixin;

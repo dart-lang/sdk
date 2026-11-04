@@ -142,19 +142,20 @@ class SourceEnumBuilder extends SourceClassBuilder {
       const PredefinedTypeName("Object"),
       const NullabilityBuilder.omitted(),
       instanceTypeParameterAccess: InstanceTypeParameterAccessState.Unexpected,
+      uriOffset: uriOffset,
     );
     selfType = new NamedTypeBuilderImpl(
       new SyntheticTypeName(name, fileOffset),
       const NullabilityBuilder.omitted(),
       instanceTypeParameterAccess: InstanceTypeParameterAccessState.Unexpected,
-      fileUri: fileUri,
-      charOffset: fileOffset,
+      uriOffset: uriOffset,
     );
     listType = new NamedTypeBuilderImpl(
       const PredefinedTypeName("List"),
       const NullabilityBuilder.omitted(),
       arguments: <TypeBuilder>[selfType],
       instanceTypeParameterAccess: InstanceTypeParameterAccessState.Unexpected,
+      uriOffset: uriOffset,
     );
   }
 
@@ -268,7 +269,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
       ConstructorDeclaration constructorDeclaration =
           new DefaultEnumConstructorDeclaration(
             returnType: libraryBuilder.loader.inferableTypes.addInferableType(
-              InferenceDefaultType.Dynamic,
+              inferenceDefaultType: InferenceDefaultType.Dynamic,
+              uriOffset: uriOffset,
             ),
             formals: [indexFormalParameterBuilder, nameFormalParameterBuilder],
             fileUri: fileUri,

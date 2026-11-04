@@ -200,28 +200,28 @@ library;
 //  - 'BarBaz' is from 'pkg/front_end/testcases/extension_types/extends_with.dart'.
 // Try changing the interface type to a supertype of 'BarBaz' or the representation type to a subtype of 'Bar'.
 // extension type ET18(BarBaz i) implements Bar with Foo, Bar implements Baz {}
-//                                          ^
+//                                          ^^^
 //
 // pkg/front_end/testcases/extension_types/extends_with.dart:30:42: Error: The implemented interface 'Bar' must be a supertype of the representation type 'BarBaz' of extension type 'ET19'.
 //  - 'Bar' is from 'pkg/front_end/testcases/extension_types/extends_with.dart'.
 //  - 'BarBaz' is from 'pkg/front_end/testcases/extension_types/extends_with.dart'.
 // Try changing the interface type to a supertype of 'BarBaz' or the representation type to a subtype of 'Bar'.
 // extension type ET19(BarBaz i) implements Bar extends Foo with Bar implements Baz {}
-//                                          ^
+//                                          ^^^
 //
 // pkg/front_end/testcases/extension_types/extends_with.dart:31:42: Error: The implemented interface 'Bar' must be a supertype of the representation type 'BarBaz' of extension type 'ET20'.
 //  - 'Bar' is from 'pkg/front_end/testcases/extension_types/extends_with.dart'.
 //  - 'BarBaz' is from 'pkg/front_end/testcases/extension_types/extends_with.dart'.
 // Try changing the interface type to a supertype of 'BarBaz' or the representation type to a subtype of 'Bar'.
 // extension type ET20(BarBaz i) implements Bar extends Foo with Bar, Baz implements Boz {}
-//                                          ^
+//                                          ^^^
 //
 // pkg/front_end/testcases/extension_types/extends_with.dart:32:39: Error: The implemented interface 'Bar' must be a supertype of the representation type 'Boz' of extension type 'ET21'.
 //  - 'Bar' is from 'pkg/front_end/testcases/extension_types/extends_with.dart'.
 //  - 'Boz' is from 'pkg/front_end/testcases/extension_types/extends_with.dart'.
 // Try changing the interface type to a supertype of 'Boz' or the representation type to a subtype of 'Bar'.
 // extension type ET21(Boz i) implements Bar implements Boz {}
-//                                       ^
+//                                       ^^^
 //
 import self as self;
 import "dart:core" as core;

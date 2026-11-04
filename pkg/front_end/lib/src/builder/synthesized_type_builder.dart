@@ -10,6 +10,7 @@ import 'package:kernel/src/bounds_checks.dart' show VarianceCalculationValue;
 import 'package:kernel/src/unaliasing.dart' as unaliasing;
 import 'package:kernel/type_algebra.dart' show Substitution;
 
+import '../base/uri_offset.dart';
 import '../kernel/type_algorithms.dart';
 import '../source/source_loader.dart';
 import '../source/type_parameter_factory.dart';
@@ -156,13 +157,16 @@ class SynthesizedTypeBuilder extends FixedTypeBuilder {
   }
 
   @override
-  int? get charOffset => _typeBuilder.charOffset;
+  int get charOffset => _typeBuilder.charOffset;
 
   @override
   String get debugName => _typeBuilder.debugName;
 
   @override
-  Uri? get fileUri => _typeBuilder.fileUri;
+  UriOffsetLength get uriOffset => _typeBuilder.uriOffset;
+
+  @override
+  Uri get fileUri => _typeBuilder.fileUri;
 
   @override
   // Coverage-ignore(suite): Not run.

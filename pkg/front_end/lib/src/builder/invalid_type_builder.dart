@@ -5,6 +5,7 @@
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 
+import '../base/uri_offset.dart';
 import '../kernel/type_algorithms.dart';
 import '../source/type_parameter_factory.dart';
 import 'declaration_builders.dart';
@@ -18,12 +19,17 @@ import 'type_builder.dart';
 /// used when an error has already been reported.
 class InvalidTypeBuilderImpl extends InvalidTypeBuilder {
   @override
-  final Uri fileUri;
+  final UriOffsetLength uriOffset;
+
+  new(this.uriOffset);
 
   @override
-  final int charOffset;
+  // Coverage-ignore(suite): Not run.
+  Uri get fileUri => uriOffset.fileUri;
 
-  new(this.fileUri, this.charOffset);
+  @override
+  // Coverage-ignore(suite): Not run.
+  int get charOffset => uriOffset.fileOffset;
 
   @override
   DartType build(

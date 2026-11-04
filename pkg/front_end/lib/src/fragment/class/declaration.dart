@@ -237,16 +237,10 @@ class AnonymousMixinApplication implements ClassDeclaration {
   final LookupScope compilationUnitScope;
 
   @override
-  final int nameOffset;
-
-  @override
   final int startOffset;
 
   @override
   final int endOffset;
-
-  @override
-  final Uri fileUri;
 
   @override
   final UriOffsetLength uriOffset;
@@ -259,11 +253,15 @@ class AnonymousMixinApplication implements ClassDeclaration {
     required this.extensionScope,
     required this.compilationUnitScope,
     required this.uriOffset,
-    required this.fileUri,
-    required this.nameOffset,
     required this.startOffset,
     required this.endOffset,
   });
+
+  @override
+  Uri get fileUri => uriOffset.fileUri;
+
+  @override
+  int get nameOffset => uriOffset.fileOffset;
 
   @override
   // Coverage-ignore(suite): Not run.

@@ -304,11 +304,9 @@ class SourceExtensionTypeDeclarationBuilder
               typeName: typeBuilder.fullNameForErrors,
             );
           }
-          libraryBuilder.addProblem(
+          libraryBuilder.addProblem2(
             errorMessage,
-            typeBuilder.charOffset!,
-            noLength,
-            typeBuilder.fileUri,
+            typeBuilder.uriOffset,
             context: errorContext,
           );
           continue;
@@ -340,12 +338,7 @@ class SourceExtensionTypeDeclarationBuilder
                       supertypeName: typeBuilder.typeName!.name,
                     );
               }
-              libraryBuilder.addProblem(
-                errorMessage,
-                typeBuilder.charOffset!,
-                noLength,
-                typeBuilder.fileUri,
-              );
+              libraryBuilder.addProblem2(errorMessage, typeBuilder.uriOffset);
             }
           }
         }
@@ -367,11 +360,9 @@ class SourceExtensionTypeDeclarationBuilder
                 ),
               ];
             }
-            libraryBuilder.addProblem(
+            libraryBuilder.addProblem2(
               errorMessage,
-              typeBuilder.charOffset!,
-              noLength,
-              typeBuilder.fileUri,
+              typeBuilder.uriOffset,
               context: errorContext,
             );
           } else {
@@ -401,11 +392,9 @@ class SourceExtensionTypeDeclarationBuilder
                 ];
               }
             }
-            libraryBuilder.addProblem(
+            libraryBuilder.addProblem2(
               errorMessage,
-              typeBuilder.charOffset!,
-              noLength,
-              typeBuilder.fileUri,
+              typeBuilder.uriOffset,
               context: errorContext,
             );
           } else {
@@ -425,11 +414,9 @@ class SourceExtensionTypeDeclarationBuilder
               ),
             ];
           }
-          libraryBuilder.addProblem(
+          libraryBuilder.addProblem2(
             errorMessage,
-            typeBuilder.charOffset!,
-            noLength,
-            typeBuilder.fileUri,
+            typeBuilder.uriOffset,
             context: errorContext,
           );
         } else {
@@ -453,11 +440,9 @@ class SourceExtensionTypeDeclarationBuilder
               typeName: typeBuilder.fullNameForErrors,
             );
           }
-          libraryBuilder.addProblem(
+          libraryBuilder.addProblem2(
             errorMessage,
-            typeBuilder.charOffset!,
-            noLength,
-            typeBuilder.fileUri,
+            typeBuilder.uriOffset,
             context: errorContext,
           );
         }
@@ -491,11 +476,9 @@ class SourceExtensionTypeDeclarationBuilder
               initialVariance: Variance.covariant,
             );
             if (representationType.accept(checker)) {
-              libraryBuilder.addProblem(
+              libraryBuilder.addProblem2(
                 diag.nonCovariantTypeParameterInRepresentationType,
-                typeBuilder.charOffset!,
-                noLength,
-                typeBuilder.fileUri,
+                typeBuilder.uriOffset,
               );
             }
           }
@@ -571,11 +554,9 @@ class SourceExtensionTypeDeclarationBuilder
                 ),
               );
             }
-            libraryBuilder.addProblem(
+            libraryBuilder.addProblem2(
               diag.cyclicRepresentationDependency,
-              _representationFieldFragment!.type.charOffset!,
-              noLength,
-              _representationFieldFragment!.type.fileUri,
+              _representationFieldFragment!.type.uriOffset,
               context: context,
             );
             return true;
@@ -729,15 +710,13 @@ class SourceExtensionTypeDeclarationBuilder
             _declaredRepresentationType,
             interface,
           )) {
-            libraryBuilder.addProblem(
+            libraryBuilder.addProblem2(
               diag.invalidExtensionTypeSuperInterface.withArguments(
                 interfaceType: interface,
                 representationType: _declaredRepresentationType,
                 extensionTypeName: name,
               ),
-              typeBuilder.charOffset!,
-              noLength,
-              typeBuilder.fileUri,
+              typeBuilder.uriOffset,
             );
           }
         } else if (interface is ExtensionType) {
@@ -753,7 +732,7 @@ class SourceExtensionTypeDeclarationBuilder
               _declaredRepresentationType,
               instantiatedImplementedRepresentationType,
             )) {
-              libraryBuilder.addProblem(
+              libraryBuilder.addProblem2(
                 diag.invalidExtensionTypeSuperExtensionType.withArguments(
                   representationType: _declaredRepresentationType,
                   extensionTypeName: name,
@@ -761,9 +740,7 @@ class SourceExtensionTypeDeclarationBuilder
                       instantiatedImplementedRepresentationType,
                   implementedExtensionType: interface,
                 ),
-                typeBuilder.charOffset!,
-                noLength,
-                typeBuilder.fileUri,
+                typeBuilder.uriOffset,
               );
             }
           }
@@ -781,10 +758,7 @@ class SourceExtensionTypeDeclarationBuilder
                 problem.extraCount++;
               case null:
                 duplicationProblems[typeDeclaration] = new RepeatedImplements(
-                  uriOffset:
-                      typeBuilder
-                          .uriOffset ?? // Coverage-ignore(suite): Not run.
-                      uriOffset,
+                  uriOffset: typeBuilder.uriOffset,
                 );
             }
           } else {
