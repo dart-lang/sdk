@@ -30,6 +30,7 @@ abstract class AbstractLspAnalysisServerIntegrationTest
         LspNotificationsMixin,
         LspAnalysisServerTestMixin {
   final List<String> vmArgs = [];
+  final List<String> serverArgs = [];
   LspServerClient? client;
   InstrumentationService? instrumentationService;
   final Map<Either2<int, String>, Completer<ResponseMessage>> _completers = {};
@@ -208,6 +209,7 @@ abstract class AbstractLspAnalysisServerIntegrationTest
       vmArgs: vmArgs,
       additionalServerArgs: [
         '--instrumentation-log-file=${instrumentationLogFilePath.path}',
+        ...serverArgs,
       ],
     );
     client.serverToClient.listen((message) {

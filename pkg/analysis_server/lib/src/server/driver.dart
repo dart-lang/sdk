@@ -167,6 +167,12 @@ class Driver implements ServerStarter {
 
   static const String pluginsFlag = 'plugins';
 
+  static const String trustPluginsFlag = 'trust-plugins';
+
+  static const String alwaysTrustPluginsFlag = 'always-trust-plugins';
+
+  static const String neverTrustPluginsFlag = 'never-trust-plugins';
+
   /// The builder for attachments that should be included into crash reports.
   CrashReportingAttachmentsBuilder crashReportingAttachmentsBuilder =
       CrashReportingAttachmentsBuilder.empty;
@@ -240,7 +246,16 @@ class Driver implements ServerStarter {
     var sdkConfig = SdkConfiguration.readFromSdk();
     analysisServerOptions.configurationOverrides = sdkConfig;
 
-    analysisServerOptions.usePlugins = results.flag(pluginsFlag);
+    analysisServerOptions.usePlugins = results.wasParsed(pluginsFlag)
+        ? results.flag(pluginsFlag)
+        : null;
+    analysisServerOptions.trustPlugins = results.flag(trustPluginsFlag);
+    analysisServerOptions.alwaysTrustPlugins = results.flag(
+      alwaysTrustPluginsFlag,
+    );
+    analysisServerOptions.neverTrustPlugins = results.flag(
+      neverTrustPluginsFlag,
+    );
 
     var defaultSdkPath = _getSdkPath(results);
     var dartSdkManager = DartSdkManager(defaultSdkPath);
@@ -1007,7 +1022,31 @@ class Driver implements ServerStarter {
     parser.addFlag(
       pluginsFlag,
       help: 'Use analyzer plugins',
-      defaultsTo: true,
+      defaultsTo: null,
+      hide: true,
+    );
+    parser.addFlag(
+      trustPluginsFlag,
+      help:
+          'Trust and run the analyzer plugins specified in analysis options, '
+          'with their current contents.',
+      negatable: false,
+      hide: true,
+    );
+    parser.addFlag(
+      alwaysTrustPluginsFlag,
+      help:
+          'Always trust and run the analyzer plugins specified in analysis '
+          'options.',
+      negatable: false,
+      hide: true,
+    );
+    parser.addFlag(
+      neverTrustPluginsFlag,
+      help:
+          'Never trust or run the analyzer plugins specified in analysis '
+          'options.',
+      negatable: false,
       hide: true,
     );
     parser.addFlag(

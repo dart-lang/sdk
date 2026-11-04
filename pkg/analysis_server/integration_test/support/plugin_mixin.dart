@@ -86,6 +86,12 @@ mixin PluginMixin on AbstractLspAnalysisServerIntegrationTest {
   }
 
   @override
+  Future<void> setUp() async {
+    serverArgs.add('--plugins');
+    await super.setUp();
+  }
+
+  @override
   Future<void> tearDown() async {
     await super.tearDown();
     Directory(pluginsFolderPath).deleteSync(recursive: true);

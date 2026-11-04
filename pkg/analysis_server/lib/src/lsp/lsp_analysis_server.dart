@@ -932,6 +932,7 @@ class LspAnalysisServer extends AnalysisServer {
     showMessageToUser(MessageType.error, message);
   }
 
+  @override
   void showMessageToUser(MessageType type, String message) {
     channel.sendNotification(
       NotificationMessage(
