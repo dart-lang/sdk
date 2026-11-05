@@ -3355,6 +3355,80 @@ ParenthesizedExpression
 ''');
   }
 
+  void test_namedFunctionExpression_hasReturnType() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+var x = (int f() {});
+//           ^
+// [diag.namedFunctionExpression] Function expressions can't be named.
+''');
+
+    var node = parseResult.findNode.singleTopLevelVariable;
+    assertParsedNodeText(node, r'''
+TopLevelVariable
+  name: x
+  equals: =
+  initializer: ParenthesizedExpression
+    leftParenthesis: (
+    expression2: FunctionExpression
+      parameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+    rightParenthesis: )
+''');
+  }
+
+  void test_namedFunctionExpression_nameWhen() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+var x = (when() {});
+//       ^^^^
+// [diag.namedFunctionExpression] Function expressions can't be named.
+''');
+
+    var node = parseResult.findNode.singleTopLevelVariable;
+    assertParsedNodeText(node, r'''
+TopLevelVariable
+  name: x
+  equals: =
+  initializer: ParenthesizedExpression
+    leftParenthesis: (
+    expression2: FunctionExpression
+      parameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+    rightParenthesis: )
+''');
+  }
+
+  void test_namedFunctionExpression_nameWhen_hasReturnType() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+var x = (int when() {});
+//           ^^^^
+// [diag.expectedToken] Expected to find ')'.
+''');
+
+    var node = parseResult.findNode.singleTopLevelVariable;
+    assertParsedNodeText(node, r'''
+TopLevelVariable
+  name: x
+  equals: =
+  initializer: ParenthesizedExpression
+    leftParenthesis: (
+    expression2: ParsedUnqualifiedName
+      name: int
+    expression(v1): SimpleIdentifier
+      token: int
+    rightParenthesis: )
+''');
+  }
+
   void test_namedParameterOutsideGroup() {
     var result = parseTestCodeWithDiagnostics(r'''
 void f(a, b : 0) {}

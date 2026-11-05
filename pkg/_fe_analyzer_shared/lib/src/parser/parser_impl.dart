@@ -8857,6 +8857,14 @@ class Parser {
 
     Token beforeName = typeInfo.skipType(token);
     Token name = beforeName.next!;
+
+    // In `case a when () {}()` the `when` starts a guard, it isn't the name of
+    // a function returning `a`. Named function expressions are invalid anyway,
+    // so recovering one here could only reject valid code.
+    if (typeInfo != noType && name.isA(Keyword.WHEN)) {
+      return parseSend(token, context, constantPatternContext);
+    }
+
     if (name.isIdentifier) {
       TypeParamOrArgInfo typeParam = computeTypeParamOrArg(name);
       Token next = typeParam.skip(name).next!;

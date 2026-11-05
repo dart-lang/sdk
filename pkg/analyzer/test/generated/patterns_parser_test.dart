@@ -3833,6 +3833,1290 @@ SwitchPatternCase
 ''');
   }
 
+  test_functionExpression_allowed_insideWhenClause_afterIdentifier_ifElement() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+f(x) => [if (x case a when () { return true; }()) 0];
+''');
+    var node = parseResult.findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: ConstantPattern
+    expression2: ParsedUnqualifiedName
+      name: a
+    expression(v1): SimpleIdentifier
+      token: a
+  whenClause: WhenClause
+    whenKeyword: when
+    expression2: CallInvocation
+      receiver: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            statements2
+              ReturnStatement
+                returnKeyword: return
+                expression2: BooleanLiteral
+                  literal: true
+                semicolon: ;
+            rightBracket: }
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+    expression(v1): FunctionExpressionInvocation
+      function: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            statements
+              ReturnStatement
+                returnKeyword: return
+                expression: BooleanLiteral
+                  literal: true
+                semicolon: ;
+            rightBracket: }
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+''');
+  }
+
+  test_functionExpression_allowed_insideWhenClause_afterIdentifier_ifStatement() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+void f(x) {
+  if (x case a when () { return true; }()) {}
+}
+''');
+    var node = parseResult.findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: ConstantPattern
+    expression2: ParsedUnqualifiedName
+      name: a
+    expression(v1): SimpleIdentifier
+      token: a
+  whenClause: WhenClause
+    whenKeyword: when
+    expression2: CallInvocation
+      receiver: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            statements2
+              ReturnStatement
+                returnKeyword: return
+                expression2: BooleanLiteral
+                  literal: true
+                semicolon: ;
+            rightBracket: }
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+    expression(v1): FunctionExpressionInvocation
+      function: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            statements
+              ReturnStatement
+                returnKeyword: return
+                expression: BooleanLiteral
+                  literal: true
+                semicolon: ;
+            rightBracket: }
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+''');
+  }
+
+  test_functionExpression_allowed_insideWhenClause_afterIdentifier_switchStatement() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+void f(x) {
+  switch (x) {
+    case a when () { return true; }():
+      break;
+  }
+}
+''');
+    var node = parseResult.findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: ConstantPattern
+    expression2: ParsedUnqualifiedName
+      name: a
+    expression(v1): SimpleIdentifier
+      token: a
+  whenClause: WhenClause
+    whenKeyword: when
+    expression2: CallInvocation
+      receiver: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            statements2
+              ReturnStatement
+                returnKeyword: return
+                expression2: BooleanLiteral
+                  literal: true
+                semicolon: ;
+            rightBracket: }
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+    expression(v1): FunctionExpressionInvocation
+      function: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            statements
+              ReturnStatement
+                returnKeyword: return
+                expression: BooleanLiteral
+                  literal: true
+                semicolon: ;
+            rightBracket: }
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+''');
+  }
+
+  test_functionExpression_allowed_insideWhenClause_afterLogicalOr_ifElement() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+f(x) => [if (x case 0 || a when () { return true; }()) 0];
+''');
+    var node = parseResult.findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: LogicalOrPattern
+    leftOperand: ConstantPattern
+      expression2: IntegerLiteral
+        literal: 0
+    operator: ||
+    rightOperand: ConstantPattern
+      expression2: ParsedUnqualifiedName
+        name: a
+      expression(v1): SimpleIdentifier
+        token: a
+  whenClause: WhenClause
+    whenKeyword: when
+    expression2: CallInvocation
+      receiver: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            statements2
+              ReturnStatement
+                returnKeyword: return
+                expression2: BooleanLiteral
+                  literal: true
+                semicolon: ;
+            rightBracket: }
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+    expression(v1): FunctionExpressionInvocation
+      function: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            statements
+              ReturnStatement
+                returnKeyword: return
+                expression: BooleanLiteral
+                  literal: true
+                semicolon: ;
+            rightBracket: }
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+''');
+  }
+
+  test_functionExpression_allowed_insideWhenClause_afterLogicalOr_ifStatement() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+void f(x) {
+  if (x case 0 || a when () { return true; }()) {}
+}
+''');
+    var node = parseResult.findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: LogicalOrPattern
+    leftOperand: ConstantPattern
+      expression2: IntegerLiteral
+        literal: 0
+    operator: ||
+    rightOperand: ConstantPattern
+      expression2: ParsedUnqualifiedName
+        name: a
+      expression(v1): SimpleIdentifier
+        token: a
+  whenClause: WhenClause
+    whenKeyword: when
+    expression2: CallInvocation
+      receiver: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            statements2
+              ReturnStatement
+                returnKeyword: return
+                expression2: BooleanLiteral
+                  literal: true
+                semicolon: ;
+            rightBracket: }
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+    expression(v1): FunctionExpressionInvocation
+      function: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            statements
+              ReturnStatement
+                returnKeyword: return
+                expression: BooleanLiteral
+                  literal: true
+                semicolon: ;
+            rightBracket: }
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+''');
+  }
+
+  test_functionExpression_allowed_insideWhenClause_afterLogicalOr_switchStatement() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+void f(x) {
+  switch (x) {
+    case 0 || a when () { return true; }():
+      break;
+  }
+}
+''');
+    var node = parseResult.findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: LogicalOrPattern
+    leftOperand: ConstantPattern
+      expression2: IntegerLiteral
+        literal: 0
+    operator: ||
+    rightOperand: ConstantPattern
+      expression2: ParsedUnqualifiedName
+        name: a
+      expression(v1): SimpleIdentifier
+        token: a
+  whenClause: WhenClause
+    whenKeyword: when
+    expression2: CallInvocation
+      receiver: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            statements2
+              ReturnStatement
+                returnKeyword: return
+                expression2: BooleanLiteral
+                  literal: true
+                semicolon: ;
+            rightBracket: }
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+    expression(v1): FunctionExpressionInvocation
+      function: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            statements
+              ReturnStatement
+                returnKeyword: return
+                expression: BooleanLiteral
+                  literal: true
+                semicolon: ;
+            rightBracket: }
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+''');
+  }
+
+  test_functionExpression_allowed_insideWhenClause_afterNullCheck_ifElement() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+f(x) => [if (x case a? when () { return true; }()) 0];
+''');
+    var node = parseResult.findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: NullCheckPattern
+    pattern: ConstantPattern
+      expression2: ParsedUnqualifiedName
+        name: a
+      expression(v1): SimpleIdentifier
+        token: a
+    operator: ?
+  whenClause: WhenClause
+    whenKeyword: when
+    expression2: CallInvocation
+      receiver: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            statements2
+              ReturnStatement
+                returnKeyword: return
+                expression2: BooleanLiteral
+                  literal: true
+                semicolon: ;
+            rightBracket: }
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+    expression(v1): FunctionExpressionInvocation
+      function: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            statements
+              ReturnStatement
+                returnKeyword: return
+                expression: BooleanLiteral
+                  literal: true
+                semicolon: ;
+            rightBracket: }
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+''');
+  }
+
+  test_functionExpression_allowed_insideWhenClause_afterNullCheck_ifStatement() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+void f(x) {
+  if (x case a? when () { return true; }()) {}
+}
+''');
+    var node = parseResult.findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: NullCheckPattern
+    pattern: ConstantPattern
+      expression2: ParsedUnqualifiedName
+        name: a
+      expression(v1): SimpleIdentifier
+        token: a
+    operator: ?
+  whenClause: WhenClause
+    whenKeyword: when
+    expression2: CallInvocation
+      receiver: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            statements2
+              ReturnStatement
+                returnKeyword: return
+                expression2: BooleanLiteral
+                  literal: true
+                semicolon: ;
+            rightBracket: }
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+    expression(v1): FunctionExpressionInvocation
+      function: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            statements
+              ReturnStatement
+                returnKeyword: return
+                expression: BooleanLiteral
+                  literal: true
+                semicolon: ;
+            rightBracket: }
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+''');
+  }
+
+  test_functionExpression_allowed_insideWhenClause_afterNullCheck_switchStatement() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+void f(x) {
+  switch (x) {
+    case a? when () { return true; }():
+      break;
+  }
+}
+''');
+    var node = parseResult.findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: NullCheckPattern
+    pattern: ConstantPattern
+      expression2: ParsedUnqualifiedName
+        name: a
+      expression(v1): SimpleIdentifier
+        token: a
+    operator: ?
+  whenClause: WhenClause
+    whenKeyword: when
+    expression2: CallInvocation
+      receiver: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            statements2
+              ReturnStatement
+                returnKeyword: return
+                expression2: BooleanLiteral
+                  literal: true
+                semicolon: ;
+            rightBracket: }
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+    expression(v1): FunctionExpressionInvocation
+      function: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            statements
+              ReturnStatement
+                returnKeyword: return
+                expression: BooleanLiteral
+                  literal: true
+                semicolon: ;
+            rightBracket: }
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+''');
+  }
+
+  test_functionExpression_allowed_insideWhenClause_afterPrefixedIdentifier_ifElement() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+f(x) => [if (x case p.a when () { return true; }()) 0];
+''');
+    var node = parseResult.findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: ConstantPattern
+    expression2: ParsedNameAccess
+      operand: ParsedUnqualifiedName
+        name: p
+      operator: .
+      name: a
+    expression(v1): PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: p
+      period: .
+      identifier: SimpleIdentifier
+        token: a
+  whenClause: WhenClause
+    whenKeyword: when
+    expression2: CallInvocation
+      receiver: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            statements2
+              ReturnStatement
+                returnKeyword: return
+                expression2: BooleanLiteral
+                  literal: true
+                semicolon: ;
+            rightBracket: }
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+    expression(v1): FunctionExpressionInvocation
+      function: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            statements
+              ReturnStatement
+                returnKeyword: return
+                expression: BooleanLiteral
+                  literal: true
+                semicolon: ;
+            rightBracket: }
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+''');
+  }
+
+  test_functionExpression_allowed_insideWhenClause_afterPrefixedIdentifier_ifStatement() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+void f(x) {
+  if (x case p.a when () { return true; }()) {}
+}
+''');
+    var node = parseResult.findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: ConstantPattern
+    expression2: ParsedNameAccess
+      operand: ParsedUnqualifiedName
+        name: p
+      operator: .
+      name: a
+    expression(v1): PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: p
+      period: .
+      identifier: SimpleIdentifier
+        token: a
+  whenClause: WhenClause
+    whenKeyword: when
+    expression2: CallInvocation
+      receiver: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            statements2
+              ReturnStatement
+                returnKeyword: return
+                expression2: BooleanLiteral
+                  literal: true
+                semicolon: ;
+            rightBracket: }
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+    expression(v1): FunctionExpressionInvocation
+      function: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            statements
+              ReturnStatement
+                returnKeyword: return
+                expression: BooleanLiteral
+                  literal: true
+                semicolon: ;
+            rightBracket: }
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+''');
+  }
+
+  test_functionExpression_allowed_insideWhenClause_afterPrefixedIdentifier_switchStatement() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+void f(x) {
+  switch (x) {
+    case p.a when () { return true; }():
+      break;
+  }
+}
+''');
+    var node = parseResult.findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: ConstantPattern
+    expression2: ParsedNameAccess
+      operand: ParsedUnqualifiedName
+        name: p
+      operator: .
+      name: a
+    expression(v1): PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: p
+      period: .
+      identifier: SimpleIdentifier
+        token: a
+  whenClause: WhenClause
+    whenKeyword: when
+    expression2: CallInvocation
+      receiver: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            statements2
+              ReturnStatement
+                returnKeyword: return
+                expression2: BooleanLiteral
+                  literal: true
+                semicolon: ;
+            rightBracket: }
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+    expression(v1): FunctionExpressionInvocation
+      function: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            statements
+              ReturnStatement
+                returnKeyword: return
+                expression: BooleanLiteral
+                  literal: true
+                semicolon: ;
+            rightBracket: }
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+''');
+  }
+
+  test_functionExpression_allowed_insideWhenClause_afterRelational_ifElement() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+f(x) => [if (x case == a when () { return true; }()) 0];
+''');
+    var node = parseResult.findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: RelationalPattern
+    operator: ==
+    operand2: ParsedUnqualifiedName
+      name: a
+    operand(v1): SimpleIdentifier
+      token: a
+  whenClause: WhenClause
+    whenKeyword: when
+    expression2: CallInvocation
+      receiver: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            statements2
+              ReturnStatement
+                returnKeyword: return
+                expression2: BooleanLiteral
+                  literal: true
+                semicolon: ;
+            rightBracket: }
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+    expression(v1): FunctionExpressionInvocation
+      function: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            statements
+              ReturnStatement
+                returnKeyword: return
+                expression: BooleanLiteral
+                  literal: true
+                semicolon: ;
+            rightBracket: }
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+''');
+  }
+
+  test_functionExpression_allowed_insideWhenClause_afterRelational_ifStatement() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+void f(x) {
+  if (x case == a when () { return true; }()) {}
+}
+''');
+    var node = parseResult.findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: RelationalPattern
+    operator: ==
+    operand2: ParsedUnqualifiedName
+      name: a
+    operand(v1): SimpleIdentifier
+      token: a
+  whenClause: WhenClause
+    whenKeyword: when
+    expression2: CallInvocation
+      receiver: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            statements2
+              ReturnStatement
+                returnKeyword: return
+                expression2: BooleanLiteral
+                  literal: true
+                semicolon: ;
+            rightBracket: }
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+    expression(v1): FunctionExpressionInvocation
+      function: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            statements
+              ReturnStatement
+                returnKeyword: return
+                expression: BooleanLiteral
+                  literal: true
+                semicolon: ;
+            rightBracket: }
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+''');
+  }
+
+  test_functionExpression_allowed_insideWhenClause_afterRelational_switchStatement() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+void f(x) {
+  switch (x) {
+    case == a when () { return true; }():
+      break;
+  }
+}
+''');
+    var node = parseResult.findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: RelationalPattern
+    operator: ==
+    operand2: ParsedUnqualifiedName
+      name: a
+    operand(v1): SimpleIdentifier
+      token: a
+  whenClause: WhenClause
+    whenKeyword: when
+    expression2: CallInvocation
+      receiver: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            statements2
+              ReturnStatement
+                returnKeyword: return
+                expression2: BooleanLiteral
+                  literal: true
+                semicolon: ;
+            rightBracket: }
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+    expression(v1): FunctionExpressionInvocation
+      function: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            statements
+              ReturnStatement
+                returnKeyword: return
+                expression: BooleanLiteral
+                  literal: true
+                semicolon: ;
+            rightBracket: }
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+''');
+  }
+
+  test_functionExpression_allowed_insideWhenClause_arrowBody_ifElement() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+f(x) => [if (x case a when () => true) 0];
+''');
+    var node = parseResult.findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: ConstantPattern
+    expression2: ParsedUnqualifiedName
+      name: a
+    expression(v1): SimpleIdentifier
+      token: a
+  whenClause: WhenClause
+    whenKeyword: when
+    expression2: FunctionExpression
+      parameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: ExpressionFunctionBody
+        functionDefinition: =>
+        expression2: BooleanLiteral
+          literal: true
+''');
+  }
+
+  test_functionExpression_allowed_insideWhenClause_arrowBody_ifStatement() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+void f(x) {
+  if (x case a when () => true) {}
+}
+''');
+    var node = parseResult.findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: ConstantPattern
+    expression2: ParsedUnqualifiedName
+      name: a
+    expression(v1): SimpleIdentifier
+      token: a
+  whenClause: WhenClause
+    whenKeyword: when
+    expression2: FunctionExpression
+      parameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: ExpressionFunctionBody
+        functionDefinition: =>
+        expression2: BooleanLiteral
+          literal: true
+''');
+  }
+
+  test_functionExpression_allowed_insideWhenClause_arrowBody_switchStatement() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+void f(x) {
+  switch (x) {
+    case a when () => true:
+      break;
+  }
+}
+''');
+    var node = parseResult.findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: ConstantPattern
+    expression2: ParsedUnqualifiedName
+      name: a
+    expression(v1): SimpleIdentifier
+      token: a
+  whenClause: WhenClause
+    whenKeyword: when
+    expression2: FunctionExpression
+      parameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: ExpressionFunctionBody
+        functionDefinition: =>
+        expression2: BooleanLiteral
+          literal: true
+''');
+  }
+
+  test_functionExpression_allowed_insideWhenClause_asyncBody_ifElement() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+f(x) => [if (x case a when () async { return true; }) 0];
+''');
+    var node = parseResult.findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: ConstantPattern
+    expression2: ParsedUnqualifiedName
+      name: a
+    expression(v1): SimpleIdentifier
+      token: a
+  whenClause: WhenClause
+    whenKeyword: when
+    expression2: FunctionExpression
+      parameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ReturnStatement
+              returnKeyword: return
+              expression2: BooleanLiteral
+                literal: true
+              semicolon: ;
+          rightBracket: }
+''');
+  }
+
+  test_functionExpression_allowed_insideWhenClause_asyncBody_ifStatement() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+void f(x) {
+  if (x case a when () async { return true; }) {}
+}
+''');
+    var node = parseResult.findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: ConstantPattern
+    expression2: ParsedUnqualifiedName
+      name: a
+    expression(v1): SimpleIdentifier
+      token: a
+  whenClause: WhenClause
+    whenKeyword: when
+    expression2: FunctionExpression
+      parameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ReturnStatement
+              returnKeyword: return
+              expression2: BooleanLiteral
+                literal: true
+              semicolon: ;
+          rightBracket: }
+''');
+  }
+
+  test_functionExpression_allowed_insideWhenClause_asyncBody_switchStatement() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+void f(x) {
+  switch (x) {
+    case a when () async { return true; }:
+      break;
+  }
+}
+''');
+    var node = parseResult.findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: ConstantPattern
+    expression2: ParsedUnqualifiedName
+      name: a
+    expression(v1): SimpleIdentifier
+      token: a
+  whenClause: WhenClause
+    whenKeyword: when
+    expression2: FunctionExpression
+      parameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: async
+        block: Block
+          leftBracket: {
+          statements2
+            ReturnStatement
+              returnKeyword: return
+              expression2: BooleanLiteral
+                literal: true
+              semicolon: ;
+          rightBracket: }
+''');
+  }
+
+  test_functionExpression_allowed_insideWhenClause_generatorBody_ifElement() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+f(x) => [if (x case a when () sync* { yield true; }) 0];
+''');
+    var node = parseResult.findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: ConstantPattern
+    expression2: ParsedUnqualifiedName
+      name: a
+    expression(v1): SimpleIdentifier
+      token: a
+  whenClause: WhenClause
+    whenKeyword: when
+    expression2: FunctionExpression
+      parameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: sync
+        star: *
+        block: Block
+          leftBracket: {
+          statements2
+            YieldStatement
+              yieldKeyword: yield
+              expression2: BooleanLiteral
+                literal: true
+              semicolon: ;
+          rightBracket: }
+''');
+  }
+
+  test_functionExpression_allowed_insideWhenClause_generatorBody_ifStatement() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+void f(x) {
+  if (x case a when () sync* { yield true; }) {}
+}
+''');
+    var node = parseResult.findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: ConstantPattern
+    expression2: ParsedUnqualifiedName
+      name: a
+    expression(v1): SimpleIdentifier
+      token: a
+  whenClause: WhenClause
+    whenKeyword: when
+    expression2: FunctionExpression
+      parameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: sync
+        star: *
+        block: Block
+          leftBracket: {
+          statements2
+            YieldStatement
+              yieldKeyword: yield
+              expression2: BooleanLiteral
+                literal: true
+              semicolon: ;
+          rightBracket: }
+''');
+  }
+
+  test_functionExpression_allowed_insideWhenClause_generatorBody_switchStatement() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+void f(x) {
+  switch (x) {
+    case a when () sync* { yield true; }:
+      break;
+  }
+}
+''');
+    var node = parseResult.findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: ConstantPattern
+    expression2: ParsedUnqualifiedName
+      name: a
+    expression(v1): SimpleIdentifier
+      token: a
+  whenClause: WhenClause
+    whenKeyword: when
+    expression2: FunctionExpression
+      parameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: sync
+        star: *
+        block: Block
+          leftBracket: {
+          statements2
+            YieldStatement
+              yieldKeyword: yield
+              expression2: BooleanLiteral
+                literal: true
+              semicolon: ;
+          rightBracket: }
+''');
+  }
+
+  test_functionExpression_allowed_insideWhenClause_typeParameters_ifElement() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+f(x) => [if (x case a when <T>() { return true; }) 0];
+''');
+    var node = parseResult.findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: ConstantPattern
+    expression2: ParsedUnqualifiedName
+      name: a
+    expression(v1): SimpleIdentifier
+      token: a
+  whenClause: WhenClause
+    whenKeyword: when
+    expression2: FunctionExpression
+      typeParameters: TypeParameterList
+        leftBracket: <
+        typeParameters
+          TypeParameter
+            name: T
+        rightBracket: >
+      parameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ReturnStatement
+              returnKeyword: return
+              expression2: BooleanLiteral
+                literal: true
+              semicolon: ;
+          rightBracket: }
+''');
+  }
+
+  test_functionExpression_allowed_insideWhenClause_typeParameters_ifStatement() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+void f(x) {
+  if (x case a when <T>() { return true; }) {}
+}
+''');
+    var node = parseResult.findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: ConstantPattern
+    expression2: ParsedUnqualifiedName
+      name: a
+    expression(v1): SimpleIdentifier
+      token: a
+  whenClause: WhenClause
+    whenKeyword: when
+    expression2: FunctionExpression
+      typeParameters: TypeParameterList
+        leftBracket: <
+        typeParameters
+          TypeParameter
+            name: T
+        rightBracket: >
+      parameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ReturnStatement
+              returnKeyword: return
+              expression2: BooleanLiteral
+                literal: true
+              semicolon: ;
+          rightBracket: }
+''');
+  }
+
+  test_functionExpression_allowed_insideWhenClause_typeParameters_switchStatement() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+void f(x) {
+  switch (x) {
+    case a when <T>() { return true; }:
+      break;
+  }
+}
+''');
+    var node = parseResult.findNode.singleGuardedPattern;
+    assertParsedNodeText(node, r'''
+GuardedPattern
+  pattern: ConstantPattern
+    expression2: ParsedUnqualifiedName
+      name: a
+    expression(v1): SimpleIdentifier
+      token: a
+  whenClause: WhenClause
+    whenKeyword: when
+    expression2: FunctionExpression
+      typeParameters: TypeParameterList
+        leftBracket: <
+        typeParameters
+          TypeParameter
+            name: T
+        rightBracket: >
+      parameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ReturnStatement
+              returnKeyword: return
+              expression2: BooleanLiteral
+                literal: true
+              semicolon: ;
+          rightBracket: }
+''');
+  }
+
   test_functionExpression_disallowed_afterListPattern() {
     var parseResult = parseTestCodeWithDiagnostics('''
 f(x) => switch(x) { [_] when () => 0 };
@@ -4019,6 +5303,33 @@ SwitchExpressionCase
   arrow: =>
   expression2: IntegerLiteral
     literal: 0
+''');
+  }
+
+  test_functionExpression_disallowed_insideWhenClause_afterIdentifier_switchExpression() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+f(x) => switch (x) {
+  a when () => true,
+  _ => false,
+};
+''');
+    var node = parseResult.findNode.switchExpressionCase('a when');
+    assertParsedNodeText(node, r'''
+SwitchExpressionCase
+  guardedPattern: GuardedPattern
+    pattern: ConstantPattern
+      expression2: ParsedUnqualifiedName
+        name: a
+      expression(v1): SimpleIdentifier
+        token: a
+    whenClause: WhenClause
+      whenKeyword: when
+      expression2: RecordLiteral
+        leftParenthesis: (
+        rightParenthesis: )
+  arrow: =>
+  expression2: BooleanLiteral
+    literal: true
 ''');
   }
 
