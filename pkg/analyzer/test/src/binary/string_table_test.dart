@@ -37,7 +37,7 @@ class StringTableTest {
       '${'abcdefghijklmnopqrstuvwxyz' * 2}_привет',
       'привет_${'abcdefghijklmnopqrstuvwxyz' * 2}',
     ];
-    for (var payloadLength = 5000; payloadLength < 5200; payloadLength++) {
+    for (var payloadLength = 4930; payloadLength < 5120; payloadLength++) {
       _assertRoundTrip(strings, payloadLength: payloadLength);
     }
   }
