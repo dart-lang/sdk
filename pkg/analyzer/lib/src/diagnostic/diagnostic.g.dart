@@ -4494,6 +4494,24 @@ const DiagnosticWithoutArguments duplicateImport =
       expectedTypes: [],
     );
 
+/// Duplicate imports.
+///
+/// Parameters:
+/// String fileName: the name of the file containing the duplicated import
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String fileName})
+>
+duplicateImportInPart = DiagnosticWithArguments(
+  name: 'duplicate_import',
+  problemMessage: "Duplicate of import in '{0}'.",
+  correctionMessage: "Try removing all but one import of the library.",
+  hasPublishedDocs: true,
+  type: DiagnosticType.STATIC_WARNING,
+  uniqueName: 'duplicate_import_in_part',
+  withArguments: _withArgumentsDuplicateImportInPart,
+  expectedTypes: [ExpectedType.string],
+);
+
 /// Parameters:
 /// 0: the label that was duplicated
 ///
@@ -20748,6 +20766,12 @@ LocatableDiagnostic _withArgumentsDuplicateFieldName({required String name}) {
 
 LocatableDiagnostic _withArgumentsDuplicateIgnore({required String name}) {
   return LocatableDiagnosticImpl(diag.duplicateIgnore, [name]);
+}
+
+LocatableDiagnostic _withArgumentsDuplicateImportInPart({
+  required String fileName,
+}) {
+  return LocatableDiagnosticImpl(diag.duplicateImportInPart, [fileName]);
 }
 
 LocatableDiagnostic _withArgumentsDuplicateNamedArgument({

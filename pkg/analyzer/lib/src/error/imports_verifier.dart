@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/dart/analysis/file_analysis.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -41,12 +42,12 @@ class ImportsVerifier {
 
   /// After the list of [_unusedImports] has been computed, this list is a
   /// proper subset of the unused imports that are listed more than once.
-  final List<ImportDirective> _duplicateImports = [];
+  final Map<ImportDirective, _DuplicateDirective> _duplicateImports = {};
 
   /// The map of export directives that are duplicates, either of an export
   /// directive within the same compilation unit, or of an export directive
   /// in an ancestor in the part hierarchy, mapped to duplicate export metadata.
-  final Map<ExportDirective, _DuplicateExport> _duplicateExports = {};
+  final Map<ExportDirective, _DuplicateDirective> _duplicateExports = {};
 
   /// A map of names that are hidden more than once.
   final Map<NamespaceDirective, List<CombinatorName>> _duplicateHiddenNamesMap =
@@ -89,14 +90,21 @@ class ImportsVerifier {
       }
     }
     var importDuplicates = _duplicates(importsWithLibraries);
-    for (var duplicate in importDuplicates.keys) {
-      _duplicateImports.add(duplicate as ImportDirective);
+    for (var entry in importDuplicates.entries) {
+      var duplicate = entry.key as ImportDirective;
+      var previous = entry.value as ImportDirective;
+      _duplicateImports[duplicate] = _DuplicateDirective(
+        contextMessage: _contextMessageForImport(
+          filePath: fileAnalysis.file.source.fullName,
+          importKeywordOffset: previous.importKeyword.offset,
+        ),
+      );
     }
     var exportDuplicates = _duplicates(exportsWithLibraries);
     for (var entry in exportDuplicates.entries) {
       var duplicate = entry.key as ExportDirective;
       var previous = entry.value as ExportDirective;
-      _duplicateExports[duplicate] = _DuplicateExport(
+      _duplicateExports[duplicate] = _DuplicateDirective(
         contextMessage: _contextMessageForExport(
           filePath: fileAnalysis.file.source.fullName,
           exportKeywordOffset: previous.exportKeyword.offset,
@@ -105,6 +113,7 @@ class ImportsVerifier {
     }
 
     _addAncestorDuplicateExports(node);
+    _addAncestorDuplicateImports(node);
   }
 
   /// Any time after the defining compilation unit has been visited by this
@@ -129,13 +138,19 @@ class ImportsVerifier {
   /// Any time after the defining compilation unit has been visited by this
   /// visitor, this method can be called to report an
   /// [diag.duplicateImport] hint for each of the import
-  /// directives in the [_duplicateImports] list.
+  /// directives in the [_duplicateImports] map.
   void generateDuplicateImportWarnings(DiagnosticReporter diagnosticReporter) {
-    var length = _duplicateImports.length;
-    for (var i = 0; i < length; i++) {
-      diagnosticReporter.report(
-        diag.duplicateImport.at(_duplicateImports[i].uri),
-      );
+    for (var MapEntry(key: duplicate, value: duplicateImport)
+        in _duplicateImports.entries) {
+      var contextMessage = duplicateImport.contextMessage;
+      var ancestorFileName = duplicateImport.ancestorFileName;
+      var locatable = ancestorFileName != null
+          ? diag.duplicateImportInPart.withArguments(fileName: ancestorFileName)
+          : diag.duplicateImport;
+      if (contextMessage != null) {
+        locatable = locatable.withContextMessages([contextMessage]);
+      }
+      diagnosticReporter.report(locatable.at(duplicate.uri));
     }
   }
 
@@ -340,9 +355,36 @@ class ImportsVerifier {
     }
   }
 
-  /// Add duplicate export directives from [node] that match export directives
+  /// Adds duplicate export directives from [node] that match export directives
   /// in ancestor parts in the part hierarchy into [_duplicateExports].
   void _addAncestorDuplicateExports(CompilationUnit node) {
+    if (isGeneratedSource(fileAnalysis.file.source)) {
+      return;
+    }
+    for (var directive in node.directives.whereType<ExportDirective>()) {
+      if (directive.configurations.isNotEmpty ||
+          _duplicateExports.containsKey(directive)) {
+        continue;
+      }
+      var export = directive.libraryExport;
+      if (export is! LibraryExportImpl) {
+        continue;
+      }
+      if (_findAncestorDuplicate(export) case (var ancestor, var matching)) {
+        _duplicateExports[directive] = _DuplicateDirective(
+          ancestorFileName: ancestor.source.shortName,
+          contextMessage: _contextMessageForExport(
+            filePath: ancestor.source.fullName,
+            exportKeywordOffset: matching.exportKeywordOffset,
+          ),
+        );
+      }
+    }
+  }
+
+  /// Adds duplicate import directives from [node] that match import directives
+  /// in ancestor parts in the part hierarchy into [_duplicateImports].
+  void _addAncestorDuplicateImports(CompilationUnit node) {
     if (isGeneratedSource(fileAnalysis.file.source)) {
       return;
     }
@@ -350,59 +392,25 @@ class ImportsVerifier {
     if (parent == null) {
       return;
     }
-
-    for (var directive in node.directives.whereType<ExportDirective>()) {
-      if (directive.configurations.isNotEmpty) {
+    for (var directive in node.directives.whereType<ImportDirective>()) {
+      if (directive.configurations.isNotEmpty ||
+          _duplicateImports.containsKey(directive)) {
         continue;
       }
-      if (_duplicateExports.containsKey(directive)) {
+      var import = directive.libraryImport;
+      if (import is! LibraryImportImpl) {
         continue;
       }
-      var currentExport = directive.libraryExport;
-      if (currentExport is! LibraryExportImpl) {
-        continue;
-      }
-      var currentLibrary = currentExport.exportedLibrary;
-      if (currentLibrary == null) {
-        continue;
-      }
-
-      var seen = <LibraryFragmentImpl>{};
-      for (
-        LibraryFragmentImpl? ancestor = parent;
-        ancestor != null && seen.add(ancestor);
-        ancestor = ancestor.enclosingFragment
-      ) {
-        var matchingExports = ancestor.libraryExports
-            .where((export) => export.exportedLibrary == currentLibrary)
-            .toList();
-
-        if (matchingExports.isEmpty) {
-          continue;
+      if (_findAncestorDuplicate(import) case (var ancestor, var matching)) {
+        if (!_wouldChangeResolution(import, parent)) {
+          _duplicateImports[directive] = _DuplicateDirective(
+            ancestorFileName: ancestor.source.shortName,
+            contextMessage: _contextMessageForImport(
+              filePath: ancestor.source.fullName,
+              importKeywordOffset: matching.importKeywordOffset,
+            ),
+          );
         }
-
-        if (!isGeneratedSource(ancestor.source)) {
-          LibraryExportImpl? matchingExport;
-          for (var export in matchingExports) {
-            if (ElementDirectiveImpl.areIdenticalExceptUri(
-              currentExport,
-              export,
-            )) {
-              matchingExport = export;
-              break;
-            }
-          }
-          if (matchingExport != null) {
-            _duplicateExports[directive] = _DuplicateExport(
-              ancestorFileName: ancestor.source.shortName,
-              contextMessage: _contextMessageForExport(
-                filePath: ancestor.source.fullName,
-                exportKeywordOffset: matchingExport.exportKeywordOffset,
-              ),
-            );
-          }
-        }
-        break;
       }
     }
   }
@@ -480,24 +488,162 @@ class ImportsVerifier {
     return duplicates;
   }
 
-  static diag.DiagnosticMessageImpl? _contextMessageForExport({
+  /// Finds an ancestor fragment and directive that is duplicated by
+  /// [currentDirective].
+  (LibraryFragmentImpl, E)?
+  _findAncestorDuplicate<E extends ElementDirectiveImpl>(E currentDirective) {
+    if (currentDirective.isConditional) {
+      return null;
+    }
+    var parent = fileAnalysis.fragment.enclosingFragment;
+    if (parent == null) {
+      return null;
+    }
+    var currentLibrary = switch (currentDirective) {
+      LibraryExportImpl e => e.exportedLibrary,
+      LibraryImportImpl i => i.importedLibrary,
+      _ => null,
+    };
+    if (currentLibrary == null) {
+      return null;
+    }
+
+    var seen = <LibraryFragmentImpl>{};
+    for (
+      LibraryFragmentImpl? ancestor = parent;
+      ancestor != null && seen.add(ancestor);
+      ancestor = ancestor.enclosingFragment
+    ) {
+      var matchingDirectives = switch (currentDirective) {
+        LibraryExportImpl() => [
+          for (var export in ancestor.libraryExports)
+            if (export.exportedLibrary == currentLibrary) export,
+        ],
+        LibraryImportImpl() => [
+          for (var import in ancestor.libraryImports)
+            if (!import.isSynthetic && import.importedLibrary == currentLibrary)
+              import,
+        ],
+        _ => const <ElementDirectiveImpl>[],
+      };
+
+      if (matchingDirectives.isEmpty) {
+        continue;
+      }
+
+      if (!isGeneratedSource(ancestor.source)) {
+        var matchingDirective = matchingDirectives
+            .where(
+              (candidate) =>
+                  !candidate.isConditional &&
+                  ElementDirectiveImpl.areIdenticalExceptUri(
+                    currentDirective,
+                    candidate,
+                  ),
+            )
+            .firstOrNull;
+        if (matchingDirective != null) {
+          return (ancestor, matchingDirective as E);
+        }
+      }
+      break;
+    }
+    return null;
+  }
+
+  /// Returns whether removing [currentImport] from the current part file would
+  /// change the resolution of any symbols used from that import in this file
+  /// or any of its subparts.
+  ///
+  /// For each element that was resolved through [currentImport] (either in this
+  /// part file or in any of its subparts), this checks whether looking up its
+  /// name in [fallbackFragment]'s scope (or the fallback prefix's scope, if
+  /// prefixed) resolves to the exact same element.
+  ///
+  /// Note that [fallbackFragment] is the immediate enclosing fragment of the
+  /// current part file, so the lookup checks every intervening fragment between
+  /// the current part and the ancestor that contains the duplicated import.
+  /// If any element would resolve differently, become ambiguous, or fail to
+  /// resolve, removing [currentImport] would change resolution.
+  bool _wouldChangeResolution(
+    LibraryImportImpl currentImport,
+    LibraryFragmentImpl fallbackFragment,
+  ) {
+    var importsTracking = fileAnalysis.importsTracking;
+    var prefix = currentImport.prefix?.element;
+    Scope fallbackScope;
+    if (prefix == null) {
+      fallbackScope = fallbackFragment.scope;
+    } else {
+      var prefixName = prefix.name;
+      if (prefixName == null) {
+        return false;
+      }
+      var prefixLookup = fallbackFragment.scope.lookup(prefixName);
+      var fallbackPrefix = prefixLookup.getter;
+      if (fallbackPrefix is! PrefixElement) {
+        return true;
+      }
+
+      fallbackScope = fallbackPrefix.scope;
+    }
+
+    for (var usedElement in importsTracking.elementsOf(currentImport)) {
+      var name = usedElement.name;
+      if (name == null) {
+        continue;
+      }
+      var lookupResult = fallbackScope.lookup(name);
+      if (usedElement is SetterElement) {
+        if (lookupResult.setter != usedElement) {
+          return true;
+        }
+      } else {
+        if (lookupResult.getter != usedElement) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  static diag.DiagnosticMessageImpl? _contextMessage({
     required String filePath,
-    required int exportKeywordOffset,
+    required String keyword,
+    required int offset,
   }) {
-    if (exportKeywordOffset < 0) {
+    if (offset < 0) {
       return null;
     }
     return diag.DiagnosticMessageImpl(
       filePath: filePath,
-      length: 'export'.length,
-      message: 'The previous export that is being duplicated.',
-      offset: exportKeywordOffset,
+      length: keyword.length,
+      message: 'The previous $keyword that is being duplicated.',
+      offset: offset,
       url: null,
     );
   }
+
+  static diag.DiagnosticMessageImpl? _contextMessageForExport({
+    required String filePath,
+    required int exportKeywordOffset,
+  }) => _contextMessage(
+    filePath: filePath,
+    keyword: 'export',
+    offset: exportKeywordOffset,
+  );
+
+  static diag.DiagnosticMessageImpl? _contextMessageForImport({
+    required String filePath,
+    required int importKeywordOffset,
+  }) => _contextMessage(
+    filePath: filePath,
+    keyword: 'import',
+    offset: importKeywordOffset,
+  );
 }
 
-class _DuplicateExport {
+class _DuplicateDirective {
   final diag.DiagnosticMessageImpl? contextMessage;
   final String? ancestorFileName;
 

@@ -572,6 +572,7 @@ class BundleWriter {
 
   void _writeLibraryExport(LibraryExportImpl element) {
     _resolutionSink._writeMetadata(element.metadata);
+    _sink.writeBool(element.isConditional);
     _sink.writeList(element.combinators, _writeNamespaceCombinator);
     _writeDirectiveUri(element.uri);
   }
@@ -607,6 +608,7 @@ class BundleWriter {
   void _writeLibraryImport(LibraryImportImpl element) {
     _resolutionSink._writeMetadata(element.metadata);
     _sink.writeBool(element.isSynthetic);
+    _sink.writeBool(element.isConditional);
     _sink.writeList(element.combinators, _writeNamespaceCombinator);
     _writeLibraryImportPrefixFragment(element.prefix);
     _writeDirectiveUri(element.uri);

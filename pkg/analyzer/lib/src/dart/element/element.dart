@@ -2092,10 +2092,12 @@ sealed class ElementDirectiveImpl implements ElementDirective {
   @override
   final DirectiveUri uri;
 
+  final bool isConditional;
+
   @override
   MetadataImpl metadata = MetadataImpl(const []);
 
-  new({required this.uri});
+  new({required this.uri, this.isConditional = false});
 
   /// Append a textual representation to the given [builder].
   void appendTo(ElementDisplayStringBuilder builder);
@@ -2112,9 +2114,10 @@ sealed class ElementDirectiveImpl implements ElementDirective {
   }
 
   /// Returns `true` if the non-URI components of the two directives are
-  /// identical.
+  /// identical and neither is conditional.
   ///
-  /// Note: Configurations are not checked.
+  /// Note: Configurations are not checked; if either directive is conditional,
+  /// they are not considered identical.
   ///
   /// URIs should be checked outside to see if they resolve to the same absolute
   /// URI, so to the same library, regardless of the used syntax (absolute,
@@ -2123,10 +2126,16 @@ sealed class ElementDirectiveImpl implements ElementDirective {
     ElementDirectiveImpl directive1,
     ElementDirectiveImpl directive2,
   ) {
+    if (directive1.isConditional || directive2.isConditional) {
+      return false;
+    }
     List<NamespaceCombinator> combinators1;
     List<NamespaceCombinator> combinators2;
     if (directive1 is LibraryImportImpl && directive2 is LibraryImportImpl) {
       if (directive1.prefix?.name != directive2.prefix?.name) {
+        return false;
+      }
+      if (directive1.prefix?.isDeferred != directive2.prefix?.isDeferred) {
         return false;
       }
       combinators1 = directive1.combinators;
@@ -7824,6 +7833,7 @@ class LibraryExportImpl extends ElementDirectiveImpl implements LibraryExport {
 
   new({
     required super.uri,
+    super.isConditional,
     required this.combinators,
     required this.exportKeywordOffset,
   });
@@ -8381,6 +8391,7 @@ class LibraryImportImpl extends ElementDirectiveImpl implements LibraryImport {
 
   new({
     required super.uri,
+    super.isConditional,
     required this.isSynthetic,
     required this.combinators,
     required this.importKeywordOffset,

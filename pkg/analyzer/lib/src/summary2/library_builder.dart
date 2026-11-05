@@ -560,6 +560,7 @@ class LibraryBuilder {
     return LibraryExportImpl(
       combinators: buildNamespaceCombinators(state.unlinked.combinators),
       exportKeywordOffset: state.unlinked.exportKeywordOffset,
+      isConditional: state.unlinked.configurations.isNotEmpty,
       uri: uri,
     );
   }
@@ -581,6 +582,7 @@ class LibraryBuilder {
       isSynthetic: state.isSyntheticDartCore,
       combinators: buildNamespaceCombinators(state.unlinked.combinators),
       importKeywordOffset: state.unlinked.importKeywordOffset,
+      isConditional: state.unlinked.configurations.isNotEmpty,
       prefix: prefixFragment,
       uri: buildLibraryImportUri(
         state: state,
