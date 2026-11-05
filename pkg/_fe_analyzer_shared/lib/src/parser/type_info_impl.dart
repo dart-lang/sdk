@@ -1437,7 +1437,13 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
         // Recovery
         while (typeInfo == noType && next.next!.isA(TokenType.AT)) {
           Token atToken = next.next!;
-          next = skipMetadata(next);
+          // Parsing continues after the annotation, so the token stream must
+          // be properly modified, but ensure that parser events are ignored
+          // by replacing the listener.
+          final Listener originalListener = parser.listener;
+          parser.listener = new ForwardingListener();
+          next = skipMetadata(next, parser: parser);
+          parser.listener = originalListener;
           parser.reportRecoverableErrorWithEnd(
             atToken,
             next,

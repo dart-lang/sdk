@@ -29,6 +29,126 @@ RecordTypeAnnotation
 ''');
   }
 
+  void test_metadata_typeArguments_gtGt() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+(@A<List<int>>() int x, int y) z;
+''');
+
+    var node = parseResult.findNode.singleRecordTypeAnnotation;
+    assertParsedNodeText(node, r'''
+RecordTypeAnnotation
+  leftParenthesis: (
+  positionalFields
+    RecordTypeAnnotationPositionalField
+      metadata
+        Annotation
+          atSign: @
+          expression: ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                name: A
+                typeArguments: TypeArgumentList
+                  leftBracket: <
+                  arguments
+                    NamedType
+                      name: List
+                      typeArguments: TypeArgumentList
+                        leftBracket: <
+                        arguments
+                          NamedType
+                            name: int
+                        rightBracket: >
+                  rightBracket: >
+            argumentList: ArgumentList
+              leftParenthesis: (
+              rightParenthesis: )
+          name: SimpleIdentifier
+            token: A
+          typeArguments: TypeArgumentList
+            leftBracket: <
+            arguments
+              NamedType
+                name: List
+                typeArguments: TypeArgumentList
+                  leftBracket: <
+                  arguments
+                    NamedType
+                      name: int
+                  rightBracket: >
+            rightBracket: >
+          arguments: ArgumentList
+            leftParenthesis: (
+            rightParenthesis: )
+      type: NamedType
+        name: int
+      name: x
+    RecordTypeAnnotationPositionalField
+      type: NamedType
+        name: int
+      name: y
+  rightParenthesis: )
+''');
+  }
+
+  void test_metadata_typeArguments_gtGt_inTypeArguments() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+List<(@A<List<int>>() int, int)> x;
+''');
+
+    var node = parseResult.findNode.singleRecordTypeAnnotation;
+    assertParsedNodeText(node, r'''
+RecordTypeAnnotation
+  leftParenthesis: (
+  positionalFields
+    RecordTypeAnnotationPositionalField
+      metadata
+        Annotation
+          atSign: @
+          expression: ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                name: A
+                typeArguments: TypeArgumentList
+                  leftBracket: <
+                  arguments
+                    NamedType
+                      name: List
+                      typeArguments: TypeArgumentList
+                        leftBracket: <
+                        arguments
+                          NamedType
+                            name: int
+                        rightBracket: >
+                  rightBracket: >
+            argumentList: ArgumentList
+              leftParenthesis: (
+              rightParenthesis: )
+          name: SimpleIdentifier
+            token: A
+          typeArguments: TypeArgumentList
+            leftBracket: <
+            arguments
+              NamedType
+                name: List
+                typeArguments: TypeArgumentList
+                  leftBracket: <
+                  arguments
+                    NamedType
+                      name: int
+                  rightBracket: >
+            rightBracket: >
+          arguments: ArgumentList
+            leftParenthesis: (
+            rightParenthesis: )
+      type: NamedType
+        name: int
+    RecordTypeAnnotationPositionalField
+      type: NamedType
+        name: int
+  rightParenthesis: )
+''');
+  }
+
   void test_mixed() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 void f((int, bool, {int a, bool b}) r) {}

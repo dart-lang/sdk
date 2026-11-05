@@ -1,0 +1,5 @@
+(@a< x, int y) z;
+
+
+([BeginToken]@[SimpleToken]a[StringToken]<[BeginToken] x[StringToken],[SimpleToken] int[StringToken] y[StringToken])[SimpleToken] z[StringToken];[SimpleToken]
+[SimpleToken]

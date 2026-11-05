@@ -1,0 +1,5 @@
+class C<@a< {}
+
+
+class[KeywordToken] C[StringToken]<[BeginToken]@[SimpleToken]a[StringToken]<[BeginToken] {[BeginToken]}[SimpleToken]
+[SimpleToken]
