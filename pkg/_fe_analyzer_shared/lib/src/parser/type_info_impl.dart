@@ -430,7 +430,10 @@ class VoidType implements TypeInfo {
   @override
   Token ensureTypeNotVoid(Token token, Parser parser) {
     // Report an error, then parse `void` as if it were a type name.
-    parser.reportRecoverableError(token.next!, diag.invalidVoid);
+    parser.reportRecoverableError(
+      token.next!,
+      token.isA(Keyword.AS) ? diag.invalidVoidAfterAs : diag.invalidVoid,
+    );
     return simpleType.parseTypeNotVoid(token, parser);
   }
 

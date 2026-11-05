@@ -246,6 +246,29 @@ class VoidTypeInfoTest {
     expect(listener.errors, [new ExpectedError(diag.invalidVoid, 7, 4)]);
   }
 
+  void test_ensureTypeNotVoid_afterAs() {
+    final Token start = scanString('as void ;').tokens;
+    final TypeInfoListener listener = new TypeInfoListener();
+
+    expect(
+      voidType.ensureTypeNotVoid(
+        start,
+        new Parser(
+          listener,
+          useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+          experimentalFeatures: const DefaultExperimentalFeatures(),
+        ),
+      ),
+      start.next,
+    );
+    expect(listener.calls, [
+      'handleIdentifier void typeReference',
+      'handleNoTypeArguments ;',
+      'handleType void null',
+    ]);
+    expect(listener.errors, [new ExpectedError(diag.invalidVoidAfterAs, 3, 4)]);
+  }
+
   void test_ensureTypeOrVoid() {
     final Token start = scanString('before void ;').tokens;
     final TypeInfoListener listener = new TypeInfoListener();
