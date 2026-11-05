@@ -4,6 +4,11 @@
   `a..b!`, begins at the cascade operator again, as do the nodes that contain it, such as `PropertyAccess` in `a..b!.c`.
   So its `offset`, `beginToken`, and `toSource()` include `..` or `?..`. This was a regression in 14.2.0 for
   `PostfixExpression`, and in 14.4.0 for `FunctionExpressionInvocation`, through 14.7.0.
+* `LibraryElement.documentationComment` is read only from the `library` directive, as the Dart documentation comment
+  specification says. Previously, it was read from the first directive of any kind, so a doc comment before the first
+  `import`, `export`, or `part` directive of a library without a `library` directive was returned, and a doc comment
+  before a `library` directive that is not the first directive was ignored.
+  See https://github.com/dart-lang/sdk/issues/64700.
 
 ## 14.7.0
 

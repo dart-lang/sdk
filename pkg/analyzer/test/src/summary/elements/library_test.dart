@@ -16,6 +16,89 @@ main() {
 }
 
 abstract class LibraryElementTest extends ElementsBaseTest {
+  test_documentationComment_export() async {
+    var library = await buildLibrary(r'''
+/// aaa
+export 'dart:async';
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      libraryExports
+        dart:async
+''');
+  }
+
+  test_documentationComment_import() async {
+    var library = await buildLibrary(r'''
+/// aaa
+import 'dart:async';
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      libraryImports
+        dart:async
+''');
+  }
+
+  test_documentationComment_library_notFirst() async {
+    var library = await buildLibrary(r'''
+import 'dart:async';
+/// aaa
+library test;
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  name: test
+  documentationComment: /// aaa
+  fragments
+    #F0 <testLibraryFragment> (nameOffset:<null>) (firstTokenOffset:0) (offset:37)
+      element: <testLibrary>
+      libraryImports
+        dart:async
+''');
+  }
+
+  test_documentationComment_part() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part of 'test.dart';
+''');
+
+    var library = await buildLibrary(r'''
+/// aaa
+part 'a.dart';
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      nextFragment: #F1
+      parts
+        part_0
+          uri: package:test/a.dart
+          partKeywordOffset: 8
+          unit: #F1
+    #F1 package:test/a.dart
+      element: <testLibrary>
+      enclosingFragment: #F0
+      previousFragment: #F0
+''');
+  }
+
   test_documentationComment_stars() async {
     var library = await buildLibrary(r'''
 /**
