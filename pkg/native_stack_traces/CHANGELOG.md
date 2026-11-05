@@ -1,4 +1,4 @@
-## 0.7.1-wip
+## 0.7.1
 - Support reading the debugging information of PE/COFF snapshots from PDB
   files.
 
