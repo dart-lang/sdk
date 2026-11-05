@@ -41,13 +41,18 @@ class DevRuntime {
     [_jsString],
     [w.NumType.i32],
   );
+  late final w.BaseFunction shapeId = _import(
+    'shapeId',
+    [_jsString],
+    [w.NumType.i32],
+  );
   late final w.BaseFunction startInstanceMemberDefinitions = _import(
     'startInstanceMemberDefinitions',
     [w.NumType.i32],
   );
   late final w.BaseFunction defineInstanceMember = _import(
     'defineInstanceMember',
-    [w.NumType.i32, w.NumType.i32, _funcRef],
+    [w.NumType.i32, w.NumType.i32, w.NumType.i32, _funcRef],
   );
   late final w.BaseFunction endInstanceMemberDefinitions = _import(
     'endInstanceMemberDefinitions',
@@ -55,7 +60,7 @@ class DevRuntime {
   );
   late final w.BaseFunction findTarget = _import(
     'findTarget',
-    [w.NumType.i32, w.NumType.i32],
+    [w.NumType.i32, w.NumType.i32, w.NumType.i32],
     [_funcRef],
   );
   late final w.BaseFunction defaultValueSentinel = _import(

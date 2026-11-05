@@ -164,6 +164,28 @@ class const B(int x, int y) extends A {
     await _expectHints(content, expected);
   }
 
+  Future<void> test_range_partialArgumentList() async {
+    var code = TestCode.parse('''
+void f(int a, int b, int c) {
+  f(
+    1,
+    [!2,!]
+    3,
+  );
+}
+''');
+    var expected = '''
+void f(int a, int b, int c) {
+  f(
+    1,
+    (Parameter:b:) 2,
+    3,
+  );
+}
+''';
+    await _expectHints(code.code, expected, range: code.range.range);
+  }
+
   Future<void> test_requiredPositional() async {
     var content = '''
 void f(int a, int b) {
@@ -1036,6 +1058,38 @@ class const B({(Type:dynamic) x}) extends A {
     await _expectHints(content, expected);
   }
 
+  Future<void> test_range_enclosing() async {
+    // The range is inside a function. We shouldn't get results for the function
+    // but we do have to walk down it to get hints in the child nodes.
+    var code = TestCode.parse('''
+f() {
+  [!final a = 1;!]
+}
+''');
+    var expected = '''
+f() {
+  final (Type:int) a = 1;
+}
+''';
+    await _expectHints(code.code, expected, range: code.range.range);
+  }
+
+  Future<void> test_range_multipleTopLevel() async {
+    var code = TestCode.parse('''
+final a = 1;
+[!final b = 2;
+final c = 3;!]
+final d = 4;
+''');
+    var expected = '''
+final a = 1;
+final (Type:int) b = 2;
+final (Type:int) c = 3;
+final d = 4;
+''';
+    await _expectHints(code.code, expected, range: code.range.range);
+  }
+
   Future<void> test_records_singlePositionalComma() async {
     var content = '''
 final withComma = (1,);
@@ -1256,9 +1310,10 @@ class _AbstractInlayHintTest extends AbstractLspAnalysisServerTest {
 
   Future<void> _expectHints(
     String content,
-    String expectedContentWithHints,
-  ) async {
-    var hints = await _fetchHints(content);
+    String expectedContentWithHints, {
+    Range? range,
+  }) async {
+    var hints = await _fetchHints(content, range: range);
     var actualContentWithHints = substituteHints(content, hints);
     expect(actualContentWithHints, expectedContentWithHints);
   }
@@ -1268,10 +1323,13 @@ class _AbstractInlayHintTest extends AbstractLspAnalysisServerTest {
     expect(hints, isEmpty);
   }
 
-  Future<List<InlayHint>> _fetchHints(String content) async {
+  Future<List<InlayHint>> _fetchHints(String content, {Range? range}) async {
     await initialize();
     await openFile(mainFileUri, content);
-    var hints = await getInlayHints(mainFileUri, rangeOfWholeContent(content));
+    var hints = await getInlayHints(
+      mainFileUri,
+      range ?? rangeOfWholeContent(content),
+    );
     return hints;
   }
 

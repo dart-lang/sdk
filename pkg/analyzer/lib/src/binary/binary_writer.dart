@@ -402,12 +402,8 @@ class BinaryWriter {
 
   void _writeWtf8Slow(String source) {
     var end = source.length;
-    if (end == 0) {
-      return;
-    }
-
     int i = 0;
-    do {
+    while (i < end) {
       var codeUnit = source.codeUnitAt(i++);
       if (codeUnit < 128) {
         // ASCII.
@@ -434,6 +430,6 @@ class BinaryWriter {
         writeByte(0x80 | ((codeUnit >> 6) & 0x3f));
         writeByte(0x80 | (codeUnit & 0x3f));
       }
-    } while (i < end);
+    }
   }
 }

@@ -1,0 +1,28 @@
+Problems reported:
+
+parser/error_recovery/issue_64836:1:11: Expected an identifier, but got 'part'.
+typedef F<part T>=int;
+          ^^^^
+
+beginCompilationUnit(typedef)
+  beginMetadataStar(typedef)
+  endMetadataStar(0)
+  beginUncategorizedTopLevelDeclaration(typedef)
+    beginTypedef(typedef)
+      handleIdentifier(F, typedefDeclaration)
+      beginTypeVariables(<)
+        beginMetadataStar(part)
+        endMetadataStar(0)
+        handleRecoverableError(Message[Template(ExpectedIdentifier), Expected an identifier, but got 'part'., Try inserting an identifier before 'part'., {lexeme: part}], part, part)
+        handleIdentifier(, typeVariableDeclaration)
+        beginTypeVariable()
+          handleTypeVariablesDefined(, 1)
+          handleNoType()
+        endTypeVariable(part, 0, null, null)
+      endTypeVariables(<, >)
+      handleIdentifier(int, typeReference)
+      handleNoTypeArguments(;)
+      handleType(int, null)
+    endTypedef(null, typedef, =, ;)
+  endTopLevelDeclaration(;)
+endCompilationUnit(1, )

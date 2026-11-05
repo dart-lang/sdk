@@ -191,7 +191,13 @@ class AnalysisServerOptions {
   /// Whether to enable fine-grained dependencies.
   bool withFineDependencies = false;
 
-  bool usePlugins = true;
+  bool? usePlugins = true;
+
+  bool trustPlugins = false;
+
+  bool alwaysTrustPlugins = false;
+
+  bool neverTrustPlugins = false;
 }
 
 /// Instances of the class [LegacyAnalysisServer] implement a server that

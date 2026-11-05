@@ -328,7 +328,7 @@ abstract class AnalysisServer {
     PluginManager? pluginManager,
     MessageSchedulerListener? messageSchedulerListener,
     this.performanceLogger,
-    required bool usePlugins,
+    required bool? usePlugins,
     Map<String, String>? environment,
   }) : resourceProvider = OverlayResourceProvider(
          TimingResourceProvider(baseResourceProvider),
@@ -365,6 +365,13 @@ abstract class AnalysisServer {
       resourceProvider,
       pluginManager,
       pluginsAreEnabled: usePlugins,
+      trust: options.trustPlugins,
+      alwaysTrust: options.alwaysTrustPlugins,
+      neverTrust: options.neverTrustPlugins,
+      includedPaths: () => contextManager.includedPaths,
+      onUnseenUntrustedPluginDirectory: (message) {
+        showMessageToUser(MessageType.warning, message);
+      },
     );
 
     var logName = options.newAnalysisDriverLog;
@@ -1387,6 +1394,17 @@ abstract class AnalysisServer {
     StackTrace? stackTrace, {
     bool fatal = false,
   });
+
+  /// Sends a `window/showMessage` notification to the client.
+  void showMessageToUser(MessageType type, String message) {
+    sendLspNotification(
+      lsp.NotificationMessage(
+        method: lsp.Method.window_showMessage,
+        params: lsp.ShowMessageParams(type: type.forLsp, message: message),
+        jsonrpc: lsp.jsonRpcVersion,
+      ),
+    );
+  }
 
   /// Shows the user a prompt with some actions to select from using
   /// 'window/showMessageRequest'.

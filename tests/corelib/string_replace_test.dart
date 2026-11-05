@@ -4,6 +4,16 @@
 
 import "package:expect/expect.dart";
 
+class NeverMatch implements Pattern {
+  const NeverMatch();
+
+  @override
+  Iterable<Match> allMatches(String string, [int start = 0]) => const [];
+
+  @override
+  Match? matchAsPrefix(String string, [int start = 0]) => null;
+}
+
 main() {
   // Test replaceFirst.
   Expect.equals("AtoBtoCDtoE", "AfromBtoCDtoE".replaceFirst("from", "to"));
@@ -81,6 +91,14 @@ main() {
 
   // Test startIndex too large
   Expect.throwsRangeError(() => "hello".replaceFirst("h", "X", 6));
+
+  const pattern = NeverMatch();
+  for (final text in ["", "abc"]) {
+    Expect.throwsRangeError(() => text.replaceFirst(pattern, "X", -1));
+    Expect.throwsRangeError(
+      () => text.replaceFirst(pattern, "X", text.length + 1),
+    );
+  }
 
   // Test replaceFirstMapped.
   Expect.equals(

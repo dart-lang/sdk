@@ -37,6 +37,9 @@ class LspAnalysisServer {
     required this.commandName,
     required this.argResults,
     required this._usePlugins,
+    this._trustPlugins = false,
+    this._alwaysTrustPlugins = false,
+    this._neverTrustPlugins = false,
     this.enabledExperiments = const [],
     this.suppressAnalytics = false,
     this._useAotSnapshot = false,
@@ -55,7 +58,10 @@ class LspAnalysisServer {
   final List<String> enabledExperiments;
   final bool suppressAnalytics;
   final bool _useAotSnapshot;
-  final bool _usePlugins;
+  final bool? _usePlugins;
+  final bool _trustPlugins;
+  final bool _alwaysTrustPlugins;
+  final bool _neverTrustPlugins;
 
   Process? _process;
 
@@ -237,7 +243,13 @@ class LspAnalysisServer {
       if (_packagesFile != null) '--packages=${_packagesFile.path}',
       if (enabledExperiments.isNotEmpty)
         '--$experimentFlagName=${enabledExperiments.join(',')}',
-      if (!_usePlugins) '--no-plugins',
+      if (_usePlugins == true)
+        '--${Driver.pluginsFlag}'
+      else if (_usePlugins == false)
+        '--no-${Driver.pluginsFlag}',
+      if (_trustPlugins) '--${Driver.trustPluginsFlag}',
+      if (_alwaysTrustPlugins) '--${Driver.alwaysTrustPluginsFlag}',
+      if (_neverTrustPlugins) '--${Driver.neverTrustPluginsFlag}',
       '--protocol=lsp',
     ];
 
@@ -380,6 +392,13 @@ class LspAnalysisServer {
   void _handleShowMessage(ShowMessageParams message) {
     if (message.type == MessageType.Error) {
       _handleServerError(message.message);
+    } else {
+      final format = argResults?.options.contains('format') == true
+          ? argResults?.option('format')
+          : null;
+      if (format != 'machine' && format != 'json') {
+        log.stdout(message.message);
+      }
     }
   }
 

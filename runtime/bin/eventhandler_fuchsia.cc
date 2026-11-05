@@ -10,6 +10,7 @@
 
 #include <errno.h>
 #include <fcntl.h>
+#include <lib/fdio/fdio.h>
 #include <poll.h>
 #include <pthread.h>
 #include <stdio.h>
@@ -164,7 +165,19 @@ intptr_t IOHandle::AvailableBytes() {
 
 void IOHandle::Close() {
   MutexLocker ml(&mutex_);
-  VOID_NO_RETRY_EXPECTED(close(fd_));
+  ASSERT(fd_ != STDOUT_FILENO);
+  ASSERT(fd_ != STDERR_FILENO);
+  if (fd_ == STDIN_FILENO) {
+    // If stdin, redirect fd to Fuchsia's equivalent of /dev/null.
+    auto* null_fdio = fdio_null_create();
+    ASSERT(null_fdio != nullptr);
+    int null_fd = NO_RETRY_EXPECTED(fdio_bind_to_fd(null_fdio, -1, 0));
+    ASSERT(null_fd >= 0);
+    VOID_NO_RETRY_EXPECTED(dup2(null_fd, STDIN_FILENO));
+    VOID_NO_RETRY_EXPECTED(close(null_fd));
+  } else {
+    VOID_NO_RETRY_EXPECTED(close(fd_));
+  }
 }
 
 uint32_t IOHandle::MaskToEpollEvents(intptr_t mask) {

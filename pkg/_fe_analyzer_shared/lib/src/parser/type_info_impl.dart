@@ -1714,6 +1714,19 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
         token = token.next!;
       }
     } else {
+      // The scanner pairs `<` only with `>`, `>>`, and `>>>`, so `endGroup` is
+      // `null` if the closer is `>=`, `>>=`, or `>>>=`. [skipEnd] is a split
+      // copy that is not in the token stream, and [compute] ran before any
+      // rewriting, so use its offset to find the closer, and recover `<a b>=`
+      // the same way as `<a b> =`.
+      Token beforeCloser = token;
+      while (!beforeCloser.next!.isEof &&
+          beforeCloser.next!.charOffset < skipEnd!.charOffset) {
+        beforeCloser = beforeCloser.next!;
+      }
+      if (parseCloser(beforeCloser)) {
+        return beforeCloser;
+      }
       endGroup = syntheticGt(next);
       endGroup.setNext(next);
       token.setNext(endGroup);

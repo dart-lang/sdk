@@ -116,9 +116,29 @@ class AnalyzeCommand extends DartdevCommand {
       )
       ..addFlag(
         'plugins',
-        help: 'Use analyzer plugins',
-        defaultsTo: true,
-        hide: true,
+        help: 'Use analyzer plugins.',
+        defaultsTo: null,
+      )
+      ..addFlag(
+        'trust-plugins',
+        help:
+            'Trust the analyzer plugins specified in analysis options, '
+            'with their current contents, to execute code.',
+        negatable: false,
+      )
+      ..addFlag(
+        'always-trust-plugins',
+        help:
+            'Always trust the analyzer plugins specified in analysis options '
+            'to execute code.',
+        negatable: false,
+      )
+      ..addFlag(
+        'never-trust-plugins',
+        help:
+            'Never trust the analyzer plugins specified in analysis options '
+            'to execute code.',
+        negatable: false,
       )
       ..addExperimentalFlags();
   }
@@ -198,7 +218,6 @@ class AnalyzeCommand extends DartdevCommand {
     final machineFormat = args.option('format') == 'machine';
     final jsonFormat = args.option('format') == 'json';
     final printMemory = args.flag('memory') && jsonFormat;
-    final usePlugins = args.flag('plugins');
 
     io.Directory sdkPath;
     final useAotSnapshot = args.flag(useAotSnapshotFlag);
@@ -243,6 +262,21 @@ class AnalyzeCommand extends DartdevCommand {
       usageException('Unknown experiment(s): $unknownExperimentsText');
     }
 
+    final trustPlugins = args.flag('trust-plugins');
+    final alwaysTrustPlugins = args.flag('always-trust-plugins');
+    final neverTrustPlugins = args.flag('never-trust-plugins');
+    final trustFlags = [
+      if (trustPlugins) '--trust-plugins',
+      if (alwaysTrustPlugins) '--always-trust-plugins',
+      if (neverTrustPlugins) '--never-trust-plugins',
+    ];
+    if (trustFlags.length > 1) {
+      usageException(
+        'Cannot specify more than one of --trust-plugins, '
+        '--always-trust-plugins, and --never-trust-plugins.',
+      );
+    }
+
     final targetsNames = targets
         .map((entity) => path.basename(entity.path))
         .join(', ');
@@ -253,7 +287,10 @@ class AnalyzeCommand extends DartdevCommand {
       cacheDirectoryPath: args.option('cache'),
       commandName: 'analyze',
       argResults: args,
-      usePlugins: usePlugins,
+      usePlugins: args.wasParsed('plugins') ? args.flag('plugins') : null,
+      trustPlugins: trustPlugins,
+      alwaysTrustPlugins: alwaysTrustPlugins,
+      neverTrustPlugins: neverTrustPlugins,
       enabledExperiments: args.enabledExperiments,
       suppressAnalytics: suppressAnalytics,
       useAotSnapshot: useAotSnapshot,

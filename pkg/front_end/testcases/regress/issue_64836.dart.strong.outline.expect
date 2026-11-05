@@ -1,0 +1,15 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_64836.dart:5:11: Error: Expected an identifier, but got 'part'.
+// Try inserting an identifier before 'part'.
+// typedef F<part T>=int;
+//           ^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+typedef F = core::int;
+static method main() → dynamic
+  ;

@@ -12,6 +12,7 @@ import 'package:wasm_builder/wasm_builder.dart' as w;
 
 import '../../cfg/to_wasm.dart';
 import '../compile.dart';
+import '../names.dart';
 
 /// Translates a [FlowGraph] (CFG IR) to WebAssembly bytecode for the dev
 /// compiler.
@@ -42,7 +43,8 @@ final class DevWasmInstructionLowerer
     assert(instr.isFunctionParameter);
     final function = gen.graph.function;
     final index = instr.variable.index;
-    final param = b.locals[index];
+    final param =
+        b.locals[gen.moduleCompiler.wasmParameterIndex(function, index)];
     final type = gen.translateType(instr.type);
     // Reuse the parameter's local if it already has the parameter's type.
     final local = param.type == type ? param : b.addLocal(type);
@@ -145,6 +147,7 @@ final class DevWasmInstructionLowerer
       b,
       gen.getLocal(instr.receiver),
       instanceMemberName(target.member),
+      shapeLabel(target.functionNode!),
       signature,
     );
     _storeResult(instr, signature);
@@ -176,7 +179,9 @@ final class DevWasmInstructionLowerer
     final positionalEnd =
         (target.hasReceiverParameter ? 1 : 0) +
         functionNode.positionalParameters.length;
-    final namedParameters = functionNode.namedParameters;
+    final namedParameters = gen.moduleCompiler.sortedNamedParameters(
+      functionNode,
+    );
     assert(signature.inputs.length == positionalEnd + namedParameters.length);
     // Push the receiver (if any) and positionals.
     for (var index = 0; index < positionalEnd; index++) {

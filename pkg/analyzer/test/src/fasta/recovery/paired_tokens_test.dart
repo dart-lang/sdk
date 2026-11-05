@@ -648,6 +648,172 @@ CompilationUnit
 ''');
   }
 
+  void test_typeParameters_gtEq_invalidName_classTypeAlias() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C<part T>=A with M;
+//      ^^^^
+// [diag.missingIdentifier] Expected an identifier.
+''');
+
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations2
+    ClassTypeAlias2
+      classKeyword: class
+      name: C
+      typeParameters: TypeParameterList
+        leftBracket: <
+        typeParameters
+          TypeParameter
+            name: <empty> <synthetic>
+        rightBracket: >
+      equals: =
+      superclass: NamedType
+        name: A
+      withClause: WithClause
+        withKeyword: with
+        mixinTypes
+          NamedType
+            name: M
+      body: SemicolonInstanceDeclarationBody
+        semicolon: ;
+  declarations(v1)
+    ClassTypeAlias
+      typedefKeyword: class
+      name: C
+      typeParameters: TypeParameterList
+        leftBracket: <
+        typeParameters
+          TypeParameter
+            name: <empty> <synthetic>
+        rightBracket: >
+      equals: =
+      superclass: NamedType
+        name: A
+      withClause: WithClause
+        withKeyword: with
+        mixinTypes
+          NamedType
+            name: M
+      semicolon: ;
+''');
+  }
+
+  void test_typeParameters_gtEq_invalidName_nestedCloser_typedef() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+typedef F<part <>= int;
+//        ^^^^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.builtInIdentifierAsType] The built-in identifier 'part' can't be used as a type.
+//              ^^
+// [diag.expectedTypeName] Expected a type name.
+//              ^
+// [diag.expectedToken] Expected to find ';'.
+//               ^
+// [diag.expectedExecutable] Expected a method, getter, setter or operator declaration.
+//                 ^^^
+// [diag.missingConstFinalVarOrType] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+''');
+
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations2
+    GenericTypeAlias2
+      typedefKeyword: typedef
+      name: F
+      typeParameters: TypeParameterList
+        leftBracket: <
+        typeParameters
+          TypeParameter
+            name: <empty> <synthetic>
+        rightBracket: > <synthetic>
+      equals: = <synthetic>
+      type: NamedType
+        name: part
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: <empty> <synthetic>
+          rightBracket: >
+      semicolon: ; <synthetic>
+    TopLevelVariablesDeclaration
+      variables
+        TopLevelVariable
+          name: int
+      semicolon: ;
+  declarations(v1)
+    GenericTypeAlias
+      typedefKeyword: typedef
+      name: F
+      typeParameters: TypeParameterList
+        leftBracket: <
+        typeParameters
+          TypeParameter
+            name: <empty> <synthetic>
+        rightBracket: > <synthetic>
+      equals: = <synthetic>
+      type: NamedType
+        name: part
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: <empty> <synthetic>
+          rightBracket: >
+      semicolon: ; <synthetic>
+    TopLevelVariableDeclaration
+      variables: VariableDeclarationList
+        variables
+          VariableDeclaration
+            name: int
+      semicolon: ;
+''');
+  }
+
+  void test_typeParameters_gtEq_invalidName_typedef() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+typedef F<part T>=int;
+//        ^^^^
+// [diag.missingIdentifier] Expected an identifier.
+''');
+
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations2
+    GenericTypeAlias2
+      typedefKeyword: typedef
+      name: F
+      typeParameters: TypeParameterList
+        leftBracket: <
+        typeParameters
+          TypeParameter
+            name: <empty> <synthetic>
+        rightBracket: >
+      equals: =
+      type: NamedType
+        name: int
+      semicolon: ;
+  declarations(v1)
+    GenericTypeAlias
+      typedefKeyword: typedef
+      name: F
+      typeParameters: TypeParameterList
+        leftBracket: <
+        typeParameters
+          TypeParameter
+            name: <empty> <synthetic>
+        rightBracket: >
+      equals: =
+      type: NamedType
+        name: int
+      semicolon: ;
+''');
+  }
+
   void test_typeParameters_gtGtEq() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 f<T extends List<int>>=() => null;

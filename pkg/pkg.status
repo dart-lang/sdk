@@ -79,6 +79,7 @@ vm_snapshot_analysis/test/instruction_sizes_test: Pass, Slow # https://github.co
 dev_compiler/test/options/*: SkipByDesign
 
 [ $compiler == dart2bytecode ]
+vm_service/test/heap_snapshot_graph_test: ExtraSlow, Pass # Verifies the whole heap snapshot in interpreted code.
 vm_service/test/mirror_references_test: SkipByDesign # Uses 'dart:mirrors' library
 vm_service/test/weak_properties_test: SkipByDesign # Uses 'dart:mirrors' library
 

@@ -649,7 +649,7 @@ class _InfoBuilder {
         exportDirectives: rawExports,
         partDirectives: rawParts,
       ),
-      docComment: _getDocumentationComment(unit.directives.firstOrNull),
+      docComment: _getDocumentationComment(firstLibraryDirective),
       imports: imports,
       exports: exports,
       parts: parts,

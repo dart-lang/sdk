@@ -23,6 +23,7 @@ import 'package:wasm_builder/wasm_builder.dart' as w;
 import '../cfg/passes/lower_irreducible_control_flow.dart';
 import '../target.dart';
 import 'cfg/to_wasm.dart';
+import 'names.dart';
 import 'runtime.dart';
 
 const w.ValueType _jsString = w.RefType.extern(nullable: false);
@@ -145,6 +146,9 @@ class ModuleCompiler {
   /// Maps an instance member name to the global holding its ID.
   final Map<String, w.Global> _instanceMemberIds = {};
 
+  /// Maps a shape's label to the global holding its ID.
+  final Map<String, w.Global> _shapeIds = {};
+
   ModuleCompiler(this.module, this.runtime);
 
   w.InstructionsBuilder get _start => module.startFunction.body;
@@ -252,6 +256,25 @@ class ModuleCompiler {
     );
   }
 
+  /// Returns the Wasm parameter index of [cFunction]'s [index]th parameter.
+  ///
+  /// Wasm functions take named parameters sorted by name, but CFG IR indexes
+  /// them in declaration order.
+  int wasmParameterIndex(CFunction cFunction, int index) {
+    final functionNode = cFunction.functionNode!;
+    final namedStart =
+        (cFunction.hasReceiverParameter ? 1 : 0) +
+        functionNode.positionalParameters.length;
+    if (index < namedStart) return index;
+    final parameter = functionNode.namedParameters[index - namedStart];
+    return namedStart + sortedNamedParameters(functionNode).indexOf(parameter);
+  }
+
+  /// Returns [function]'s named parameters sorted by name.
+  List<ast.NamedParameter> sortedNamedParameters(ast.FunctionNode function) =>
+      function.namedParameters.toList()
+        ..sort((a, b) => a.parameterName.compareTo(b.parameterName));
+
   /// Converts the value on the stack from [from] to [to].
   ///
   /// ints, doubles, bools, and strings are boxed/unboxed if needed.
@@ -326,8 +349,10 @@ class ModuleCompiler {
   void defineInstanceMember(ast.Member member, w.BaseFunction function) {
     final classId = _classId(classLabel(member.enclosingClass!));
     final instanceMemberId = _instanceMemberId(instanceMemberName(member));
+    final shapeId = _shapeId(shapeLabel(member.function!));
     _start.global_get(classId);
     _start.global_get(instanceMemberId);
+    _start.global_get(shapeId);
     _start.ref_func(function);
     _start.call(runtime.defineInstanceMember);
   }
@@ -338,18 +363,20 @@ class ModuleCompiler {
     b.struct_new(objectStruct);
   }
 
-  /// Emits a call to [receiver.name] with [type].
+  /// Emits a call to [receiver.name] with [shape] and [type].
   ///
   /// Expects the arguments on the stack (including [receiver]).
   void callInstance(
     w.InstructionsBuilder b,
     w.Local receiver,
     String name,
+    String shape,
     w.FunctionType type,
   ) {
     b.local_get(receiver);
     b.struct_get(objectStruct, 0);
     b.global_get(_instanceMemberId(name));
+    b.global_get(_shapeId(shape));
     b.call(runtime.findTarget);
     b.ref_cast(w.RefType.def(type, nullable: false));
     b.call_ref(type);
@@ -404,6 +431,9 @@ class ModuleCompiler {
   w.Global _instanceMemberId(String name) =>
       _id(_instanceMemberIds, name, runtime.instanceMemberId);
 
+  /// Returns the global holding shape [label]'s ID.
+  w.Global _shapeId(String label) => _id(_shapeIds, label, runtime.shapeId);
+
   /// Returns the global in [ids[label]].
   ///
   /// Initializes the ID with [idFunction] on first access.
@@ -426,35 +456,6 @@ class ModuleCompiler {
     _start.global_set(globalBuilder.global);
     return globalBuilder.build();
   });
-}
-
-/// Returns [member]'s label.
-///
-/// Example: `package:foo/foo.dart::Foo.bar`
-String memberLabel(ast.Member member) {
-  final libraryUri = member.enclosingLibrary.importUri;
-  final className = member.enclosingClass?.name;
-  final isUnnamedConstructor =
-      member is ast.Constructor && member.name.text.isEmpty;
-  final name = isUnnamedConstructor ? 'new' : member.name.text;
-  if (className != null) {
-    return '$libraryUri::$className.$name';
-  }
-  return '$libraryUri::$name';
-}
-
-/// Returns [cls]'s label.
-///
-/// Example: `package:foo/foo.dart::Foo`
-String classLabel(ast.Class cls) =>
-    '${cls.enclosingLibrary.importUri}::${cls.name}';
-
-/// Returns instance [member]'s name.
-///
-/// Example: `mem` or `_mem@package:foo/foo.dart` if private.
-String instanceMemberName(ast.Member member) {
-  final name = member.name;
-  return name.isPrivate ? '${name.text}@${name.library!.importUri}' : name.text;
 }
 
 /// Pushes [value] as a JS string.

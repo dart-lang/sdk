@@ -1599,11 +1599,14 @@ class Parser {
         }
         token = type.ensureTypeOrVoid(equals, this);
       } else {
-        // A rewrite caused the = to disappear
-        token = parseFormalParametersRequiredOpt(
-          next,
-          MemberKind.FunctionTypeAlias,
-        );
+        // Recovery: A rewrite caused the `=` to disappear. Listeners rely on
+        // `equals` to tell which events were sent, and the name and the type
+        // variables were sent as for a new style typedef, so finish it as one.
+        equals = rewriter.insertSyntheticToken(token, TokenType.EQ);
+        token = computeType(
+          equals,
+          /* required = */ true,
+        ).ensureTypeOrVoid(equals, this);
       }
     } else {
       // Old style typedef, e.g. "typedef void foo();".
@@ -4659,7 +4662,8 @@ class Parser {
     token = parseFunctionBody(
       token,
       /* ofFunctionExpression = */ false,
-      isExternal || isAugmentationsFeatureEnabled,
+      /* allowAbstract = */ (isExternal || isAugmentationsFeatureEnabled) &&
+          inPlainSync,
     );
     asyncState = savedAsyncModifier;
     listener.endTopLevelMethod(beforeStart.next!, getOrSet, token);
@@ -8853,6 +8857,14 @@ class Parser {
 
     Token beforeName = typeInfo.skipType(token);
     Token name = beforeName.next!;
+
+    // In `case a when () {}()` the `when` starts a guard, it isn't the name of
+    // a function returning `a`. Named function expressions are invalid anyway,
+    // so recovering one here could only reject valid code.
+    if (typeInfo != noType && name.isA(Keyword.WHEN)) {
+      return parseSend(token, context, constantPatternContext);
+    }
+
     if (name.isIdentifier) {
       TypeParamOrArgInfo typeParam = computeTypeParamOrArg(name);
       Token next = typeParam.skip(name).next!;

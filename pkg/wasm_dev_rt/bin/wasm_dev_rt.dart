@@ -46,6 +46,10 @@ WasmVoid defineClassSupers(WasmI32 id, WasmI32 superclassId) {
 WasmI32 instanceMemberId(WasmExternRef name) =>
     WasmI32.fromInt(rt.instanceMemberId((name.toJS as JSString).toDart));
 
+@pragma('wasm:export', 'shapeId')
+WasmI32 shapeId(WasmExternRef label) =>
+    WasmI32.fromInt(rt.shapeId((label.toJS as JSString).toDart));
+
 @pragma('wasm:export', 'startInstanceMemberDefinitions')
 WasmVoid startInstanceMemberDefinitions(WasmI32 classId) {
   rt.startInstanceMemberDefinitions(classId.toIntSigned());
@@ -56,11 +60,13 @@ WasmVoid startInstanceMemberDefinitions(WasmI32 classId) {
 WasmVoid defineInstanceMember(
   WasmI32 classId,
   WasmI32 instanceMemberId,
+  WasmI32 shapeId,
   WasmFuncRef function,
 ) {
   rt.defineInstanceMember(
     classId.toIntSigned(),
     instanceMemberId.toIntSigned(),
+    shapeId.toIntSigned(),
     function,
   );
   return WasmVoid();
@@ -73,8 +79,15 @@ WasmVoid endInstanceMemberDefinitions(WasmI32 classId) {
 }
 
 @pragma('wasm:export', 'findTarget')
-WasmFuncRef findTarget(WasmI32 classId, WasmI32 instanceMemberId) =>
-    rt.findTarget(classId.toIntSigned(), instanceMemberId.toIntSigned());
+WasmFuncRef findTarget(
+  WasmI32 classId,
+  WasmI32 instanceMemberId,
+  WasmI32 shapeId,
+) => rt.findTarget(
+  classId.toIntSigned(),
+  instanceMemberId.toIntSigned(),
+  shapeId.toIntSigned(),
+);
 
 @pragma('wasm:export', 'defaultValueSentinel')
 WasmEqRef defaultValueSentinel(WasmEqRef sentinel) =>

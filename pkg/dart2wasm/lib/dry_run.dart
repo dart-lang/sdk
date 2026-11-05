@@ -201,10 +201,12 @@ class DryRunSummarizer {
     for (final library in component.libraries) {
       if (_shouldSkipLibrary(library)) continue;
       final uri = library.fileUri;
-      pathUriMap[p.normalize(
-            p.absolute(uri.toFilePath(windows: Platform.isWindows)),
-          )] =
-          uri;
+      if (uri.isScheme('file')) {
+        pathUriMap[p.normalize(
+              p.absolute(uri.toFilePath(windows: Platform.isWindows)),
+            )] =
+            uri;
+      }
     }
     if (pathUriMap.isEmpty) return [];
 

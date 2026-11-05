@@ -68,6 +68,9 @@ class TestProject {
 
   String get pubCacheBinPath => path.join(pubCachePath, 'bin');
 
+  String get analyzerStateLocationPath =>
+      path.join(root.path, 'analyzer_state');
+
   String get mainPath => path.join(dirPath, relativeFilePath);
 
   Uri get mainUri => Uri.file(mainPath);
@@ -207,6 +210,7 @@ class TestProject {
       [...arguments],
       workingDirectory: workingDir ?? dir.path,
       environment: {
+        'ANALYZER_STATE_LOCATION_OVERRIDE': analyzerStateLocationPath,
         'PUB_CACHE': pubCachePath,
       },
     )..then((p) => _process = p);

@@ -90,6 +90,58 @@ class _PackageMapUriResolverTest {
     expect(uri, Uri.parse('package:nested/nested.dart'));
   }
 
+  void test_pathToUri_nestedInLib_nestedFirst() {
+    String rootPkgLib = convertPath('/root/lib');
+    String nestedPkgLib = convertPath('/root/lib/nested/lib');
+    String nestedPkgFile = convertPath('/root/lib/nested/lib/nested.dart');
+
+    provider.newFile(nestedPkgFile, '');
+
+    PackageMapUriResolver resolver = PackageMapUriResolver(
+      provider,
+      <String, Folder>{
+        'nested': provider.getFolder(nestedPkgLib),
+        'root': provider.getFolder(rootPkgLib),
+      },
+    );
+
+    var uri = resolver.pathToUri(nestedPkgFile);
+    expect(uri, Uri.parse('package:nested/nested.dart'));
+  }
+
+  void test_pathToUri_sameFolder() {
+    String pkgLib = convertPath('/pkg/lib');
+    String pkgFile = convertPath('/pkg/lib/a.dart');
+
+    provider.newFile(pkgFile, '');
+
+    PackageMapUriResolver resolver = PackageMapUriResolver(
+      provider,
+      <String, Folder>{
+        'first': provider.getFolder(pkgLib),
+        'second': provider.getFolder(pkgLib),
+      },
+    );
+
+    var uri = resolver.pathToUri(pkgFile);
+    expect(uri, Uri.parse('package:first/a.dart'));
+  }
+
+  void test_pathToUri_siblingWithSamePrefix() {
+    String pkgLib = convertPath('/pkg/lib');
+    String siblingFile = convertPath('/pkg/lib2/a.dart');
+
+    provider.newFile(siblingFile, '');
+
+    PackageMapUriResolver resolver = PackageMapUriResolver(
+      provider,
+      <String, Folder>{'pkg': provider.getFolder(pkgLib)},
+    );
+
+    var uri = resolver.pathToUri(siblingFile);
+    expect(uri, isNull);
+  }
+
   void test_resolve_nonPackage() {
     UriResolver resolver = PackageMapUriResolver(provider, emptyMap);
     Uri uri = Uri.parse('dart:core');
