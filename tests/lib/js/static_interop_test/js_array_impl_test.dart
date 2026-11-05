@@ -246,6 +246,10 @@ void nonModedTests<T extends JSAny?>({required bool testProxy}) {
   list.fillRange(0, 4, 9.toJS as T);
   Expect.listEquals([9, 9, 9, 9], list.toListDouble);
 
+  final nonNullableFillList = jsList<JSNumber>([1.toJS], testProxy);
+  Expect.throwsTypeError(() => nonNullableFillList.fillRange(0, 0));
+  Expect.throwsTypeError(() => nonNullableFillList.fillRange(0, 0, null));
+
   // sort
   list.setRange(0, 4, toJSList([3, 2, 1, 0]));
   list.sort();

@@ -354,8 +354,9 @@ class JSArrayImpl<T extends JSAny?> extends js.JSExternWrapper
   @override
   void fillRange(int start, int end, [T? fillValue]) {
     RangeErrorUtils.checkValidRange(start, end, length);
+    final value = fillValue as T;
     for (var i = start; i < end; i++) {
-      this[i] = fillValue as T;
+      this[i] = value;
     }
   }
 
