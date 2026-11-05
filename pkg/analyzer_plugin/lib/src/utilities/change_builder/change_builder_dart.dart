@@ -2148,9 +2148,8 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
         (libraryChangeBuilder ?? this)._elementLibrariesToImport;
     var libraryToImport =
         resultCache?[element] ??
-        await TopLevelDeclarations(
-          resolvedUnit,
-        ).publiclyExporting(element, resultCache: resultCache) ??
+        await TopLevelDeclarations(resolvedUnit)
+            .publiclyExporting(element, resultCache: resultCache) ??
         // Fall back to the element's library if we didn't find a better one.
         element.library;
 
@@ -2195,24 +2194,19 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       return ImportLibraryElementResultImpl(null);
     }
 
-    for (var import
-        in resolvedUnit.libraryElement.firstFragment.libraryImports) {
-      var importedLibrary = import.importedLibrary;
-      if (importedLibrary != null && importedLibrary.uri == uri) {
-        var importPrefix = import.prefix?.element.name;
-        if (import.hasCombinator) {
-          if (importPrefix == null && showName != null) {
-            _handleCombinators(import, showName);
-            return ImportLibraryElementResultImpl(importPrefix);
-          }
-        } else {
-          return ImportLibraryElementResultImpl(importPrefix);
-        }
-      }
+    if (_existingImportElementResult(uri, showName, useShow: useShow)
+        case var existingResult?) {
+      return existingResult;
     }
 
-    importLibrary(uri, prefix: prefix, showName: showName, useShow: useShow);
-    return ImportLibraryElementResultImpl(null);
+    var normalizedPrefix = prefix != null && prefix.isNotEmpty ? prefix : null;
+    importLibrary(
+      uri,
+      prefix: normalizedPrefix ?? '',
+      showName: showName,
+      useShow: useShow,
+    );
+    return ImportLibraryElementResultImpl(normalizedPrefix);
   }
 
   String importLibraryWithAbsoluteUri(
@@ -2939,6 +2933,44 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     }
 
     return uriText;
+  }
+
+  /// Returns an [ImportLibraryElementResult] if [uri] is already imported or
+  /// queued for import in a compatible way, or `null` if a new import is
+  /// needed.
+  ImportLibraryElementResult? _existingImportElementResult(
+    Uri uri,
+    String? showName, {
+    required bool useShow,
+  }) {
+    for (var import in _getImportsForUri(uri)) {
+      var importPrefix = import.prefix?.element.name;
+      if (!import.hasCombinator) {
+        return ImportLibraryElementResultImpl(importPrefix);
+      }
+      if (importPrefix == null && showName != null) {
+        _handleCombinators(import, showName);
+        return ImportLibraryElementResultImpl(null);
+      }
+    }
+
+    var pending = (libraryChangeBuilder ?? this)._librariesToImport[uri];
+    if (pending == null) {
+      return null;
+    }
+    var pendingPrefix = pending.prefix;
+    if (pendingPrefix.isEmpty) {
+      if (showName != null) {
+        pending._ensureShown(showName, useShow: useShow);
+      }
+      pending.isExplicitlyImported = true;
+      return ImportLibraryElementResultImpl(null);
+    }
+    if (showName == null) {
+      pending.isExplicitlyImported = true;
+      return ImportLibraryElementResultImpl(pendingPrefix);
+    }
+    return null;
   }
 
   /// Returns information about the library used to import the given [element]

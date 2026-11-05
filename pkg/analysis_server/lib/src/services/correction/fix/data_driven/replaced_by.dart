@@ -43,14 +43,7 @@ class ReplacedBy extends Change<_Data> {
   // ignore: library_private_types_in_public_api
   void apply(DartFileEditBuilder builder, DataDrivenFix fix, _Data data) {
     var referenceRange = data.referenceRange;
-    ImportLibraryElementResult? importElement;
-    var libraryUris = newElement.libraryUris;
-    if (libraryUris.isNotEmpty) {
-      // A library URI from `libraryUris`, either one already imported,
-      // or the first one in the list.
-      var libraryUri = _selectImportUri(builder, libraryUris);
-      importElement = builder.importLibraryElement(libraryUri);
-    }
+    var importElement = _importElement(builder, fix, data);
     builder.addReplacement(referenceRange, (builder) {
       var components = newElement.components;
       if (data.isInstanceMember && !replaceTarget) {
@@ -70,18 +63,7 @@ class ReplacedBy extends Change<_Data> {
           builder.write(components.reversed.join('.'));
         }
       }
-      if (arguments.isNotEmpty) {
-        var templateContext = TemplateContext(fix.node, fix.utils);
-        builder.write('(');
-        arguments.first.writeOn(builder, templateContext);
-        for (int i = 1; i < arguments.length; i++) {
-          builder.write(',');
-          arguments[i].writeOn(builder, templateContext);
-        }
-        builder.write(')');
-      } else if (data.suffix case var suffix?) {
-        builder.write(suffix);
-      }
+      _writeArguments(builder, fix, data);
     });
   }
 
@@ -139,6 +121,26 @@ class ReplacedBy extends Change<_Data> {
       }
     }
     return null;
+  }
+
+  ImportLibraryElementResult? _importElement(
+    DartFileEditBuilder builder,
+    DataDrivenFix fix,
+    _Data data,
+  ) {
+    var libraryUris = newElement.libraryUris;
+    if (libraryUris.isEmpty) {
+      return null;
+    }
+    // A library URI from `libraryUris`, either one already imported,
+    // or the first one in the list.
+    var libraryUri = _selectImportUri(builder, libraryUris);
+    var prefix = replaceTarget
+        ? null
+        : data.isInstanceMember
+        ? _sourceImportPrefix(fix)
+        : _importPrefix(fix.node);
+    return builder.importLibraryElement(libraryUri, prefix: prefix);
   }
 
   /// Replacement range of a function, getter or setter invocation.
@@ -307,6 +309,56 @@ class ReplacedBy extends Change<_Data> {
     return node;
   }
 
+  void _writeArguments(DartEditBuilder builder, DataDrivenFix fix, _Data data) {
+    if (arguments.isNotEmpty) {
+      var templateContext = TemplateContext(fix.node, fix.utils);
+      builder.write('(');
+      arguments.first.writeOn(builder, templateContext);
+      for (var i = 1; i < arguments.length; i++) {
+        builder.write(',');
+        arguments[i].writeOn(builder, templateContext);
+      }
+      builder.write(')');
+    } else if (data.suffix case var suffix?) {
+      builder.write(suffix);
+    }
+  }
+
+  static String? _importPrefix(AstNode node) => switch (node) {
+    NamedType(:var importPrefix) ||
+    ConstructorName(type: NamedType(:var importPrefix)) ||
+    ExtensionOverride(
+      :var importPrefix,
+    ) => _prefixElementName(importPrefix?.element),
+    PrefixedIdentifier(:var prefix) => _prefixElementName(prefix.element),
+    SimpleIdentifier(:var parent) => _parentImportPrefix(parent),
+    _ => null,
+  };
+
+  static String? _parentImportPrefix(AstNode? parent) => switch (parent) {
+    NamedType(:var importPrefix) ||
+    ConstructorName(type: NamedType(:var importPrefix)) ||
+    ExtensionOverride(:var importPrefix) ||
+    MethodInvocation(target: ExtensionOverride(:var importPrefix)) ||
+    PropertyAccess(
+      target: ExtensionOverride(:var importPrefix),
+    ) => _prefixElementName(importPrefix?.element),
+    PrefixedIdentifier(:var prefix) ||
+    Annotation(name: PrefixedIdentifier(:var prefix)) ||
+    MethodInvocation(target: SimpleIdentifier prefix) ||
+    MethodInvocation(target: PrefixedIdentifier(:var prefix)) ||
+    PropertyAccess(target: SimpleIdentifier prefix) ||
+    PropertyAccess(
+      target: PrefixedIdentifier(:var prefix),
+    ) => _prefixElementName(prefix.element),
+    _ => null,
+  };
+
+  static String? _prefixElementName(Element? element) =>
+      element is PrefixElement && !element.fragments.any((f) => f.isDeferred)
+      ? element.name
+      : null;
+
   // Find the import element of `libraryUri`.
   static Uri _selectImportUri(
     DartFileEditBuilder builder,
@@ -317,6 +369,23 @@ class ReplacedBy extends Change<_Data> {
       if (builder.importsLibrary(uri)) return uri;
     }
     return libraryUris.first;
+  }
+
+  static String? _sourceImportPrefix(DataDrivenFix fix) {
+    var sourceUris = fix.element.libraryUris;
+    String? prefix;
+    for (var import
+        in fix.unitResult.libraryElement.firstFragment.libraryImports) {
+      if (!sourceUris.contains(import.importedLibrary?.uri)) continue;
+      var prefixFragment = import.prefix;
+      if (prefixFragment == null || prefixFragment.isDeferred) return null;
+      var importPrefix = prefixFragment.element.name;
+      if (importPrefix == null || (prefix != null && prefix != importPrefix)) {
+        return null;
+      }
+      prefix = importPrefix;
+    }
+    return prefix;
   }
 }
 

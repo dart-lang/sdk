@@ -17,6 +17,7 @@ void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ImportLibraryElementTest);
     defineReflectiveTests(ImportLibraryElement_existingImport_Test);
+    defineReflectiveTests(ImportLibraryElement_newImport_withPrefix_Test);
     defineReflectiveTests(ImportLibraryElement_newImport_withoutPrefix_Test);
   });
 }
@@ -434,6 +435,129 @@ import 'package:test/b.dart';
 }
 
 @reflectiveTest
+class ImportLibraryElement_newImport_withPrefix_Test extends _Base {
+  Future<void> test_existingImport_differentPrefix() async {
+    newFile('/home/test/lib/a.dart', 'class A {}');
+
+    await _assertImportLibraryElement(
+      initialCode: r'''
+import 'package:test/a.dart' as q;
+''',
+      uriStr: 'package:test/a.dart',
+      name: 'A',
+      prefix: 'p',
+      expectedPrefix: 'q',
+    );
+  }
+
+  Future<void> test_existingImport_withoutPrefix() async {
+    newFile('/home/test/lib/a.dart', 'class A {}');
+
+    await _assertImportLibraryElement(
+      initialCode: r'''
+import 'package:test/a.dart';
+''',
+      uriStr: 'package:test/a.dart',
+      name: 'A',
+      prefix: 'p',
+    );
+  }
+
+  Future<void> test_newImport_emptyPrefix() async {
+    newFile('/home/test/lib/a.dart', 'class A {}');
+
+    await _assertImportLibraryElement(
+      initialCode: '',
+      uriStr: 'package:test/a.dart',
+      name: 'A',
+      prefix: '',
+      expectedCode: r'''
+import 'package:test/a.dart';
+''',
+    );
+  }
+
+  Future<void> test_newImport_withPrefix() async {
+    newFile('/home/test/lib/a.dart', 'class A {}');
+    newFile('/home/test/lib/b.dart', 'class B {}');
+
+    await _assertImportLibraryElement(
+      initialCode: r'''
+import 'package:test/a.dart' as p;
+''',
+      uriStr: 'package:test/b.dart',
+      name: 'B',
+      prefix: 'p',
+      expectedPrefix: 'p',
+      expectedCode: r'''
+import 'package:test/a.dart' as p;
+import 'package:test/b.dart' as p;
+''',
+    );
+  }
+
+  Future<void> test_pendingImport_samePrefix_reused() async {
+    newFile('/home/test/lib/a.dart', 'class A {} class B {}');
+    var path = convertPath('/home/test/lib/test.dart');
+    const initialCode = '';
+    newFile(path, initialCode);
+
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      var uri = Uri.parse('package:test/a.dart');
+      var first = builder.importLibraryElement(uri, prefix: 'p');
+      var second = builder.importLibraryElement(uri, prefix: 'p');
+      expect(first.prefix, 'p');
+      expect(second.prefix, 'p');
+    });
+
+    var edits = getEdits(builder);
+    var resultCode = SourceEdit.applySequence(initialCode, edits);
+    expect(resultCode, "import 'package:test/a.dart' as p;\n");
+  }
+
+  Future<void> test_pendingImport_withoutPrefix_reusedByPrefixedCall() async {
+    newFile('/home/test/lib/a.dart', 'class A {} class B {}');
+    var path = convertPath('/home/test/lib/test.dart');
+    const initialCode = '';
+    newFile(path, initialCode);
+
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      var uri = Uri.parse('package:test/a.dart');
+      var first = builder.importLibraryElement(uri);
+      var second = builder.importLibraryElement(uri, prefix: 'p');
+      expect(first.prefix, isNull);
+      expect(second.prefix, isNull);
+    });
+
+    var edits = getEdits(builder);
+    var resultCode = SourceEdit.applySequence(initialCode, edits);
+    expect(resultCode, "import 'package:test/a.dart';\n");
+  }
+
+  Future<void> test_pendingImport_withPrefix_reusedByUnprefixedCall() async {
+    newFile('/home/test/lib/a.dart', 'class A {} class B {}');
+    var path = convertPath('/home/test/lib/test.dart');
+    const initialCode = '';
+    newFile(path, initialCode);
+
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      var uri = Uri.parse('package:test/a.dart');
+      var first = builder.importLibraryElement(uri, prefix: 'p');
+      var second = builder.importLibraryElement(uri);
+      expect(first.prefix, 'p');
+      expect(second.prefix, 'p');
+    });
+
+    var edits = getEdits(builder);
+    var resultCode = SourceEdit.applySequence(initialCode, edits);
+    expect(resultCode, "import 'package:test/a.dart' as p;\n");
+  }
+}
+
+@reflectiveTest
 class ImportLibraryElementTest extends _Base {
   Future<void> test_thisLibrary() async {
     await _assertImportLibraryElement(
@@ -457,6 +581,7 @@ class _Base extends AbstractContextTest with DartChangeBuilderMixin {
     required String initialCode,
     required String uriStr,
     required String name,
+    String? prefix,
     String? expectedPrefix,
     String? expectedCode,
   }) async {
@@ -480,7 +605,7 @@ class _Base extends AbstractContextTest with DartChangeBuilderMixin {
     var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       var uri = Uri.parse(uriStr);
-      var result = builder.importLibraryElement(uri);
+      var result = builder.importLibraryElement(uri, prefix: prefix);
       expect(result.prefix, expectedPrefix);
     });
 
