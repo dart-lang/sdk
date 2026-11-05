@@ -2629,7 +2629,7 @@ import 'package:test/a.dart';
 void f() {
   foo;
 }
-''');
+''', expectedNumberOfFixesForKind: 2);
   }
 
   Future<void> test_withTopLevelVariable_write() async {
@@ -2649,7 +2649,7 @@ import 'package:test/a.dart';
 void f() {
   foo = 0;
 }
-''');
+''', expectedNumberOfFixesForKind: 2);
   }
 
   void _createPackageAaa({String dependenciesKey = 'dependencies'}) {

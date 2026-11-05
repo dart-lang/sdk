@@ -626,7 +626,6 @@ class ImportLibrary extends MultiCorrectionProducer {
     if (node case SimpleIdentifier(:var name, :var parent)) {
       return _namesForMethodInvocation(name, parent, const [
         ElementKind.FUNCTION,
-        ElementKind.TOP_LEVEL_VARIABLE,
       ]);
     }
 
@@ -708,7 +707,6 @@ class ImportLibrary extends MultiCorrectionProducer {
   }
 
   List<_PrefixedName> _namesForTopLevelVariable() {
-    String? prefix;
     var targetNode = node.annotationContainingName ?? node;
     if (targetNode case Annotation(:var name)) {
       if (name.element == null) {
@@ -739,23 +737,10 @@ class ImportLibrary extends MultiCorrectionProducer {
         ),
       ];
     }
-    if (targetNode.parent case PrefixedIdentifier prefixed
-        when prefixed.prefix == targetNode) {
-      targetNode = prefixed.identifier;
-      prefix = prefixed.prefix.name;
-    }
-    if (targetNode case SimpleIdentifier(:var name)) {
-      return [
-        _PrefixedName(
-          prefix: prefix,
-          name: name,
-          producerGenerators: (prefix, name) async {
-            return await _importLibraryForElement(name, const [
-              ElementKind.TOP_LEVEL_VARIABLE,
-            ], prefix: prefix);
-          },
-        ),
-      ];
+    if (targetNode case SimpleIdentifier(:var name, :var parent)) {
+      return _namesForMethodInvocation(name, parent, const [
+        ElementKind.TOP_LEVEL_VARIABLE,
+      ]);
     }
 
     return const [];
