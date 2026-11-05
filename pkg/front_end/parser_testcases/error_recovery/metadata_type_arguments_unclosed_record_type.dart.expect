@@ -1,0 +1,47 @@
+Problems reported:
+
+parser/error_recovery/metadata_type_arguments_unclosed_record_type:1:3: An annotation with type arguments must be followed by an argument list.
+(@a< x, int y) z;
+  ^
+
+parser/error_recovery/metadata_type_arguments_unclosed_record_type:1:4: Expected a type, but got '<'.
+(@a< x, int y) z;
+   ^
+
+parser/error_recovery/metadata_type_arguments_unclosed_record_type:1:4: Expected ')' before this.
+(@a< x, int y) z;
+   ^
+
+parser/error_recovery/metadata_type_arguments_unclosed_record_type:1:14: A record type with exactly one positional field requires a trailing comma.
+(@a< x, int y) z;
+             ^
+
+beginCompilationUnit(()
+  beginMetadataStar(()
+  endMetadataStar(0)
+  beginTopLevelMember(()
+    beginFields(DeclarationKind.TopLevel, null, null, null, null, null, null, null, )
+      beginRecordType(()
+        beginRecordTypeEntry()
+          beginMetadataStar(@)
+            beginMetadata(@)
+              handleIdentifier(a, metadataReference)
+              handleNoTypeArguments(<)
+              handleRecoverableError(MetadataTypeArgumentsUninstantiated, a, a)
+              handleNoArguments(<)
+            endMetadata(@, null, a)
+          endMetadataStar(1)
+          handleRecoverableError(Message[Template(ExpectedType), Expected a type, but got '<'., null, {lexeme: <}], <, <)
+          handleIdentifier(, typeReference)
+          handleNoTypeArguments(<)
+          handleType(, null)
+          handleNoName(<)
+        endRecordTypeEntry()
+        handleRecoverableError(Message[Template(ExpectedButGot), Expected ')' before this., null, {expected: )}], <, <)
+        handleRecoverableError(RecordTypeOnePositionalFieldNoTrailingComma, ), ))
+      endRecordType((, null, 1, false)
+      handleIdentifier(z, topLevelVariableDeclaration)
+      handleNoFieldInitializer(;)
+    endTopLevelFields(null, null, null, null, null, null, null, 1, (, ;)
+  endTopLevelDeclaration(;)
+endCompilationUnit(1, )

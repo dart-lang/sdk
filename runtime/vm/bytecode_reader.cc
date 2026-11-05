@@ -394,11 +394,10 @@ void BytecodeReaderHelper::ReadClosureDeclaration(const Function& function,
   const int kIsAsyncFlag = 1 << 4;
   const int kIsAsyncStarFlag = 1 << 5;
   const int kIsSyncStarFlag = 1 << 6;
-  const int kIsDebuggableFlag = 1 << 7;
-  const int kHasParameterFlagsFlag = 1 << 8;
-  const int kHasAnnotationsFlag = 1 << 9;
-  const int kHasPragmaFlag = 1 << 10;
-  const int kIsInvisibleFlag = 1 << 11;
+  const int kHasParameterFlagsFlag = 1 << 7;
+  const int kHasAnnotationsFlag = 1 << 8;
+  const int kHasPragmaFlag = 1 << 9;
+  const int kIsInvisibleFlag = 1 << 10;
 
   const intptr_t flags = reader_.ReadUInt();
   const bool has_pragma = (flags & kHasPragmaFlag) != 0;
@@ -436,7 +435,6 @@ void BytecodeReaderHelper::ReadClosureDeclaration(const Function& function,
     closure.set_modifier(UntaggedFunction::kAsyncGen);
     closure.set_is_inlinable(false);
   }
-  closure.set_is_debuggable((flags & kIsDebuggableFlag) != 0);
   closure.set_is_visible((flags & kIsInvisibleFlag) == 0);
   closure.set_has_pragma(has_pragma);
 

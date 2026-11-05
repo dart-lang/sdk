@@ -1,0 +1,31 @@
+void expression(Object value) {
+value as void;
+}
+
+void pattern(Object value) {
+if (value case _ as void) {}
+}
+
+void functionType(Object value) {
+value as void Function();
+if (value case _ as void Function()) {}
+}
+
+class InvalidSupertype extends void {}
+
+
+void[KeywordToken] expression[StringToken]([BeginToken]Object[StringToken] value[StringToken])[SimpleToken] {[BeginToken]
+value[StringToken] as[KeywordToken] void[KeywordToken];[SimpleToken]
+}[SimpleToken]
+
+void[KeywordToken] pattern[StringToken]([BeginToken]Object[StringToken] value[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]value[StringToken] case[KeywordToken] _[StringToken] as[KeywordToken] void[KeywordToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+}[SimpleToken]
+
+void[KeywordToken] functionType[StringToken]([BeginToken]Object[StringToken] value[StringToken])[SimpleToken] {[BeginToken]
+value[StringToken] as[KeywordToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+if[KeywordToken] ([BeginToken]value[StringToken] case[KeywordToken] _[StringToken] as[KeywordToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+}[SimpleToken]
+
+class[KeywordToken] InvalidSupertype[StringToken] extends[KeywordToken] void[KeywordToken] {[BeginToken]}[SimpleToken]
+[SimpleToken]

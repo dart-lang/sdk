@@ -1289,6 +1289,16 @@ invalidVoid:
     - "class Foo extends void {}"
   exampleAllowOtherCodes: true
 
+invalidVoidAfterAs:
+  pseudoSharedCode: EXPECTED_TYPE_NAME
+  parameters: none
+  problemMessage: "The type 'void' can't be used after 'as'."
+  correctionMessage: "Try removing the cast or using a different type."
+  script:
+    - "main() { 0 as void; }"
+    - "main() { if (0 case _ as void) {} }"
+  exampleAllowOtherCodes: true
+
 finalFieldNotInitialized:
   parameters:
     Name fieldName: The name of the uninitialized field.

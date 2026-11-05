@@ -23,6 +23,88 @@ main() {
 
 @reflectiveTest
 class MetadataResolutionTest extends PubPackageResolutionTest {
+  test_annotationOnTypeArgument_sharedCloser_inAnnotation() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+@a<@b<int>>
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant][column 2][length 1] Undefined name 'a'.
+// ^^^^^^^
+// [diag.annotationOnTypeArgument] Type arguments can't have annotations because they aren't declarations.
+//        ^
+// [diag.expectedTypeName] Expected a type name.
+// [diag.annotationWithTypeArgumentsUninstantiated] An annotation with type arguments must be followed by an argument list.
+class C {}
+''');
+
+    var node = result.findNode.singleAnnotation;
+    assertResolvedNodeText(node, r'''
+Annotation
+  atSign: @
+  expression: FunctionInstantiation
+    operand: UnqualifiedNameExpression
+      name: a
+      resolution: InvalidNamedReadResolution
+        recoveryElement: <null>
+      staticType: InvalidType
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: <empty> <synthetic>
+          element: <null>
+          type: InvalidType
+      rightBracket: >
+    staticType: InvalidType
+  name: SimpleIdentifier
+    token: a
+    element: <null>
+    staticType: null
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: <empty> <synthetic>
+        element: <null>
+        type: InvalidType
+    rightBracket: >
+  element: <null>
+''');
+  }
+
+  test_annotationOnTypeArgument_sharedCloser_inConstantInitializer() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+const x = null as List<@a<int>>;
+//        ^^^^^^^^^^^^^^^^^^^^^
+// [diag.constEvalThrowsException] Evaluation of this constant expression throws an exception.
+// [diag.castFromNullAlwaysFails] This cast always throws an exception because the expression always evaluates to 'null'.
+//                     ^^^^^^^
+// [diag.annotationOnTypeArgument] Type arguments can't have annotations because they aren't declarations.
+//                            ^
+// [diag.expectedTypeName] Expected a type name.
+''');
+
+    var node = result.findNode.singleAsExpression;
+    assertResolvedNodeText(node, r'''
+AsExpression
+  expression2: NullLiteral
+    literal: null
+    staticType: Null
+  asOperator: as
+  type: NamedType
+    name: List
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: <empty> <synthetic>
+          element: <null>
+          type: InvalidType
+      rightBracket: >
+    element: dart:core::@class::List
+    type: List<InvalidType>
+  staticType: List<InvalidType>
+''');
+  }
+
   test_at_genericFunctionType_formalParameter() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 const a = 42;

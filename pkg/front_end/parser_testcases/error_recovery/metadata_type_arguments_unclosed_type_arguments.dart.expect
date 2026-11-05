@@ -1,0 +1,44 @@
+Problems reported:
+
+parser/error_recovery/metadata_type_arguments_unclosed_type_arguments:1:24: Type arguments can't have annotations because they aren't declarations.
+const x = null as List<@a<;
+                       ^^
+
+parser/error_recovery/metadata_type_arguments_unclosed_type_arguments:1:26: Expected a type, but got '<'.
+const x = null as List<@a<;
+                         ^
+
+parser/error_recovery/metadata_type_arguments_unclosed_type_arguments:1:27: Expected an identifier, but got ';'.
+const x = null as List<@a<;
+                          ^
+
+beginCompilationUnit(const)
+  beginMetadataStar(const)
+  endMetadataStar(0)
+  beginTopLevelMember(const)
+    beginFields(DeclarationKind.TopLevel, null, null, null, null, null, null, const, )
+      handleNoType(const)
+      handleIdentifier(x, topLevelVariableDeclaration)
+      beginFieldInitializer(=)
+        handleLiteralNull(null)
+        beginAsOperatorType(as)
+          handleIdentifier(List, typeReference)
+          beginTypeArguments(<)
+            handleRecoverableError(AnnotationOnTypeArgument, @, a)
+            handleRecoverableError(Message[Template(ExpectedType), Expected a type, but got '<'., null, {lexeme: <}], <, <)
+            handleIdentifier(, typeReference)
+            handleNoTypeArguments(<)
+            handleType(, null)
+          endTypeArguments(1, <, >)
+          handleType(List, null)
+        endAsOperatorType(as)
+        handleAsOperator(as)
+        beginBinaryExpression(<)
+          handleRecoverableError(Message[Template(ExpectedIdentifier), Expected an identifier, but got ';'., Try inserting an identifier before ';'., {lexeme: ;}], ;, ;)
+          handleIdentifier(, expression)
+          handleSendWithoutArguments(, , ;)
+        endBinaryExpression(<, )
+      endFieldInitializer(=, )
+    endTopLevelFields(null, null, null, null, null, null, const, 1, const, ;)
+  endTopLevelDeclaration(;)
+endCompilationUnit(1, )

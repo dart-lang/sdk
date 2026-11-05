@@ -1,0 +1,7 @@
+NOTICE: Stream was rewritten by parser!
+
+class C<@a*synthetic*< {*synthetic*>>{}}
+
+
+class[KeywordToken] C[StringToken]<[BeginToken]@[SimpleToken]a[StringToken][SyntheticStringToken]<[BeginToken] {[BeginToken][SyntheticStringToken]>[SyntheticToken]>[SyntheticToken]{[SyntheticBeginToken]}[SyntheticToken]}[SimpleToken]
+[SimpleToken]

@@ -430,7 +430,10 @@ class VoidType implements TypeInfo {
   @override
   Token ensureTypeNotVoid(Token token, Parser parser) {
     // Report an error, then parse `void` as if it were a type name.
-    parser.reportRecoverableError(token.next!, diag.invalidVoid);
+    parser.reportRecoverableError(
+      token.next!,
+      token.isA(Keyword.AS) ? diag.invalidVoidAfterAs : diag.invalidVoid,
+    );
     return simpleType.parseTypeNotVoid(token, parser);
   }
 
@@ -1437,7 +1440,13 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
         // Recovery
         while (typeInfo == noType && next.next!.isA(TokenType.AT)) {
           Token atToken = next.next!;
-          next = skipMetadata(next);
+          // Parsing continues after the annotation, so the token stream must
+          // be properly modified, but ensure that parser events are ignored
+          // by replacing the listener.
+          final Listener originalListener = parser.listener;
+          parser.listener = new ForwardingListener();
+          next = skipMetadata(next, parser: parser);
+          parser.listener = originalListener;
           parser.reportRecoverableErrorWithEnd(
             atToken,
             next,

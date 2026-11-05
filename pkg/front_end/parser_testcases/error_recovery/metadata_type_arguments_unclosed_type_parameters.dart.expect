@@ -1,0 +1,63 @@
+Problems reported:
+
+parser/error_recovery/metadata_type_arguments_unclosed_type_parameters:1:10: An annotation with type arguments must be followed by an argument list.
+class C<@a< {}
+         ^
+
+parser/error_recovery/metadata_type_arguments_unclosed_type_parameters:1:11: Expected an identifier, but got '<'.
+class C<@a< {}
+          ^
+
+parser/error_recovery/metadata_type_arguments_unclosed_type_parameters:1:14: A class declaration must have a body, even if it is empty.
+class C<@a< {}
+             ^
+
+parser/error_recovery/metadata_type_arguments_unclosed_type_parameters:1:14: Expected a declaration, but got '}'.
+class C<@a< {}
+             ^
+
+beginCompilationUnit(class)
+  beginMetadataStar(class)
+  endMetadataStar(0)
+  beginClassOrMixinOrNamedMixinApplicationPrelude(class)
+    handleIdentifier(C, classOrMixinDeclaration)
+    beginTypeVariables(<)
+      beginMetadataStar(@)
+        beginMetadata(@)
+          handleIdentifier(a, metadataReference)
+          handleNoTypeArguments(<)
+          handleRecoverableError(MetadataTypeArgumentsUninstantiated, a, a)
+          handleNoArguments(<)
+        endMetadata(@, null, a)
+      endMetadataStar(1)
+      handleRecoverableError(Message[Template(ExpectedIdentifier), Expected an identifier, but got '<'., Try inserting an identifier before '<'., {lexeme: <}], <, <)
+      handleIdentifier(, typeVariableDeclaration)
+      beginTypeVariable()
+        handleTypeVariablesDefined(, 1)
+        handleNoType()
+      endTypeVariable(<, 0, null, null)
+    endTypeVariables(<, >)
+    beginClassDeclaration(class, null, null, null, null, null, null, null, C)
+      handleNoPrimaryConstructor(DeclarationKind.Class, >, null)
+      handleNoType(>)
+      handleClassExtends(null, 1)
+      handleClassNoWithClause()
+      handleImplements(null, 0)
+      handleClassHeader(class, class, null)
+      handleNoType(>)
+      handleClassExtends(null, 1)
+      handleClassNoWithClause()
+      handleImplements(null, 0)
+      handleRecoverDeclarationHeader(DeclarationHeaderKind.Class)
+      handleRecoverableError(ExpectedClassBody, }, })
+      beginClassOrMixinOrExtensionBody(DeclarationKind.Class, {)
+      endClassOrMixinOrExtensionBody(DeclarationKind.Class, 0, {, })
+    endClassDeclaration(class, })
+  endTopLevelDeclaration(})
+  beginMetadataStar(})
+  endMetadataStar(0)
+  beginTopLevelMember(})
+    handleRecoverableError(Message[Template(ExpectedDeclaration), Expected a declaration, but got '}'., null, {lexeme: }}], }, })
+    handleInvalidTopLevelDeclaration(})
+  endTopLevelDeclaration(})
+endCompilationUnit(2, )

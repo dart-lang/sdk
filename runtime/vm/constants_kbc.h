@@ -274,7 +274,7 @@ class KernelBytecode {
   static const intptr_t kMagicValue = 0x44424333;  // 'DBC3'
   // Bytecode format version supported by the VM
   // (should match pkg/dart2bytecode/lib/dbc.dart).
-  static const intptr_t kBytecodeFormatVersion = 3;
+  static const intptr_t kBytecodeFormatVersion = 4;
 
   enum Opcode {
 #define DECLARE_BYTECODE(name, encoding, kind, op1, op2, op3) k##name,

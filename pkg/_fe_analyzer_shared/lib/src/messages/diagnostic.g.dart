@@ -1920,6 +1920,14 @@ const MessageCode invalidVoid = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode invalidVoidAfterAs = const MessageCode(
+  "InvalidVoidAfterAs",
+  pseudoSharedCode: PseudoSharedCode.expectedTypeName,
+  problemMessage: """The type 'void' can't be used after 'as'.""",
+  correctionMessage: """Try removing the cast or using a different type.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode latePatternVariableDeclaration = const MessageCode(
   "LatePatternVariableDeclaration",
   sharedCode: SharedCode.latePatternVariableDeclaration,

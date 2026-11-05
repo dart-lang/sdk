@@ -246,6 +246,29 @@ class VoidTypeInfoTest {
     expect(listener.errors, [new ExpectedError(diag.invalidVoid, 7, 4)]);
   }
 
+  void test_ensureTypeNotVoid_afterAs() {
+    final Token start = scanString('as void ;').tokens;
+    final TypeInfoListener listener = new TypeInfoListener();
+
+    expect(
+      voidType.ensureTypeNotVoid(
+        start,
+        new Parser(
+          listener,
+          useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+          experimentalFeatures: const DefaultExperimentalFeatures(),
+        ),
+      ),
+      start.next,
+    );
+    expect(listener.calls, [
+      'handleIdentifier void typeReference',
+      'handleNoTypeArguments ;',
+      'handleType void null',
+    ]);
+    expect(listener.errors, [new ExpectedError(diag.invalidVoidAfterAs, 3, 4)]);
+  }
+
   void test_ensureTypeOrVoid() {
     final Token start = scanString('before void ;').tokens;
     final TypeInfoListener listener = new TypeInfoListener();
@@ -2550,6 +2573,119 @@ class TypeParamOrArgInfoTest {
       ],
     );
     expectComplexTypeArg(
+      '<@a<int>>',
+      typeArgumentCount: 0,
+      expectedErrors: [
+        error(diag.annotationOnTypeArgument, 1, 7),
+        error(diag.expectedType, 8, 1),
+      ],
+      expectedCalls: [
+        'beginTypeArguments <',
+        'handleIdentifier  typeReference',
+        'handleNoTypeArguments >',
+        'handleType  null',
+        'endTypeArguments 1 < >',
+      ],
+    );
+    expectComplexTypeArg(
+      '<@a<int>>=',
+      typeArgumentCount: 0,
+      expectedAfter: '=',
+      expectedErrors: [
+        error(diag.annotationOnTypeArgument, 1, 7),
+        error(diag.expectedType, 8, 2),
+      ],
+      expectedCalls: [
+        'beginTypeArguments <',
+        'handleIdentifier  typeReference',
+        'handleNoTypeArguments >=',
+        'handleType  null',
+        'endTypeArguments 1 < >',
+      ],
+    );
+    expectComplexTypeArg(
+      '<@a<int>>>',
+      typeArgumentCount: 0,
+      expectedAfter: '>',
+      expectedErrors: [
+        error(diag.annotationOnTypeArgument, 1, 7),
+        error(diag.expectedType, 8, 2),
+      ],
+      expectedCalls: [
+        'beginTypeArguments <',
+        'handleIdentifier  typeReference',
+        'handleNoTypeArguments >>',
+        'handleType  null',
+        'endTypeArguments 1 < >',
+      ],
+    );
+    expectComplexTypeArg(
+      '<@a<List<int>>>',
+      typeArgumentCount: 0,
+      expectedErrors: [
+        error(diag.annotationOnTypeArgument, 1, 13),
+        error(diag.expectedType, 14, 1),
+      ],
+      expectedCalls: [
+        'beginTypeArguments <',
+        'handleIdentifier  typeReference',
+        'handleNoTypeArguments >',
+        'handleType  null',
+        'endTypeArguments 1 < >',
+      ],
+    );
+    expectComplexTypeArg(
+      '<@a<int>, @b<int>>',
+      typeArgumentCount: 1,
+      expectedErrors: [
+        error(diag.annotationOnTypeArgument, 1, 7),
+        error(diag.expectedType, 8, 1),
+        error(diag.annotationOnTypeArgument, 10, 7),
+        error(diag.expectedType, 17, 1),
+      ],
+      expectedCalls: [
+        'beginTypeArguments <',
+        'handleIdentifier  typeReference',
+        'handleNoTypeArguments ,',
+        'handleType  null',
+        'handleIdentifier  typeReference',
+        'handleNoTypeArguments >',
+        'handleType  null',
+        'endTypeArguments 2 < >',
+      ],
+    );
+    expectComplexTypeArg(
+      '<@a<@b<int>>>',
+      typeArgumentCount: 0,
+      expectedErrors: [
+        error(diag.annotationOnTypeArgument, 1, 11),
+        error(diag.expectedType, 12, 1),
+      ],
+      expectedCalls: [
+        'beginTypeArguments <',
+        'handleIdentifier  typeReference',
+        'handleNoTypeArguments >',
+        'handleType  null',
+        'endTypeArguments 1 < >',
+      ],
+    );
+    expectComplexTypeArg(
+      '<@a<',
+      typeArgumentCount: 0,
+      expectedAfter: '<',
+      expectedErrors: [
+        error(diag.annotationOnTypeArgument, 1, 2),
+        error(diag.expectedType, 3, 1),
+      ],
+      expectedCalls: [
+        'beginTypeArguments <',
+        'handleIdentifier  typeReference',
+        'handleNoTypeArguments <',
+        'handleType  null',
+        'endTypeArguments 1 < >',
+      ],
+    );
+    expectComplexTypeArg(
       '<S T>',
       inDeclaration: true,
       typeArgumentCount: 2,
@@ -2590,6 +2726,35 @@ class TypeParamOrArgInfoTest {
   }
 
   void test_computeTypeParam_complex() {
+    expectComplexTypeParam(
+      '<@A<List<int>>() T>',
+      typeArgumentCount: 1,
+      expectedCalls: [
+        'beginTypeVariables <',
+        'beginMetadataStar @',
+        'beginMetadata @',
+        'handleIdentifier A metadataReference',
+        'beginTypeArguments <',
+        'handleIdentifier List typeReference',
+        'beginTypeArguments <',
+        'handleIdentifier int typeReference',
+        'handleNoTypeArguments >',
+        'handleType int null',
+        'endTypeArguments 1 < >',
+        'handleType List null',
+        'endTypeArguments 1 < >',
+        'beginArguments (',
+        'endArguments 0 ( )',
+        'endMetadata @ null )',
+        'endMetadataStar 1',
+        'handleIdentifier T typeVariableDeclaration',
+        'beginTypeVariable T',
+        'handleTypeVariablesDefined T 1',
+        'handleNoType T',
+        'endTypeVariable > 0 null null',
+        'endTypeVariables < >',
+      ],
+    );
     expectComplexTypeParam(
       '<S,T>',
       typeArgumentCount: 2,
@@ -2784,6 +2949,14 @@ class TypeParamOrArgInfoTest {
   }
 
   void test_computeTypeParam_complex_recovery() {
+    expectComplexTypeParam(
+      '<@a<int>>',
+      typeArgumentCount: 0,
+      expectedErrors: [
+        error(diag.metadataTypeArgumentsUninstantiated, 7, 1),
+        error(diag.expectedIdentifier, 8, 1),
+      ],
+    );
     expectComplexTypeParam(
       '<S Function()>',
       typeArgumentCount: 1,
@@ -3283,7 +3456,7 @@ void expectComplexTypeArg(
   );
   expect(typeVarInfo.typeArgumentCount, typeArgumentCount);
 
-  TypeInfoListener listener = new TypeInfoListener();
+  TypeInfoListener listener = new TypeInfoListener(firstToken: start);
   Parser parser = new Parser(
     listener,
     useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
