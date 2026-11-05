@@ -7,7 +7,7 @@ library;
 
 /// Version of bytecode format
 /// (should match runtime/vm/constants_kbc.h).
-const int bytecodeFormatVersion = 3;
+const int bytecodeFormatVersion = 4;
 
 enum Opcode {
   kTrap,

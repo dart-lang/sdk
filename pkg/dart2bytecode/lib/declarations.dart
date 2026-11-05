@@ -1048,11 +1048,10 @@ class ClosureDeclaration {
   static const isAsyncFlag = 1 << 4;
   static const isAsyncStarFlag = 1 << 5;
   static const isSyncStarFlag = 1 << 6;
-  static const isDebuggableFlag = 1 << 7;
-  static const hasParameterFlagsFlag = 1 << 8;
-  static const hasAnnotationsFlag = 1 << 9;
-  static const hasPragmaFlag = 1 << 10;
-  static const isInvisibleFlag = 1 << 11;
+  static const hasParameterFlagsFlag = 1 << 7;
+  static const hasAnnotationsFlag = 1 << 8;
+  static const hasPragmaFlag = 1 << 9;
+  static const isInvisibleFlag = 1 << 10;
 
   int flags;
   final ObjectHandle parent;
