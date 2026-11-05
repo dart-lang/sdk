@@ -622,19 +622,22 @@ class JSArrayImplIterator<T extends JSAny?> implements Iterator<T> {
   final JSArrayImpl<T> _array;
   final int _length;
   int _index = -1;
+  T? _current;
 
   JSArrayImplIterator(this._array) : _length = _array.length {}
 
-  T get current => _array[_index];
+  T get current => _current as T;
 
   bool moveNext() {
     if (_length != _array.length) {
       throw ConcurrentModificationError(_array);
     }
     if (_index >= _length - 1) {
+      _current = null;
       return false;
     }
     _index++;
+    _current = _array[_index];
     return true;
   }
 }

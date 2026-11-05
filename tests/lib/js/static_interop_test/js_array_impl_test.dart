@@ -9,10 +9,6 @@ import 'dart:js_interop';
 
 import 'package:expect/expect.dart';
 
-const isJSBackend =
-    const bool.fromEnvironment('dart.library._ddc_only') ||
-    const bool.fromEnvironment('dart.library._dart2js_only');
-
 // We run many tests in three configurations:
 // 1) Test should ensure receivers for all [List] operations will be
 // `JSArrayImpl`.
@@ -193,14 +189,23 @@ void nonModedTests<T extends JSAny?>({required bool testProxy}) {
   Expect.equals(5, count);
 
   final iterator = nonNullableList.iterator;
-  if (isJSBackend) {
-    // The JS backends return a cast list whose iterator reads the next element
-    // in `moveNext` instead of in `current`.
-    Expect.throwsTypeError(() => iterator.moveNext());
-  } else {
-    Expect.isTrue(iterator.moveNext());
-    Expect.throwsTypeError(() => iterator.current);
-  }
+  Expect.throwsTypeError(() => iterator.moveNext());
+
+  // The current element stays unchanged until the next moveNext call.
+  final iteratorList = toJSList([1, 2]);
+  final listIterator = iteratorList.iterator;
+  Expect.isTrue(listIterator.moveNext());
+  Expect.equals(1, listIterator.current?.toDouble);
+  iteratorList[0] = 99.toJS as T;
+  Expect.equals(1, listIterator.current?.toDouble);
+  Expect.isTrue(listIterator.moveNext());
+  Expect.equals(2, listIterator.current?.toDouble);
+  Expect.isFalse(listIterator.moveNext());
+
+  final nullIterator = toJSList([null]).iterator;
+  Expect.isTrue(nullIterator.moveNext());
+  Expect.isNull(nullIterator.current);
+  Expect.isFalse(nullIterator.moveNext());
 
   // length
   Expect.equals(4, list.length);
