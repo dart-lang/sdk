@@ -76,6 +76,39 @@ class A {
 ''');
   }
 
+  test_class_instanceGetter_blockBody_async_augmentation_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  Future<void> get foo async {}
+  augment Future<void> get foo async;
+//                                  ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_class_instanceGetter_blockBody_asyncStar_augmentation_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  Stream<int> get foo async* {}
+  augment Stream<int> get foo async*;
+//                                  ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_class_instanceGetter_blockBody_syncStar_augmentation_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  Iterable<int> get foo sync* {}
+  augment Iterable<int> get foo sync*;
+//                                   ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
   test_class_instanceGetter_expressionBody_augmentation_expressionBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {
@@ -207,11 +240,146 @@ class C {
 ''');
   }
 
+  test_class_instanceGetter_external_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  external Future<void> get foo async;
+//                                   ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_class_instanceGetter_external_noBody_async_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+class A {
+  external Future<void> get foo async;
+//                                   ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_class_instanceGetter_external_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  external Stream<int> get foo async*;
+//                                   ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_class_instanceGetter_external_noBody_asyncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+class A {
+  external Stream<int> get foo async*;
+//                                   ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
   test_class_instanceGetter_external_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
 // %before-language-feature: augmentations
 class C {
   external int get foo;
+}
+''');
+  }
+
+  test_class_instanceGetter_external_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  external Iterable<int> get foo sync*;
+//                                    ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_class_instanceGetter_external_noBody_syncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+class A {
+  external Iterable<int> get foo sync*;
+//                                    ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_class_instanceGetter_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  Future<void> get foo async;
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.concreteClassWithAbstractMember] 'foo' must have a method body because 'A' isn't abstract.
+//                          ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_class_instanceGetter_noBody_async_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  Future<void> get foo async;
+//                          ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment Future<void> get foo async {}
+}
+''');
+  }
+
+  test_class_instanceGetter_noBody_async_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+class A {
+  Future<void> get foo async;
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.concreteClassWithAbstractMember] 'foo' must have a method body because 'A' isn't abstract.
+//                          ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_class_instanceGetter_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  Stream<int> get foo async*;
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.concreteClassWithAbstractMember] 'foo' must have a method body because 'A' isn't abstract.
+//                          ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_class_instanceGetter_noBody_asyncStar_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  Stream<int> get foo async*;
+//                          ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment Stream<int> get foo async* {}
+}
+''');
+  }
+
+  test_class_instanceGetter_noBody_asyncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+class A {
+  Stream<int> get foo async*;
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.concreteClassWithAbstractMember] 'foo' must have a method body because 'A' isn't abstract.
+//                          ^
+// [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
   }
@@ -235,6 +403,64 @@ class A {
 ''');
   }
 
+  test_class_instanceGetter_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  Iterable<int> get foo sync*;
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.concreteClassWithAbstractMember] 'foo' must have a method body because 'A' isn't abstract.
+//                           ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_class_instanceGetter_noBody_syncStar_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  Iterable<int> get foo sync*;
+//                           ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment Iterable<int> get foo sync* {}
+}
+''');
+  }
+
+  test_class_instanceGetter_noBody_syncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+class A {
+  Iterable<int> get foo sync*;
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.concreteClassWithAbstractMember] 'foo' must have a method body because 'A' isn't abstract.
+//                           ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_class_instanceMethod_blockBody_async_augmentation_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  Future<void> foo() async {}
+  augment Future<void> foo() async;
+//                                ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_class_instanceMethod_blockBody_asyncStar_augmentation_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  Stream<int> foo() async* {}
+  augment Stream<int> foo() async*;
+//                                ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
   test_class_instanceMethod_blockBody_augmentation_blockBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {
@@ -253,6 +479,17 @@ class A {
 class A {
   void foo() {}
   augment void foo();
+}
+''');
+  }
+
+  test_class_instanceMethod_blockBody_syncStar_augmentation_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  Iterable<int> foo() sync* {}
+  augment Iterable<int> foo() sync*;
+//                                 ^
+// [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
   }
@@ -307,11 +544,74 @@ class C {
 ''');
   }
 
+  test_class_instanceMethod_external_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  external Future<void> foo() async;
+//                                 ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_class_instanceMethod_external_noBody_async_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+class A {
+  external Future<void> foo() async;
+//                                 ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_class_instanceMethod_external_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  external Stream<int> foo() async*;
+//                                 ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_class_instanceMethod_external_noBody_asyncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+class A {
+  external Stream<int> foo() async*;
+//                                 ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
   test_class_instanceMethod_external_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
 // %before-language-feature: augmentations
 class C {
   external void foo();
+}
+''');
+  }
+
+  test_class_instanceMethod_external_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  external Iterable<int> foo() sync*;
+//                                  ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_class_instanceMethod_external_noBody_syncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+class A {
+  external Iterable<int> foo() sync*;
+//                                  ^
+// [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
   }
@@ -326,6 +626,78 @@ class A {
 ''');
   }
 
+  test_class_instanceMethod_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  Future<void> foo() async;
+//^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.concreteClassWithAbstractMember] 'foo' must have a method body because 'A' isn't abstract.
+//                        ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_class_instanceMethod_noBody_async_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  Future<void> foo() async;
+//                        ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment Future<void> foo() async {}
+}
+''');
+  }
+
+  test_class_instanceMethod_noBody_async_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+class A {
+  Future<void> foo() async;
+//^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.concreteClassWithAbstractMember] 'foo' must have a method body because 'A' isn't abstract.
+//                        ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_class_instanceMethod_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  Stream<int> foo() async*;
+//^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.concreteClassWithAbstractMember] 'foo' must have a method body because 'A' isn't abstract.
+//                        ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_class_instanceMethod_noBody_asyncStar_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  Stream<int> foo() async*;
+//                        ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment Stream<int> foo() async* {}
+}
+''');
+  }
+
+  test_class_instanceMethod_noBody_asyncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+class A {
+  Stream<int> foo() async*;
+//^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.concreteClassWithAbstractMember] 'foo' must have a method body because 'A' isn't abstract.
+//                        ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
   test_class_instanceMethod_noBody_augmentation_noBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {
@@ -333,6 +705,42 @@ class A {
 //^^^^^^^^^^^
 // [diag.concreteClassWithAbstractMember] 'foo' must have a method body because 'A' isn't abstract.
   augment void foo();
+}
+''');
+  }
+
+  test_class_instanceMethod_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  Iterable<int> foo() sync*;
+//^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.concreteClassWithAbstractMember] 'foo' must have a method body because 'A' isn't abstract.
+//                         ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_class_instanceMethod_noBody_syncStar_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  Iterable<int> foo() sync*;
+//                         ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment Iterable<int> foo() sync* {}
+}
+''');
+  }
+
+  test_class_instanceMethod_noBody_syncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+class A {
+  Iterable<int> foo() sync*;
+//^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.concreteClassWithAbstractMember] 'foo' must have a method body because 'A' isn't abstract.
+//                         ^
+// [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
   }
@@ -402,12 +810,42 @@ class A {
 ''');
   }
 
+  test_class_instanceSetter_blockBody_async_augmentation_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  set foo(int _) async {}
+//               ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+  augment set foo(int _) async;
+//                       ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                            ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
   test_class_instanceSetter_blockBody_asyncStar() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {
   set foo(int _) async* {}
 //               ^^^^^
 // [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+}
+''');
+  }
+
+  test_class_instanceSetter_blockBody_asyncStar_augmentation_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  set foo(int _) async* {}
+//               ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+  augment set foo(int _) async*;
+//                       ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                             ^
+// [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
   }
@@ -450,6 +888,21 @@ class A {
 ''');
   }
 
+  test_class_instanceSetter_blockBody_syncStar_augmentation_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  set foo(int _) sync* {}
+//               ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+  augment set foo(int _) sync*;
+//                       ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                            ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
   test_class_instanceSetter_external_blockBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 class C {
@@ -479,11 +932,86 @@ class C {
 ''');
   }
 
+  test_class_instanceSetter_external_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  external set foo(int _) async;
+//                        ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                             ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_class_instanceSetter_external_noBody_async_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+class A {
+  external set foo(int _) async;
+//                        ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                             ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_class_instanceSetter_external_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  external set foo(int _) async*;
+//                        ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                              ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_class_instanceSetter_external_noBody_asyncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+class A {
+  external set foo(int _) async*;
+//                        ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                              ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
   test_class_instanceSetter_external_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
 // %before-language-feature: augmentations
 class C {
   external void set foo(int v);
+}
+''');
+  }
+
+  test_class_instanceSetter_external_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  external set foo(int _) sync*;
+//                        ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                             ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_class_instanceSetter_external_noBody_syncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+class A {
+  external set foo(int _) sync*;
+//                        ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                             ^
+// [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
   }
@@ -494,6 +1022,138 @@ class A {
   set foo(int _);
 //^^^^^^^^^^^^^^^
 // [diag.concreteClassWithAbstractMember] 'foo' must have a method body because 'A' isn't abstract.
+}
+''');
+  }
+
+  test_class_instanceSetter_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  set foo(int _) async;
+//^^^^^^^^^^^^^^^^^^^^^
+// [diag.concreteClassWithAbstractMember] 'foo' must have a method body because 'A' isn't abstract.
+//               ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                    ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_class_instanceSetter_noBody_async_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  set foo(int _) async;
+//               ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                    ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment set foo(int _) async {}
+//                       ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+}
+''');
+  }
+
+  test_class_instanceSetter_noBody_async_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+class A {
+  set foo(int _) async;
+//^^^^^^^^^^^^^^^^^^^^^
+// [diag.concreteClassWithAbstractMember] 'foo' must have a method body because 'A' isn't abstract.
+//               ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                    ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_class_instanceSetter_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  set foo(int _) async*;
+//^^^^^^^^^^^^^^^^^^^^^^
+// [diag.concreteClassWithAbstractMember] 'foo' must have a method body because 'A' isn't abstract.
+//               ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                     ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_class_instanceSetter_noBody_asyncStar_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  set foo(int _) async*;
+//               ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                     ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment set foo(int _) async* {}
+//                       ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+}
+''');
+  }
+
+  test_class_instanceSetter_noBody_asyncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+class A {
+  set foo(int _) async*;
+//^^^^^^^^^^^^^^^^^^^^^^
+// [diag.concreteClassWithAbstractMember] 'foo' must have a method body because 'A' isn't abstract.
+//               ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                     ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_class_instanceSetter_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  set foo(int _) sync*;
+//^^^^^^^^^^^^^^^^^^^^^
+// [diag.concreteClassWithAbstractMember] 'foo' must have a method body because 'A' isn't abstract.
+//               ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                    ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_class_instanceSetter_noBody_syncStar_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  set foo(int _) sync*;
+//               ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                    ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment set foo(int _) sync* {}
+//                       ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+}
+''');
+  }
+
+  test_class_instanceSetter_noBody_syncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+class A {
+  set foo(int _) sync*;
+//^^^^^^^^^^^^^^^^^^^^^
+// [diag.concreteClassWithAbstractMember] 'foo' must have a method body because 'A' isn't abstract.
+//               ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                    ^
+// [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
   }
@@ -591,6 +1251,39 @@ class A {
 //                          ^^^
 // [diag.inducedGetterNotCompleteAfterAugmentations] The getter induced by 'foo' must have a body after all augmentations are applied.
   augment static abstract final int foo;
+}
+''');
+  }
+
+  test_class_staticGetter_blockBody_async_augmentation_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static Future<void> get foo async {}
+  augment static Future<void> get foo async;
+//                                         ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_class_staticGetter_blockBody_asyncStar_augmentation_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static Stream<int> get foo async* {}
+  augment static Stream<int> get foo async*;
+//                                         ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_class_staticGetter_blockBody_syncStar_augmentation_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static Iterable<int> get foo sync* {}
+  augment static Iterable<int> get foo sync*;
+//                                          ^
+// [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
   }
@@ -697,6 +1390,48 @@ class A {
 ''');
   }
 
+  test_class_staticGetter_external_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  external static Future<void> get foo async;
+//                                          ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_class_staticGetter_external_noBody_async_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+class A {
+  external static Future<void> get foo async;
+//                                          ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_class_staticGetter_external_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  external static Stream<int> get foo async*;
+//                                          ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_class_staticGetter_external_noBody_asyncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+class A {
+  external static Stream<int> get foo async*;
+//                                          ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
   test_class_staticGetter_external_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
 // %before-language-feature: augmentations
@@ -706,11 +1441,96 @@ class A {
 ''');
   }
 
+  test_class_staticGetter_external_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  external static Iterable<int> get foo sync*;
+//                                           ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_class_staticGetter_external_noBody_syncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+class A {
+  external static Iterable<int> get foo sync*;
+//                                           ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
   test_class_staticGetter_noBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {
   static int get foo;
 //                  ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_class_staticGetter_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static Future<void> get foo async;
+//                                 ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_class_staticGetter_noBody_async_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static Future<void> get foo async;
+//                                 ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment static Future<void> get foo async {}
+}
+''');
+  }
+
+  test_class_staticGetter_noBody_async_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+class A {
+  static Future<void> get foo async;
+//                                 ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_class_staticGetter_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static Stream<int> get foo async*;
+//                                 ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_class_staticGetter_noBody_asyncStar_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static Stream<int> get foo async*;
+//                                 ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment static Stream<int> get foo async* {}
+}
+''');
+  }
+
+  test_class_staticGetter_noBody_asyncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+class A {
+  static Stream<int> get foo async*;
+//                                 ^
 // [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
@@ -766,10 +1586,64 @@ class A {
 ''');
   }
 
+  test_class_staticGetter_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static Iterable<int> get foo sync*;
+//                                  ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_class_staticGetter_noBody_syncStar_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static Iterable<int> get foo sync*;
+//                                  ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment static Iterable<int> get foo sync* {}
+}
+''');
+  }
+
+  test_class_staticGetter_noBody_syncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+class A {
+  static Iterable<int> get foo sync*;
+//                                  ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
   test_class_staticMethod_blockBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {
   static void foo() {}
+}
+''');
+  }
+
+  test_class_staticMethod_blockBody_async_augmentation_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static Future<void> foo() async {}
+  augment static Future<void> foo() async;
+//                                       ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_class_staticMethod_blockBody_asyncStar_augmentation_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static Stream<int> foo() async* {}
+  augment static Stream<int> foo() async*;
+//                                       ^
+// [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
   }
@@ -796,10 +1670,63 @@ class A {
 ''');
   }
 
+  test_class_staticMethod_blockBody_syncStar_augmentation_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static Iterable<int> foo() sync* {}
+  augment static Iterable<int> foo() sync*;
+//                                        ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
   test_class_staticMethod_external_noBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {
   external static void foo();
+}
+''');
+  }
+
+  test_class_staticMethod_external_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  external static Future<void> foo() async;
+//                                        ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_class_staticMethod_external_noBody_async_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+class A {
+  external static Future<void> foo() async;
+//                                        ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_class_staticMethod_external_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  external static Stream<int> foo() async*;
+//                                        ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_class_staticMethod_external_noBody_asyncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+class A {
+  external static Stream<int> foo() async*;
+//                                        ^
+// [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
   }
@@ -809,6 +1736,27 @@ class A {
 // %before-language-feature: augmentations
 class A {
   external static void foo();
+}
+''');
+  }
+
+  test_class_staticMethod_external_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  external static Iterable<int> foo() sync*;
+//                                         ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_class_staticMethod_external_noBody_syncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+class A {
+  external static Iterable<int> foo() sync*;
+//                                         ^
+// [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
   }
@@ -828,6 +1776,70 @@ class A {
 class A {
   static void foo();
 //                 ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_class_staticMethod_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static Future<void> foo() async;
+//                               ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_class_staticMethod_noBody_async_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static Future<void> foo() async;
+//                               ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment static Future<void> foo() async {}
+}
+''');
+  }
+
+  test_class_staticMethod_noBody_async_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+class A {
+  static Future<void> foo() async;
+//                               ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_class_staticMethod_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static Stream<int> foo() async*;
+//                               ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_class_staticMethod_noBody_asyncStar_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static Stream<int> foo() async*;
+//                               ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment static Stream<int> foo() async* {}
+}
+''');
+  }
+
+  test_class_staticMethod_noBody_asyncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+class A {
+  static Stream<int> foo() async*;
+//                               ^
 // [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
@@ -864,10 +1876,72 @@ class A {
 ''');
   }
 
+  test_class_staticMethod_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static Iterable<int> foo() sync*;
+//                                ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_class_staticMethod_noBody_syncStar_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static Iterable<int> foo() sync*;
+//                                ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment static Iterable<int> foo() sync* {}
+}
+''');
+  }
+
+  test_class_staticMethod_noBody_syncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+class A {
+  static Iterable<int> foo() sync*;
+//                                ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
   test_class_staticSetter_blockBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {
   static set foo(int _) {}
+}
+''');
+  }
+
+  test_class_staticSetter_blockBody_async_augmentation_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static set foo(int _) async {}
+//                      ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+  augment static set foo(int _) async;
+//                              ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                                   ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_class_staticSetter_blockBody_asyncStar_augmentation_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static set foo(int _) async* {}
+//                      ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+  augment static set foo(int _) async*;
+//                              ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                                    ^
+// [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
   }
@@ -909,10 +1983,75 @@ class A {
 ''');
   }
 
+  test_class_staticSetter_blockBody_syncStar_augmentation_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static set foo(int _) sync* {}
+//                      ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+  augment static set foo(int _) sync*;
+//                              ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                                   ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
   test_class_staticSetter_external_noBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {
   external static set foo(int _);
+}
+''');
+  }
+
+  test_class_staticSetter_external_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  external static set foo(int _) async;
+//                               ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                                    ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_class_staticSetter_external_noBody_async_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+class A {
+  external static set foo(int _) async;
+//                               ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                                    ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_class_staticSetter_external_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  external static set foo(int _) async*;
+//                               ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                                     ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_class_staticSetter_external_noBody_asyncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+class A {
+  external static set foo(int _) async*;
+//                               ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                                     ^
+// [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
   }
@@ -926,11 +2065,116 @@ class A {
 ''');
   }
 
+  test_class_staticSetter_external_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  external static set foo(int _) sync*;
+//                               ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                                    ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_class_staticSetter_external_noBody_syncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+class A {
+  external static set foo(int _) sync*;
+//                               ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                                    ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
   test_class_staticSetter_noBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {
   static set foo(int _);
 //                     ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_class_staticSetter_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static set foo(int _) async;
+//                      ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                           ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_class_staticSetter_noBody_async_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static set foo(int _) async;
+//                      ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                           ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment static set foo(int _) async {}
+//                              ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+}
+''');
+  }
+
+  test_class_staticSetter_noBody_async_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+class A {
+  static set foo(int _) async;
+//                      ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                           ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_class_staticSetter_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static set foo(int _) async*;
+//                      ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                            ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_class_staticSetter_noBody_asyncStar_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static set foo(int _) async*;
+//                      ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                            ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment static set foo(int _) async* {}
+//                              ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+}
+''');
+  }
+
+  test_class_staticSetter_noBody_asyncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+class A {
+  static set foo(int _) async*;
+//                      ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                            ^
 // [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
@@ -962,6 +2206,46 @@ class A {
 class A {
   static set foo(int _);
 //                     ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_class_staticSetter_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static set foo(int _) sync*;
+//                      ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                           ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_class_staticSetter_noBody_syncStar_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static set foo(int _) sync*;
+//                      ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                           ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment static set foo(int _) sync* {}
+//                              ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+}
+''');
+  }
+
+  test_class_staticSetter_noBody_syncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+class A {
+  static set foo(int _) sync*;
+//                      ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                           ^
 // [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
@@ -1090,6 +2374,111 @@ enum E {
 ''');
   }
 
+  test_enum_instanceGetter_blockBody_async_augmentation_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  Future<void> get foo async {}
+  augment Future<void> get foo async;
+//                                  ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_instanceGetter_blockBody_asyncStar_augmentation_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  Stream<int> get foo async* {}
+  augment Stream<int> get foo async*;
+//                                  ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_instanceGetter_blockBody_syncStar_augmentation_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  Iterable<int> get foo sync* {}
+  augment Iterable<int> get foo sync*;
+//                                   ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_instanceGetter_external_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  external Future<void> get foo async;
+//                                   ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_instanceGetter_external_noBody_async_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+enum E {
+  v;
+  external Future<void> get foo async;
+//                                   ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_instanceGetter_external_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  external Stream<int> get foo async*;
+//                                   ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_instanceGetter_external_noBody_asyncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+enum E {
+  v;
+  external Stream<int> get foo async*;
+//                                   ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_instanceGetter_external_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  external Iterable<int> get foo sync*;
+//                                    ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_instanceGetter_external_noBody_syncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+enum E {
+  v;
+  external Iterable<int> get foo sync*;
+//                                    ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
   test_enum_instanceGetter_noBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 enum E {
@@ -1097,6 +2486,228 @@ enum E {
   int get foo;
 //^^^^^^^^^^^^
 // [diag.enumWithAbstractMember] 'foo' must have a method body because 'E' is an enum.
+}
+''');
+  }
+
+  test_enum_instanceGetter_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  Future<void> get foo async;
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.enumWithAbstractMember] 'foo' must have a method body because 'E' is an enum.
+//                          ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_instanceGetter_noBody_async_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  Future<void> get foo async;
+//                          ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment Future<void> get foo async {}
+}
+''');
+  }
+
+  test_enum_instanceGetter_noBody_async_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+enum E {
+  v;
+  Future<void> get foo async;
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.enumWithAbstractMember] 'foo' must have a method body because 'E' is an enum.
+//                          ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_instanceGetter_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  Stream<int> get foo async*;
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.enumWithAbstractMember] 'foo' must have a method body because 'E' is an enum.
+//                          ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_instanceGetter_noBody_asyncStar_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  Stream<int> get foo async*;
+//                          ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment Stream<int> get foo async* {}
+}
+''');
+  }
+
+  test_enum_instanceGetter_noBody_asyncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+enum E {
+  v;
+  Stream<int> get foo async*;
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.enumWithAbstractMember] 'foo' must have a method body because 'E' is an enum.
+//                          ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_instanceGetter_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  Iterable<int> get foo sync*;
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.enumWithAbstractMember] 'foo' must have a method body because 'E' is an enum.
+//                           ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_instanceGetter_noBody_syncStar_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  Iterable<int> get foo sync*;
+//                           ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment Iterable<int> get foo sync* {}
+}
+''');
+  }
+
+  test_enum_instanceGetter_noBody_syncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+enum E {
+  v;
+  Iterable<int> get foo sync*;
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.enumWithAbstractMember] 'foo' must have a method body because 'E' is an enum.
+//                           ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_instanceMethod_blockBody_async_augmentation_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  Future<void> foo() async {}
+  augment Future<void> foo() async;
+//                                ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_instanceMethod_blockBody_asyncStar_augmentation_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  Stream<int> foo() async* {}
+  augment Stream<int> foo() async*;
+//                                ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_instanceMethod_blockBody_syncStar_augmentation_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  Iterable<int> foo() sync* {}
+  augment Iterable<int> foo() sync*;
+//                                 ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_instanceMethod_external_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  external Future<void> foo() async;
+//                                 ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_instanceMethod_external_noBody_async_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+enum E {
+  v;
+  external Future<void> foo() async;
+//                                 ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_instanceMethod_external_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  external Stream<int> foo() async*;
+//                                 ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_instanceMethod_external_noBody_asyncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+enum E {
+  v;
+  external Stream<int> foo() async*;
+//                                 ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_instanceMethod_external_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  external Iterable<int> foo() sync*;
+//                                  ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_instanceMethod_external_noBody_syncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+enum E {
+  v;
+  external Iterable<int> foo() sync*;
+//                                  ^
+// [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
   }
@@ -1112,6 +2723,252 @@ enum E {
 ''');
   }
 
+  test_enum_instanceMethod_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  Future<void> foo() async;
+//^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.enumWithAbstractMember] 'foo' must have a method body because 'E' is an enum.
+//                        ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_instanceMethod_noBody_async_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  Future<void> foo() async;
+//                        ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment Future<void> foo() async {}
+}
+''');
+  }
+
+  test_enum_instanceMethod_noBody_async_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+enum E {
+  v;
+  Future<void> foo() async;
+//^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.enumWithAbstractMember] 'foo' must have a method body because 'E' is an enum.
+//                        ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_instanceMethod_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  Stream<int> foo() async*;
+//^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.enumWithAbstractMember] 'foo' must have a method body because 'E' is an enum.
+//                        ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_instanceMethod_noBody_asyncStar_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  Stream<int> foo() async*;
+//                        ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment Stream<int> foo() async* {}
+}
+''');
+  }
+
+  test_enum_instanceMethod_noBody_asyncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+enum E {
+  v;
+  Stream<int> foo() async*;
+//^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.enumWithAbstractMember] 'foo' must have a method body because 'E' is an enum.
+//                        ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_instanceMethod_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  Iterable<int> foo() sync*;
+//^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.enumWithAbstractMember] 'foo' must have a method body because 'E' is an enum.
+//                         ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_instanceMethod_noBody_syncStar_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  Iterable<int> foo() sync*;
+//                         ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment Iterable<int> foo() sync* {}
+}
+''');
+  }
+
+  test_enum_instanceMethod_noBody_syncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+enum E {
+  v;
+  Iterable<int> foo() sync*;
+//^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.enumWithAbstractMember] 'foo' must have a method body because 'E' is an enum.
+//                         ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_instanceSetter_blockBody_async_augmentation_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  set foo(int _) async {}
+//               ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+  augment set foo(int _) async;
+//                       ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                            ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_instanceSetter_blockBody_asyncStar_augmentation_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  set foo(int _) async* {}
+//               ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+  augment set foo(int _) async*;
+//                       ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                             ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_instanceSetter_blockBody_syncStar_augmentation_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  set foo(int _) sync* {}
+//               ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+  augment set foo(int _) sync*;
+//                       ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                            ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_instanceSetter_external_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  external set foo(int _) async;
+//                        ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                             ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_instanceSetter_external_noBody_async_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+enum E {
+  v;
+  external set foo(int _) async;
+//                        ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                             ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_instanceSetter_external_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  external set foo(int _) async*;
+//                        ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                              ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_instanceSetter_external_noBody_asyncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+enum E {
+  v;
+  external set foo(int _) async*;
+//                        ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                              ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_instanceSetter_external_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  external set foo(int _) sync*;
+//                        ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                             ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_instanceSetter_external_noBody_syncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+enum E {
+  v;
+  external set foo(int _) sync*;
+//                        ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                             ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
   test_enum_instanceSetter_noBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 enum E {
@@ -1119,6 +2976,183 @@ enum E {
   set foo(int _);
 //^^^^^^^^^^^^^^^
 // [diag.enumWithAbstractMember] 'foo' must have a method body because 'E' is an enum.
+}
+''');
+  }
+
+  test_enum_instanceSetter_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  set foo(int _) async;
+//^^^^^^^^^^^^^^^^^^^^^
+// [diag.enumWithAbstractMember] 'foo' must have a method body because 'E' is an enum.
+//               ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                    ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_instanceSetter_noBody_async_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  set foo(int _) async;
+//               ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                    ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment set foo(int _) async {}
+//                       ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+}
+''');
+  }
+
+  test_enum_instanceSetter_noBody_async_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+enum E {
+  v;
+  set foo(int _) async;
+//^^^^^^^^^^^^^^^^^^^^^
+// [diag.enumWithAbstractMember] 'foo' must have a method body because 'E' is an enum.
+//               ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                    ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_instanceSetter_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  set foo(int _) async*;
+//^^^^^^^^^^^^^^^^^^^^^^
+// [diag.enumWithAbstractMember] 'foo' must have a method body because 'E' is an enum.
+//               ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                     ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_instanceSetter_noBody_asyncStar_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  set foo(int _) async*;
+//               ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                     ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment set foo(int _) async* {}
+//                       ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+}
+''');
+  }
+
+  test_enum_instanceSetter_noBody_asyncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+enum E {
+  v;
+  set foo(int _) async*;
+//^^^^^^^^^^^^^^^^^^^^^^
+// [diag.enumWithAbstractMember] 'foo' must have a method body because 'E' is an enum.
+//               ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                     ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_instanceSetter_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  set foo(int _) sync*;
+//^^^^^^^^^^^^^^^^^^^^^
+// [diag.enumWithAbstractMember] 'foo' must have a method body because 'E' is an enum.
+//               ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                    ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_instanceSetter_noBody_syncStar_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  set foo(int _) sync*;
+//               ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                    ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment set foo(int _) sync* {}
+//                       ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+}
+''');
+  }
+
+  test_enum_instanceSetter_noBody_syncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+enum E {
+  v;
+  set foo(int _) sync*;
+//^^^^^^^^^^^^^^^^^^^^^
+// [diag.enumWithAbstractMember] 'foo' must have a method body because 'E' is an enum.
+//               ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                    ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_staticGetter_blockBody_async_augmentation_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  static Future<void> get foo async {}
+  augment static Future<void> get foo async;
+//                                         ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_staticGetter_blockBody_asyncStar_augmentation_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  static Stream<int> get foo async* {}
+  augment static Stream<int> get foo async*;
+//                                         ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_staticGetter_blockBody_syncStar_augmentation_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  static Iterable<int> get foo sync* {}
+  augment static Iterable<int> get foo sync*;
+//                                          ^
+// [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
   }
@@ -1151,6 +3185,52 @@ enum E {
 ''');
   }
 
+  test_enum_staticGetter_external_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  external static Future<void> get foo async;
+//                                          ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_staticGetter_external_noBody_async_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+enum E {
+  v;
+  external static Future<void> get foo async;
+//                                          ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_staticGetter_external_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  external static Stream<int> get foo async*;
+//                                          ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_staticGetter_external_noBody_asyncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+enum E {
+  v;
+  external static Stream<int> get foo async*;
+//                                          ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
   test_enum_staticGetter_external_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
 // %before-language-feature: augmentations
@@ -1161,12 +3241,105 @@ enum E {
 ''');
   }
 
+  test_enum_staticGetter_external_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  external static Iterable<int> get foo sync*;
+//                                           ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_staticGetter_external_noBody_syncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+enum E {
+  v;
+  external static Iterable<int> get foo sync*;
+//                                           ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
   test_enum_staticGetter_noBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   static int get foo;
 //                  ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_staticGetter_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  static Future<void> get foo async;
+//                                 ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_staticGetter_noBody_async_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  static Future<void> get foo async;
+//                                 ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment static Future<void> get foo async {}
+}
+''');
+  }
+
+  test_enum_staticGetter_noBody_async_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+enum E {
+  v;
+  static Future<void> get foo async;
+//                                 ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_staticGetter_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  static Stream<int> get foo async*;
+//                                 ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_staticGetter_noBody_asyncStar_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  static Stream<int> get foo async*;
+//                                 ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment static Stream<int> get foo async* {}
+}
+''');
+  }
+
+  test_enum_staticGetter_noBody_asyncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+enum E {
+  v;
+  static Stream<int> get foo async*;
+//                                 ^
 // [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
@@ -1206,11 +3379,70 @@ enum E {
 ''');
   }
 
+  test_enum_staticGetter_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  static Iterable<int> get foo sync*;
+//                                  ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_staticGetter_noBody_syncStar_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  static Iterable<int> get foo sync*;
+//                                  ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment static Iterable<int> get foo sync* {}
+}
+''');
+  }
+
+  test_enum_staticGetter_noBody_syncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+enum E {
+  v;
+  static Iterable<int> get foo sync*;
+//                                  ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
   test_enum_staticMethod_blockBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   static void foo() {}
+}
+''');
+  }
+
+  test_enum_staticMethod_blockBody_async_augmentation_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  static Future<void> foo() async {}
+  augment static Future<void> foo() async;
+//                                       ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_staticMethod_blockBody_asyncStar_augmentation_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  static Stream<int> foo() async* {}
+  augment static Stream<int> foo() async*;
+//                                       ^
+// [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
   }
@@ -1225,11 +3457,69 @@ enum E {
 ''');
   }
 
+  test_enum_staticMethod_blockBody_syncStar_augmentation_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  static Iterable<int> foo() sync* {}
+  augment static Iterable<int> foo() sync*;
+//                                        ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
   test_enum_staticMethod_external_noBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   external static void foo();
+}
+''');
+  }
+
+  test_enum_staticMethod_external_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  external static Future<void> foo() async;
+//                                        ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_staticMethod_external_noBody_async_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+enum E {
+  v;
+  external static Future<void> foo() async;
+//                                        ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_staticMethod_external_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  external static Stream<int> foo() async*;
+//                                        ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_staticMethod_external_noBody_asyncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+enum E {
+  v;
+  external static Stream<int> foo() async*;
+//                                        ^
+// [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
   }
@@ -1244,12 +3534,105 @@ enum E {
 ''');
   }
 
+  test_enum_staticMethod_external_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  external static Iterable<int> foo() sync*;
+//                                         ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_staticMethod_external_noBody_syncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+enum E {
+  v;
+  external static Iterable<int> foo() sync*;
+//                                         ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
   test_enum_staticMethod_noBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   static void foo();
 //                 ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_staticMethod_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  static Future<void> foo() async;
+//                               ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_staticMethod_noBody_async_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  static Future<void> foo() async;
+//                               ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment static Future<void> foo() async {}
+}
+''');
+  }
+
+  test_enum_staticMethod_noBody_async_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+enum E {
+  v;
+  static Future<void> foo() async;
+//                               ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_staticMethod_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  static Stream<int> foo() async*;
+//                               ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_staticMethod_noBody_asyncStar_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  static Stream<int> foo() async*;
+//                               ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment static Stream<int> foo() async* {}
+}
+''');
+  }
+
+  test_enum_staticMethod_noBody_asyncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+enum E {
+  v;
+  static Stream<int> foo() async*;
+//                               ^
 // [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
@@ -1289,11 +3672,78 @@ enum E {
 ''');
   }
 
+  test_enum_staticMethod_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  static Iterable<int> foo() sync*;
+//                                ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_staticMethod_noBody_syncStar_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  static Iterable<int> foo() sync*;
+//                                ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment static Iterable<int> foo() sync* {}
+}
+''');
+  }
+
+  test_enum_staticMethod_noBody_syncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+enum E {
+  v;
+  static Iterable<int> foo() sync*;
+//                                ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
   test_enum_staticSetter_blockBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   static set foo(int _) {}
+}
+''');
+  }
+
+  test_enum_staticSetter_blockBody_async_augmentation_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  static set foo(int _) async {}
+//                      ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+  augment static set foo(int _) async;
+//                              ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                                   ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_staticSetter_blockBody_asyncStar_augmentation_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  static set foo(int _) async* {}
+//                      ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+  augment static set foo(int _) async*;
+//                              ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                                    ^
+// [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
   }
@@ -1308,11 +3758,81 @@ enum E {
 ''');
   }
 
+  test_enum_staticSetter_blockBody_syncStar_augmentation_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  static set foo(int _) sync* {}
+//                      ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+  augment static set foo(int _) sync*;
+//                              ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                                   ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
   test_enum_staticSetter_external_noBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   external static set foo(int _);
+}
+''');
+  }
+
+  test_enum_staticSetter_external_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  external static set foo(int _) async;
+//                               ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                                    ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_staticSetter_external_noBody_async_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+enum E {
+  v;
+  external static set foo(int _) async;
+//                               ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                                    ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_staticSetter_external_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  external static set foo(int _) async*;
+//                               ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                                     ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_staticSetter_external_noBody_asyncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+enum E {
+  v;
+  external static set foo(int _) async*;
+//                               ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                                     ^
+// [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
   }
@@ -1327,12 +3847,125 @@ enum E {
 ''');
   }
 
+  test_enum_staticSetter_external_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  external static set foo(int _) sync*;
+//                               ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                                    ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_staticSetter_external_noBody_syncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+enum E {
+  v;
+  external static set foo(int _) sync*;
+//                               ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                                    ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
   test_enum_staticSetter_noBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v;
   static set foo(int _);
 //                     ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_staticSetter_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  static set foo(int _) async;
+//                      ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                           ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_staticSetter_noBody_async_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  static set foo(int _) async;
+//                      ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                           ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment static set foo(int _) async {}
+//                              ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+}
+''');
+  }
+
+  test_enum_staticSetter_noBody_async_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+enum E {
+  v;
+  static set foo(int _) async;
+//                      ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                           ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_staticSetter_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  static set foo(int _) async*;
+//                      ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                            ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_staticSetter_noBody_asyncStar_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  static set foo(int _) async*;
+//                      ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                            ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment static set foo(int _) async* {}
+//                              ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+}
+''');
+  }
+
+  test_enum_staticSetter_noBody_asyncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+enum E {
+  v;
+  static set foo(int _) async*;
+//                      ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                            ^
 // [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
@@ -1367,6 +4000,49 @@ enum E {
   v;
   static set foo(int _);
 //                     ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_staticSetter_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  static set foo(int _) sync*;
+//                      ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                           ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_staticSetter_noBody_syncStar_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  static set foo(int _) sync*;
+//                      ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                           ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment static set foo(int _) sync* {}
+//                              ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+}
+''');
+  }
+
+  test_enum_staticSetter_noBody_syncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+enum E {
+  v;
+  static set foo(int _) sync*;
+//                      ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                           ^
 // [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
@@ -1454,6 +4130,39 @@ extension E on int {
 ''');
   }
 
+  test_extension_instanceGetter_blockBody_async_augmentation_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  Future<void> get foo async {}
+  augment Future<void> get foo async;
+//                                  ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extension_instanceGetter_blockBody_asyncStar_augmentation_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  Stream<int> get foo async* {}
+  augment Stream<int> get foo async*;
+//                                  ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extension_instanceGetter_blockBody_syncStar_augmentation_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  Iterable<int> get foo sync* {}
+  augment Iterable<int> get foo sync*;
+//                                   ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
   test_extension_instanceGetter_expressionBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
@@ -1498,11 +4207,74 @@ extension E on int {
 ''');
   }
 
+  test_extension_instanceGetter_external_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  external Future<void> get foo async;
+//                                   ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extension_instanceGetter_external_noBody_async_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension E on int {
+  external Future<void> get foo async;
+//                                   ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extension_instanceGetter_external_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  external Stream<int> get foo async*;
+//                                   ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extension_instanceGetter_external_noBody_asyncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension E on int {
+  external Stream<int> get foo async*;
+//                                   ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
   test_extension_instanceGetter_external_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
 // %before-language-feature: augmentations
 extension E on int {
   external int get foo;
+}
+''');
+  }
+
+  test_extension_instanceGetter_external_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  external Iterable<int> get foo sync*;
+//                                    ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extension_instanceGetter_external_noBody_syncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension E on int {
+  external Iterable<int> get foo sync*;
+//                                    ^
+// [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
   }
@@ -1513,6 +4285,78 @@ extension E on int {
   int get foo;
 //        ^^^
 // [diag.extensionDeclaresAbstractMember] Extensions can't declare abstract members.
+}
+''');
+  }
+
+  test_extension_instanceGetter_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  Future<void> get foo async;
+//                 ^^^
+// [diag.extensionDeclaresAbstractMember] Extensions can't declare abstract members.
+//                          ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extension_instanceGetter_noBody_async_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  Future<void> get foo async;
+//                          ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment Future<void> get foo async {}
+}
+''');
+  }
+
+  test_extension_instanceGetter_noBody_async_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension E on int {
+  Future<void> get foo async;
+//                 ^^^
+// [diag.extensionDeclaresAbstractMember] Extensions can't declare abstract members.
+//                          ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extension_instanceGetter_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  Stream<int> get foo async*;
+//                ^^^
+// [diag.extensionDeclaresAbstractMember] Extensions can't declare abstract members.
+//                          ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extension_instanceGetter_noBody_asyncStar_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  Stream<int> get foo async*;
+//                          ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment Stream<int> get foo async* {}
+}
+''');
+  }
+
+  test_extension_instanceGetter_noBody_asyncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension E on int {
+  Stream<int> get foo async*;
+//                ^^^
+// [diag.extensionDeclaresAbstractMember] Extensions can't declare abstract members.
+//                          ^
+// [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
   }
@@ -1548,10 +4392,68 @@ extension E on int {
 ''');
   }
 
+  test_extension_instanceGetter_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  Iterable<int> get foo sync*;
+//                  ^^^
+// [diag.extensionDeclaresAbstractMember] Extensions can't declare abstract members.
+//                           ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extension_instanceGetter_noBody_syncStar_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  Iterable<int> get foo sync*;
+//                           ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment Iterable<int> get foo sync* {}
+}
+''');
+  }
+
+  test_extension_instanceGetter_noBody_syncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension E on int {
+  Iterable<int> get foo sync*;
+//                  ^^^
+// [diag.extensionDeclaresAbstractMember] Extensions can't declare abstract members.
+//                           ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
   test_extension_instanceMethod_blockBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   void foo() {}
+}
+''');
+  }
+
+  test_extension_instanceMethod_blockBody_async_augmentation_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  Future<void> foo() async {}
+  augment Future<void> foo() async;
+//                                ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extension_instanceMethod_blockBody_asyncStar_augmentation_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  Stream<int> foo() async* {}
+  augment Stream<int> foo() async*;
+//                                ^
+// [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
   }
@@ -1565,10 +4467,63 @@ extension E on int {
 ''');
   }
 
+  test_extension_instanceMethod_blockBody_syncStar_augmentation_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  Iterable<int> foo() sync* {}
+  augment Iterable<int> foo() sync*;
+//                                 ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
   test_extension_instanceMethod_external_noBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   external void foo();
+}
+''');
+  }
+
+  test_extension_instanceMethod_external_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  external Future<void> foo() async;
+//                                 ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extension_instanceMethod_external_noBody_async_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension E on int {
+  external Future<void> foo() async;
+//                                 ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extension_instanceMethod_external_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  external Stream<int> foo() async*;
+//                                 ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extension_instanceMethod_external_noBody_asyncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension E on int {
+  external Stream<int> foo() async*;
+//                                 ^
+// [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
   }
@@ -1582,12 +4537,105 @@ extension E on int {
 ''');
   }
 
+  test_extension_instanceMethod_external_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  external Iterable<int> foo() sync*;
+//                                  ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extension_instanceMethod_external_noBody_syncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension E on int {
+  external Iterable<int> foo() sync*;
+//                                  ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
   test_extension_instanceMethod_noBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   void foo();
 //     ^^^
 // [diag.extensionDeclaresAbstractMember] Extensions can't declare abstract members.
+}
+''');
+  }
+
+  test_extension_instanceMethod_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  Future<void> foo() async;
+//             ^^^
+// [diag.extensionDeclaresAbstractMember] Extensions can't declare abstract members.
+//                        ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extension_instanceMethod_noBody_async_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  Future<void> foo() async;
+//                        ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment Future<void> foo() async {}
+}
+''');
+  }
+
+  test_extension_instanceMethod_noBody_async_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension E on int {
+  Future<void> foo() async;
+//             ^^^
+// [diag.extensionDeclaresAbstractMember] Extensions can't declare abstract members.
+//                        ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extension_instanceMethod_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  Stream<int> foo() async*;
+//            ^^^
+// [diag.extensionDeclaresAbstractMember] Extensions can't declare abstract members.
+//                        ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extension_instanceMethod_noBody_asyncStar_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  Stream<int> foo() async*;
+//                        ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment Stream<int> foo() async* {}
+}
+''');
+  }
+
+  test_extension_instanceMethod_noBody_asyncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension E on int {
+  Stream<int> foo() async*;
+//            ^^^
+// [diag.extensionDeclaresAbstractMember] Extensions can't declare abstract members.
+//                        ^
+// [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
   }
@@ -1619,6 +4667,42 @@ extension E on int {
   void foo();
 //     ^^^
 // [diag.extensionDeclaresAbstractMember] Extensions can't declare abstract members.
+}
+''');
+  }
+
+  test_extension_instanceMethod_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  Iterable<int> foo() sync*;
+//              ^^^
+// [diag.extensionDeclaresAbstractMember] Extensions can't declare abstract members.
+//                         ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extension_instanceMethod_noBody_syncStar_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  Iterable<int> foo() sync*;
+//                         ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment Iterable<int> foo() sync* {}
+}
+''');
+  }
+
+  test_extension_instanceMethod_noBody_syncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension E on int {
+  Iterable<int> foo() sync*;
+//              ^^^
+// [diag.extensionDeclaresAbstractMember] Extensions can't declare abstract members.
+//                         ^
+// [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
   }
@@ -1663,6 +4747,36 @@ extension E on int {
 ''');
   }
 
+  test_extension_instanceSetter_blockBody_async_augmentation_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  set foo(int _) async {}
+//               ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+  augment set foo(int _) async;
+//                       ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                            ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extension_instanceSetter_blockBody_asyncStar_augmentation_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  set foo(int _) async* {}
+//               ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+  augment set foo(int _) async*;
+//                       ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                             ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
   test_extension_instanceSetter_blockBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
 // %before-language-feature: augmentations
@@ -1672,10 +4786,75 @@ extension E on int {
 ''');
   }
 
+  test_extension_instanceSetter_blockBody_syncStar_augmentation_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  set foo(int _) sync* {}
+//               ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+  augment set foo(int _) sync*;
+//                       ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                            ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
   test_extension_instanceSetter_external_noBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   external set foo(int _);
+}
+''');
+  }
+
+  test_extension_instanceSetter_external_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  external set foo(int _) async;
+//                        ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                             ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extension_instanceSetter_external_noBody_async_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension E on int {
+  external set foo(int _) async;
+//                        ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                             ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extension_instanceSetter_external_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  external set foo(int _) async*;
+//                        ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                              ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extension_instanceSetter_external_noBody_asyncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension E on int {
+  external set foo(int _) async*;
+//                        ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                              ^
+// [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
   }
@@ -1689,12 +4868,125 @@ extension E on int {
 ''');
   }
 
+  test_extension_instanceSetter_external_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  external set foo(int _) sync*;
+//                        ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                             ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extension_instanceSetter_external_noBody_syncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension E on int {
+  external set foo(int _) sync*;
+//                        ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                             ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
   test_extension_instanceSetter_noBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   set foo(int _);
 //    ^^^
 // [diag.extensionDeclaresAbstractMember] Extensions can't declare abstract members.
+}
+''');
+  }
+
+  test_extension_instanceSetter_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  set foo(int _) async;
+//    ^^^
+// [diag.extensionDeclaresAbstractMember] Extensions can't declare abstract members.
+//               ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                    ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extension_instanceSetter_noBody_async_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  set foo(int _) async;
+//               ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                    ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment set foo(int _) async {}
+//                       ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+}
+''');
+  }
+
+  test_extension_instanceSetter_noBody_async_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension E on int {
+  set foo(int _) async;
+//    ^^^
+// [diag.extensionDeclaresAbstractMember] Extensions can't declare abstract members.
+//               ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                    ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extension_instanceSetter_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  set foo(int _) async*;
+//    ^^^
+// [diag.extensionDeclaresAbstractMember] Extensions can't declare abstract members.
+//               ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                     ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extension_instanceSetter_noBody_asyncStar_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  set foo(int _) async*;
+//               ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                     ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment set foo(int _) async* {}
+//                       ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+}
+''');
+  }
+
+  test_extension_instanceSetter_noBody_asyncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension E on int {
+  set foo(int _) async*;
+//    ^^^
+// [diag.extensionDeclaresAbstractMember] Extensions can't declare abstract members.
+//               ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                     ^
+// [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
   }
@@ -1730,6 +5022,83 @@ extension E on int {
 ''');
   }
 
+  test_extension_instanceSetter_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  set foo(int _) sync*;
+//    ^^^
+// [diag.extensionDeclaresAbstractMember] Extensions can't declare abstract members.
+//               ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                    ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extension_instanceSetter_noBody_syncStar_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  set foo(int _) sync*;
+//               ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                    ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment set foo(int _) sync* {}
+//                       ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+}
+''');
+  }
+
+  test_extension_instanceSetter_noBody_syncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension E on int {
+  set foo(int _) sync*;
+//    ^^^
+// [diag.extensionDeclaresAbstractMember] Extensions can't declare abstract members.
+//               ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                    ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extension_staticGetter_blockBody_async_augmentation_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  static Future<void> get foo async {}
+  augment static Future<void> get foo async;
+//                                         ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extension_staticGetter_blockBody_asyncStar_augmentation_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  static Stream<int> get foo async* {}
+  augment static Stream<int> get foo async*;
+//                                         ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extension_staticGetter_blockBody_syncStar_augmentation_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  static Iterable<int> get foo sync* {}
+  augment static Iterable<int> get foo sync*;
+//                                          ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
   test_extension_staticGetter_expressionBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
@@ -1755,6 +5124,48 @@ extension E on int {
 ''');
   }
 
+  test_extension_staticGetter_external_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  external static Future<void> get foo async;
+//                                          ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extension_staticGetter_external_noBody_async_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension E on int {
+  external static Future<void> get foo async;
+//                                          ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extension_staticGetter_external_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  external static Stream<int> get foo async*;
+//                                          ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extension_staticGetter_external_noBody_asyncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension E on int {
+  external static Stream<int> get foo async*;
+//                                          ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
   test_extension_staticGetter_external_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
 // %before-language-feature: augmentations
@@ -1764,11 +5175,96 @@ extension E on int {
 ''');
   }
 
+  test_extension_staticGetter_external_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  external static Iterable<int> get foo sync*;
+//                                           ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extension_staticGetter_external_noBody_syncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension E on int {
+  external static Iterable<int> get foo sync*;
+//                                           ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
   test_extension_staticGetter_noBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   static int get foo;
 //                  ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extension_staticGetter_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  static Future<void> get foo async;
+//                                 ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extension_staticGetter_noBody_async_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  static Future<void> get foo async;
+//                                 ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment static Future<void> get foo async {}
+}
+''');
+  }
+
+  test_extension_staticGetter_noBody_async_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension E on int {
+  static Future<void> get foo async;
+//                                 ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extension_staticGetter_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  static Stream<int> get foo async*;
+//                                 ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extension_staticGetter_noBody_asyncStar_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  static Stream<int> get foo async*;
+//                                 ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment static Stream<int> get foo async* {}
+}
+''');
+  }
+
+  test_extension_staticGetter_noBody_asyncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension E on int {
+  static Stream<int> get foo async*;
+//                                 ^
 // [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
@@ -1805,10 +5301,64 @@ extension E on int {
 ''');
   }
 
+  test_extension_staticGetter_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  static Iterable<int> get foo sync*;
+//                                  ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extension_staticGetter_noBody_syncStar_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  static Iterable<int> get foo sync*;
+//                                  ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment static Iterable<int> get foo sync* {}
+}
+''');
+  }
+
+  test_extension_staticGetter_noBody_syncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension E on int {
+  static Iterable<int> get foo sync*;
+//                                  ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
   test_extension_staticMethod_blockBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   static void foo() {}
+}
+''');
+  }
+
+  test_extension_staticMethod_blockBody_async_augmentation_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  static Future<void> foo() async {}
+  augment static Future<void> foo() async;
+//                                       ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extension_staticMethod_blockBody_asyncStar_augmentation_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  static Stream<int> foo() async* {}
+  augment static Stream<int> foo() async*;
+//                                       ^
+// [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
   }
@@ -1822,10 +5372,63 @@ extension E on int {
 ''');
   }
 
+  test_extension_staticMethod_blockBody_syncStar_augmentation_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  static Iterable<int> foo() sync* {}
+  augment static Iterable<int> foo() sync*;
+//                                        ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
   test_extension_staticMethod_external_noBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   external static void foo();
+}
+''');
+  }
+
+  test_extension_staticMethod_external_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  external static Future<void> foo() async;
+//                                        ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extension_staticMethod_external_noBody_async_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension E on int {
+  external static Future<void> foo() async;
+//                                        ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extension_staticMethod_external_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  external static Stream<int> foo() async*;
+//                                        ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extension_staticMethod_external_noBody_asyncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension E on int {
+  external static Stream<int> foo() async*;
+//                                        ^
+// [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
   }
@@ -1839,11 +5442,96 @@ extension E on int {
 ''');
   }
 
+  test_extension_staticMethod_external_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  external static Iterable<int> foo() sync*;
+//                                         ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extension_staticMethod_external_noBody_syncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension E on int {
+  external static Iterable<int> foo() sync*;
+//                                         ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
   test_extension_staticMethod_noBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   static void foo();
 //                 ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extension_staticMethod_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  static Future<void> foo() async;
+//                               ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extension_staticMethod_noBody_async_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  static Future<void> foo() async;
+//                               ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment static Future<void> foo() async {}
+}
+''');
+  }
+
+  test_extension_staticMethod_noBody_async_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension E on int {
+  static Future<void> foo() async;
+//                               ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extension_staticMethod_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  static Stream<int> foo() async*;
+//                               ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extension_staticMethod_noBody_asyncStar_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  static Stream<int> foo() async*;
+//                               ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment static Stream<int> foo() async* {}
+}
+''');
+  }
+
+  test_extension_staticMethod_noBody_asyncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension E on int {
+  static Stream<int> foo() async*;
+//                               ^
 // [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
@@ -1880,10 +5568,72 @@ extension E on int {
 ''');
   }
 
+  test_extension_staticMethod_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  static Iterable<int> foo() sync*;
+//                                ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extension_staticMethod_noBody_syncStar_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  static Iterable<int> foo() sync*;
+//                                ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment static Iterable<int> foo() sync* {}
+}
+''');
+  }
+
+  test_extension_staticMethod_noBody_syncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension E on int {
+  static Iterable<int> foo() sync*;
+//                                ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
   test_extension_staticSetter_blockBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   static set foo(int _) {}
+}
+''');
+  }
+
+  test_extension_staticSetter_blockBody_async_augmentation_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  static set foo(int _) async {}
+//                      ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+  augment static set foo(int _) async;
+//                              ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                                   ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extension_staticSetter_blockBody_asyncStar_augmentation_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  static set foo(int _) async* {}
+//                      ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+  augment static set foo(int _) async*;
+//                              ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                                    ^
+// [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
   }
@@ -1897,10 +5647,75 @@ extension E on int {
 ''');
   }
 
+  test_extension_staticSetter_blockBody_syncStar_augmentation_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  static set foo(int _) sync* {}
+//                      ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+  augment static set foo(int _) sync*;
+//                              ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                                   ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
   test_extension_staticSetter_external_noBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   external static set foo(int _);
+}
+''');
+  }
+
+  test_extension_staticSetter_external_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  external static set foo(int _) async;
+//                               ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                                    ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extension_staticSetter_external_noBody_async_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension E on int {
+  external static set foo(int _) async;
+//                               ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                                    ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extension_staticSetter_external_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  external static set foo(int _) async*;
+//                               ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                                     ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extension_staticSetter_external_noBody_asyncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension E on int {
+  external static set foo(int _) async*;
+//                               ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                                     ^
+// [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
   }
@@ -1914,11 +5729,116 @@ extension E on int {
 ''');
   }
 
+  test_extension_staticSetter_external_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  external static set foo(int _) sync*;
+//                               ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                                    ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extension_staticSetter_external_noBody_syncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension E on int {
+  external static set foo(int _) sync*;
+//                               ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                                    ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
   test_extension_staticSetter_noBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   static set foo(int _);
 //                     ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extension_staticSetter_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  static set foo(int _) async;
+//                      ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                           ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extension_staticSetter_noBody_async_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  static set foo(int _) async;
+//                      ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                           ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment static set foo(int _) async {}
+//                              ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+}
+''');
+  }
+
+  test_extension_staticSetter_noBody_async_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension E on int {
+  static set foo(int _) async;
+//                      ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                           ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extension_staticSetter_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  static set foo(int _) async*;
+//                      ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                            ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extension_staticSetter_noBody_asyncStar_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  static set foo(int _) async*;
+//                      ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                            ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment static set foo(int _) async* {}
+//                              ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+}
+''');
+  }
+
+  test_extension_staticSetter_noBody_asyncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension E on int {
+  static set foo(int _) async*;
+//                      ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                            ^
 // [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
@@ -1950,6 +5870,46 @@ extension E on int {
 extension E on int {
   static set foo(int _);
 //                     ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extension_staticSetter_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  static set foo(int _) sync*;
+//                      ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                           ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extension_staticSetter_noBody_syncStar_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  static set foo(int _) sync*;
+//                      ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                           ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment static set foo(int _) sync* {}
+//                              ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+}
+''');
+  }
+
+  test_extension_staticSetter_noBody_syncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension E on int {
+  static set foo(int _) sync*;
+//                      ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                           ^
 // [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
@@ -2045,6 +6005,39 @@ extension type E(int i) {
 ''');
   }
 
+  test_extensionType_instanceGetter_blockBody_async_augmentation_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  Future<void> get foo async {}
+  augment Future<void> get foo async;
+//                                  ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extensionType_instanceGetter_blockBody_asyncStar_augmentation_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  Stream<int> get foo async* {}
+  augment Stream<int> get foo async*;
+//                                  ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extensionType_instanceGetter_blockBody_syncStar_augmentation_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  Iterable<int> get foo sync* {}
+  augment Iterable<int> get foo sync*;
+//                                   ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
   test_extensionType_instanceGetter_expressionBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension type E(int i) {
@@ -2089,11 +6082,74 @@ extension type E(int i) {
 ''');
   }
 
+  test_extensionType_instanceGetter_external_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  external Future<void> get foo async;
+//                                   ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extensionType_instanceGetter_external_noBody_async_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension type E(int i) {
+  external Future<void> get foo async;
+//                                   ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extensionType_instanceGetter_external_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  external Stream<int> get foo async*;
+//                                   ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extensionType_instanceGetter_external_noBody_asyncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension type E(int i) {
+  external Stream<int> get foo async*;
+//                                   ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
   test_extensionType_instanceGetter_external_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
 // %before-language-feature: augmentations
 extension type E(int i) {
   external int get foo;
+}
+''');
+  }
+
+  test_extensionType_instanceGetter_external_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  external Iterable<int> get foo sync*;
+//                                    ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extensionType_instanceGetter_external_noBody_syncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension type E(int i) {
+  external Iterable<int> get foo sync*;
+//                                    ^
+// [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
   }
@@ -2104,6 +6160,78 @@ extension type E(int i) {
   int get foo;
 //^^^^^^^^^^^^
 // [diag.extensionTypeWithAbstractMember] 'foo' must have a method body because 'E' is an extension type.
+}
+''');
+  }
+
+  test_extensionType_instanceGetter_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  Future<void> get foo async;
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.extensionTypeWithAbstractMember] 'foo' must have a method body because 'E' is an extension type.
+//                          ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extensionType_instanceGetter_noBody_async_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  Future<void> get foo async;
+//                          ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment Future<void> get foo async {}
+}
+''');
+  }
+
+  test_extensionType_instanceGetter_noBody_async_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension type E(int i) {
+  Future<void> get foo async;
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.extensionTypeWithAbstractMember] 'foo' must have a method body because 'E' is an extension type.
+//                          ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extensionType_instanceGetter_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  Stream<int> get foo async*;
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.extensionTypeWithAbstractMember] 'foo' must have a method body because 'E' is an extension type.
+//                          ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extensionType_instanceGetter_noBody_asyncStar_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  Stream<int> get foo async*;
+//                          ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment Stream<int> get foo async* {}
+}
+''');
+  }
+
+  test_extensionType_instanceGetter_noBody_asyncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension type E(int i) {
+  Stream<int> get foo async*;
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.extensionTypeWithAbstractMember] 'foo' must have a method body because 'E' is an extension type.
+//                          ^
+// [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
   }
@@ -2139,10 +6267,68 @@ extension type E(int i) {
 ''');
   }
 
+  test_extensionType_instanceGetter_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  Iterable<int> get foo sync*;
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.extensionTypeWithAbstractMember] 'foo' must have a method body because 'E' is an extension type.
+//                           ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extensionType_instanceGetter_noBody_syncStar_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  Iterable<int> get foo sync*;
+//                           ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment Iterable<int> get foo sync* {}
+}
+''');
+  }
+
+  test_extensionType_instanceGetter_noBody_syncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension type E(int i) {
+  Iterable<int> get foo sync*;
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.extensionTypeWithAbstractMember] 'foo' must have a method body because 'E' is an extension type.
+//                           ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
   test_extensionType_instanceMethod_blockBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension type E(int i) {
   void foo() {}
+}
+''');
+  }
+
+  test_extensionType_instanceMethod_blockBody_async_augmentation_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  Future<void> foo() async {}
+  augment Future<void> foo() async;
+//                                ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extensionType_instanceMethod_blockBody_asyncStar_augmentation_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  Stream<int> foo() async* {}
+  augment Stream<int> foo() async*;
+//                                ^
+// [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
   }
@@ -2156,10 +6342,63 @@ extension type E(int i) {
 ''');
   }
 
+  test_extensionType_instanceMethod_blockBody_syncStar_augmentation_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  Iterable<int> foo() sync* {}
+  augment Iterable<int> foo() sync*;
+//                                 ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
   test_extensionType_instanceMethod_external_noBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension type E(int i) {
   external void foo();
+}
+''');
+  }
+
+  test_extensionType_instanceMethod_external_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  external Future<void> foo() async;
+//                                 ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extensionType_instanceMethod_external_noBody_async_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension type E(int i) {
+  external Future<void> foo() async;
+//                                 ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extensionType_instanceMethod_external_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  external Stream<int> foo() async*;
+//                                 ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extensionType_instanceMethod_external_noBody_asyncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension type E(int i) {
+  external Stream<int> foo() async*;
+//                                 ^
+// [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
   }
@@ -2173,12 +6412,105 @@ extension type E(int i) {
 ''');
   }
 
+  test_extensionType_instanceMethod_external_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  external Iterable<int> foo() sync*;
+//                                  ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extensionType_instanceMethod_external_noBody_syncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension type E(int i) {
+  external Iterable<int> foo() sync*;
+//                                  ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
   test_extensionType_instanceMethod_noBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension type E(int i) {
   void foo();
 //^^^^^^^^^^^
 // [diag.extensionTypeWithAbstractMember] 'foo' must have a method body because 'E' is an extension type.
+}
+''');
+  }
+
+  test_extensionType_instanceMethod_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  Future<void> foo() async;
+//^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.extensionTypeWithAbstractMember] 'foo' must have a method body because 'E' is an extension type.
+//                        ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extensionType_instanceMethod_noBody_async_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  Future<void> foo() async;
+//                        ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment Future<void> foo() async {}
+}
+''');
+  }
+
+  test_extensionType_instanceMethod_noBody_async_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension type E(int i) {
+  Future<void> foo() async;
+//^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.extensionTypeWithAbstractMember] 'foo' must have a method body because 'E' is an extension type.
+//                        ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extensionType_instanceMethod_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  Stream<int> foo() async*;
+//^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.extensionTypeWithAbstractMember] 'foo' must have a method body because 'E' is an extension type.
+//                        ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extensionType_instanceMethod_noBody_asyncStar_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  Stream<int> foo() async*;
+//                        ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment Stream<int> foo() async* {}
+}
+''');
+  }
+
+  test_extensionType_instanceMethod_noBody_asyncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension type E(int i) {
+  Stream<int> foo() async*;
+//^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.extensionTypeWithAbstractMember] 'foo' must have a method body because 'E' is an extension type.
+//                        ^
+// [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
   }
@@ -2214,10 +6546,76 @@ extension type E(int i) {
 ''');
   }
 
+  test_extensionType_instanceMethod_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  Iterable<int> foo() sync*;
+//^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.extensionTypeWithAbstractMember] 'foo' must have a method body because 'E' is an extension type.
+//                         ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extensionType_instanceMethod_noBody_syncStar_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  Iterable<int> foo() sync*;
+//                         ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment Iterable<int> foo() sync* {}
+}
+''');
+  }
+
+  test_extensionType_instanceMethod_noBody_syncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension type E(int i) {
+  Iterable<int> foo() sync*;
+//^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.extensionTypeWithAbstractMember] 'foo' must have a method body because 'E' is an extension type.
+//                         ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
   test_extensionType_instanceSetter_blockBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension type E(int i) {
   set foo(int _) {}
+}
+''');
+  }
+
+  test_extensionType_instanceSetter_blockBody_async_augmentation_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  set foo(int _) async {}
+//               ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+  augment set foo(int _) async;
+//                       ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                            ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extensionType_instanceSetter_blockBody_asyncStar_augmentation_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  set foo(int _) async* {}
+//               ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+  augment set foo(int _) async*;
+//                       ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                             ^
+// [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
   }
@@ -2231,10 +6629,75 @@ extension type E(int i) {
 ''');
   }
 
+  test_extensionType_instanceSetter_blockBody_syncStar_augmentation_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  set foo(int _) sync* {}
+//               ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+  augment set foo(int _) sync*;
+//                       ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                            ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
   test_extensionType_instanceSetter_external_noBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension type E(int i) {
   external set foo(int _);
+}
+''');
+  }
+
+  test_extensionType_instanceSetter_external_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  external set foo(int _) async;
+//                        ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                             ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extensionType_instanceSetter_external_noBody_async_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension type E(int i) {
+  external set foo(int _) async;
+//                        ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                             ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extensionType_instanceSetter_external_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  external set foo(int _) async*;
+//                        ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                              ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extensionType_instanceSetter_external_noBody_asyncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension type E(int i) {
+  external set foo(int _) async*;
+//                        ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                              ^
+// [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
   }
@@ -2248,12 +6711,125 @@ extension type E(int i) {
 ''');
   }
 
+  test_extensionType_instanceSetter_external_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  external set foo(int _) sync*;
+//                        ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                             ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extensionType_instanceSetter_external_noBody_syncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension type E(int i) {
+  external set foo(int _) sync*;
+//                        ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                             ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
   test_extensionType_instanceSetter_noBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension type E(int i) {
   set foo(int _);
 //^^^^^^^^^^^^^^^
 // [diag.extensionTypeWithAbstractMember] 'foo' must have a method body because 'E' is an extension type.
+}
+''');
+  }
+
+  test_extensionType_instanceSetter_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  set foo(int _) async;
+//^^^^^^^^^^^^^^^^^^^^^
+// [diag.extensionTypeWithAbstractMember] 'foo' must have a method body because 'E' is an extension type.
+//               ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                    ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extensionType_instanceSetter_noBody_async_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  set foo(int _) async;
+//               ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                    ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment set foo(int _) async {}
+//                       ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+}
+''');
+  }
+
+  test_extensionType_instanceSetter_noBody_async_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension type E(int i) {
+  set foo(int _) async;
+//^^^^^^^^^^^^^^^^^^^^^
+// [diag.extensionTypeWithAbstractMember] 'foo' must have a method body because 'E' is an extension type.
+//               ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                    ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extensionType_instanceSetter_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  set foo(int _) async*;
+//^^^^^^^^^^^^^^^^^^^^^^
+// [diag.extensionTypeWithAbstractMember] 'foo' must have a method body because 'E' is an extension type.
+//               ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                     ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extensionType_instanceSetter_noBody_asyncStar_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  set foo(int _) async*;
+//               ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                     ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment set foo(int _) async* {}
+//                       ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+}
+''');
+  }
+
+  test_extensionType_instanceSetter_noBody_asyncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension type E(int i) {
+  set foo(int _) async*;
+//^^^^^^^^^^^^^^^^^^^^^^
+// [diag.extensionTypeWithAbstractMember] 'foo' must have a method body because 'E' is an extension type.
+//               ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                     ^
+// [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
   }
@@ -2289,6 +6865,83 @@ extension type E(int i) {
 ''');
   }
 
+  test_extensionType_instanceSetter_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  set foo(int _) sync*;
+//^^^^^^^^^^^^^^^^^^^^^
+// [diag.extensionTypeWithAbstractMember] 'foo' must have a method body because 'E' is an extension type.
+//               ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                    ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extensionType_instanceSetter_noBody_syncStar_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  set foo(int _) sync*;
+//               ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                    ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment set foo(int _) sync* {}
+//                       ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+}
+''');
+  }
+
+  test_extensionType_instanceSetter_noBody_syncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension type E(int i) {
+  set foo(int _) sync*;
+//^^^^^^^^^^^^^^^^^^^^^
+// [diag.extensionTypeWithAbstractMember] 'foo' must have a method body because 'E' is an extension type.
+//               ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                    ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extensionType_staticGetter_blockBody_async_augmentation_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  static Future<void> get foo async {}
+  augment static Future<void> get foo async;
+//                                         ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extensionType_staticGetter_blockBody_asyncStar_augmentation_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  static Stream<int> get foo async* {}
+  augment static Stream<int> get foo async*;
+//                                         ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extensionType_staticGetter_blockBody_syncStar_augmentation_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  static Iterable<int> get foo sync* {}
+  augment static Iterable<int> get foo sync*;
+//                                          ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
   test_extensionType_staticGetter_expressionBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension type E(int i) {
@@ -2314,6 +6967,48 @@ extension type E(int i) {
 ''');
   }
 
+  test_extensionType_staticGetter_external_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  external static Future<void> get foo async;
+//                                          ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extensionType_staticGetter_external_noBody_async_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension type E(int i) {
+  external static Future<void> get foo async;
+//                                          ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extensionType_staticGetter_external_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  external static Stream<int> get foo async*;
+//                                          ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extensionType_staticGetter_external_noBody_asyncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension type E(int i) {
+  external static Stream<int> get foo async*;
+//                                          ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
   test_extensionType_staticGetter_external_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
 // %before-language-feature: augmentations
@@ -2323,11 +7018,96 @@ extension type E(int i) {
 ''');
   }
 
+  test_extensionType_staticGetter_external_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  external static Iterable<int> get foo sync*;
+//                                           ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extensionType_staticGetter_external_noBody_syncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension type E(int i) {
+  external static Iterable<int> get foo sync*;
+//                                           ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
   test_extensionType_staticGetter_noBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension type E(int i) {
   static int get foo;
 //                  ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extensionType_staticGetter_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  static Future<void> get foo async;
+//                                 ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extensionType_staticGetter_noBody_async_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  static Future<void> get foo async;
+//                                 ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment static Future<void> get foo async {}
+}
+''');
+  }
+
+  test_extensionType_staticGetter_noBody_async_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension type E(int i) {
+  static Future<void> get foo async;
+//                                 ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extensionType_staticGetter_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  static Stream<int> get foo async*;
+//                                 ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extensionType_staticGetter_noBody_asyncStar_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  static Stream<int> get foo async*;
+//                                 ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment static Stream<int> get foo async* {}
+}
+''');
+  }
+
+  test_extensionType_staticGetter_noBody_asyncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension type E(int i) {
+  static Stream<int> get foo async*;
+//                                 ^
 // [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
@@ -2364,10 +7144,64 @@ extension type E(int i) {
 ''');
   }
 
+  test_extensionType_staticGetter_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  static Iterable<int> get foo sync*;
+//                                  ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extensionType_staticGetter_noBody_syncStar_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  static Iterable<int> get foo sync*;
+//                                  ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment static Iterable<int> get foo sync* {}
+}
+''');
+  }
+
+  test_extensionType_staticGetter_noBody_syncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension type E(int i) {
+  static Iterable<int> get foo sync*;
+//                                  ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
   test_extensionType_staticMethod_blockBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension type E(int i) {
   static void foo() {}
+}
+''');
+  }
+
+  test_extensionType_staticMethod_blockBody_async_augmentation_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  static Future<void> foo() async {}
+  augment static Future<void> foo() async;
+//                                       ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extensionType_staticMethod_blockBody_asyncStar_augmentation_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  static Stream<int> foo() async* {}
+  augment static Stream<int> foo() async*;
+//                                       ^
+// [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
   }
@@ -2381,10 +7215,63 @@ extension type E(int i) {
 ''');
   }
 
+  test_extensionType_staticMethod_blockBody_syncStar_augmentation_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  static Iterable<int> foo() sync* {}
+  augment static Iterable<int> foo() sync*;
+//                                        ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
   test_extensionType_staticMethod_external_noBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension type E(int i) {
   external static void foo();
+}
+''');
+  }
+
+  test_extensionType_staticMethod_external_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  external static Future<void> foo() async;
+//                                        ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extensionType_staticMethod_external_noBody_async_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension type E(int i) {
+  external static Future<void> foo() async;
+//                                        ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extensionType_staticMethod_external_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  external static Stream<int> foo() async*;
+//                                        ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extensionType_staticMethod_external_noBody_asyncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension type E(int i) {
+  external static Stream<int> foo() async*;
+//                                        ^
+// [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
   }
@@ -2398,11 +7285,96 @@ extension type E(int i) {
 ''');
   }
 
+  test_extensionType_staticMethod_external_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  external static Iterable<int> foo() sync*;
+//                                         ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extensionType_staticMethod_external_noBody_syncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension type E(int i) {
+  external static Iterable<int> foo() sync*;
+//                                         ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
   test_extensionType_staticMethod_noBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension type E(int i) {
   static void foo();
 //                 ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extensionType_staticMethod_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  static Future<void> foo() async;
+//                               ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extensionType_staticMethod_noBody_async_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  static Future<void> foo() async;
+//                               ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment static Future<void> foo() async {}
+}
+''');
+  }
+
+  test_extensionType_staticMethod_noBody_async_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension type E(int i) {
+  static Future<void> foo() async;
+//                               ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extensionType_staticMethod_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  static Stream<int> foo() async*;
+//                               ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extensionType_staticMethod_noBody_asyncStar_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  static Stream<int> foo() async*;
+//                               ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment static Stream<int> foo() async* {}
+}
+''');
+  }
+
+  test_extensionType_staticMethod_noBody_asyncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension type E(int i) {
+  static Stream<int> foo() async*;
+//                               ^
 // [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
@@ -2439,10 +7411,72 @@ extension type E(int i) {
 ''');
   }
 
+  test_extensionType_staticMethod_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  static Iterable<int> foo() sync*;
+//                                ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extensionType_staticMethod_noBody_syncStar_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  static Iterable<int> foo() sync*;
+//                                ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment static Iterable<int> foo() sync* {}
+}
+''');
+  }
+
+  test_extensionType_staticMethod_noBody_syncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension type E(int i) {
+  static Iterable<int> foo() sync*;
+//                                ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
   test_extensionType_staticSetter_blockBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension type E(int i) {
   static set foo(int _) {}
+}
+''');
+  }
+
+  test_extensionType_staticSetter_blockBody_async_augmentation_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  static set foo(int _) async {}
+//                      ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+  augment static set foo(int _) async;
+//                              ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                                   ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extensionType_staticSetter_blockBody_asyncStar_augmentation_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  static set foo(int _) async* {}
+//                      ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+  augment static set foo(int _) async*;
+//                              ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                                    ^
+// [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
   }
@@ -2456,10 +7490,75 @@ extension type E(int i) {
 ''');
   }
 
+  test_extensionType_staticSetter_blockBody_syncStar_augmentation_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  static set foo(int _) sync* {}
+//                      ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+  augment static set foo(int _) sync*;
+//                              ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                                   ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
   test_extensionType_staticSetter_external_noBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension type E(int i) {
   external static set foo(int _);
+}
+''');
+  }
+
+  test_extensionType_staticSetter_external_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  external static set foo(int _) async;
+//                               ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                                    ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extensionType_staticSetter_external_noBody_async_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension type E(int i) {
+  external static set foo(int _) async;
+//                               ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                                    ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extensionType_staticSetter_external_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  external static set foo(int _) async*;
+//                               ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                                     ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extensionType_staticSetter_external_noBody_asyncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension type E(int i) {
+  external static set foo(int _) async*;
+//                               ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                                     ^
+// [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
   }
@@ -2473,11 +7572,116 @@ extension type E(int i) {
 ''');
   }
 
+  test_extensionType_staticSetter_external_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  external static set foo(int _) sync*;
+//                               ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                                    ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extensionType_staticSetter_external_noBody_syncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension type E(int i) {
+  external static set foo(int _) sync*;
+//                               ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                                    ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
   test_extensionType_staticSetter_noBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension type E(int i) {
   static set foo(int _);
 //                     ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extensionType_staticSetter_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  static set foo(int _) async;
+//                      ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                           ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extensionType_staticSetter_noBody_async_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  static set foo(int _) async;
+//                      ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                           ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment static set foo(int _) async {}
+//                              ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+}
+''');
+  }
+
+  test_extensionType_staticSetter_noBody_async_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension type E(int i) {
+  static set foo(int _) async;
+//                      ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                           ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extensionType_staticSetter_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  static set foo(int _) async*;
+//                      ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                            ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extensionType_staticSetter_noBody_asyncStar_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  static set foo(int _) async*;
+//                      ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                            ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment static set foo(int _) async* {}
+//                              ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+}
+''');
+  }
+
+  test_extensionType_staticSetter_noBody_asyncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension type E(int i) {
+  static set foo(int _) async*;
+//                      ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                            ^
 // [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
@@ -2514,11 +7718,708 @@ extension type E(int i) {
 ''');
   }
 
+  test_extensionType_staticSetter_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  static set foo(int _) sync*;
+//                      ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                           ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_extensionType_staticSetter_noBody_syncStar_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  static set foo(int _) sync*;
+//                      ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                           ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment static set foo(int _) sync* {}
+//                              ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+}
+''');
+  }
+
+  test_extensionType_staticSetter_noBody_syncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension type E(int i) {
+  static set foo(int _) sync*;
+//                      ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                           ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
   test_localFunction_blockBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 void f() {
   void foo() {}
   foo();
+}
+''');
+  }
+
+  test_mixin_instanceGetter_blockBody_async_augmentation_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  Future<void> get foo async {}
+  augment Future<void> get foo async;
+//                                  ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_instanceGetter_blockBody_asyncStar_augmentation_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  Stream<int> get foo async* {}
+  augment Stream<int> get foo async*;
+//                                  ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_instanceGetter_blockBody_syncStar_augmentation_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  Iterable<int> get foo sync* {}
+  augment Iterable<int> get foo sync*;
+//                                   ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_instanceGetter_external_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  external Future<void> get foo async;
+//                                   ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_instanceGetter_external_noBody_async_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+mixin M {
+  external Future<void> get foo async;
+//                                   ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_instanceGetter_external_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  external Stream<int> get foo async*;
+//                                   ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_instanceGetter_external_noBody_asyncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+mixin M {
+  external Stream<int> get foo async*;
+//                                   ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_instanceGetter_external_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  external Iterable<int> get foo sync*;
+//                                    ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_instanceGetter_external_noBody_syncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+mixin M {
+  external Iterable<int> get foo sync*;
+//                                    ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_instanceGetter_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  Future<void> get foo async;
+//                          ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_instanceGetter_noBody_async_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  Future<void> get foo async;
+//                          ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment Future<void> get foo async {}
+}
+''');
+  }
+
+  test_mixin_instanceGetter_noBody_async_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+mixin M {
+  Future<void> get foo async;
+//                          ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_instanceGetter_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  Stream<int> get foo async*;
+//                          ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_instanceGetter_noBody_asyncStar_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  Stream<int> get foo async*;
+//                          ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment Stream<int> get foo async* {}
+}
+''');
+  }
+
+  test_mixin_instanceGetter_noBody_asyncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+mixin M {
+  Stream<int> get foo async*;
+//                          ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_instanceGetter_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  Iterable<int> get foo sync*;
+//                           ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_instanceGetter_noBody_syncStar_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  Iterable<int> get foo sync*;
+//                           ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment Iterable<int> get foo sync* {}
+}
+''');
+  }
+
+  test_mixin_instanceGetter_noBody_syncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+mixin M {
+  Iterable<int> get foo sync*;
+//                           ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_instanceMethod_blockBody_async_augmentation_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  Future<void> foo() async {}
+  augment Future<void> foo() async;
+//                                ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_instanceMethod_blockBody_asyncStar_augmentation_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  Stream<int> foo() async* {}
+  augment Stream<int> foo() async*;
+//                                ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_instanceMethod_blockBody_syncStar_augmentation_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  Iterable<int> foo() sync* {}
+  augment Iterable<int> foo() sync*;
+//                                 ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_instanceMethod_external_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  external Future<void> foo() async;
+//                                 ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_instanceMethod_external_noBody_async_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+mixin M {
+  external Future<void> foo() async;
+//                                 ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_instanceMethod_external_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  external Stream<int> foo() async*;
+//                                 ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_instanceMethod_external_noBody_asyncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+mixin M {
+  external Stream<int> foo() async*;
+//                                 ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_instanceMethod_external_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  external Iterable<int> foo() sync*;
+//                                  ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_instanceMethod_external_noBody_syncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+mixin M {
+  external Iterable<int> foo() sync*;
+//                                  ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_instanceMethod_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  Future<void> foo() async;
+//                        ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_instanceMethod_noBody_async_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  Future<void> foo() async;
+//                        ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment Future<void> foo() async {}
+}
+''');
+  }
+
+  test_mixin_instanceMethod_noBody_async_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+mixin M {
+  Future<void> foo() async;
+//                        ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_instanceMethod_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  Stream<int> foo() async*;
+//                        ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_instanceMethod_noBody_asyncStar_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  Stream<int> foo() async*;
+//                        ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment Stream<int> foo() async* {}
+}
+''');
+  }
+
+  test_mixin_instanceMethod_noBody_asyncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+mixin M {
+  Stream<int> foo() async*;
+//                        ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_instanceMethod_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  Iterable<int> foo() sync*;
+//                         ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_instanceMethod_noBody_syncStar_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  Iterable<int> foo() sync*;
+//                         ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment Iterable<int> foo() sync* {}
+}
+''');
+  }
+
+  test_mixin_instanceMethod_noBody_syncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+mixin M {
+  Iterable<int> foo() sync*;
+//                         ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_instanceSetter_blockBody_async_augmentation_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  set foo(int _) async {}
+//               ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+  augment set foo(int _) async;
+//                       ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                            ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_instanceSetter_blockBody_asyncStar_augmentation_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  set foo(int _) async* {}
+//               ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+  augment set foo(int _) async*;
+//                       ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                             ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_instanceSetter_blockBody_syncStar_augmentation_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  set foo(int _) sync* {}
+//               ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+  augment set foo(int _) sync*;
+//                       ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                            ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_instanceSetter_external_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  external set foo(int _) async;
+//                        ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                             ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_instanceSetter_external_noBody_async_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+mixin M {
+  external set foo(int _) async;
+//                        ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                             ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_instanceSetter_external_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  external set foo(int _) async*;
+//                        ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                              ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_instanceSetter_external_noBody_asyncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+mixin M {
+  external set foo(int _) async*;
+//                        ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                              ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_instanceSetter_external_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  external set foo(int _) sync*;
+//                        ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                             ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_instanceSetter_external_noBody_syncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+mixin M {
+  external set foo(int _) sync*;
+//                        ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                             ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_instanceSetter_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  set foo(int _) async;
+//               ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                    ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_instanceSetter_noBody_async_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  set foo(int _) async;
+//               ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                    ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment set foo(int _) async {}
+//                       ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+}
+''');
+  }
+
+  test_mixin_instanceSetter_noBody_async_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+mixin M {
+  set foo(int _) async;
+//               ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                    ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_instanceSetter_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  set foo(int _) async*;
+//               ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                     ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_instanceSetter_noBody_asyncStar_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  set foo(int _) async*;
+//               ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                     ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment set foo(int _) async* {}
+//                       ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+}
+''');
+  }
+
+  test_mixin_instanceSetter_noBody_asyncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+mixin M {
+  set foo(int _) async*;
+//               ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                     ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_instanceSetter_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  set foo(int _) sync*;
+//               ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                    ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_instanceSetter_noBody_syncStar_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  set foo(int _) sync*;
+//               ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                    ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment set foo(int _) sync* {}
+//                       ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+}
+''');
+  }
+
+  test_mixin_instanceSetter_noBody_syncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+mixin M {
+  set foo(int _) sync*;
+//               ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                    ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_staticGetter_blockBody_async_augmentation_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  static Future<void> get foo async {}
+  augment static Future<void> get foo async;
+//                                         ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_staticGetter_blockBody_asyncStar_augmentation_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  static Stream<int> get foo async* {}
+  augment static Stream<int> get foo async*;
+//                                         ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_staticGetter_blockBody_syncStar_augmentation_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  static Iterable<int> get foo sync* {}
+  augment static Iterable<int> get foo sync*;
+//                                          ^
+// [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
   }
@@ -2548,6 +8449,48 @@ mixin M {
 ''');
   }
 
+  test_mixin_staticGetter_external_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  external static Future<void> get foo async;
+//                                          ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_staticGetter_external_noBody_async_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+mixin M {
+  external static Future<void> get foo async;
+//                                          ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_staticGetter_external_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  external static Stream<int> get foo async*;
+//                                          ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_staticGetter_external_noBody_asyncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+mixin M {
+  external static Stream<int> get foo async*;
+//                                          ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
   test_mixin_staticGetter_external_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
 // %before-language-feature: augmentations
@@ -2557,11 +8500,96 @@ mixin M {
 ''');
   }
 
+  test_mixin_staticGetter_external_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  external static Iterable<int> get foo sync*;
+//                                           ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_staticGetter_external_noBody_syncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+mixin M {
+  external static Iterable<int> get foo sync*;
+//                                           ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
   test_mixin_staticGetter_noBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   static int get foo;
 //                  ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_staticGetter_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  static Future<void> get foo async;
+//                                 ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_staticGetter_noBody_async_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  static Future<void> get foo async;
+//                                 ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment static Future<void> get foo async {}
+}
+''');
+  }
+
+  test_mixin_staticGetter_noBody_async_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+mixin M {
+  static Future<void> get foo async;
+//                                 ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_staticGetter_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  static Stream<int> get foo async*;
+//                                 ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_staticGetter_noBody_asyncStar_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  static Stream<int> get foo async*;
+//                                 ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment static Stream<int> get foo async* {}
+}
+''');
+  }
+
+  test_mixin_staticGetter_noBody_asyncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+mixin M {
+  static Stream<int> get foo async*;
+//                                 ^
 // [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
@@ -2598,10 +8626,64 @@ mixin M {
 ''');
   }
 
+  test_mixin_staticGetter_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  static Iterable<int> get foo sync*;
+//                                  ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_staticGetter_noBody_syncStar_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  static Iterable<int> get foo sync*;
+//                                  ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment static Iterable<int> get foo sync* {}
+}
+''');
+  }
+
+  test_mixin_staticGetter_noBody_syncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+mixin M {
+  static Iterable<int> get foo sync*;
+//                                  ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
   test_mixin_staticMethod_blockBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   static void foo() {}
+}
+''');
+  }
+
+  test_mixin_staticMethod_blockBody_async_augmentation_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  static Future<void> foo() async {}
+  augment static Future<void> foo() async;
+//                                       ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_staticMethod_blockBody_asyncStar_augmentation_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  static Stream<int> foo() async* {}
+  augment static Stream<int> foo() async*;
+//                                       ^
+// [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
   }
@@ -2615,10 +8697,63 @@ mixin M {
 ''');
   }
 
+  test_mixin_staticMethod_blockBody_syncStar_augmentation_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  static Iterable<int> foo() sync* {}
+  augment static Iterable<int> foo() sync*;
+//                                        ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
   test_mixin_staticMethod_external_noBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   external static void foo();
+}
+''');
+  }
+
+  test_mixin_staticMethod_external_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  external static Future<void> foo() async;
+//                                        ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_staticMethod_external_noBody_async_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+mixin M {
+  external static Future<void> foo() async;
+//                                        ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_staticMethod_external_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  external static Stream<int> foo() async*;
+//                                        ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_staticMethod_external_noBody_asyncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+mixin M {
+  external static Stream<int> foo() async*;
+//                                        ^
+// [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
   }
@@ -2628,6 +8763,27 @@ mixin M {
 // %before-language-feature: augmentations
 mixin M {
   external static void foo();
+}
+''');
+  }
+
+  test_mixin_staticMethod_external_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  external static Iterable<int> foo() sync*;
+//                                         ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_staticMethod_external_noBody_syncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+mixin M {
+  external static Iterable<int> foo() sync*;
+//                                         ^
+// [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
   }
@@ -2647,6 +8803,70 @@ mixin A {
 mixin M {
   static void foo();
 //                 ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_staticMethod_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  static Future<void> foo() async;
+//                               ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_staticMethod_noBody_async_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  static Future<void> foo() async;
+//                               ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment static Future<void> foo() async {}
+}
+''');
+  }
+
+  test_mixin_staticMethod_noBody_async_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+mixin M {
+  static Future<void> foo() async;
+//                               ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_staticMethod_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  static Stream<int> foo() async*;
+//                               ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_staticMethod_noBody_asyncStar_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  static Stream<int> foo() async*;
+//                               ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment static Stream<int> foo() async* {}
+}
+''');
+  }
+
+  test_mixin_staticMethod_noBody_asyncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+mixin M {
+  static Stream<int> foo() async*;
+//                               ^
 // [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
@@ -2683,10 +8903,72 @@ mixin M {
 ''');
   }
 
+  test_mixin_staticMethod_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  static Iterable<int> foo() sync*;
+//                                ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_staticMethod_noBody_syncStar_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  static Iterable<int> foo() sync*;
+//                                ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment static Iterable<int> foo() sync* {}
+}
+''');
+  }
+
+  test_mixin_staticMethod_noBody_syncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+mixin M {
+  static Iterable<int> foo() sync*;
+//                                ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
   test_mixin_staticSetter_blockBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   static set foo(int _) {}
+}
+''');
+  }
+
+  test_mixin_staticSetter_blockBody_async_augmentation_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  static set foo(int _) async {}
+//                      ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+  augment static set foo(int _) async;
+//                              ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                                   ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_staticSetter_blockBody_asyncStar_augmentation_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  static set foo(int _) async* {}
+//                      ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+  augment static set foo(int _) async*;
+//                              ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                                    ^
+// [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
   }
@@ -2700,10 +8982,75 @@ mixin M {
 ''');
   }
 
+  test_mixin_staticSetter_blockBody_syncStar_augmentation_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  static set foo(int _) sync* {}
+//                      ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+  augment static set foo(int _) sync*;
+//                              ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                                   ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
   test_mixin_staticSetter_external_noBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   external static set foo(int _);
+}
+''');
+  }
+
+  test_mixin_staticSetter_external_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  external static set foo(int _) async;
+//                               ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                                    ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_staticSetter_external_noBody_async_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+mixin M {
+  external static set foo(int _) async;
+//                               ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                                    ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_staticSetter_external_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  external static set foo(int _) async*;
+//                               ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                                     ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_staticSetter_external_noBody_asyncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+mixin M {
+  external static set foo(int _) async*;
+//                               ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                                     ^
+// [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
   }
@@ -2717,11 +9064,116 @@ mixin M {
 ''');
   }
 
+  test_mixin_staticSetter_external_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  external static set foo(int _) sync*;
+//                               ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                                    ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_staticSetter_external_noBody_syncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+mixin M {
+  external static set foo(int _) sync*;
+//                               ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                                    ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
   test_mixin_staticSetter_noBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 mixin M {
   static set foo(int _);
 //                     ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_staticSetter_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  static set foo(int _) async;
+//                      ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                           ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_staticSetter_noBody_async_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  static set foo(int _) async;
+//                      ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                           ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment static set foo(int _) async {}
+//                              ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+}
+''');
+  }
+
+  test_mixin_staticSetter_noBody_async_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+mixin M {
+  static set foo(int _) async;
+//                      ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                           ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_staticSetter_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  static set foo(int _) async*;
+//                      ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                            ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_staticSetter_noBody_asyncStar_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  static set foo(int _) async*;
+//                      ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                            ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment static set foo(int _) async* {}
+//                              ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+}
+''');
+  }
+
+  test_mixin_staticSetter_noBody_asyncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+mixin M {
+  static set foo(int _) async*;
+//                      ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                            ^
 // [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
@@ -2758,9 +9210,74 @@ mixin M {
 ''');
   }
 
+  test_mixin_staticSetter_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  static set foo(int _) sync*;
+//                      ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                           ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_mixin_staticSetter_noBody_syncStar_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M {
+  static set foo(int _) sync*;
+//                      ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                           ^
+// [diag.missingFunctionBody] A function body must be provided.
+  augment static set foo(int _) sync* {}
+//                              ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+}
+''');
+  }
+
+  test_mixin_staticSetter_noBody_syncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+mixin M {
+  static set foo(int _) sync*;
+//                      ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                           ^
+// [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
   test_topLevelFunction_blockBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 void foo() {}
+''');
+  }
+
+  test_topLevelFunction_blockBody_async_augmentation_noBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+Future<void> foo() async {}
+augment Future<void> foo();
+''');
+  }
+
+  test_topLevelFunction_blockBody_async_augmentation_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+Future<void> foo() async {}
+augment Future<void> foo() async;
+//                              ^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+  }
+
+  test_topLevelFunction_blockBody_asyncStar_augmentation_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+Stream<int> foo() async* {}
+augment Stream<int> foo() async*;
+//                              ^
+// [diag.missingFunctionBody] A function body must be provided.
 ''');
   }
 
@@ -2778,6 +9295,15 @@ augment void foo() {}
     await resolveTestCodeWithDiagnostics(r'''
 // %before-language-feature: augmentations
 void foo() {}
+''');
+  }
+
+  test_topLevelFunction_blockBody_syncStar_augmentation_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+Iterable<int> foo() sync* {}
+augment Iterable<int> foo() sync*;
+//                               ^
+// [diag.missingFunctionBody] A function body must be provided.
 ''');
   }
 
@@ -2821,10 +9347,97 @@ external void foo();
 ''');
   }
 
+  test_topLevelFunction_external_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+external Future<void> foo() async;
+//                               ^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+  }
+
+  test_topLevelFunction_external_noBody_async_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+external Future<void> foo() async;
+//                               ^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+  }
+
+  test_topLevelFunction_external_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+external Stream<int> foo() async*;
+//                               ^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+  }
+
+  test_topLevelFunction_external_noBody_asyncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+external Stream<int> foo() async*;
+//                               ^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+  }
+
+  test_topLevelFunction_external_noBody_augmentation_external_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+external Future<void> foo();
+//                    ^^^
+// [context 1] The complete declaration is here.
+augment external Future<void> foo() async;
+// [diag.functionAlreadyComplete][column 1][length 7][context 1] The augmentation can't provide a body because the function or member is already complete.
+//                                       ^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+  }
+
+  test_topLevelFunction_external_noBody_augmentation_external_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+external Stream<int> foo();
+//                   ^^^
+// [context 1] The complete declaration is here.
+augment external Stream<int> foo() async*;
+// [diag.functionAlreadyComplete][column 1][length 7][context 1] The augmentation can't provide a body because the function or member is already complete.
+//                                       ^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+  }
+
+  test_topLevelFunction_external_noBody_augmentation_external_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+external Iterable<int> foo();
+//                     ^^^
+// [context 1] The complete declaration is here.
+augment external Iterable<int> foo() sync*;
+// [diag.functionAlreadyComplete][column 1][length 7][context 1] The augmentation can't provide a body because the function or member is already complete.
+//                                        ^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+  }
+
   test_topLevelFunction_external_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
 // %before-language-feature: augmentations
 external void foo();
+''');
+  }
+
+  test_topLevelFunction_external_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+external Iterable<int> foo() sync*;
+//                                ^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+  }
+
+  test_topLevelFunction_external_noBody_syncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+external Iterable<int> foo() sync*;
+//                                ^
+// [diag.missingFunctionBody] A function body must be provided.
 ''');
   }
 
@@ -2844,10 +9457,69 @@ void foo();
 ''');
   }
 
+  test_topLevelFunction_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+Future<void> foo() async;
+//                      ^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+  }
+
+  test_topLevelFunction_noBody_async_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+Future<void> foo() async;
+//                      ^
+// [diag.missingFunctionBody] A function body must be provided.
+augment Future<void> foo() async {}
+''');
+  }
+
+  test_topLevelFunction_noBody_async_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+Future<void> foo() async;
+//                      ^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+  }
+
+  test_topLevelFunction_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+Stream<int> foo() async*;
+//                      ^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+  }
+
+  test_topLevelFunction_noBody_asyncStar_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+Stream<int> foo() async*;
+//                      ^
+// [diag.missingFunctionBody] A function body must be provided.
+augment Stream<int> foo() async* {}
+''');
+  }
+
+  test_topLevelFunction_noBody_asyncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+Stream<int> foo() async*;
+//                      ^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+  }
+
   test_topLevelFunction_noBody_augmentation_blockBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 void foo();
 augment void foo() {}
+''');
+  }
+
+  test_topLevelFunction_noBody_augmentation_blockBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+Future<void> foo();
+augment Future<void> foo() async {}
 ''');
   }
 
@@ -2869,9 +9541,98 @@ void foo();
 ''');
   }
 
+  test_topLevelFunction_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+Iterable<int> foo() sync*;
+//                       ^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+  }
+
+  test_topLevelFunction_noBody_syncStar_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+Iterable<int> foo() sync*;
+//                       ^
+// [diag.missingFunctionBody] A function body must be provided.
+augment Iterable<int> foo() sync* {}
+''');
+  }
+
+  test_topLevelFunction_noBody_syncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+Iterable<int> foo() sync*;
+//                       ^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+  }
+
+  test_topLevelFunction_noDeclaration_augmentation_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+augment Future<void> foo() async;
+// [diag.augmentationWithoutDeclaration][column 1][length 7] The declaration being augmented doesn't exist.
+//                              ^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+  }
+
+  test_topLevelFunction_noDeclaration_augmentation_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+augment Stream<int> foo() async*;
+// [diag.augmentationWithoutDeclaration][column 1][length 7] The declaration being augmented doesn't exist.
+//                              ^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+  }
+
+  test_topLevelFunction_noDeclaration_augmentation_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+augment Iterable<int> foo() sync*;
+// [diag.augmentationWithoutDeclaration][column 1][length 7] The declaration being augmented doesn't exist.
+//                               ^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+  }
+
+  test_topLevelGetter_blockBody_async_augmentation_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+Future<void> get foo async {}
+augment Future<void> get foo async;
+//                                ^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+  }
+
+  test_topLevelGetter_blockBody_asyncStar_augmentation_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+Stream<int> get foo async* {}
+augment Stream<int> get foo async*;
+//                                ^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+  }
+
+  test_topLevelGetter_blockBody_syncStar_augmentation_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+Iterable<int> get foo sync* {}
+augment Iterable<int> get foo sync*;
+//                                 ^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+  }
+
   test_topLevelGetter_expressionBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 int get foo => 0;
+''');
+  }
+
+  test_topLevelGetter_expressionBody_async_augmentation_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+Future<int> get foo async => 0;
+augment Future<int> get foo async;
+//                               ^
+// [diag.missingFunctionBody] A function body must be provided.
 ''');
   }
 
@@ -2952,6 +9713,76 @@ external int get foo;
 ''');
   }
 
+  test_topLevelGetter_external_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+external Future<int> get foo async;
+//                                ^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+  }
+
+  test_topLevelGetter_external_noBody_async_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+external Future<int> get foo async;
+//                                ^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+  }
+
+  test_topLevelGetter_external_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+external Stream<int> get foo async*;
+//                                 ^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+  }
+
+  test_topLevelGetter_external_noBody_asyncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+external Stream<int> get foo async*;
+//                                 ^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+  }
+
+  test_topLevelGetter_external_noBody_augmentation_external_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+external Future<void> get foo;
+//                        ^^^
+// [context 1] The complete declaration is here.
+augment external Future<void> get foo async;
+// [diag.functionAlreadyComplete][column 1][length 7][context 1] The augmentation can't provide a body because the function or member is already complete.
+//                                         ^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+  }
+
+  test_topLevelGetter_external_noBody_augmentation_external_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+external Stream<int> get foo;
+//                       ^^^
+// [context 1] The complete declaration is here.
+augment external Stream<int> get foo async*;
+// [diag.functionAlreadyComplete][column 1][length 7][context 1] The augmentation can't provide a body because the function or member is already complete.
+//                                         ^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+  }
+
+  test_topLevelGetter_external_noBody_augmentation_external_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+external Iterable<int> get foo;
+//                         ^^^
+// [context 1] The complete declaration is here.
+augment external Iterable<int> get foo sync*;
+// [diag.functionAlreadyComplete][column 1][length 7][context 1] The augmentation can't provide a body because the function or member is already complete.
+//                                          ^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+  }
+
   test_topLevelGetter_external_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
 // %before-language-feature: augmentations
@@ -2959,10 +9790,88 @@ external int get foo;
 ''');
   }
 
+  test_topLevelGetter_external_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+external Iterable<int> get foo sync*;
+//                                  ^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+  }
+
+  test_topLevelGetter_external_noBody_syncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+external Iterable<int> get foo sync*;
+//                                  ^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+  }
+
   test_topLevelGetter_noBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 int get foo;
 //         ^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+  }
+
+  test_topLevelGetter_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+Future<int> get foo async;
+//                       ^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+  }
+
+  test_topLevelGetter_noBody_async_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+Future<void> get foo async;
+//                        ^
+// [diag.missingFunctionBody] A function body must be provided.
+augment Future<void> get foo async {}
+''');
+  }
+
+  test_topLevelGetter_noBody_async_augmentation_expressionBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+Future<int> get foo async;
+//                       ^
+// [diag.missingFunctionBody] A function body must be provided.
+augment Future<int> get foo async => 0;
+''');
+  }
+
+  test_topLevelGetter_noBody_async_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+Future<int> get foo async;
+//                       ^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+  }
+
+  test_topLevelGetter_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+Stream<int> get foo async*;
+//                        ^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+  }
+
+  test_topLevelGetter_noBody_asyncStar_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+Stream<int> get foo async*;
+//                        ^
+// [diag.missingFunctionBody] A function body must be provided.
+augment Stream<int> get foo async* {}
+''');
+  }
+
+  test_topLevelGetter_noBody_asyncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+Stream<int> get foo async*;
+//                        ^
 // [diag.missingFunctionBody] A function body must be provided.
 ''');
   }
@@ -2999,11 +9908,64 @@ int get foo;
 ''');
   }
 
+  test_topLevelGetter_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+Iterable<int> get foo sync*;
+//                         ^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+  }
+
+  test_topLevelGetter_noBody_syncStar_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+Iterable<int> get foo sync*;
+//                         ^
+// [diag.missingFunctionBody] A function body must be provided.
+augment Iterable<int> get foo sync* {}
+''');
+  }
+
+  test_topLevelGetter_noBody_syncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+Iterable<int> get foo sync*;
+//                         ^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+  }
+
   test_topLevelGetter_noBody_topLevelSetter_noBody_augmentation_topLevelVariable() async {
     await resolveTestCodeWithDiagnostics(r'''
 int get foo;
 set foo(int _);
 augment int foo = 1;
+''');
+  }
+
+  test_topLevelGetter_noDeclaration_augmentation_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+augment Future<void> get foo async;
+// [diag.augmentationWithoutDeclaration][column 1][length 7] The declaration being augmented doesn't exist.
+//                                ^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+  }
+
+  test_topLevelGetter_noDeclaration_augmentation_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+augment Stream<int> get foo async*;
+// [diag.augmentationWithoutDeclaration][column 1][length 7] The declaration being augmented doesn't exist.
+//                                ^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+  }
+
+  test_topLevelGetter_noDeclaration_augmentation_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+augment Iterable<int> get foo sync*;
+// [diag.augmentationWithoutDeclaration][column 1][length 7] The declaration being augmented doesn't exist.
+//                                 ^
+// [diag.missingFunctionBody] A function body must be provided.
 ''');
   }
 
@@ -3021,11 +9983,37 @@ set foo(int _) async {}
 ''');
   }
 
+  test_topLevelSetter_blockBody_async_augmentation_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+set foo(int _) async {}
+//             ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+augment set foo(int _) async;
+//                     ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                          ^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+  }
+
   test_topLevelSetter_blockBody_asyncStar() async {
     await resolveTestCodeWithDiagnostics(r'''
 set foo(int _) async* {}
 //             ^^^^^
 // [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+''');
+  }
+
+  test_topLevelSetter_blockBody_asyncStar_augmentation_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+set foo(int _) async* {}
+//             ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+augment set foo(int _) async*;
+//                     ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                           ^
+// [diag.missingFunctionBody] A function body must be provided.
 ''');
   }
 
@@ -3067,9 +10055,106 @@ set foo(int _) sync* {}
 ''');
   }
 
+  test_topLevelSetter_blockBody_syncStar_augmentation_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+set foo(int _) sync* {}
+//             ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+augment set foo(int _) sync*;
+//                     ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                          ^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+  }
+
   test_topLevelSetter_external_noBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 external set foo(int _);
+''');
+  }
+
+  test_topLevelSetter_external_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+external set foo(int _) async;
+//                      ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                           ^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+  }
+
+  test_topLevelSetter_external_noBody_async_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+external set foo(int _) async;
+//                      ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                           ^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+  }
+
+  test_topLevelSetter_external_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+external set foo(int _) async*;
+//                      ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                            ^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+  }
+
+  test_topLevelSetter_external_noBody_asyncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+external set foo(int _) async*;
+//                      ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                            ^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+  }
+
+  test_topLevelSetter_external_noBody_augmentation_external_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+external set foo(int _);
+//           ^^^
+// [context 1] The complete declaration is here.
+augment external set foo(int _) async;
+// [diag.functionAlreadyComplete][column 1][length 7][context 1] The augmentation can't provide a body because the function or member is already complete.
+//                              ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                                   ^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+  }
+
+  test_topLevelSetter_external_noBody_augmentation_external_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+external set foo(int _);
+//           ^^^
+// [context 1] The complete declaration is here.
+augment external set foo(int _) async*;
+// [diag.functionAlreadyComplete][column 1][length 7][context 1] The augmentation can't provide a body because the function or member is already complete.
+//                              ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                                    ^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+  }
+
+  test_topLevelSetter_external_noBody_augmentation_external_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+external set foo(int _);
+//           ^^^
+// [context 1] The complete declaration is here.
+augment external set foo(int _) sync*;
+// [diag.functionAlreadyComplete][column 1][length 7][context 1] The augmentation can't provide a body because the function or member is already complete.
+//                              ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                                   ^
+// [diag.missingFunctionBody] A function body must be provided.
 ''');
   }
 
@@ -3080,10 +10165,99 @@ external set foo(int _);
 ''');
   }
 
+  test_topLevelSetter_external_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+external set foo(int _) sync*;
+//                      ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                           ^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+  }
+
+  test_topLevelSetter_external_noBody_syncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+external set foo(int _) sync*;
+//                      ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                           ^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+  }
+
   test_topLevelSetter_noBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 set foo(int _);
 //            ^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+  }
+
+  test_topLevelSetter_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+set foo(int _) async;
+//             ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                  ^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+  }
+
+  test_topLevelSetter_noBody_async_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+set foo(int _) async;
+//             ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                  ^
+// [diag.missingFunctionBody] A function body must be provided.
+augment set foo(int _) async {}
+//                     ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+''');
+  }
+
+  test_topLevelSetter_noBody_async_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+set foo(int _) async;
+//             ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                  ^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+  }
+
+  test_topLevelSetter_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+set foo(int _) async*;
+//             ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                   ^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+  }
+
+  test_topLevelSetter_noBody_asyncStar_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+set foo(int _) async*;
+//             ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                   ^
+// [diag.missingFunctionBody] A function body must be provided.
+augment set foo(int _) async* {}
+//                     ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+''');
+  }
+
+  test_topLevelSetter_noBody_asyncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+set foo(int _) async*;
+//             ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                   ^
 // [diag.missingFunctionBody] A function body must be provided.
 ''');
   }
@@ -3109,6 +10283,73 @@ augment set foo(int _);
 // %before-language-feature: augmentations
 set foo(int _);
 //            ^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+  }
+
+  test_topLevelSetter_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+set foo(int _) sync*;
+//             ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                  ^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+  }
+
+  test_topLevelSetter_noBody_syncStar_augmentation_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+set foo(int _) sync*;
+//             ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                  ^
+// [diag.missingFunctionBody] A function body must be provided.
+augment set foo(int _) sync* {}
+//                     ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+''');
+  }
+
+  test_topLevelSetter_noBody_syncStar_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+set foo(int _) sync*;
+//             ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                  ^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+  }
+
+  test_topLevelSetter_noDeclaration_augmentation_noBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+augment set foo(int _) async;
+// [diag.augmentationWithoutDeclaration][column 1][length 7] The declaration being augmented doesn't exist.
+//                     ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                          ^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+  }
+
+  test_topLevelSetter_noDeclaration_augmentation_noBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+augment set foo(int _) async*;
+// [diag.augmentationWithoutDeclaration][column 1][length 7] The declaration being augmented doesn't exist.
+//                     ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                           ^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+  }
+
+  test_topLevelSetter_noDeclaration_augmentation_noBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+augment set foo(int _) sync*;
+// [diag.augmentationWithoutDeclaration][column 1][length 7] The declaration being augmented doesn't exist.
+//                     ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+//                          ^
 // [diag.missingFunctionBody] A function body must be provided.
 ''');
   }

@@ -4662,7 +4662,8 @@ class Parser {
     token = parseFunctionBody(
       token,
       /* ofFunctionExpression = */ false,
-      isExternal || isAugmentationsFeatureEnabled,
+      /* allowAbstract = */ (isExternal || isAugmentationsFeatureEnabled) &&
+          inPlainSync,
     );
     asyncState = savedAsyncModifier;
     listener.endTopLevelMethod(beforeStart.next!, getOrSet, token);
