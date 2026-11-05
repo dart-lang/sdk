@@ -1,0 +1,19 @@
+augment enum Enum1;
+
+augment enum Enum2;
+
+augment enum Enum3 { a, }
+
+augment enum Enum4 { b, }
+
+augment enum Enum5 { a, }
+
+enum Enum1;
+
+enum Enum2 { a, }
+
+enum Enum3;
+
+enum Enum4 { a, }
+
+enum Enum5 { a, }

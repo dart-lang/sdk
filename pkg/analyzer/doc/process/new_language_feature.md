@@ -58,5 +58,4 @@ The features are listed roughly in dependency order.
   - [ ] `strict-casts: true` warnings
   - [ ] `strict-inference: true` warnings
   - [ ] `strict-raw-types: true` warnings
-- [ ] ExitDetector
 - [ ] NodeLintRegistry

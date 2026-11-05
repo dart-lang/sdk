@@ -42,7 +42,7 @@ Completely deletes all installed versions of <package> and all executables from
       packageName: package,
     );
     if (bundles.isEmpty) {
-      print('Did not find any packages named "$package".');
+      log.stdout('Did not find any packages named "$package".');
       return 255;
     }
 
@@ -50,14 +50,14 @@ Completely deletes all installed versions of <package> and all executables from
       for (final bundle in bundles) {
         final links = bundle.executablesOnPathSync;
         for (final link in links) {
-          print('Deleting ${link.entity.path}');
+          log.stdout('Deleting ${link.entity.path}');
           link.deleteSync();
         }
-        print('Deleting ${bundle.directory.path}');
+        log.stdout('Deleting ${bundle.directory.path}');
         bundle.directory.deleteSync(recursive: true);
       }
     } on PathAccessException {
-      stderr.writeln('Deletion failed. The application might be in use.');
+      log.stderr('Deletion failed. The application might be in use.');
       return 255;
     }
 

@@ -74,6 +74,19 @@ f(List c) {
 ''');
   }
 
+  Future<void> test_constantOnRight_preservesCommentBeforeLength() async {
+    await resolveTestCode('''
+void f(List c) {
+  if (c /* keep */ .length != 0) {}
+}
+''');
+    await assertHasFix('''
+void f(List c) {
+  if (c /* keep */ .isNotEmpty) {}
+}
+''');
+  }
+
   /// https://github.com/dart-lang/sdk/issues/55250
   Future<void> test_nullableList() async {
     await resolveTestCode('''

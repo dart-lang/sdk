@@ -152,7 +152,10 @@ final ArgParser _argParser = ArgParser(allowTrailingOptions: true)
     'extra-selectors-allowed-in-dynamic-calls',
     help:
         'Selector names that weren\'t exposed by the host, but are allowed in '
-        'dynamic calls within the dynamic module',
+        'dynamic calls within the dynamic module. Pass "*" to allow all dynamic '
+        'calls, which is unsafe and may result in runtime errors if target of a '
+        'dynamic call is not from a dynamic module and not listed as '
+        'dynamically-callable in the dynamic interface.',
   );
 
 final String _usage =

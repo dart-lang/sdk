@@ -45,7 +45,7 @@ abstract class IDeclarationBuilder implements ITypeDeclarationBuilder {
   /// reported.
   MemberLookupResult? lookupLocalMember(String name, {bool required = false});
 
-  List<DartType> buildAliasedTypeArguments(
+  DartTypeList buildAliasedTypeArguments(
     LibraryBuilder library,
     List<TypeBuilder>? arguments,
     ClassHierarchyBase? hierarchy,

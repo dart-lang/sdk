@@ -25,12 +25,12 @@ class MyFuture<T extends core::Object? = dynamic> extends core::Object implement
 }
 static method test(self::MyFuture<core::int> f) → void {
   asy::Future<core::int> t1 = f.{self::MyFuture::then}<core::int>((core::int x) → asy::Future<core::int> async /* emittedValueType= core::int */ => let final core::int #t1 = x in #t1 == null ?{core::int} await asy::Future::value<core::int>(3) : #t1){((core::int) → FutureOr<core::int>, {onError: core::Function?}) → self::MyFuture<core::int>};
-  asy::Future<core::int> t2 = f.{self::MyFuture::then}<core::int>((core::int x) → asy::Future<core::int> async /* emittedValueType= core::int */ {
-    return let final core::int #t2 = await x /* runtimeCheckType= asy::Future<core::int> */ in #t2 == null ?{FutureOr<core::int>} asy::Future::value<core::int>(3) : #t2;
+  asy::Future<core::int> t2 = f.{self::MyFuture::then}<core::int>((core::int x##1) → asy::Future<core::int> async /* emittedValueType= core::int */ {
+    return let final core::int #t2 = await x##1 /* runtimeCheckType= asy::Future<core::int> */ in #t2 == null ?{FutureOr<core::int>} asy::Future::value<core::int>(3) : #t2;
   }){((core::int) → FutureOr<core::int>, {onError: core::Function?}) → self::MyFuture<core::int>};
-  asy::Future<core::int> t5 = f.{self::MyFuture::then}<core::int>((core::int x) → FutureOr<core::int> => let final core::int #t3 = x in #t3 == null ?{FutureOr<core::int>} asy::Future::value<core::int>(3) : #t3){((core::int) → FutureOr<core::int>, {onError: core::Function?}) → self::MyFuture<core::int>};
-  asy::Future<core::int> t6 = f.{self::MyFuture::then}<core::int>((core::int x) → FutureOr<core::int> {
-    return let final core::int #t4 = x in #t4 == null ?{FutureOr<core::int>} asy::Future::value<core::int>(3) : #t4;
+  asy::Future<core::int> t5 = f.{self::MyFuture::then}<core::int>((core::int x##2) → FutureOr<core::int> => let final core::int #t3 = x##2 in #t3 == null ?{FutureOr<core::int>} asy::Future::value<core::int>(3) : #t3){((core::int) → FutureOr<core::int>, {onError: core::Function?}) → self::MyFuture<core::int>};
+  asy::Future<core::int> t6 = f.{self::MyFuture::then}<core::int>((core::int x##3) → FutureOr<core::int> {
+    return let final core::int #t4 = x##3 in #t4 == null ?{FutureOr<core::int>} asy::Future::value<core::int>(3) : #t4;
   }){((core::int) → FutureOr<core::int>, {onError: core::Function?}) → self::MyFuture<core::int>};
 }
 static method main() → dynamic {}

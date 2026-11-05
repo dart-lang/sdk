@@ -17,7 +17,7 @@ import '../../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CanBeConstConstructorTest);
-    defineReflectiveTests(CanBeConstInstanceCreationTest);
+    defineReflectiveTests(CanBeConstConstructorInvocationTest);
     defineReflectiveTests(CanBeConstTypedLiteralTest);
     defineReflectiveTests(PubDependencyTest);
   });
@@ -59,111 +59,13 @@ abstract class AbstractLinterContextTest extends PubPackageResolutionTest {
 }
 
 @reflectiveTest
-class CanBeConstConstructorTest extends AbstractLinterContextTest {
-  void assertCanBeConstConstructor(
-    TestResolvedUnitResult result,
-    String search,
-    bool expectedResult,
-  ) {
-    var constructor =
-        result.findNode.constructor(search) as ConstructorDeclarationImpl;
-    expect(constructor.canBeConst, expectedResult);
-  }
-
-  test_assertInitializer_parameter() async {
-    var result = await resolve(r'''
-class C {
-  C(int a) : assert(a >= 0, 'error');
-}
-''');
-    assertCanBeConstConstructor(result, 'C(int a)', true);
-  }
-
-  test_empty() async {
-    var result = await resolve(r'''
-class C {
-  C();
-}
-''');
-    assertCanBeConstConstructor(result, 'C()', true);
-  }
-
-  test_field_notConstInitializer() async {
-    var result = await resolve(r'''
-class C {
-  final int f = a;
-  C();
-}
-
-var a = 0;
-''');
-    assertCanBeConstConstructor(result, 'C()', false);
-  }
-
-  test_field_notFinal() async {
-    var result = await resolve(r'''
-class C {
-  int f = 0;
-  C();
-}
-''');
-    assertCanBeConstConstructor(result, 'C()', false);
-  }
-
-  test_field_notFinal_inherited() async {
-    var result = await resolve(r'''
-class A {
-  int f = 0;
-}
-
-class B extends A {
-  B();
-}
-''');
-    assertCanBeConstConstructor(result, 'B()', false);
-  }
-
-  test_fieldInitializer_literal() async {
-    var result = await resolve(r'''
-class C {
-  final int f;
-  C() : f = 0;
-}
-''');
-    assertCanBeConstConstructor(result, 'C()', true);
-  }
-
-  test_fieldInitializer_notConst() async {
-    var result = await resolve(r'''
-class C {
-  final int f;
-  C() : f = a;
-}
-
-var a = 0;
-''');
-    assertCanBeConstConstructor(result, 'C()', false);
-  }
-
-  test_fieldInitializer_parameter() async {
-    var result = await resolve(r'''
-class C {
-  final int f;
-  C(int a) : f = a;
-}
-''');
-    assertCanBeConstConstructor(result, 'C(int a)', true);
-  }
-}
-
-@reflectiveTest
-class CanBeConstInstanceCreationTest extends AbstractLinterContextTest {
+class CanBeConstConstructorInvocationTest extends AbstractLinterContextTest {
   void assertCanBeConst(
     TestResolvedUnitResult result,
     String snippet,
     bool expectedResult,
   ) {
-    var node = result.findNode.instanceCreation(snippet);
+    var node = result.findNode.constructorInvocation(snippet);
     expect(node.canBeConst, expectedResult);
   }
 
@@ -224,7 +126,7 @@ B f() => B(A());
     assertCanBeConst(result, "B(A(", false);
   }
 
-  void test_false_constructorReference_typeParameter() async {
+  void test_false_constructorTearOff_typeParameter() async {
     var result = await resolve('''
 class A<T> {
   const A();
@@ -375,6 +277,104 @@ import 'a.dart';
 A f() => A();
 ''');
     assertCanBeConst(result, "A();", true);
+  }
+}
+
+@reflectiveTest
+class CanBeConstConstructorTest extends AbstractLinterContextTest {
+  void assertCanBeConstConstructor(
+    TestResolvedUnitResult result,
+    String search,
+    bool expectedResult,
+  ) {
+    var constructor =
+        result.findNode.constructor(search) as ConstructorDeclarationImpl;
+    expect(constructor.canBeConst, expectedResult);
+  }
+
+  test_assertInitializer_parameter() async {
+    var result = await resolve(r'''
+class C {
+  C(int a) : assert(a >= 0, 'error');
+}
+''');
+    assertCanBeConstConstructor(result, 'C(int a)', true);
+  }
+
+  test_empty() async {
+    var result = await resolve(r'''
+class C {
+  C();
+}
+''');
+    assertCanBeConstConstructor(result, 'C()', true);
+  }
+
+  test_field_notConstInitializer() async {
+    var result = await resolve(r'''
+class C {
+  final int f = a;
+  C();
+}
+
+var a = 0;
+''');
+    assertCanBeConstConstructor(result, 'C()', false);
+  }
+
+  test_field_notFinal() async {
+    var result = await resolve(r'''
+class C {
+  int f = 0;
+  C();
+}
+''');
+    assertCanBeConstConstructor(result, 'C()', false);
+  }
+
+  test_field_notFinal_inherited() async {
+    var result = await resolve(r'''
+class A {
+  int f = 0;
+}
+
+class B extends A {
+  B();
+}
+''');
+    assertCanBeConstConstructor(result, 'B()', false);
+  }
+
+  test_fieldInitializer_literal() async {
+    var result = await resolve(r'''
+class C {
+  final int f;
+  C() : f = 0;
+}
+''');
+    assertCanBeConstConstructor(result, 'C()', true);
+  }
+
+  test_fieldInitializer_notConst() async {
+    var result = await resolve(r'''
+class C {
+  final int f;
+  C() : f = a;
+}
+
+var a = 0;
+''');
+    assertCanBeConstConstructor(result, 'C()', false);
+  }
+
+  test_fieldInitializer_parameter() async {
+    var result = await resolve(r'''
+class C {
+  final int f;
+  C(int a) : f = a;
+}
+''');
+    assertCanBeConstConstructor(result, 'C(int a)', true);
   }
 }
 

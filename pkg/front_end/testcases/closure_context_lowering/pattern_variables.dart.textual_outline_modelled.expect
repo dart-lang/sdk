@@ -1,0 +1,17 @@
+joinedVariableIfCaseElement(dynamic x) {}
+
+joinedVariableIfCaseStatement(dynamic x) {}
+
+joinedVariableMixed(dynamic x) {}
+
+joinedVariableMultipleHeads(dynamic x) {}
+
+joinedVariableSingleHead(dynamic x) {}
+
+joinedVariableSwitchExpression(dynamic x) {}
+
+mergingJoinedVariableScopeAndLocalCaseScopeTest(dynamic x) {}
+
+patternVariableAssignment((int, String) r) {}
+
+staleSwitchCaseBuilderTest(dynamic x, (String, int) r) {}

@@ -17,19 +17,19 @@ checkLengthConstructors() {
     Expect.equals(10, a.length);
   }
 
-  check((a) => new Float32List(a));
-  check((a) => new Float64List(a));
-  check((a) => new Int8List(a));
-  check((a) => new Int8List(a));
-  check((a) => new Int16List(a));
-  check((a) => new Int32List(a));
-  check((a) => new Uint8List(a));
-  check((a) => new Uint16List(a));
-  check((a) => new Uint32List(a));
+  check((a) => Float32List(a));
+  check((a) => Float64List(a));
+  check((a) => Int8List(a));
+  check((a) => Int8List(a));
+  check((a) => Int16List(a));
+  check((a) => Int32List(a));
+  check((a) => Uint8List(a));
+  check((a) => Uint16List(a));
+  check((a) => Uint32List(a));
 }
 
 checkViewConstructors() {
-  var buffer = new Int8List(256).buffer;
+  var buffer = Int8List(256).buffer;
 
   check1(creator) {
     Expect.throws(() => creator(10));
@@ -47,25 +47,25 @@ checkViewConstructors() {
     Expect.equals(buffer, a.buffer);
   }
 
-  check1((a) => new Float32List.view(a));
-  check1((a) => new Float64List.view(a));
-  check1((a) => new Int8List.view(a));
-  check1((a) => new Int8List.view(a));
-  check1((a) => new Int16List.view(a));
-  check1((a) => new Int32List.view(a));
-  check1((a) => new Uint8List.view(a));
-  check1((a) => new Uint16List.view(a));
-  check1((a) => new Uint32List.view(a));
+  check1((a) => Float32List.view(a));
+  check1((a) => Float64List.view(a));
+  check1((a) => Int8List.view(a));
+  check1((a) => Int8List.view(a));
+  check1((a) => Int16List.view(a));
+  check1((a) => Int32List.view(a));
+  check1((a) => Uint8List.view(a));
+  check1((a) => Uint16List.view(a));
+  check1((a) => Uint32List.view(a));
 
-  check2((a, b) => new Float32List.view(a, b));
-  check2((a, b) => new Float64List.view(a, b));
-  check2((a, b) => new Int8List.view(a, b));
-  check2((a, b) => new Int8List.view(a, b));
-  check2((a, b) => new Int16List.view(a, b));
-  check2((a, b) => new Int32List.view(a, b));
-  check2((a, b) => new Uint8List.view(a, b));
-  check2((a, b) => new Uint16List.view(a, b));
-  check2((a, b) => new Uint32List.view(a, b));
+  check2((a, b) => Float32List.view(a, b));
+  check2((a, b) => Float64List.view(a, b));
+  check2((a, b) => Int8List.view(a, b));
+  check2((a, b) => Int8List.view(a, b));
+  check2((a, b) => Int16List.view(a, b));
+  check2((a, b) => Int32List.view(a, b));
+  check2((a, b) => Uint8List.view(a, b));
+  check2((a, b) => Uint16List.view(a, b));
+  check2((a, b) => Uint32List.view(a, b));
 }
 
 main() {

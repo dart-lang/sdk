@@ -153,11 +153,11 @@ Future<TestResult<T>> runTestForConfig<T>(
   var analysisSession = analysisContext.currentSession;
   var driver = analysisContext.driver;
 
-  Map<Uri, Map<Id, ActualData<T>>> actualMaps = <Uri, Map<Id, ActualData<T>>>{};
-  Map<Id, ActualData<T>> globalData = <Id, ActualData<T>>{};
+  Map<Uri, ActualDataMap<T>> actualMaps = <Uri, ActualDataMap<T>>{};
+  ActualDataMap<T> globalData = ActualDataMap();
 
-  Map<Id, ActualData<T>> actualMapFor(Uri uri) {
-    return actualMaps.putIfAbsent(uri, () => <Id, ActualData<T>>{});
+  ActualDataMap<T> actualMapFor(Uri uri) {
+    return actualMaps.putIfAbsent(uri, () => ActualDataMap());
   }
 
   var results = <Uri, ResolvedUnitResult>{};
@@ -186,7 +186,7 @@ Future<TestResult<T>> runTestForConfig<T>(
             errors,
           );
           if (data != null) {
-            Map<Id, ActualData<T>> actualMap = actualMapFor(testUri);
+            ActualDataMap<T> actualMap = actualMapFor(testUri);
             actualMap[id] = ActualData<T>(id, data, testUri, offset, errors);
           }
         });
@@ -213,8 +213,8 @@ Future<TestResult<T>> runTestForConfig<T>(
   var compiledData = AnalyzerCompiledData<T>(
     testData.code,
     testData.entryPoint,
-    actualMaps,
-    globalData,
+    await actualMaps.getData(),
+    await globalData.getData(),
   );
   return checkCode(
     markerOptions,
@@ -257,7 +257,7 @@ class AnalyzerCompiledData<T> extends CompiledData<T> {
         throwIfDiagnostics: false,
       ).unit;
       if (className != null) {
-        for (var declaration in unit.declarations) {
+        for (var declaration in unit.declarations2) {
           if (declaration is ClassDeclaration &&
               declaration.namePart.typeName.lexeme == className) {
             if (declaration.body case BlockClassBody body) {
@@ -285,8 +285,12 @@ class AnalyzerCompiledData<T> extends CompiledData<T> {
         }
         return 0;
       }
-      for (var declaration in unit.declarations) {
+      for (var declaration in unit.declarations2) {
         if (declaration is FunctionDeclaration) {
+          if (declaration.name.lexeme == name) {
+            return declaration.offset;
+          }
+        } else if (declaration is TopLevelGetterDeclaration) {
           if (declaration.name.lexeme == name) {
             return declaration.offset;
           }
@@ -305,7 +309,7 @@ class AnalyzerCompiledData<T> extends CompiledData<T> {
         content: code[uri]!.sourceCode,
         throwIfDiagnostics: false,
       ).unit;
-      for (var declaration in unit.declarations) {
+      for (var declaration in unit.declarations2) {
         if (declaration is ClassDeclaration &&
             declaration.namePart.typeName.lexeme == className) {
           return declaration.offset;
@@ -354,7 +358,7 @@ abstract class DataComputer<T> {
   void computeUnitData(
     TestingData testingData,
     CompilationUnit unit,
-    Map<Id, ActualData<T>> actualMap,
+    ActualDataMap<T> actualMap,
   );
 }
 

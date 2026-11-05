@@ -14,6 +14,7 @@ import 'changed_structure_notifier.dart';
 class TargetFlags {
   final bool trackCreationLocations;
   final bool supportMirrors;
+  final bool supportFfi;
 
   /// Whether the backend expects closure contexts to be present in the AST.
   ///
@@ -34,6 +35,7 @@ class TargetFlags {
   const new({
     this.trackCreationLocations = false,
     this.supportMirrors = true,
+    this.supportFfi = true,
     this.isClosureContextLoweringEnabled = false,
     this.constKeepLocalsIndicator,
     this.includeUnsupportedPlatformLibraryStubs = false,
@@ -45,6 +47,7 @@ class TargetFlags {
     return other is TargetFlags &&
         trackCreationLocations == other.trackCreationLocations &&
         supportMirrors == other.supportMirrors &&
+        supportFfi == other.supportFfi &&
         includeUnsupportedPlatformLibraryStubs ==
             other.includeUnsupportedPlatformLibraryStubs &&
         constKeepLocalsIndicator == other.constKeepLocalsIndicator;
@@ -55,6 +58,7 @@ class TargetFlags {
     int hash = 485786;
     hash = 0x3fffffff & (hash * 31 + (hash ^ trackCreationLocations.hashCode));
     hash = 0x3fffffff & (hash * 31 + (hash ^ supportMirrors.hashCode));
+    hash = 0x3fffffff & (hash * 31 + (hash ^ supportFfi.hashCode));
     hash =
         0x3fffffff &
         (hash * 31 + (hash ^ includeUnsupportedPlatformLibraryStubs.hashCode));
@@ -64,7 +68,7 @@ class TargetFlags {
   }
 }
 
-typedef Target _TargetBuilder(TargetFlags flags);
+typedef _TargetBuilder = Target Function(TargetFlags flags);
 
 final Map<String, _TargetBuilder> targets = <String, _TargetBuilder>{
   'none': (TargetFlags flags) => new NoneTarget(flags),
@@ -581,6 +585,7 @@ abstract class Target {
   Class? concreteConstMapLiteralClass(CoreTypes coreTypes) => null;
   Class? concreteSetLiteralClass(CoreTypes coreTypes) => null;
   Class? concreteConstSetLiteralClass(CoreTypes coreTypes) => null;
+  Class? concreteConstSymbolLiteralClass(CoreTypes coreTypes) => null;
   Class? concreteClosureClass(CoreTypes coreTypes) => null;
   Class getRecordImplementationClass(
     CoreTypes coreTypes,
@@ -932,6 +937,21 @@ class TargetWrapper extends Target {
   @override
   Class? concreteConstMapLiteralClass(CoreTypes coreTypes) {
     return _target.concreteConstMapLiteralClass(coreTypes);
+  }
+
+  @override
+  Class? concreteSetLiteralClass(CoreTypes coreTypes) {
+    return _target.concreteSetLiteralClass(coreTypes);
+  }
+
+  @override
+  Class? concreteConstSetLiteralClass(CoreTypes coreTypes) {
+    return _target.concreteConstSetLiteralClass(coreTypes);
+  }
+
+  @override
+  Class? concreteConstSymbolLiteralClass(CoreTypes coreTypes) {
+    return _target.concreteConstSymbolLiteralClass(coreTypes);
   }
 
   @override

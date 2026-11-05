@@ -22,14 +22,42 @@ class A {}
 extension E on A {
   int call(String s) => 0;
 }
+
 void f(A a) {
   E(a)('');
 }
 ''');
 
-    var node = result.findNode.functionExpressionInvocation('E(a)');
+    var node = result.findNode.callInvocation('E(a)');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
+CallInvocation
+  receiver: ExtensionOverride2
+    name: E
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: A
+          correspondingParameter: <null>
+          staticType: A
+      rightParenthesis: )
+    element: <testLibrary>::@extension::E
+    extendedType: A
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      SimpleStringLiteral
+        literal: ''
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@extension::E::@method::call
+    invokeType: int Function(String)
+    type: int
+  staticType: int
+V1: FunctionExpressionInvocation
   function: ExtensionOverride
     name: E
     argumentList: ArgumentList
@@ -68,9 +96,48 @@ void f(A a) {
 }
 ''');
 
-    var node = result.findNode.functionExpressionInvocation('(a)');
+    var node = result.findNode.callInvocation('(a)');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
+CallInvocation
+  receiver: ExtensionOverride2
+    name: E
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: String
+          element: dart:core::@class::String
+          type: String
+      rightBracket: >
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: A
+          correspondingParameter: <null>
+          staticType: A
+      rightParenthesis: )
+    element: <testLibrary>::@extension::E
+    extendedType: A
+    typeArgumentTypes
+      String
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      SimpleStringLiteral
+        literal: ''
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: SubstitutedMethodElementImpl
+      baseElement: <testLibrary>::@extension::E::@method::call
+      substitution: {T: String}
+    invokeType: int Function(String)
+    type: int
+  staticType: int
+V1: FunctionExpressionInvocation
   function: ExtensionOverride
     name: E
     typeArguments: TypeArgumentList
@@ -123,9 +190,40 @@ void f(p.A a) {
 }
 ''');
 
-    var node = result.findNode.functionExpressionInvocation('E(a)');
+    var node = result.findNode.callInvocation('E(a)');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
+CallInvocation
+  receiver: ExtensionOverride2
+    importPrefix: ImportPrefixReference
+      name: p
+      period: .
+      element: <testLibraryFragment>::@prefix::p
+    name: E
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: A
+          correspondingParameter: <null>
+          staticType: A
+      rightParenthesis: )
+    element: package:test/lib.dart::@extension::E
+    extendedType: A
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      SimpleStringLiteral
+        literal: ''
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: package:test/lib.dart::@extension::E::@method::call
+    invokeType: int Function(String)
+    type: int
+  staticType: int
+V1: FunctionExpressionInvocation
   function: ExtensionOverride
     importPrefix: ImportPrefixReference
       name: p
@@ -171,9 +269,52 @@ void f(p.A a) {
 }
 ''');
 
-    var node = result.findNode.functionExpressionInvocation('(a)');
+    var node = result.findNode.callInvocation('(a)');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
+CallInvocation
+  receiver: ExtensionOverride2
+    importPrefix: ImportPrefixReference
+      name: p
+      period: .
+      element: <testLibraryFragment>::@prefix::p
+    name: E
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: String
+          element: dart:core::@class::String
+          type: String
+      rightBracket: >
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: A
+          correspondingParameter: <null>
+          staticType: A
+      rightParenthesis: )
+    element: package:test/lib.dart::@extension::E
+    extendedType: A
+    typeArgumentTypes
+      String
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      SimpleStringLiteral
+        literal: ''
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: SubstitutedMethodElementImpl
+      baseElement: package:test/lib.dart::@extension::E::@method::call
+      substitution: {T: String}
+    invokeType: int Function(String)
+    type: int
+  staticType: int
+V1: FunctionExpressionInvocation
   function: ExtensionOverride
     importPrefix: ImportPrefixReference
       name: p
@@ -227,9 +368,32 @@ void f(A a) {
 }
 ''');
 
-    var node = result.findNode.propertyAccess('E(a)');
+    var node = result.findNode.receiverPropertyExtraction('E(a)');
     assertResolvedNodeText(node, r'''
-PropertyAccess
+ReceiverPropertyExtraction
+  receiver: ExtensionOverride2
+    name: E
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: A
+          correspondingParameter: <null>
+          staticType: A
+      rightParenthesis: )
+    element: <testLibrary>::@extension::E
+    extendedType: A
+  operator: .
+  name: g
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@extension::E::@getter::g
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: PropertyAccess
   target: ExtensionOverride
     name: E
     argumentList: ArgumentList
@@ -266,9 +430,45 @@ void f(A a) {
 }
 ''');
 
-    var node = result.findNode.functionExpressionInvocation('E(a)');
+    var node = result.findNode.callInvocation('E(a)');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
+CallInvocation
+  receiver: ReceiverPropertyExtraction
+    receiver: ExtensionOverride2
+      name: E
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments2
+          UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: <testLibrary>::@function::f::@formalParameter::a
+              type: A
+            correspondingParameter: <null>
+            staticType: A
+        rightParenthesis: )
+      element: <testLibrary>::@extension::E
+      extendedType: A
+    operator: .
+    name: g
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@extension::E::@getter::g
+      invokeType: double Function(int) Function()
+      type: double Function(int)
+    staticType: double Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <null-name>@null
+        staticType: int
+    rightParenthesis: )
+  resolution: FunctionTypeInvocationResolution
+    invokeType: double Function(int)
+    type: double
+  staticType: double
+V1: FunctionExpressionInvocation
   function: PropertyAccess
     target: ExtensionOverride
       name: E
@@ -315,9 +515,42 @@ void f(A a) {
 }
 ''');
 
-    var node = result.findNode.propertyAccess('(a)');
+    var node = result.findNode.receiverPropertyExtraction('(a)');
     assertResolvedNodeText(node, r'''
-PropertyAccess
+ReceiverPropertyExtraction
+  receiver: ExtensionOverride2
+    name: E
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: A
+          correspondingParameter: <null>
+          staticType: A
+      rightParenthesis: )
+    element: <testLibrary>::@extension::E
+    extendedType: A
+    typeArgumentTypes
+      int
+  operator: .
+  name: g
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@extension::E::@getter::g
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: PropertyAccess
   target: ExtensionOverride
     name: E
     typeArguments: TypeArgumentList
@@ -365,9 +598,36 @@ void f(p.A a) {
 }
 ''');
 
-    var node = result.findNode.propertyAccess('E(a)');
+    var node = result.findNode.receiverPropertyExtraction('E(a)');
     assertResolvedNodeText(node, r'''
-PropertyAccess
+ReceiverPropertyExtraction
+  receiver: ExtensionOverride2
+    importPrefix: ImportPrefixReference
+      name: p
+      period: .
+      element: <testLibraryFragment>::@prefix::p
+    name: E
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: A
+          correspondingParameter: <null>
+          staticType: A
+      rightParenthesis: )
+    element: package:test/lib.dart::@extension::E
+    extendedType: A
+  operator: .
+  name: g
+  resolution: GetterInvocationResolution
+    element: package:test/lib.dart::@extension::E::@getter::g
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: PropertyAccess
   target: ExtensionOverride
     importPrefix: ImportPrefixReference
       name: p
@@ -409,9 +669,46 @@ void f(p.A a) {
 }
 ''');
 
-    var node = result.findNode.propertyAccess('(a)');
+    var node = result.findNode.receiverPropertyExtraction('(a)');
     assertResolvedNodeText(node, r'''
-PropertyAccess
+ReceiverPropertyExtraction
+  receiver: ExtensionOverride2
+    importPrefix: ImportPrefixReference
+      name: p
+      period: .
+      element: <testLibraryFragment>::@prefix::p
+    name: E
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: A
+          correspondingParameter: <null>
+          staticType: A
+      rightParenthesis: )
+    element: package:test/lib.dart::@extension::E
+    extendedType: A
+    typeArgumentTypes
+      int
+  operator: .
+  name: g
+  resolution: GetterInvocationResolution
+    element: package:test/lib.dart::@extension::E::@getter::g
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: PropertyAccess
   target: ExtensionOverride
     importPrefix: ImportPrefixReference
       name: p
@@ -460,9 +757,37 @@ void f(int? a) {
 }
 ''');
 
-    var node = result.findNode.index('[0]');
+    var node = result.findNode.receiverIndexExpression('[0]');
     assertResolvedNodeText(node, r'''
-IndexExpression
+ReceiverIndexExpression
+  receiver: ExtensionOverride2
+    name: E
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: int?
+          correspondingParameter: <null>
+          staticType: int?
+      rightParenthesis: )
+    element: <testLibrary>::@extension::E
+    extendedType: int
+  question: ?
+  leftBracket: [
+  index: IntegerLiteral
+    literal: 0
+    correspondingParameter: <testLibrary>::@extension::E::@method::[]::@formalParameter::index
+    staticType: int
+  rightBracket: ]
+  resolution: MethodIndexReadResolution
+    element: <testLibrary>::@extension::E::@method::[]
+    invokeType: int Function(int)
+    type: int?
+  staticType: int?
+V1: IndexExpression
   target: ExtensionOverride
     name: E
     argumentList: ArgumentList
@@ -500,9 +825,44 @@ void f(int? a) {
 }
 ''');
 
-    var node = result.findNode.assignment('[0] =');
+    var node = result.findNode.directAssignment('[0] =');
     assertResolvedNodeText(node, r'''
-AssignmentExpression
+DirectAssignment
+  target: ReceiverIndexAssignmentTarget
+    receiver: ExtensionOverride2
+      name: E
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments2
+          UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: <testLibrary>::@function::f::@formalParameter::a
+              type: int?
+            correspondingParameter: <null>
+            staticType: int?
+        rightParenthesis: )
+      element: <testLibrary>::@extension::E
+      extendedType: int
+    question: ?
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      correspondingParameter: <testLibrary>::@extension::E::@method::[]=::@formalParameter::index
+      staticType: int
+    rightBracket: ]
+    read: <null>
+    write: MethodIndexWriteResolution
+      element: <testLibrary>::@extension::E::@method::[]=
+      invokeType: void Function(int, int)
+      acceptedType: int
+  operator: =
+  value: IntegerLiteral
+    literal: 1
+    correspondingParameter: <testLibrary>::@extension::E::@method::[]=::@formalParameter::value
+    staticType: int
+  staticType: int?
+V1: AssignmentExpression
   leftHandSide: IndexExpression
     target: ExtensionOverride
       name: E
@@ -541,6 +901,195 @@ AssignmentExpression
 ''');
   }
 
+  test_invalidTarget_compound() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+extension E on int {}
+void f() {
+  E(0) += 1;
+//^^^^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
+// [diag.illegalAssignmentToNonAssignable] Illegal assignment to non-assignable expression.
+// [diag.extensionOverrideWithoutAccess] An extension override can only be used to access instance members.
+}
+''');
+    assertResolvedNodeText(result.findNode.singleCompoundAssignment, r'''
+CompoundAssignment
+  target: InvalidExtensionOverrideAssignmentTarget
+    extensionOverride: ExtensionOverride2
+      name: E
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments2
+          IntegerLiteral
+            literal: 0
+            correspondingParameter: <null>
+            staticType: int
+        rightParenthesis: )
+      element: <testLibrary>::@extension::E
+      extendedType: int
+    read: InvalidReadResolution
+    write: InvalidWriteResolution
+  operator: +=
+  value: IntegerLiteral
+    literal: 1
+    correspondingParameter: <null>
+    staticType: int
+  binaryOperator: add
+  element: <null>
+  operatorResultType: InvalidType
+  staticType: InvalidType
+V1: AssignmentExpression
+  leftHandSide: ExtensionOverride
+    name: E
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        IntegerLiteral
+          literal: 0
+          correspondingParameter: <null>
+          staticType: int
+      rightParenthesis: )
+    element: <testLibrary>::@extension::E
+    extendedType: int
+    staticType: dynamic
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 1
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: InvalidType
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_invalidTarget_direct() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+// %before-language-feature: patterns
+extension E on int {}
+void f() {
+  E(0) = 1;
+//^^^^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
+// [diag.illegalAssignmentToNonAssignable] Illegal assignment to non-assignable expression.
+// [diag.extensionOverrideWithoutAccess] An extension override can only be used to access instance members.
+}
+''');
+    assertResolvedNodeText(result.findNode.singleDirectAssignment, r'''
+DirectAssignment
+  target: InvalidExtensionOverrideAssignmentTarget
+    extensionOverride: ExtensionOverride2
+      name: E
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments2
+          IntegerLiteral
+            literal: 0
+            correspondingParameter: <null>
+            staticType: int
+        rightParenthesis: )
+      element: <testLibrary>::@extension::E
+      extendedType: int
+    write: InvalidWriteResolution
+  operator: =
+  value: IntegerLiteral
+    literal: 1
+    correspondingParameter: <null>
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: ExtensionOverride
+    name: E
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        IntegerLiteral
+          literal: 0
+          correspondingParameter: <null>
+          staticType: int
+      rightParenthesis: )
+    element: <testLibrary>::@extension::E
+    extendedType: int
+    staticType: dynamic
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 1
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: int
+''');
+  }
+
+  test_invalidTarget_ifNull() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+extension E on int {}
+void f() {
+  E(0) ??= 1;
+//^^^^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
+// [diag.illegalAssignmentToNonAssignable] Illegal assignment to non-assignable expression.
+// [diag.extensionOverrideWithoutAccess] An extension override can only be used to access instance members.
+}
+''');
+    assertResolvedNodeText(result.findNode.singleIfNullAssignment, r'''
+IfNullAssignment
+  target: InvalidExtensionOverrideAssignmentTarget
+    extensionOverride: ExtensionOverride2
+      name: E
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments2
+          IntegerLiteral
+            literal: 0
+            correspondingParameter: <null>
+            staticType: int
+        rightParenthesis: )
+      element: <testLibrary>::@extension::E
+      extendedType: int
+    read: InvalidReadResolution
+    write: InvalidWriteResolution
+  operator: ??=
+  value: IntegerLiteral
+    literal: 1
+    correspondingParameter: <null>
+    staticType: int
+  staticType: dynamic
+V1: AssignmentExpression
+  leftHandSide: ExtensionOverride
+    name: E
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        IntegerLiteral
+          literal: 0
+          correspondingParameter: <null>
+          staticType: int
+      rightParenthesis: )
+    element: <testLibrary>::@extension::E
+    extendedType: int
+    staticType: dynamic
+  operator: ??=
+  rightHandSide: IntegerLiteral
+    literal: 1
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: dynamic
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: dynamic
+''');
+  }
+
   test_method_noPrefix_noTypeArguments() async {
     var result = await resolveTestCodeWithDiagnostics('''
 class A {}
@@ -552,9 +1101,35 @@ void f(A a) {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('E(a)');
+    var node = result.findNode.receiverMethodInvocation('E(a)');
     assertResolvedNodeText(node, r'''
-MethodInvocation
+ReceiverMethodInvocation
+  receiver: ExtensionOverride2
+    name: E
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: A
+          correspondingParameter: <null>
+          staticType: A
+      rightParenthesis: )
+    element: <testLibrary>::@extension::E
+    extendedType: A
+  operator: .
+  name: m
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@extension::E::@method::m
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
   target: ExtensionOverride
     name: E
     argumentList: ArgumentList
@@ -593,9 +1168,45 @@ void f(A a) {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('(a)');
+    var node = result.findNode.receiverMethodInvocation('(a)');
     assertResolvedNodeText(node, r'''
-MethodInvocation
+ReceiverMethodInvocation
+  receiver: ExtensionOverride2
+    name: E
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: A
+          correspondingParameter: <null>
+          staticType: A
+      rightParenthesis: )
+    element: <testLibrary>::@extension::E
+    extendedType: A
+    typeArgumentTypes
+      int
+  operator: .
+  name: m
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@extension::E::@method::m
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
   target: ExtensionOverride
     name: E
     typeArguments: TypeArgumentList
@@ -647,9 +1258,39 @@ void f(p.A a) {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('E(a)');
+    var node = result.findNode.receiverMethodInvocation('E(a)');
     assertResolvedNodeText(node, r'''
-MethodInvocation
+ReceiverMethodInvocation
+  receiver: ExtensionOverride2
+    importPrefix: ImportPrefixReference
+      name: p
+      period: .
+      element: <testLibraryFragment>::@prefix::p
+    name: E
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: A
+          correspondingParameter: <null>
+          staticType: A
+      rightParenthesis: )
+    element: package:test/lib.dart::@extension::E
+    extendedType: A
+  operator: .
+  name: m
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: package:test/lib.dart::@extension::E::@method::m
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
   target: ExtensionOverride
     importPrefix: ImportPrefixReference
       name: p
@@ -695,9 +1336,49 @@ void f(p.A a) {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('(a)');
+    var node = result.findNode.receiverMethodInvocation('(a)');
     assertResolvedNodeText(node, r'''
-MethodInvocation
+ReceiverMethodInvocation
+  receiver: ExtensionOverride2
+    importPrefix: ImportPrefixReference
+      name: p
+      period: .
+      element: <testLibraryFragment>::@prefix::p
+    name: E
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: A
+          correspondingParameter: <null>
+          staticType: A
+      rightParenthesis: )
+    element: package:test/lib.dart::@extension::E
+    extendedType: A
+    typeArgumentTypes
+      int
+  operator: .
+  name: m
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: package:test/lib.dart::@extension::E::@method::m
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
   target: ExtensionOverride
     importPrefix: ImportPrefixReference
       name: p
@@ -750,9 +1431,35 @@ void f(int? a) {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('foo();');
+    var node = result.findNode.receiverMethodInvocation('foo();');
     assertResolvedNodeText(node, r'''
-MethodInvocation
+ReceiverMethodInvocation
+  receiver: ExtensionOverride2
+    name: E
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: int?
+          correspondingParameter: <null>
+          staticType: int?
+      rightParenthesis: )
+    element: <testLibrary>::@extension::E
+    extendedType: int
+  operator: ?.
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@extension::E::@method::foo
+    invokeType: int Function()
+    type: int
+  staticType: int?
+V1: MethodInvocation
   target: ExtensionOverride
     name: E
     argumentList: ArgumentList
@@ -791,9 +1498,33 @@ void f(A a) {
 }
 ''');
 
-    var node = result.findNode.binary('(a)');
+    var node = result.findNode.binaryOperatorInvocation('(a)');
     assertResolvedNodeText(node, r'''
-BinaryExpression
+BinaryOperatorInvocation
+  leftOperand: ExtensionOverride2
+    name: E
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: A
+          correspondingParameter: <null>
+          staticType: A
+      rightParenthesis: )
+    element: <testLibrary>::@extension::E
+    extendedType: A
+  operator: +
+  rightOperand: IntegerLiteral
+    literal: 1
+    correspondingParameter: <testLibrary>::@extension::E::@method::+::@formalParameter::offset
+    staticType: int
+  binaryOperator: add
+  element: <testLibrary>::@extension::E::@method::+
+  staticType: void
+V1: BinaryExpression
   leftOperand: ExtensionOverride
     name: E
     argumentList: ArgumentList
@@ -830,9 +1561,43 @@ void f(A a) {
 }
 ''');
 
-    var node = result.findNode.binary('(a)');
+    var node = result.findNode.binaryOperatorInvocation('(a)');
     assertResolvedNodeText(node, r'''
-BinaryExpression
+BinaryOperatorInvocation
+  leftOperand: ExtensionOverride2
+    name: E
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: A
+          correspondingParameter: <null>
+          staticType: A
+      rightParenthesis: )
+    element: <testLibrary>::@extension::E
+    extendedType: A
+    typeArgumentTypes
+      int
+  operator: +
+  rightOperand: IntegerLiteral
+    literal: 1
+    correspondingParameter: <testLibrary>::@extension::E::@method::+::@formalParameter::offset
+    staticType: int
+  binaryOperator: add
+  element: <testLibrary>::@extension::E::@method::+
+  staticType: void
+V1: BinaryExpression
   leftOperand: ExtensionOverride
     name: E
     typeArguments: TypeArgumentList
@@ -878,13 +1643,43 @@ extension E on int {
 f(){
   E(0).v++;
 //     ^
-// [diag.undefinedExtensionSetter] The setter 'v' isn't defined for the extension 'E'.
+// [diag.assignmentToMethod] Methods can't be assigned a value.
+  ++E(0).v;
+//       ^
+// [diag.assignmentToMethod] Methods can't be assigned a value.
 }
 ''');
 
-    var node = result.findNode.postfix('++;');
+    var node = result.findNode.incrementOrDecrement('++;');
     assertResolvedNodeText(node, r'''
-PostfixExpression
+IncrementOrDecrementExpression
+  target: ReceiverPropertyAssignmentTarget
+    receiver: ExtensionOverride2
+      name: E
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments2
+          IntegerLiteral
+            literal: 0
+            correspondingParameter: <null>
+            staticType: int
+        rightParenthesis: )
+      element: <testLibrary>::@extension::E
+      extendedType: int
+    operator: .
+    name: v
+    read: ExecutableTearOffResolution
+      element: <testLibrary>::@extension::E::@method::v
+      type: dynamic Function()
+    write: InvalidNamedWriteResolution
+      recoveryElement: <testLibrary>::@extension::E::@method::v
+  operator: ++
+  operation: increment
+  position: postfix
+  element: <null>
+  operatorResultType: dynamic
+  staticType: dynamic Function()
+V1: PostfixExpression
   operand: PropertyAccess
     target: ExtensionOverride
       name: E
@@ -898,7 +1693,7 @@ PostfixExpression
         rightParenthesis: )
       element: <testLibrary>::@extension::E
       extendedType: int
-      staticType: null
+      staticType: int
     operator: .
     propertyName: SimpleIdentifier
       token: v
@@ -907,11 +1702,11 @@ PostfixExpression
     staticType: null
   operator: ++
   readElement: <testLibrary>::@extension::E::@method::v
-  readType: InvalidType
-  writeElement: <null>
+  readType: dynamic Function()
+  writeElement: <testLibrary>::@extension::E::@method::v
   writeType: InvalidType
   element: <null>
-  staticType: InvalidType
+  staticType: dynamic Function()
 ''');
   }
 
@@ -929,9 +1724,37 @@ void f(p.A a) {
 }
 ''');
 
-    var node = result.findNode.binary('(a)');
+    var node = result.findNode.binaryOperatorInvocation('(a)');
     assertResolvedNodeText(node, r'''
-BinaryExpression
+BinaryOperatorInvocation
+  leftOperand: ExtensionOverride2
+    importPrefix: ImportPrefixReference
+      name: p
+      period: .
+      element: <testLibraryFragment>::@prefix::p
+    name: E
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: A
+          correspondingParameter: <null>
+          staticType: A
+      rightParenthesis: )
+    element: package:test/lib.dart::@extension::E
+    extendedType: A
+  operator: +
+  rightOperand: IntegerLiteral
+    literal: 1
+    correspondingParameter: package:test/lib.dart::@extension::E::@method::+::@formalParameter::offset
+    staticType: int
+  binaryOperator: add
+  element: package:test/lib.dart::@extension::E::@method::+
+  staticType: void
+V1: BinaryExpression
   leftOperand: ExtensionOverride
     importPrefix: ImportPrefixReference
       name: p
@@ -975,9 +1798,47 @@ void f(p.A a) {
 }
 ''');
 
-    var node = result.findNode.binary('(a)');
+    var node = result.findNode.binaryOperatorInvocation('(a)');
     assertResolvedNodeText(node, r'''
-BinaryExpression
+BinaryOperatorInvocation
+  leftOperand: ExtensionOverride2
+    importPrefix: ImportPrefixReference
+      name: p
+      period: .
+      element: <testLibraryFragment>::@prefix::p
+    name: E
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: A
+          correspondingParameter: <null>
+          staticType: A
+      rightParenthesis: )
+    element: package:test/lib.dart::@extension::E
+    extendedType: A
+    typeArgumentTypes
+      int
+  operator: +
+  rightOperand: IntegerLiteral
+    literal: 1
+    correspondingParameter: package:test/lib.dart::@extension::E::@method::+::@formalParameter::offset
+    staticType: int
+  binaryOperator: add
+  element: package:test/lib.dart::@extension::E::@method::+
+  staticType: void
+V1: BinaryExpression
   leftOperand: ExtensionOverride
     importPrefix: ImportPrefixReference
       name: p
@@ -1031,9 +1892,16 @@ void test(C? c) {
   E(c)?.g(c); // `c` is promoted to `C` on the RHS of `?.`
 }
 ''');
-    var node = result.findNode.simple('c);');
+    var node = result.findNode.unqualifiedNameExpression('c);');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: c
+  resolution: VariableReadResolution
+    element: <testLibrary>::@function::test::@formalParameter::c
+    type: C
+  correspondingParameter: <testLibrary>::@extension::E::@method::g::@formalParameter::d
+  staticType: C
+V1: SimpleIdentifier
   token: c
   correspondingParameter: <testLibrary>::@extension::E::@method::g::@formalParameter::d
   element: <testLibrary>::@function::test::@formalParameter::c
@@ -1052,9 +1920,32 @@ void f(int? a) {
 }
 ''');
 
-    var node = result.findNode.singlePropertyAccess;
+    var node = result.findNode.singleReceiverPropertyExtraction;
     assertResolvedNodeText(node, r'''
-PropertyAccess
+ReceiverPropertyExtraction
+  receiver: ExtensionOverride2
+    name: E
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: int?
+          correspondingParameter: <null>
+          staticType: int?
+      rightParenthesis: )
+    element: <testLibrary>::@extension::E
+    extendedType: int
+  operator: ?.
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@extension::E::@getter::foo
+    invokeType: int Function()
+    type: int
+  staticType: int?
+V1: PropertyAccess
   target: ExtensionOverride
     name: E
     argumentList: ArgumentList
@@ -1101,9 +1992,38 @@ void f(A a) {
 }
 ''');
 
-    var node = result.findNode.assignment('(a)');
+    var node = result.findNode.singleDirectAssignment;
     assertResolvedNodeText(node, r'''
-AssignmentExpression
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: ExtensionOverride2
+      name: E
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments2
+          UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: <testLibrary>::@function::f::@formalParameter::a
+              type: A
+            correspondingParameter: <null>
+            staticType: A
+        rightParenthesis: )
+      element: <testLibrary>::@extension::E
+      extendedType: A
+    operator: .
+    name: s
+    read: <null>
+    write: SetterInvocationResolution
+      element: <testLibrary>::@extension::E::@setter::s
+      acceptedType: int
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <testLibrary>::@extension::E::@setter::s::@formalParameter::x
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
   leftHandSide: PropertyAccess
     target: ExtensionOverride
       name: E
@@ -1118,7 +2038,7 @@ AssignmentExpression
         rightParenthesis: )
       element: <testLibrary>::@extension::E
       extendedType: A
-      staticType: null
+      staticType: A
     operator: .
     propertyName: SimpleIdentifier
       token: s
@@ -1150,9 +2070,48 @@ void f(A a) {
 }
 ''');
 
-    var node = result.findNode.assignment('(a)');
+    var node = result.findNode.singleDirectAssignment;
     assertResolvedNodeText(node, r'''
-AssignmentExpression
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: ExtensionOverride2
+      name: E
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+        rightBracket: >
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments2
+          UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: <testLibrary>::@function::f::@formalParameter::a
+              type: A
+            correspondingParameter: <null>
+            staticType: A
+        rightParenthesis: )
+      element: <testLibrary>::@extension::E
+      extendedType: A
+      typeArgumentTypes
+        int
+    operator: .
+    name: s
+    read: <null>
+    write: SetterInvocationResolution
+      element: <testLibrary>::@extension::E::@setter::s
+      acceptedType: int
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <testLibrary>::@extension::E::@setter::s::@formalParameter::x
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
   leftHandSide: PropertyAccess
     target: ExtensionOverride
       name: E
@@ -1175,7 +2134,7 @@ AssignmentExpression
         rightParenthesis: )
       element: <testLibrary>::@extension::E
       extendedType: A
-      staticType: null
+      staticType: A
       typeArgumentTypes
         int
     operator: .
@@ -1212,9 +2171,42 @@ void f(p.A a) {
 }
 ''');
 
-    var node = result.findNode.assignment('(a)');
+    var node = result.findNode.singleDirectAssignment;
     assertResolvedNodeText(node, r'''
-AssignmentExpression
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: ExtensionOverride2
+      importPrefix: ImportPrefixReference
+        name: p
+        period: .
+        element: <testLibraryFragment>::@prefix::p
+      name: E
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments2
+          UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: <testLibrary>::@function::f::@formalParameter::a
+              type: A
+            correspondingParameter: <null>
+            staticType: A
+        rightParenthesis: )
+      element: package:test/lib.dart::@extension::E
+      extendedType: A
+    operator: .
+    name: s
+    read: <null>
+    write: SetterInvocationResolution
+      element: package:test/lib.dart::@extension::E::@setter::s
+      acceptedType: int
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: package:test/lib.dart::@extension::E::@setter::s::@formalParameter::x
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
   leftHandSide: PropertyAccess
     target: ExtensionOverride
       importPrefix: ImportPrefixReference
@@ -1233,7 +2225,7 @@ AssignmentExpression
         rightParenthesis: )
       element: package:test/lib.dart::@extension::E
       extendedType: A
-      staticType: null
+      staticType: A
     operator: .
     propertyName: SimpleIdentifier
       token: s
@@ -1268,9 +2260,52 @@ void f(p.A a) {
 }
 ''');
 
-    var node = result.findNode.assignment('(a)');
+    var node = result.findNode.singleDirectAssignment;
     assertResolvedNodeText(node, r'''
-AssignmentExpression
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: ExtensionOverride2
+      importPrefix: ImportPrefixReference
+        name: p
+        period: .
+        element: <testLibraryFragment>::@prefix::p
+      name: E
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+        rightBracket: >
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments2
+          UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: <testLibrary>::@function::f::@formalParameter::a
+              type: A
+            correspondingParameter: <null>
+            staticType: A
+        rightParenthesis: )
+      element: package:test/lib.dart::@extension::E
+      extendedType: A
+      typeArgumentTypes
+        int
+    operator: .
+    name: s
+    read: <null>
+    write: SetterInvocationResolution
+      element: package:test/lib.dart::@extension::E::@setter::s
+      acceptedType: int
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: package:test/lib.dart::@extension::E::@setter::s::@formalParameter::x
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
   leftHandSide: PropertyAccess
     target: ExtensionOverride
       importPrefix: ImportPrefixReference
@@ -1297,7 +2332,7 @@ AssignmentExpression
         rightParenthesis: )
       element: package:test/lib.dart::@extension::E
       extendedType: A
-      staticType: null
+      staticType: A
       typeArgumentTypes
         int
     operator: .
@@ -1332,9 +2367,44 @@ void f(A a) {
 }
 ''');
 
-    var node = result.findNode.assignment('(a)');
+    var node = result.findNode.singleCompoundAssignment;
     assertResolvedNodeText(node, r'''
-AssignmentExpression
+CompoundAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: ExtensionOverride2
+      name: E
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments2
+          UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: <testLibrary>::@function::f::@formalParameter::a
+              type: A
+            correspondingParameter: <null>
+            staticType: A
+        rightParenthesis: )
+      element: <testLibrary>::@extension::E
+      extendedType: A
+    operator: .
+    name: s
+    read: GetterInvocationResolution
+      element: <testLibrary>::@extension::E::@getter::s
+      invokeType: int Function()
+      type: int
+    write: SetterInvocationResolution
+      element: <testLibrary>::@extension::E::@setter::s
+      acceptedType: int
+  operator: +=
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    staticType: int
+  binaryOperator: add
+  element: dart:core::@class::num::@method::+
+  operatorResultType: int
+  staticType: int
+V1: AssignmentExpression
   leftHandSide: PropertyAccess
     target: ExtensionOverride
       name: E
@@ -1349,7 +2419,7 @@ AssignmentExpression
         rightParenthesis: )
       element: <testLibrary>::@extension::E
       extendedType: A
-      staticType: null
+      staticType: A
     operator: .
     propertyName: SimpleIdentifier
       token: s
@@ -1382,9 +2452,54 @@ void f(A a) {
 }
 ''');
 
-    var node = result.findNode.assignment('(a)');
+    var node = result.findNode.singleCompoundAssignment;
     assertResolvedNodeText(node, r'''
-AssignmentExpression
+CompoundAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: ExtensionOverride2
+      name: E
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+        rightBracket: >
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments2
+          UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: <testLibrary>::@function::f::@formalParameter::a
+              type: A
+            correspondingParameter: <null>
+            staticType: A
+        rightParenthesis: )
+      element: <testLibrary>::@extension::E
+      extendedType: A
+      typeArgumentTypes
+        int
+    operator: .
+    name: s
+    read: GetterInvocationResolution
+      element: <testLibrary>::@extension::E::@getter::s
+      invokeType: int Function()
+      type: int
+    write: SetterInvocationResolution
+      element: <testLibrary>::@extension::E::@setter::s
+      acceptedType: int
+  operator: +=
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    staticType: int
+  binaryOperator: add
+  element: dart:core::@class::num::@method::+
+  operatorResultType: int
+  staticType: int
+V1: AssignmentExpression
   leftHandSide: PropertyAccess
     target: ExtensionOverride
       name: E
@@ -1407,7 +2522,7 @@ AssignmentExpression
         rightParenthesis: )
       element: <testLibrary>::@extension::E
       extendedType: A
-      staticType: null
+      staticType: A
       typeArgumentTypes
         int
     operator: .
@@ -1445,9 +2560,48 @@ void f(p.A a) {
 }
 ''');
 
-    var node = result.findNode.assignment('(a)');
+    var node = result.findNode.singleCompoundAssignment;
     assertResolvedNodeText(node, r'''
-AssignmentExpression
+CompoundAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: ExtensionOverride2
+      importPrefix: ImportPrefixReference
+        name: p
+        period: .
+        element: <testLibraryFragment>::@prefix::p
+      name: E
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments2
+          UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: <testLibrary>::@function::f::@formalParameter::a
+              type: A
+            correspondingParameter: <null>
+            staticType: A
+        rightParenthesis: )
+      element: package:test/lib.dart::@extension::E
+      extendedType: A
+    operator: .
+    name: s
+    read: GetterInvocationResolution
+      element: package:test/lib.dart::@extension::E::@getter::s
+      invokeType: int Function()
+      type: int
+    write: SetterInvocationResolution
+      element: package:test/lib.dart::@extension::E::@setter::s
+      acceptedType: int
+  operator: +=
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    staticType: int
+  binaryOperator: add
+  element: dart:core::@class::num::@method::+
+  operatorResultType: int
+  staticType: int
+V1: AssignmentExpression
   leftHandSide: PropertyAccess
     target: ExtensionOverride
       importPrefix: ImportPrefixReference
@@ -1466,7 +2620,7 @@ AssignmentExpression
         rightParenthesis: )
       element: package:test/lib.dart::@extension::E
       extendedType: A
-      staticType: null
+      staticType: A
     operator: .
     propertyName: SimpleIdentifier
       token: s
@@ -1502,9 +2656,58 @@ void f(p.A a) {
 }
 ''');
 
-    var node = result.findNode.assignment('(a)');
+    var node = result.findNode.singleCompoundAssignment;
     assertResolvedNodeText(node, r'''
-AssignmentExpression
+CompoundAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: ExtensionOverride2
+      importPrefix: ImportPrefixReference
+        name: p
+        period: .
+        element: <testLibraryFragment>::@prefix::p
+      name: E
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+        rightBracket: >
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments2
+          UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: <testLibrary>::@function::f::@formalParameter::a
+              type: A
+            correspondingParameter: <null>
+            staticType: A
+        rightParenthesis: )
+      element: package:test/lib.dart::@extension::E
+      extendedType: A
+      typeArgumentTypes
+        int
+    operator: .
+    name: s
+    read: GetterInvocationResolution
+      element: package:test/lib.dart::@extension::E::@getter::s
+      invokeType: int Function()
+      type: int
+    write: SetterInvocationResolution
+      element: package:test/lib.dart::@extension::E::@setter::s
+      acceptedType: int
+  operator: +=
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    staticType: int
+  binaryOperator: add
+  element: dart:core::@class::num::@method::+
+  operatorResultType: int
+  staticType: int
+V1: AssignmentExpression
   leftHandSide: PropertyAccess
     target: ExtensionOverride
       importPrefix: ImportPrefixReference
@@ -1531,7 +2734,7 @@ AssignmentExpression
         rightParenthesis: )
       element: package:test/lib.dart::@extension::E
       extendedType: A
-      staticType: null
+      staticType: A
       typeArgumentTypes
         int
     operator: .
@@ -1565,9 +2768,31 @@ extension E on C {
 f(C c) => E(c).a;
 ''');
 
-    var node = result.findNode.propertyAccess('E(c)');
+    var node = result.findNode.receiverPropertyExtraction('E(c)');
     assertResolvedNodeText(node, r'''
-PropertyAccess
+ReceiverPropertyExtraction
+  receiver: ExtensionOverride2
+    name: E
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        UnqualifiedNameExpression
+          name: c
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::c
+            type: C
+          correspondingParameter: <null>
+          staticType: C
+      rightParenthesis: )
+    element: <testLibrary>::@extension::E
+    extendedType: C
+  operator: .
+  name: a
+  resolution: ExecutableTearOffResolution
+    element: <testLibrary>::@extension::E::@method::a
+    type: void Function(int)
+  staticType: void Function(int)
+V1: PropertyAccess
   target: ExtensionOverride
     name: E
     argumentList: ArgumentList

@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@Timeout.none
-library;
-
 import 'package:test/test.dart' show Timeout;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -35,30 +32,37 @@ class ReplacedByTypeTest extends DataDrivenBulkFixProcessorTest {
 
   static final _templateEntryRE = RegExp(r'%(\w+)%');
 
+  @TestTimeout(Timeout.factor(4))
   Future<void> test_no_prefix_no_import() async {
     await _assertTemplatedFixes('', null);
   }
 
+  @TestTimeout(Timeout.factor(4))
   Future<void> test_no_prefix_no_prefix() async {
     await _assertTemplatedFixes('', '');
   }
 
+  @TestTimeout(Timeout.factor(4))
   Future<void> test_no_prefix_prefix() async {
     await _assertTemplatedFixes('', 'q');
   }
 
+  @TestTimeout(Timeout.factor(4))
   Future<void> test_prefix_no_import() async {
     await _assertTemplatedFixes('p', null);
   }
 
+  @TestTimeout(Timeout.factor(4))
   Future<void> test_prefix_no_prefix() async {
     await _assertTemplatedFixes('p', '');
   }
 
+  @TestTimeout(Timeout.factor(4))
   Future<void> test_prefix_other_prefix() async {
     await _assertTemplatedFixes('p', 'q');
   }
 
+  @TestTimeout(Timeout.factor(4))
   Future<void> test_prefix_same_prefix() async {
     await _assertTemplatedFixes('p', 'p');
   }

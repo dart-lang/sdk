@@ -13,6 +13,7 @@ import '../builder/member_builder.dart';
 import '../builder/type_builder.dart';
 import '../kernel_generator_impl.dart';
 import '../source/source_loader.dart';
+import '../type_inference/type_schema.dart';
 
 /// Helper methods to use in annotated tests.
 
@@ -740,9 +741,13 @@ class DartTypeToTextVisitor
 
   @override
   void visitAuxiliaryType(AuxiliaryType node) {
-    throw new UnsupportedError(
-      "Unsupported auxiliary type ${node} (${node.runtimeType}).",
-    );
+    if (node is UnknownType) {
+      sb.write('_');
+    } else {
+      throw new UnsupportedError(
+        "Unsupported auxiliary type ${node} (${node.runtimeType}).",
+      );
+    }
   }
 
   @override

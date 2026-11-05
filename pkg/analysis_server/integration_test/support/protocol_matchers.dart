@@ -350,19 +350,21 @@ final Matcher isCompletionSuggestion = LazyMatcher(
 ///       PARAMETER
 ///       PACKAGE_NAME
 ///     }
-final Matcher isCompletionSuggestionKind =
-    MatchesEnum('CompletionSuggestionKind', [
-      'ARGUMENT_LIST',
-      'IMPORT',
-      'IDENTIFIER',
-      'INVOCATION',
-      'KEYWORD',
-      'NAMED_ARGUMENT',
-      'OPTIONAL_ARGUMENT',
-      'OVERRIDE',
-      'PARAMETER',
-      'PACKAGE_NAME',
-    ]);
+final Matcher isCompletionSuggestionKind = MatchesEnum(
+  'CompletionSuggestionKind',
+  [
+    'ARGUMENT_LIST',
+    'IMPORT',
+    'IDENTIFIER',
+    'INVOCATION',
+    'KEYWORD',
+    'NAMED_ARGUMENT',
+    'OPTIONAL_ARGUMENT',
+    'OVERRIDE',
+    'PARAMETER',
+    'PACKAGE_NAME',
+  ],
+);
 
 /// ContextData
 ///
@@ -1063,6 +1065,7 @@ final Matcher isHighlightRegionType = MatchesEnum('HighlightRegionType', [
 ///       "containingLibraryPath": optional String
 ///       "containingLibraryName": optional String
 ///       "containingClassDescription": optional String
+///       "containingExecutableDescriptions": optional List<String>
 ///       "dartdoc": optional String
 ///       "elementDescription": optional String
 ///       "elementKind": optional String
@@ -1079,6 +1082,7 @@ final Matcher isHoverInformation = LazyMatcher(
       'containingLibraryPath': isString,
       'containingLibraryName': isString,
       'containingClassDescription': isString,
+      'containingExecutableDescriptions': isListOf(isString),
       'dartdoc': isString,
       'elementDescription': isString,
       'elementKind': isString,
@@ -2517,7 +2521,6 @@ final Matcher isDiagnosticGetServerPortResult = LazyMatcher(
 ///
 ///     {
 ///       "included": List<FilePath>
-///       "inTestMode": optional bool
 ///       "updatePubspec": optional bool
 ///       "codes": optional List<String>
 ///     }
@@ -2525,11 +2528,7 @@ final Matcher isEditBulkFixesParams = LazyMatcher(
   () => MatchesJsonObject(
     'edit.bulkFixes params',
     {'included': isListOf(isFilePath)},
-    optionalFields: {
-      'inTestMode': isBool,
-      'updatePubspec': isBool,
-      'codes': isListOf(isString),
-    },
+    optionalFields: {'updatePubspec': isBool, 'codes': isListOf(isString)},
   ),
 );
 
@@ -3578,7 +3577,17 @@ final Matcher isServerSetClientCapabilitiesParams = LazyMatcher(
 );
 
 /// server.setClientCapabilities result
-final Matcher isServerSetClientCapabilitiesResult = isNull;
+///
+///     {
+///       "lspCapabilities": optional object
+///     }
+final Matcher isServerSetClientCapabilitiesResult = LazyMatcher(
+  () => MatchesJsonObject(
+    'server.setClientCapabilities result',
+    null,
+    optionalFields: {'lspCapabilities': isObject},
+  ),
+);
 
 /// server.setSubscriptions params
 ///

@@ -198,6 +198,12 @@ class WasmI32 extends _WasmBase {
   external bool gtU(WasmI32 other);
 }
 
+extension WasmI32Extension on WasmI32 {
+  /// Wasm `f32.reinterpret_i32` instruction.
+  @pragma("wasm:intrinsic")
+  external WasmF32 get asWasmF32;
+}
+
 /// The Wasm `i64` type.
 @pragma("wasm:entry-point")
 class WasmI64 extends _WasmBase {
@@ -244,6 +250,12 @@ class WasmI64 extends _WasmBase {
   external WasmI64 maxS(WasmI64 other);
 }
 
+extension WasmI64Extension on WasmI64 {
+  /// Wasm `f64.reinterpret_i64` instruction.
+  @pragma("wasm:intrinsic")
+  external WasmF64 get asWasmF64;
+}
+
 /// The Wasm `f32` type.
 @pragma("wasm:entry-point")
 class WasmF32 extends _WasmBase {
@@ -258,6 +270,12 @@ class WasmF32 extends _WasmBase {
   external factory WasmF32.fromDouble(double value);
 
   external double toDouble();
+}
+
+extension WasmF32Extension on WasmF32 {
+  /// Wasm `i32.reinterpret_f32` instruction.
+  @pragma("wasm:intrinsic")
+  external WasmI32 get asWasmI32;
 }
 
 /// The Wasm `f64` type.
@@ -289,6 +307,12 @@ class WasmF64 extends _WasmBase {
 
   /// Wasm `f64.max` instruction.
   external WasmF64 max(WasmF64 other);
+}
+
+extension WasmF64Extension on WasmF64 {
+  /// Wasm `i64.reinterpret_f64` instruction.
+  @pragma("wasm:intrinsic")
+  external WasmI64 get asWasmI64;
 }
 
 /// The Wasm `v128` type.
@@ -479,13 +503,66 @@ extension type const WasmI8x16(WasmV128 value) implements WasmV128 {
   @pragma("wasm:intrinsic")
   external WasmI8x16 operator +(WasmI8x16 other);
   @pragma("wasm:intrinsic")
+  external WasmI8x16 addSatS(WasmI8x16 other);
+  @pragma("wasm:intrinsic")
+  external WasmI8x16 addSatU(WasmI8x16 other);
+  @pragma("wasm:intrinsic")
   external WasmI8x16 operator -(WasmI8x16 other);
+  @pragma("wasm:intrinsic")
+  external WasmI8x16 subSatS(WasmI8x16 other);
+  @pragma("wasm:intrinsic")
+  external WasmI8x16 subSatU(WasmI8x16 other);
 
   @pragma("wasm:intrinsic")
   external WasmI8x16 operator -();
 
   @pragma("wasm:intrinsic")
   external WasmI8x16 eq(WasmI8x16 other);
+  @pragma("wasm:intrinsic")
+  external WasmI8x16 ne(WasmI8x16 other);
+  @pragma("wasm:intrinsic")
+  external WasmI8x16 ltS(WasmI8x16 other);
+  @pragma("wasm:intrinsic")
+  external WasmI8x16 ltU(WasmI8x16 other);
+  @pragma("wasm:intrinsic")
+  external WasmI8x16 gtS(WasmI8x16 other);
+  @pragma("wasm:intrinsic")
+  external WasmI8x16 gtU(WasmI8x16 other);
+  @pragma("wasm:intrinsic")
+  external WasmI8x16 leS(WasmI8x16 other);
+  @pragma("wasm:intrinsic")
+  external WasmI8x16 leU(WasmI8x16 other);
+  @pragma("wasm:intrinsic")
+  external WasmI8x16 geS(WasmI8x16 other);
+  @pragma("wasm:intrinsic")
+  external WasmI8x16 geU(WasmI8x16 other);
+
+  @pragma("wasm:intrinsic")
+  external WasmI8x16 abs();
+  @pragma("wasm:intrinsic")
+  external WasmI8x16 popcnt();
+  @pragma("wasm:intrinsic")
+  external WasmI8x16 minS(WasmI8x16 other);
+  @pragma("wasm:intrinsic")
+  external WasmI8x16 minU(WasmI8x16 other);
+  @pragma("wasm:intrinsic")
+  external WasmI8x16 maxS(WasmI8x16 other);
+  @pragma("wasm:intrinsic")
+  external WasmI8x16 maxU(WasmI8x16 other);
+  @pragma("wasm:intrinsic")
+  external WasmI8x16 avgrU(WasmI8x16 other);
+  @pragma("wasm:intrinsic")
+  external WasmI8x16 shl(WasmI32 shift);
+  @pragma("wasm:intrinsic")
+  external WasmI8x16 shrS(WasmI32 shift);
+  @pragma("wasm:intrinsic")
+  external WasmI8x16 shrU(WasmI32 shift);
+
+  @pragma("wasm:intrinsic")
+  external WasmI8x16 swizzle(WasmI8x16 indices);
+
+  @pragma("wasm:intrinsic")
+  external WasmI32 get bitmask;
 }
 
 extension type const WasmI16x8(WasmV128 value) implements WasmV128 {
@@ -514,9 +591,19 @@ extension type const WasmI16x8(WasmV128 value) implements WasmV128 {
   @pragma("wasm:intrinsic")
   external WasmI16x8 operator +(WasmI16x8 other);
   @pragma("wasm:intrinsic")
+  external WasmI16x8 addSatS(WasmI16x8 other);
+  @pragma("wasm:intrinsic")
+  external WasmI16x8 addSatU(WasmI16x8 other);
+  @pragma("wasm:intrinsic")
   external WasmI16x8 operator -(WasmI16x8 other);
   @pragma("wasm:intrinsic")
+  external WasmI16x8 subSatS(WasmI16x8 other);
+  @pragma("wasm:intrinsic")
+  external WasmI16x8 subSatU(WasmI16x8 other);
+  @pragma("wasm:intrinsic")
   external WasmI16x8 operator *(WasmI16x8 other);
+  @pragma("wasm:intrinsic")
+  external WasmI16x8 q15MulrSatS(WasmI16x8 other);
 
   @pragma("wasm:intrinsic")
   external WasmI16x8 operator -();
@@ -526,6 +613,46 @@ extension type const WasmI16x8(WasmV128 value) implements WasmV128 {
 
   @pragma("wasm:intrinsic")
   external WasmI16x8 eq(WasmI16x8 other);
+  @pragma("wasm:intrinsic")
+  external WasmI16x8 ne(WasmI16x8 other);
+  @pragma("wasm:intrinsic")
+  external WasmI16x8 ltS(WasmI16x8 other);
+  @pragma("wasm:intrinsic")
+  external WasmI16x8 ltU(WasmI16x8 other);
+  @pragma("wasm:intrinsic")
+  external WasmI16x8 gtS(WasmI16x8 other);
+  @pragma("wasm:intrinsic")
+  external WasmI16x8 gtU(WasmI16x8 other);
+  @pragma("wasm:intrinsic")
+  external WasmI16x8 leS(WasmI16x8 other);
+  @pragma("wasm:intrinsic")
+  external WasmI16x8 leU(WasmI16x8 other);
+  @pragma("wasm:intrinsic")
+  external WasmI16x8 geS(WasmI16x8 other);
+  @pragma("wasm:intrinsic")
+  external WasmI16x8 geU(WasmI16x8 other);
+
+  @pragma("wasm:intrinsic")
+  external WasmI16x8 abs();
+  @pragma("wasm:intrinsic")
+  external WasmI16x8 minS(WasmI16x8 other);
+  @pragma("wasm:intrinsic")
+  external WasmI16x8 minU(WasmI16x8 other);
+  @pragma("wasm:intrinsic")
+  external WasmI16x8 maxS(WasmI16x8 other);
+  @pragma("wasm:intrinsic")
+  external WasmI16x8 maxU(WasmI16x8 other);
+  @pragma("wasm:intrinsic")
+  external WasmI16x8 avgrU(WasmI16x8 other);
+  @pragma("wasm:intrinsic")
+  external WasmI16x8 shl(WasmI32 shift);
+  @pragma("wasm:intrinsic")
+  external WasmI16x8 shrS(WasmI32 shift);
+  @pragma("wasm:intrinsic")
+  external WasmI16x8 shrU(WasmI32 shift);
+
+  @pragma("wasm:intrinsic")
+  external WasmI32 get bitmask;
 }
 
 extension type const WasmI32x4(WasmV128 value) implements WasmV128 {
@@ -551,6 +678,47 @@ extension type const WasmI32x4(WasmV128 value) implements WasmV128 {
 
   @pragma("wasm:intrinsic")
   external WasmI32x4 eq(WasmI32x4 other);
+  @pragma("wasm:intrinsic")
+  external WasmI32x4 ne(WasmI32x4 other);
+  @pragma("wasm:intrinsic")
+  external WasmI32x4 ltS(WasmI32x4 other);
+  @pragma("wasm:intrinsic")
+  external WasmI32x4 ltU(WasmI32x4 other);
+  @pragma("wasm:intrinsic")
+  external WasmI32x4 gtS(WasmI32x4 other);
+  @pragma("wasm:intrinsic")
+  external WasmI32x4 gtU(WasmI32x4 other);
+  @pragma("wasm:intrinsic")
+  external WasmI32x4 leS(WasmI32x4 other);
+  @pragma("wasm:intrinsic")
+  external WasmI32x4 leU(WasmI32x4 other);
+  @pragma("wasm:intrinsic")
+  external WasmI32x4 geS(WasmI32x4 other);
+  @pragma("wasm:intrinsic")
+  external WasmI32x4 geU(WasmI32x4 other);
+
+  @pragma("wasm:intrinsic")
+  external WasmI32x4 abs();
+  @pragma("wasm:intrinsic")
+  external WasmI32x4 minS(WasmI32x4 other);
+  @pragma("wasm:intrinsic")
+  external WasmI32x4 minU(WasmI32x4 other);
+  @pragma("wasm:intrinsic")
+  external WasmI32x4 maxS(WasmI32x4 other);
+  @pragma("wasm:intrinsic")
+  external WasmI32x4 maxU(WasmI32x4 other);
+  @pragma("wasm:intrinsic")
+  external WasmI32x4 shl(WasmI32 shift);
+  @pragma("wasm:intrinsic")
+  external WasmI32x4 shrS(WasmI32 shift);
+  @pragma("wasm:intrinsic")
+  external WasmI32x4 shrU(WasmI32 shift);
+
+  @pragma("wasm:intrinsic")
+  external bool get allTrue;
+
+  @pragma("wasm:intrinsic")
+  external WasmI32 get bitmask;
 }
 
 extension type const WasmI64x2(WasmV128 value) implements WasmV128 {
@@ -577,7 +745,30 @@ extension type const WasmI64x2(WasmV128 value) implements WasmV128 {
   @pragma("wasm:intrinsic")
   external WasmI64x2 eq(WasmI64x2 other);
   @pragma("wasm:intrinsic")
+  external WasmI64x2 ne(WasmI64x2 other);
+  @pragma("wasm:intrinsic")
+  external WasmI64x2 ltS(WasmI64x2 other);
+  @pragma("wasm:intrinsic")
+  external WasmI64x2 gtS(WasmI64x2 other);
+  @pragma("wasm:intrinsic")
+  external WasmI64x2 leS(WasmI64x2 other);
+  @pragma("wasm:intrinsic")
+  external WasmI64x2 geS(WasmI64x2 other);
+
+  @pragma("wasm:intrinsic")
+  external WasmI64x2 abs();
+  @pragma("wasm:intrinsic")
+  external WasmI64x2 shl(WasmI32 shift);
+  @pragma("wasm:intrinsic")
+  external WasmI64x2 shrS(WasmI32 shift);
+  @pragma("wasm:intrinsic")
+  external WasmI64x2 shrU(WasmI32 shift);
+
+  @pragma("wasm:intrinsic")
   external bool get allTrue;
+
+  @pragma("wasm:intrinsic")
+  external WasmI32 get bitmask;
 }
 
 extension type const WasmF32x4(WasmV128 value) implements WasmV128 {
@@ -645,6 +836,8 @@ extension type const WasmF32x4(WasmV128 value) implements WasmV128 {
 
   @pragma("wasm:intrinsic")
   external WasmI32x4 eq(WasmF32x4 other);
+  @pragma("wasm:intrinsic")
+  external WasmI32x4 ne(WasmF32x4 other);
 }
 
 extension type const WasmF64x2(WasmV128 value) implements WasmV128 {
@@ -707,6 +900,8 @@ extension type const WasmF64x2(WasmV128 value) implements WasmV128 {
 
   @pragma("wasm:intrinsic")
   external WasmI64x2 eq(WasmF64x2 other);
+  @pragma("wasm:intrinsic")
+  external WasmI64x2 ne(WasmF64x2 other);
 
   @pragma("wasm:intrinsic")
   external WasmF64x2 shuffle(WasmF64x2 other, List<int> lanes);

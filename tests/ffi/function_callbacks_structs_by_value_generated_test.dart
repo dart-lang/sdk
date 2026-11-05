@@ -589,6 +589,99 @@ final testCases = [
     noChecks,
   ),
   CallbackTest.withCheck(
+    "UncategorizedFloatx9Int32",
+    Pointer.fromFunction<UncategorizedFloatx9Int32Type>(
+      uncategorizedFloatx9Int32,
+      0.0,
+    ),
+    uncategorizedFloatx9Int32AfterCallback,
+  ),
+  CallbackTest.withCheck(
+    "UncategorizedFloatx10",
+    Pointer.fromFunction<UncategorizedFloatx10Type>(uncategorizedFloatx10, 0.0),
+    uncategorizedFloatx10AfterCallback,
+  ),
+  CallbackTest.withCheck(
+    "PassFloatx9Struct4BytesInt1Field",
+    Pointer.fromFunction<PassFloatx9Struct4BytesInt1FieldType>(
+      passFloatx9Struct4BytesInt1Field,
+      0.0,
+    ),
+    passFloatx9Struct4BytesInt1FieldAfterCallback,
+  ),
+  CallbackTest.withCheck(
+    "PassFloatx9Struct4BytesHomogeneousUint84Bytes",
+    Pointer.fromFunction<PassFloatx9Struct4BytesHomogeneousUint84BytesType>(
+      passFloatx9Struct4BytesHomogeneousUint84Bytes,
+      0.0,
+    ),
+    passFloatx9Struct4BytesHomogeneousUint84BytesAfterCallback,
+  ),
+  CallbackTest.withCheck(
+    "PassFloatx9Struct8BytesHomogeneousInt322Fields",
+    Pointer.fromFunction<PassFloatx9Struct8BytesHomogeneousInt322FieldsType>(
+      passFloatx9Struct8BytesHomogeneousInt322Fields,
+      0.0,
+    ),
+    passFloatx9Struct8BytesHomogeneousInt322FieldsAfterCallback,
+  ),
+  CallbackTest.withCheck(
+    "PassFloatx9Struct12BytesHomogeneousInt32",
+    Pointer.fromFunction<PassFloatx9Struct12BytesHomogeneousInt32Type>(
+      passFloatx9Struct12BytesHomogeneousInt32,
+      0.0,
+    ),
+    passFloatx9Struct12BytesHomogeneousInt32AfterCallback,
+  ),
+  CallbackTest.withCheck(
+    "PassFloatx9Struct16BytesHomogeneousInt324Fields",
+    Pointer.fromFunction<PassFloatx9Struct16BytesHomogeneousInt324FieldsType>(
+      passFloatx9Struct16BytesHomogeneousInt324Fields,
+      0.0,
+    ),
+    passFloatx9Struct16BytesHomogeneousInt324FieldsAfterCallback,
+  ),
+  CallbackTest.withCheck(
+    "PassFloatx9Struct4BytesFloat",
+    Pointer.fromFunction<PassFloatx9Struct4BytesFloatType>(
+      passFloatx9Struct4BytesFloat,
+      0.0,
+    ),
+    passFloatx9Struct4BytesFloatAfterCallback,
+  ),
+  CallbackTest.withCheck(
+    "PassFloatx9Struct8BytesHomogeneousFloat",
+    Pointer.fromFunction<PassFloatx9Struct8BytesHomogeneousFloatType>(
+      passFloatx9Struct8BytesHomogeneousFloat,
+      0.0,
+    ),
+    passFloatx9Struct8BytesHomogeneousFloatAfterCallback,
+  ),
+  CallbackTest.withCheck(
+    "PassFloatx9Struct12BytesHomogeneousFloat",
+    Pointer.fromFunction<PassFloatx9Struct12BytesHomogeneousFloatType>(
+      passFloatx9Struct12BytesHomogeneousFloat,
+      0.0,
+    ),
+    passFloatx9Struct12BytesHomogeneousFloatAfterCallback,
+  ),
+  CallbackTest.withCheck(
+    "PassFloatx9Struct16BytesHomogeneousFloat",
+    Pointer.fromFunction<PassFloatx9Struct16BytesHomogeneousFloatType>(
+      passFloatx9Struct16BytesHomogeneousFloat,
+      0.0,
+    ),
+    passFloatx9Struct16BytesHomogeneousFloatAfterCallback,
+  ),
+  CallbackTest.withCheck(
+    "PassFloatx9Struct8BytesMixedInt32Float",
+    Pointer.fromFunction<PassFloatx9Struct8BytesMixedInt32FloatType>(
+      passFloatx9Struct8BytesMixedInt32Float,
+      0.0,
+    ),
+    passFloatx9Struct8BytesMixedInt32FloatAfterCallback,
+  ),
+  CallbackTest.withCheck(
     "ReturnStruct1ByteInt",
     Pointer.fromFunction<ReturnStruct1ByteIntType>(returnStruct1ByteInt),
     returnStruct1ByteIntAfterCallback,
@@ -8698,6 +8791,1219 @@ int passPointerStructInlineArrayVariable2(
   print("result = $result");
 
   return result;
+}
+
+typedef UncategorizedFloatx9Int32Type =
+    Double Function(
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Int32,
+    );
+
+// Global variables to be able to test inputs after callback returned.
+double uncategorizedFloatx9Int32_a0 = 0.0;
+double uncategorizedFloatx9Int32_a1 = 0.0;
+double uncategorizedFloatx9Int32_a2 = 0.0;
+double uncategorizedFloatx9Int32_a3 = 0.0;
+double uncategorizedFloatx9Int32_a4 = 0.0;
+double uncategorizedFloatx9Int32_a5 = 0.0;
+double uncategorizedFloatx9Int32_a6 = 0.0;
+double uncategorizedFloatx9Int32_a7 = 0.0;
+double uncategorizedFloatx9Int32_a8 = 0.0;
+int uncategorizedFloatx9Int32_a9 = 0;
+
+// Result variable also global, so we can delete it after the callback.
+double uncategorizedFloatx9Int32Result = 0.0;
+
+double uncategorizedFloatx9Int32CalculateResult() {
+  double result = 0;
+
+  result += uncategorizedFloatx9Int32_a0;
+  result += uncategorizedFloatx9Int32_a1;
+  result += uncategorizedFloatx9Int32_a2;
+  result += uncategorizedFloatx9Int32_a3;
+  result += uncategorizedFloatx9Int32_a4;
+  result += uncategorizedFloatx9Int32_a5;
+  result += uncategorizedFloatx9Int32_a6;
+  result += uncategorizedFloatx9Int32_a7;
+  result += uncategorizedFloatx9Int32_a8;
+  result += uncategorizedFloatx9Int32_a9;
+
+  uncategorizedFloatx9Int32Result = result;
+
+  return result;
+}
+
+/// Exhaust FP registers with 9 floats, then pass $t by value.
+double uncategorizedFloatx9Int32(
+  double a0,
+  double a1,
+  double a2,
+  double a3,
+  double a4,
+  double a5,
+  double a6,
+  double a7,
+  double a8,
+  int a9,
+) {
+  print(
+    "uncategorizedFloatx9Int32(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})",
+  );
+
+  // Possibly throw.
+  if (a0 == 42 || a0 == 84) {
+    print("throwing!");
+    throw Exception("UncategorizedFloatx9Int32 throwing on purpose!");
+  }
+
+  uncategorizedFloatx9Int32_a0 = a0;
+  uncategorizedFloatx9Int32_a1 = a1;
+  uncategorizedFloatx9Int32_a2 = a2;
+  uncategorizedFloatx9Int32_a3 = a3;
+  uncategorizedFloatx9Int32_a4 = a4;
+  uncategorizedFloatx9Int32_a5 = a5;
+  uncategorizedFloatx9Int32_a6 = a6;
+  uncategorizedFloatx9Int32_a7 = a7;
+  uncategorizedFloatx9Int32_a8 = a8;
+  uncategorizedFloatx9Int32_a9 = a9;
+
+  final result = uncategorizedFloatx9Int32CalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void uncategorizedFloatx9Int32AfterCallback() {
+  final result = uncategorizedFloatx9Int32CalculateResult();
+
+  print("after callback result = $result");
+
+  Expect.approxEquals(5.0, result);
+}
+
+typedef UncategorizedFloatx10Type =
+    Double Function(
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+    );
+
+// Global variables to be able to test inputs after callback returned.
+double uncategorizedFloatx10_a0 = 0.0;
+double uncategorizedFloatx10_a1 = 0.0;
+double uncategorizedFloatx10_a2 = 0.0;
+double uncategorizedFloatx10_a3 = 0.0;
+double uncategorizedFloatx10_a4 = 0.0;
+double uncategorizedFloatx10_a5 = 0.0;
+double uncategorizedFloatx10_a6 = 0.0;
+double uncategorizedFloatx10_a7 = 0.0;
+double uncategorizedFloatx10_a8 = 0.0;
+double uncategorizedFloatx10_a9 = 0.0;
+
+// Result variable also global, so we can delete it after the callback.
+double uncategorizedFloatx10Result = 0.0;
+
+double uncategorizedFloatx10CalculateResult() {
+  double result = 0;
+
+  result += uncategorizedFloatx10_a0;
+  result += uncategorizedFloatx10_a1;
+  result += uncategorizedFloatx10_a2;
+  result += uncategorizedFloatx10_a3;
+  result += uncategorizedFloatx10_a4;
+  result += uncategorizedFloatx10_a5;
+  result += uncategorizedFloatx10_a6;
+  result += uncategorizedFloatx10_a7;
+  result += uncategorizedFloatx10_a8;
+  result += uncategorizedFloatx10_a9;
+
+  uncategorizedFloatx10Result = result;
+
+  return result;
+}
+
+/// Exhaust FP registers with 9 floats, then pass $t by value.
+double uncategorizedFloatx10(
+  double a0,
+  double a1,
+  double a2,
+  double a3,
+  double a4,
+  double a5,
+  double a6,
+  double a7,
+  double a8,
+  double a9,
+) {
+  print(
+    "uncategorizedFloatx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})",
+  );
+
+  // Possibly throw.
+  if (a0 == 42 || a0 == 84) {
+    print("throwing!");
+    throw Exception("UncategorizedFloatx10 throwing on purpose!");
+  }
+
+  uncategorizedFloatx10_a0 = a0;
+  uncategorizedFloatx10_a1 = a1;
+  uncategorizedFloatx10_a2 = a2;
+  uncategorizedFloatx10_a3 = a3;
+  uncategorizedFloatx10_a4 = a4;
+  uncategorizedFloatx10_a5 = a5;
+  uncategorizedFloatx10_a6 = a6;
+  uncategorizedFloatx10_a7 = a7;
+  uncategorizedFloatx10_a8 = a8;
+  uncategorizedFloatx10_a9 = a9;
+
+  final result = uncategorizedFloatx10CalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void uncategorizedFloatx10AfterCallback() {
+  final result = uncategorizedFloatx10CalculateResult();
+
+  print("after callback result = $result");
+
+  Expect.approxEquals(5.0, result);
+}
+
+typedef PassFloatx9Struct4BytesInt1FieldType =
+    Double Function(
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Struct4BytesInt1Field,
+    );
+
+// Global variables to be able to test inputs after callback returned.
+double passFloatx9Struct4BytesInt1Field_a0 = 0.0;
+double passFloatx9Struct4BytesInt1Field_a1 = 0.0;
+double passFloatx9Struct4BytesInt1Field_a2 = 0.0;
+double passFloatx9Struct4BytesInt1Field_a3 = 0.0;
+double passFloatx9Struct4BytesInt1Field_a4 = 0.0;
+double passFloatx9Struct4BytesInt1Field_a5 = 0.0;
+double passFloatx9Struct4BytesInt1Field_a6 = 0.0;
+double passFloatx9Struct4BytesInt1Field_a7 = 0.0;
+double passFloatx9Struct4BytesInt1Field_a8 = 0.0;
+Struct4BytesInt1Field passFloatx9Struct4BytesInt1Field_a9 =
+    Pointer<Struct4BytesInt1Field>.fromAddress(0).ref;
+
+// Result variable also global, so we can delete it after the callback.
+double passFloatx9Struct4BytesInt1FieldResult = 0.0;
+
+double passFloatx9Struct4BytesInt1FieldCalculateResult() {
+  double result = 0;
+
+  result += passFloatx9Struct4BytesInt1Field_a0;
+  result += passFloatx9Struct4BytesInt1Field_a1;
+  result += passFloatx9Struct4BytesInt1Field_a2;
+  result += passFloatx9Struct4BytesInt1Field_a3;
+  result += passFloatx9Struct4BytesInt1Field_a4;
+  result += passFloatx9Struct4BytesInt1Field_a5;
+  result += passFloatx9Struct4BytesInt1Field_a6;
+  result += passFloatx9Struct4BytesInt1Field_a7;
+  result += passFloatx9Struct4BytesInt1Field_a8;
+  result += passFloatx9Struct4BytesInt1Field_a9.a0;
+
+  passFloatx9Struct4BytesInt1FieldResult = result;
+
+  return result;
+}
+
+/// Exhaust FP registers with 9 floats, then pass $t by value.
+double passFloatx9Struct4BytesInt1Field(
+  double a0,
+  double a1,
+  double a2,
+  double a3,
+  double a4,
+  double a5,
+  double a6,
+  double a7,
+  double a8,
+  Struct4BytesInt1Field a9,
+) {
+  print(
+    "passFloatx9Struct4BytesInt1Field(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})",
+  );
+
+  // Possibly throw.
+  if (a0 == 42 || a0 == 84) {
+    print("throwing!");
+    throw Exception("PassFloatx9Struct4BytesInt1Field throwing on purpose!");
+  }
+
+  passFloatx9Struct4BytesInt1Field_a0 = a0;
+  passFloatx9Struct4BytesInt1Field_a1 = a1;
+  passFloatx9Struct4BytesInt1Field_a2 = a2;
+  passFloatx9Struct4BytesInt1Field_a3 = a3;
+  passFloatx9Struct4BytesInt1Field_a4 = a4;
+  passFloatx9Struct4BytesInt1Field_a5 = a5;
+  passFloatx9Struct4BytesInt1Field_a6 = a6;
+  passFloatx9Struct4BytesInt1Field_a7 = a7;
+  passFloatx9Struct4BytesInt1Field_a8 = a8;
+  passFloatx9Struct4BytesInt1Field_a9 = a9;
+
+  final result = passFloatx9Struct4BytesInt1FieldCalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void passFloatx9Struct4BytesInt1FieldAfterCallback() {
+  final result = passFloatx9Struct4BytesInt1FieldCalculateResult();
+
+  print("after callback result = $result");
+
+  Expect.approxEquals(5.0, result);
+}
+
+typedef PassFloatx9Struct4BytesHomogeneousUint84BytesType =
+    Double Function(
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Struct4BytesHomogeneousUint84Bytes,
+    );
+
+// Global variables to be able to test inputs after callback returned.
+double passFloatx9Struct4BytesHomogeneousUint84Bytes_a0 = 0.0;
+double passFloatx9Struct4BytesHomogeneousUint84Bytes_a1 = 0.0;
+double passFloatx9Struct4BytesHomogeneousUint84Bytes_a2 = 0.0;
+double passFloatx9Struct4BytesHomogeneousUint84Bytes_a3 = 0.0;
+double passFloatx9Struct4BytesHomogeneousUint84Bytes_a4 = 0.0;
+double passFloatx9Struct4BytesHomogeneousUint84Bytes_a5 = 0.0;
+double passFloatx9Struct4BytesHomogeneousUint84Bytes_a6 = 0.0;
+double passFloatx9Struct4BytesHomogeneousUint84Bytes_a7 = 0.0;
+double passFloatx9Struct4BytesHomogeneousUint84Bytes_a8 = 0.0;
+Struct4BytesHomogeneousUint84Bytes
+passFloatx9Struct4BytesHomogeneousUint84Bytes_a9 =
+    Pointer<Struct4BytesHomogeneousUint84Bytes>.fromAddress(0).ref;
+
+// Result variable also global, so we can delete it after the callback.
+double passFloatx9Struct4BytesHomogeneousUint84BytesResult = 0.0;
+
+double passFloatx9Struct4BytesHomogeneousUint84BytesCalculateResult() {
+  double result = 0;
+
+  result += passFloatx9Struct4BytesHomogeneousUint84Bytes_a0;
+  result += passFloatx9Struct4BytesHomogeneousUint84Bytes_a1;
+  result += passFloatx9Struct4BytesHomogeneousUint84Bytes_a2;
+  result += passFloatx9Struct4BytesHomogeneousUint84Bytes_a3;
+  result += passFloatx9Struct4BytesHomogeneousUint84Bytes_a4;
+  result += passFloatx9Struct4BytesHomogeneousUint84Bytes_a5;
+  result += passFloatx9Struct4BytesHomogeneousUint84Bytes_a6;
+  result += passFloatx9Struct4BytesHomogeneousUint84Bytes_a7;
+  result += passFloatx9Struct4BytesHomogeneousUint84Bytes_a8;
+  result += passFloatx9Struct4BytesHomogeneousUint84Bytes_a9.a0;
+  result += passFloatx9Struct4BytesHomogeneousUint84Bytes_a9.a1;
+  result += passFloatx9Struct4BytesHomogeneousUint84Bytes_a9.a2;
+  result += passFloatx9Struct4BytesHomogeneousUint84Bytes_a9.a3;
+
+  passFloatx9Struct4BytesHomogeneousUint84BytesResult = result;
+
+  return result;
+}
+
+/// Exhaust FP registers with 9 floats, then pass $t by value.
+double passFloatx9Struct4BytesHomogeneousUint84Bytes(
+  double a0,
+  double a1,
+  double a2,
+  double a3,
+  double a4,
+  double a5,
+  double a6,
+  double a7,
+  double a8,
+  Struct4BytesHomogeneousUint84Bytes a9,
+) {
+  print(
+    "passFloatx9Struct4BytesHomogeneousUint84Bytes(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})",
+  );
+
+  // Possibly throw.
+  if (a0 == 42 || a0 == 84) {
+    print("throwing!");
+    throw Exception(
+      "PassFloatx9Struct4BytesHomogeneousUint84Bytes throwing on purpose!",
+    );
+  }
+
+  passFloatx9Struct4BytesHomogeneousUint84Bytes_a0 = a0;
+  passFloatx9Struct4BytesHomogeneousUint84Bytes_a1 = a1;
+  passFloatx9Struct4BytesHomogeneousUint84Bytes_a2 = a2;
+  passFloatx9Struct4BytesHomogeneousUint84Bytes_a3 = a3;
+  passFloatx9Struct4BytesHomogeneousUint84Bytes_a4 = a4;
+  passFloatx9Struct4BytesHomogeneousUint84Bytes_a5 = a5;
+  passFloatx9Struct4BytesHomogeneousUint84Bytes_a6 = a6;
+  passFloatx9Struct4BytesHomogeneousUint84Bytes_a7 = a7;
+  passFloatx9Struct4BytesHomogeneousUint84Bytes_a8 = a8;
+  passFloatx9Struct4BytesHomogeneousUint84Bytes_a9 = a9;
+
+  final result = passFloatx9Struct4BytesHomogeneousUint84BytesCalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void passFloatx9Struct4BytesHomogeneousUint84BytesAfterCallback() {
+  final result = passFloatx9Struct4BytesHomogeneousUint84BytesCalculateResult();
+
+  print("after callback result = $result");
+
+  Expect.approxEquals(41.0, result);
+}
+
+typedef PassFloatx9Struct8BytesHomogeneousInt322FieldsType =
+    Double Function(
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Struct8BytesHomogeneousInt322Fields,
+    );
+
+// Global variables to be able to test inputs after callback returned.
+double passFloatx9Struct8BytesHomogeneousInt322Fields_a0 = 0.0;
+double passFloatx9Struct8BytesHomogeneousInt322Fields_a1 = 0.0;
+double passFloatx9Struct8BytesHomogeneousInt322Fields_a2 = 0.0;
+double passFloatx9Struct8BytesHomogeneousInt322Fields_a3 = 0.0;
+double passFloatx9Struct8BytesHomogeneousInt322Fields_a4 = 0.0;
+double passFloatx9Struct8BytesHomogeneousInt322Fields_a5 = 0.0;
+double passFloatx9Struct8BytesHomogeneousInt322Fields_a6 = 0.0;
+double passFloatx9Struct8BytesHomogeneousInt322Fields_a7 = 0.0;
+double passFloatx9Struct8BytesHomogeneousInt322Fields_a8 = 0.0;
+Struct8BytesHomogeneousInt322Fields
+passFloatx9Struct8BytesHomogeneousInt322Fields_a9 =
+    Pointer<Struct8BytesHomogeneousInt322Fields>.fromAddress(0).ref;
+
+// Result variable also global, so we can delete it after the callback.
+double passFloatx9Struct8BytesHomogeneousInt322FieldsResult = 0.0;
+
+double passFloatx9Struct8BytesHomogeneousInt322FieldsCalculateResult() {
+  double result = 0;
+
+  result += passFloatx9Struct8BytesHomogeneousInt322Fields_a0;
+  result += passFloatx9Struct8BytesHomogeneousInt322Fields_a1;
+  result += passFloatx9Struct8BytesHomogeneousInt322Fields_a2;
+  result += passFloatx9Struct8BytesHomogeneousInt322Fields_a3;
+  result += passFloatx9Struct8BytesHomogeneousInt322Fields_a4;
+  result += passFloatx9Struct8BytesHomogeneousInt322Fields_a5;
+  result += passFloatx9Struct8BytesHomogeneousInt322Fields_a6;
+  result += passFloatx9Struct8BytesHomogeneousInt322Fields_a7;
+  result += passFloatx9Struct8BytesHomogeneousInt322Fields_a8;
+  result += passFloatx9Struct8BytesHomogeneousInt322Fields_a9.a0;
+  result += passFloatx9Struct8BytesHomogeneousInt322Fields_a9.a1;
+
+  passFloatx9Struct8BytesHomogeneousInt322FieldsResult = result;
+
+  return result;
+}
+
+/// Exhaust FP registers with 9 floats, then pass $t by value.
+double passFloatx9Struct8BytesHomogeneousInt322Fields(
+  double a0,
+  double a1,
+  double a2,
+  double a3,
+  double a4,
+  double a5,
+  double a6,
+  double a7,
+  double a8,
+  Struct8BytesHomogeneousInt322Fields a9,
+) {
+  print(
+    "passFloatx9Struct8BytesHomogeneousInt322Fields(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})",
+  );
+
+  // Possibly throw.
+  if (a0 == 42 || a0 == 84) {
+    print("throwing!");
+    throw Exception(
+      "PassFloatx9Struct8BytesHomogeneousInt322Fields throwing on purpose!",
+    );
+  }
+
+  passFloatx9Struct8BytesHomogeneousInt322Fields_a0 = a0;
+  passFloatx9Struct8BytesHomogeneousInt322Fields_a1 = a1;
+  passFloatx9Struct8BytesHomogeneousInt322Fields_a2 = a2;
+  passFloatx9Struct8BytesHomogeneousInt322Fields_a3 = a3;
+  passFloatx9Struct8BytesHomogeneousInt322Fields_a4 = a4;
+  passFloatx9Struct8BytesHomogeneousInt322Fields_a5 = a5;
+  passFloatx9Struct8BytesHomogeneousInt322Fields_a6 = a6;
+  passFloatx9Struct8BytesHomogeneousInt322Fields_a7 = a7;
+  passFloatx9Struct8BytesHomogeneousInt322Fields_a8 = a8;
+  passFloatx9Struct8BytesHomogeneousInt322Fields_a9 = a9;
+
+  final result =
+      passFloatx9Struct8BytesHomogeneousInt322FieldsCalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void passFloatx9Struct8BytesHomogeneousInt322FieldsAfterCallback() {
+  final result =
+      passFloatx9Struct8BytesHomogeneousInt322FieldsCalculateResult();
+
+  print("after callback result = $result");
+
+  Expect.approxEquals(-6.0, result);
+}
+
+typedef PassFloatx9Struct12BytesHomogeneousInt32Type =
+    Double Function(
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Struct12BytesHomogeneousInt32,
+    );
+
+// Global variables to be able to test inputs after callback returned.
+double passFloatx9Struct12BytesHomogeneousInt32_a0 = 0.0;
+double passFloatx9Struct12BytesHomogeneousInt32_a1 = 0.0;
+double passFloatx9Struct12BytesHomogeneousInt32_a2 = 0.0;
+double passFloatx9Struct12BytesHomogeneousInt32_a3 = 0.0;
+double passFloatx9Struct12BytesHomogeneousInt32_a4 = 0.0;
+double passFloatx9Struct12BytesHomogeneousInt32_a5 = 0.0;
+double passFloatx9Struct12BytesHomogeneousInt32_a6 = 0.0;
+double passFloatx9Struct12BytesHomogeneousInt32_a7 = 0.0;
+double passFloatx9Struct12BytesHomogeneousInt32_a8 = 0.0;
+Struct12BytesHomogeneousInt32 passFloatx9Struct12BytesHomogeneousInt32_a9 =
+    Pointer<Struct12BytesHomogeneousInt32>.fromAddress(0).ref;
+
+// Result variable also global, so we can delete it after the callback.
+double passFloatx9Struct12BytesHomogeneousInt32Result = 0.0;
+
+double passFloatx9Struct12BytesHomogeneousInt32CalculateResult() {
+  double result = 0;
+
+  result += passFloatx9Struct12BytesHomogeneousInt32_a0;
+  result += passFloatx9Struct12BytesHomogeneousInt32_a1;
+  result += passFloatx9Struct12BytesHomogeneousInt32_a2;
+  result += passFloatx9Struct12BytesHomogeneousInt32_a3;
+  result += passFloatx9Struct12BytesHomogeneousInt32_a4;
+  result += passFloatx9Struct12BytesHomogeneousInt32_a5;
+  result += passFloatx9Struct12BytesHomogeneousInt32_a6;
+  result += passFloatx9Struct12BytesHomogeneousInt32_a7;
+  result += passFloatx9Struct12BytesHomogeneousInt32_a8;
+  result += passFloatx9Struct12BytesHomogeneousInt32_a9.a0;
+  result += passFloatx9Struct12BytesHomogeneousInt32_a9.a1;
+  result += passFloatx9Struct12BytesHomogeneousInt32_a9.a2;
+
+  passFloatx9Struct12BytesHomogeneousInt32Result = result;
+
+  return result;
+}
+
+/// Exhaust FP registers with 9 floats, then pass $t by value.
+double passFloatx9Struct12BytesHomogeneousInt32(
+  double a0,
+  double a1,
+  double a2,
+  double a3,
+  double a4,
+  double a5,
+  double a6,
+  double a7,
+  double a8,
+  Struct12BytesHomogeneousInt32 a9,
+) {
+  print(
+    "passFloatx9Struct12BytesHomogeneousInt32(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})",
+  );
+
+  // Possibly throw.
+  if (a0 == 42 || a0 == 84) {
+    print("throwing!");
+    throw Exception(
+      "PassFloatx9Struct12BytesHomogeneousInt32 throwing on purpose!",
+    );
+  }
+
+  passFloatx9Struct12BytesHomogeneousInt32_a0 = a0;
+  passFloatx9Struct12BytesHomogeneousInt32_a1 = a1;
+  passFloatx9Struct12BytesHomogeneousInt32_a2 = a2;
+  passFloatx9Struct12BytesHomogeneousInt32_a3 = a3;
+  passFloatx9Struct12BytesHomogeneousInt32_a4 = a4;
+  passFloatx9Struct12BytesHomogeneousInt32_a5 = a5;
+  passFloatx9Struct12BytesHomogeneousInt32_a6 = a6;
+  passFloatx9Struct12BytesHomogeneousInt32_a7 = a7;
+  passFloatx9Struct12BytesHomogeneousInt32_a8 = a8;
+  passFloatx9Struct12BytesHomogeneousInt32_a9 = a9;
+
+  final result = passFloatx9Struct12BytesHomogeneousInt32CalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void passFloatx9Struct12BytesHomogeneousInt32AfterCallback() {
+  final result = passFloatx9Struct12BytesHomogeneousInt32CalculateResult();
+
+  print("after callback result = $result");
+
+  Expect.approxEquals(6.0, result);
+}
+
+typedef PassFloatx9Struct16BytesHomogeneousInt324FieldsType =
+    Double Function(
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Struct16BytesHomogeneousInt324Fields,
+    );
+
+// Global variables to be able to test inputs after callback returned.
+double passFloatx9Struct16BytesHomogeneousInt324Fields_a0 = 0.0;
+double passFloatx9Struct16BytesHomogeneousInt324Fields_a1 = 0.0;
+double passFloatx9Struct16BytesHomogeneousInt324Fields_a2 = 0.0;
+double passFloatx9Struct16BytesHomogeneousInt324Fields_a3 = 0.0;
+double passFloatx9Struct16BytesHomogeneousInt324Fields_a4 = 0.0;
+double passFloatx9Struct16BytesHomogeneousInt324Fields_a5 = 0.0;
+double passFloatx9Struct16BytesHomogeneousInt324Fields_a6 = 0.0;
+double passFloatx9Struct16BytesHomogeneousInt324Fields_a7 = 0.0;
+double passFloatx9Struct16BytesHomogeneousInt324Fields_a8 = 0.0;
+Struct16BytesHomogeneousInt324Fields
+passFloatx9Struct16BytesHomogeneousInt324Fields_a9 =
+    Pointer<Struct16BytesHomogeneousInt324Fields>.fromAddress(0).ref;
+
+// Result variable also global, so we can delete it after the callback.
+double passFloatx9Struct16BytesHomogeneousInt324FieldsResult = 0.0;
+
+double passFloatx9Struct16BytesHomogeneousInt324FieldsCalculateResult() {
+  double result = 0;
+
+  result += passFloatx9Struct16BytesHomogeneousInt324Fields_a0;
+  result += passFloatx9Struct16BytesHomogeneousInt324Fields_a1;
+  result += passFloatx9Struct16BytesHomogeneousInt324Fields_a2;
+  result += passFloatx9Struct16BytesHomogeneousInt324Fields_a3;
+  result += passFloatx9Struct16BytesHomogeneousInt324Fields_a4;
+  result += passFloatx9Struct16BytesHomogeneousInt324Fields_a5;
+  result += passFloatx9Struct16BytesHomogeneousInt324Fields_a6;
+  result += passFloatx9Struct16BytesHomogeneousInt324Fields_a7;
+  result += passFloatx9Struct16BytesHomogeneousInt324Fields_a8;
+  result += passFloatx9Struct16BytesHomogeneousInt324Fields_a9.a0;
+  result += passFloatx9Struct16BytesHomogeneousInt324Fields_a9.a1;
+  result += passFloatx9Struct16BytesHomogeneousInt324Fields_a9.a2;
+  result += passFloatx9Struct16BytesHomogeneousInt324Fields_a9.a3;
+
+  passFloatx9Struct16BytesHomogeneousInt324FieldsResult = result;
+
+  return result;
+}
+
+/// Exhaust FP registers with 9 floats, then pass $t by value.
+double passFloatx9Struct16BytesHomogeneousInt324Fields(
+  double a0,
+  double a1,
+  double a2,
+  double a3,
+  double a4,
+  double a5,
+  double a6,
+  double a7,
+  double a8,
+  Struct16BytesHomogeneousInt324Fields a9,
+) {
+  print(
+    "passFloatx9Struct16BytesHomogeneousInt324Fields(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})",
+  );
+
+  // Possibly throw.
+  if (a0 == 42 || a0 == 84) {
+    print("throwing!");
+    throw Exception(
+      "PassFloatx9Struct16BytesHomogeneousInt324Fields throwing on purpose!",
+    );
+  }
+
+  passFloatx9Struct16BytesHomogeneousInt324Fields_a0 = a0;
+  passFloatx9Struct16BytesHomogeneousInt324Fields_a1 = a1;
+  passFloatx9Struct16BytesHomogeneousInt324Fields_a2 = a2;
+  passFloatx9Struct16BytesHomogeneousInt324Fields_a3 = a3;
+  passFloatx9Struct16BytesHomogeneousInt324Fields_a4 = a4;
+  passFloatx9Struct16BytesHomogeneousInt324Fields_a5 = a5;
+  passFloatx9Struct16BytesHomogeneousInt324Fields_a6 = a6;
+  passFloatx9Struct16BytesHomogeneousInt324Fields_a7 = a7;
+  passFloatx9Struct16BytesHomogeneousInt324Fields_a8 = a8;
+  passFloatx9Struct16BytesHomogeneousInt324Fields_a9 = a9;
+
+  final result =
+      passFloatx9Struct16BytesHomogeneousInt324FieldsCalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void passFloatx9Struct16BytesHomogeneousInt324FieldsAfterCallback() {
+  final result =
+      passFloatx9Struct16BytesHomogeneousInt324FieldsCalculateResult();
+
+  print("after callback result = $result");
+
+  Expect.approxEquals(-7.0, result);
+}
+
+typedef PassFloatx9Struct4BytesFloatType =
+    Double Function(
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Struct4BytesFloat,
+    );
+
+// Global variables to be able to test inputs after callback returned.
+double passFloatx9Struct4BytesFloat_a0 = 0.0;
+double passFloatx9Struct4BytesFloat_a1 = 0.0;
+double passFloatx9Struct4BytesFloat_a2 = 0.0;
+double passFloatx9Struct4BytesFloat_a3 = 0.0;
+double passFloatx9Struct4BytesFloat_a4 = 0.0;
+double passFloatx9Struct4BytesFloat_a5 = 0.0;
+double passFloatx9Struct4BytesFloat_a6 = 0.0;
+double passFloatx9Struct4BytesFloat_a7 = 0.0;
+double passFloatx9Struct4BytesFloat_a8 = 0.0;
+Struct4BytesFloat passFloatx9Struct4BytesFloat_a9 =
+    Pointer<Struct4BytesFloat>.fromAddress(0).ref;
+
+// Result variable also global, so we can delete it after the callback.
+double passFloatx9Struct4BytesFloatResult = 0.0;
+
+double passFloatx9Struct4BytesFloatCalculateResult() {
+  double result = 0;
+
+  result += passFloatx9Struct4BytesFloat_a0;
+  result += passFloatx9Struct4BytesFloat_a1;
+  result += passFloatx9Struct4BytesFloat_a2;
+  result += passFloatx9Struct4BytesFloat_a3;
+  result += passFloatx9Struct4BytesFloat_a4;
+  result += passFloatx9Struct4BytesFloat_a5;
+  result += passFloatx9Struct4BytesFloat_a6;
+  result += passFloatx9Struct4BytesFloat_a7;
+  result += passFloatx9Struct4BytesFloat_a8;
+  result += passFloatx9Struct4BytesFloat_a9.a0;
+
+  passFloatx9Struct4BytesFloatResult = result;
+
+  return result;
+}
+
+/// Exhaust FP registers with 9 floats, then pass $t by value.
+double passFloatx9Struct4BytesFloat(
+  double a0,
+  double a1,
+  double a2,
+  double a3,
+  double a4,
+  double a5,
+  double a6,
+  double a7,
+  double a8,
+  Struct4BytesFloat a9,
+) {
+  print(
+    "passFloatx9Struct4BytesFloat(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})",
+  );
+
+  // Possibly throw.
+  if (a0 == 42 || a0 == 84) {
+    print("throwing!");
+    throw Exception("PassFloatx9Struct4BytesFloat throwing on purpose!");
+  }
+
+  passFloatx9Struct4BytesFloat_a0 = a0;
+  passFloatx9Struct4BytesFloat_a1 = a1;
+  passFloatx9Struct4BytesFloat_a2 = a2;
+  passFloatx9Struct4BytesFloat_a3 = a3;
+  passFloatx9Struct4BytesFloat_a4 = a4;
+  passFloatx9Struct4BytesFloat_a5 = a5;
+  passFloatx9Struct4BytesFloat_a6 = a6;
+  passFloatx9Struct4BytesFloat_a7 = a7;
+  passFloatx9Struct4BytesFloat_a8 = a8;
+  passFloatx9Struct4BytesFloat_a9 = a9;
+
+  final result = passFloatx9Struct4BytesFloatCalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void passFloatx9Struct4BytesFloatAfterCallback() {
+  final result = passFloatx9Struct4BytesFloatCalculateResult();
+
+  print("after callback result = $result");
+
+  Expect.approxEquals(5.0, result);
+}
+
+typedef PassFloatx9Struct8BytesHomogeneousFloatType =
+    Double Function(
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Struct8BytesHomogeneousFloat,
+    );
+
+// Global variables to be able to test inputs after callback returned.
+double passFloatx9Struct8BytesHomogeneousFloat_a0 = 0.0;
+double passFloatx9Struct8BytesHomogeneousFloat_a1 = 0.0;
+double passFloatx9Struct8BytesHomogeneousFloat_a2 = 0.0;
+double passFloatx9Struct8BytesHomogeneousFloat_a3 = 0.0;
+double passFloatx9Struct8BytesHomogeneousFloat_a4 = 0.0;
+double passFloatx9Struct8BytesHomogeneousFloat_a5 = 0.0;
+double passFloatx9Struct8BytesHomogeneousFloat_a6 = 0.0;
+double passFloatx9Struct8BytesHomogeneousFloat_a7 = 0.0;
+double passFloatx9Struct8BytesHomogeneousFloat_a8 = 0.0;
+Struct8BytesHomogeneousFloat passFloatx9Struct8BytesHomogeneousFloat_a9 =
+    Pointer<Struct8BytesHomogeneousFloat>.fromAddress(0).ref;
+
+// Result variable also global, so we can delete it after the callback.
+double passFloatx9Struct8BytesHomogeneousFloatResult = 0.0;
+
+double passFloatx9Struct8BytesHomogeneousFloatCalculateResult() {
+  double result = 0;
+
+  result += passFloatx9Struct8BytesHomogeneousFloat_a0;
+  result += passFloatx9Struct8BytesHomogeneousFloat_a1;
+  result += passFloatx9Struct8BytesHomogeneousFloat_a2;
+  result += passFloatx9Struct8BytesHomogeneousFloat_a3;
+  result += passFloatx9Struct8BytesHomogeneousFloat_a4;
+  result += passFloatx9Struct8BytesHomogeneousFloat_a5;
+  result += passFloatx9Struct8BytesHomogeneousFloat_a6;
+  result += passFloatx9Struct8BytesHomogeneousFloat_a7;
+  result += passFloatx9Struct8BytesHomogeneousFloat_a8;
+  result += passFloatx9Struct8BytesHomogeneousFloat_a9.a0;
+  result += passFloatx9Struct8BytesHomogeneousFloat_a9.a1;
+
+  passFloatx9Struct8BytesHomogeneousFloatResult = result;
+
+  return result;
+}
+
+/// Exhaust FP registers with 9 floats, then pass $t by value.
+double passFloatx9Struct8BytesHomogeneousFloat(
+  double a0,
+  double a1,
+  double a2,
+  double a3,
+  double a4,
+  double a5,
+  double a6,
+  double a7,
+  double a8,
+  Struct8BytesHomogeneousFloat a9,
+) {
+  print(
+    "passFloatx9Struct8BytesHomogeneousFloat(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})",
+  );
+
+  // Possibly throw.
+  if (a0 == 42 || a0 == 84) {
+    print("throwing!");
+    throw Exception(
+      "PassFloatx9Struct8BytesHomogeneousFloat throwing on purpose!",
+    );
+  }
+
+  passFloatx9Struct8BytesHomogeneousFloat_a0 = a0;
+  passFloatx9Struct8BytesHomogeneousFloat_a1 = a1;
+  passFloatx9Struct8BytesHomogeneousFloat_a2 = a2;
+  passFloatx9Struct8BytesHomogeneousFloat_a3 = a3;
+  passFloatx9Struct8BytesHomogeneousFloat_a4 = a4;
+  passFloatx9Struct8BytesHomogeneousFloat_a5 = a5;
+  passFloatx9Struct8BytesHomogeneousFloat_a6 = a6;
+  passFloatx9Struct8BytesHomogeneousFloat_a7 = a7;
+  passFloatx9Struct8BytesHomogeneousFloat_a8 = a8;
+  passFloatx9Struct8BytesHomogeneousFloat_a9 = a9;
+
+  final result = passFloatx9Struct8BytesHomogeneousFloatCalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void passFloatx9Struct8BytesHomogeneousFloatAfterCallback() {
+  final result = passFloatx9Struct8BytesHomogeneousFloatCalculateResult();
+
+  print("after callback result = $result");
+
+  Expect.approxEquals(-6.0, result);
+}
+
+typedef PassFloatx9Struct12BytesHomogeneousFloatType =
+    Double Function(
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Struct12BytesHomogeneousFloat,
+    );
+
+// Global variables to be able to test inputs after callback returned.
+double passFloatx9Struct12BytesHomogeneousFloat_a0 = 0.0;
+double passFloatx9Struct12BytesHomogeneousFloat_a1 = 0.0;
+double passFloatx9Struct12BytesHomogeneousFloat_a2 = 0.0;
+double passFloatx9Struct12BytesHomogeneousFloat_a3 = 0.0;
+double passFloatx9Struct12BytesHomogeneousFloat_a4 = 0.0;
+double passFloatx9Struct12BytesHomogeneousFloat_a5 = 0.0;
+double passFloatx9Struct12BytesHomogeneousFloat_a6 = 0.0;
+double passFloatx9Struct12BytesHomogeneousFloat_a7 = 0.0;
+double passFloatx9Struct12BytesHomogeneousFloat_a8 = 0.0;
+Struct12BytesHomogeneousFloat passFloatx9Struct12BytesHomogeneousFloat_a9 =
+    Pointer<Struct12BytesHomogeneousFloat>.fromAddress(0).ref;
+
+// Result variable also global, so we can delete it after the callback.
+double passFloatx9Struct12BytesHomogeneousFloatResult = 0.0;
+
+double passFloatx9Struct12BytesHomogeneousFloatCalculateResult() {
+  double result = 0;
+
+  result += passFloatx9Struct12BytesHomogeneousFloat_a0;
+  result += passFloatx9Struct12BytesHomogeneousFloat_a1;
+  result += passFloatx9Struct12BytesHomogeneousFloat_a2;
+  result += passFloatx9Struct12BytesHomogeneousFloat_a3;
+  result += passFloatx9Struct12BytesHomogeneousFloat_a4;
+  result += passFloatx9Struct12BytesHomogeneousFloat_a5;
+  result += passFloatx9Struct12BytesHomogeneousFloat_a6;
+  result += passFloatx9Struct12BytesHomogeneousFloat_a7;
+  result += passFloatx9Struct12BytesHomogeneousFloat_a8;
+  result += passFloatx9Struct12BytesHomogeneousFloat_a9.a0;
+  result += passFloatx9Struct12BytesHomogeneousFloat_a9.a1;
+  result += passFloatx9Struct12BytesHomogeneousFloat_a9.a2;
+
+  passFloatx9Struct12BytesHomogeneousFloatResult = result;
+
+  return result;
+}
+
+/// Exhaust FP registers with 9 floats, then pass $t by value.
+double passFloatx9Struct12BytesHomogeneousFloat(
+  double a0,
+  double a1,
+  double a2,
+  double a3,
+  double a4,
+  double a5,
+  double a6,
+  double a7,
+  double a8,
+  Struct12BytesHomogeneousFloat a9,
+) {
+  print(
+    "passFloatx9Struct12BytesHomogeneousFloat(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})",
+  );
+
+  // Possibly throw.
+  if (a0 == 42 || a0 == 84) {
+    print("throwing!");
+    throw Exception(
+      "PassFloatx9Struct12BytesHomogeneousFloat throwing on purpose!",
+    );
+  }
+
+  passFloatx9Struct12BytesHomogeneousFloat_a0 = a0;
+  passFloatx9Struct12BytesHomogeneousFloat_a1 = a1;
+  passFloatx9Struct12BytesHomogeneousFloat_a2 = a2;
+  passFloatx9Struct12BytesHomogeneousFloat_a3 = a3;
+  passFloatx9Struct12BytesHomogeneousFloat_a4 = a4;
+  passFloatx9Struct12BytesHomogeneousFloat_a5 = a5;
+  passFloatx9Struct12BytesHomogeneousFloat_a6 = a6;
+  passFloatx9Struct12BytesHomogeneousFloat_a7 = a7;
+  passFloatx9Struct12BytesHomogeneousFloat_a8 = a8;
+  passFloatx9Struct12BytesHomogeneousFloat_a9 = a9;
+
+  final result = passFloatx9Struct12BytesHomogeneousFloatCalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void passFloatx9Struct12BytesHomogeneousFloatAfterCallback() {
+  final result = passFloatx9Struct12BytesHomogeneousFloatCalculateResult();
+
+  print("after callback result = $result");
+
+  Expect.approxEquals(6.0, result);
+}
+
+typedef PassFloatx9Struct16BytesHomogeneousFloatType =
+    Double Function(
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Struct16BytesHomogeneousFloat,
+    );
+
+// Global variables to be able to test inputs after callback returned.
+double passFloatx9Struct16BytesHomogeneousFloat_a0 = 0.0;
+double passFloatx9Struct16BytesHomogeneousFloat_a1 = 0.0;
+double passFloatx9Struct16BytesHomogeneousFloat_a2 = 0.0;
+double passFloatx9Struct16BytesHomogeneousFloat_a3 = 0.0;
+double passFloatx9Struct16BytesHomogeneousFloat_a4 = 0.0;
+double passFloatx9Struct16BytesHomogeneousFloat_a5 = 0.0;
+double passFloatx9Struct16BytesHomogeneousFloat_a6 = 0.0;
+double passFloatx9Struct16BytesHomogeneousFloat_a7 = 0.0;
+double passFloatx9Struct16BytesHomogeneousFloat_a8 = 0.0;
+Struct16BytesHomogeneousFloat passFloatx9Struct16BytesHomogeneousFloat_a9 =
+    Pointer<Struct16BytesHomogeneousFloat>.fromAddress(0).ref;
+
+// Result variable also global, so we can delete it after the callback.
+double passFloatx9Struct16BytesHomogeneousFloatResult = 0.0;
+
+double passFloatx9Struct16BytesHomogeneousFloatCalculateResult() {
+  double result = 0;
+
+  result += passFloatx9Struct16BytesHomogeneousFloat_a0;
+  result += passFloatx9Struct16BytesHomogeneousFloat_a1;
+  result += passFloatx9Struct16BytesHomogeneousFloat_a2;
+  result += passFloatx9Struct16BytesHomogeneousFloat_a3;
+  result += passFloatx9Struct16BytesHomogeneousFloat_a4;
+  result += passFloatx9Struct16BytesHomogeneousFloat_a5;
+  result += passFloatx9Struct16BytesHomogeneousFloat_a6;
+  result += passFloatx9Struct16BytesHomogeneousFloat_a7;
+  result += passFloatx9Struct16BytesHomogeneousFloat_a8;
+  result += passFloatx9Struct16BytesHomogeneousFloat_a9.a0;
+  result += passFloatx9Struct16BytesHomogeneousFloat_a9.a1;
+  result += passFloatx9Struct16BytesHomogeneousFloat_a9.a2;
+  result += passFloatx9Struct16BytesHomogeneousFloat_a9.a3;
+
+  passFloatx9Struct16BytesHomogeneousFloatResult = result;
+
+  return result;
+}
+
+/// Exhaust FP registers with 9 floats, then pass $t by value.
+double passFloatx9Struct16BytesHomogeneousFloat(
+  double a0,
+  double a1,
+  double a2,
+  double a3,
+  double a4,
+  double a5,
+  double a6,
+  double a7,
+  double a8,
+  Struct16BytesHomogeneousFloat a9,
+) {
+  print(
+    "passFloatx9Struct16BytesHomogeneousFloat(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})",
+  );
+
+  // Possibly throw.
+  if (a0 == 42 || a0 == 84) {
+    print("throwing!");
+    throw Exception(
+      "PassFloatx9Struct16BytesHomogeneousFloat throwing on purpose!",
+    );
+  }
+
+  passFloatx9Struct16BytesHomogeneousFloat_a0 = a0;
+  passFloatx9Struct16BytesHomogeneousFloat_a1 = a1;
+  passFloatx9Struct16BytesHomogeneousFloat_a2 = a2;
+  passFloatx9Struct16BytesHomogeneousFloat_a3 = a3;
+  passFloatx9Struct16BytesHomogeneousFloat_a4 = a4;
+  passFloatx9Struct16BytesHomogeneousFloat_a5 = a5;
+  passFloatx9Struct16BytesHomogeneousFloat_a6 = a6;
+  passFloatx9Struct16BytesHomogeneousFloat_a7 = a7;
+  passFloatx9Struct16BytesHomogeneousFloat_a8 = a8;
+  passFloatx9Struct16BytesHomogeneousFloat_a9 = a9;
+
+  final result = passFloatx9Struct16BytesHomogeneousFloatCalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void passFloatx9Struct16BytesHomogeneousFloatAfterCallback() {
+  final result = passFloatx9Struct16BytesHomogeneousFloatCalculateResult();
+
+  print("after callback result = $result");
+
+  Expect.approxEquals(-7.0, result);
+}
+
+typedef PassFloatx9Struct8BytesMixedInt32FloatType =
+    Double Function(
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Struct8BytesMixedInt32Float,
+    );
+
+// Global variables to be able to test inputs after callback returned.
+double passFloatx9Struct8BytesMixedInt32Float_a0 = 0.0;
+double passFloatx9Struct8BytesMixedInt32Float_a1 = 0.0;
+double passFloatx9Struct8BytesMixedInt32Float_a2 = 0.0;
+double passFloatx9Struct8BytesMixedInt32Float_a3 = 0.0;
+double passFloatx9Struct8BytesMixedInt32Float_a4 = 0.0;
+double passFloatx9Struct8BytesMixedInt32Float_a5 = 0.0;
+double passFloatx9Struct8BytesMixedInt32Float_a6 = 0.0;
+double passFloatx9Struct8BytesMixedInt32Float_a7 = 0.0;
+double passFloatx9Struct8BytesMixedInt32Float_a8 = 0.0;
+Struct8BytesMixedInt32Float passFloatx9Struct8BytesMixedInt32Float_a9 =
+    Pointer<Struct8BytesMixedInt32Float>.fromAddress(0).ref;
+
+// Result variable also global, so we can delete it after the callback.
+double passFloatx9Struct8BytesMixedInt32FloatResult = 0.0;
+
+double passFloatx9Struct8BytesMixedInt32FloatCalculateResult() {
+  double result = 0;
+
+  result += passFloatx9Struct8BytesMixedInt32Float_a0;
+  result += passFloatx9Struct8BytesMixedInt32Float_a1;
+  result += passFloatx9Struct8BytesMixedInt32Float_a2;
+  result += passFloatx9Struct8BytesMixedInt32Float_a3;
+  result += passFloatx9Struct8BytesMixedInt32Float_a4;
+  result += passFloatx9Struct8BytesMixedInt32Float_a5;
+  result += passFloatx9Struct8BytesMixedInt32Float_a6;
+  result += passFloatx9Struct8BytesMixedInt32Float_a7;
+  result += passFloatx9Struct8BytesMixedInt32Float_a8;
+  result += passFloatx9Struct8BytesMixedInt32Float_a9.a0;
+  result += passFloatx9Struct8BytesMixedInt32Float_a9.a1;
+
+  passFloatx9Struct8BytesMixedInt32FloatResult = result;
+
+  return result;
+}
+
+/// Exhaust FP registers with 9 floats, then pass $t by value.
+double passFloatx9Struct8BytesMixedInt32Float(
+  double a0,
+  double a1,
+  double a2,
+  double a3,
+  double a4,
+  double a5,
+  double a6,
+  double a7,
+  double a8,
+  Struct8BytesMixedInt32Float a9,
+) {
+  print(
+    "passFloatx9Struct8BytesMixedInt32Float(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})",
+  );
+
+  // Possibly throw.
+  if (a0 == 42 || a0 == 84) {
+    print("throwing!");
+    throw Exception(
+      "PassFloatx9Struct8BytesMixedInt32Float throwing on purpose!",
+    );
+  }
+
+  passFloatx9Struct8BytesMixedInt32Float_a0 = a0;
+  passFloatx9Struct8BytesMixedInt32Float_a1 = a1;
+  passFloatx9Struct8BytesMixedInt32Float_a2 = a2;
+  passFloatx9Struct8BytesMixedInt32Float_a3 = a3;
+  passFloatx9Struct8BytesMixedInt32Float_a4 = a4;
+  passFloatx9Struct8BytesMixedInt32Float_a5 = a5;
+  passFloatx9Struct8BytesMixedInt32Float_a6 = a6;
+  passFloatx9Struct8BytesMixedInt32Float_a7 = a7;
+  passFloatx9Struct8BytesMixedInt32Float_a8 = a8;
+  passFloatx9Struct8BytesMixedInt32Float_a9 = a9;
+
+  final result = passFloatx9Struct8BytesMixedInt32FloatCalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void passFloatx9Struct8BytesMixedInt32FloatAfterCallback() {
+  final result = passFloatx9Struct8BytesMixedInt32FloatCalculateResult();
+
+  print("after callback result = $result");
+
+  Expect.approxEquals(-6.0, result);
 }
 
 typedef ReturnStruct1ByteIntType = Struct1ByteInt Function(Int8);

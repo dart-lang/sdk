@@ -6,10 +6,10 @@ import 'package:analysis_server/src/services/correction/dart/add_async.dart';
 import 'package:analysis_server/src/services/correction/dart/add_await.dart';
 import 'package:analysis_server/src/services/correction/dart/add_call_super.dart';
 import 'package:analysis_server/src/services/correction/dart/add_class_modifier.dart';
+import 'package:analysis_server/src/services/correction/dart/add_closure.dart';
 import 'package:analysis_server/src/services/correction/dart/add_const.dart';
 import 'package:analysis_server/src/services/correction/dart/add_diagnostic_property_reference.dart';
 import 'package:analysis_server/src/services/correction/dart/add_empty_argument_list.dart';
-import 'package:analysis_server/src/services/correction/dart/add_enum_constant.dart';
 import 'package:analysis_server/src/services/correction/dart/add_eol_at_end_of_file.dart';
 import 'package:analysis_server/src/services/correction/dart/add_explicit_call.dart';
 import 'package:analysis_server/src/services/correction/dart/add_explicit_cast.dart';
@@ -93,6 +93,7 @@ import 'package:analysis_server/src/services/correction/dart/create_class.dart';
 import 'package:analysis_server/src/services/correction/dart/create_constructor.dart';
 import 'package:analysis_server/src/services/correction/dart/create_constructor_for_final_fields.dart';
 import 'package:analysis_server/src/services/correction/dart/create_constructor_super.dart';
+import 'package:analysis_server/src/services/correction/dart/create_enum_constant.dart';
 import 'package:analysis_server/src/services/correction/dart/create_extension_member.dart';
 import 'package:analysis_server/src/services/correction/dart/create_field.dart';
 import 'package:analysis_server/src/services/correction/dart/create_file.dart';
@@ -151,7 +152,6 @@ import 'package:analysis_server/src/services/correction/dart/remove_constructor_
 import 'package:analysis_server/src/services/correction/dart/remove_dead_code.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_dead_if_null.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_default_value.dart';
-import 'package:analysis_server/src/services/correction/dart/remove_deprecated_new_in_comment_reference.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_duplicate_case.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_empty_catch.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_empty_constructor_body.dart';
@@ -182,6 +182,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_print.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_question_mark.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_required.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_returned_value.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_this_alias.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_this_expression.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_to_list.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_type_annotation.dart';
@@ -245,6 +246,7 @@ import 'package:analysis_server/src/services/correction/dart/replace_with_not_nu
 import 'package:analysis_server/src/services/correction/dart/replace_with_not_null_aware_element_or_entry.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_null_aware.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_part_of_uri.dart';
+import 'package:analysis_server/src/services/correction/dart/replace_with_syncvalue.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_tear_off.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_unicode_escape.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_var.dart';
@@ -287,7 +289,7 @@ final _builtInLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   diag.alwaysUsePackageImports: [ConvertToPackageImport.new],
   diag.annotateOverrides: [AddOverride.new],
   diag.annotateRedeclares: [AddRedeclare.new],
-  diag.asyncReturnWithNoAwait: [AddAwait.return_],
+  diag.asyncReturnWithNoAwait: [AddAwait.return_, RemoveAsync.unawaited],
   diag.avoidAnnotatingWithDynamic: [RemoveTypeAnnotation.other],
   diag.avoidBoolLiteralsInConditionalExpressions: [
     ConvertToBooleanExpression.new,
@@ -332,6 +334,7 @@ final _builtInLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   diag.directivesOrderingAlphabetical: [OrganizeImports.new],
   diag.directivesOrderingExports: [OrganizeImports.new],
   diag.directivesOrderingPackageBeforeRelative: [OrganizeImports.new],
+  diag.discardedFutureOr: [AddAsync.discardedFutures],
   diag.discardedFutures: [AddAsync.discardedFutures, WrapInUnawaited.new],
   diag.emptyCatches: [RemoveEmptyCatch.new],
   diag.emptyConstructorBodies: [RemoveEmptyConstructorBody.new],
@@ -341,6 +344,7 @@ final _builtInLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   diag.eolAtEndOfFileTooMany: [AddEolAtEndOfFile.new],
   diag.exhaustiveCases: [AddMissingEnumLikeCaseClauses.new],
   diag.flutterStyleTodos: [ConvertToFlutterStyleTodo.new],
+  diag.futureSyncValue: [ReplaceWithSyncValue.new],
   diag.hashAndEquals: [CreateMethod.equalityOrHashCode],
   diag.implicitCallTearoffs: [AddExplicitCall.new],
   diag.implicitReopen: [AddReopen.new],
@@ -443,6 +447,7 @@ final _builtInLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
     ConvertToConstantPattern.new,
     ConvertToWildcardPattern.new,
   ],
+  diag.unawaitedFutureOr: [AddAwait.unawaited],
   diag.unawaitedFutures: [AddAwait.unawaited, WrapInUnawaited.new],
   diag.unnecessaryAsync: [RemoveAsync.unnecessary],
   diag.unnecessaryAwaitInReturn: [RemoveKeyword.awaitKeyword],
@@ -482,6 +487,7 @@ final _builtInLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   ],
   diag.unnecessaryToListInSpreads: [RemoveToList.new],
   diag.unnecessaryThis: [RemoveThisExpression.new],
+  diag.unnecessaryThisAlias: [RemoveThisAlias.new],
   diag.unnecessaryTypeNameInConstructor: [RemoveTypeName.new],
   diag.unnecessaryUnawaited: [RemoveUnawaited.new],
   diag.unnecessaryUnderscores: [ConvertToWildcardVariable.automatically],
@@ -513,7 +519,10 @@ final _builtInLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
 };
 
 final _builtInLintMultiGenerators = {
-  diag.commentReferences: [ImportLibrary.forType, ImportLibrary.forExtension],
+  diag.commentReferences: [
+    ImportLibrary.forCommentReference,
+    ImportLibrary.forExtensionCommentReference,
+  ],
   diag.deprecatedMemberUseFromSamePackageWithoutMessage: [DataDriven.new],
   diag.deprecatedMemberUseFromSamePackageWithMessage: [DataDriven.new],
   diag.migrateDesignWidgets: [DataDriven.new],
@@ -533,6 +542,7 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
     AddNullCheck.new,
     WrapInText.new,
     AddAwait.argumentType,
+    AddMissingClosureParameters.parameters,
   ],
   diag.asyncForInWrongContext: [AddAsync.new],
   diag.augmentationModifierExtra: [RemoveLexeme.modifier],
@@ -558,10 +568,10 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   ],
   diag.deprecatedFactoryMethod: [AddReturnType.new],
   diag.dotShorthandUndefinedGetter: [
-    AddEnumConstant.new,
     ChangeTo.getterOrSetter,
-    CreateGetter.new,
+    CreateEnumConstant.new,
     CreateField.new,
+    CreateGetter.new,
   ],
   diag.dotShorthandUndefinedInvocation: [
     ChangeTo.method,
@@ -639,13 +649,13 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   diag.initializingFormalForNonExistentField: [ChangeTo.field, CreateField.new],
   diag.instanceAccessToStaticMember: [ChangeToStaticAccess.new],
   diag.integerLiteralImpreciseAsDouble: [ChangeToNearestPreciseValue.new],
-  diag.invalidAnnotation: [ChangeTo.annotation],
   diag.invalidAssignment: [
     AddExplicitCast.new,
     AddNullCheck.new,
     ChangeTypeAnnotation.new,
     MakeVariableNullable.new,
     AddAwait.assignment,
+    AddMissingClosureParameters.parameters,
   ],
   diag.invalidConstant: [RemoveConst.new],
   diag.invalidCovariantModifierInPrimaryConstructor: [
@@ -733,7 +743,28 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   diag.nonExhaustiveSwitchStatementPrivate: [AddMissingSwitchCases.new],
   diag.nonFinalFieldInEnum: [MakeFinal.new],
   diag.notAType: [ChangeTo.classOrMixin],
-  diag.notInitializedNonNullableInstanceField: [AddLate.new],
+  diag.notEnoughPositionalArgumentsNamePlural: [
+    AddMissingClosureParameters.positional,
+  ],
+  diag.notEnoughPositionalArgumentsNameSingular: [
+    AddMissingClosureParameters.positional,
+  ],
+  diag.notEnoughPositionalArgumentsPlural: [
+    AddMissingClosureParameters.positional,
+  ],
+  diag.notEnoughPositionalArgumentsSingular: [
+    AddMissingClosureParameters.positional,
+  ],
+  diag.notInitializedNonNullableInstanceField: [
+    AddLate.new,
+    CreateConstructorForFinalFields.requiredNamed,
+    CreateConstructorForFinalFields.requiredPositional,
+    MakeVariableNullable.new,
+  ],
+  diag.notInitializedNonNullableVariable: [
+    AddLate.new,
+    MakeVariableNullable.new,
+  ],
   diag.nullableTypeInExtendsClause: [RemoveQuestionMark.new],
   diag.nullableTypeInImplementsClause: [RemoveQuestionMark.new],
   diag.nullableTypeInOnClause: [RemoveQuestionMark.new],
@@ -752,12 +783,15 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
     AddAsync.wrongReturnType,
     MakeReturnTypeNullable.new,
     ReplaceReturnType.new,
+    AddMissingClosureParameters.parameters,
   ],
   diag.returnOfInvalidTypeFromMethod: [
     AddAsync.wrongReturnType,
     MakeReturnTypeNullable.new,
     ReplaceReturnType.new,
+    AddMissingClosureParameters.parameters,
   ],
+  diag.returnWithoutValue: [AddMissingClosureParameters.expression],
   diag.setElementFromDeferredLibrary: [RemoveConst.new],
   diag.setElementTypeNotAssignableNullability: [
     ConvertToNullAwareSetElement.new,
@@ -812,12 +846,12 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
     ConvertToNullAwareSpread.new,
   ],
   diag.uncheckedUseOfNullableValueInYieldEach: [AddNullCheck.new],
-  diag.undefinedAnnotation: [ChangeTo.annotation],
   diag.undefinedClass: [ChangeTo.classOrMixin],
   diag.undefinedClassBoolean: [ReplaceBooleanWithBool.new],
   diag.undefinedEnumConstant: [
-    AddEnumConstant.new,
+    CreateEnumConstant.new,
     CreateField.new,
+    CreateGetter.new,
     ChangeTo.getterOrSetter,
     CreateMethodOrFunction.new,
   ],
@@ -851,6 +885,7 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   ],
   diag.undefinedIdentifier: [
     ChangeTo.getterOrSetter,
+    CreateEnumConstant.new,
     CreateField.new,
     CreateGetter.new,
     CreateLocalVariable.new,
@@ -863,6 +898,12 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   ],
   diag.undefinedIdentifierAwait: [AddAsync.new],
   diag.undefinedMethod: [
+    ChangeTo.method,
+    CreateExtensionMethod.new,
+    CreateFunction.new,
+    CreateMethod.method,
+  ],
+  diag.undefinedMethodOnTypeLiteral: [
     ChangeTo.method,
     CreateExtensionMethod.new,
     CreateFunction.new,
@@ -959,6 +1000,10 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   diag.missingConstFinalVarOrType: [AddTypeAnnotation.new],
   diag.missingEnumBody: [InsertBody.new],
   diag.missingFunctionBody: [ConvertIntoBlockBody.missingBody],
+  diag.missingIdentifier: [
+    AddMissingClosureParameters.named,
+    AddMissingClosureParameters.expression,
+  ],
   diag.missingTypedefParameters: [AddEmptyArgumentList.new],
   diag.mixinDeclaresConstructor: [RemoveConstructor.new],
   diag.patternAssignmentDeclaresVariable: [RemoveVarKeyword.new],
@@ -1011,14 +1056,12 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   diag.deprecatedExtend: [RemoveExtendsClause.new],
   diag.deprecatedImplement: [RemoveNameFromDeclarationClause.new],
   diag.deprecatedImplementsFunction: [RemoveNameFromDeclarationClause.new],
-  diag.deprecatedNewInCommentReference: [
-    RemoveDeprecatedNewInCommentReference.new,
-  ],
   diag.deprecatedSubclass: [RemoveNameFromDeclarationClause.new],
   diag.duplicateHiddenName: [RemoveNameFromCombinator.new],
   diag.duplicateImport: [RemoveUnusedImport.new],
   diag.duplicateShownName: [RemoveNameFromCombinator.new],
   diag.invalidAnnotationTarget: [RemoveAnnotation.new],
+  diag.invalidExportOfInternalElement: [RemoveNameFromCombinator.new],
   diag.invalidInternalAnnotation: [RemoveAnnotation.new],
   diag.invalidLiteralAnnotation: [RemoveAnnotation.new],
   diag.invalidNonVirtualAnnotation: [RemoveAnnotation.new],
@@ -1075,7 +1118,10 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   diag.unusedCatchClause: [RemoveUnusedCatchClause.new],
   diag.unusedCatchStack: [RemoveUnusedCatchStack.new],
   diag.unusedElement: [RemoveUnusedElement.new],
-  diag.unusedElementParameter: [RemoveUnusedParameter.new],
+  diag.unusedElementParameter: [
+    ConvertToWildcardVariable.new,
+    RemoveUnusedParameter.new,
+  ],
   diag.unusedField: [RemoveUnusedField.new],
   diag.unusedImport: [RemoveUnusedImport.new],
   diag.unusedLabel: [RemoveUnusedLabel.new],
@@ -1095,15 +1141,15 @@ final _builtInNonLintMultiGenerators = {
     CreateClass.new,
     CreateMixin.new,
     DataDriven.new,
-    ImportLibrary.forType,
+    ImportLibrary.forTypeOrMember,
   ],
-  diag.constWithNonType: [CreateClass.new, ImportLibrary.forType],
+  diag.constWithNonType: [CreateClass.new, ImportLibrary.forTypeOrMember],
   diag.dotShorthandUndefinedGetter: [DataDriven.new],
   diag.dotShorthandUndefinedInvocation: [DataDriven.new],
   diag.extendsNonClass: [
     CreateClass.new,
     DataDriven.new,
-    ImportLibrary.forType,
+    ImportLibrary.forTypeOrMember,
   ],
   diag.extraPositionalArguments: [AddMissingParameter.new, DataDriven.new],
   diag.extraPositionalArgumentsCouldBeNamed: [
@@ -1113,7 +1159,7 @@ final _builtInNonLintMultiGenerators = {
   diag.implementsNonClass: [
     CreateClass.new,
     DataDriven.new,
-    ImportLibrary.forType,
+    ImportLibrary.forTypeOrMember,
   ],
   diag.implicitSuperInitializerMissingArguments: [
     AddSuperConstructorInvocation.new,
@@ -1121,7 +1167,7 @@ final _builtInNonLintMultiGenerators = {
   diag.invalidAnnotation: [
     CreateClass.new,
     ImportLibrary.forTopLevelVariable,
-    ImportLibrary.forType,
+    ImportLibrary.forTypeOrMember,
   ],
   diag.invalidOverride: [DataDriven.new],
   diag.invalidOverrideSetter: [DataDriven.new],
@@ -1130,24 +1176,31 @@ final _builtInNonLintMultiGenerators = {
     CreateClass.new,
     CreateMixin.new,
     DataDriven.new,
-    ImportLibrary.forType,
+    ImportLibrary.forTypeOrMember,
   ],
-  diag.mixinWithNonClassSuperclass: [CreateClass.new, ImportLibrary.forType],
-  diag.newWithNonType: [CreateClass.new, ImportLibrary.forType],
+  diag.mixinWithNonClassSuperclass: [
+    CreateClass.new,
+    ImportLibrary.forTypeOrMember,
+  ],
+  diag.newWithNonType: [CreateClass.new, ImportLibrary.forTypeOrMember],
   diag.newWithUndefinedConstructorDefault: [DataDriven.new],
   diag.noDefaultSuperConstructorExplicit: [AddSuperConstructorInvocation.new],
   diag.noDefaultSuperConstructorImplicit: [
     AddSuperConstructorInvocation.new,
     CreateConstructorSuper.new,
   ],
-  diag.nonTypeInCatchClause: [ImportLibrary.forType],
+  diag.nonTypeInCatchClause: [ImportLibrary.forTypeOrMember],
   diag.nonTypeAsTypeArgument: [
     CreateClass.new,
     CreateMixin.new,
     DataDriven.new,
-    ImportLibrary.forType,
+    ImportLibrary.forTypeOrMember,
   ],
-  diag.notAType: [CreateClass.new, ImportLibrary.forType, CreateMixin.new],
+  diag.notAType: [
+    CreateClass.new,
+    ImportLibrary.forTypeOrMember,
+    CreateMixin.new,
+  ],
   diag.notEnoughPositionalArgumentsNamePlural: [DataDriven.new],
   diag.notEnoughPositionalArgumentsNameSingular: [DataDriven.new],
   diag.notEnoughPositionalArgumentsPlural: [DataDriven.new],
@@ -1155,7 +1208,7 @@ final _builtInNonLintMultiGenerators = {
   diag.typeTestWithUndefinedName: [
     CreateClass.new,
     CreateMixin.new,
-    ImportLibrary.forType,
+    ImportLibrary.forTypeOrMember,
   ],
   diag.positionalSuperFormalParameterWithPositionalArgument: [
     AddMissingParameter.new,
@@ -1172,15 +1225,10 @@ final _builtInNonLintMultiGenerators = {
   diag.uncheckedPropertyAccessOfNullableValue: [
     ImportLibrary.forExtensionMember,
   ],
-  diag.undefinedAnnotation: [
-    CreateClass.new,
-    ImportLibrary.forTopLevelVariable,
-    ImportLibrary.forType,
-  ],
   diag.undefinedClass: [
     CreateClass.new,
     DataDriven.new,
-    ImportLibrary.forType,
+    ImportLibrary.forTypeOrMember,
     CreateMixin.new,
   ],
   diag.undefinedConstructorInInitializerDefault: [
@@ -1193,14 +1241,14 @@ final _builtInNonLintMultiGenerators = {
     ImportLibrary.forExtension,
     ImportLibrary.forExtensionType,
     ImportLibrary.forFunction,
-    ImportLibrary.forType,
+    ImportLibrary.forTypeOrMember,
   ],
   diag.undefinedGetter: [
     CreateClass.new,
     DataDriven.new,
     ImportLibrary.forExtensionMember,
     ImportLibrary.forTopLevelVariable,
-    ImportLibrary.forType,
+    ImportLibrary.forTypeOrMember,
     CreateMixin.new,
   ],
   diag.undefinedIdentifier: [
@@ -1210,7 +1258,7 @@ final _builtInNonLintMultiGenerators = {
     ImportLibrary.forExtensionMember,
     ImportLibrary.forFunction,
     ImportLibrary.forTopLevelVariable,
-    ImportLibrary.forType,
+    ImportLibrary.forTypeOrMember,
     CreateMixin.new,
   ],
   diag.undefinedMethod: [
@@ -1218,7 +1266,14 @@ final _builtInNonLintMultiGenerators = {
     DataDriven.new,
     ImportLibrary.forExtensionMember,
     ImportLibrary.forFunction,
-    ImportLibrary.forType,
+    ImportLibrary.forTypeOrMember,
+  ],
+  diag.undefinedMethodOnTypeLiteral: [
+    CreateClass.new,
+    DataDriven.new,
+    ImportLibrary.forExtensionMember,
+    ImportLibrary.forFunction,
+    ImportLibrary.forTypeOrMember,
   ],
   diag.undefinedNamedParameter: [ChangeArgumentName.new, DataDriven.new],
   diag.undefinedOperator: [
@@ -1241,6 +1296,7 @@ final _builtInNonLintMultiGenerators = {
   diag.deprecatedMemberUseWithMessage: [DataDriven.new],
   diag.deprecatedExportUse: [DataDriven.new],
   diag.multipleCombinators: [MergeCombinators.new],
+  diag.multipleCombinatorsDeprecated: [MergeCombinators.new],
   diag.overrideOnNonOverridingMethod: [DataDriven.new],
 };
 

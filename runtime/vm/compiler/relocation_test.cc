@@ -194,6 +194,12 @@ struct RelocatorTestHelper {
         }
       }
     }
+
+#if defined(TARGET_ARCH_ARM64E)
+    entrypoint = reinterpret_cast<uword>(ptrauth_sign_unauthenticated(
+        reinterpret_cast<void*>(entrypoint), ptrauth_key_function_pointer, 0));
+#endif
+
     typedef intptr_t (*Fun)() DART_UNUSED;
 #if defined(TARGET_ARCH_X64)
     EXPECT_EQ(42, reinterpret_cast<Fun>(entrypoint)());

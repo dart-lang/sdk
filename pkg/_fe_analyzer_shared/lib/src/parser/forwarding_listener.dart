@@ -725,6 +725,11 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleCascadeExpressionEnd(int sectionCount) {
+    listener?.handleCascadeExpressionEnd(sectionCount);
+  }
+
+  @override
   void endBlock(
     int count,
     Token beginToken,
@@ -2237,6 +2242,20 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleSendWithoutArguments(
+    Token beginToken,
+    Token endToken,
+    Token nextToken,
+  ) {
+    listener?.handleSendWithoutArguments(beginToken, endToken, nextToken);
+  }
+
+  @override
+  void handleInvocationWithoutTypeArguments(Token beginToken, Token endToken) {
+    listener?.handleInvocationWithoutTypeArguments(beginToken, endToken);
+  }
+
+  @override
   void handleSpreadExpression(Token spreadToken) {
     listener?.handleSpreadExpression(spreadToken);
   }
@@ -2468,18 +2487,20 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void beginPrimaryConstructorBody(Token token) {
-    listener?.beginPrimaryConstructorBody(token);
+  void beginPrimaryConstructorBody(Token token, Token? augmentToken) {
+    listener?.beginPrimaryConstructorBody(token, augmentToken);
   }
 
   @override
   void endPrimaryConstructorBody(
     Token beginToken,
+    Token thisToken,
     Token? beginInitializers,
     Token endToken,
   ) {
     listener?.endPrimaryConstructorBody(
       beginToken,
+      thisToken,
       beginInitializers,
       endToken,
     );

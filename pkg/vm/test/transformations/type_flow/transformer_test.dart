@@ -15,7 +15,7 @@ import 'package:kernel/target/targets.dart';
 import 'package:kernel/verifier.dart';
 import 'package:test/test.dart';
 import 'package:vm/modular/target/install.dart' show installAdditionalTargets;
-import 'package:vm/transformations/pragma.dart'
+import 'package:vm/modular/transformations/pragma.dart'
     show ConstantPragmaAnnotationParser;
 import 'package:vm/transformations/type_flow/config.dart';
 import 'package:vm/transformations/type_flow/transformer.dart'

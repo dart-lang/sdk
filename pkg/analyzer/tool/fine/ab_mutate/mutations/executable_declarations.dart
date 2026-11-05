@@ -6,7 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 /// Collect both top-level functions and class/extension/mixin/enum methods.
-class CollectExecutablesVisitor extends RecursiveAstVisitor<void> {
+class CollectExecutablesVisitor extends RecursiveAstVisitor2<void> {
   final List<ExecutableDeclaration> _out;
 
   CollectExecutablesVisitor._internal(this._out);
@@ -34,7 +34,7 @@ class CollectExecutablesVisitor extends RecursiveAstVisitor<void> {
   /// Collect all top-level functions and class methods in [unit].
   static List<ExecutableDeclaration> collectFrom(CompilationUnit unit) {
     var executables = <ExecutableDeclaration>[];
-    unit.visitChildren(CollectExecutablesVisitor._internal(executables));
+    unit.visitChildren2(CollectExecutablesVisitor._internal(executables));
     return executables;
   }
 }

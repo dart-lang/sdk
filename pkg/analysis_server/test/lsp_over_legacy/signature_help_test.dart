@@ -26,6 +26,7 @@ void f(String a) {
 ''';
     var code = TestCode.parse(content);
     newFile(testFilePath, code.code);
+    await initializeServer();
     var results = await getSignatureHelp(testFileUri, code.position.position);
     var result = results!.signatures.single;
 

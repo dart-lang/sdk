@@ -598,6 +598,17 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
+  void handleInvocationWithoutTypeArguments(Token beginToken, Token endToken) {
+    debugEvent("InvocationWithoutTypeArguments");
+
+    var arguments = pop();
+    if (arguments != null) {
+      pop(); // Receiver.
+      push(UnknownExpression());
+    }
+  }
+
+  @override
   void handleLiteralInt(Token token) {
     debugEvent("LiteralInt");
     push(IntegerLiteral(int.parse(token.lexeme)));
@@ -703,6 +714,15 @@ class MiniAstBuilder extends StackListener {
     } else {
       // Property get.
     }
+  }
+
+  @override
+  void handleSendWithoutArguments(
+    Token beginToken,
+    Token endToken,
+    Token nextToken,
+  ) {
+    debugEvent("SendWithoutArguments");
   }
 
   @override

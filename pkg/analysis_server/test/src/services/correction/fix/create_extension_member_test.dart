@@ -24,14 +24,50 @@ class CreateExtensionGetterTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.createExtensionGetter;
 
-  @FailingTest(reason: 'Should not be a fix because it will conflict with a')
+  Future<void> test_annotation() async {
+    await resolveTestCode('''
+extension E on int {
+  @foo
+  void m() {}
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_annotation_staticMember() async {
+    await resolveTestCode('''
+extension E on int {}
+
+class C {
+  @E.foo
+  void m() {}
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_annotation_staticMember_importPrefixed() async {
+    newFile('$testPackageLibPath/a.dart', '''
+extension E on int {}
+''');
+    await resolveTestCode('''
+import 'a.dart' as p;
+
+class C {
+  @p.E.foo
+  void m() {}
+}
+''');
+    await assertNoFix();
+  }
+
   Future<void> test_conflicting_setter() async {
     await resolveTestCode('''
 class A {
-  void set a(int value) {}
+  set foo(int _) {}
 }
-void f() {
-  A().a;
+void f(A a) {
+  a.foo;
 }
 ''');
     await assertNoFix();
@@ -2096,14 +2132,13 @@ class CreateExtensionSetterTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.createExtensionSetter;
 
-  @FailingTest(reason: 'Should not be a fix because it will conflict with a')
   Future<void> test_conflicting_getter() async {
     await resolveTestCode('''
 class A {
-  int get a() {}
+  int get foo => 0;
 }
-void f() {
-  A().a = 0;
+void f(A a) {
+  a.foo = 0;
 }
 ''');
     await assertNoFix();

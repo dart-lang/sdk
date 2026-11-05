@@ -150,6 +150,7 @@ Future<kernel_service.Status> singleShotCompile(
     /* [13] = String? = multirootScheme = */ null,
     /* [14] = String = verbosityLevel = */ Verbosity.all.name,
     /* [15] = bool = enableMirrors = */ false,
+    /* [15] = bool = enableFfi = */ false,
     /* [16] = bool = generateBytecode = */ false,
   ]);
 

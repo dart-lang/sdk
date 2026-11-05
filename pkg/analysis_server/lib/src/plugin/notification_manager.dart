@@ -5,8 +5,12 @@
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:analysis_server/lsp_protocol/protocol.dart' as lsp;
 import 'package:analysis_server/protocol/protocol_generated.dart' as server;
 import 'package:analysis_server/src/channel/channel.dart';
+import 'package:analysis_server/src/legacy_analysis_server.dart';
+import 'package:analysis_server/src/lsp/client_capabilities.dart';
+import 'package:analysis_server/src/lsp/mapping.dart' as lsp;
 import 'package:analysis_server/src/plugin/result_collector.dart';
 import 'package:analysis_server/src/plugin/result_converter.dart';
 import 'package:analysis_server/src/plugin/result_merger.dart';
@@ -404,12 +408,35 @@ class NotificationManager extends AbstractNotificationManager {
   /// The channel used to send notifications to the client.
   final ServerCommunicationChannel _channel;
 
+  /// Should be set immediately in [legacy.LegacyAnalysisServer] constructor.
+  LegacyAnalysisServer? analysisServer;
+
   /// Initialize a newly created notification manager.
   new(this._channel, super.pathContext);
 
   /// Sends errors for a file to the client.
   @override
   void sendAnalysisErrors(String filePath, List<AnalysisError> mergedErrors) {
+    if (analysisServer case var analysisServer?) {
+      var clientCapabilities = analysisServer.editorClientCapabilities;
+
+      // Check if client prefers LSP diagnostics.
+      if (clientCapabilities.publishDiagnostics) {
+        var diagnostics = _convertErrorsToLsp(
+          analysisServer,
+          clientCapabilities,
+          mergedErrors,
+        );
+        var notification = _createLspDiagnosticsNotification(
+          filePath,
+          diagnostics,
+        );
+
+        analysisServer.sendLspNotification(notification);
+        return;
+      }
+    }
+
     _channel.sendNotification(
       server.AnalysisErrorsParams(
         filePath,
@@ -500,5 +527,43 @@ class NotificationManager extends AbstractNotificationManager {
         params.stackTrace,
       ).toNotification(clientUriConverter: uriConverter),
     );
+  }
+
+  List<lsp.Diagnostic> _convertErrorsToLsp(
+    LegacyAnalysisServer analysisServer,
+    LspClientCapabilities clientCapabilities,
+    List<AnalysisError> mergedErrors,
+  ) {
+    var diagnostics = mergedErrors
+        .map(
+          (error) => lsp.pluginToDiagnostic(
+            analysisServer.uriConverter,
+            (path) => analysisServer.getLineInfo(path),
+            error,
+            supportedTags: clientCapabilities.diagnosticTags,
+            clientSupportsCodeDescription:
+                clientCapabilities.diagnosticCodeDescription,
+            clientSupportsDiagnosticData:
+                clientCapabilities.includeAdditionalDiagnosticData,
+          ),
+        )
+        .toList();
+    return diagnostics;
+  }
+
+  lsp.NotificationMessage _createLspDiagnosticsNotification(
+    String filePath,
+    List<lsp.Diagnostic> diagnostics,
+  ) {
+    var params = lsp.PublishDiagnosticsParams(
+      uri: uriConverter?.toClientUri(filePath) ?? _pathContext.toUri(filePath),
+      diagnostics: diagnostics,
+    );
+    var notification = lsp.NotificationMessage(
+      method: lsp.Method.textDocument_publishDiagnostics,
+      params: params,
+      jsonrpc: lsp.jsonRpcVersion,
+    );
+    return notification;
   }
 }

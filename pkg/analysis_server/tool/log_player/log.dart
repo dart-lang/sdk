@@ -38,7 +38,8 @@ class Log {
     }
     var lines = const LineSplitter().convert(logContent);
     return Log._([
-      for (var line in lines) LogEntry(json.decode(line) as JsonMap),
+      for (var line in lines)
+        if (line.trim().isNotEmpty) LogEntry(json.decode(line) as JsonMap),
     ]);
   }
 

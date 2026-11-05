@@ -57,8 +57,10 @@ void main() {
 
 @reflectiveTest
 class SingleFixInFileTest extends FixInFileProcessorTest {
+  @override
+  List<String> get lintCodes => [LintNames.annotate_overrides];
+
   Future<void> test_fix_lint_annotate_overrides() async {
-    createAnalysisOptionsFile(lints: [LintNames.annotate_overrides]);
     await resolveTestCode('''
 class A {
   void a() {}

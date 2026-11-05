@@ -17,9 +17,13 @@ import '../test_helpers.dart';
 void main() {
   final component = readVmPlatformKernelFile();
   final coreTypes = CoreTypes(component);
+  final coreLibraries = coreTypes.index;
   final classHierarchy = ClassHierarchy(component, coreTypes);
   final typeEnvironment = TypeEnvironment(coreTypes, classHierarchy);
-  final globalContext = GlobalContext(typeEnvironment: typeEnvironment);
+  final globalContext = GlobalContext(
+    typeEnvironment: typeEnvironment,
+    coreLibraries: coreLibraries,
+  );
 
   group('constant values', () {
     setUp(() {
@@ -77,7 +81,7 @@ void main() {
         expect(cv.isString, isFalse);
         expect(cv.doubleValue, same(v));
         expect(cv.type is DoubleType, isTrue);
-        expect(cv.isZero, equals(v == 0.0));
+        expect(cv.isZero, equals(identical(v, 0.0)));
         expect(cv.isNegative, equals(v.isNegative));
         expect(cv.valueToString(), equals(v.toString()));
       }
@@ -410,6 +414,7 @@ void main() {
       testOp(UnaryIntOpcode.toDouble, (int v) => v.toDouble());
       testOp(UnaryIntOpcode.abs, (int v) => v.abs());
       testOp(UnaryIntOpcode.sign, (int v) => v.sign);
+      testOp(UnaryIntOpcode.bitLength, (int v) => v.bitLength);
     });
 
     test('binary double op', () {
@@ -495,7 +500,6 @@ void main() {
 
       testOp(UnaryDoubleOpcode.neg, (double v) => -v);
       testOp(UnaryDoubleOpcode.abs, (double v) => v.abs());
-      testOp(UnaryDoubleOpcode.sign, (double v) => v.sign);
       testOp(UnaryDoubleOpcode.square, (double v) => v * v);
       testOp(UnaryDoubleOpcode.round, (double v) => v.round());
       testOp(UnaryDoubleOpcode.floor, (double v) => v.floor());
@@ -536,7 +540,9 @@ void main() {
         ConstantValue.fromBool(false): 'false',
         ConstantValue.fromDouble(3.14): '3.14',
         ConstantValue.fromNull(): 'null',
-        ConstantValue(ast.ListConstant(const ast.DynamicType(), [])): null,
+        ConstantValue(
+          ast.ListConstant(const ast.DynamicType(), ast.ConstantList.empty),
+        ): null,
       };
 
       for (final e in testCases.entries) {
@@ -565,7 +571,7 @@ void main() {
             ast.MapConstant(
               const ast.DynamicType(),
               const ast.DynamicType(),
-              [],
+              ast.ConstantMapEntryList.empty,
             ),
           ),
           ConstantValue.fromString(', z = '),

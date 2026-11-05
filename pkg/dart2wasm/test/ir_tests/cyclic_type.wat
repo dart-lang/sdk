@@ -32,7 +32,7 @@
     unreachable
   )
   (func $"CyclicClass.initGlobalBox closure at file:///.../cyclic_type.dart:47:16" (param $var0 (ref struct)) (result (ref $CyclicClass))
-    i32.const 39
+    i32.const 36
     i32.const 0
     global.get $global0
     global.get $global2
@@ -64,7 +64,7 @@
   )
   (func $"new CyclicClass.initGlobalBox (initializer)" (result (ref $CyclicClass))
     (local $var0 (ref $CyclicClass))
-    i32.const 39
+    i32.const 36
     i32.const 0
     global.get $global0
     global.get $global4

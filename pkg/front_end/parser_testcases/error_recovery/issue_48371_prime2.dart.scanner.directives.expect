@@ -1,0 +1,7 @@
+import "lib.dart" as enum;
+
+
+
+import[KeywordToken] "lib.dart"[StringToken] as[KeywordToken] enum[KeywordToken];[SimpleToken]
+
+[SimpleToken]

@@ -5,6 +5,8 @@
 // Formatting can break multitests, so don't format them.
 // dart format off
 
+import 'package:expect/variations.dart';
+
 class SubclassOfError extends Error {}
 
 fail() => throw "Fail";
@@ -152,6 +154,7 @@ ff3() => gg3();
 gg3() => throw new SubclassOfError();
 
 expectTrace(functionNames, stacktrace) {
+  if (!symbolicUnminifiedStackTraces) return;
   // Note we don't expect functionNames to cover the whole trace, only the
   // top portion, because the frames below main are an implementation detail.
   var traceLines = stacktrace.toString().split('\n');

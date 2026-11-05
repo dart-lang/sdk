@@ -19,6 +19,15 @@ DEFINE_FLAG(bool,
             false,
             "Force compaction to move every movable object");
 
+static intptr_t NumTasks() {
+  intptr_t compactor_tasks = FLAG_compactor_tasks;
+  ASSERT(compactor_tasks >= 0);
+  if (compactor_tasks == 0) {
+    compactor_tasks = 1;  // Work on main thread is still one job.
+  }
+  return compactor_tasks;
+}
+
 // Each Page is divided into blocks of size kBlockSize. Each object belongs
 // to the block containing its header word (so up to kBlockSize +
 // kAllocatablePageSize - 2 * kObjectAlignment bytes belong to the same block).
@@ -208,8 +217,7 @@ void GCCompactor::Compact(Page* pages, FreeList* freelist, Mutex* pages_lock) {
   }
   fixed_pages_ = fixed_head;
 
-  intptr_t num_tasks = FLAG_compactor_tasks;
-  RELEASE_ASSERT(num_tasks >= 1);
+  intptr_t num_tasks = NumTasks();
   if (num_pages < num_tasks) {
     num_tasks = num_pages;
   }

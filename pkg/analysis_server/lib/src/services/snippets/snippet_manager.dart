@@ -39,7 +39,7 @@ typedef SnippetProducerGenerator = SnippetProducer Function(
 class DartSnippetManager {
   final producerGenerators =
       const <SnippetContext, List<SnippetProducerGenerator>>{
-        SnippetContext.atTopLevel: [
+        .atTopLevel: [
           ClassDeclaration.new,
           FlutterStatefulWidget.new,
           FlutterStatefulWidgetWithAnimationController.new,
@@ -47,7 +47,7 @@ class DartSnippetManager {
           FunctionDeclaration.new,
           MainFunction.new,
         ],
-        SnippetContext.inBlock: [
+        .inBlock: [
           DoStatement.new,
           ForInStatement.new,
           ForStatement.new,
@@ -60,9 +60,9 @@ class DartSnippetManager {
           TryCatchStatement.new,
           WhileStatement.new,
         ],
-        SnippetContext.inClass: [FunctionDeclaration.new],
-        SnippetContext.inEnumMembers: [FunctionDeclaration.new],
-        SnippetContext.inExpression: [SwitchExpression.new],
+        .inClassBody: [FunctionDeclaration.new],
+        .inEnumMembers: [FunctionDeclaration.new],
+        .inExpression: [SwitchExpression.new],
       };
 
   Future<List<Snippet>> computeSnippets(

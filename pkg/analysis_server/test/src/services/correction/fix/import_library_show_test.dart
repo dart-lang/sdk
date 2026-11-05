@@ -519,7 +519,7 @@ import 'lib.dart' as lib show C, E;
 void f(String s, lib.C c) {
   s.m();
 }
-''', matchFixMessage: "Import 'E' from lib.dart");
+''', fixMessageContains: "Import 'E' from lib.dart");
   }
 
   Future<void> test_sdk() async {

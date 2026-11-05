@@ -277,6 +277,21 @@ class C {}
 ''');
   }
 
+  Future<void> test_assignment_extensionType_toList() async {
+    await resolveTestCode('''
+final originalInts = Ints([1, 2, 3]);
+final Ints? evenInts = originalInts.where((v) => v.isEven).toList();
+
+extension type Ints(List<int> ints) implements List<int> {}
+''');
+    await assertHasFix('''
+final originalInts = Ints([1, 2, 3]);
+final Ints? evenInts = originalInts.where((v) => v.isEven).toList() as Ints?;
+
+extension type Ints(List<int> ints) implements List<int> {}
+''');
+  }
+
   Future<void> test_assignment_general() async {
     await resolveTestCode('''
 f(A a) {

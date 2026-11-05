@@ -102,7 +102,7 @@ static method test() → void {
   let void #t3 = invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/block_void_receiver.dart:16:3: Error: This expression has type 'void' and can't be used.
   v?.{ // Error
   ^" in self::v in #t3 == null ?{Null} null : block {
-    final synthesized void anonymous#this = #t3 as void;
+    final synthesized void anonymous#this##1 = #t3 as void;
     Null #t4;
     #L3:
     {
@@ -116,7 +116,7 @@ static method test() → void {
   let void #t5 = invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/block_void_receiver.dart:20:3: Error: This expression has type 'void' and can't be used.
   v?.(p) { // Error
   ^" in self::v in #t5 == null ?{Null} null : block {
-    void p = #t5 as void;
+    void p##1 = #t5 as void;
     Null #t6;
     #L4:
     {
@@ -129,7 +129,7 @@ static method test() → void {
   } =>#t6;
   let final void #t7 = self::v in block {
     {
-      final synthesized void anonymous#this = invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/block_void_receiver.dart:24:3: Error: This expression has type 'void' and can't be used.
+      final synthesized void anonymous#this##2 = invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/block_void_receiver.dart:24:3: Error: This expression has type 'void' and can't be used.
   v..{ // Error
   ^" in #t7;
       Null #t8;
@@ -145,7 +145,7 @@ static method test() → void {
   } =>#t7;
   let final void #t9 = self::v in block {
     {
-      void p = invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/block_void_receiver.dart:28:3: Error: This expression has type 'void' and can't be used.
+      void p##2 = invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/block_void_receiver.dart:28:3: Error: This expression has type 'void' and can't be used.
   v..(p) { // Error
   ^" in #t9;
       Null #t10;
@@ -161,7 +161,7 @@ static method test() → void {
   } =>#t9;
   let final void #t11 = self::v in #t11 == null ?{void} null : block {
     {
-      final synthesized void anonymous#this = invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/block_void_receiver.dart:32:3: Error: This expression has type 'void' and can't be used.
+      final synthesized void anonymous#this##3 = invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/block_void_receiver.dart:32:3: Error: This expression has type 'void' and can't be used.
   v?..{ // Error
   ^" in #t11 as void;
       Null #t12;
@@ -177,7 +177,7 @@ static method test() → void {
   } =>#t11;
   let final void #t13 = self::v in #t13 == null ?{void} null : block {
     {
-      void p = invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/block_void_receiver.dart:36:3: Error: This expression has type 'void' and can't be used.
+      void p##3 = invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/block_void_receiver.dart:36:3: Error: This expression has type 'void' and can't be used.
   v?..(p) { // Error
   ^" in #t13 as void;
       Null #t14;
@@ -192,7 +192,7 @@ static method test() → void {
     }
   } =>#t13;
   {
-    final synthesized void anonymous#this = invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/block_void_receiver.dart:40:3: Error: This expression has type 'void' and can't be used.
+    final synthesized void anonymous#this##4 = invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/block_void_receiver.dart:40:3: Error: This expression has type 'void' and can't be used.
   v.{ // Error
   ^" in self::v;
     core::int #t15;
@@ -205,7 +205,7 @@ static method test() → void {
     }
   }
   {
-    void p = invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/block_void_receiver.dart:43:3: Error: This expression has type 'void' and can't be used.
+    void p##4 = invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/block_void_receiver.dart:43:3: Error: This expression has type 'void' and can't be used.
   v.(p) { // Error
   ^" in self::v;
     core::int #t16;
@@ -220,7 +220,7 @@ static method test() → void {
   let void #t17 = invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/block_void_receiver.dart:46:3: Error: This expression has type 'void' and can't be used.
   v?.{ // Error
   ^" in self::v in #t17 == null ?{core::int?} null : block {
-    final synthesized void anonymous#this = #t17 as void;
+    final synthesized void anonymous#this##5 = #t17 as void;
     core::int #t18;
     #L11:
     {
@@ -233,7 +233,7 @@ static method test() → void {
   let void #t19 = invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/block_void_receiver.dart:49:3: Error: This expression has type 'void' and can't be used.
   v?.(p) { // Error
   ^" in self::v in #t19 == null ?{core::int?} null : block {
-    void p = #t19 as void;
+    void p##5 = #t19 as void;
     core::int #t20;
     #L12:
     {
@@ -245,7 +245,7 @@ static method test() → void {
   } =>#t20;
   let final void #t21 = self::v in block {
     {
-      final synthesized void anonymous#this = invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/block_void_receiver.dart:52:3: Error: This expression has type 'void' and can't be used.
+      final synthesized void anonymous#this##6 = invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/block_void_receiver.dart:52:3: Error: This expression has type 'void' and can't be used.
   v..{ // Error
   ^" in #t21;
       core::int #t22;
@@ -260,7 +260,7 @@ static method test() → void {
   } =>#t21;
   let final void #t23 = self::v in block {
     {
-      void p = invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/block_void_receiver.dart:55:3: Error: This expression has type 'void' and can't be used.
+      void p##6 = invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/block_void_receiver.dart:55:3: Error: This expression has type 'void' and can't be used.
   v..(p) { // Error
   ^" in #t23;
       core::int #t24;
@@ -275,7 +275,7 @@ static method test() → void {
   } =>#t23;
   let final void #t25 = self::v in #t25 == null ?{void} null : block {
     {
-      final synthesized void anonymous#this = invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/block_void_receiver.dart:58:3: Error: This expression has type 'void' and can't be used.
+      final synthesized void anonymous#this##7 = invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/block_void_receiver.dart:58:3: Error: This expression has type 'void' and can't be used.
   v?..{ // Error
   ^" in #t25 as void;
       core::int #t26;
@@ -290,7 +290,7 @@ static method test() → void {
   } =>#t25;
   let final void #t27 = self::v in #t27 == null ?{void} null : block {
     {
-      void p = invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/block_void_receiver.dart:61:3: Error: This expression has type 'void' and can't be used.
+      void p##7 = invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/block_void_receiver.dart:61:3: Error: This expression has type 'void' and can't be used.
   v?..(p) { // Error
   ^" in #t27 as void;
       core::int #t28;

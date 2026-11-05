@@ -11,7 +11,7 @@ import '../dart/resolution/node_text_expectations.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UnusedLabelTest);
-    defineReflectiveTests(UnusedLabelTest_Language219);
+    defineReflectiveTests(UnusedLabelTest_BeforePatterns);
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
@@ -21,8 +21,8 @@ class UnusedLabelTest extends PubPackageResolutionTest
     with UnusedLabelTestCases {}
 
 @reflectiveTest
-class UnusedLabelTest_Language219 extends PubPackageResolutionTest
-    with WithLanguage219Mixin, UnusedLabelTestCases {}
+class UnusedLabelTest_BeforePatterns extends PubPackageResolutionTest
+    with BeforePatternsMixin, UnusedLabelTestCases {}
 
 mixin UnusedLabelTestCases on PubPackageResolutionTest {
   test_unused_inSwitch() async {

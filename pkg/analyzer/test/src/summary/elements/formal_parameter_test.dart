@@ -385,7 +385,7 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F2
       methods
-        isOriginDeclaration f
+        hasImplicitReturnType isOriginDeclaration f
           reference: <testLibrary>::@class::C::@method::f
           firstFragment: #F3
           formalParameters
@@ -440,7 +440,7 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F4
       methods
-        hasEnclosingTypeParameterReference isOriginDeclaration f
+        hasEnclosingTypeParameterReference hasImplicitReturnType isOriginDeclaration f
           reference: <testLibrary>::@class::C::@method::f
           firstFragment: #F5
           formalParameters
@@ -485,7 +485,7 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F2
       methods
-        isOriginDeclaration f
+        hasImplicitReturnType isOriginDeclaration f
           reference: <testLibrary>::@class::C::@method::f
           firstFragment: #F3
           formalParameters
@@ -530,7 +530,7 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F2
       methods
-        isOriginDeclaration f
+        hasImplicitReturnType isOriginDeclaration f
           reference: <testLibrary>::@class::C::@method::f
           firstFragment: #F3
           formalParameters

@@ -38,6 +38,10 @@ abstract class Tag with Indexable, Exportable {
     return TagExport(name, this);
   }
 
+  void collectUsedTypes(Set<DefType> usedTypes) {
+    usedTypes.add(type);
+  }
+
   void printTo(IrPrinter p);
 }
 
@@ -56,8 +60,10 @@ class DefinedTag extends Tag implements Serializable {
   void printTo(IrPrinter p) {
     p.write('(tag ');
     p.writeTagReference(this);
-    p.write(' ');
-    type.printOneLineSignatureTo(p);
+    if (type.inputs.isNotEmpty || type.outputs.isNotEmpty) {
+      p.write(' ');
+      type.printOneLineSignatureTo(p);
+    }
     p.write(')');
   }
 }
@@ -94,8 +100,10 @@ class ImportedTag extends Tag implements Import {
     p.writeTagReference(this);
     p.write(' ');
     p.writeImport(module, name);
-    p.write(' ');
-    type.printOneLineSignatureTo(p);
+    if (type.inputs.isNotEmpty || type.outputs.isNotEmpty) {
+      p.write(' ');
+      type.printOneLineSignatureTo(p);
+    }
     p.write(')');
   }
 }
@@ -112,4 +120,13 @@ class Tags {
   Tag operator [](int index) => index < imported.length
       ? imported[index]
       : defined[index - imported.length];
+
+  void collectUsedTypes(Set<DefType> usedTypes) {
+    for (final tag in defined) {
+      tag.collectUsedTypes(usedTypes);
+    }
+    for (final tag in imported) {
+      tag.collectUsedTypes(usedTypes);
+    }
+  }
 }

@@ -545,7 +545,7 @@ class ForStatement extends Statement implements LoopStatement, ScopeProvider {
   List<VariableDeclaration> get variableInitializations => variables;
 
   Expression? condition; // May be null.
-  final List<Expression> updates; // May be empty, but not null.
+  final ExpressionList updates; // May be empty, but not null.
 
   @override
   Statement body;
@@ -765,14 +765,14 @@ class ForInStatement extends Statement implements LoopStatement, ScopeProvider {
       return const InvalidType();
     }
     if (isAsync) {
-      List<DartType> typeArguments = context.typeEnvironment
+      DartTypeList typeArguments = context.typeEnvironment
           .getTypeArgumentsAsInstanceOf(
             iterableType,
             context.typeEnvironment.coreTypes.streamClass,
           )!;
       return typeArguments.single;
     } else {
-      List<DartType> typeArguments = context.typeEnvironment
+      DartTypeList typeArguments = context.typeEnvironment
           .getTypeArgumentsAsInstanceOf(
             iterableType,
             context.typeEnvironment.coreTypes.iterableClass,
@@ -909,7 +909,7 @@ class SwitchStatement extends Statement {
 ///
 /// This is a potential target of [ContinueSwitchStatement].
 class SwitchCase extends TreeNode {
-  final List<Expression> expressions;
+  ExpressionList expressions;
   final List<int> expressionOffsets;
   late Statement body;
   bool isDefault;
@@ -928,7 +928,7 @@ class SwitchCase extends TreeNode {
 
   new defaultCase(Statement? body)
     : isDefault = true,
-      expressions = <Expression>[],
+      expressions = ExpressionList.empty,
       expressionOffsets = <int>[] {
     if (body != null) {
       this.body = body..parent = this;
@@ -1511,7 +1511,7 @@ class FunctionDeclaration extends Statement implements LocalFunction {
   }
 
   @override
-  List<TypeParameter> get typeParameters => function.typeParameters;
+  TypeParameterList get typeParameters => function.typeParameters;
 
   @override
   R accept<R>(StatementVisitor<R> v) => v.visitFunctionDeclaration(this);

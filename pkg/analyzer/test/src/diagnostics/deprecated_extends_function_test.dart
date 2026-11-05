@@ -24,18 +24,18 @@ class A extends Function {}
 ''');
   }
 
-  test_core_language219() async {
+  test_core_beforeClassModifiers() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
+// %before-language-feature: class-modifiers
 class A extends Function {}
 //              ^^^^^^^^
 // [diag.deprecatedExtendsFunction] Extending 'Function' is deprecated.
 ''');
   }
 
-  test_core_language219_viaTypedef() async {
+  test_core_beforeClassModifiers_viaTypedef() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
+// %before-language-feature: class-modifiers
 typedef F = Function;
 class A extends F {}
 //              ^
@@ -43,9 +43,9 @@ class A extends F {}
 ''');
   }
 
-  test_local_language219() async {
+  test_local_beforeClassModifiers() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
+// %before-language-feature: class-modifiers
 class Function {}
 //    ^^^^^^^^
 // [diag.builtInIdentifierAsTypeName] The built-in identifier 'Function' can't be used as a type name.

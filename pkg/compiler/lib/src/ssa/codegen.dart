@@ -409,9 +409,8 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     SourceInformation? sourceInformation,
   ) {
     pushStatement(
-      js.ExpressionStatement(
-        expression,
-      ).withSourceInformation(sourceInformation),
+      js.ExpressionStatement(expression)
+          .withSourceInformation(sourceInformation),
     );
   }
 
@@ -1797,9 +1796,8 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
         implicitBreakWithLabel(label.target);
       } else {
         pushStatement(
-          js.Break(
-            _namer.breakLabelName(label),
-          ).withSourceInformation(node.sourceInformation),
+          js.Break(_namer.breakLabelName(label))
+              .withSourceInformation(node.sourceInformation),
         );
       }
     } else {
@@ -1809,9 +1807,8 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
       } else {
         if (node.breakSwitchContinueLoop) {
           pushStatement(
-            js.Break(
-              _namer.implicitContinueLabelName(target),
-            ).withSourceInformation(node.sourceInformation),
+            js.Break(_namer.implicitContinueLabelName(target))
+                .withSourceInformation(node.sourceInformation),
           );
         } else {
           pushStatement(
@@ -1832,9 +1829,8 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
       } else {
         // TODO(floitsch): should this really be the breakLabelName?
         pushStatement(
-          js.Continue(
-            _namer.breakLabelName(label),
-          ).withSourceInformation(node.sourceInformation),
+          js.Continue(_namer.breakLabelName(label))
+              .withSourceInformation(node.sourceInformation),
         );
       }
     } else {
@@ -1844,9 +1840,8 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
       } else {
         if (target.isSwitch) {
           pushStatement(
-            js.Continue(
-              _namer.implicitContinueLabelName(target),
-            ).withSourceInformation(node.sourceInformation),
+            js.Continue(_namer.implicitContinueLabelName(target))
+                .withSourceInformation(node.sourceInformation),
           );
         } else {
           pushStatement(
@@ -2617,7 +2612,7 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
         definitionHasReceiver =
             (node.function.positionalParameters.isNotEmpty &&
                 isExtensionThisName(
-                  node.function.positionalParameters[0].cosmeticName,
+                  node.function.positionalParameters[0].parameterName,
                 )) ||
             isExtensionMemberTearOff(node);
       }
@@ -2730,12 +2725,10 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
       // TODO(sra): We can lower these in the simplifier.
       js.Name fieldName = _namer.instanceFieldPropertyName(superElement);
       use(node.getDartReceiver());
-      js.PropertyAccess access =
-          js.PropertyAccess(
-                pop(),
-                fieldName,
-              ).withSourceInformation(node.sourceInformation)
-              as js.PropertyAccess;
+      js.PropertyAccess access = js.PropertyAccess(
+        pop(),
+        fieldName,
+      ).withSourceInformation(node.sourceInformation) as js.PropertyAccess;
       if (node.isSetter) {
         use(node.value);
         push(
@@ -3660,9 +3653,8 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
       return pop();
     }).toList();
     push(
-      js.ArrayInitializer(
-        elements,
-      ).withSourceInformation(node.sourceInformation),
+      js.ArrayInitializer(elements)
+          .withSourceInformation(node.sourceInformation),
     );
   }
 

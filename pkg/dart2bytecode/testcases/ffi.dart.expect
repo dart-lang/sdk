@@ -48,7 +48,7 @@ ConstantPool {
   [2] = DirectCall 'dart:ffi::Pointer::fromAddress (constructor)', ArgDesc num-args 1, num-type-args 1, names []
   [3] = Reserved
   [4] = ClosureFunction 0
-  [5] = FfiCall
+  [5] = NativeFunction
   [6] = EndClosureFunctionScope
   [7] = AllocateClosure 0, num-elements: 1, flags: 0
   [8] = Reserved
@@ -111,7 +111,7 @@ ConstantPool {
   [5] = Type dart:core::int
   [6] = ObjectRef 'arg1'
   [7] = SubtypeTestCache
-  [8] = FfiCall
+  [8] = NativeFunction
   [9] = EndClosureFunctionScope
   [10] = AllocateClosure 0, num-elements: 1, flags: 0
   [11] = Reserved

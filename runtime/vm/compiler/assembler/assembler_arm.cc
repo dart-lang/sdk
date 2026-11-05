@@ -1387,6 +1387,10 @@ void Assembler::vandq(QRegister qd, QRegister qn, QRegister qm) {
   EmitSIMDqqq(B8 | B4, kByte, qd, qn, qm);
 }
 
+void Assembler::vbicq(QRegister qd, QRegister qn, QRegister qm) {
+  EmitSIMDqqq(B20 | B8 | B4, kByte, qd, qn, qm);
+}
+
 void Assembler::vmvnq(QRegister qd, QRegister qm) {
   EmitSIMDqqq(B25 | B24 | B23 | B10 | B8 | B7, kWordPair, qd, Q0, qm);
 }
@@ -1411,6 +1415,20 @@ void Assembler::vpaddlu(OperandSize sz, DRegister dd, DRegister dm) {
       UNREACHABLE();
   }
   EmitSIMDddd(B24 | B23 | B21 | B20 | size_bits | B9 | B7, kByte, dd, D0, dm);
+}
+
+void Assembler::vpmaxu(OperandSize sz,
+                       DRegister dd,
+                       DRegister dn,
+                       DRegister dm) {
+  EmitSIMDddd(B24 | B11 | B9, sz, dd, dn, dm);
+}
+
+void Assembler::vpminu(OperandSize sz,
+                       DRegister dd,
+                       DRegister dn,
+                       DRegister dm) {
+  EmitSIMDddd(B24 | B11 | B9 | B4, sz, dd, dn, dm);
 }
 
 void Assembler::vminqs(QRegister qd, QRegister qn, QRegister qm) {
@@ -3634,7 +3652,7 @@ void Assembler::TryAllocateObject(intptr_t cid,
   ASSERT(instance_size != 0);
   ASSERT(Utils::IsAligned(instance_size,
                           target::ObjectAlignment::kObjectAlignment));
-  if (FLAG_inline_alloc &&
+  if (UseInlineAllocation() &&
       target::Heap::IsAllocatableInNewSpace(instance_size)) {
     ldr(instance_reg, Address(THR, target::Thread::top_offset()));
     // TODO(koda): Protect against unsigned overflow here.
@@ -3673,7 +3691,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
                                  Register end_address,
                                  Register temp1,
                                  Register temp2) {
-  if (FLAG_inline_alloc &&
+  if (UseInlineAllocation() &&
       target::Heap::IsAllocatableInNewSpace(instance_size)) {
     NOT_IN_PRODUCT(LoadAllocationTracingStateAddress(temp1, cid));
     // Potential new object start.

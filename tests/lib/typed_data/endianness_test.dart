@@ -13,7 +13,7 @@ main() {
 }
 
 swapTest() {
-  ByteData data = new ByteData(16);
+  ByteData data = ByteData(16);
   Expect.equals(16, data.lengthInBytes);
   for (int i = 0; i < 4; i++) {
     data.setInt32(i * 4, i);
@@ -49,7 +49,7 @@ swapTest() {
 }
 
 swapTestVar(read, write) {
-  ByteData data = new ByteData(16);
+  ByteData data = ByteData(16);
   Expect.equals(16, data.lengthInBytes);
   for (int i = 0; i < 4; i++) {
     data.setInt32(i * 4, i);

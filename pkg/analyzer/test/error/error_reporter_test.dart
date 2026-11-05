@@ -95,7 +95,7 @@ main() {
             expectedStaticType: secondType,
             additionalInfo: '',
           )
-          .at(result.findNode.simple('x')),
+          .at(result.findNode.unqualifiedNameExpression('x')),
     );
 
     var diagnostic = listener.diagnostics[0];
@@ -140,7 +140,7 @@ main() {
             expectedStaticType: secondType,
             additionalInfo: '',
           )
-          .at(result.findNode.simple('x')),
+          .at(result.findNode.unqualifiedNameExpression('x')),
     );
 
     var diagnostic = listener.diagnostics[0];
@@ -173,7 +173,7 @@ main() {
             expectedStaticType: fb.variables.type!.type!,
             additionalInfo: '',
           )
-          .at(result.findNode.simple('x')),
+          .at(result.findNode.unqualifiedNameExpression('x')),
     );
 
     var diagnostic = listener.diagnostics[0];
@@ -208,7 +208,7 @@ main() {
             expectedStaticType: bb.variables.type!.type!,
             additionalInfo: '',
           )
-          .at(result.findNode.simple('x')),
+          .at(result.findNode.unqualifiedNameExpression('x')),
     );
 
     var diagnostic = listener.diagnostics[0];

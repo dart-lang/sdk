@@ -423,6 +423,19 @@ void f() {
     assertHasRegion('myan // ref');
   }
 
+  Future<void> test_assignedVariablePattern() async {
+    addTestFile('''
+void f() {
+  int? left;
+  int? right;
+  (left, right) = (1, 1);
+}
+''');
+    await prepareNavigation();
+
+    assertHasRegionTarget('left,', 'left;');
+  }
+
   Future<void> test_augmentation_class_method() async {
     addTestFile(r'''
 part of 'a.dart';
@@ -1304,6 +1317,23 @@ class SecondClass {
     await prepareNavigation();
     assertHasRegionTarget('FirstClass]', 'FirstClass {');
     assertHasRegionTarget('FirstClass(', 'FirstClass {');
+  }
+
+  Future<void> test_inComment_docImportPrefix() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+    addTestFile('''
+/// @docImport 'a.dart' as prefix;
+library;
+
+/// [prefix] and [prefix.A].
+void f() {}
+''');
+    await prepareNavigation();
+    assertHasRegionTarget('prefix]', 'prefix;');
+    assertHasRegionTarget('prefix.A]', 'prefix;');
+    assertHasRegion('A].');
   }
 
   Future<void> test_inComment_enumMember_qualified() async {

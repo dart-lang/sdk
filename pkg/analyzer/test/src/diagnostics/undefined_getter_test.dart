@@ -56,6 +56,46 @@ main() {
 ''');
   }
 
+  test_emptyName_listLiteral() async {
+    await resolveTestCodeWithDiagnostics('''
+void f(int a) {
+  a.[0];
+//  ^
+// [diag.missingIdentifier] Expected an identifier.
+}
+''');
+  }
+
+  test_emptyName_setOrMapLiteral() async {
+    await resolveTestCodeWithDiagnostics('''
+void f(int a) {
+  a.{};
+//  ^
+// [diag.missingIdentifier] Expected an identifier.
+}
+''');
+  }
+
+  test_emptyName_stringLiteral() async {
+    await resolveTestCodeWithDiagnostics('''
+void f(int a) {
+  a."s";
+//  ^^^
+// [diag.missingIdentifier] Expected an identifier.
+}
+''');
+  }
+
+  test_emptyName_typedListLiteral() async {
+    await resolveTestCodeWithDiagnostics('''
+void f(int a) {
+  a.<int>[];
+//  ^
+// [diag.missingIdentifier] Expected an identifier.
+}
+''');
+  }
+
   test_extension_instance_extendedHasSetter_extensionHasGetter() async {
     await resolveTestCodeWithDiagnostics('''
 class C {

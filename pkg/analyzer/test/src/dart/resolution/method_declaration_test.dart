@@ -26,9 +26,16 @@ class A {
 }
 ''');
 
-    var node = result.findNode.simple('foo + 1');
+    var node = result.findNode.unqualifiedNameExpression('foo + 1');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::A::@getter::foo
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: SimpleIdentifier
   token: foo
   element: <testLibrary>::@class::A::@getter::foo
   staticType: int
@@ -54,9 +61,15 @@ NamedType
   type: a
 ''');
 
-    var node2 = result.findNode.simple('a;');
+    var node2 = result.findNode.unqualifiedNameExpression('a;');
     assertResolvedNodeText(node2, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: a
+  resolution: VariableReadResolution
+    element: <testLibrary>::@class::B::@method::bar::@formalParameter::a
+    type: a
+  staticType: a
+V1: SimpleIdentifier
   token: a
   element: <testLibrary>::@class::B::@method::bar::@formalParameter::a
   staticType: a
@@ -73,9 +86,16 @@ class A {
 }
 ''');
 
-    var node = result.findNode.simple('_;');
+    var node = result.findNode.unqualifiedNameExpression('_;');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: _
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::A::@getter::_
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: SimpleIdentifier
   token: _
   element: <testLibrary>::@class::A::@getter::_
   staticType: int
@@ -108,10 +128,9 @@ MethodDeclaration
 ''');
   }
 
-  test_wildCardMethod_preWildCards() async {
+  test_wildCardMethod_beforeWildcardVariables() async {
     var result = await resolveTestCodeWithDiagnostics('''
-// @dart = 3.4
-// (pre wildcard-variables)
+// %before-language-feature: wildcard-variables
 
 class C {
   _() {}
@@ -131,7 +150,7 @@ MethodDeclaration
     block: Block
       leftBracket: {
       rightBracket: }
-  declaredFragment: <testLibraryFragment> _@56
+  declaredFragment: <testLibraryFragment> _@28
     element: <testLibrary>::@class::C::@method::_
       type: dynamic Function()
 ''');
@@ -152,7 +171,14 @@ class C {
 VariableDeclaration
   name: _
   equals: =
-  initializer: SimpleIdentifier
+  initializer2: UnqualifiedNameExpression
+    name: _
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@class::C::@getter::_
+      invokeType: int Function()
+      type: int
+    staticType: int
+  initializer(v1): SimpleIdentifier
     token: _
     element: <testLibrary>::@class::C::@getter::_
     staticType: int

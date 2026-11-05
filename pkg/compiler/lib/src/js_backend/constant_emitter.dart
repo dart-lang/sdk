@@ -22,14 +22,14 @@ import 'runtime_types_resolution.dart';
 import 'string_reference.dart' show StringReference, StringReferencePolicy;
 import 'type_reference.dart' show TypeReference;
 
-typedef _ConstantReferenceGenerator =
-    js_ast.Expression Function(ConstantValue constant);
+typedef _ConstantReferenceGenerator = js_ast.Expression Function(
+  ConstantValue constant,
+);
 
-typedef _ConstantListGenerator =
-    js_ast.Expression Function(
-      js_ast.Expression array,
-      js_ast.Expression reifiedType,
-    );
+typedef _ConstantListGenerator = js_ast.Expression Function(
+  js_ast.Expression array,
+  js_ast.Expression reifiedType,
+);
 
 /// Visitor that creates [js_ast.Expression]s for constants that are inlined
 /// and therefore can be created during modular code generation.

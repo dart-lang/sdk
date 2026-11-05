@@ -9,34 +9,26 @@ import 'util.dart';
 /// The interface for the functions in a module.
 class FunctionsBuilder with Builder<ir.Functions> {
   final ModuleBuilder _moduleBuilder;
-  final _functionBuilders = <FunctionBuilder>[];
+  final _definedFunctions = <ir.DefinedFunction>[];
   final _importedFunctions = <ir.ImportedFunction>[];
 
   FunctionsBuilder(this._moduleBuilder);
 
-  void collectUsedTypes(Set<ir.DefType> usedTypes) {
-    for (final f in _functionBuilders) {
-      usedTypes.add(f.type);
-      f.body.collectUsedTypes(usedTypes);
-    }
-    for (final f in _importedFunctions) {
-      usedTypes.add(f.type);
-    }
-  }
+  List<ir.DefinedFunction> get defined => _definedFunctions;
 
   /// Defines a new function in this module with the given function type.
   ///
   /// The [ir.DefinedFunction.body] must be completed (including the terminating
   /// `end`) before the module can be serialized.
   FunctionBuilder define(ir.FunctionType type, [String? name]) {
-    final function = FunctionBuilder(
-      _moduleBuilder,
+    final function = ir.DefinedFunction.withoutBody(
+      _moduleBuilder.module,
       ir.FinalizableIndex(),
       type,
       name,
     );
-    _functionBuilders.add(function);
-    return function;
+    _definedFunctions.add(function);
+    return FunctionBuilder(_moduleBuilder, function);
   }
 
   /// Import a function into the module.
@@ -60,10 +52,7 @@ class FunctionsBuilder with Builder<ir.Functions> {
 
   @override
   ir.Functions forceBuild() {
-    final built = finalizeImportsAndBuilders<ir.DefinedFunction>(
-      _importedFunctions,
-      _functionBuilders,
-    );
-    return ir.Functions(_importedFunctions, built);
+    finalizeImportsAndDefinitions(_importedFunctions, _definedFunctions);
+    return ir.Functions(_importedFunctions, _definedFunctions);
   }
 }

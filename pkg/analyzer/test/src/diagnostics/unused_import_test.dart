@@ -436,6 +436,76 @@ void f() {}
 ''');
   }
 
+  test_library_prefixed_incomplete_annotation() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'dart:math' as math;
+
+@math.
+void f() {}
+// [diag.missingIdentifier][column 1][length 4] Expected an identifier.
+''');
+  }
+
+  test_library_prefixed_incomplete_expression() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'dart:math' as math;
+
+var x = math.;
+//           ^
+// [diag.missingIdentifier] Expected an identifier.
+''');
+  }
+
+  test_library_prefixed_incomplete_invocation() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'dart:math' as math;
+
+var x = math.(0);
+//           ^
+// [diag.missingIdentifier] Expected an identifier.
+''');
+  }
+
+  test_library_prefixed_incomplete_listLiteral() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'dart:math' as math;
+
+var x = math.[0];
+//           ^
+// [diag.missingIdentifier] Expected an identifier.
+''');
+  }
+
+  test_library_prefixed_incomplete_otherImportNotUsed() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'dart:async';
+//     ^^^^^^^^^^^^
+// [diag.unusedImport] Unused import: 'dart:async'.
+import 'dart:math' as math;
+
+var x = math.;
+//           ^
+// [diag.missingIdentifier] Expected an identifier.
+''');
+  }
+
+  test_library_prefixed_incomplete_samePrefix() async {
+    newFile('$testPackageLibPath/lib1.dart', r'''
+class A {}
+''');
+    newFile('$testPackageLibPath/lib2.dart', r'''
+class B {}
+''');
+    await resolveTestCodeWithDiagnostics(r'''
+import 'lib1.dart' as one;
+import 'lib2.dart' as one;
+
+var x = one.;
+//          ^
+// [diag.missingIdentifier] Expected an identifier.
+''');
+  }
+
   test_library_prefixed_samePrefix_notUsed() async {
     newFile('$testPackageLibPath/lib1.dart', r'''
 class A {}

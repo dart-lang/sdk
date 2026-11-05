@@ -34,8 +34,8 @@ static method test() → dynamic async /* emittedValueType= dynamic */ {
       while (let dynamic #t2 = asy::_asyncStarMoveNextHelper(:stream) in await :for-iterator.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>}) {
         final dynamic #t3 = :for-iterator.{asy::_StreamIterator::current}{dynamic};
         {
-          core::String i = #t3 as{TypeError,ForDynamic} core::String;
-          core::print(i);
+          core::String i##1 = #t3 as{TypeError,ForDynamic} core::String;
+          core::print(i##1);
         }
       }
     finally
@@ -61,8 +61,8 @@ static method main() → dynamic async /* emittedValueType= dynamic */ {
       while (let dynamic #t5 = asy::_asyncStarMoveNextHelper(:stream) in await :for-iterator.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>}) {
         final dynamic #t6 = :for-iterator.{asy::_StreamIterator::current}{dynamic};
         {
-          core::int i = #t6 as{TypeError,ForDynamic} core::int;
-          core::print(i);
+          core::int i##1 = #t6 as{TypeError,ForDynamic} core::int;
+          core::print(i##1);
         }
       }
     finally

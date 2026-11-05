@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'global.dart';
+import 'ir.dart';
 
 class Globals {
   /// Imported globals.
@@ -18,4 +18,13 @@ class Globals {
       : defined[index - imported.length];
 
   int get length => imported.length + defined.length;
+
+  void collectUsedTypes(Set<DefType> usedTypes) {
+    for (final global in defined) {
+      global.collectUsedTypes(usedTypes);
+    }
+    for (final global in imported) {
+      global.collectUsedTypes(usedTypes);
+    }
+  }
 }

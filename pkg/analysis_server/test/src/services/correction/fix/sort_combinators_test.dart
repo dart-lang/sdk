@@ -42,8 +42,10 @@ double math() => pi;
 
 @reflectiveTest
 class SortCombinatorsInFileTest extends FixInFileProcessorTest {
+  @override
+  List<String> get lintCodes => [LintNames.combinators_ordering];
+
   Future<void> test_File() async {
-    createAnalysisOptionsFile(lints: [LintNames.combinators_ordering]);
     await resolveTestCode(r'''
 import 'dart:io' hide FileSystemEntity, Directory;
 import 'dart:math' hide min, max;

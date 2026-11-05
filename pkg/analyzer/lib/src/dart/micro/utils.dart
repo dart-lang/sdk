@@ -2,16 +2,56 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/base/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// Return the [Element] of the given [node], or `null` if [node] is `null` or
 /// does not have an element.
-Element? getElementOfNode2(AstNode? node) {
+Element? getElementOfNode(AstNode? node) {
+  if (node == null) {
+    return null;
+  }
+  if (node is NameWithTypeParameters) {
+    node = node.parent2;
+  }
+  if (node is DottedName) {
+    node = node.parent2;
+  }
+  if (node is StringLiteral && node.parent2 is UriBasedDirective) {
+    return null;
+  }
+
+  Element? element;
+  switch (node) {
+    case ImportDirective():
+      return MockLibraryImportElement(node.libraryImport!);
+    case ImportPrefixReference():
+      element = node.element;
+    case ConstructorDeclaration():
+      return node.declaredFragment?.element;
+    case PrimaryConstructorDeclaration():
+      return node.declaredFragment?.element;
+    default:
+      element = ElementLocatorV2.locate(node);
+  }
+
+  if (node is ImportPrefixReference && element is PrefixElement) {
+    element = _getImportElementInfoFromReference(node);
+  }
+
+  return element;
+}
+
+/// Return the [Element] of the given V1 [node], or `null` if [node] is `null`
+/// or does not have an element.
+@ToBeDeprecated('Use getElementOfNode2 instead')
+Element? getElementOfNodeV1(AstNode? node) {
   if (node == null) {
     return null;
   }
@@ -44,10 +84,10 @@ Element? getElementOfNode2(AstNode? node) {
     if (parent is ImportDirective) {
       element = MockLibraryImportElement(parent.libraryImport!);
     } else {
-      element = _getImportElementInfo2(node);
+      element = _getImportElementInfoV1(node);
     }
   } else if (node is ImportPrefixReference && element is PrefixElement) {
-    element = _getImportElementInfoFromReference(node);
+    element = _getImportElementInfoFromReferenceV1(node);
   }
 
   return element;
@@ -83,7 +123,84 @@ ConstructorElement? _getActualConstructorElement(
 
 /// Returns the [MockLibraryImportElement] that is referenced by [prefixNode]
 /// with a [PrefixElement], maybe `null`.
-MockLibraryImportElement? _getImportElementInfo2(SimpleIdentifier prefixNode) {
+MockLibraryImportElement? _getImportElementInfoFromReference(
+  ImportPrefixReference prefixNode,
+) {
+  // prepare environment
+  var unit = prefixNode.thisOrAncestorOfType2<CompilationUnitImpl>();
+  var libraryFragment = unit?.declaredFragment;
+  if (libraryFragment == null) {
+    return null;
+  }
+
+  // prepare used element
+  Element? usedElement;
+  var parent = prefixNode.parent2;
+  if (parent is ExtensionOverride2) {
+    usedElement = parent.element;
+  } else if (parent is NamedType) {
+    usedElement = parent.element;
+  } else if (parent is ImportPrefixedAssignmentTarget) {
+    usedElement = switch (parent.write) {
+      InvalidNamedWriteResolution(:var recoveryElement) => recoveryElement,
+      _ => parent.write?.element ?? parent.read?.elementOrRecovery,
+    };
+  }
+  if (usedElement == null) {
+    return null;
+  }
+
+  // find ImportElement
+  var prefix = prefixNode.name.lexeme;
+  var importElementsMap = <LibraryImport, Set<Element>>{};
+  return _getMockImportElement(
+    libraryFragment,
+    prefix,
+    usedElement,
+    importElementsMap,
+  );
+}
+
+/// Returns the [MockLibraryImportElement] that is referenced by the V1
+/// [prefixNode] with a [PrefixElement], maybe `null`.
+@ToBeDeprecated('Use _getImportElementInfoFromReference instead')
+MockLibraryImportElement? _getImportElementInfoFromReferenceV1(
+  ImportPrefixReference prefixNode,
+) {
+  // prepare environment
+  var unit = prefixNode.thisOrAncestorOfType<CompilationUnitImpl>();
+  var libraryFragment = unit?.declaredFragment;
+  if (libraryFragment == null) {
+    return null;
+  }
+
+  // prepare used element
+  Element? usedElement;
+  var parent = prefixNode.parent;
+  if (parent is ExtensionOverride) {
+    usedElement = parent.element;
+  } else if (parent is NamedType) {
+    usedElement = parent.element;
+  }
+  if (usedElement == null) {
+    return null;
+  }
+
+  // find ImportElement
+  var prefix = prefixNode.name.lexeme;
+  var importElementsMap = <LibraryImport, Set<Element>>{};
+  return _getMockImportElement(
+    libraryFragment,
+    prefix,
+    usedElement,
+    importElementsMap,
+  );
+}
+
+/// Returns the [MockLibraryImportElement] that is referenced by the V1
+/// [prefixNode] with a [PrefixElement], maybe `null`.
+@ToBeDeprecated('Use _getImportElementInfo2 instead')
+MockLibraryImportElement? _getImportElementInfoV1(SimpleIdentifier prefixNode) {
   // prepare environment
   var parent = prefixNode.parent;
   var unit = prefixNode.thisOrAncestorOfType<CompilationUnitImpl>();
@@ -108,41 +225,6 @@ MockLibraryImportElement? _getImportElementInfo2(SimpleIdentifier prefixNode) {
   }
   // find ImportElement
   var prefix = prefixNode.name;
-  var importElementsMap = <LibraryImport, Set<Element>>{};
-  return _getMockImportElement(
-    libraryFragment,
-    prefix,
-    usedElement,
-    importElementsMap,
-  );
-}
-
-/// Returns the [MockLibraryImportElement] that is referenced by [prefixNode]
-/// with a [PrefixElement], maybe `null`.
-MockLibraryImportElement? _getImportElementInfoFromReference(
-  ImportPrefixReference prefixNode,
-) {
-  // prepare environment
-  var unit = prefixNode.thisOrAncestorOfType<CompilationUnitImpl>();
-  var libraryFragment = unit?.declaredFragment;
-  if (libraryFragment == null) {
-    return null;
-  }
-
-  // prepare used element
-  Element? usedElement;
-  var parent = prefixNode.parent;
-  if (parent is ExtensionOverride) {
-    usedElement = parent.element;
-  } else if (parent is NamedType) {
-    usedElement = parent.element;
-  }
-  if (usedElement == null) {
-    return null;
-  }
-
-  // find ImportElement
-  var prefix = prefixNode.name.lexeme;
   var importElementsMap = <LibraryImport, Set<Element>>{};
   return _getMockImportElement(
     libraryFragment,
@@ -271,90 +353,62 @@ class MatchKind {
   String toString() => name;
 }
 
-class ReferencesCollector extends GeneralizingAstVisitor<void> {
+class ReferencesCollector extends RecursiveAstVisitor2<void> {
   final Element element;
   final List<MatchInfo> references = [];
 
   ReferencesCollector(this.element);
 
   @override
-  void visitAssignmentExpression(AssignmentExpression node) {
-    var writeElement = node.writeElement;
-    if (writeElement is PropertyAccessorElement) {
-      var kind = MatchKind.WRITE;
-      if (writeElement.variable == element || writeElement == element) {
-        if (node.leftHandSide is SimpleIdentifier) {
-          references.add(
-            MatchInfo(node.leftHandSide.offset, node.leftHandSide.length, kind),
-          );
-        } else if (node.leftHandSide is PrefixedIdentifier) {
-          var prefixIdentifier = node.leftHandSide as PrefixedIdentifier;
-          references.add(
-            MatchInfo(
-              prefixIdentifier.identifier.offset,
-              prefixIdentifier.identifier.length,
-              kind,
-            ),
-          );
-        } else if (node.leftHandSide is PropertyAccess) {
-          var accessor = node.leftHandSide as PropertyAccess;
-          references.add(
-            MatchInfo(accessor.propertyName.offset, accessor.length, kind),
-          );
-        }
-      }
-    }
-
-    var readElement = node.readElement;
-    if (readElement is PropertyAccessorElement) {
-      if (readElement.variable == element) {
-        references.add(
-          MatchInfo(
-            node.rightHandSide.offset,
-            node.rightHandSide.length,
-            MatchKind.READ,
-          ),
-        );
-      }
-    }
+  void visitCascadeMethodInvocation(CascadeMethodInvocation node) {
+    _visitNamedFunctionInvocation(node);
   }
 
   @override
   visitCommentReference(CommentReference node) {
-    var expression = node.expression;
-    if (expression is Identifier) {
-      var element = expression.element;
-      if (element is ConstructorElement) {
-        if (expression is PrefixedIdentifier) {
-          var offset = expression.prefix.end;
-          var length = expression.end - offset;
-          references.add(MatchInfo(offset, length, MatchKind.REFERENCE));
-          return;
-        } else {
-          var offset = expression.end;
-          references.add(MatchInfo(offset, 0, MatchKind.REFERENCE));
-          return;
-        }
-      }
-    } else if (expression is PropertyAccess) {
-      // Nothing to do?
-    } else {
-      throw UnimplementedError(
-        'Unhandled CommentReference expression type: '
-        '${expression.runtimeType}',
+    var components = node.components;
+    if (components.length == 2 && node.element is ConstructorElement) {
+      var offset = components.first.name.end;
+      references.add(
+        MatchInfo(
+          offset,
+          components.last.name.end - offset,
+          MatchKind.REFERENCE,
+        ),
       );
     }
   }
 
   @override
+  void visitCompoundAssignment(CompoundAssignment node) {
+    var target = node.target;
+    // Import-prefixed targets are recorded by their own visitor.
+    if (target is NamedAssignmentTarget &&
+        target is! ImportPrefixedAssignmentTarget) {
+      _recordNamedReadWriteTarget(target);
+    }
+    super.visitCompoundAssignment(node);
+  }
+
+  @override
   visitConstructorDeclaration(covariant ConstructorDeclarationImpl node) {
-    if (node.declaredFragment?.element == element) {
+    var constructorElement = node.declaredFragment?.element;
+    if (node.typeName2 case var typeName?) {
+      if (constructorElement?.enclosingElement == element &&
+          typeName.lexeme == element.name) {
+        references.add(
+          MatchInfo(typeName.offset, typeName.length, MatchKind.REFERENCE),
+        );
+      }
+    }
+
+    if (constructorElement == element) {
       if (node.name case var name?) {
         var offset = node.period?.offset ?? name.offset;
         var length = name.end - offset;
         references.add(MatchInfo(offset, length, MatchKind.DECLARATION));
       } else {
-        var end = (node.typeName ?? node.newKeyword)!.end;
+        var end = (node.typeName2 ?? node.newKeyword)!.end;
         references.add(MatchInfo(end, 0, MatchKind.DECLARATION));
       }
     }
@@ -362,34 +416,89 @@ class ReferencesCollector extends GeneralizingAstVisitor<void> {
   }
 
   @override
-  void visitConstructorName(ConstructorName node) {
+  void visitConstructorInvocation(ConstructorInvocation node) {
+    node.constructorReference.accept2(this);
+    node.argumentList.accept2(this);
+  }
+
+  @override
+  void visitConstructorReference2(ConstructorReference2 node) {
     var e = node.element?.baseElement;
     e = _getActualConstructorElement(e);
-    MatchKind kind;
-    int offset;
-    int length;
     if (e == element) {
-      if (node.parent is ConstructorReference) {
-        kind = MatchKind.REFERENCE_BY_CONSTRUCTOR_TEAR_OFF;
-      } else if (node.parent is InstanceCreationExpression) {
-        kind = MatchKind.INVOCATION;
+      if (node.selector case var selector?) {
+        var offset = selector.period.offset;
+        var length = selector.name2.end - offset;
+        references.add(
+          MatchInfo(offset, length, _constructorReferenceKind(node)),
+        );
       } else {
-        kind = MatchKind.REFERENCE;
+        references.add(
+          MatchInfo(node.typeReference.end, 0, _constructorReferenceKind(node)),
+        );
       }
-      if (node.name != null) {
-        offset = node.period!.offset;
-        length = node.name!.end - offset;
-      } else {
-        offset = node.type.end;
-        length = 0;
-      }
-      references.add(MatchInfo(offset, length, kind));
     } else if (e != null && e.enclosingElement == element) {
-      kind = MatchKind.REFERENCE;
-      offset = node.offset;
-      length = element.name?.length ?? 0;
-      references.add(MatchInfo(offset, length, kind));
+      var name = node.typeReference.name;
+      references.add(MatchInfo(name.offset, name.length, MatchKind.REFERENCE));
     }
+    node.typeReference.typeArguments?.accept2(this);
+  }
+
+  @override
+  void visitConstructorTearOff(ConstructorTearOff node) {
+    var e = node.element?.baseElement;
+    e = _getActualConstructorElement(e);
+    if (e == element) {
+      references.add(
+        MatchInfo(
+          node.selector.period.offset,
+          node.selector.end - node.selector.period.offset,
+          MatchKind.REFERENCE_BY_CONSTRUCTOR_TEAR_OFF,
+        ),
+      );
+    }
+    node.visitChildren2(this);
+  }
+
+  @override
+  void visitConstructorTypeReference(ConstructorTypeReference node) {
+    if (node.element == element) {
+      references.add(
+        MatchInfo(node.name.offset, node.name.length, MatchKind.REFERENCE),
+      );
+    }
+
+    node.typeArguments?.accept2(this);
+  }
+
+  @override
+  void visitDirectAssignment(DirectAssignment node) {
+    var target = node.target;
+    // Import-prefixed targets are recorded by their own visitor.
+    if (target is ImportPrefixedAssignmentTarget) {
+      super.visitDirectAssignment(node);
+      return;
+    }
+    switch (target.write) {
+      case WriteResolution(element: PropertyAccessorElement writeElement):
+        if (_matches(writeElement)) {
+          var entity = switch (target) {
+            PropertyAssignmentTarget() => target.name,
+            _ => target,
+          };
+          references.add(
+            MatchInfo(entity.offset, entity.length, MatchKind.WRITE),
+          );
+        }
+      case InvalidNamedWriteResolution(:var recoveryElement):
+        if (_matches(recoveryElement)) {
+          references.add(
+            MatchInfo(target.offset, target.length, MatchKind.REFERENCE),
+          );
+        }
+      default:
+    }
+    super.visitDirectAssignment(node);
   }
 
   @override
@@ -401,7 +510,7 @@ class ReferencesCollector extends GeneralizingAstVisitor<void> {
       var constructorSelector = node.arguments?.constructorSelector;
       if (constructorSelector != null) {
         offset = constructorSelector.period.offset;
-        length = constructorSelector.name.end - offset;
+        length = constructorSelector.name2.end - offset;
       } else {
         offset = node.name.end;
         length = 0;
@@ -414,6 +523,52 @@ class ReferencesCollector extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitIfNullAssignment(IfNullAssignment node) {
+    var target = node.target;
+    if (target is NamedAssignmentTarget &&
+        target is! ImportPrefixedAssignmentTarget) {
+      _recordNamedReadWriteTarget(target);
+    }
+    super.visitIfNullAssignment(node);
+  }
+
+  @override
+  void visitImportPrefixedAssignmentTarget(
+    ImportPrefixedAssignmentTarget node,
+  ) {
+    var readMatches = _matches(node.read?.element);
+    var writeMatches = _matches(node.write?.element);
+    var kind = switch ((readMatches, writeMatches)) {
+      (true, true) => MatchKind.READ_WRITE,
+      (true, false) => MatchKind.READ,
+      (false, true) => MatchKind.WRITE,
+      (false, false) => null,
+    };
+    if (node.write case InvalidNamedWriteResolution(
+      :var recoveryElement,
+    ) when kind == null && _matches(recoveryElement)) {
+      kind = MatchKind.REFERENCE;
+    }
+    if (kind != null) {
+      references.add(MatchInfo(node.name.offset, node.name.length, kind));
+    }
+    node.importPrefix.accept2(this);
+  }
+
+  @override
+  void visitImportPrefixedFunctionInvocation(
+    ImportPrefixedFunctionInvocation node,
+  ) {
+    _visitNamedFunctionInvocation(node);
+  }
+
+  @override
+  void visitImportPrefixedNameExpression(ImportPrefixedNameExpression node) {
+    _recordNamedRead(node.name, node.resolution);
+    super.visitImportPrefixedNameExpression(node);
+  }
+
+  @override
   void visitNamedType(NamedType node) {
     if (node.element == element) {
       references.add(
@@ -421,8 +576,8 @@ class ReferencesCollector extends GeneralizingAstVisitor<void> {
       );
     }
 
-    node.importPrefix?.accept(this);
-    node.typeArguments?.accept(this);
+    node.importPrefix?.accept2(this);
+    node.typeArguments?.accept2(this);
   }
 
   @override
@@ -443,14 +598,25 @@ class ReferencesCollector extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitReceiverMethodInvocation(ReceiverMethodInvocation node) {
+    _visitNamedFunctionInvocation(node);
+  }
+
+  @override
+  void visitReceiverPropertyExtraction(ReceiverPropertyExtraction node) {
+    _recordNamedRead(node.name, node.resolution);
+    super.visitReceiverPropertyExtraction(node);
+  }
+
+  @override
   void visitRedirectingConstructorInvocation(
     RedirectingConstructorInvocation node,
   ) {
     var e = node.element;
     if (e == element) {
-      if (node.constructorName != null) {
-        int offset = node.period!.offset;
-        int length = node.constructorName!.end - offset;
+      if (node.constructorSelector case var selector?) {
+        int offset = selector.period.offset;
+        int length = selector.name2.end - offset;
         references.add(MatchInfo(offset, length, MatchKind.INVOCATION));
       } else {
         int offset = node.thisKeyword.end;
@@ -460,40 +626,99 @@ class ReferencesCollector extends GeneralizingAstVisitor<void> {
   }
 
   @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    if (node.inDeclarationContext()) {
-      return;
+  void visitStaticQualifier(StaticQualifier node) {
+    if (node.element == element) {
+      references.add(
+        MatchInfo(node.name.offset, node.name.length, MatchKind.REFERENCE),
+      );
     }
-    var e = node.element;
-    if (e == element) {
-      references.add(MatchInfo(node.offset, node.length, MatchKind.REFERENCE));
-    } else if (e is GetterElement && e.variable == element) {
-      bool inGetterContext = node.inGetterContext();
-      bool inSetterContext = node.inSetterContext();
-      MatchKind kind;
-      if (inGetterContext && inSetterContext) {
-        kind = MatchKind.READ_WRITE;
-      } else if (inGetterContext) {
-        kind = MatchKind.READ;
-      } else {
-        kind = MatchKind.WRITE;
-      }
-      references.add(MatchInfo(node.offset, node.length, kind));
-    }
+    node.importPrefix?.accept2(this);
   }
 
   @override
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     var e = node.element;
     if (e == element) {
-      if (node.constructorName != null) {
-        int offset = node.period!.offset;
-        int length = node.constructorName!.end - offset;
+      if (node.constructorSelector case var selector?) {
+        int offset = selector.period.offset;
+        int length = selector.name2.end - offset;
         references.add(MatchInfo(offset, length, MatchKind.INVOCATION));
       } else {
         int offset = node.superKeyword.end;
         references.add(MatchInfo(offset, 0, MatchKind.INVOCATION));
       }
     }
+  }
+
+  @override
+  void visitUnqualifiedFunctionInvocation(UnqualifiedFunctionInvocation node) {
+    _visitNamedFunctionInvocation(node);
+  }
+
+  @override
+  void visitUnqualifiedNameExpression(UnqualifiedNameExpression node) {
+    _recordNamedRead(node.name, node.resolution);
+  }
+
+  MatchKind _constructorReferenceKind(ConstructorReference2 node) {
+    return switch (node.parent2) {
+      ConstructorInvocation() => MatchKind.INVOCATION,
+      ConstructorDeclaration() => MatchKind.REFERENCE,
+      _ => throw StateError(
+        'Unexpected ConstructorReference2 parent: ${node.parent2.runtimeType}',
+      ),
+    };
+  }
+
+  bool _matches(Element? candidate) =>
+      candidate == element ||
+      candidate is PropertyAccessorElement && candidate.variable == element;
+
+  void _recordNamedRead(
+    SyntacticEntity entity,
+    NamedReadResolution? resolution,
+  ) {
+    if (resolution case InvalidNamedReadResolution(:var recoveryElement)) {
+      if (_matches(recoveryElement)) {
+        references.add(
+          MatchInfo(entity.offset, entity.length, MatchKind.REFERENCE),
+        );
+      }
+      return;
+    }
+
+    var readElement = resolution?.element;
+    if (readElement == element) {
+      references.add(
+        MatchInfo(entity.offset, entity.length, MatchKind.REFERENCE),
+      );
+    } else if (readElement is GetterElement &&
+        readElement.variable == element) {
+      references.add(MatchInfo(entity.offset, entity.length, MatchKind.READ));
+    }
+  }
+
+  void _recordNamedReadWriteTarget(NamedAssignmentTarget target) {
+    var readMatches = _matches(target.read?.element);
+    var writeMatches = _matches(target.write?.element);
+    var kind = switch ((readMatches, writeMatches)) {
+      (true, true) => MatchKind.READ_WRITE,
+      (true, false) => MatchKind.READ,
+      (false, true) => MatchKind.WRITE,
+      (false, false) => null,
+    };
+    if (kind != null) {
+      references.add(MatchInfo(target.name.offset, target.name.length, kind));
+    }
+  }
+
+  void _visitNamedFunctionInvocation(NamedFunctionInvocation node) {
+    var invokedElement = ElementLocatorV2.locate(node)?.baseElement;
+    if (invokedElement == element) {
+      references.add(
+        MatchInfo(node.name.offset, node.name.length, MatchKind.REFERENCE),
+      );
+    }
+    node.visitChildren2(this);
   }
 }

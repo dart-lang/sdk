@@ -1590,7 +1590,7 @@ void OneByteStringFromCharCodeInstr::EmitNativeCode(
   __ movq(result,
           compiler::Address(result, char_code,
                             TIMES_HALF_WORD_SIZE,  // Char code is a smi.
-                            Symbols::kNullCharCodeSymbolOffset * kWordSize));
+                            0));
 }
 
 LocationSummary* StringToCharCodeInstr::MakeLocationSummary(Zone* zone,
@@ -2709,7 +2709,7 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
   compiler::Label slow_path, done;
-  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
+  if (UseInlineAllocation()) {
     if (compiler->is_optimizing() && !FLAG_precompiled_mode &&
         num_elements()->BindsToConstant() &&
         num_elements()->BoundConstant().IsSmi()) {
@@ -2785,7 +2785,7 @@ void AllocateUninitializedContextInstr::EmitNativeCode(
   compiler->AddSlowPathCode(slow_path);
   intptr_t instance_size = Context::InstanceSize(num_context_variables());
 
-  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
+  if (UseInlineAllocation()) {
     __ TryAllocateArray(kContextCid, instance_size, slow_path->entry_label(),
                         compiler::Assembler::kFarJump,
                         result,  // instance
@@ -4205,13 +4205,12 @@ Condition DoubleTestOpInstr::EmitConditionCode(FlowGraphCompiler* compiler,
   SIMD_OP_FLOAT_ARITH(V, Sub, sub)                                             \
   SIMD_OP_FLOAT_ARITH(V, Mul, mul)                                             \
   SIMD_OP_FLOAT_ARITH(V, Div, div)                                             \
-  SIMD_OP_FLOAT_ARITH(V, Min, min)                                             \
-  SIMD_OP_FLOAT_ARITH(V, Max, max)                                             \
   V(Int32x4Add, addpl)                                                         \
   V(Int32x4Sub, subpl)                                                         \
   V(Int32x4BitAnd, andps)                                                      \
   V(Int32x4BitOr, orps)                                                        \
   V(Int32x4BitXor, xorps)                                                      \
+  V(Int32x4Equal, pcmpeqd)                                                     \
   V(Float32x4Equal, cmppseq)                                                   \
   V(Float32x4NotEqual, cmppsneq)                                               \
   V(Float32x4LessThan, cmppslt)                                                \
@@ -4226,6 +4225,10 @@ DEFINE_EMIT(SimdBinaryOp,
     break;
     SIMD_OP_SIMPLE_BINARY(EMIT)
 #undef EMIT
+    case SimdOpInstr::kInt32x4AndNot:
+      __ orps(left, right);
+      __ xorps(left, right);
+      break;
     case SimdOpInstr::kFloat32x4Scale:
       __ cvtsd2ss(left, left);
       __ shufps(left, left, compiler::Immediate(0x00));
@@ -4287,10 +4290,83 @@ DEFINE_EMIT(SimdBinaryOp,
   }
 }
 
+// minps doesn't propagate a NaN or -0.0 from its first operand, so run it both
+// ways and OR the results. OR sets the sign to -0.0 when either operand is
+// -0.0, and a NaN OR anything stays a NaN.
+DEFINE_EMIT(Float32x4Min,
+            (SameAsFirstInput,
+             XmmRegister left,
+             XmmRegister right,
+             Temp<XmmRegister> temp)) {
+  __ movaps(temp, right);  // temp = right
+  __ minps(temp, left);    // temp = min(right, left)
+  __ minps(left, right);   // left = min(left, right)
+  __ orps(left, temp);     // left = left | temp
+  // We do not force NaN canonicalization, so we stop here.
+}
+
+// maxps doesn't propagate a NaN or +0.0 from its first operand, so run it both
+// ways (max(right, left) in temp, max(left, right) in left) and compute
+// (temp | left) - (temp ^ left). +0.0 for the tie would be temp & left, but
+// AND-ing two different NaNs can make an infinity. The subtract flips a
+// disagreeing -0.0 tie to +0.0, leaves agreeing zeros and ordinary values
+// unchanged, and keeps NaNs.
+DEFINE_EMIT(Float32x4Max,
+            (SameAsFirstInput,
+             XmmRegister left,
+             XmmRegister right,
+             Temp<XmmRegister> temp)) {
+  __ movaps(temp, right);  // temp = right
+  __ maxps(temp, left);    // temp = max(right, left)
+  __ maxps(left, right);   // left = max(left, right)
+  __ xorps(left, temp);    // left = temp ^ left
+  __ orps(temp, left);     // temp |= left, rebuilding temp | left
+  __ subps(temp, left);    // temp -= left, giving (temp | left) - (temp ^ left)
+  __ movaps(left, temp);
+  // We do not force NaN canonicalization, so we stop here.
+}
+
+// minpd doesn't propagate a NaN or -0.0 from its first operand, so run it both
+// ways and OR the results. OR sets the sign to -0.0 when either operand is
+// -0.0, and a NaN OR anything stays a NaN.
+DEFINE_EMIT(Float64x2Min,
+            (SameAsFirstInput,
+             XmmRegister left,
+             XmmRegister right,
+             Temp<XmmRegister> temp)) {
+  __ movaps(temp, right);  // temp = right
+  __ minpd(temp, left);    // temp = min(right, left)
+  __ minpd(left, right);   // left = min(left, right)
+  __ orpd(left, temp);     // left = left | temp
+  // We do not force NaN canonicalization, so we stop here.
+}
+
+// maxpd doesn't propagate a NaN or +0.0 from its first operand, so run it both
+// ways (max(right, left) in temp, max(left, right) in left) and compute
+// (temp | left) - (temp ^ left). +0.0 for the tie would be temp & left, but
+// AND-ing two different NaNs can make an infinity. The subtract flips a
+// disagreeing -0.0 tie to +0.0, leaves agreeing zeros and ordinary values
+// unchanged, and keeps NaNs.
+DEFINE_EMIT(Float64x2Max,
+            (SameAsFirstInput,
+             XmmRegister left,
+             XmmRegister right,
+             Temp<XmmRegister> temp)) {
+  __ movaps(temp, right);  // temp = right
+  __ maxpd(temp, left);    // temp = max(right, left)
+  __ maxpd(left, right);   // left = max(left, right)
+  __ xorpd(left, temp);    // left = temp ^ left
+  __ orpd(temp, left);     // temp |= left, rebuilding temp | left
+  __ subpd(temp, left);    // temp -= left, giving (temp | left) - (temp ^ left)
+  __ movaps(left, temp);
+  // We do not force NaN canonicalization, so we stop here.
+}
+
 #define SIMD_OP_SIMPLE_UNARY(V)                                                \
   SIMD_OP_FLOAT_ARITH(V, Sqrt, sqrt)                                           \
   SIMD_OP_FLOAT_ARITH(V, Negate, negate)                                       \
   SIMD_OP_FLOAT_ARITH(V, Abs, abs)                                             \
+  V(Int32x4Not, notps)                                                         \
   V(Float32x4Reciprocal, rcpps)                                                \
   V(Float32x4ReciprocalSqrt, rsqrtps)
 
@@ -4424,6 +4500,11 @@ DEFINE_EMIT(Int32x4FromInts,
   __ AddImmediate(RSP, compiler::Immediate(kSimd128Size));
 }
 
+DEFINE_EMIT(Int32x4Splat, (XmmRegister result, Register value)) {
+  __ movd(result, value);
+  __ shufps(result, result, compiler::Immediate(0x00));
+}
+
 DEFINE_EMIT(Int32x4FromBools,
             (XmmRegister result,
              Register,
@@ -4494,6 +4575,43 @@ DEFINE_EMIT(Int32x4GetFlag, (Register out, XmmRegister value)) {
   EmitToBoolean(compiler, out);
 }
 
+DEFINE_EMIT(Int32x4AnyTrue, (Register out, XmmRegister value)) {
+  ASSERT_BOOL_FALSE_FOLLOWS_BOOL_TRUE();
+  __ ptest(value, value);
+  __ setcc(EQUAL, ByteRegisterOf(out));
+  __ movzxb(out, out);
+  __ movq(out,
+          compiler::Address(THR, out, TIMES_8, Thread::bool_true_offset()));
+}
+
+DEFINE_EMIT(Int32x4AllTrue,
+            (Register out, XmmRegister value, Temp<XmmRegister> temp)) {
+  ASSERT_BOOL_FALSE_FOLLOWS_BOOL_TRUE();
+  __ pxor(temp, temp);
+  __ pcmpeqd(temp, value);
+  __ ptest(temp, temp);
+  __ setcc(NOT_EQUAL, ByteRegisterOf(out));
+  __ movzxb(out, out);
+  __ movq(out,
+          compiler::Address(THR, out, TIMES_8, Thread::bool_true_offset()));
+}
+
+DEFINE_EMIT(Int32x4WithLane,
+            (SameAsFirstInput, XmmRegister value, Register newLaneValue)) {
+  // TODO(dartbug.com/30949) avoid transfer through memory. SSE4.1 has pinsrd.
+  COMPILE_ASSERT(
+      SimdOpInstr::kInt32x4WithY == (SimdOpInstr::kInt32x4WithX + 1) &&
+      SimdOpInstr::kInt32x4WithZ == (SimdOpInstr::kInt32x4WithX + 2) &&
+      SimdOpInstr::kInt32x4WithW == (SimdOpInstr::kInt32x4WithX + 3));
+  const intptr_t lane_index = instr->kind() - SimdOpInstr::kInt32x4WithX;
+  ASSERT(0 <= lane_index && lane_index < 4);
+  __ SubImmediate(RSP, compiler::Immediate(kSimd128Size));
+  __ movups(compiler::Address(RSP, 0), value);
+  __ movl(compiler::Address(RSP, lane_index * kInt32Size), newLaneValue);
+  __ movups(value, compiler::Address(RSP, 0));
+  __ AddImmediate(RSP, compiler::Immediate(kSimd128Size));
+}
+
 DEFINE_EMIT(
     Int32x4WithFlag,
     (SameAsFirstInput, XmmRegister mask, Register flag, Temp<Register> temp)) {
@@ -4536,6 +4654,34 @@ DEFINE_EMIT(Int32x4Select,
   __ orps(mask, temp);
 }
 
+DEFINE_EMIT(Int32x4NotEqual,
+            (SameAsFirstInput, XmmRegister left, XmmRegister right)) {
+  // Compare-equal, then invert to get not-equal.
+  __ pcmpeqd(left, right);
+  __ notps(left, left);
+}
+
+DEFINE_EMIT(Int32x4Shift,
+            (SameAsFirstInput,
+             XmmRegister value,
+             Register shift,
+             Temp<Register> count,
+             Temp<XmmRegister> count_xmm)) {
+  __ movl(count, shift);
+  __ AndImmediate(count, compiler::Immediate(31));
+  __ movd(count_xmm, count);
+  switch (instr->kind()) {
+    case SimdOpInstr::kInt32x4Shl:
+      __ pslld(value, count_xmm);
+      break;
+    case SimdOpInstr::kInt32x4ShrS:
+      __ psrad(value, count_xmm);
+      break;
+    default:
+      UNREACHABLE();
+  }
+}
+
 // Map SimdOpInstr::Kind-s to corresponding emit functions. Uses the following
 // format:
 //
@@ -4543,7 +4689,11 @@ DEFINE_EMIT(Int32x4Select,
 //     SIMPLE(OpA) - Emitter with name OpA is used to emit OpA.
 //
 #define SIMD_OP_VARIANTS(CASE, ____, SIMPLE)                                   \
+  CASE(Int32x4Shl)                                                             \
+  CASE(Int32x4ShrS)                                                            \
+  ____(Int32x4Shift)                                                           \
   SIMD_OP_SIMPLE_BINARY(CASE)                                                  \
+  CASE(Int32x4AndNot)                                                          \
   CASE(Float32x4Scale)                                                         \
   CASE(Float32x4ShuffleMix)                                                    \
   CASE(Int32x4ShuffleMix)                                                      \
@@ -4556,6 +4706,11 @@ DEFINE_EMIT(Int32x4Select,
   CASE(Float32x4WithZ)                                                         \
   CASE(Float32x4WithW)                                                         \
   ____(SimdBinaryOp)                                                           \
+  SIMPLE(Float32x4Min)                                                         \
+  SIMPLE(Float32x4Max)                                                         \
+  SIMPLE(Float64x2Min)                                                         \
+  SIMPLE(Float64x2Max)                                                         \
+  SIMPLE(Int32x4NotEqual)                                                      \
   SIMD_OP_SIMPLE_UNARY(CASE)                                                   \
   CASE(Float32x4GetX)                                                          \
   CASE(Float32x4GetY)                                                          \
@@ -4578,6 +4733,7 @@ DEFINE_EMIT(Int32x4Select,
   ____(SimdGetSignMask)                                                        \
   SIMPLE(Float32x4FromDoubles)                                                 \
   SIMPLE(Int32x4FromInts)                                                      \
+  SIMPLE(Int32x4Splat)                                                         \
   SIMPLE(Int32x4FromBools)                                                     \
   SIMPLE(Float32x4Zero)                                                        \
   SIMPLE(Float64x2Zero)                                                        \
@@ -4593,6 +4749,13 @@ DEFINE_EMIT(Int32x4Select,
   CASE(Int32x4GetFlagZ)                                                        \
   CASE(Int32x4GetFlagW)                                                        \
   ____(Int32x4GetFlag)                                                         \
+  SIMPLE(Int32x4AnyTrue)                                                       \
+  SIMPLE(Int32x4AllTrue)                                                       \
+  CASE(Int32x4WithX)                                                           \
+  CASE(Int32x4WithY)                                                           \
+  CASE(Int32x4WithZ)                                                           \
+  CASE(Int32x4WithW)                                                           \
+  ____(Int32x4WithLane)                                                        \
   CASE(Int32x4WithFlagX)                                                       \
   CASE(Int32x4WithFlagY)                                                       \
   CASE(Int32x4WithFlagZ)                                                       \
@@ -4979,13 +5142,13 @@ void FloatToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ cvtss2sd(locs()->out(0).fpu_reg(), locs()->in(0).fpu_reg());
 }
 
-LocationSummary* FloatCompareInstr::MakeLocationSummary(Zone* zone,
-                                                        bool opt) const {
+LocationSummary* CompareAsMaskInstr::MakeLocationSummary(Zone* zone,
+                                                         bool opt) const {
   UNREACHABLE();
   return NULL;
 }
 
-void FloatCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void CompareAsMaskInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNREACHABLE();
 }
 
@@ -6332,6 +6495,11 @@ void BinaryUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 DEFINE_BACKEND(UnaryUint32Op, (SameAsFirstInput, Register value)) {
+  ASSERT(instr->op_kind() == Token::kBIT_NOT);
+  __ notl(value);
+}
+
+DEFINE_BACKEND(UnaryInt32Op, (SameAsFirstInput, Register value)) {
   ASSERT(instr->op_kind() == Token::kBIT_NOT);
   __ notl(value);
 }

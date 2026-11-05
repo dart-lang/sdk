@@ -21,7 +21,23 @@ class OptionalConstResolutionTest extends PubPackageResolutionTest {
   test_instantiateToBounds_notPrefixed_named() async {
     var node = await _resolveImplicitConst('B.named()');
     assertResolvedNodeText(node, r'''
-InstanceCreationExpression
+ConstructorInvocation
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
+      name: B
+      element: package:test/a.dart::@class::B
+      type: B<num>
+    selector: ConstructorSelector
+      period: .
+      name2: named
+    element: SubstitutedConstructorElementImpl
+      baseElement: package:test/a.dart::@class::B::@constructor::named
+      substitution: {T: num}
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: B<num>
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: B
@@ -47,7 +63,20 @@ InstanceCreationExpression
   test_instantiateToBounds_notPrefixed_unnamed() async {
     var node = await _resolveImplicitConst('B()');
     assertResolvedNodeText(node, r'''
-InstanceCreationExpression
+ConstructorInvocation
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
+      name: B
+      element: package:test/a.dart::@class::B
+      type: B<num>
+    element: SubstitutedConstructorElementImpl
+      baseElement: package:test/a.dart::@class::B::@constructor::new
+      substitution: {T: num}
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: B<num>
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: B
@@ -66,7 +95,27 @@ InstanceCreationExpression
   test_instantiateToBounds_prefixed_named() async {
     var node = await _resolveImplicitConst('p.B.named()', prefix: 'p');
     assertResolvedNodeText(node, r'''
-InstanceCreationExpression
+ConstructorInvocation
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
+      importPrefix: ImportPrefixReference
+        name: p
+        period: .
+        element: package:test/b.dart::<fragment>::@prefix::p
+      name: B
+      element: package:test/a.dart::@class::B
+      type: B<num>
+    selector: ConstructorSelector
+      period: .
+      name2: named
+    element: SubstitutedConstructorElementImpl
+      baseElement: package:test/a.dart::@class::B::@constructor::named
+      substitution: {T: num}
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: B<num>
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       importPrefix: ImportPrefixReference
@@ -96,7 +145,24 @@ InstanceCreationExpression
   test_instantiateToBounds_prefixed_unnamed() async {
     var node = await _resolveImplicitConst('p.B()', prefix: 'p');
     assertResolvedNodeText(node, r'''
-InstanceCreationExpression
+ConstructorInvocation
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
+      importPrefix: ImportPrefixReference
+        name: p
+        period: .
+        element: package:test/b.dart::<fragment>::@prefix::p
+      name: B
+      element: package:test/a.dart::@class::B
+      type: B<num>
+    element: SubstitutedConstructorElementImpl
+      baseElement: package:test/a.dart::@class::B::@constructor::new
+      substitution: {T: num}
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: B<num>
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       importPrefix: ImportPrefixReference
@@ -119,7 +185,21 @@ InstanceCreationExpression
   test_notPrefixed_named() async {
     var node = await _resolveImplicitConst('A.named()');
     assertResolvedNodeText(node, r'''
-InstanceCreationExpression
+ConstructorInvocation
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
+      name: A
+      element: package:test/a.dart::@class::A
+      type: A
+    selector: ConstructorSelector
+      period: .
+      name2: named
+    element: package:test/a.dart::@class::A::@constructor::named
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: A
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
@@ -141,7 +221,18 @@ InstanceCreationExpression
   test_notPrefixed_unnamed() async {
     var node = await _resolveImplicitConst('A()');
     assertResolvedNodeText(node, r'''
-InstanceCreationExpression
+ConstructorInvocation
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
+      name: A
+      element: package:test/a.dart::@class::A
+      type: A
+    element: package:test/a.dart::@class::A::@constructor::new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: A
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
@@ -158,7 +249,25 @@ InstanceCreationExpression
   test_prefixed_named() async {
     var node = await _resolveImplicitConst('p.A.named()', prefix: 'p');
     assertResolvedNodeText(node, r'''
-InstanceCreationExpression
+ConstructorInvocation
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
+      importPrefix: ImportPrefixReference
+        name: p
+        period: .
+        element: package:test/b.dart::<fragment>::@prefix::p
+      name: A
+      element: package:test/a.dart::@class::A
+      type: A
+    selector: ConstructorSelector
+      period: .
+      name2: named
+    element: package:test/a.dart::@class::A::@constructor::named
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: A
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       importPrefix: ImportPrefixReference
@@ -184,7 +293,22 @@ InstanceCreationExpression
   test_prefixed_unnamed() async {
     var node = await _resolveImplicitConst('p.A()', prefix: 'p');
     assertResolvedNodeText(node, r'''
-InstanceCreationExpression
+ConstructorInvocation
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
+      importPrefix: ImportPrefixReference
+        name: p
+        period: .
+        element: package:test/b.dart::<fragment>::@prefix::p
+      name: A
+      element: package:test/a.dart::@class::A
+      type: A
+    element: package:test/a.dart::@class::A::@constructor::new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: A
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       importPrefix: ImportPrefixReference
@@ -215,9 +339,34 @@ import 'a.dart' as p;
 const x = p.C<int>();
 ''');
 
-    var node = result.findNode.instanceCreation('p.C<int>()');
+    var node = result.findNode.constructorInvocation('p.C<int>()');
     assertResolvedNodeText(node, r'''
-InstanceCreationExpression
+ConstructorInvocation
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
+      importPrefix: ImportPrefixReference
+        name: p
+        period: .
+        element: <testLibraryFragment>::@prefix::p
+      name: C
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+        rightBracket: >
+      element: package:test/a.dart::@class::C
+      type: C<int>
+    element: SubstitutedConstructorElementImpl
+      baseElement: package:test/a.dart::@class::C::@constructor::new
+      substitution: {T: int}
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: C<int>
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       importPrefix: ImportPrefixReference
@@ -245,7 +394,7 @@ InstanceCreationExpression
 ''');
   }
 
-  Future<InstanceCreationExpression> _resolveImplicitConst(
+  Future<ConstructorInvocation> _resolveImplicitConst(
     String expr, {
     String? prefix,
   }) async {
@@ -277,11 +426,12 @@ import 'b.dart';
 var v = a;
 ''');
 
-    var vg =
-        result.findNode.simple('a;').element as PropertyAccessorElementImpl;
-    var v = vg.variable.firstFragment;
+    var resolution =
+        result.findNode.unqualifiedNameExpression('a;').resolution
+            as NamedReadResolutionWithElement;
+    var vg = resolution.element as PropertyAccessorElementImpl;
+    var variable = vg.variable;
 
-    var creation = v.constantInitializer as InstanceCreationExpression;
-    return creation;
+    return variable.constantInitializer2 as ConstructorInvocation;
   }
 }

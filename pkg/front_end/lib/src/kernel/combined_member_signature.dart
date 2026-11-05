@@ -529,7 +529,7 @@ abstract class CombinedMemberSignatureBase {
     DartType type, {
     required bool isCovariantByDeclaration,
     required bool isCovariantByClass,
-    Variable? parameter,
+    FunctionParameter? parameter,
     required bool copyLocation,
   }) {
     Reference? reference = indexedContainer?.lookupSetterReference(member.name);
@@ -553,7 +553,7 @@ abstract class CombinedMemberSignatureBase {
     }
     PositionalParameter setterParameter =
         new PositionalParameter(
-            cosmeticName: parameter?.cosmeticName ?? 'value',
+            parameterName: parameter?.parameterName ?? 'value',
             type: type,
             isCovariantByDeclaration: isCovariantByDeclaration,
           )
@@ -569,7 +569,7 @@ abstract class CombinedMemberSignatureBase {
       new FunctionNode(
         null,
         returnType: const VoidType(),
-        positionalParameters: [setterParameter],
+        positionalParameters: new PositionalParameterList(setterParameter),
       ),
       isAbstract: true,
       fileUri: fileUri,
@@ -621,7 +621,7 @@ abstract class CombinedMemberSignatureBase {
       );
       PositionalParameter positionalParameter = extern
           .createPositionalParameter(
-            cosmeticName: parameter.cosmeticName,
+            parameterName: parameter.parameterName,
             type: parameterType,
             isCovariantByDeclaration: parameter.isCovariantByDeclaration,
             defaultValue: cloner.cloneOptional(parameter.defaultValue),

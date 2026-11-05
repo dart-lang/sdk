@@ -657,6 +657,7 @@ extension type Instr(int value) {
   R31Type rnMode() =>
       (isAddSubImmOp() ||
           isLoadStoreRegOp() ||
+          isLoadStoreExclusiveOp() ||
           (isAddSubShiftExtOp() && isExtend()))
       ? R31Type.R31IsSP
       : R31Type.R31IsZR;
@@ -1200,10 +1201,12 @@ class ARM64Decoder {
       // Integer
       if (instr.bits(22, 2) == 0) {
         format(instr, "str'sz 'rt, 'memop");
-      } else if (instr.bits(23, 1) == 1) {
+      } else if (instr.bits(22, 2) == 1) {
+        format(instr, "ldr'sz 'rt, 'memop");
+      } else if (instr.bits(22, 2) == 2) {
         format(instr, "ldrs'sz 'rt, 'memop");
       } else {
-        format(instr, "ldr'sz 'rt, 'memop");
+        unknown(instr);
       }
     }
   }
@@ -1573,9 +1576,7 @@ class ARM64Decoder {
   }
 
   void decodeLoadStoreExclusive(Instr instr) {
-    if (instr.bit(31) != 1 ||
-        instr.bit(21) != 0 ||
-        instr.bit(23) != instr.bit(15)) {
+    if (instr.bit(21) != 0 || instr.bit(23) != instr.bit(15)) {
       unknown(instr);
     }
     final isLoad = instr.bit(22) == 1;
@@ -1869,6 +1870,8 @@ class ARM64Decoder {
     } else if (instr.bits(22, 2) == 1) {
       if (instr.bits(16, 5) == 2) {
         format(instr, "scvtfd'sf 'vd, 'rn");
+      } else if (instr.bits(16, 5) == 4) {
+        format(instr, "fcvtas'sf 'rd, 'vn");
       } else if (instr.bits(16, 5) == 6) {
         format(instr, "fmovrd'sf 'rd, 'vn");
       } else if (instr.bits(16, 5) == 7) {
@@ -1915,6 +1918,18 @@ class ARM64Decoder {
         break;
       case 5:
         format(instr, "fcvtds 'vd, 'vn");
+        break;
+      case 9:
+        format(instr, "frintp 'vd, 'vn");
+        break;
+      case 10:
+        format(instr, "frintm 'vd, 'vn");
+        break;
+      case 11:
+        format(instr, "frintz 'vd, 'vn");
+        break;
+      case 12:
+        format(instr, "frinta 'vd, 'vn");
         break;
       default:
         unknown(instr);

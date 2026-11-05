@@ -6,3 +6,6 @@ import 'log_js.dart' if (dart.library.io) 'log_io.dart';
 
 /// Log [message] to `console.error` / stderr, prefixed with 'worker.dart:'
 void logError(String message) => logErrorImpl(message);
+
+/// Log [message] to `console.warn` / stderr, prefixed with 'worker.dart:'
+void logWarning(String message) => logWarningImpl(message);

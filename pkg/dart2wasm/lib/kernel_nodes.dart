@@ -397,6 +397,16 @@ mixin KernelNodes {
     'dart:_wasm',
     'MemoryType',
   );
+  late final Field wasmMemoryTypeLimits = index.getField(
+    'dart:_wasm',
+    'MemoryType',
+    'limits',
+  );
+  late final Field wasmMemoryTypeShared = index.getField(
+    'dart:_wasm',
+    'MemoryType',
+    'shared',
+  );
   late final Field wasmLimitsMinimum = index.getField(
     'dart:_wasm',
     'Limits',
@@ -540,6 +550,11 @@ mixin KernelNodes {
     "dart:core",
     "Object",
     "get:hashCode",
+  );
+  late final Procedure objectRuntimeType = index.getProcedure(
+    "dart:core",
+    "Object",
+    "get:runtimeType",
   );
   late final Procedure objectNoSuchMethod = index.getProcedure(
     "dart:core",

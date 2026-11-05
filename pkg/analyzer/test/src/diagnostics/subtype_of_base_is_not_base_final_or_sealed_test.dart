@@ -48,10 +48,10 @@ class B extends A {}
 ''');
   }
 
-  test_class_extends_outside_viaLanguage219AndCore() async {
+  test_class_extends_outside_viaBeforeClassModifiersAndCore() async {
     var a = getFile('$testPackageLibPath/a.dart');
     await resolveFileWithDiagnostics(a, r'''
-// @dart=2.19
+// %before-language-feature: class-modifiers
 import 'dart:collection';
 abstract class A implements LinkedListEntry<Never> {}
 ''');
@@ -73,6 +73,26 @@ class B implements A {}
 ''');
   }
 
+  test_class_implements_hasAugmentation() async {
+    await resolveTestCodeWithDiagnostics(r'''
+base class A {}
+class B implements A {}
+//    ^
+// [diag.subtypeOfBaseIsNotBaseFinalOrSealed] The type 'B' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'base'.
+augment class B {}
+''');
+  }
+
+  test_class_implements_hasAugmentation_withImplementsClause() async {
+    await resolveTestCodeWithDiagnostics(r'''
+base class A {}
+class B {}
+augment class B implements A {}
+//            ^
+// [diag.subtypeOfBaseIsNotBaseFinalOrSealed] The type 'B' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'base'.
+''');
+  }
+
   test_class_implements_outside() async {
     newFile('$testPackageLibPath/a.dart', r'''
 base class A {}
@@ -88,10 +108,10 @@ class B implements A {}
 ''');
   }
 
-  test_class_implements_outside_viaLanguage219AndCore() async {
+  test_class_implements_outside_viaBeforeClassModifiersAndCore() async {
     var a = getFile('$testPackageLibPath/a.dart');
     await resolveFileWithDiagnostics(a, r'''
-// @dart=2.19
+// %before-language-feature: class-modifiers
 import 'dart:collection';
 abstract class A implements LinkedListEntry<Never> {}
 ''');
@@ -280,6 +300,16 @@ class C extends B {}
 base mixin class A {}
 class B with A {}
 //    ^
+// [diag.subtypeOfBaseIsNotBaseFinalOrSealed] The type 'B' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'base'.
+''');
+  }
+
+  test_mixinClass_with_hasAugmentation_withWithClause() async {
+    await resolveTestCodeWithDiagnostics(r'''
+base mixin class A {}
+class B {}
+augment class B with A {}
+//            ^
 // [diag.subtypeOfBaseIsNotBaseFinalOrSealed] The type 'B' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'base'.
 ''');
   }

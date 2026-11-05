@@ -138,11 +138,14 @@ class JsTrampolineWrapperData extends JsInteropMemberData {
   }
 
   @override
-  ListConstant get toPragmaValue => ListConstant(DynamicType(), [
-    IntConstant(numJsParameters),
-    BoolConstant(captureThis),
-    BoolConstant(needsCastClosure),
-  ]);
+  ListConstant get toPragmaValue => ListConstant(
+    DynamicType(),
+    ConstantList(
+      IntConstant(numJsParameters),
+      BoolConstant(captureThis),
+      BoolConstant(needsCastClosure),
+    ),
+  );
 
   String jsCode() {
     final jsParameters = <String>[];
@@ -759,7 +762,9 @@ class CoreTypesUtil {
   Expression variableCheckConstant(Variable variable, Constant constant) =>
       StaticInvocation(
         coreTypes.identicalProcedure,
-        Arguments([VariableGet(variable), ConstantExpression(constant)]),
+        Arguments(
+          ExpressionList(VariableGet(variable), ConstantExpression(constant)),
+        ),
       );
 
   Expression variableGreaterThanOrEqualToConstant(
@@ -769,7 +774,7 @@ class CoreTypesUtil {
     InstanceAccessKind.Instance,
     VariableGet(variable),
     greaterThanOrEqualToTarget.name,
-    Arguments([ConstantExpression(constant)]),
+    Arguments(ExpressionList(ConstantExpression(constant))),
     interfaceTarget: greaterThanOrEqualToTarget,
     functionType: greaterThanOrEqualToTarget.getterType as FunctionType,
   );
@@ -815,14 +820,16 @@ class CoreTypesUtil {
       final conversionProcedure = _dartConversionProcedure(
         expectedTypeExtensionTypeErasure,
       );
-      final invocationValueVar = SyntheticVariable(
+      final invocationValueCache = CachedExpression.fromValue(
         cosmeticName: '#jsInvocation',
-        initializer: invocation,
+        value: invocation,
         type: nullableWasmExternRefType,
       );
-      expression = Let(
-        invocationValueVar,
-        invokeOneArg(conversionProcedure, VariableGet(invocationValueVar)),
+      expression = invocationValueCache.createLet(
+        body: invokeOneArg(
+          conversionProcedure,
+          invocationValueCache.createRead(),
+        ),
       );
     }
 
@@ -846,30 +853,28 @@ class CoreTypesUtil {
       //      } else {
       //        throw;
       //      }
-      SyntheticVariable v = SyntheticVariable(
+      CachedExpression expressionCache = CachedExpression.fromValue(
         cosmeticName: '#vardouble',
-        initializer: AsExpression(expression, coreTypes.doubleNullableRawType),
+        value: AsExpression(expression, coreTypes.doubleNullableRawType),
         type: coreTypes.doubleNullableRawType,
       );
-      SyntheticVariable v2 = SyntheticVariable(
+      CachedExpression resultCache = CachedExpression.fromValue(
         cosmeticName: '#varint',
-        initializer: invokeMethod(v, numToIntTarget),
+        value: invokeMethod(expressionCache.createRead(), numToIntTarget),
         type: coreTypes.intNonNullableRawType,
       );
-      expression = Let(
-        v,
-        ConditionalExpression(
-          variableCheckConstant(v, NullConstant()),
+      expression = expressionCache.createLet(
+        body: ConditionalExpression(
+          variableCheckConstant(expressionCache.variable, NullConstant()),
           ConstantExpression(NullConstant()),
-          Let(
-            v2,
-            ConditionalExpression(
+          resultCache.createLet(
+            body: ConditionalExpression(
               invokeMethod(
-                v,
+                expressionCache.createRead(),
                 coreTypes.objectEquals,
-                Arguments([VariableGet(v2)]),
+                Arguments(ExpressionList(resultCache.createRead())),
               ),
-              VariableGet(v2),
+              resultCache.createRead(),
               Throw(
                 StringLiteral('Expected integer value, but was not integer.'),
               ),
@@ -953,17 +958,17 @@ class CoreTypesUtil {
 }
 
 StaticInvocation invokeOneArg(Procedure target, Expression arg) =>
-    StaticInvocation(target, Arguments([arg]));
+    StaticInvocation(target, Arguments(ExpressionList(arg)));
 
 InstanceInvocation invokeMethod(
-  Variable receiver,
+  Expression receiver,
   Procedure target, [
   Arguments? arguments,
 ]) => InstanceInvocation(
   InstanceAccessKind.Instance,
-  VariableGet(receiver),
+  receiver,
   target.name,
-  arguments ?? Arguments([]),
+  arguments ?? Arguments.empty(),
   interfaceTarget: target,
   functionType: target.function.computeFunctionType(Nullability.nonNullable),
 );

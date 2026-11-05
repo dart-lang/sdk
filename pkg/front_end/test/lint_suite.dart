@@ -369,12 +369,6 @@ class ExportsLintListener extends LintListener {
       return;
     }
 
-    // Allowlist specific exports.
-    if (resolved.isScheme('package') &&
-        ['_fe_analyzer_shared/src/macros/uri.dart'].contains(resolved.path)) {
-      return;
-    }
-
     if (resolved.isScheme("package")) {
       if (description.cache.packages != null) {
         resolved = description.cache.packages!.resolve(resolved)!;

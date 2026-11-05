@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server/src/utilities/extensions/dart_type.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -133,7 +134,8 @@ class CreateGetter extends CreateFieldOrGetter {
       return;
     }
     var nameNode = node;
-    if (nameNode is! SimpleIdentifier) {
+    if (nameNode is! SimpleIdentifier ||
+        nameNode.annotationContainingName != null) {
       return;
     }
     _getterName = nameNode.name;
@@ -156,7 +158,7 @@ class CreateGetter extends CreateFieldOrGetter {
     if (target is ExtensionOverride) {
       targetElement = target.element;
     } else if (target case Identifier(
-      element: InstanceElement element,
+      :InstanceElement element,
       :var writeOrReadType,
     )) {
       targetElement = element;

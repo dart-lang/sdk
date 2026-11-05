@@ -4,6 +4,7 @@
 // Dart test program for testing throw statement
 
 import "package:expect/expect.dart";
+import "package:expect/variations.dart";
 
 class MyException {
   const MyException(String message) : message_ = message;
@@ -121,7 +122,9 @@ class RethrowStacktraceTest {
       try {
         d();
       } catch (e, s) {
-        Expect.isTrue(s.toString().contains("issue12940"));
+        if (symbolicUnminifiedStackTraces) {
+          Expect.isTrue(s.toString().contains("issue12940"));
+        }
       }
     }
   }

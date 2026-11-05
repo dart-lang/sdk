@@ -34,12 +34,12 @@ final class Bar extends Foo {}
 ''');
   }
 
-  test_outside_viaLanguage219AndCore() async {
+  test_outside_viaBeforeClassModifiersAndCore() async {
     // There is no error when extending a pre-feature class that subtypes a
     // class in the core libraries.
     var a = getFile('$testPackageLibPath/a.dart');
     await resolveFileWithDiagnostics(a, r'''
-// @dart=2.19
+// %before-language-feature: class-modifiers
 import 'dart:core';
 class A implements MapEntry<int, int> {
   int get key => 0;

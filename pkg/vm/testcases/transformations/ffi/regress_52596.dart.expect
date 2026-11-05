@@ -28,8 +28,8 @@ static method main() → void {
     }
   }
   :a:finalizableValue = a = block {
-    final synthesized self::A :expressionValueWrappedFinalizable = new self::A::•();
+    final synthesized self::A :expressionValueWrappedFinalizable##1 = new self::A::•();
     _in::reachabilityFence(:a:finalizableValue);
-  } =>:expressionValueWrappedFinalizable;
+  } =>:expressionValueWrappedFinalizable##1;
   _in::reachabilityFence(:a:finalizableValue);
 }

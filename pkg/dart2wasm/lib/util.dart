@@ -9,6 +9,7 @@ import 'package:kernel/core_types.dart';
 import 'package:vm/metadata/direct_call.dart' show DirectCallMetadataRepository;
 import 'package:vm/metadata/inferred_type.dart'
     show
+        InferredType,
         InferredTypeMetadataRepository,
         InferredReturnTypeMetadataRepository,
         InferredArgTypeMetadataRepository;
@@ -154,6 +155,9 @@ bool hasWasmPureFunctionPragma(CoreTypes coreTypes, Member member) {
 T addWasmEntryPointPragma<T extends Annotatable>(T node, CoreTypes coreTypes) =>
     addPragma(node, 'wasm:entry-point', coreTypes);
 
+bool hasWasmCfgPragma(CoreTypes coreTypes, Member member) =>
+    hasPragma(coreTypes, member, 'wasm:cfg');
+
 T addPragma<T extends Annotatable>(
   T node,
   String pragmaName,
@@ -162,7 +166,7 @@ T addPragma<T extends Annotatable>(
 }) => node
   ..addAnnotation(
     ConstantExpression(
-      InstanceConstant(coreTypes.pragmaClass.reference, [], {
+      InstanceConstant(coreTypes.pragmaClass.reference, DartTypeList.empty, {
         coreTypes.pragmaName.fieldReference: StringConstant(pragmaName),
         coreTypes.pragmaOptions.fieldReference: value ?? NullConstant(),
       }),
@@ -248,12 +252,19 @@ String intToMinJsSafeString(int i) {
 }
 
 Component createEmptyComponent() {
+  final canonicalInferredTypes = <InferredType, InferredType>{};
   return Component()
     ..addMetadataRepository(UnreachableNodeMetadataRepository())
     ..addMetadataRepository(ProcedureAttributesMetadataRepository())
     ..addMetadataRepository(TableSelectorMetadataRepository())
     ..addMetadataRepository(DirectCallMetadataRepository())
-    ..addMetadataRepository(InferredTypeMetadataRepository())
-    ..addMetadataRepository(InferredReturnTypeMetadataRepository())
-    ..addMetadataRepository(InferredArgTypeMetadataRepository());
+    ..addMetadataRepository(
+      InferredTypeMetadataRepository(canonicalInferredTypes),
+    )
+    ..addMetadataRepository(
+      InferredReturnTypeMetadataRepository(canonicalInferredTypes),
+    )
+    ..addMetadataRepository(
+      InferredArgTypeMetadataRepository(canonicalInferredTypes),
+    );
 }

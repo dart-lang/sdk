@@ -110,6 +110,8 @@ class Page {
 
   Page* next() const { return next_; }
   void set_next(Page* next) { next_ = next; }
+  Page* free_next() const { return free_next_; }
+  void set_free_next(Page* next) { free_next_ = next; }
 
   uword start() const { return memory_->start(); }
   uword end() const { return memory_->end(); }
@@ -357,6 +359,8 @@ class Page {
   uword resolved_top_;
 
   RelaxedAtomic<intptr_t> live_bytes_;
+
+  Page* free_next_;
 
   friend class CheckStoreBufferScavengeVisitor;
   friend class CheckStoreBufferEvacuateVisitor;

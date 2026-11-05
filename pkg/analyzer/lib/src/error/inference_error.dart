@@ -18,6 +18,11 @@ sealed class TopLevelInferenceError {
         return TopLevelInferenceErrorNoCombinedSuperSignature(
           candidateSignatures: reader.readStringUtf8(),
         );
+      case TopLevelInferenceErrorKind.differentGetterAndSetterTypes:
+        return TopLevelInferenceErrorDifferentGetterAndSetterTypes(
+          getterType: reader.readStringUtf8(),
+          setterType: reader.readStringUtf8(),
+        );
     }
   }
 
@@ -46,10 +51,38 @@ class TopLevelInferenceErrorDependencyCycle implements TopLevelInferenceError {
   }
 }
 
+class TopLevelInferenceErrorDifferentGetterAndSetterTypes
+    implements TopLevelInferenceError {
+  /// The return type of the combined getter signature.
+  final String getterType;
+
+  /// The parameter type of the combined setter signature.
+  final String setterType;
+
+  TopLevelInferenceErrorDifferentGetterAndSetterTypes({
+    required this.getterType,
+    required this.setterType,
+  });
+
+  @override
+  bool operator ==(Object other) =>
+      other is TopLevelInferenceErrorDifferentGetterAndSetterTypes &&
+      other.getterType == getterType &&
+      other.setterType == setterType;
+
+  @override
+  void write(BinaryWriter writer) {
+    writer.writeEnum(TopLevelInferenceErrorKind.differentGetterAndSetterTypes);
+    writer.writeStringUtf8(getterType);
+    writer.writeStringUtf8(setterType);
+  }
+}
+
 /// Enum used to indicate the kind of the error during top-level inference.
 enum TopLevelInferenceErrorKind {
   dependencyCycle,
   overrideNoCombinedSuperSignature,
+  differentGetterAndSetterTypes,
 }
 
 class TopLevelInferenceErrorNoCombinedSuperSignature

@@ -133,9 +133,13 @@ void main() {
     ProcedureKind.Method,
     new FunctionNode(
       null,
-      positionalParameters: [
-        new PositionalParameter(type: const DynamicType(), isSynthesized: true),
-      ],
+      positionalParameters: new PositionalParameterList(
+        new PositionalParameter(
+          parameterName: 'p',
+          type: const DynamicType(),
+          isSynthesized: true,
+        ),
+      ),
     ),
     fileUri: dummyUri,
   );
@@ -161,13 +165,33 @@ void main() {
     ProcedureKind.Method,
     new FunctionNode(
       null,
-      positionalParameters: [
-        new PositionalParameter(type: const DynamicType(), isSynthesized: true),
-        new PositionalParameter(type: const DynamicType(), isSynthesized: true),
-        new PositionalParameter(type: const DynamicType(), isSynthesized: true),
-        new PositionalParameter(type: const DynamicType(), isSynthesized: true),
-        new PositionalParameter(type: const DynamicType(), isSynthesized: true),
-      ],
+      positionalParameters: new PositionalParameterList.from([
+        new PositionalParameter(
+          parameterName: 'p1',
+          type: const DynamicType(),
+          isSynthesized: true,
+        ),
+        new PositionalParameter(
+          parameterName: 'p2',
+          type: const DynamicType(),
+          isSynthesized: true,
+        ),
+        new PositionalParameter(
+          parameterName: 'p3',
+          type: const DynamicType(),
+          isSynthesized: true,
+        ),
+        new PositionalParameter(
+          parameterName: 'p4',
+          type: const DynamicType(),
+          isSynthesized: true,
+        ),
+        new PositionalParameter(
+          parameterName: 'p5',
+          type: const DynamicType(),
+          isSynthesized: true,
+        ),
+      ]),
     ),
     fileUri: dummyUri,
   );
@@ -203,13 +227,13 @@ void main() {
     ProcedureKind.Method,
     new FunctionNode(
       null,
-      namedParameters: [
+      namedParameters: new NamedParameterList.from([
         new NamedParameter(parameterName: 'a', type: const DynamicType()),
         new NamedParameter(parameterName: 'b', type: const DynamicType()),
         new NamedParameter(parameterName: 'c', type: const DynamicType()),
         new NamedParameter(parameterName: 'd', type: const DynamicType()),
         new NamedParameter(parameterName: 'e', type: const DynamicType()),
-      ],
+      ]),
     ),
     fileUri: dummyUri,
   );
@@ -239,11 +263,11 @@ void main() {
     ProcedureKind.Method,
     new FunctionNode(
       null,
-      typeParameters: [
+      typeParameters: new TypeParameterList(
         new TypeParameter(null),
         new TypeParameter(null),
         new TypeParameter(null),
-      ],
+      ),
     ),
     fileUri: dummyUri,
   );

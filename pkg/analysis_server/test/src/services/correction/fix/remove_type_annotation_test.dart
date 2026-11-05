@@ -467,6 +467,24 @@ Set f() {
   }
 
   Future<void>
+  test_generic_instanceCreation_cascade_dotShorthandTarget() async {
+    await resolveTestCode('''
+C<int> f() {
+  C<int> c = .new()..toString();
+  return c;
+}
+class C<T> {}
+''');
+    await assertHasFix('''
+C<int> f() {
+  var c = C<int>.new()..toString();
+  return c;
+}
+class C<T> {}
+''');
+  }
+
+  Future<void>
   test_generic_instanceCreation_withoutArguments_dotShorthand() async {
     await resolveTestCode('''
 C<int> f() {
@@ -581,6 +599,52 @@ String f() {
 String f() {
   const s = '';
   return s;
+}
+''');
+  }
+
+  Future<void> test_simple_dotShorthand_chain_method() async {
+    await resolveTestCode('''
+class A {
+  A.named();
+  A method() => this;
+}
+void f() {
+  A a = .named().method();
+  print(a);
+}
+''');
+    await assertHasFix('''
+class A {
+  A.named();
+  A method() => this;
+}
+void f() {
+  var a = A.named().method();
+  print(a);
+}
+''');
+  }
+
+  Future<void> test_simple_dotShorthand_chain_property() async {
+    await resolveTestCode('''
+class A {
+  static A get value => A();
+  A get self => this;
+}
+void f() {
+  A a = .value.self;
+  print(a);
+}
+''');
+    await assertHasFix('''
+class A {
+  static A get value => A();
+  A get self => this;
+}
+void f() {
+  var a = A.value.self;
+  print(a);
 }
 ''');
   }
@@ -1110,9 +1174,7 @@ class C(this.f) {
 ''');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/3210')
   Future<void> test_superParameter() async {
-    // If this issue gets closed as "won't fix," remove this test.
     await resolveTestCode('''
 class C {
   C(int f);
@@ -1123,8 +1185,10 @@ class D extends C {
 ''');
     await assertHasFix('''
 class C {
-  int f;
-  C(super.f);
+  C(int f);
+}
+class D extends C {
+  D(super.f);
 }
 ''');
   }

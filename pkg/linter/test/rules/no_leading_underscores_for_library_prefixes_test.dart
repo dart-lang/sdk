@@ -4,6 +4,7 @@
 
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:linter/src/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
@@ -29,6 +30,62 @@ class NoLeadingUnderscoresForLibraryPrefixesTest extends LintRuleTest {
     await assertDiagnosticsFromMarkup(r'''
 import 'dart:async' as [!_async!];
 ''');
+  }
+
+  test_notShadow_field() async {
+    await assertDiagnosticsFromMarkup('''
+import 'dart:async' as [!_foo!];
+
+class C {
+  int? foo;
+  _foo.FutureOr<void> f() {
+    print(foo);
+  }
+}
+''', code: diag.noLeadingUnderscoresForLibraryPrefixes);
+  }
+
+  test_notShadow_noConflict() async {
+    await assertDiagnosticsFromMarkup('''
+import 'dart:math' as [!_foo!];
+
+void f() {
+  _foo.pi;
+}
+''', code: diag.noLeadingUnderscoresForLibraryPrefixes);
+  }
+
+  test_shadow_existingPrefix_namedType() async {
+    await assertDiagnosticsFromMarkup('''
+import 'dart:async' as [!_foo!];
+import 'dart:math' as foo;
+
+void f(_foo.FutureOr<Object> x) {}
+''', code: diag.noLeadingUnderscoresForLibraryPrefixesShadowed);
+  }
+
+  test_shadow_field() async {
+    await assertDiagnosticsFromMarkup('''
+import 'dart:math' as [!_foo!];
+
+class C {
+  int? foo;
+  void f() {
+    print(foo);
+    _foo.pi;
+  }
+}
+''', code: diag.noLeadingUnderscoresForLibraryPrefixesShadowed);
+  }
+
+  test_shadow_parameter() async {
+    await assertDiagnosticsFromMarkup('''
+import 'dart:math' as [!_foo!];
+
+void f(int foo) {
+  _foo.pi;
+}
+''', code: diag.noLeadingUnderscoresForLibraryPrefixesShadowed);
   }
 
   test_snakeCase() async {

@@ -374,10 +374,8 @@ static char* AvailableAssetsToCString(Thread* const thread) {
 
 struct AssetLibraryLoadResult {
   void* handle = nullptr;
-  bool asset_found = false;
   Dart_NativeAssetsDlsymCallback dlsym = nullptr;
   Dart_NativeAssetsDlcloseCallback dlclose = nullptr;
-  bool unsupported = false;
 };
 
 // If an error occurs populates |error| with an error message
@@ -394,10 +392,7 @@ static AssetLibraryLoadResult LoadAssetLibraryFromKernelMapping(
   Zone* const zone = thread->zone();
   const auto& asset_location =
       Array::Handle(zone, GetAssetLocation(thread, asset));
-  if (asset_location.IsNull()) {
-    return result;
-  }
-  result.asset_found = true;
+  ASSERT(!asset_location.IsNull());
   result.dlsym = native_assets_api->dlsym;
   result.dlclose = native_assets_api->dlclose;
 
@@ -457,46 +452,55 @@ static AssetLibraryLoadResult LoadAssetLibraryFromKernelMapping(
   return result;
 }
 
-// If an error occurs populates |error| with an error message
-// (caller must free this message when it is no longer needed).
+// Returns whether |asset| is registered with either the embedder or the
+// native-assets mapping in the kernel.
+//
+// If an error occurs populates |error| with an error message (caller must free
+// this message when it is no longer needed).
+static bool ContainsAsset(Thread* const thread,
+                          const String& asset,
+                          char** error) {
+  NativeAssetsApi* native_assets_api =
+      thread->isolate_group()->native_assets_api();
+  const bool has_contains_asset = native_assets_api->contains_asset != nullptr;
+  const bool has_dlopen_asset = native_assets_api->dlopen_asset != nullptr;
+  if (has_contains_asset != has_dlopen_asset) {
+    *error = OS::SCreate(
+        /*use malloc*/ nullptr,
+        "NativeAssetsApi::contains_asset and NativeAssetsApi::dlopen_asset "
+        "must be provided together.");
+    return false;
+  }
+  if (has_dlopen_asset) {
+    NoActiveIsolateScope no_active_isolate_scope;
+    return native_assets_api->contains_asset(asset.ToCString());
+  }
+
+  Zone* const zone = thread->zone();
+  const auto& asset_location =
+      Array::Handle(zone, GetAssetLocation(thread, asset));
+  return !asset_location.IsNull();
+}
+
+// Loads |asset|, which must have been found by ContainsAsset.
+//
+// If an error occurs populates |error| with an error message (caller must free
+// this message when it is no longer needed).
 //
 // A successful process or executable lookup can return a nullptr handle.
-// NativeAssetsApi::dlopen_v2 reports unknown assets through |error|.
-static AssetLibraryLoadResult LoadAssetLibrary(
-    Thread* const thread,
-    const String& asset,
-    bool allow_legacy_embedder_dlopen,
-    char** error) {
+static AssetLibraryLoadResult LoadAssetLibrary(Thread* const thread,
+                                               const String& asset,
+                                               char** error) {
   AssetLibraryLoadResult result;
   NativeAssetsApi* native_assets_api =
       thread->isolate_group()->native_assets_api();
-  if (native_assets_api->dlopen_v2 != nullptr) {
+  if (native_assets_api->dlopen_asset != nullptr) {
     // Let embedder resolve the asset id to asset path.
     NoActiveIsolateScope no_active_isolate_scope;
-    result.handle = native_assets_api->dlopen_v2(asset.ToCString(), error);
-    result.asset_found = *error == nullptr;
+    result.handle = native_assets_api->dlopen_asset(asset.ToCString(), error);
     result.dlsym = native_assets_api->dlsym;
     result.dlclose = native_assets_api->dlclose;
     return result;
-  } else if (native_assets_api->dlopen != nullptr) {
-    if (!allow_legacy_embedder_dlopen) {
-      result.unsupported = true;
-      *error = OS::SCreate(
-          /*use malloc*/ nullptr,
-          "DynamicLibrary.codeAsset is not supported by this embedder. "
-          "NativeAssetsApi::dlopen_v2 must be provided.");
-      return result;
-    }
-    // Legacy embedder resolution cannot distinguish a missing asset from a
-    // successful process lookup. Keep it only for @Native compatibility.
-    NoActiveIsolateScope no_active_isolate_scope;
-    result.handle = native_assets_api->dlopen(asset.ToCString(), error);
-    if (*error != nullptr || result.handle != nullptr) {
-      result.asset_found = true;
-      result.dlsym = native_assets_api->dlsym;
-      result.dlclose = native_assets_api->dlclose;
-      return result;
-    }
   }
   return LoadAssetLibraryFromKernelMapping(thread, asset, error);
 }
@@ -505,13 +509,35 @@ static void* FfiResolveAsset(Thread* const thread,
                              const String& asset,
                              const String& symbol,
                              char** error) {
-  auto library = LoadAssetLibrary(thread, asset,
-                                  /*allow_legacy_embedder_dlopen=*/true, error);
-  if (*error != nullptr || !library.asset_found) {
-    return nullptr;
-  }
   NativeAssetsApi* native_assets_api =
       thread->isolate_group()->native_assets_api();
+
+  if (native_assets_api->dlopen_asset == nullptr &&
+      native_assets_api->dlopen != nullptr) {
+    // Legacy embedder resolution cannot distinguish a missing asset from a
+    // successful process lookup. Keep it only for @Native compatibility.
+    void* handle = nullptr;
+    {
+      NoActiveIsolateScope no_active_isolate_scope;
+      handle = native_assets_api->dlopen(asset.ToCString(), error);
+    }
+    if (*error != nullptr) {
+      return nullptr;
+    }
+    if (handle != nullptr) {
+      return ResolveNativeAssetsSymbol(native_assets_api, handle,
+                                       symbol.ToCString(), error);
+    }
+  }
+
+  if (!ContainsAsset(thread, asset, error)) {
+    return nullptr;
+  }
+
+  auto library = LoadAssetLibrary(thread, asset, error);
+  if (*error != nullptr) {
+    return nullptr;
+  }
   return ResolveNativeAssetsSymbol(native_assets_api, library.handle,
                                    symbol.ToCString(), error);
 }
@@ -521,18 +547,22 @@ DEFINE_NATIVE_ENTRY(Ffi_dl_codeAsset, 0, 1) {
   NativeAssetsApi* native_assets_api =
       thread->isolate_group()->native_assets_api();
   char* error = nullptr;
-  auto result =
-      LoadAssetLibrary(thread, asset_id,
-                       /*allow_legacy_embedder_dlopen=*/false, &error);
+  if (native_assets_api->dlopen_asset == nullptr &&
+      native_assets_api->dlopen != nullptr) {
+    const char* const message =
+        "DynamicLibrary.codeAsset is not supported by this embedder. "
+        "NativeAssetsApi::dlopen_asset and NativeAssetsApi::contains_asset "
+        "must be provided.";
+    Exceptions::ThrowUnsupportedError(message);
+  }
+
+  const bool asset_found = ContainsAsset(thread, asset_id, &error);
   if (error != nullptr) {
     const String& msg = String::Handle(String::New(error));
     free(error);
-    if (result.unsupported) {
-      Exceptions::ThrowUnsupportedError(msg.ToCString());
-    }
     Exceptions::ThrowArgumentError(msg);
   }
-  if (!result.asset_found) {
+  if (!asset_found) {
     const char* const format = "No asset with id '%s' found. %s";
     String& msg = String::Handle();
     if (native_assets_api->available_assets != nullptr) {
@@ -544,6 +574,13 @@ DEFINE_NATIVE_ENTRY(Ffi_dl_codeAsset, 0, 1) {
       msg = String::NewFormatted(format, asset_id.ToCString(),
                                  AvailableAssetsToCString(thread));
     }
+    Exceptions::ThrowArgumentError(msg);
+  }
+
+  auto result = LoadAssetLibrary(thread, asset_id, &error);
+  if (error != nullptr) {
+    const String& msg = String::Handle(String::New(error));
+    free(error);
     Exceptions::ThrowArgumentError(msg);
   }
   return DynamicLibrary::New(result.handle, result.dlsym, result.dlclose);

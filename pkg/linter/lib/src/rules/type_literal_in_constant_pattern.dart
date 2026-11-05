@@ -34,12 +34,8 @@ class TypeLiteralInConstantPattern extends AnalysisRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final AnalysisRule rule;
-  final RuleContext context;
-
-  new(this.rule, this.context);
-
+class _Visitor(final AnalysisRule rule, final RuleContext context)
+    extends SimpleAstVisitor<void> {
   @override
   visitConstantPattern(ConstantPattern node) {
     // `const (MyType)` is fine.

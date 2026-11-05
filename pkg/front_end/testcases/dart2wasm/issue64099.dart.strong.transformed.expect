@@ -1,0 +1,59 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+static method f(final core::int i) → asy::Future<core::bool> async /* emittedValueType= core::bool */ 
+  return i.{core::int::isEven}{core::bool};
+static method getInt() → asy::Future<core::int> /* emittedValueType= core::int */ /* originally async */ 
+  return asy::Future::value<core::int>(42);
+static method getString() → asy::Future<core::String> /* emittedValueType= core::String */ /* originally async */ 
+  return asy::Future::value<core::String>("hello");
+static method testOr(final core::int n) → asy::Future<core::bool> async /* emittedValueType= core::bool */ {
+  core::bool :async_temporary_0;
+  core::bool :async_temporary_1;
+  core::bool v = false;
+  for (core::int i = 0; i.{core::num::<}(n){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
+    :async_temporary_1 = v;
+    :async_temporary_0 = await self::f(i);
+    v = :async_temporary_1.{core::bool::|}(:async_temporary_0){(core::bool) → core::bool};
+  }
+  return v;
+}
+static method testXorRight(final core::int n) → asy::Future<core::bool> async /* emittedValueType= core::bool */ {
+  core::bool :async_temporary_0;
+  core::bool v = false;
+  for (core::int i = 0; i.{core::num::<}(n){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
+    :async_temporary_0 = await self::f(i);
+    v = :async_temporary_0.{core::bool::^}(v){(core::bool) → core::bool};
+  }
+  return v;
+}
+static method testReuse(final core::bool cond) → asy::Future<core::int> async /* emittedValueType= core::int */ {
+  core::int :async_temporary_0;
+  core::String :async_temporary_1;
+  core::int :async_temporary_2;
+  if(cond) {
+    :async_temporary_0 = await self::getInt();
+    :async_temporary_2 = :async_temporary_0.{core::int::abs}(){() → core::int};
+  }
+  else {
+    :async_temporary_1 = await self::getString();
+    :async_temporary_2 = :async_temporary_1.{core::String::length}{core::int};
+  }
+  return :async_temporary_2;
+}
+static method main() → void async /* emittedValueType= void */ {
+  core::bool :async_temporary_0;
+  core::bool :async_temporary_1;
+  core::int :async_temporary_2;
+  core::int :async_temporary_3;
+  :async_temporary_0 = await self::testOr(4);
+  :async_temporary_0;
+  :async_temporary_1 = await self::testXorRight(4);
+  :async_temporary_1;
+  :async_temporary_2 = await self::testReuse(true);
+  :async_temporary_2;
+  :async_temporary_3 = await self::testReuse(false);
+  :async_temporary_3;
+}

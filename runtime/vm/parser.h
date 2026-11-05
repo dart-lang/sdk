@@ -183,15 +183,6 @@ class ParsedFunction : public ZoneObject {
 
   void record_await() { have_seen_await_expr_ = true; }
   bool have_seen_await() const { return have_seen_await_expr_; }
-  bool is_forwarding_stub() const {
-    return forwarding_stub_super_target_ != nullptr;
-  }
-  const Function* forwarding_stub_super_target() const {
-    return forwarding_stub_super_target_;
-  }
-  void MarkForwardingStub(const Function* forwarding_target) {
-    forwarding_stub_super_target_ = forwarding_target;
-  }
 
   Thread* thread() const { return thread_; }
   Isolate* isolate() const { return thread_->isolate(); }
@@ -300,7 +291,6 @@ class ParsedFunction : public ZoneObject {
   int num_stack_locals_;
   bool have_seen_await_expr_;
 
-  const Function* forwarding_stub_super_target_ = nullptr;
   kernel::ScopeBuildingResult* kernel_scopes_;
 
   const BitVector* generic_covariant_impl_parameters_ = nullptr;

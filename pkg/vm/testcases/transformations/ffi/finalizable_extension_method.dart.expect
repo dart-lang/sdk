@@ -35,9 +35,9 @@ static extension-member method _extension#0|bar(lowered final ffi::Finalizable #
 static extension-member method _extension#0|get#bar(lowered final ffi::Finalizable #this) → () → core::int
   return block {
     final synthesized () → core::int :expressionValueWrappedFinalizable = () → core::int => block {
-      final synthesized core::int :expressionValueWrappedFinalizable = self::_extension#0|bar(#this);
+      final synthesized core::int :expressionValueWrappedFinalizable##1 = self::_extension#0|bar(#this);
       _in::reachabilityFence(#this);
-    } =>:expressionValueWrappedFinalizable;
+    } =>:expressionValueWrappedFinalizable##1;
     _in::reachabilityFence(#this);
   } =>:expressionValueWrappedFinalizable;
 static extension-member method _extension#1|baz(lowered final core::Object #this, self::Foo foo) → core::int {

@@ -128,6 +128,14 @@ class CompilerState : public ThreadStackResource {
 
   const Class& ErrorClass();
 
+  const Class& _ArrayClass();
+  const Class& FinalizerBaseClass();
+  const Class& TypedListBaseClass();
+  const Class& TypedListViewClass();
+  const Class& StringBaseClass();
+  const Class& LinkedHashBaseClass();
+  const Class& NativeFieldWrapperClass1Class();
+
   const Field& ErrorStackTraceField();
 
   const Function* function() const { return function_; }
@@ -170,6 +178,13 @@ class CompilerState : public ThreadStackResource {
   const Function* interpolate_ = nullptr;
   const Function* interpolate_single_ = nullptr;
   const Class* typed_list_class_ = nullptr;
+  const Class* array_base_class_ = nullptr;
+  const Class* finalizer_base_class_ = nullptr;
+  const Class* typed_list_base_class_ = nullptr;
+  const Class* typed_list_view_class_ = nullptr;
+  const Class* string_base_class_ = nullptr;
+  const Class* linked_hash_base_class_ = nullptr;
+  const Class* native_field_wrapper_class1_class_ = nullptr;
   const Class* array_class_ = nullptr;
   const Class* compound_class_ = nullptr;
   const Class* struct_class_ = nullptr;

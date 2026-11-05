@@ -3,16 +3,15 @@ import self as self;
 import "dart:core" as core;
 
 static method test1(dynamic x) → dynamic {
-  #L1:
   {
     final synthesized dynamic #0#0 = x;
     {
-      hoisted core::int x;
-      if(#0#0 is core::int && (let final dynamic #t1 = x = #0#0{core::int} in true)) {
+      hoisted core::int x##1;
+      if(#0#0 is core::int && (let final dynamic #t1 = x##1 = #0#0{core::int} in true)) {
         {
           {
-            core::String x = "foo";
-            return x;
+            core::String x##2 = "foo";
+            return x##2;
           }
         }
       }
@@ -27,7 +26,6 @@ static method test1(dynamic x) → dynamic {
   }
 }
 static method test2(dynamic x) → dynamic {
-  #L2:
   {
     final synthesized dynamic #0#0 = x;
     synthesized core::bool #0#4;
@@ -42,8 +40,8 @@ static method test2(dynamic x) → dynamic {
       lowered hoisted core::int x#case#1;
       if(#0#0 is core::List<dynamic> && (#0#4#isSet ?{core::bool} #0#4 : let final dynamic #t2 = #0#4#isSet = true in #0#4 = #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1) && ((#0#6#isSet ?{dynamic} #0#6 : let final dynamic #t3 = #0#6#isSet = true in #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic}) is core::int && (let final dynamic #t4 = x#case#0 = (#0#6#isSet ?{dynamic} #0#6 : let final dynamic #t5 = #0#6#isSet = true in #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic}) as{Unchecked} core::int in true)) || #0#0 is core::List<dynamic> && (#0#4#isSet ?{core::bool} #0#4 : let final dynamic #t6 = #0#4#isSet = true in #0#4 = #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1) && ((#0#7#isSet ?{dynamic} #0#7 : let final dynamic #t7 = #0#7#isSet = true in #0#7 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic}) is core::int && (let final dynamic #t8 = x#case#1 = (#0#7#isSet ?{dynamic} #0#7 : let final dynamic #t9 = #0#7#isSet = true in #0#7 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic}) as{Unchecked} core::int in true))) {
         {
-          core::String x = "foo";
-          return x;
+          core::String x##1 = "foo";
+          return x##1;
         }
       }
     }
@@ -60,12 +58,12 @@ static method test3(dynamic x) → dynamic {
   {
     final synthesized dynamic #0#0 = x;
     {
-      hoisted core::int x;
+      hoisted core::int x##1;
       if(#0#0 is core::int) {
-        x = #0#0{core::int};
+        x##1 = #0#0{core::int};
         {
-          core::String x = "foo";
-          return x;
+          core::String x##2 = "foo";
+          return x##2;
         }
       }
       else {
@@ -79,11 +77,11 @@ static method test4(dynamic x) → dynamic {
   {
     final synthesized dynamic #0#0 = x;
     {
-      hoisted core::int x;
+      hoisted core::int x##1;
       if(#0#0 is core::int) {
-        x = #0#0{core::int};
+        x##1 = #0#0{core::int};
         {
-          core::String x = (() → core::String {
+          core::String x##2 = (() → core::String {
             f = () → core::int => 1;
             return "foo";
           })(){() → core::String};

@@ -67,7 +67,7 @@ main() {
     final Class c1 = new Class(name: 'C1', fileUri: dummyUri);
     final Class c2 = new Class(
       name: 'C2',
-      typeParameters: [new TypeParameter('E')],
+      typeParameters: new TypeParameterList(new TypeParameter('E')),
       fileUri: dummyUri,
     );
 
@@ -81,11 +81,11 @@ main() {
     final InterfaceType t2Generic = new InterfaceType(
       c2,
       Nullability.nullable,
-      [t1],
+      new DartTypeList(t1),
     );
     final DartType t3 = const NullType();
     final FunctionType f1 = new FunctionType(
-      [t1],
+      new DartTypeList(t1),
       const VoidType(),
       Nullability.nullable,
     );

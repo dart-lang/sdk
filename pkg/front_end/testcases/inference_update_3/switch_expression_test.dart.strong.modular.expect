@@ -36,44 +36,40 @@ static method test(core::int i) → dynamic {
   self::C2<core::double> c2Double = new self::C2::•<core::double>();
   self::contextB1<dynamic>( block {
     self::B1<dynamic> #t1;
-    final synthesized core::int #0#0 = i;
-    final const synthesized core::int #0#1 = #C1;
     #L1:
-    {
-      {
-        if(#C1 =={core::num::==}{(core::Object) → core::bool} #0#0) {
+    switch(i) /* core::int */ {
+      #L2:
+      case #C1:
+        {
           #t1 = c1Int;
           break #L1;
         }
-      }
-      {
-        if(true) {
+      #L3:
+      default:
+        {
           #t1 = c2Double;
           break #L1;
         }
-      }
     }
   } =>#t1);
   core::Iterable<core::int> iterableInt = <core::int>[] as core::Iterable<core::int>;
   core::List<core::num> listNum = <core::num>[];
   self::contextIterable<core::num>( block {
     core::Iterable<core::num> #t2;
-    final synthesized core::int #1#0 = i;
-    final const synthesized core::int #1#1 = #C1;
-    #L2:
-    {
-      {
-        if(#C1 =={core::num::==}{(core::Object) → core::bool} #1#0) {
+    #L4:
+    switch(i) /* core::int */ {
+      #L5:
+      case #C1:
+        {
           #t2 = iterableInt;
-          break #L2;
+          break #L4;
         }
-      }
-      {
-        if(true) {
+      #L6:
+      default:
+        {
           #t2 = listNum;
-          break #L2;
+          break #L4;
         }
-      }
     }
   } =>#t2);
 }

@@ -20,7 +20,7 @@ class B {
   final l;
   const B(String o) : l = o.length;
 //                        ^^^^^^^^
-// [context 1] The error is in the field initializer of 'B', and occurs here.
+// [context 1] The error is in the field initializer of 'B.new', and occurs here.
 }
 
 const y = B(x);

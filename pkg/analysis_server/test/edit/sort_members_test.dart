@@ -275,6 +275,97 @@ class Z {
 ''');
   }
 
+  Future<void> test_OK_partFile_directives() {
+    newFile('$testPackageLibPath/main.dart', '''
+part 'test.dart';
+''');
+    addTestFile('''
+part of 'main.dart';
+
+export 'dart:bbb';
+import 'dart:bbb';
+export 'package:bbb/bbb.dart';
+import 'bbb/bbb.dart';
+export 'dart:aaa';
+export 'package:aaa/aaa.dart';
+import 'package:bbb/bbb.dart';
+export 'aaa/aaa.dart';
+export 'bbb/bbb.dart';
+import 'dart:aaa';
+import 'package:aaa/aaa.dart';
+import 'aaa/aaa.dart';
+part 'bbb/bbb.dart';
+part 'aaa/aaa.dart';
+
+void f() {}
+''');
+    return _assertSorted(r'''
+part of 'main.dart';
+
+import 'dart:aaa';
+import 'dart:bbb';
+
+import 'package:aaa/aaa.dart';
+import 'package:bbb/bbb.dart';
+
+import 'aaa/aaa.dart';
+import 'bbb/bbb.dart';
+
+export 'dart:aaa';
+export 'dart:bbb';
+
+export 'package:aaa/aaa.dart';
+export 'package:bbb/bbb.dart';
+
+export 'aaa/aaa.dart';
+export 'bbb/bbb.dart';
+
+part 'aaa/aaa.dart';
+part 'bbb/bbb.dart';
+
+void f() {}
+''');
+  }
+
+  Future<void> test_OK_partFile_directives_withAnnotation() {
+    newFile('$testPackageLibPath/main.dart', '''
+part 'test.dart';
+''');
+    addTestFile('''
+@partAnnotation
+part of 'main.dart';
+
+export 'dart:bbb';
+@MyAnnotation(1)
+@MyAnnotation(2)
+import 'dart:bbb';
+@MyAnnotation(3)
+export 'dart:aaa';
+import 'dart:aaa';
+
+class MyAnnotation {
+  const MyAnnotation(_);
+}
+''');
+    return _assertSorted(r'''
+@partAnnotation
+part of 'main.dart';
+
+import 'dart:aaa';
+@MyAnnotation(1)
+@MyAnnotation(2)
+import 'dart:bbb';
+
+@MyAnnotation(3)
+export 'dart:aaa';
+export 'dart:bbb';
+
+class MyAnnotation {
+  const MyAnnotation(_);
+}
+''');
+  }
+
   Future<void> test_OK_unitMembers_class() {
     addTestFile('''
 class C {}

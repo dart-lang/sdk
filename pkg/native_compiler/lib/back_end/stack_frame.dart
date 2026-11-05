@@ -6,6 +6,7 @@ import 'package:cfg/ir/functions.dart';
 import 'package:cfg/ir/instructions.dart';
 import 'package:cfg/utils/misc.dart';
 import 'package:native_compiler/back_end/locations.dart';
+import 'package:native_compiler/back_end/safepoint.dart';
 
 /// Base class for architecture-specific stack frame layout.
 abstract base class StackFrame {
@@ -49,9 +50,24 @@ abstract base class StackFrame {
   /// Should be used only after the frame is finalized.
   int shadowParameterOffsetFromFP(int paramIndex);
 
-  /// Frame size to allocate, in bytes.
+  /// Location of the parameter in the stack frame.
+  ParameterStackLocation getParameterSlot(
+    int paramIndex,
+    RegisterClass registerClass,
+  );
+
+  /// Frame size to allocate, in stack slots (words).
   /// Should be used only after the frame is finalized.
-  int get frameSizeToAllocate;
+  int get frameSizeInSlots;
+
+  /// Reserve [numSlots] spill slots.
+  void reserveSpillSlots(int numSlots) {
+    assert(!_finalized);
+    _usedSpillSlots += numSlots;
+  }
+
+  /// Record reserved stack slots in the safepoint.
+  void recordReservedLocations(Safepoint safepoint);
 
   /// Allocate a new spill slot.
   SpillSlot allocateSpillSlot(RegisterClass registerClass) {

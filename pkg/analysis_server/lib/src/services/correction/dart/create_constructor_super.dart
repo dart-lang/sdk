@@ -7,6 +7,7 @@ import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
@@ -31,7 +32,7 @@ class CreateConstructorSuper extends MultiCorrectionProducer {
     for (var constructor in superType.constructors) {
       // Only propose public constructors.
       var name = constructor.name;
-      if (name != null && !Identifier.isPrivateName(name)) {
+      if (name != null && !name.isPrivateName) {
         producers.add(
           _CreateConstructor(constructor, targetClassNode, context: context),
         );

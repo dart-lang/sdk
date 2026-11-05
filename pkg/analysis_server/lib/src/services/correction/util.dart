@@ -7,6 +7,7 @@ import 'dart:math';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analyzer/dart/ast/precedence.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -60,11 +61,14 @@ InterfaceElement? computeDotShorthandContextTypeElement(
 }
 
 /// Return references to the [element] inside the [root] node.
-List<AstNode> findImportPrefixElementReferences(
+///
+/// A reference in a type annotation, such as `p.A`, is an
+/// [ImportPrefixReference], not an expression, so its name token is returned.
+List<SyntacticEntity> findImportPrefixElementReferences(
   AstNode root,
   PrefixElement element,
 ) {
-  var collector = _ElementReferenceCollector(element);
+  var collector = _ImportPrefixReferenceCollector(element);
   root.accept(collector);
   return collector.references;
 }
@@ -478,13 +482,6 @@ class _ElementReferenceCollector extends RecursiveAstVisitor<void> {
   new(this.element);
 
   @override
-  void visitImportPrefixReference(ImportPrefixReference node) {
-    if (node.element == element) {
-      references.add(SimpleIdentifierImpl(token: node.name));
-    }
-  }
-
-  @override
   void visitListPattern(ListPattern node) {
     for (var item in node.elements) {
       if (item is AssignedVariablePattern) {
@@ -504,6 +501,27 @@ class _ElementReferenceCollector extends RecursiveAstVisitor<void> {
           references.add(field.pattern);
         }
       }
+    }
+  }
+
+  @override
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    if (node.element == element) {
+      references.add(node);
+    }
+  }
+}
+
+class _ImportPrefixReferenceCollector extends RecursiveAstVisitor<void> {
+  final PrefixElement element;
+  final List<SyntacticEntity> references = [];
+
+  new(this.element);
+
+  @override
+  void visitImportPrefixReference(ImportPrefixReference node) {
+    if (node.element == element) {
+      references.add(node.name);
     }
   }
 

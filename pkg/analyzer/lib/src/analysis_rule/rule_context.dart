@@ -34,22 +34,30 @@ final class RuleContextWithParsedResults implements RuleContext {
   @override
   RuleContextUnit? currentUnit;
 
-  RuleContextWithParsedResults(this.allUnits, this.definingUnit);
+  @override
+  final WorkspacePackage? package;
+
+  RuleContextWithParsedResults(
+    this.allUnits,
+    this.definingUnit, [
+    this.package,
+  ]);
 
   @override
-  bool get isInLibDir =>
-      _isInLibDir(definingUnit.unit.declaredFragment?.source.fullName, package);
+  bool get isInLibDir => _isInLibDir(definingUnit.file.path, package);
 
   @override
-  bool get isInTestDirectory => false;
+  bool get isInTestDirectory {
+    if (package case var package?) {
+      return package.isInTestDirectory(definingUnit.file);
+    }
+    return false;
+  }
 
   @override
   LibraryElement get libraryElement => throw UnsupportedError(
     'RuleContext with parsed results does not include a LibraryElement',
   );
-
-  @override
-  WorkspacePackage? get package => null;
 
   @override
   TypeProvider get typeProvider => throw UnsupportedError(
@@ -62,9 +70,8 @@ final class RuleContextWithParsedResults implements RuleContext {
   );
 
   @override
-  bool isFeatureEnabled(Feature feature) => throw UnsupportedError(
-    'RuleContext with parsed results does not include a LibraryElement',
-  );
+  bool isFeatureEnabled(Feature feature) =>
+      definingUnit.unit.featureSet.isEnabled(feature);
 }
 
 /// A [RuleContext] for a library, resolved into [ResolvedUnitResult]s.

@@ -29,8 +29,8 @@ class AstFinder {
   /// Return the declaration of the class with the given [className] in the
   /// given compilation [unit].
   static ClassDeclaration getClass(CompilationUnit unit, String className) {
-    NodeList<CompilationUnitMember> unitMembers = unit.declarations;
-    for (CompilationUnitMember unitMember in unitMembers) {
+    NodeList<AnnotatedNode> unitMembers = unit.declarations2;
+    for (AnnotatedNode unitMember in unitMembers) {
       if (unitMember is ClassDeclaration &&
           unitMember.namePart.typeName.lexeme == className) {
         return unitMember;
@@ -121,8 +121,8 @@ class AstFinder {
     CompilationUnit unit,
     String functionName,
   ) {
-    NodeList<CompilationUnitMember> unitMembers = unit.declarations;
-    for (CompilationUnitMember unitMember in unitMembers) {
+    NodeList<AnnotatedNode> unitMembers = unit.declarations2;
+    for (AnnotatedNode unitMember in unitMembers) {
       if (unitMember is FunctionDeclaration) {
         if (unitMember.name.lexeme == functionName) {
           return unitMember;

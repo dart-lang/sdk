@@ -38,6 +38,7 @@ import 'file_modification_test.dart' as file_modification;
 import 'flutter_outline_test.dart' as flutter_outline;
 import 'folding_test.dart' as folding;
 import 'format_test.dart' as format;
+import 'get_fixes_test.dart' as get_fixes;
 import 'hover_test.dart' as hover;
 import 'implementation_test.dart' as implementation;
 import 'import_test.dart' as import_test;
@@ -68,6 +69,7 @@ import 'type_hierarchy_test.dart' as type_hierarchy;
 import 'update_diagnostic_information_test.dart'
     as update_diagnostic_information;
 import 'will_rename_files_test.dart' as will_rename_files;
+import 'workspace_analysis_complete_test.dart' as workspace_analysis_complete;
 import 'workspace_apply_edit_test.dart' as workspace_apply_edit;
 import 'workspace_symbols_test.dart' as workspace_symbols;
 
@@ -105,6 +107,7 @@ void main() {
     flutter_outline.main();
     folding.main();
     format.main();
+    get_fixes.main();
     summary.main();
     get_super.main();
     hover.main();
@@ -135,6 +138,7 @@ void main() {
     type_hierarchy.main();
     update_diagnostic_information.main();
     will_rename_files.main();
+    workspace_analysis_complete.main();
     workspace_apply_edit.main();
     workspace_symbols.main();
   }, name: 'lsp');

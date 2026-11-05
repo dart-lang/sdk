@@ -129,7 +129,7 @@ MapPattern
   leftBracket: {
   elements
     MapPatternEntry
-      key: IntegerLiteral
+      key2: IntegerLiteral
         literal: 0
         staticType: int
       separator: :

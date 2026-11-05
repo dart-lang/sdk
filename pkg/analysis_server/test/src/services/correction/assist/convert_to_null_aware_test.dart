@@ -16,7 +16,7 @@ void main() {
 }
 
 @reflectiveTest
-class ConvertToNullAwareTest extends AssistProcessorTest {
+class ConvertToNullAwareTest extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.convertToNullAware;
 

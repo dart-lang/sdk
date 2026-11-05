@@ -5,8 +5,8 @@
 import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../src/dart/resolution/context_collection_resolution.dart';
-import '../../src/dart/resolution/node_text_expectations.dart';
+import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -24,7 +24,7 @@ class ErrorSuppressionTest extends PubPackageResolutionTest {
     super.setUp();
     writeTestPackageAnalysisOptionsFile(
       analysisOptionsContent(
-        experiments: experiments,
+        experimentalFeatures: experimentalFeatures,
         rules: ['avoid_types_as_parameter_names'],
       ),
     );

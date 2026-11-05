@@ -497,6 +497,52 @@ export 'dart:math'
     assertHasStringRegion(HighlightRegionType.LITERAL_STRING, "'dart:html'");
   }
 
+  Future<void> test_DIRECTIVE_inPart() async {
+    addTestFile('''
+part of 'my_lib.dart';
+import 'dart:math' deferred as math show max;
+export 'dart:async' hide Stream;
+part 'nested.dart';
+void f() {
+  math.max(1, 2);
+}
+''');
+    newFile('$testPackageLibPath/my_lib.dart', '''
+part 'test.dart';
+''');
+    newFile('$testPackageLibPath/nested.dart', '''
+part of 'test.dart';
+''');
+    await prepareHighlights();
+    assertHasStringRegion(
+      HighlightRegionType.DIRECTIVE,
+      "part of 'my_lib.dart';",
+    );
+    assertHasStringRegion(
+      HighlightRegionType.DIRECTIVE,
+      "import 'dart:math' deferred as math show max;",
+    );
+    assertHasStringRegion(
+      HighlightRegionType.DIRECTIVE,
+      "export 'dart:async' hide Stream;",
+    );
+    assertHasStringRegion(HighlightRegionType.DIRECTIVE, "part 'nested.dart';");
+    assertHasRegion(HighlightRegionType.KEYWORD, 'part of', 'part of'.length);
+    assertHasRegion(HighlightRegionType.KEYWORD, 'import');
+    assertHasRegion(HighlightRegionType.KEYWORD, 'deferred');
+    assertHasRegion(HighlightRegionType.KEYWORD, 'as');
+    assertHasRegion(HighlightRegionType.KEYWORD, 'show');
+    assertHasRegion(HighlightRegionType.KEYWORD, 'hide');
+    assertHasRegion(HighlightRegionType.KEYWORD, 'export');
+    assertHasRegion(HighlightRegionType.KEYWORD, "part 'nested");
+    assertHasRegion(HighlightRegionType.IMPORT_PREFIX, 'math show');
+    assertHasRegion(HighlightRegionType.IMPORT_PREFIX, 'math.max');
+    assertHasStringRegion(HighlightRegionType.LITERAL_STRING, "'dart:math'");
+    assertHasStringRegion(HighlightRegionType.LITERAL_STRING, "'dart:async'");
+    assertHasStringRegion(HighlightRegionType.LITERAL_STRING, "'my_lib.dart'");
+    assertHasStringRegion(HighlightRegionType.LITERAL_STRING, "'nested.dart'");
+  }
+
   Future<void> test_DIRECTIVE_partOf() async {
     addTestFile('''
 part of my.lib.name;

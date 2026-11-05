@@ -98,10 +98,10 @@ constants  {
 
 
 Constructor coverage from constants:
-org-dartlang-testcase:///main_lib.dart:
+org-dartlang-testcase:///main.dart:
 - _Const. (from org-dartlang-testcase:///main_lib.dart:16:9)
 - Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
 
-org-dartlang-testcase:///main.dart:
+org-dartlang-testcase:///main_lib.dart:
 - _Const. (from org-dartlang-testcase:///main_lib.dart:16:9)
 - Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)

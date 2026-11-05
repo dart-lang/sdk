@@ -30,7 +30,7 @@ Component createMockSdkComponent() {
     Library lib,
     String name, {
     Supertype? supertype,
-    List<TypeParameter>? typeParameters,
+    TypeParameterList? typeParameters,
     List<Supertype>? implementedTypes,
   }) {
     Class c = new Class(
@@ -60,32 +60,53 @@ Component createMockSdkComponent() {
   Class iterable = addClass(
     coreLib,
     'Iterable',
-    typeParameters: [typeParam('T')],
+    typeParameters: new TypeParameterList(typeParam('T')),
   );
   {
     TypeParameter T = typeParam('T');
     addClass(
       coreLib,
       'List',
-      typeParameters: [T],
+      typeParameters: new TypeParameterList(T),
       implementedTypes: [
-        new Supertype(iterable, [
-          new TypeParameterType.withDefaultNullability(T),
-        ]),
+        new Supertype(
+          iterable,
+          new DartTypeList(new TypeParameterType.withDefaultNullability(T)),
+        ),
       ],
     );
   }
-  addClass(coreLib, 'Map', typeParameters: [typeParam('K'), typeParam('V')]);
+  addClass(
+    coreLib,
+    'Map',
+    typeParameters: new TypeParameterList(typeParam('K'), typeParam('V')),
+  );
   addClass(coreLib, 'int', supertype: num.asThisSupertype);
   addClass(coreLib, 'double', supertype: num.asThisSupertype);
-  addClass(coreLib, 'Iterator', typeParameters: [typeParam('T')]);
+  addClass(
+    coreLib,
+    'Iterator',
+    typeParameters: new TypeParameterList(typeParam('T')),
+  );
   addClass(coreLib, 'Symbol');
   addClass(coreLib, 'Type');
   addClass(coreLib, 'Function');
   addClass(coreLib, 'Invocation');
-  addClass(coreLib, 'Future', typeParameters: [typeParam('T')]);
-  addClass(asyncLib, 'FutureOr', typeParameters: [typeParam('T')]);
-  addClass(asyncLib, 'Stream', typeParameters: [typeParam('T')]);
+  addClass(
+    coreLib,
+    'Future',
+    typeParameters: new TypeParameterList(typeParam('T')),
+  );
+  addClass(
+    asyncLib,
+    'FutureOr',
+    typeParameters: new TypeParameterList(typeParam('T')),
+  );
+  addClass(
+    asyncLib,
+    'Stream',
+    typeParameters: new TypeParameterList(typeParam('T')),
+  );
   addClass(internalLib, 'Symbol');
 
   return new Component(libraries: [coreLib, asyncLib, internalLib]);

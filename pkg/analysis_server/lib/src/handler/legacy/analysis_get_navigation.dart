@@ -10,6 +10,8 @@ import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
 import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/plugin/result_merger.dart';
 import 'package:analysis_server/src/request_handler_mixin.dart';
+import 'package:analysis_server/src/utilities/navigation/analysis_options_navigation_computer.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
@@ -63,6 +65,28 @@ class AnalysisGetNavigationHandler extends LegacyHandler
           server.resourceProvider,
           collector,
           result,
+          offset,
+          length,
+        );
+        collector.createRegions();
+        allResults.add(
+          AnalysisNavigationParams(
+            file,
+            collector.regions,
+            collector.targets,
+            collector.files,
+          ),
+        );
+      } else if (file_paths.isAnalysisOptionsYaml(
+        server.resourceProvider.pathContext,
+        file,
+      )) {
+        var collector = NavigationCollectorImpl();
+        computeAnalysisOptionsNavigation(
+          server.resourceProvider,
+          collector,
+          driver.sourceFactory,
+          file,
           offset,
           length,
         );

@@ -47,7 +47,14 @@ class FeatureSets {
 
   static final FeatureSet latestWithExperiments = FeatureSet.fromEnableFlags2(
     sdkLanguageVersion: ExperimentStatus.currentVersion,
-    flags: experimentsForTests,
+    flags: [
+      for (var feature in experimentalFeaturesForTests)
+        feature.experimentalFlag ??
+            (throw StateError(
+              '$feature no longer has an experimental flag; '
+              'remove it from experimentalFeaturesForTests.',
+            )),
+    ],
   );
 
   FeatureSets._();

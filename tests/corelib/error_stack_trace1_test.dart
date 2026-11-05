@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
+import "package:expect/variations.dart";
 
 class A {
   static Aa() => Ab();
@@ -31,10 +32,12 @@ main() {
     hasThrown = true;
     var trace = stackTrace.toString();
     print(trace);
-    Expect.isTrue(trace.contains("Bc"));
-    Expect.isTrue(trace.contains("Bb"));
-    Expect.isTrue(trace.contains("Ba"));
-    Expect.isTrue(trace.contains("main"));
+    if (symbolicUnminifiedStackTraces) {
+      Expect.isTrue(trace.contains("Bc"));
+      Expect.isTrue(trace.contains("Bb"));
+      Expect.isTrue(trace.contains("Ba"));
+      Expect.isTrue(trace.contains("main"));
+    }
   }
   Expect.isTrue(hasThrown);
 }

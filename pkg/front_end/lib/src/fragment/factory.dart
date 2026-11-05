@@ -27,6 +27,7 @@ class FactoryFragment implements Fragment, FunctionFragment {
   final ConstructorReferenceBuilder? redirectionTarget;
   final DeclarationFragment enclosingDeclaration;
   final LibraryFragment enclosingCompilationUnit;
+  final bool isComplete;
 
   SourceFactoryBuilder? _builder;
 
@@ -56,6 +57,7 @@ class FactoryFragment implements Fragment, FunctionFragment {
     required this.redirectionTarget,
     required this.enclosingDeclaration,
     required this.enclosingCompilationUnit,
+    required this.isComplete,
   });
 
   @override
@@ -99,11 +101,8 @@ class FactoryFragment implements Fragment, FunctionFragment {
   String toString() => '$runtimeType($name,$fileUri,$fullNameOffset)';
 }
 
-class _FactoryBodyBuildingContext implements FunctionBodyBuildingContext {
-  FactoryFragment _fragment;
-
-  new(this._fragment);
-
+class _FactoryBodyBuildingContext(final FactoryFragment _fragment)
+    implements FunctionBodyBuildingContext {
   @override
   InferenceDataForTesting? get inferenceDataForTesting => _fragment
       .builder
@@ -117,6 +116,9 @@ class _FactoryBodyBuildingContext implements FunctionBodyBuildingContext {
   @override
   // Coverage-ignore(suite): Not run.
   bool get shouldFinishFunction => true;
+
+  @override
+  bool get isImplementation => _fragment.declaration.isImplementation;
 
   @override
   List<TypeParameter>? get thisTypeParameters => null;

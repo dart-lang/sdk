@@ -4,6 +4,7 @@
 
 import 'dart:math' as math;
 
+import 'package:analysis_server/src/collections.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:collection/collection.dart';
 
@@ -129,7 +130,19 @@ class SourceChangeMerger {
         ? first.replacement.substring(second.end - first.offset)
         : '';
 
-    return SourceEdit(actualStart, length, '$prefix$middle$suffix');
+    // Join the descriptions together. Even if Edit2 totally replaces Edit1, we
+    // want to keep both to avoid showing something like
+    // "Replace final with const" when the users code actually says "var" but
+    // the first edit was replaced entirely by the second.
+    var descriptions = <String>[?first.description, ?second.description];
+    var description = nullIfEmpty(descriptions)?.join(', ');
+
+    return SourceEdit(
+      actualStart,
+      length,
+      '$prefix$middle$suffix',
+      description: description,
+    );
   }
 
   /// Re-orders edits (in-place) so that they are from latest offset to earliest
@@ -158,6 +171,7 @@ class SourceChangeMerger {
           current.offset - edits[j].delta,
           current.length,
           current.replacement,
+          description: current.description,
         );
         edits[j + 1] = edits[j];
         j--;

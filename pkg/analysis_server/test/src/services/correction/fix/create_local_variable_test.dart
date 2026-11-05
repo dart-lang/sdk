@@ -21,6 +21,17 @@ class CreateLocalVariableTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.createLocalVariable;
 
+  Future<void> test_annotation() async {
+    await resolveTestCode('''
+void f() {
+  @foo
+  var x = 0;
+  print(x);
+}
+''');
+    await assertNoFix();
+  }
+
   Future<void> test_functionType_named() async {
     await resolveTestCode('''
 typedef MY_FUNCTION(int p);
@@ -188,6 +199,24 @@ g(String p) {}
     assertLinkedGroup(change.linkedEditGroups[1], ['test;', 'test);']);
   }
 
+  Future<void> test_read_typeInvocationArgument_namedArgument() async {
+    await resolveTestCode('''
+void f() {
+  g(name: test);
+}
+void g({String? name}) {}
+''');
+    await assertHasFix('''
+void f() {
+  String? test;
+  g(name: test);
+}
+void g({String? name}) {}
+''');
+    assertLinkedGroup(change.linkedEditGroups[0], ['String? test;']);
+    assertLinkedGroup(change.linkedEditGroups[1], ['test;', 'test);']);
+  }
+
   Future<void> test_read_typeInvocationArgument_recordType() async {
     await resolveTestCode('''
 void f() {
@@ -237,7 +266,7 @@ class C {
 }
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'pkg', rootFolder: getFolder('$workspaceRootPath/pkg')),
     );

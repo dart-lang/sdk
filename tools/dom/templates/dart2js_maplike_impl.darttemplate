@@ -20,7 +20,7 @@ $!MEMBERS
 
   Map$NULLABLE operator []($VALUETYPE key) => _getItem(key);
 
-  void forEach(void f($KEYTYPE key, $VALUETYPE value)) {
+  void forEach(void Function($KEYTYPE key, $VALUETYPE value) f) {
     var entries = JS('', '#.entries()', this);
     while (true) {
       var entry = JS('', '#.next()', entries);
@@ -52,7 +52,7 @@ $!MEMBERS
     throw new UnsupportedError("Not supported");
   }
 
-  dynamic putIfAbsent($KEYTYPE key, $VALUETYPE ifAbsent()) {
+  dynamic putIfAbsent($KEYTYPE key, $VALUETYPE Function() ifAbsent) {
     throw new UnsupportedError("Not supported");
   }
 

@@ -2,11 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/lsp/migration_registry.dart';
+import 'package:analysis_server/src/lsp/handlers/custom/migration/migration_registry.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analysis_server_plugin/src/correction/fix_generators.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -32,8 +33,8 @@ class MigrationRegistryTest {
     var lintsWithIncorrectProducerCount = <String, int>{};
 
     var allRegistryLints = {
-      ...postMigrationLintsRegistry.values.expand((e) => e),
-      ...preMigrationLintsRegistry.values.expand((e) => e),
+      ...cleanUpLintsRegistry.values.expand((e) => e),
+      ...preparatoryLintsRegistry.values.expand((e) => e),
     };
 
     var diagnosticCodes = <DiagnosticCode>[
@@ -74,5 +75,23 @@ class MigrationRegistryTest {
           'producer. The following lints do not satisfy this requirement: '
           '${lintsWithIncorrectProducerCount.keys}',
     );
+  }
+
+  void test_nextSdkVersion_latestKnown() {
+    expect(nextSdkVersion(knownSdkVersions.last), isNull);
+  }
+
+  void test_nextSdkVersion_normalizesPatchAndPreRelease() {
+    expect(nextSdkVersion(Version(3, 12, 5)), Version(3, 13, 0));
+    expect(nextSdkVersion(Version(3, 12, 0, pre: 'dev')), Version(3, 13, 0));
+  }
+
+  void test_nextSdkVersion_sequential() {
+    expect(nextSdkVersion(Version(3, 12, 0)), Version(3, 13, 0));
+  }
+
+  void test_nextSdkVersion_unknown() {
+    expect(nextSdkVersion(Version(2, 19, 0)), isNull);
+    expect(nextSdkVersion(Version(4, 0, 0)), isNull);
   }
 }

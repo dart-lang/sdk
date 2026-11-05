@@ -65,10 +65,9 @@ class B extends A {
 }''');
   }
 
-  test_class_extends_wildcardParams_preWildCards() async {
+  test_class_extends_wildcardParams_beforeWildcardVariables() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.4
-// (pre wildcard-variables)
+// %before-language-feature: wildcard-variables
 
 class A {
   void foo(int x) {}

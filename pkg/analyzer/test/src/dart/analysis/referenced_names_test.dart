@@ -35,6 +35,26 @@ void f() {
     expect(names, unorderedEquals(['foo', 'void']));
   }
 
+  test_cascadeName_lexicalShadowing() {
+    var names = _computeReferencedNames('''
+f(A a, m, p) {
+  a..m(m)..p;
+}
+''');
+    expect(names, unorderedEquals(['A', 'm', 'p']));
+  }
+
+  test_cascadePropertyAssignmentTarget() {
+    var names = _computeReferencedNames('''
+f(A a) {
+  a..foo = 0;
+  a..bar += 1;
+  a..baz ??= 2;
+}
+''');
+    expect(names, unorderedEquals(['A', 'foo', 'bar', '+', 'baz']));
+  }
+
   test_class_constructor() {
     var names = _computeReferencedNames('''
 class U {
@@ -131,6 +151,20 @@ class U {
 }
 ''');
     expect(names, unorderedEquals(['int', 'D']));
+  }
+
+  test_class_members_dontHideDotShorthand() {
+    var names = _computeReferencedNames('''
+class U {
+  int a;
+  m() {}
+  f() {
+    g(.a);
+    g(.m());
+  }
+}
+''');
+    expect(names, unorderedEquals(['int', 'g', 'a', 'm']));
   }
 
   test_class_members_dontHideQualified() {
@@ -231,6 +265,18 @@ class U<T> {
     expect(names, unorderedEquals(['A']));
   }
 
+  test_combinatorName() {
+    var names = _computeReferencedNames('''
+import 'a.dart' show A hide B;
+//                     ^^^^
+// [diag.multipleCombinators] At most one 'show' or 'hide' combinator can be used on an import or export directive.
+export 'b.dart' show C hide D;
+//                     ^^^^
+// [diag.multipleCombinators] At most one 'show' or 'hide' combinator can be used on an import or export directive.
+''');
+    expect(names, unorderedEquals(['A', 'B', 'C', 'D']));
+  }
+
   test_extensionType_typeParameters() {
     var names = _computeReferencedNames('''
 extension type Z<T>(int it) {
@@ -240,6 +286,21 @@ extension type Z<T>(int it) {
 }
 ''');
     expect(names, unorderedEquals(['int', 'A', 'B', 'C']));
+  }
+
+  test_importPrefix_dontHideDotShorthand() {
+    var names = _computeReferencedNames('''
+import 'a.dart' as p;
+import 'b.dart' as q;
+import 'c.dart' as r;
+
+f() {
+  g(.p);
+  g(.q());
+  g(const .r());
+}
+''');
+    expect(names, unorderedEquals(['g', 'p', 'q', 'r']));
   }
 
   test_instantiatedNames_importPrefix() {
@@ -265,6 +326,76 @@ f(A a) {
 }
 ''');
     expect(names, unorderedEquals(['A', 'B']));
+  }
+
+  test_operator_compoundAssignment_property() {
+    var names = _computeReferencedNames('''
+f(A a) {
+  a.foo += 1;
+  a.foo -= 1;
+}
+''');
+    expect(names, unorderedEquals(['A', '+', '-', 'foo']));
+  }
+
+  test_operator_compoundAssignment_unqualifiedName() {
+    var names = _computeReferencedNames('''
+f(A a) {
+  var x = a;
+  x += 1;
+  x -= 1;
+}
+''');
+    expect(names, unorderedEquals(['A', '+', '-']));
+  }
+
+  test_operator_incrementOrDecrement() {
+    var names = _computeReferencedNames('''
+f(A a) {
+  var x = a;
+  x++;
+  --x;
+  a.foo++;
+  --a.foo;
+}
+''');
+    expect(names, unorderedEquals(['A', '+', '-', 'foo']));
+  }
+
+  test_patternField_objectPattern_explicitName() {
+    var names = _computeReferencedNames('''
+f(Object? x) {
+  if (x case A(foo: 0)) {}
+}
+''');
+    expect(names, unorderedEquals(['Object', 'A', 'foo']));
+  }
+
+  test_patternField_objectPattern_implicitName() {
+    var names = _computeReferencedNames('''
+f(Object? x) {
+  if (x case A(: var foo)) {}
+}
+''');
+    expect(names, unorderedEquals(['Object', 'A', 'foo']));
+  }
+
+  test_patternField_objectPattern_nested() {
+    var names = _computeReferencedNames('''
+f(Object? x) {
+  if (x case A(foo: B(bar: 0))) {}
+}
+''');
+    expect(names, unorderedEquals(['Object', 'A', 'B', 'foo', 'bar']));
+  }
+
+  test_patternField_recordPattern_named() {
+    var names = _computeReferencedNames('''
+f(Object? x) {
+  if (x case (foo: 0)) {}
+}
+''');
+    expect(names, unorderedEquals(['Object', 'foo']));
   }
 
   test_superToSubs_importPrefix() {
@@ -333,6 +464,15 @@ A f(B b) {}
     expect(names, unorderedEquals(['A', 'B', 'C', 'd']));
   }
 
+  test_unit_function_doc_prefixed() {
+    var names = _computeReferencedNames('''
+import 'a.dart' as p;
+/// [p.C.d]
+A f(B b) {}
+''');
+    expect(names, unorderedEquals(['A', 'B', 'C', 'd']));
+  }
+
   test_unit_function_dontHideQualified() {
     var names = _computeReferencedNames('''
 class U {
@@ -373,6 +513,20 @@ A f() {
     expect(names, unorderedEquals(['A', 'B', 'C']));
   }
 
+  test_unit_function_localsDontHideDotShorthand() {
+    var names = _computeReferencedNames('''
+f() {
+  var u = 0;
+  var v = 0;
+  var w = 0;
+  g(.u);
+  g(.v());
+  g(const .w());
+}
+''');
+    expect(names, unorderedEquals(['g', 'u', 'v', 'w']));
+  }
+
   test_unit_function_localsDontHideQualified() {
     var names = _computeReferencedNames('''
 f(A a, B b) {
@@ -408,6 +562,16 @@ A f(B b) {
 }
 ''');
     expect(names, unorderedEquals(['A', 'B', 'C']));
+  }
+
+  test_unit_function_parameters_dontHideDotShorthand() {
+    var names = _computeReferencedNames('''
+f(u, v) {
+  g(.u);
+  g(.v());
+}
+''');
+    expect(names, unorderedEquals(['g', 'u', 'v']));
   }
 
   test_unit_function_parameters_dontHideQualified() {
@@ -481,6 +645,20 @@ main() {
 }
 ''');
     expect(names, unorderedEquals(['A', 'B', 'C']));
+  }
+
+  test_unit_topLevelDeclarations_dontHideDotShorthand() {
+    var names = _computeReferencedNames('''
+class L1 {}
+L2() {}
+var L3;
+f() {
+  g(.L1);
+  g(.L2());
+  g(.L3);
+}
+''');
+    expect(names, unorderedEquals(['g', 'L1', 'L2', 'L3']));
   }
 
   Set<String> _computeReferencedNames(

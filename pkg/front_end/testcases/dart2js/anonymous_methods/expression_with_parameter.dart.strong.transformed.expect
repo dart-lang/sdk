@@ -9,13 +9,13 @@ static method main() → void {
     #t1 = 1;
   }
   {
-    core::int p = 1;
+    core::int p##1 = 1;
     core::int #t2;
-    #t2 = p;
+    #t2 = p##1;
   }
   {
-    core::int p = 1;
+    core::int p##2 = 1;
     core::bool #t3;
-    #t3 = p.{core::int::isEven}{core::bool};
+    #t3 = p##2.{core::int::isEven}{core::bool};
   }
 }

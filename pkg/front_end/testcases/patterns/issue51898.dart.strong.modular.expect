@@ -5,7 +5,6 @@ import "dart:core" as core;
 static method main() → void {
   core::int d = 1;
   core::bool x = false;
-  #L1:
   {
     final synthesized core::int #0#0 = d;
     final const synthesized core::int #0#1 = #C1;

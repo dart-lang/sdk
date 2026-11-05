@@ -270,7 +270,11 @@ class OptionsParser {
       if (option.abbr != null) {
         arguments.add('-${option.abbr}');
       } else {
-        arguments.add('--${option.name}');
+        if (value == false) {
+          arguments.add('--no-${option.name}');
+        } else {
+          arguments.add('--${option.name}');
+        }
       }
       if (value is String) {
         arguments.add(value);
@@ -412,6 +416,7 @@ class OptionsParser {
         fastTestsOnly: data["fast-tests"] as bool,
         printPassingStdout: data["print-passing-stdout"] as bool,
         noSandbox: data["no-sandbox"] as bool,
+        headless: data["headless"] as bool,
       );
 
       if (configuration.validate()) {
@@ -734,6 +739,12 @@ test options, specifying how tests should be run.''',
     'no-sandbox',
     defaultsTo: Platform.isLinux,
     help: 'Pass --no-sandbox to Chrome.',
+  )
+  ..addFlag(
+    'headless',
+    defaultsTo: true,
+    hide: !verbose,
+    help: "Pass --headless to Chrome and Firefox.",
   )
   ..addFlag(
     'host-asserts',

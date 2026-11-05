@@ -32,6 +32,10 @@ abstract class AnalysisOptions {
   List<ErrorProcessor> get errorProcessors;
 
   /// The list of exclude patterns used to exclude some sources from analysis.
+  @Deprecated(
+    "Use 'AnalysisContext.contextRoot.isAnalyzed' or "
+    "'AnalysisContext.contextRoot.analyzedFiles' instead.",
+  )
   List<String> get excludePatterns;
 
   /// The options used to control the formatter.

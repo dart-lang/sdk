@@ -237,9 +237,9 @@ library
 ''');
   }
 
-  test_extension_emptyBody_language310() async {
+  test_extension_emptyBody_beforePrimaryConstructors() async {
     var library = await buildLibrary(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension E on int;
 ''');
     checkElementText(library, r'''
@@ -470,6 +470,13 @@ library
               metadata
                 Annotation
                   atSign: @ @33
+                  expression: UnqualifiedNameExpression
+                    name: foo @34
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@getter::foo
+                      invokeType: int Function()
+                      type: int
+                    staticType: int
                   name: SimpleIdentifier
                     token: foo @34
                     element: <testLibrary>::@getter::foo
@@ -493,6 +500,13 @@ library
               metadata
                 Annotation
                   atSign: @ @76
+                  expression: UnqualifiedNameExpression
+                    name: foo @77
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@extension::E::@getter::foo
+                      invokeType: int Function()
+                      type: int
+                    staticType: int
                   name: SimpleIdentifier
                     token: foo @77
                     element: <testLibrary>::@extension::E::@getter::foo
@@ -520,6 +534,13 @@ library
           metadata
             Annotation
               atSign: @ @33
+              expression: UnqualifiedNameExpression
+                name: foo @34
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::foo
+                  invokeType: int Function()
+                  type: int
+                staticType: int
               name: SimpleIdentifier
                 token: foo @34
                 element: <testLibrary>::@getter::foo
@@ -549,6 +570,13 @@ library
           metadata
             Annotation
               atSign: @ @76
+              expression: UnqualifiedNameExpression
+                name: foo @77
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@extension::E::@getter::foo
+                  invokeType: int Function()
+                  type: int
+                staticType: int
               name: SimpleIdentifier
                 token: foo @77
                 element: <testLibrary>::@extension::E::@getter::foo
@@ -687,9 +715,9 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic foo (nameOffset:9) (firstTokenOffset:9) (offset:9)
               element: <testLibrary>::@enum::A::@field::foo
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -704,7 +732,15 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
+                    UnqualifiedNameExpression
+                      name: foo @-1
+                      resolution: GetterInvocationResolution
+                        element: <testLibrary>::@enum::A::@getter::foo
+                        invokeType: A Function()
+                        type: A
+                      staticType: A
+                  elements(v1)
                     SimpleIdentifier
                       token: foo @-1
                       element: <testLibrary>::@enum::A::@getter::foo
@@ -800,6 +836,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 12
               formalParameters
                 #F6 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:25) (firstTokenOffset:17) (offset:25)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -1471,6 +1508,46 @@ library
       firstFragment: #F1
       extendedType: int
       onDeclaration: dart:core::@class::int
+''');
+  }
+
+  test_extension_unnamed_augmentation() async {
+    var library = await buildLibrary(r'''
+extension on int {}
+
+augment extension {}
+
+augment extension {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      extensions
+        #F1 extension <null-name> (nameOffset:<null>) (firstTokenOffset:0) (offset:0)
+          element: <testLibrary>::@extension::#0
+        #F2 isAugmentation extension <null-name> (nameOffset:<null>) (firstTokenOffset:21) (offset:21)
+          element: <testLibrary>::@extension::#1
+        #F3 isAugmentation extension <null-name> (nameOffset:<null>) (firstTokenOffset:43) (offset:43)
+          element: <testLibrary>::@extension::#2
+  extensions
+    extension <null-name>
+      reference: <testLibrary>::@extension::#0
+      firstFragment: #F1
+      extendedType: int
+      onDeclaration: dart:core::@class::int
+    extension <null-name>
+      reference: <testLibrary>::@extension::#1
+      firstFragment: #F2
+      extendedType: InvalidType
+      onDeclaration: <null>
+    extension <null-name>
+      reference: <testLibrary>::@extension::#2
+      firstFragment: #F3
+      extendedType: InvalidType
+      onDeclaration: <null>
 ''');
   }
 
@@ -3626,7 +3703,7 @@ library
           type: int
           setter: <testLibrary>::@extension::A::@setter::foo2
       setters
-        isOriginDeclaration foo1
+        hasImplicitReturnType isOriginDeclaration foo1
           reference: <testLibrary>::@extension::A::@setter::foo1
           firstFragment: #F4
           formalParameters
@@ -3635,7 +3712,7 @@ library
               type: int
           returnType: void
           variable: <testLibrary>::@extension::A::@field::foo1
-        isOriginDeclaration foo2
+        hasImplicitReturnType isOriginDeclaration foo2
           reference: <testLibrary>::@extension::A::@setter::foo2
           firstFragment: #F7
           formalParameters
@@ -3716,7 +3793,7 @@ library
           type: int
           setter: <testLibrary>::@extension::A::@setter::foo2
       setters
-        isOriginDeclaration foo1
+        hasImplicitReturnType isOriginDeclaration foo1
           reference: <testLibrary>::@extension::A::@setter::foo1
           firstFragment: #F5
           formalParameters
@@ -3725,7 +3802,7 @@ library
               type: int
           returnType: void
           variable: <testLibrary>::@extension::A::@field::foo1
-        isOriginDeclaration foo2
+        hasImplicitReturnType isOriginDeclaration foo2
           reference: <testLibrary>::@extension::A::@setter::foo2
           firstFragment: #F9
           formalParameters
@@ -3857,7 +3934,7 @@ library
           type: int
           setter: <testLibrary>::@extension::E::@setter::foo
       setters
-        isOriginDeclaration foo
+        hasImplicitReturnType isOriginDeclaration foo
           reference: <testLibrary>::@extension::E::@setter::foo
           firstFragment: #F3
           formalParameters

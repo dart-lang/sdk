@@ -176,6 +176,10 @@ class RefactoringManager {
           cancel();
         } else {
           server.instrumentationService.logException(exception, stackTrace);
+          server.sessionLogger.logException(
+            exception: exception,
+            stackTrace: stackTrace,
+          );
           server.sendResponse(
             Response.serverError(request, exception, stackTrace),
           );

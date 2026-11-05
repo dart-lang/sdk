@@ -88,6 +88,75 @@ NamedType
 ''');
   }
 
+  test_constructorInvocation_explicitNew_prefix_unresolvedClass() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+import 'dart:math' as math;
+
+main() {
+  new math.A();
+//         ^
+// [diag.newWithNonType] The name 'A' isn't a class.
+}
+''');
+
+    var node = result.findNode
+        .constructorInvocation('A();')
+        .constructorReference
+        .typeReference;
+    assertResolvedNodeText(node, r'''
+ConstructorTypeReference
+  importPrefix: ImportPrefixReference
+    name: math
+    period: .
+    element: <testLibraryFragment>::@prefix::math
+  name: A
+  element: <null>
+  type: InvalidType
+''');
+  }
+
+  test_constructorInvocation_explicitNew_resolvedClass() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {}
+
+main() {
+  new A();
+}
+''');
+
+    var node = result.findNode
+        .constructorInvocation('A();')
+        .constructorReference
+        .typeReference;
+    assertResolvedNodeText(node, r'''
+ConstructorTypeReference
+  name: A
+  element: <testLibrary>::@class::A
+  type: A
+''');
+  }
+
+  test_constructorInvocation_explicitNew_unresolvedClass() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+main() {
+  new A();
+//    ^
+// [diag.newWithNonType] The name 'A' isn't a class.
+}
+''');
+
+    var node = result.findNode
+        .constructorInvocation('A();')
+        .constructorReference
+        .typeReference;
+    assertResolvedNodeText(node, r'''
+ConstructorTypeReference
+  name: A
+  element: <null>
+  type: InvalidType
+''');
+  }
+
   test_dynamic_explicitCore() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 import 'dart:core';
@@ -454,66 +523,6 @@ NamedType
 ''');
   }
 
-  test_instanceCreation_explicitNew_prefix_unresolvedClass() async {
-    var result = await resolveTestCodeWithDiagnostics(r'''
-import 'dart:math' as math;
-
-main() {
-  new math.A();
-//         ^
-// [diag.newWithNonType] The name 'A' isn't a class.
-}
-''');
-
-    var node = result.findNode.namedType('A();');
-    assertResolvedNodeText(node, r'''
-NamedType
-  importPrefix: ImportPrefixReference
-    name: math
-    period: .
-    element: <testLibraryFragment>::@prefix::math
-  name: A
-  element: <null>
-  type: InvalidType
-''');
-  }
-
-  test_instanceCreation_explicitNew_resolvedClass() async {
-    var result = await resolveTestCodeWithDiagnostics(r'''
-class A {}
-
-main() {
-  new A();
-}
-''');
-
-    var node = result.findNode.namedType('A();');
-    assertResolvedNodeText(node, r'''
-NamedType
-  name: A
-  element: <testLibrary>::@class::A
-  type: A
-''');
-  }
-
-  test_instanceCreation_explicitNew_unresolvedClass() async {
-    var result = await resolveTestCodeWithDiagnostics(r'''
-main() {
-  new A();
-//    ^
-// [diag.newWithNonType] The name 'A' isn't a class.
-}
-''');
-
-    var node = result.findNode.namedType('A();');
-    assertResolvedNodeText(node, r'''
-NamedType
-  name: A
-  element: <null>
-  type: InvalidType
-''');
-  }
-
   test_invalid_deferredImportPrefix_identifier() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 import 'dart:async' deferred as async;
@@ -596,7 +605,7 @@ NamedType
 ''');
   }
 
-  test_invalid_prefixedIdentifier_instanceCreation() async {
+  test_invalid_prefixedIdentifier_constructorInvocation() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   new int.double.other();
@@ -605,9 +614,12 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.namedType('int.double');
+    var node = result.findNode
+        .constructorInvocation('int.double.other()')
+        .constructorReference
+        .typeReference;
     assertResolvedNodeText(node, r'''
-NamedType
+ConstructorTypeReference
   importPrefix: ImportPrefixReference
     name: int
     period: .
@@ -759,7 +771,7 @@ NamedType
 ''');
   }
 
-  test_typeAlias_asInstanceCreation_explicitNew_typeArguments_interfaceType_none() async {
+  test_typeAlias_asConstructorInvocation_explicitNew_typeArguments_interfaceType_none() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T> {}
 
@@ -770,9 +782,12 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.namedType('X<int>()');
+    var node = result.findNode
+        .constructorInvocation('X<int>()')
+        .constructorReference
+        .typeReference;
     assertResolvedNodeText(node, r'''
-NamedType
+ConstructorTypeReference
   name: X
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -787,7 +802,7 @@ NamedType
 ''');
   }
 
-  test_typeAlias_asInstanceCreation_implicitNew_toBounds_noTypeParameters_interfaceType_none() async {
+  test_typeAlias_asConstructorInvocation_implicitNew_toBounds_noTypeParameters_interfaceType_none() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T> {}
 
@@ -798,16 +813,19 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.namedType('X()');
+    var node = result.findNode
+        .constructorInvocation('X()')
+        .constructorReference
+        .typeReference;
     assertResolvedNodeText(node, r'''
-NamedType
+ConstructorTypeReference
   name: X
   element: <testLibrary>::@typeAlias::X
   type: A<int>
 ''');
   }
 
-  test_typeAlias_asInstanceCreation_implicitNew_typeArguments_interfaceType_none() async {
+  test_typeAlias_asConstructorInvocation_implicitNew_typeArguments_interfaceType_none() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T> {}
 
@@ -818,9 +836,12 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.namedType('X<int>()');
+    var node = result.findNode
+        .constructorInvocation('X<int>()')
+        .constructorReference
+        .typeReference;
     assertResolvedNodeText(node, r'''
-NamedType
+ConstructorTypeReference
   name: X
   typeArguments: TypeArgumentList
     leftBracket: <

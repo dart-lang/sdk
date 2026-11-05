@@ -1171,7 +1171,7 @@ class ValidatorTest {
     check(
       because: 'make sure all callbacks got invoked',
       _addressToOnValidateCallbacks,
-    ).isEmpty();
+    ).isEmpty;
   }
 }
 

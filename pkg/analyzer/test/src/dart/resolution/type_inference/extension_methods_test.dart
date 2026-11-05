@@ -29,9 +29,25 @@ void f(A<int> a) {
 }
 ''');
 
-    var node = result.findNode.prefixed('.foo');
+    var node = result.findNode.receiverPropertyExtraction('.foo');
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: A<int>
+    staticType: A<int>
+  operator: .
+  name: foo
+  resolution: GetterInvocationResolution
+    element: SubstitutedGetterElementImpl
+      baseElement: <testLibrary>::@extension::E::@getter::foo
+      substitution: {T: int}
+    invokeType: List<int> Function()
+    type: List<int>
+  staticType: List<int>
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
@@ -63,9 +79,37 @@ void f(A<int> a) {
 }
 ''');
 
-    var node = result.findNode.singleMethodInvocation;
+    var node = result.findNode.singleReceiverMethodInvocation;
     assertResolvedNodeText(node, r'''
-MethodInvocation
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: A<int>
+    staticType: A<int>
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      DoubleLiteral
+        literal: 1.0
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: u@null
+          substitution: {U: double}
+        staticType: double
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: SubstitutedMethodElementImpl
+      baseElement: <testLibrary>::@extension::E::@method::foo
+      substitution: {T: int, U: U}
+    invokeType: Map<int, double> Function(double)
+    type: Map<int, double>
+  staticType: Map<int, double>
+  typeArgumentTypes
+    double
+V1: MethodInvocation
   target: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
@@ -102,9 +146,28 @@ extension E<T> on List<T> {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('other.foo()');
+    var node = result.findNode.receiverMethodInvocation('other.foo()');
     assertResolvedNodeText(node, r'''
-MethodInvocation
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: other
+    resolution: VariableReadResolution
+      element: <testLibrary>::@extension::E::@method::bar::@formalParameter::other
+      type: List<T>
+    staticType: List<T>
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: SubstitutedMethodElementImpl
+      baseElement: <testLibrary>::@extension::E::@method::foo
+      substitution: {T: T}
+    invokeType: List<T> Function()
+    type: List<T>
+  staticType: List<T>
+V1: MethodInvocation
   target: SimpleIdentifier
     token: other
     element: <testLibrary>::@extension::E::@method::bar::@formalParameter::other
@@ -135,9 +198,37 @@ void f(String a) {
 }
 ''');
 
-    var node = result.findNode.singleMethodInvocation;
+    var node = result.findNode.singleReceiverMethodInvocation;
     assertResolvedNodeText(node, r'''
-MethodInvocation
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: String
+    staticType: String
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: value@null
+          substitution: {U: int}
+        staticType: int
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: SubstitutedMethodElementImpl
+      baseElement: <testLibrary>::@extension::E::@method::foo
+      substitution: {T: String, U: U}
+    invokeType: Map<String, int> Function(int)
+    type: Map<String, int>
+  staticType: Map<String, int>
+  typeArgumentTypes
+    int
+V1: MethodInvocation
   target: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
@@ -179,9 +270,24 @@ void f(A<int> a) {
 }
 ''');
 
-    var node = result.findNode.prefixed('foo;');
+    var node = result.findNode.receiverPropertyExtraction('foo;');
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: A<int>
+    staticType: A<int>
+  operator: .
+  name: foo
+  resolution: ExecutableTearOffResolution
+    element: SubstitutedMethodElementImpl
+      baseElement: <testLibrary>::@extension::E::@method::foo
+      substitution: {T: int, U: U}
+    type: Map<int, U> Function<U>(U)
+  staticType: Map<int, U> Function<U>(U)
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
@@ -212,9 +318,33 @@ void f(A<int> a) {
   a.foo = 0;
 }
 ''');
-    var node = result.findNode.assignment('foo =');
+    var node = result.findNode.directAssignment('foo =');
     assertResolvedNodeText(node, r'''
-AssignmentExpression
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: A<int>
+      staticType: A<int>
+    operator: .
+    name: foo
+    read: <null>
+    write: SetterInvocationResolution
+      element: SubstitutedSetterElementImpl
+        baseElement: <testLibrary>::@extension::E::@setter::foo
+        substitution: {T: int}
+      acceptedType: int
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: SubstitutedFormalParameterElementImpl
+      baseElement: <testLibrary>::@extension::E::@setter::foo::@formalParameter::value
+      substitution: {T: int}
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
@@ -256,9 +386,28 @@ void f<S extends num>(S x) {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('test();');
+    var node = result.findNode.receiverMethodInvocation('test();');
     assertResolvedNodeText(node, r'''
-MethodInvocation
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: S
+    staticType: S
+  operator: .
+  name: test
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: SubstitutedMethodElementImpl
+      baseElement: <testLibrary>::@extension::Test::@method::test
+      substitution: {T: S}
+    invokeType: S Function(S) Function()
+    type: S Function(S)
+  staticType: S Function(S)
+V1: MethodInvocation
   target: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
@@ -289,9 +438,29 @@ void f<S extends num>(S x) {
 }
 ''');
 
-    var node = result.findNode.singlePropertyAccess;
+    var node = result.findNode.singleReceiverPropertyExtraction;
     assertResolvedNodeText(node, r'''
-PropertyAccess
+ReceiverPropertyExtraction
+  receiver: ParenthesizedExpression
+    leftParenthesis: (
+    expression2: UnqualifiedNameExpression
+      name: x
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::x
+        type: S
+      staticType: S
+    rightParenthesis: )
+    staticType: S
+  operator: .
+  name: test
+  resolution: GetterInvocationResolution
+    element: SubstitutedGetterElementImpl
+      baseElement: <testLibrary>::@extension::Test::@getter::test
+      substitution: {T: S}
+    invokeType: S Function(S) Function()
+    type: S Function(S)
+  staticType: S Function(S)
+V1: PropertyAccess
   target: ParenthesizedExpression
     leftParenthesis: (
     expression: SimpleIdentifier
@@ -324,9 +493,46 @@ void f<S extends num>(S x) {
 }
 ''');
 
-    var node = result.findNode.assignment('(x).test');
+    var node = result.findNode.directAssignment('(x).test');
     assertResolvedNodeText(node, r'''
-AssignmentExpression
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: ParenthesizedExpression
+      leftParenthesis: (
+      expression2: UnqualifiedNameExpression
+        name: x
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::x
+          type: S
+        staticType: S
+      rightParenthesis: )
+      staticType: S
+    operator: .
+    name: test
+    read: <null>
+    write: SetterInvocationResolution
+      element: SubstitutedSetterElementImpl
+        baseElement: <testLibrary>::@extension::Test::@setter::test
+        substitution: {T: S}
+      acceptedType: S
+  operator: =
+  value: UnqualifiedFunctionInvocation
+    name: g
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    resolution: ExecutableInvocationResolution
+      element: <testLibrary>::@function::g
+      invokeType: S Function()
+      type: S
+    correspondingParameter: SubstitutedFormalParameterElementImpl
+      baseElement: <testLibrary>::@extension::Test::@setter::test::@formalParameter::_
+      substitution: {T: S}
+    staticType: S
+    typeArgumentTypes
+      S
+  staticType: S
+V1: AssignmentExpression
   leftHandSide: PropertyAccess
     target: ParenthesizedExpression
       leftParenthesis: (
@@ -426,9 +632,44 @@ void f(A<int> a) {
 }
 ''');
 
-    var node = result.findNode.propertyAccess('.foo');
+    var node = result.findNode.receiverPropertyExtraction('.foo');
     assertResolvedNodeText(node, r'''
-PropertyAccess
+ReceiverPropertyExtraction
+  receiver: ExtensionOverride2
+    name: E
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: num
+          element: dart:core::@class::num
+          type: num
+      rightBracket: >
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: A<int>
+          correspondingParameter: <null>
+          staticType: A<int>
+      rightParenthesis: )
+    element: <testLibrary>::@extension::E
+    extendedType: A<num>
+    typeArgumentTypes
+      num
+  operator: .
+  name: foo
+  resolution: GetterInvocationResolution
+    element: SubstitutedGetterElementImpl
+      baseElement: <testLibrary>::@extension::E::@getter::foo
+      substitution: {T: num}
+    invokeType: List<num> Function()
+    type: List<num>
+  staticType: List<num>
+V1: PropertyAccess
   target: ExtensionOverride
     name: E
     typeArguments: TypeArgumentList
@@ -477,9 +718,56 @@ void f(A<int> a) {
 }
 ''');
 
-    var node = result.findNode.singleMethodInvocation;
+    var node = result.findNode.singleReceiverMethodInvocation;
     assertResolvedNodeText(node, r'''
-MethodInvocation
+ReceiverMethodInvocation
+  receiver: ExtensionOverride2
+    name: E
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: num
+          element: dart:core::@class::num
+          type: num
+      rightBracket: >
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: A<int>
+          correspondingParameter: <null>
+          staticType: A<int>
+      rightParenthesis: )
+    element: <testLibrary>::@extension::E
+    extendedType: A<num>
+    typeArgumentTypes
+      num
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      DoubleLiteral
+        literal: 1.0
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: u@null
+          substitution: {U: double}
+        staticType: double
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: SubstitutedMethodElementImpl
+      baseElement: <testLibrary>::@extension::E::@method::foo
+      substitution: {T: num, U: U}
+    invokeType: Map<num, double> Function(double)
+    type: Map<num, double>
+  staticType: Map<num, double>
+  typeArgumentTypes
+    double
+V1: MethodInvocation
   target: ExtensionOverride
     name: E
     typeArguments: TypeArgumentList
@@ -541,9 +829,43 @@ void f(A<int> a) {
 }
 ''');
 
-    var node = result.findNode.propertyAccess('foo;');
+    var node = result.findNode.receiverPropertyExtraction('foo;');
     assertResolvedNodeText(node, r'''
-PropertyAccess
+ReceiverPropertyExtraction
+  receiver: ExtensionOverride2
+    name: E
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: num
+          element: dart:core::@class::num
+          type: num
+      rightBracket: >
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: A<int>
+          correspondingParameter: <null>
+          staticType: A<int>
+      rightParenthesis: )
+    element: <testLibrary>::@extension::E
+    extendedType: A<num>
+    typeArgumentTypes
+      num
+  operator: .
+  name: foo
+  resolution: ExecutableTearOffResolution
+    element: SubstitutedMethodElementImpl
+      baseElement: <testLibrary>::@extension::E::@method::foo
+      substitution: {T: num, U: U}
+    type: Map<num, U> Function<U>(U)
+  staticType: Map<num, U> Function<U>(U)
+V1: PropertyAccess
   target: ExtensionOverride
     name: E
     typeArguments: TypeArgumentList
@@ -592,9 +914,52 @@ void f(A<int> a) {
 }
 ''');
 
-    var node = result.findNode.assignment('foo =');
+    var node = result.findNode.directAssignment('foo =');
     assertResolvedNodeText(node, r'''
-AssignmentExpression
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: ExtensionOverride2
+      name: E
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: num
+            element: dart:core::@class::num
+            type: num
+        rightBracket: >
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments2
+          UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: <testLibrary>::@function::f::@formalParameter::a
+              type: A<int>
+            correspondingParameter: <null>
+            staticType: A<int>
+        rightParenthesis: )
+      element: <testLibrary>::@extension::E
+      extendedType: A<num>
+      typeArgumentTypes
+        num
+    operator: .
+    name: foo
+    read: <null>
+    write: SetterInvocationResolution
+      element: SubstitutedSetterElementImpl
+        baseElement: <testLibrary>::@extension::E::@setter::foo
+        substitution: {T: num}
+      acceptedType: num
+  operator: =
+  value: DoubleLiteral
+    literal: 1.2
+    correspondingParameter: SubstitutedFormalParameterElementImpl
+      baseElement: <testLibrary>::@extension::E::@setter::foo::@formalParameter::value
+      substitution: {T: num}
+    staticType: double
+  staticType: double
+V1: AssignmentExpression
   leftHandSide: PropertyAccess
     target: ExtensionOverride
       name: E
@@ -617,7 +982,7 @@ AssignmentExpression
         rightParenthesis: )
       element: <testLibrary>::@extension::E
       extendedType: A<num>
-      staticType: null
+      staticType: A<num>
       typeArgumentTypes
         num
     operator: .
@@ -656,7 +1021,7 @@ f(String s) {
 // [diag.extensionOverrideArgumentNotAssignable] The type of the argument to the extension override 'String' isn't assignable to the extended type 'num'.
 }
 ''');
-    var override = result.findNode.extensionOverride('E(s)');
+    var override = result.findNode.extensionOverride2('E(s)');
     assertElementTypes(override.typeArgumentTypes, ['num']);
     assertType(override.extendedType, 'num');
   }
@@ -674,9 +1039,36 @@ void f(A<int> a) {
 }
 ''');
 
-    var node = result.findNode.propertyAccess('.foo');
+    var node = result.findNode.receiverPropertyExtraction('.foo');
     assertResolvedNodeText(node, r'''
-PropertyAccess
+ReceiverPropertyExtraction
+  receiver: ExtensionOverride2
+    name: E
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: A<int>
+          correspondingParameter: <null>
+          staticType: A<int>
+      rightParenthesis: )
+    element: <testLibrary>::@extension::E
+    extendedType: A<int>
+    typeArgumentTypes
+      int
+  operator: .
+  name: foo
+  resolution: GetterInvocationResolution
+    element: SubstitutedGetterElementImpl
+      baseElement: <testLibrary>::@extension::E::@getter::foo
+      substitution: {T: int}
+    invokeType: List<int> Function()
+    type: List<int>
+  staticType: List<int>
+V1: PropertyAccess
   target: ExtensionOverride
     name: E
     argumentList: ArgumentList
@@ -717,9 +1109,48 @@ void f(A<int> a) {
 }
 ''');
 
-    var node = result.findNode.singleMethodInvocation;
+    var node = result.findNode.singleReceiverMethodInvocation;
     assertResolvedNodeText(node, r'''
-MethodInvocation
+ReceiverMethodInvocation
+  receiver: ExtensionOverride2
+    name: E
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: A<int>
+          correspondingParameter: <null>
+          staticType: A<int>
+      rightParenthesis: )
+    element: <testLibrary>::@extension::E
+    extendedType: A<int>
+    typeArgumentTypes
+      int
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      DoubleLiteral
+        literal: 1.0
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: u@null
+          substitution: {U: double}
+        staticType: double
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: SubstitutedMethodElementImpl
+      baseElement: <testLibrary>::@extension::E::@method::foo
+      substitution: {T: int, U: U}
+    invokeType: Map<int, double> Function(double)
+    type: Map<int, double>
+  staticType: Map<int, double>
+  typeArgumentTypes
+    double
+V1: MethodInvocation
   target: ExtensionOverride
     name: E
     argumentList: ArgumentList
@@ -773,9 +1204,35 @@ void f(A<int> a) {
 }
 ''');
 
-    var node = result.findNode.propertyAccess('foo;');
+    var node = result.findNode.receiverPropertyExtraction('foo;');
     assertResolvedNodeText(node, r'''
-PropertyAccess
+ReceiverPropertyExtraction
+  receiver: ExtensionOverride2
+    name: E
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: A<int>
+          correspondingParameter: <null>
+          staticType: A<int>
+      rightParenthesis: )
+    element: <testLibrary>::@extension::E
+    extendedType: A<int>
+    typeArgumentTypes
+      int
+  operator: .
+  name: foo
+  resolution: ExecutableTearOffResolution
+    element: SubstitutedMethodElementImpl
+      baseElement: <testLibrary>::@extension::E::@method::foo
+      substitution: {T: int, U: U}
+    type: Map<int, U> Function<U>(U)
+  staticType: Map<int, U> Function<U>(U)
+V1: PropertyAccess
   target: ExtensionOverride
     name: E
     argumentList: ArgumentList
@@ -816,9 +1273,44 @@ void f(A<int> a) {
 }
 ''');
 
-    var node = result.findNode.assignment('foo =');
+    var node = result.findNode.directAssignment('foo =');
     assertResolvedNodeText(node, r'''
-AssignmentExpression
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: ExtensionOverride2
+      name: E
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments2
+          UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: <testLibrary>::@function::f::@formalParameter::a
+              type: A<int>
+            correspondingParameter: <null>
+            staticType: A<int>
+        rightParenthesis: )
+      element: <testLibrary>::@extension::E
+      extendedType: A<int>
+      typeArgumentTypes
+        int
+    operator: .
+    name: foo
+    read: <null>
+    write: SetterInvocationResolution
+      element: SubstitutedSetterElementImpl
+        baseElement: <testLibrary>::@extension::E::@setter::foo
+        substitution: {T: int}
+      acceptedType: int
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: SubstitutedFormalParameterElementImpl
+      baseElement: <testLibrary>::@extension::E::@setter::foo::@formalParameter::value
+      substitution: {T: int}
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
   leftHandSide: PropertyAccess
     target: ExtensionOverride
       name: E
@@ -833,7 +1325,7 @@ AssignmentExpression
         rightParenthesis: )
       element: <testLibrary>::@extension::E
       extendedType: A<int>
-      staticType: null
+      staticType: A<int>
       typeArgumentTypes
         int
     operator: .
@@ -857,6 +1349,85 @@ AssignmentExpression
   writeType: int
   element: <null>
   staticType: int
+''');
+  }
+
+  test_override_setter_shadowsInstanceAndExtensionSetters() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A {
+  set foo(num value) {}
+}
+extension E on A {
+  set foo(value) {}
+}
+extension F on A {
+  set foo(bool value) {}
+}
+void f(A a) {
+  E(a).foo = 'value';
+}
+''');
+
+    var node = result.findNode.directAssignment('foo =');
+    assertResolvedNodeText(node, r'''
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: ExtensionOverride2
+      name: E
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments2
+          UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: <testLibrary>::@function::f::@formalParameter::a
+              type: A
+            correspondingParameter: <null>
+            staticType: A
+        rightParenthesis: )
+      element: <testLibrary>::@extension::E
+      extendedType: A
+    operator: .
+    name: foo
+    read: <null>
+    write: SetterInvocationResolution
+      element: <testLibrary>::@extension::E::@setter::foo
+      acceptedType: dynamic
+  operator: =
+  value: SimpleStringLiteral
+    literal: 'value'
+  staticType: String
+V1: AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: ExtensionOverride
+      name: E
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
+          SimpleIdentifier
+            token: a
+            correspondingParameter: <null>
+            element: <testLibrary>::@function::f::@formalParameter::a
+            staticType: A
+        rightParenthesis: )
+      element: <testLibrary>::@extension::E
+      extendedType: A
+      staticType: A
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: SimpleStringLiteral
+    literal: 'value'
+  readElement: <null>
+  readType: null
+  writeElement: <testLibrary>::@extension::E::@setter::foo
+  writeType: dynamic
+  element: <null>
+  staticType: String
 ''');
   }
 }

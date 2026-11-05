@@ -93,7 +93,7 @@ class ToStringVisitor extends RecursiveVisitor {
           SuperMethodInvocation(
             ThisExpression(),
             node.name,
-            Arguments(<Expression>[]),
+            Arguments.empty(),
             findSuperMethod(node.enclosingClass!.superclass!),
           ),
         ),

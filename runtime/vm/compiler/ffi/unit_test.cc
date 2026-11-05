@@ -4,6 +4,10 @@
 
 #include "vm/compiler/ffi/unit_test.h"
 
+#include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+
 #include "platform/syslog.h"
 #include "vm/globals.h"
 

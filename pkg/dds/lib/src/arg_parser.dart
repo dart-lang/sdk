@@ -12,6 +12,7 @@ abstract class DartDevelopmentServiceOptions {
   static const bindAddressOption = 'bind-address';
   static const bindPortOption = 'bind-port';
   static const disableServiceAuthCodesFlag = 'disable-service-auth-codes';
+  static const disableServiceOriginCheckFlag = 'disable-service-origin-check';
   static const serveDevToolsFlag = 'serve-devtools';
   static const enableServicePortFallbackFlag = 'enable-service-port-fallback';
   static const cachedUserTagsOption = 'cached-user-tags';
@@ -58,6 +59,10 @@ abstract class DartDevelopmentServiceOptions {
       ..addFlag(
         disableServiceAuthCodesFlag,
         help: 'Disables authentication codes.',
+      )
+      ..addFlag(
+        disableServiceOriginCheckFlag,
+        help: 'Disables the HTTP/WebSocket origin check.',
       )
       ..addFlag(
         serveDevToolsFlag,

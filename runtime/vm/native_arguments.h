@@ -82,6 +82,11 @@ class NativeArguments {
       BitField<intptr_t, bool, GenericFunctionBit::kNextBit>;
 
  public:
+  static constexpr intptr_t kArgcBitsPos = ArgcBits::shift();
+  static constexpr intptr_t kArgcBitsSize = ArgcBits::bitsize();
+  static constexpr intptr_t kGenericFunctionBitPos =
+      GenericFunctionBit::shift();
+
   Thread* thread() const { return thread_; }
 
   // Includes type arguments vector.

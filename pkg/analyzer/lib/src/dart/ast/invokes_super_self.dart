@@ -5,7 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
-class _SuperVisitor extends RecursiveAstVisitor<void> {
+class _SuperVisitor extends RecursiveAstVisitor2<void> {
   final String name;
   final _Usage _usage;
 
@@ -15,55 +15,60 @@ class _SuperVisitor extends RecursiveAstVisitor<void> {
   _SuperVisitor(this.name, this._usage);
 
   @override
-  void visitAssignmentExpression(AssignmentExpression node) {
-    if (_usage == _Usage.writing) {
-      var left = node.leftHandSide;
-      if (left is PropertyAccess) {
-        if (left.target is SuperExpression && left.propertyName.name == name) {
-          hasSuperInvocation = true;
-          return;
-        }
-      }
-    }
-    super.visitAssignmentExpression(node);
-  }
-
-  @override
-  void visitBinaryExpression(BinaryExpression node) {
+  void visitBinaryOperatorInvocation(BinaryOperatorInvocation node) {
     if (_usage == _Usage.reading) {
-      if (node.leftOperand is SuperExpression && node.operator.lexeme == name) {
+      if (node.leftOperand is SuperReference && node.operator.lexeme == name) {
         hasSuperInvocation = true;
         return;
       }
     }
-    super.visitBinaryExpression(node);
+    super.visitBinaryOperatorInvocation(node);
   }
 
   @override
-  void visitMethodInvocation(MethodInvocation node) {
-    if (_usage == _Usage.reading) {
-      if (node.target is SuperExpression && node.methodName.name == name) {
-        hasSuperInvocation = true;
-        return;
-      }
+  void visitParsedNameAccess(ParsedNameAccess node) {
+    if (_usage == _Usage.reading &&
+        node.operand is SuperReference &&
+        node.name.lexeme == name) {
+      hasSuperInvocation = true;
+      return;
     }
-    super.visitMethodInvocation(node);
+    super.visitParsedNameAccess(node);
   }
 
   @override
-  void visitPropertyAccess(PropertyAccess node) {
-    if (_usage == _Usage.reading) {
-      var parent = node.parent;
-      if (parent is AssignmentExpression && parent.leftHandSide == node) {
-        // Not reading, skip.
-      } else {
-        if (node.target is SuperExpression && node.propertyName.name == name) {
-          hasSuperInvocation = true;
-          return;
-        }
-      }
+  void visitReceiverMethodInvocation(ReceiverMethodInvocation node) {
+    if (_usage == _Usage.reading &&
+        node.receiver is SuperReference &&
+        node.name.lexeme == name) {
+      hasSuperInvocation = true;
+      return;
     }
-    super.visitPropertyAccess(node);
+    super.visitReceiverMethodInvocation(node);
+  }
+
+  @override
+  void visitReceiverPropertyAssignmentTarget(
+    ReceiverPropertyAssignmentTarget node,
+  ) {
+    if (node.receiver is SuperReference &&
+        node.name.lexeme == name &&
+        (_usage == _Usage.writing || node.hasRead)) {
+      hasSuperInvocation = true;
+      return;
+    }
+    super.visitReceiverPropertyAssignmentTarget(node);
+  }
+
+  @override
+  void visitReceiverPropertyExtraction(ReceiverPropertyExtraction node) {
+    if (_usage == _Usage.reading &&
+        node.receiver is SuperReference &&
+        node.name.lexeme == name) {
+      hasSuperInvocation = true;
+      return;
+    }
+    super.visitReceiverPropertyExtraction(node);
   }
 }
 
@@ -75,7 +80,7 @@ extension MethodDeclarationExtension on MethodDeclaration {
       name.lexeme,
       isSetter ? _Usage.writing : _Usage.reading,
     );
-    body.accept(visitor);
+    body.accept2(visitor);
     return visitor.hasSuperInvocation;
   }
 }

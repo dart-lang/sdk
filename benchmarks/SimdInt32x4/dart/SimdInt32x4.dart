@@ -177,6 +177,82 @@ class LaneSumSimd extends SimdBench {
   }
 }
 
+class WithLaneScalar extends SimdBench {
+  WithLaneScalar() : super('withLaneScalar');
+
+  late final Uint32List o;
+
+  @override
+  void setup() {
+    super.setup();
+    o = Uint32List(words);
+  }
+
+  @override
+  void run() {
+    final n = a.length;
+    for (int i = 0; i < n; i += 4) {
+      o[i] = a[i];
+      o[i + 1] = a[i + 1];
+      o[i + 2] = b[i + 2];
+      o[i + 3] = a[i + 3];
+    }
+  }
+}
+
+class WithLaneSimd extends SimdBench {
+  WithLaneSimd() : super('withLaneSimd');
+
+  late final Uint32List o;
+
+  @override
+  void setup() {
+    super.setup();
+    o = Uint32List(words);
+  }
+
+  @override
+  void run() {
+    final la = Int32x4List.view(a.buffer, a.offsetInBytes, a.length >> 2);
+    final lb = Int32x4List.view(b.buffer, b.offsetInBytes, b.length >> 2);
+    final lo = Int32x4List.view(o.buffer, o.offsetInBytes, o.length >> 2);
+    for (int j = 0; j < la.length; j++) {
+      lo[j] = la[j].withZ(lb[j].z);
+    }
+  }
+}
+
+class SignMaskScalar extends SimdBench {
+  SignMaskScalar() : super('signMaskScalar');
+  @override
+  void run() {
+    final n = a.length;
+    int acc = 0;
+    for (int i = 0; i < n; i += 4) {
+      // Mirrors the VM's Int32x4_getSignMask fallback (runtime/lib/simd128.cc).
+      acc ^=
+          ((a[i] & 0x80000000) >> 31) |
+          (((a[i + 1] & 0x80000000) >> 31) << 1) |
+          (((a[i + 2] & 0x80000000) >> 31) << 2) |
+          (((a[i + 3] & 0x80000000) >> 31) << 3);
+    }
+    if (acc == 0x12345678) throw 'unreachable';
+  }
+}
+
+class SignMaskSimd extends SimdBench {
+  SignMaskSimd() : super('signMaskSimd');
+  @override
+  void run() {
+    final la = Int32x4List.view(a.buffer, a.offsetInBytes, a.length >> 2);
+    int acc = 0;
+    for (int j = 0; j < la.length; j++) {
+      acc ^= la[j].signMask;
+    }
+    if (acc == 0x12345678) throw 'unreachable';
+  }
+}
+
 void main() {
   final benchmarks = <BenchmarkBase Function()>[
     OrScalar.new,
@@ -191,6 +267,10 @@ void main() {
     SubSimd.new,
     LaneSumScalar.new,
     LaneSumSimd.new,
+    WithLaneScalar.new,
+    WithLaneSimd.new,
+    SignMaskScalar.new,
+    SignMaskSimd.new,
   ];
 
   for (final bm in benchmarks) {

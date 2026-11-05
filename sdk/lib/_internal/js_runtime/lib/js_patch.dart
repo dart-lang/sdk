@@ -272,7 +272,7 @@ class _SafeToStringHook extends SafeToStringHook {
 final bool _installSafeToStringHook = addSafeToStringHook(_SafeToStringHook());
 
 @patch
-class JsFunction extends JsObject {
+class JsFunction {
   @patch
   factory JsFunction.withThis(Function f) {
     var jsFunc = _convertDartFunction(f, captureThis: true);

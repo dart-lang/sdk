@@ -24,18 +24,18 @@ class A extends Object with Function {}
 ''');
   }
 
-  test_class_core_language219() async {
+  test_class_core_beforeClassModifiers() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
+// %before-language-feature: class-modifiers
 class A extends Object with Function {}
 //                          ^^^^^^^^
 // [diag.deprecatedMixinFunction] Mixing in 'Function' is deprecated.
 ''');
   }
 
-  test_class_core_language219_viaTypedef() async {
+  test_class_core_beforeClassModifiers_viaTypedef() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
+// %before-language-feature: class-modifiers
 typedef F = Function;
 class A extends Object with F {}
 //                          ^
@@ -52,9 +52,9 @@ class A extends Object with Function {}
 ''');
   }
 
-  test_class_local_language219() async {
+  test_class_local_beforeClassModifiers() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
+// %before-language-feature: class-modifiers
 mixin Function {}
 //    ^^^^^^^^
 // [diag.builtInIdentifierAsTypeName] The built-in identifier 'Function' can't be used as a type name.
@@ -62,18 +62,18 @@ class A extends Object with Function {}
 ''');
   }
 
-  test_classAlias_core_language219() async {
+  test_classAlias_core_beforeClassModifiers() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
+// %before-language-feature: class-modifiers
 class A = Object with Function;
 //                    ^^^^^^^^
 // [diag.deprecatedMixinFunction] Mixing in 'Function' is deprecated.
 ''');
   }
 
-  test_classAlias_core_language219_viaTypedef() async {
+  test_classAlias_core_beforeClassModifiers_viaTypedef() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
+// %before-language-feature: class-modifiers
 typedef F = Function;
 class A = Object with F;
 //                    ^

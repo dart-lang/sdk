@@ -151,7 +151,7 @@ final class ClosureSuggestion extends CandidateSuggestion with SuggestionData {
 
 /// The information about a candidate suggestion based on a constructor.
 final class ConstructorSuggestion extends TypedExecutableSuggestion
-    implements ElementBasedSuggestion {
+    with MemberSuggestion {
   @override
   final ConstructorElement element;
 
@@ -176,7 +176,11 @@ final class ConstructorSuggestion extends TypedExecutableSuggestion
   /// OTOH, if [isTearOff] is `true`, we get `ClassName.new`.
   final bool isRedirect;
 
-  /// Initialize a newly created candidate suggestion to suggest the [element].
+  /// Initialize a newly created candidate suggestion to suggest the [element],
+  /// optionally with the type name included in the completion.
+  ///
+  /// Unlike other member suggestions, a constructor is never suggested with a
+  /// qualifier prefix, so [addTypeName] is the only prefix option available.
   new({
     required super.importData,
     required this.element,
@@ -189,7 +193,7 @@ final class ConstructorSuggestion extends TypedExecutableSuggestion
     required super.replacementRange,
     required super.addTypeName,
   }) : assert((isTearOff ? 1 : 0) | (isRedirect ? 1 : 0) < 2),
-       super(
+       super.withTypeName(
          kind: isTearOff || isRedirect
              ? CompletionSuggestionKind.IDENTIFIER
              : CompletionSuggestionKind.INVOCATION,
@@ -222,6 +226,11 @@ final class ConstructorSuggestion extends TypedExecutableSuggestion
 
   @override
   DartType? get containingType => element.enclosingElement.thisType;
+
+  /// Constructors aren't looked up through inheritance, so they're never
+  /// suggested with a [referencingInterface].
+  @override
+  InterfaceElement? get referencingInterface => null;
 
   @override
   DartType? get type => null;
@@ -344,34 +353,54 @@ final class FieldSuggestion extends TypedSuggestion with MemberSuggestion {
   @override
   final InterfaceElement? referencingInterface;
 
-  /// Indicates the context, whether the completion is in the body of the
-  /// declaration.
-  final bool isInDeclaration;
+  @override
+  final String qualifier;
 
-  /// Initialize a newly created candidate suggestion to suggest the [element].
-  new({
+  /// Initialize a newly created candidate suggestion to suggest the
+  /// [element], optionally with a type annotation or keyword included in the
+  /// completion.
+  ///
+  /// Mutually exclusive with [qualifier], which is only available through
+  /// [FieldSuggestion.withQualifier].
+  new withDeclarationInfo({
     required this.element,
     required this.referencingInterface,
-    required this.isInDeclaration,
+    required super.matcherScore,
+    required super.replacementRange,
+    super.addTypeAnnotation,
+    super.keyword,
+  }) : qualifier = '';
+
+  /// Initialize a newly created candidate suggestion to suggest the [element]
+  /// with a qualifier prefix.
+  ///
+  /// For an enum constant, the [qualifier] should be the empty string when
+  /// suggesting from within the enum's own declaration, and the enum's name
+  /// (followed by `.`) everywhere else.
+  ///
+  /// Mutually exclusive with [addTypeAnnotation] and [keyword], which are
+  /// only available through [FieldSuggestion.withDeclarationInfo].
+  new withQualifier({
+    required this.element,
+    required this.referencingInterface,
+    required super.matcherScore,
+    required super.replacementRange,
+    required this.qualifier,
+  });
+
+  /// Initialize a newly created candidate suggestion to suggest the [element],
+  /// optionally with the type name included in the completion.
+  new withTypeName({
+    required this.element,
+    required this.referencingInterface,
     required super.matcherScore,
     required super.replacementRange,
     required super.addTypeName,
-    super.addTypeAnnotation,
-    super.keyword,
-  });
+  }) : qualifier = '',
+       super.withTypeName();
 
   @override
-  String get baseCompletion {
-    if (element.isEnumConstant) {
-      var constantName = element.name;
-      if (isInDeclaration) {
-        return '$constantName';
-      }
-      var enumName = element.enclosingElement.displayName;
-      return '$enumName.$constantName';
-    }
-    return element.displayName;
-  }
+  String get baseCompletion => '$qualifier${element.displayName}';
 
   @override
   DartType? get containingType =>
@@ -410,9 +439,18 @@ final class FunctionCall extends TypedExecutableSuggestion {
   @override
   final FunctionType type;
 
+  /// The prefix with which the method is being suggested, including the
+  /// trailing `.`, or the empty string if it's being suggested by its bare
+  /// name.
+  final String qualifier;
+
   /// Initialize a newly created candidate suggestion to suggest the method
-  /// `call` defined on the class `Function`.
-  new({
+  /// `call` defined on the class `Function`, optionally with a type
+  /// annotation or keyword included in the completion.
+  ///
+  /// Mutually exclusive with [qualifier], which is only available through
+  /// [FunctionCall.withQualifier].
+  new withDeclarationInfo({
     required super.matcherScore,
     required this.type,
     required super.replacementRange,
@@ -421,10 +459,25 @@ final class FunctionCall extends TypedExecutableSuggestion {
     required this.element,
     super.addTypeAnnotation,
     super.keyword,
-  }) : super(addTypeName: false);
+  }) : qualifier = '';
+
+  /// Initialize a newly created candidate suggestion to suggest the method
+  /// `call` defined on the class `Function`, with a qualifier prefix.
+  ///
+  /// Mutually exclusive with [addTypeAnnotation] and [keyword], which are
+  /// only available through [FunctionCall.withDeclarationInfo].
+  new withQualifier({
+    required super.matcherScore,
+    required this.type,
+    required super.replacementRange,
+    required super.importData,
+    required super.kind,
+    required this.element,
+    required this.qualifier,
+  });
 
   @override
-  String get baseCompletion => 'call';
+  String get baseCompletion => '${qualifier}call';
 
   @override
   DartType? get containingType => null;
@@ -445,9 +498,13 @@ final class GetterSuggestion extends TypedImportableSuggestion
   final bool withEnclosingName;
 
   @override
+  final String qualifier;
+
+  @override
   final bool addTypeName;
 
-  /// Initialize a newly created candidate suggestion to suggest the [element].
+  /// Initialize a newly created candidate suggestion to suggest the [element]
+  /// without any prefix.
   new({
     required this.element,
     required this.referencingInterface,
@@ -455,26 +512,59 @@ final class GetterSuggestion extends TypedImportableSuggestion
     required super.matcherScore,
     required super.replacementRange,
     required this.addTypeName,
-    this.withEnclosingName = false,
+  }) : withEnclosingName = false,
+       qualifier = '',
+       super(addTypeAnnotation: false, keyword: null);
+
+  /// Initialize a newly created candidate suggestion to suggest the
+  /// [element], optionally with a type annotation or keyword included in the
+  /// completion.
+  ///
+  /// Mutually exclusive with [qualifier], which is only available through
+  /// [GetterSuggestion.withQualifier].
+  new withDeclarationInfo({
+    required this.element,
+    required this.referencingInterface,
+    required super.importData,
+    required super.matcherScore,
+    required super.replacementRange,
     super.addTypeAnnotation,
     super.keyword,
-  }) : assert(
-         !addTypeAnnotation || !addTypeName,
-         'Either addTypeAnnotation or addTypeName can be true, but not both.',
-       ),
-       assert(
-         addTypeName && keyword == null || !addTypeName,
-         'If addTypeName is true, keyword must be null.',
-       );
+  }) : withEnclosingName = false,
+       qualifier = '',
+       addTypeName = false;
+
+  /// Initialize a newly created candidate suggestion to suggest the [element]
+  /// with an enclosing class/extension name prefix.
+  new withEnclosingName({
+    required this.element,
+    required this.referencingInterface,
+    required super.importData,
+    required super.matcherScore,
+    required super.replacementRange,
+    required this.addTypeName,
+  }) : withEnclosingName = true,
+       qualifier = '',
+       super(addTypeAnnotation: false, keyword: null);
+
+  /// Initialize a newly created candidate suggestion to suggest the [element]
+  /// with a qualifier prefix.
+  ///
+  /// Mutually exclusive with [addTypeAnnotation] and [keyword], which are
+  /// only available through [GetterSuggestion.withDeclarationInfo].
+  new withQualifier({
+    required this.element,
+    required this.referencingInterface,
+    required super.importData,
+    required super.matcherScore,
+    required super.replacementRange,
+    required this.qualifier,
+  }) : withEnclosingName = false,
+       addTypeName = false;
 
   @override
-  String get baseCompletion {
-    var prefix = _enclosingPrefix;
-    if (prefix.isNotEmpty) {
-      return '$prefix${element.displayName}';
-    }
-    return element.displayName;
-  }
+  String get baseCompletion =>
+      '$_enclosingPrefix$qualifier${element.displayName}';
 
   @override
   DartType? get containingType =>
@@ -732,6 +822,32 @@ final class LocalVariableSuggestion extends CandidateSuggestion
 /// Behavior common to suggestions that are for members of a class, enum, mixin,
 /// etc.
 mixin MemberSuggestion implements ElementBasedSuggestion {
+  /// Whether the type name should be included in the completion.
+  ///
+  /// Fixes dot-shorthand completions when the feature is not enabled, by
+  /// replacing the leading dot with 'TypeName.'.
+  ///
+  /// Example:
+  ///
+  /// ```dart
+  /// enum E { a }
+  ///
+  /// E f() => .^
+  /// ```
+  ///
+  /// In the above code, with the cursor where the caret is, if the feature is
+  /// not enabled, the completion for `a` would replace `.` and insert `E.a`.
+  bool get addTypeName;
+
+  /// The prefix, including the trailing `.`, with which the member is being
+  /// suggested, or the empty string if it's suggested by its bare name.
+  ///
+  /// This is non-empty when the member is shadowed at the completion location
+  /// but can still be reached in a qualified form: `this.` (or `this?.`) for
+  /// an instance member, or the name of the enclosing class or extension for a
+  /// `static` member, since `this.` cannot be used to access one.
+  String get qualifier => '';
+
   /// The element defined by the declaration in which the suggestion is to be
   /// applied, or `null` if the completion is in a static context.
   InterfaceElement? get referencingInterface;
@@ -768,8 +884,44 @@ final class MethodSuggestion extends TypedExecutableSuggestion
   @override
   final InterfaceElement? referencingInterface;
 
-  /// Initialize a newly created candidate suggestion to suggest the [element].
-  new({
+  @override
+  final String qualifier;
+
+  /// Initialize a newly created candidate suggestion to suggest the
+  /// [element], optionally with a type annotation or keyword included in the
+  /// completion.
+  ///
+  /// Mutually exclusive with [qualifier], which is only available through
+  /// [MethodSuggestion.withQualifier].
+  new withDeclarationInfo({
+    required super.kind,
+    required this.element,
+    required this.referencingInterface,
+    required super.importData,
+    required super.matcherScore,
+    required super.replacementRange,
+    super.addTypeAnnotation,
+    super.keyword,
+  }) : qualifier = '';
+
+  /// Initialize a newly created candidate suggestion to suggest the [element]
+  /// with a qualifier prefix.
+  ///
+  /// Mutually exclusive with [addTypeAnnotation] and [keyword], which are
+  /// only available through [MethodSuggestion.withDeclarationInfo].
+  new withQualifier({
+    required super.kind,
+    required this.element,
+    required this.referencingInterface,
+    required super.importData,
+    required super.matcherScore,
+    required super.replacementRange,
+    required this.qualifier,
+  });
+
+  /// Initialize a newly created candidate suggestion to suggest the [element],
+  /// optionally with the type name included in the completion.
+  new withTypeName({
     required super.kind,
     required this.element,
     required this.referencingInterface,
@@ -777,12 +929,11 @@ final class MethodSuggestion extends TypedExecutableSuggestion
     required super.matcherScore,
     required super.replacementRange,
     required super.addTypeName,
-    super.addTypeAnnotation,
-    super.keyword,
-  });
+  }) : qualifier = '',
+       super.withTypeName();
 
   @override
-  String get baseCompletion => element.displayName;
+  String get baseCompletion => '$qualifier${element.displayName}';
 
   @override
   DartType? get containingType =>
@@ -941,19 +1092,41 @@ final class RecordFieldSuggestion extends TypedSuggestion {
   /// The name of the field.
   final String name;
 
-  /// Initialize a newly created candidate suggestion to suggest the [field] by
-  /// inserting the [name].
-  new({
+  /// The prefix with which the field is being suggested, including the
+  /// trailing `.`, or the empty string if it's being suggested by its bare
+  /// name.
+  final String qualifier;
+
+  /// Initialize a newly created candidate suggestion to suggest the [field]
+  /// by inserting the [name], optionally with a type annotation or keyword
+  /// included in the completion.
+  ///
+  /// Mutually exclusive with [qualifier], which is only available through
+  /// [RecordFieldSuggestion.withQualifier].
+  new withDeclarationInfo({
     required this.field,
     required this.name,
     required super.replacementRange,
     required super.matcherScore,
     super.addTypeAnnotation,
     super.keyword,
-  }) : super(addTypeName: false);
+  }) : qualifier = '';
+
+  /// Initialize a newly created candidate suggestion to suggest the [field]
+  /// by inserting the [name], with a qualifier prefix.
+  ///
+  /// Mutually exclusive with [addTypeAnnotation] and [keyword], which are
+  /// only available through [RecordFieldSuggestion.withDeclarationInfo].
+  new withQualifier({
+    required this.field,
+    required this.name,
+    required super.replacementRange,
+    required super.matcherScore,
+    required this.qualifier,
+  });
 
   @override
-  String get baseCompletion => name;
+  String get baseCompletion => '$qualifier$name';
 
   @override
   DartType? get containingType => null;
@@ -1044,7 +1217,7 @@ final class SetStateMethodSuggestion extends TypedExecutableSuggestion
     super.kind = CompletionSuggestionKind.INVOCATION,
     super.addTypeAnnotation,
     super.keyword,
-  }) : super(addTypeName: false);
+  });
 
   @override
   String get baseCompletion {
@@ -1091,23 +1264,46 @@ final class SetterSuggestion extends ImportableSuggestion
   /// Whether the accessor is being invoked with a target.
   final bool withEnclosingName;
 
-  /// Initialize a newly created candidate suggestion to suggest the [element].
+  @override
+  final String qualifier;
+
+  /// Setters are never suggested in a position where a type name could be
+  /// inserted, so this is always `false`.
+  @override
+  final bool addTypeName = false;
+
+  /// Initialize a newly created candidate suggestion to suggest the [element]
+  /// without any prefix.
   new({
     required this.element,
     required super.importData,
     required this.referencingInterface,
     required super.matcherScore,
-    this.withEnclosingName = false,
-  });
+  }) : withEnclosingName = false,
+       qualifier = '';
+
+  /// Initialize a newly created candidate suggestion to suggest the [element]
+  /// with an enclosing class/extension name prefix.
+  new withEnclosingName({
+    required this.element,
+    required super.importData,
+    required this.referencingInterface,
+    required super.matcherScore,
+  }) : withEnclosingName = true,
+       qualifier = '';
+
+  /// Initialize a newly created candidate suggestion to suggest the [element]
+  /// with a qualifier prefix.
+  new withQualifier({
+    required this.element,
+    required super.importData,
+    required this.referencingInterface,
+    required super.matcherScore,
+    required this.qualifier,
+  }) : withEnclosingName = false;
 
   @override
-  String get completion {
-    var prefix = _enclosingPrefix;
-    if (prefix.isNotEmpty) {
-      return '$prefix${element.displayName}';
-    }
-    return element.displayName;
-  }
+  String get completion => '$_enclosingPrefix$qualifier${element.displayName}';
 
   /// Return the name of the enclosing class or extension.
   ///
@@ -1295,22 +1491,33 @@ sealed class TypedExecutableSuggestion extends ExecutableSuggestion
   @override
   final bool addTypeName;
 
+  /// Initialize a newly created candidate suggestion, optionally with a type
+  /// annotation or keyword included in the completion.
+  ///
+  /// Mutually exclusive with [addTypeName], which is only available through
+  /// [TypedExecutableSuggestion.withTypeName].
   new({
     required this.replacementRange,
     required super.importData,
     required super.kind,
     required super.matcherScore,
-    required this.addTypeName,
     this.addTypeAnnotation = false,
     this.keyword,
-  }) : assert(
-         !addTypeAnnotation || !addTypeName,
-         'Either addTypeAnnotation or addTypeName can be true, but not both.',
-       ),
-       assert(
-         addTypeName && keyword == null || !addTypeName,
-         'If addTypeName is true, keyword must be null.',
-       );
+  }) : addTypeName = false;
+
+  /// Initialize a newly created candidate suggestion, optionally with the
+  /// type name included in the completion.
+  ///
+  /// Mutually exclusive with [addTypeAnnotation] and [keyword], which are
+  /// only available through the unnamed constructor.
+  new withTypeName({
+    required this.replacementRange,
+    required super.importData,
+    required super.kind,
+    required super.matcherScore,
+    required this.addTypeName,
+  }) : addTypeAnnotation = false,
+       keyword = null;
 }
 
 sealed class TypedImportableSuggestion extends ImportableSuggestion
@@ -1337,10 +1544,37 @@ sealed class TypedImportableSuggestion extends ImportableSuggestion
 }
 
 sealed class TypedSuggestion extends ReplacementSuggestion {
+  /// Whether a type annotation for [type] should be inserted before the
+  /// completion, when completing the name of a variable being declared by a
+  /// pattern (e.g. completing `List(:^)` to `List(:int length)`, capturing
+  /// the `length` getter's type).
+  ///
+  /// Only ever `true` when the `specifyTypes` code style option is enabled
+  /// (driven by the `always_specify_types` lint). May be `true` at the same
+  /// time as a non-null [keyword] (e.g. `List(:final int length)`).
+  ///
+  /// Only available through the unnamed constructor; see
+  /// [TypedSuggestion.withTypeName].
   final bool addTypeAnnotation;
 
+  /// The keyword (`var` or `final`) to be inserted before the completion,
+  /// when completing the name of a variable being declared by a pattern
+  /// (e.g. completing `List(:^)` to `List(:var length)`).
+  ///
+  /// `final` is chosen over `var` when the `makeLocalsFinal` code style
+  /// option is enabled (driven by the `prefer_final_locals` lint); `var` is
+  /// only used when [addTypeAnnotation] is also `false`.
+  ///
+  /// Only available through the unnamed constructor; see
+  /// [TypedSuggestion.withTypeName].
   final Keyword? keyword;
 
+  /// Additional information computed by `createTypedSuggestionData` when
+  /// this candidate is converted into a concrete completion item.
+  ///
+  /// `null` unless [addTypeAnnotation], [keyword], or [addTypeName] require
+  /// inserting text before the completion; the conversion always assigns
+  /// this field, even when the result is `null`.
   TypeImportData? data;
 
   /// Whether the type name should be included in the completion.
@@ -1360,20 +1594,29 @@ sealed class TypedSuggestion extends ReplacementSuggestion {
   /// not enabled, the completion for `a` would replace `.` and insert `E.a`.
   final bool addTypeName;
 
+  /// Initialize a newly created candidate suggestion, optionally with a type
+  /// annotation or keyword included in the completion.
+  ///
+  /// Mutually exclusive with [addTypeName], which is only available through
+  /// [TypedSuggestion.withTypeName].
   new({
     required super.matcherScore,
     required super.replacementRange,
-    required this.addTypeName,
     this.addTypeAnnotation = false,
     this.keyword,
-  }) : assert(
-         !addTypeAnnotation || !addTypeName,
-         'Either addTypeAnnotation or addTypeName can be true, but not both.',
-       ),
-       assert(
-         addTypeName && keyword == null || !addTypeName,
-         'If addTypeName is true, keyword must be null.',
-       );
+  }) : addTypeName = false;
+
+  /// Initialize a newly created candidate suggestion, optionally with the
+  /// type name included in the completion.
+  ///
+  /// Mutually exclusive with [addTypeAnnotation] and [keyword], which are
+  /// only available through the unnamed constructor.
+  new withTypeName({
+    required super.matcherScore,
+    required super.replacementRange,
+    required this.addTypeName,
+  }) : addTypeAnnotation = false,
+       keyword = null;
 
   String get baseCompletion;
 

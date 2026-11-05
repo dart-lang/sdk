@@ -6,7 +6,7 @@
 // constant expressions or potentially constant type expressions.
 
 class A<X> {
-  final Object x1, x2, x3, x4, x5, x6, x7, x8;
+  final Object x1, x2, x3, x4, x5, x6, x7, x8, x9, x10;
 
   const A()
     : x1 = const [X],
@@ -38,9 +38,17 @@ class A<X> {
       //           ^
       // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_TYPE_PARAMETERS
       // [cfe] Type variables can't be used as constants.
-      x8 = const C(X);
-  //               ^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_TYPE_PARAMETER
+      x8 = const C(X),
+      //           ^
+      // [analyzer] COMPILE_TIME_ERROR.CONST_TYPE_PARAMETER
+      // [cfe] Type variables can't be used as constants.
+      x9 = const B<(X, int)>(),
+      //            ^
+      // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_TYPE_PARAMETERS
+      // [cfe] Type variables can't be used as constants.
+      x10 = const B<({int count, X value})>();
+  //                             ^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_TYPE_PARAMETERS
   // [cfe] Type variables can't be used as constants.
 }
 

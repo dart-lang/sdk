@@ -352,7 +352,7 @@ struct AllocateMintABI {
   static constexpr Register kTempReg = R1;
 };
 
-// ABI for Allocate{Mint,Double,Float32x4,Float64x2}Stub.
+// ABI for Allocate{Mint,Double,Float32x4,Float64x2,Int32x4}Stub.
 struct AllocateBoxABI {
   static constexpr Register kResultReg = AllocateObjectABI::kResultReg;
   static constexpr Register kTempReg = R1;
@@ -805,6 +805,10 @@ enum SystemOp {
   HINT = SystemFixed | B17 | B16 | B13 | B4 | B3 | B2 | B1 | B0,
   CLREX = SystemFixed | B17 | B16 | B13 | B12 | B11 | B10 | B9 | B8 | B6 | B4 |
       B3 | B2 | B1 | B0,
+  BTI = HINT | B10,
+  BTI_C = HINT | B10 | B6,
+  BTI_J = HINT | B10 | B7,
+  BTI_JC = HINT | B10 | B7 | B6,
 };
 
 // C3.2.5
@@ -828,8 +832,20 @@ enum UnconditionalBranchRegOp {
   UnconditionalBranchRegMask = 0xfe000000,
   UnconditionalBranchRegFixed = CompareBranchFixed | B31 | B30 | B25,
   BR = UnconditionalBranchRegFixed | B20 | B19 | B18 | B17 | B16,
+  BRAA = BR | B24 | B11,
+  BRAAZ = BR | B11 | B4 | B3 | B2 | B1 | B0,
+  BRAB = BRAA | B10,
+  BRABZ = BRAAZ | B10,
+
   BLR = BR | B21,
+  BLRAA = BRAA | B21,
+  BLRAAZ = BRAAZ | B21,
+  BLRAB = BRAB | B21,
+  BLRABZ = BRABZ | B21,
+
   RET = BR | B22,
+  RETAA = RET | B11 | B4 | B3 | B2 | B1 | B0,
+  RETAB = RETAA | B10,
 };
 
 // C3.3.5
@@ -1016,6 +1032,7 @@ enum SIMDThreeSameOp {
   SIMDThreeSameMask = 0x9f200400,
   SIMDThreeSameFixed = DPSimd1Fixed | B21 | B10,
   VAND = SIMDThreeSameFixed | B30 | B12 | B11,
+  VBIC = SIMDThreeSameFixed | B30 | B22 | B12 | B11,
   VORR = SIMDThreeSameFixed | B30 | B23 | B12 | B11,
   VEOR = SIMDThreeSameFixed | B30 | B29 | B12 | B11,
   VADDW = SIMDThreeSameFixed | B30 | B23 | B15,
@@ -1032,6 +1049,7 @@ enum SIMDThreeSameOp {
   VDIVD = SIMDThreeSameFixed | B30 | B29 | B22 | B15 | B14 | B13 | B12 | B11,
   VCEQS = SIMDThreeSameFixed | B30 | B15 | B14 | B13,
   VCEQD = SIMDThreeSameFixed | B30 | B22 | B15 | B14 | B13,
+  VCEQW = SIMDThreeSameFixed | B30 | B29 | B23 | B15 | B11,
   VCGES = SIMDThreeSameFixed | B30 | B29 | B15 | B14 | B13,
   VCGED = SIMDThreeSameFixed | B30 | B29 | B22 | B15 | B14 | B13,
   VCGTS = SIMDThreeSameFixed | B30 | B29 | B23 | B15 | B14 | B13,
@@ -1042,6 +1060,8 @@ enum SIMDThreeSameOp {
   VMIND = SIMDThreeSameFixed | B30 | B23 | B22 | B15 | B14 | B13 | B12,
   VRECPSS = SIMDThreeSameFixed | B30 | B15 | B14 | B13 | B12 | B11,
   VRSQRTSS = SIMDThreeSameFixed | B30 | B23 | B15 | B14 | B13 | B12 | B11,
+  VSSHLW = SIMDThreeSameFixed | B30 | B23 | B14,
+  VSSHLX = SIMDThreeSameFixed | B30 | B23 | B22 | B14,
 };
 
 // C.3.6.17

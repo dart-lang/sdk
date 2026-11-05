@@ -10,7 +10,7 @@ import 'package:dart2native/dart2native_macho.dart' show pipeStream;
 import 'package:dart2native/macho.dart';
 import 'package:dartdev/src/commands/compile.dart'
     show compileErrorExitCode, genericErrorExitCode;
-import 'package:hooks_runner/hooks_runner.dart';
+import 'package:dartdev/src/target.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 

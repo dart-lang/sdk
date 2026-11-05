@@ -65,7 +65,6 @@ static method method(self::MyList<core::int> /* erasure=core::List<core::int> */
       }
     }
   }
-  #L1:
   {
     final synthesized self::MyList<core::int> /* erasure=core::List<core::int> */ #4#0 = list;
     synthesized core::int #4#1;
@@ -84,17 +83,16 @@ static method method(self::MyList<core::int> /* erasure=core::List<core::int> */
       }
     }
   }
-  #L2:
   {
     final synthesized self::MyMap<core::String, core::bool> /* erasure=core::Map<core::String, core::bool> */ #5#0 = map;
     synthesized core::bool? #5#3;
     synthesized core::bool #5#3#isSet = false;
     final const synthesized core::int #5#1 = #C1;
     {
-      hoisted core::bool e;
-      if((!((#5#3#isSet ?{core::bool?} #5#3 : let final dynamic #t16 = #5#3#isSet = true in #5#3 = #5#0.{core::Map::[]}(#C1){(core::Object?) → core::bool?}) == null) || null is core::bool && #5#0.{core::Map::containsKey}(#C1){(core::Object?) → core::bool}) && (let final dynamic #t17 = e = let core::bool? #t18 = #5#3#isSet ?{core::bool?} #5#3 : let final dynamic #t19 = #5#3#isSet = true in #5#3 = #5#0.{core::Map::[]}(#C1){(core::Object?) → core::bool?} in #t18 == null ?{core::bool} #t18 as{Unchecked} core::bool : #t18{core::bool} in true)) {
+      hoisted core::bool e##1;
+      if((!((#5#3#isSet ?{core::bool?} #5#3 : let final dynamic #t16 = #5#3#isSet = true in #5#3 = #5#0.{core::Map::[]}(#C1){(core::Object?) → core::bool?}) == null) || null is core::bool && #5#0.{core::Map::containsKey}(#C1){(core::Object?) → core::bool}) && (let final dynamic #t17 = e##1 = let core::bool? #t18 = #5#3#isSet ?{core::bool?} #5#3 : let final dynamic #t19 = #5#3#isSet = true in #5#3 = #5#0.{core::Map::[]}(#C1){(core::Object?) → core::bool?} in #t18 == null ?{core::bool} #t18 as{Unchecked} core::bool : #t18{core::bool} in true)) {
         {
-          core::print(e);
+          core::print(e##1);
         }
       }
     }

@@ -14,8 +14,6 @@ import 'package:analyzer_testing/src/mock_packages/flutter/cupertino.dart'
     as mock_flutter_cupertino;
 import 'package:analyzer_testing/src/mock_packages/flutter/foundation.dart'
     as mock_flutter_foundation;
-import 'package:analyzer_testing/src/mock_packages/flutter_localizations/flutter_localizations.dart'
-    as mock_flutter_localizations;
 import 'package:analyzer_testing/src/mock_packages/flutter/material.dart'
     as mock_flutter_material;
 import 'package:analyzer_testing/src/mock_packages/flutter/painting.dart'
@@ -26,6 +24,8 @@ import 'package:analyzer_testing/src/mock_packages/flutter/widget_previews.dart'
     as mock_flutter_widget_previews;
 import 'package:analyzer_testing/src/mock_packages/flutter/widgets.dart'
     as mock_flutter_widgets;
+import 'package:analyzer_testing/src/mock_packages/flutter_localizations/flutter_localizations.dart'
+    as mock_flutter_localizations;
 import 'package:analyzer_testing/src/mock_packages/meta/meta.dart' as mock_meta;
 import 'package:analyzer_testing/src/mock_packages/mock_library.dart';
 import 'package:analyzer_testing/src/mock_packages/test_reflective_loader/test_reflective_loader.dart'
@@ -111,6 +111,14 @@ mixin MockPackagesMixin {
       ...mock_flutter_widget_previews.units,
       ...mock_flutter_widgets.units,
     ]);
+    return packageFolder.getFolder('lib');
+  }
+
+  Folder addFlutterLocalizations() {
+    var packageFolder = _addFiles(
+      'flutter_localizations',
+      mock_flutter_localizations.units,
+    );
     return packageFolder.getFolder('lib');
   }
 

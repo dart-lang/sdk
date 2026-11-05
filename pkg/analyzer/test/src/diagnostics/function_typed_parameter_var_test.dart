@@ -18,7 +18,7 @@ main() {
 class FunctionTypedParameterVarTest extends ParserDiagnosticsTest {
   test_superFormalParameter_var_functionTyped() async {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 class A {
   A(var super.a<T>());
 //  ^^^

@@ -43,7 +43,7 @@ static method main() → dynamic {
   core::print(local2);
   core::print(local3);
   function localFunction1([FutureOr<dynamic>parameter1 = #C1, FutureOr<core::int?>parameter2 = #C1, FutureOr<FutureOr<dynamic>>parameter3 = #C1]) → void {}
-  function localFunction2({FutureOr<dynamic>parameter1 = #C1, FutureOr<core::int?>parameter2 = #C1, FutureOr<FutureOr<dynamic>>parameter3 = #C1}) → void {}
+  function localFunction2({FutureOr<dynamic>parameter1##1 = #C1, FutureOr<core::int?>parameter2##1 = #C1, FutureOr<FutureOr<dynamic>>parameter3##1 = #C1}) → void {}
 }
 
 constants  {

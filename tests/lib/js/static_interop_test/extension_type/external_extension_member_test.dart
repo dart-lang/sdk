@@ -3,13 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:js_interop';
+import 'dart:js_interop_unsafe';
 
 import 'package:expect/expect.dart';
 
 @JS()
 external void eval(String code);
 
-extension type ExtensionType._(JSObject _) {
+extension type ExtensionType._(JSObject _) implements JSObject {
   external ExtensionType();
 }
 
@@ -38,6 +39,19 @@ extension E on ExtensionType {
   external String renamedMethod();
   @JS('nested^method.method')
   external String nestedMethod();
+}
+
+extension SelfReferenceExtension<T extends JSObject> on T {
+  external T? get selfReference;
+}
+
+extension ChainedSelfReferenceExtension<
+  T extends U,
+  U extends V,
+  V extends ExtensionType
+>
+    on T {
+  external T? get chainedSelfReference;
 }
 
 void main() {
@@ -99,4 +113,13 @@ void main() {
   Expect.equals('methodundefined', extension.differentArgsMethod('method'));
   Expect.equals('method', extension.renamedMethod());
   Expect.equals('nestedMethod', extension.nestedMethod());
+
+  // Generic extension bounds.
+  var obj = JSObject();
+  obj['selfReference'] = obj;
+  Expect.equals(obj, obj.selfReference);
+
+  var extensionObj = ExtensionType();
+  extensionObj['chainedSelfReference'] = extensionObj;
+  Expect.equals(extensionObj, extensionObj.chainedSelfReference);
 }

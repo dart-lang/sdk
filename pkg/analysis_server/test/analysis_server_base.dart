@@ -12,6 +12,7 @@ import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manage
 import 'package:analysis_server/src/session_logger/session_logger.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
 import 'package:analyzer/dart/analysis/analysis_options.dart' as analysis;
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/source/source_range.dart';
@@ -21,6 +22,7 @@ import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/platform.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer_testing/configuration_files_mixin.dart';
 import 'package:analyzer_testing/experiments/experiments.dart';
 import 'package:analyzer_testing/mock_packages/mock_packages.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
@@ -32,7 +34,6 @@ import 'package:unified_analytics/unified_analytics.dart';
 
 import 'constants.dart';
 import 'mocks.dart';
-import 'support/configuration_files.dart';
 import 'utils/message_scheduler_test_view.dart';
 
 class BlazeWorkspaceAnalysisServerTest extends ContextResolutionTest {
@@ -62,7 +63,9 @@ abstract class ContextResolutionTest with ResourceProviderMixin {
 
   MemoryByteStore _byteStore = _sharedByteStore;
 
-  final TestPluginManager pluginManager = TestPluginManager();
+  late final TestPluginManager pluginManager = TestPluginManager(
+    resourceProvider,
+  );
   late final MockServerChannel serverChannel;
   MessageSchedulerTestView? testView;
   late final LegacyAnalysisServer server;
@@ -74,7 +77,16 @@ abstract class ContextResolutionTest with ResourceProviderMixin {
 
   void Function(Notification)? notificationListener;
 
+  bool _hasSetRoots = false;
+
   String get dartSdkPath => sdkRoot.path;
+
+  /// Whether analysis roots have been set for this first time.
+  ///
+  /// Used as a safety check to ensure tests that send client capabilities do
+  /// so before this, because otherwise the capabilities might not apply during
+  /// initial analysis.
+  bool get hasSetRoots => _hasSetRoots;
 
   bool get retainDataForTesting => false;
 
@@ -143,6 +155,8 @@ abstract class ContextResolutionTest with ResourceProviderMixin {
     required List<String> included,
     required List<String> excluded,
   }) async {
+    _hasSetRoots = true;
+
     var includedConverted = included.map(convertPath).toList();
     var excludedConverted = excluded.map(convertPath).toList();
     await handleSuccessfulRequest(
@@ -208,11 +222,6 @@ abstract class ContextResolutionTest with ResourceProviderMixin {
 
 class PubPackageAnalysisServerTest extends ContextResolutionTest
     with MockPackagesMixin, ConfigurationFilesMixin {
-  // TODO(scheglov): Consider turning it back into a getter.
-  late String testFilePath = resourceProvider.convertPath(
-    '$testPackageLibPath/test.dart',
-  );
-
   late String pubspecFilePath = pathContext.normalize(
     resourceProvider.convertPath('$testPackageRootPath/pubspec.yaml'),
   );
@@ -221,9 +230,9 @@ class PubPackageAnalysisServerTest extends ContextResolutionTest
 
   final String testPackageName = 'test';
 
-  /// Return a list of the experiments that are to be enabled for tests in this
-  /// class, an empty list if there are no experiments that should be enabled.
-  List<String> get experiments => experimentsForTests;
+  /// Return a list of the experimental features that are to be enabled for
+  /// tests in this class.
+  List<Feature> get experimentalFeatures => experimentalFeaturesForTests;
 
   /// The path that is not in [workspaceRootPath], contains external packages.
   @override
@@ -245,6 +254,9 @@ class PubPackageAnalysisServerTest extends ContextResolutionTest
   }
 
   String get testFileContent => testFile.readAsStringSync();
+
+  String get testFilePath =>
+      resourceProvider.convertPath('$testPackageLibPath/test.dart');
 
   String get testPackageLibPath => '$testPackageRootPath/lib';
 
@@ -280,11 +292,11 @@ class PubPackageAnalysisServerTest extends ContextResolutionTest
 
   @override
   void createDefaultFiles() {
-    writeTestPackageConfig();
+    writeTestPackageConfig2();
     writeTestPackagePubspecYamlFile('name: $testPackageName');
 
     writeTestPackageAnalysisOptionsFile(
-      analysisOptionsContent(experiments: experiments),
+      analysisOptionsContent(experimentalFeatures: experimentalFeatures),
     );
   }
 

@@ -1,0 +1,142 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  final field core::bool value;
+  constructor •() → self::Class
+    : self::Class::value = false, super core::Object::•()
+    ;
+  constructor constructor([core::int x = #C1, core::int y = #C2]) → self::Class
+    : self::Class::value = x.{core::num::<}(y){(core::num) → core::bool}, super core::Object::•()
+    ;
+  method instanceMethod([core::int x = #C1, core::int y = #C2]) → core::bool
+    return x.{core::num::<}(y){(core::num) → core::bool};
+  static method staticMethod([core::int x = #C1, core::int y = #C2]) → core::bool
+    return x.{core::num::<}(y){(core::num) → core::bool};
+}
+class Enum extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::Enum a = #C6;
+  enum-element static const field self::Enum b = #C10;
+  final field core::bool value;
+  static const field core::List<self::Enum> values = #C11;
+  const constructor constructor(core::int #index, core::String #name, [core::int x = #C1, core::int y = #C2]) → self::Enum
+    : self::Enum::value = x.{core::num::<}(y){(core::num) → core::bool}, super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "Enum.${this.{core::_Enum::_name}{core::String}}";
+  method instanceMethod([core::int x = #C1, core::int y = #C2]) → core::bool
+    return x.{core::num::<}(y){(core::num) → core::bool};
+  static method staticMethod([core::int x = #C1, core::int y = #C2]) → core::bool
+    return x.{core::num::<}(y){(core::num) → core::bool};
+}
+abstract class Mixin extends core::Object /*isMixinDeclaration*/  {
+  method instanceMethod([core::int x = #C1, core::int y = #C2]) → core::bool
+    return x.{core::num::<}(y){(core::num) → core::bool};
+  static method staticMethod([core::int x = #C1, core::int y = #C2]) → core::bool
+    return x.{core::num::<}(y){(core::num) → core::bool};
+}
+class MixinApplication extends core::Object implements self::Mixin /*isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::MixinApplication
+    : super core::Object::•()
+    ;
+  method instanceMethod([core::int x = #C1, core::int y = #C2]) → core::bool
+    return x.{core::num::<}(y){(core::num) → core::bool};
+}
+extension Extension on core::bool {
+  method instanceMethod = self::Extension|instanceMethod;
+  method tearoff instanceMethod = self::Extension|get#instanceMethod;
+  static method staticMethod = self::Extension|staticMethod;
+}
+extension type ExtensionType(core::bool value) {
+  abstract extension-type-member representation-field get value() → core::bool;
+  method instanceMethod = self::ExtensionType|instanceMethod;
+  method tearoff instanceMethod = self::ExtensionType|get#instanceMethod;
+  static method staticMethod = self::ExtensionType|staticMethod;
+  constructor • = self::ExtensionType|constructor#;
+  constructor tearoff • = self::ExtensionType|constructor#_#new#tearOff;
+  constructor constructor = self::ExtensionType|constructor#constructor;
+  constructor tearoff constructor = self::ExtensionType|constructor#_#constructor#tearOff;
+}
+static method topLevel([core::int x = #C1, core::int y = #C2]) → core::bool
+  return x.{core::num::<}(y){(core::num) → core::bool};
+static extension-member method Extension|instanceMethod(lowered final core::bool #this, [core::int x = #C1, core::int y = #C2]) → core::bool
+  return x.{core::num::<}(y){(core::num) → core::bool};
+static extension-member method Extension|get#instanceMethod(lowered final core::bool #this) → ([core::int, core::int]) → core::bool
+  return ([core::int x = #C1, core::int y = #C2]) → core::bool => self::Extension|instanceMethod(#this, x, y);
+static extension-member method Extension|staticMethod([core::int x = #C1, core::int y = #C2]) → core::bool
+  return x.{core::num::<}(y){(core::num) → core::bool};
+static extension-type-member method ExtensionType|constructor#(initializing-formal core::bool value) → self::ExtensionType% /* erasure=core::bool, declared=! */ {
+  lowered final self::ExtensionType% /* erasure=core::bool, declared=! */ #this = value;
+  return #this;
+}
+static extension-type-member synthetic method ExtensionType|constructor#_#new#tearOff(core::bool value) → self::ExtensionType% /* erasure=core::bool, declared=! */
+  return self::ExtensionType|constructor#(value);
+static extension-type-member method ExtensionType|constructor#constructor([core::int x = #C1, core::int y = #C2]) → self::ExtensionType% /* erasure=core::bool, declared=! */ {
+  lowered final self::ExtensionType% /* erasure=core::bool, declared=! */ #this;
+  #this = self::ExtensionType|constructor#(x.{core::num::<}(y){(core::num) → core::bool});
+  return #this;
+}
+static extension-type-member synthetic method ExtensionType|constructor#_#constructor#tearOff([core::int x = #C1, core::int y = #C2]) → self::ExtensionType% /* erasure=core::bool, declared=! */
+  return self::ExtensionType|constructor#constructor(x, y);
+static extension-type-member method ExtensionType|instanceMethod(lowered final self::ExtensionType% /* erasure=core::bool, declared=! */ #this, [core::int x = #C1, core::int y = #C2]) → core::bool
+  return x.{core::num::<}(y){(core::num) → core::bool};
+static extension-type-member method ExtensionType|get#instanceMethod(lowered final self::ExtensionType% /* erasure=core::bool, declared=! */ #this) → ([core::int, core::int]) → core::bool
+  return ([core::int x = #C1, core::int y = #C2]) → core::bool => self::ExtensionType|instanceMethod(#this, x, y);
+static extension-type-member method ExtensionType|staticMethod([core::int x = #C1, core::int y = #C2]) → core::bool
+  return x.{core::num::<}(y){(core::num) → core::bool};
+static method main() → dynamic {
+  self::expect(true, self::topLevel(4));
+  self::expect(false, self::topLevel(5, 4));
+  self::expect(true, new self::Class::constructor(4).{self::Class::value}{core::bool});
+  self::expect(false, new self::Class::constructor(5, 4).{self::Class::value}{core::bool});
+  self::expect(true, new self::Class::•().{self::Class::instanceMethod}(4){([core::int, core::int]) → core::bool});
+  self::expect(false, new self::Class::•().{self::Class::instanceMethod}(5, 4){([core::int, core::int]) → core::bool});
+  self::expect(true, self::Class::staticMethod(4));
+  self::expect(false, self::Class::staticMethod(5, 4));
+  self::expect(true, #C6.{self::Enum::value}{core::bool});
+  self::expect(false, #C10.{self::Enum::value}{core::bool});
+  self::expect(true, #C6.{self::Enum::instanceMethod}(4){([core::int, core::int]) → core::bool});
+  self::expect(false, #C6.{self::Enum::instanceMethod}(5, 4){([core::int, core::int]) → core::bool});
+  self::expect(true, self::Enum::staticMethod(4));
+  self::expect(false, self::Enum::staticMethod(5, 4));
+  self::expect(true, new self::MixinApplication::•().{self::MixinApplication::instanceMethod}(4){([core::int, core::int]) → core::bool});
+  self::expect(false, new self::MixinApplication::•().{self::MixinApplication::instanceMethod}(5, 4){([core::int, core::int]) → core::bool});
+  self::expect(true, self::Mixin::staticMethod(4));
+  self::expect(false, self::Mixin::staticMethod(5, 4));
+  self::expect(true, self::Extension|instanceMethod(false, 4));
+  self::expect(false, self::Extension|instanceMethod(false, 5, 4));
+  self::expect(true, self::Extension|staticMethod(4));
+  self::expect(false, self::Extension|staticMethod(5, 4));
+  self::expect(true, self::ExtensionType|constructor#constructor(4) as{Unchecked} core::bool);
+  self::expect(false, self::ExtensionType|constructor#constructor(5, 4) as{Unchecked} core::bool);
+  self::expect(true, self::ExtensionType|instanceMethod(self::ExtensionType|constructor#(false), 4));
+  self::expect(false, self::ExtensionType|instanceMethod(self::ExtensionType|constructor#(false), 5, 4));
+  self::expect(true, self::ExtensionType|staticMethod(4));
+  self::expect(false, self::ExtensionType|staticMethod(5, 4));
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
+
+constants  {
+  #C1 = 6
+  #C2 = 5
+  #C3 = true
+  #C4 = 0
+  #C5 = "a"
+  #C6 = self::Enum {value:#C3, index:#C4, _name:#C5}
+  #C7 = false
+  #C8 = 1
+  #C9 = "b"
+  #C10 = self::Enum {value:#C7, index:#C8, _name:#C9}
+  #C11 = <self::Enum>[#C6, #C10]
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///optional_parameters.dart:
+- Enum.constructor (from org-dartlang-testcase:///optional_parameters.dart:31:15)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)

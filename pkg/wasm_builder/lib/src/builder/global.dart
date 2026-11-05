@@ -6,26 +6,30 @@ import '../ir/ir.dart' as ir;
 import 'builder.dart';
 
 /// A global variable defined in a module.
-class GlobalBuilder extends ir.Global with IndexableBuilder<ir.DefinedGlobal> {
+class GlobalBuilder with Builder<ir.DefinedGlobal> {
   final ModuleBuilder moduleBuilder;
-  final InstructionsBuilder initializer;
+  final ir.DefinedGlobal global;
+  InstructionsBuilder? _initializer;
 
-  GlobalBuilder(
-    this.moduleBuilder,
-    ir.FinalizableIndex index,
-    ir.GlobalType type, [
-    String? globalName,
-  ]) : initializer = InstructionsBuilder(moduleBuilder, [], [
-         type.type,
-       ], constantExpression: true),
-       super(moduleBuilder.module, index, type, globalName);
+  GlobalBuilder(this.moduleBuilder, this.global)
+    : _initializer = InstructionsBuilder(moduleBuilder, [], [
+        global.type.type,
+      ], constantExpression: true);
+
+  ir.GlobalType get type => global.type;
+  ir.FinalizableIndex get finalizableIndex => global.finalizableIndex;
+  ir.Module get enclosingModule => global.enclosingModule;
+  String? get globalName => global.globalName;
+
+  InstructionsBuilder get initializer => _initializer!;
 
   @override
-  ir.DefinedGlobal forceBuild() => ir.DefinedGlobal(
-    enclosingModule,
-    initializer.build(),
-    finalizableIndex,
-    type,
-    globalName,
-  );
+  ir.DefinedGlobal forceBuild() {
+    global.initializer = initializer.build();
+    _initializer = null;
+    return global;
+  }
+
+  @override
+  String toString() => global.toString();
 }

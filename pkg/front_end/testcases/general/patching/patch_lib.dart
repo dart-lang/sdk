@@ -61,7 +61,7 @@ void _injectedTopLevelMethod(int value) {
 }
 
 @patch
-class Class {
+class Class implements Interface {
   @patch
   Class(int value);
 

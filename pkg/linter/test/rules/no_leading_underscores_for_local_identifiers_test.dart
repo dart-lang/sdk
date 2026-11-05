@@ -4,6 +4,7 @@
 
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:linter/src/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
@@ -214,6 +215,17 @@ class C {
 ''');
   }
 
+  test_notShadow_innerLocal() async {
+    await assertDiagnosticsFromMarkup('''
+void f(int [!_foo!]) {
+  for (var foo in []) {
+    print(foo);
+  }
+  print(_foo);
+}
+''', code: diag.noLeadingUnderscoresForLocalIdentifiers);
+  }
+
   test_objectPattern_destructured() async {
     await assertDiagnosticsFromMarkup(r'''
 class A {
@@ -393,6 +405,40 @@ f() {
   }
 }
 ''');
+  }
+
+  test_shadow_innerLocal() async {
+    await assertDiagnosticsFromMarkup('''
+void f(int [!_foo!]) {
+  for (var foo in []) {
+    _foo++;
+    print(foo);
+  }
+}
+''', code: diag.noLeadingUnderscoresForLocalIdentifiersShadowed);
+  }
+
+  test_shadow_member() async {
+    await assertDiagnosticsFromMarkup('''
+class A {
+  int foo = 0;
+
+  void bar(int [!_foo!]) {
+    foo + _foo;
+  }
+}
+''', code: diag.noLeadingUnderscoresForLocalIdentifiersShadowed);
+  }
+
+  test_shadow_parameter() async {
+    await assertDiagnosticsFromMarkup('''
+void f(int foo) {
+  for (var [!_foo!] in []) {
+    _foo++;
+    print(foo);
+  }
+}
+''', code: diag.noLeadingUnderscoresForLocalIdentifiersShadowed);
   }
 
   test_superFormalParameter() async {

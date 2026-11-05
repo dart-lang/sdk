@@ -26,6 +26,7 @@ void main() {
       'dart',
       [sdkTestUri.toFilePath()],
       environment: {'PATH': path.dirname(Platform.resolvedExecutable)},
+      runInShell: true,
     );
 
     // All tests in sdk_test.dart should pass when `dart` is invoked from PATH.

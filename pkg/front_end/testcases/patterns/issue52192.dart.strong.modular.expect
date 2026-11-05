@@ -17,7 +17,6 @@ class B extends core::Object implements self::A<core::int> {
 }
 static field core::int callCount = 0;
 static method foo(core::Object o, core::num value) → void {
-  #L1:
   {
     final synthesized core::Object #0#0 = o;
     synthesized dynamic #0#2;

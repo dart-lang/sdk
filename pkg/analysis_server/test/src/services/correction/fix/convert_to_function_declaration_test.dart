@@ -62,10 +62,12 @@ void f() {
 
 @reflectiveTest
 class ConvertToFunctionDeclarationInFileTest extends FixInFileProcessorTest {
+  @override
+  List<String> get lintCodes => [
+    LintNames.prefer_function_declarations_over_variables,
+  ];
+
   Future<void> test_file() async {
-    createAnalysisOptionsFile(
-      lints: [LintNames.prefer_function_declarations_over_variables],
-    );
     await resolveTestCode('''
 void f() {
   var v = () {

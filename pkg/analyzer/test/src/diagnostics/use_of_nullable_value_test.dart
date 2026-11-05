@@ -336,7 +336,7 @@ extension E on A? {
   void baz() {
     foo = 0;
 //  ^^^
-// [diag.uncheckedMethodInvocationOfNullableValue] The method 'foo' can't be unconditionally invoked because the receiver can be 'null'.
+// [diag.uncheckedPropertyAccessOfNullableValue] The property 'foo' can't be unconditionally accessed because the receiver can be 'null'.
     this.foo = 0;
 //       ^^^
 // [diag.uncheckedPropertyAccessOfNullableValue] The property 'foo' can't be unconditionally accessed because the receiver can be 'null'.
@@ -433,9 +433,37 @@ m(B b) {
 }
 ''');
 
-    var node1 = result.findNode.assignment('x = 1');
+    var node1 = result.findNode.directAssignment('x = 1');
     assertResolvedNodeText(node1, r'''
-AssignmentExpression
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: ReceiverPropertyExtraction
+      receiver: UnqualifiedNameExpression
+        name: b
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::m::@formalParameter::b
+          type: B
+        staticType: B
+      operator: .
+      name: a
+      resolution: GetterInvocationResolution
+        element: <testLibrary>::@class::B::@getter::a
+        invokeType: A? Function()
+        type: A?
+      staticType: A?
+    operator: ?.
+    name: x
+    read: <null>
+    write: SetterInvocationResolution
+      element: <testLibrary>::@class::A::@setter::x
+      acceptedType: int
+  operator: =
+  value: IntegerLiteral
+    literal: 1
+    correspondingParameter: <testLibrary>::@class::A::@setter::x::@formalParameter::value
+    staticType: int
+  staticType: int?
+V1: AssignmentExpression
   leftHandSide: PropertyAccess
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
@@ -468,9 +496,37 @@ AssignmentExpression
   staticType: int?
 ''');
 
-    var node2 = result.findNode.assignment('x = 2');
+    var node2 = result.findNode.directAssignment('x = 2');
     assertResolvedNodeText(node2, r'''
-AssignmentExpression
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: ReceiverPropertyExtraction
+      receiver: UnqualifiedNameExpression
+        name: b
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::m::@formalParameter::b
+          type: B
+        staticType: B
+      operator: .
+      name: a
+      resolution: GetterInvocationResolution
+        element: <testLibrary>::@class::B::@getter::a
+        invokeType: A? Function()
+        type: A?
+      staticType: A?
+    operator: .
+    name: x
+    read: <null>
+    write: SetterInvocationResolution
+      element: <testLibrary>::@class::A::@setter::x
+      acceptedType: int
+  operator: =
+  value: IntegerLiteral
+    literal: 2
+    correspondingParameter: <testLibrary>::@class::A::@setter::x::@formalParameter::value
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
   leftHandSide: PropertyAccess
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
@@ -512,9 +568,22 @@ m(int x, int? y) {
 }
 ''');
 
-    var node1 = result.findNode.assignment('x =');
+    var node1 = result.findNode.directAssignment('x =');
     assertResolvedNodeText(node1, r'''
-AssignmentExpression
+DirectAssignment
+  target: UnqualifiedNameAssignmentTarget
+    name: x
+    read: <null>
+    write: VariableWriteResolution
+      element: <testLibrary>::@function::m::@formalParameter::x
+      acceptedType: int
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::m::@formalParameter::x
@@ -532,9 +601,22 @@ AssignmentExpression
   staticType: int
 ''');
 
-    var node2 = result.findNode.assignment('y =');
+    var node2 = result.findNode.directAssignment('y =');
     assertResolvedNodeText(node2, r'''
-AssignmentExpression
+DirectAssignment
+  target: UnqualifiedNameAssignmentTarget
+    name: y
+    read: <null>
+    write: VariableWriteResolution
+      element: <testLibrary>::@function::m::@formalParameter::y
+      acceptedType: int?
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: y
     element: <testLibrary>::@function::m::@formalParameter::y
@@ -574,9 +656,43 @@ m(B b) {
 }
 ''');
 
-    var node1 = result.findNode.assignment('x +=');
+    var node1 = result.findNode.compoundAssignment('x +=');
     assertResolvedNodeText(node1, r'''
-AssignmentExpression
+CompoundAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: ReceiverPropertyExtraction
+      receiver: UnqualifiedNameExpression
+        name: b
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::m::@formalParameter::b
+          type: B
+        staticType: B
+      operator: .
+      name: a
+      resolution: GetterInvocationResolution
+        element: <testLibrary>::@class::B::@getter::a
+        invokeType: A Function()
+        type: A
+      staticType: A
+    operator: .
+    name: x
+    read: GetterInvocationResolution
+      element: <testLibrary>::@class::A::@getter::x
+      invokeType: int Function()
+      type: int
+    write: SetterInvocationResolution
+      element: <testLibrary>::@class::A::@setter::x
+      acceptedType: int
+  operator: +=
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    staticType: int
+  binaryOperator: add
+  element: dart:core::@class::num::@method::+
+  operatorResultType: int
+  staticType: int
+V1: AssignmentExpression
   leftHandSide: PropertyAccess
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
@@ -609,9 +725,43 @@ AssignmentExpression
   staticType: int
 ''');
 
-    var node2 = result.findNode.assignment('y +=');
+    var node2 = result.findNode.compoundAssignment('y +=');
     assertResolvedNodeText(node2, r'''
-AssignmentExpression
+CompoundAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: ReceiverPropertyExtraction
+      receiver: UnqualifiedNameExpression
+        name: b
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::m::@formalParameter::b
+          type: B
+        staticType: B
+      operator: .
+      name: a
+      resolution: GetterInvocationResolution
+        element: <testLibrary>::@class::B::@getter::a
+        invokeType: A Function()
+        type: A
+      staticType: A
+    operator: .
+    name: y
+    read: GetterInvocationResolution
+      element: <testLibrary>::@class::A::@getter::y
+      invokeType: int? Function()
+      type: int?
+    write: SetterInvocationResolution
+      element: <testLibrary>::@class::A::@setter::y
+      acceptedType: int?
+  operator: +=
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    staticType: int
+  binaryOperator: add
+  element: dart:core::@class::num::@method::+
+  operatorResultType: int
+  staticType: int
+V1: AssignmentExpression
   leftHandSide: PropertyAccess
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
@@ -665,9 +815,43 @@ m(B b) {
 }
 ''');
 
-    var node1 = result.findNode.assignment('x += 1');
+    var node1 = result.findNode.compoundAssignment('x += 1');
     assertResolvedNodeText(node1, r'''
-AssignmentExpression
+CompoundAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: ReceiverPropertyExtraction
+      receiver: UnqualifiedNameExpression
+        name: b
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::m::@formalParameter::b
+          type: B
+        staticType: B
+      operator: .
+      name: a
+      resolution: GetterInvocationResolution
+        element: <testLibrary>::@class::B::@getter::a
+        invokeType: A? Function()
+        type: A?
+      staticType: A?
+    operator: ?.
+    name: x
+    read: GetterInvocationResolution
+      element: <testLibrary>::@class::A::@getter::x
+      invokeType: int Function()
+      type: int
+    write: SetterInvocationResolution
+      element: <testLibrary>::@class::A::@setter::x
+      acceptedType: int
+  operator: +=
+  value: IntegerLiteral
+    literal: 1
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    staticType: int
+  binaryOperator: add
+  element: dart:core::@class::num::@method::+
+  operatorResultType: int
+  staticType: int?
+V1: AssignmentExpression
   leftHandSide: PropertyAccess
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
@@ -700,9 +884,43 @@ AssignmentExpression
   staticType: int?
 ''');
 
-    var node2 = result.findNode.assignment('x += 2');
+    var node2 = result.findNode.compoundAssignment('x += 2');
     assertResolvedNodeText(node2, r'''
-AssignmentExpression
+CompoundAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: ReceiverPropertyExtraction
+      receiver: UnqualifiedNameExpression
+        name: b
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::m::@formalParameter::b
+          type: B
+        staticType: B
+      operator: .
+      name: a
+      resolution: GetterInvocationResolution
+        element: <testLibrary>::@class::B::@getter::a
+        invokeType: A? Function()
+        type: A?
+      staticType: A?
+    operator: .
+    name: x
+    read: GetterInvocationResolution
+      element: <testLibrary>::@class::A::@getter::x
+      invokeType: int Function()
+      type: int
+    write: SetterInvocationResolution
+      element: <testLibrary>::@class::A::@setter::x
+      acceptedType: int
+  operator: +=
+  value: IntegerLiteral
+    literal: 2
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    staticType: int
+  binaryOperator: add
+  element: dart:core::@class::num::@method::+
+  operatorResultType: int
+  staticType: int
+V1: AssignmentExpression
   leftHandSide: PropertyAccess
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
@@ -746,9 +964,27 @@ m(int x, int? y) {
 }
 ''');
 
-    var node1 = result.findNode.assignment('x +=');
+    var node1 = result.findNode.compoundAssignment('x += 0');
     assertResolvedNodeText(node1, r'''
-AssignmentExpression
+CompoundAssignment
+  target: UnqualifiedNameAssignmentTarget
+    name: x
+    read: VariableReadResolution
+      element: <testLibrary>::@function::m::@formalParameter::x
+      type: int
+    write: VariableWriteResolution
+      element: <testLibrary>::@function::m::@formalParameter::x
+      acceptedType: int
+  operator: +=
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    staticType: int
+  binaryOperator: add
+  element: dart:core::@class::num::@method::+
+  operatorResultType: int
+  staticType: int
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::m::@formalParameter::x
@@ -766,9 +1002,27 @@ AssignmentExpression
   staticType: int
 ''');
 
-    var node2 = result.findNode.assignment('y +=');
+    var node2 = result.findNode.compoundAssignment('y += 0');
     assertResolvedNodeText(node2, r'''
-AssignmentExpression
+CompoundAssignment
+  target: UnqualifiedNameAssignmentTarget
+    name: y
+    read: VariableReadResolution
+      element: <testLibrary>::@function::m::@formalParameter::y
+      type: int?
+    write: VariableWriteResolution
+      element: <testLibrary>::@function::m::@formalParameter::y
+      acceptedType: int?
+  operator: +=
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    staticType: int
+  binaryOperator: add
+  element: dart:core::@class::num::@method::+
+  operatorResultType: int
+  staticType: int
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: y
     element: <testLibrary>::@function::m::@formalParameter::y
@@ -1076,10 +1330,32 @@ m() {
 }
 ''');
 
-    var node = result.findNode.simple('isEven;');
+    var node = result.findNode.receiverPropertyExtraction('isEven;');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
-  token: isEven
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: x@13
+      type: int?
+    staticType: int?
+  operator: .
+  name: isEven
+  resolution: GetterInvocationResolution
+    element: dart:core::@class::int::@getter::isEven
+    invokeType: bool Function()
+    type: bool
+  staticType: bool
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: x
+    element: x@13
+    staticType: int?
+  period: .
+  identifier: SimpleIdentifier
+    token: isEven
+    element: dart:core::@class::int::@getter::isEven
+    staticType: bool
   element: dart:core::@class::int::@getter::isEven
   staticType: bool
 ''');
@@ -1294,8 +1570,8 @@ void f(A? a) {
   a?.foo.abs();
 }
 ''');
-    assertType(result.findNode.propertyAccess('.foo'), 'int');
-    assertType(result.findNode.methodInvocation('.abs()'), 'int?');
+    assertType(result.findNode.receiverPropertyExtraction('.foo'), 'int');
+    assertType(result.findNode.receiverMethodInvocation('.abs()'), 'int?');
   }
 
   test_nullable_dotQ_propertyAccess_dot_propertyAccess() async {
@@ -1308,8 +1584,8 @@ void f(A? a) {
   a?.foo.isEven;
 }
 ''');
-    assertType(result.findNode.propertyAccess('.foo'), 'int');
-    assertType(result.findNode.propertyAccess('.isEven'), 'bool?');
+    assertType(result.findNode.receiverPropertyExtraction('.foo'), 'int');
+    assertType(result.findNode.receiverPropertyExtraction('.isEven'), 'bool?');
   }
 
   test_operatorMinus_nonNullable() async {
@@ -1546,13 +1822,17 @@ m(A? a) {
 // [diag.uncheckedPropertyAccessOfNullableValue] The property 'x' can't be unconditionally accessed because the receiver can be 'null'.
 }
 ''');
-    var propertyAccess1 = result.findNode.propertyAccess('a?.x; // 1');
-    var propertyAccess2 = result.findNode.prefixed('a.x; // 2');
-    assertType(propertyAccess1.target, 'A?');
-    assertType(propertyAccess2.prefix, 'A?');
+    var propertyAccess1 = result.findNode.receiverPropertyExtraction(
+      'a?.x; // 1',
+    );
+    var propertyAccess2 = result.findNode.receiverPropertyExtraction(
+      'a.x; // 2',
+    );
+    assertType(propertyAccess1.receiver, 'A?');
+    assertType(propertyAccess2.receiver, 'A?');
 
-    assertType(propertyAccess1.propertyName, 'int');
-    assertType(propertyAccess2.identifier, 'int');
+    assertType(propertyAccess1.resolution!.type, 'int');
+    assertType(propertyAccess2.resolution!.type, 'int');
 
     assertType(propertyAccess1, 'int?');
     assertType(propertyAccess2, 'int');
@@ -1577,13 +1857,17 @@ m(B b) {
 // [diag.uncheckedPropertyAccessOfNullableValue] The property 'x' can't be unconditionally accessed because the receiver can be 'null'.
 }
 ''');
-    var propertyAccess1 = result.findNode.propertyAccess('b.a?.x; // 1');
-    var propertyAccess2 = result.findNode.propertyAccess('b.a.x; // 2');
-    assertType(propertyAccess1.target, 'A?');
-    assertType(propertyAccess2.target, 'A?');
+    var propertyAccess1 = result.findNode.receiverPropertyExtraction(
+      '?.x; // 1',
+    );
+    var propertyAccess2 = result.findNode.receiverPropertyExtraction(
+      '.x; // 2',
+    );
+    assertType(propertyAccess1.receiver, 'A?');
+    assertType(propertyAccess2.receiver, 'A?');
 
-    assertType(propertyAccess1.propertyName, 'int');
-    assertType(propertyAccess2.propertyName, 'int');
+    assertType(propertyAccess1.resolution!.type, 'int');
+    assertType(propertyAccess2.resolution!.type, 'int');
 
     assertType(propertyAccess1, 'int?');
     assertType(propertyAccess2, 'int');
@@ -1608,13 +1892,13 @@ m(B? b) {
 // [diag.uncheckedPropertyAccessOfNullableValue] The property 'a' can't be unconditionally accessed because the receiver can be 'null'.
 }
 ''');
-    var propertyAccess1 = result.findNode.propertyAccess('x; // 1');
-    var propertyAccess2 = result.findNode.propertyAccess('x; // 2');
-    assertType(propertyAccess1.target, 'A');
-    assertType(propertyAccess2.target, 'A');
+    var propertyAccess1 = result.findNode.receiverPropertyExtraction('x; // 1');
+    var propertyAccess2 = result.findNode.receiverPropertyExtraction('x; // 2');
+    assertType(propertyAccess1.receiver, 'A');
+    assertType(propertyAccess2.receiver, 'A');
 
-    assertType(propertyAccess1.propertyName, 'int');
-    assertType(propertyAccess2.propertyName, 'int');
+    assertType(propertyAccess1.resolution!.type, 'int');
+    assertType(propertyAccess2.resolution!.type, 'int');
 
     assertType(propertyAccess1, 'int?');
     assertType(propertyAccess2, 'int');
@@ -1644,13 +1928,13 @@ m(C c) {
 // [diag.uncheckedPropertyAccessOfNullableValue] The property 'x' can't be unconditionally accessed because the receiver can be 'null'.
 }
 ''');
-    var propertyAccess1 = result.findNode.propertyAccess('x; // 1');
-    var propertyAccess2 = result.findNode.propertyAccess('x; // 2');
-    assertType(propertyAccess1.target, 'A?');
-    assertType(propertyAccess2.target, 'A?');
+    var propertyAccess1 = result.findNode.receiverPropertyExtraction('x; // 1');
+    var propertyAccess2 = result.findNode.receiverPropertyExtraction('x; // 2');
+    assertType(propertyAccess1.receiver, 'A?');
+    assertType(propertyAccess2.receiver, 'A?');
 
-    assertType(propertyAccess1.propertyName, 'int');
-    assertType(propertyAccess2.propertyName, 'int');
+    assertType(propertyAccess1.resolution!.type, 'int');
+    assertType(propertyAccess2.resolution!.type, 'int');
 
     assertType(propertyAccess1, 'int?');
     assertType(propertyAccess2, 'int');
@@ -1680,17 +1964,19 @@ m(C c) {
 // [diag.uncheckedPropertyAccessOfNullableValue] The property 'a' can't be unconditionally accessed because the receiver can be 'null'.
 }
 ''');
-    var propertyAccess1 = result.findNode.propertyAccess('x; // 1');
-    var propertyAccess2 = result.findNode.propertyAccess('x; // 2');
-    var propertyAccess1t = propertyAccess1.target as PropertyAccess;
-    var propertyAccess2t = propertyAccess1.target as PropertyAccess;
-    assertType(propertyAccess1t.target, 'B?');
-    assertType(propertyAccess2t.target, 'B?');
+    var propertyAccess1 = result.findNode.receiverPropertyExtraction('x; // 1');
+    var propertyAccess2 = result.findNode.receiverPropertyExtraction('x; // 2');
+    var propertyAccess1t =
+        propertyAccess1.receiver as ReceiverPropertyExtraction;
+    var propertyAccess2t =
+        propertyAccess2.receiver as ReceiverPropertyExtraction;
+    assertType(propertyAccess1t.receiver, 'B?');
+    assertType(propertyAccess2t.receiver, 'B?');
     assertType(propertyAccess1t, 'A');
     assertType(propertyAccess2t, 'A');
 
-    assertType(propertyAccess1.propertyName, 'int');
-    assertType(propertyAccess2.propertyName, 'int');
+    assertType(propertyAccess1.resolution!.type, 'int');
+    assertType(propertyAccess2.resolution!.type, 'int');
 
     assertType(propertyAccess1, 'int?');
     assertType(propertyAccess2, 'int');

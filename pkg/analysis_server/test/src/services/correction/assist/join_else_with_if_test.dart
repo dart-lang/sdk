@@ -16,7 +16,7 @@ void main() {
 }
 
 @reflectiveTest
-class JoinElseWithIf extends AssistProcessorTest {
+class JoinElseWithIf extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.joinElseWithIf;
 
@@ -184,9 +184,21 @@ void f() {
 }
 
 @reflectiveTest
-class JoinIfWithElseTest extends AssistProcessorTest {
+class JoinIfWithElseTest extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.joinIfWithElse;
+
+  Future<void> test_block_missingRightBracket() async {
+    verifyNoTestUnitErrors = false;
+    await resolveTestCode('''
+void f() {
+  if (1 == 1) {
+  } else {
+    i^f (2 == 2) {
+      print(0);
+''');
+    await assertNoAssist();
+  }
 
   Future<void> test_block_statement() async {
     await resolveTestCode('''

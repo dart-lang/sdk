@@ -212,6 +212,7 @@ uword SymbolsPredefinedAddress();
 #endif
 
 const Code& StubCodeAllocateArray();
+const Code& StubCodeSubtype1TestCache();
 const Code& StubCodeSubtype2TestCache();
 const Code& StubCodeSubtype3TestCache();
 const Code& StubCodeSubtype4TestCache();
@@ -430,7 +431,10 @@ class UntaggedObject : public AllStatic {
 };
 
 class UntaggedClosure : public AllStatic {
+  static const word kInstantiatorTypeArgumentsIndexBitsPos;
+  static const word kInstantiatorTypeArgumentsIndexBitsSize;
   static const word kHasDelayedTypeArgumentsBit;
+  static const word kDelayedTypeArgumentsIndex;
   static const word kHasInstantiatorTypeArgumentsBit;
   static const word kHasFunctionTypeArgumentsBit;
   static const word kFunctionTypeArgumentsIndexBitsPos;
@@ -469,6 +473,7 @@ class UntaggedTypeParameter : public AllStatic {
 
 class Object : public AllStatic {
  public:
+  static const word kHashBits;
   // Offset of the tags word.
   static word tags_offset();
   static word InstanceSize();
@@ -544,6 +549,26 @@ class Function : public AllStatic {
   static word signature_offset();
   static word usage_counter_offset();
   static word InstanceSize();
+
+  static const word kKindBitsPos;
+  static const word kKindBitsSize;
+  static const word kRecognizedBitsPos;
+  static const word kRecognizedBitsSize;
+  static const word kModifierBitsPos;
+  static const word kModifierBitsSize;
+  static const word kStaticBitPos;
+  static const word kConstBitPos;
+  static const word kAbstractBitPos;
+  static const word kReflectableBitPos;
+  static const word kVisibleBitPos;
+  static const word kDebuggableBitPos;
+  static const word kNativeBitPos;
+  static const word kExternalBitPos;
+  static const word kHasPragmaBitPos;
+  static const word kIsSyntheticBitPos;
+  static const word kIsExtensionMemberBitPos;
+  static const word kIsExtensionTypeMemberBitPos;
+
   FINAL_CLASS();
 };
 
@@ -922,6 +947,12 @@ class CompressedStackMaps : public AllStatic {
  private:
   static word ObjectHeaderSize();
   static word PayloadHeaderSize();
+};
+
+class LocalVarDescriptor : public AllStatic {
+ public:
+  static word InstanceSize();
+  FINAL_CLASS();
 };
 
 class LocalVarDescriptors : public AllStatic {
@@ -1377,6 +1408,13 @@ class IsolateGroup : public AllStatic {
   static word cached_class_table_table_offset();
 };
 
+class VMTag : public AllStatic {
+ public:
+  static const word kDartTagId;
+  static const word kRuntimeTagId;
+  static const word kNativeTagId;
+};
+
 class ClassTable : public AllStatic {
  public:
 #if !defined(PRODUCT)
@@ -1461,6 +1499,7 @@ class SubtypeTestCache : public AllStatic {
   static word num_inputs_offset();
 
   static const word kMaxInputs;
+  static const word kMaxLinearCacheSize;
   static const word kTestEntryLength;
   static const word kInstanceCidOrSignature;
   static const word kDestinationType;
@@ -1534,6 +1573,10 @@ class Heap : public AllStatic {
 
 class NativeArguments {
  public:
+  static const word kArgcBitsPos;
+  static const word kArgcBitsSize;
+  static const word kGenericFunctionBitPos;
+
   static word thread_offset();
   static word argc_tag_offset();
   static word argv_offset();
@@ -1564,7 +1607,6 @@ class UserTag : public AllStatic {
 class Symbols : public AllStatic {
  public:
   static const word kNumberOfOneCharCodeSymbols;
-  static const word kNullCharCodeSymbolOffset;
 };
 
 class Field : public AllStatic {
@@ -1604,6 +1646,7 @@ class TypeArguments : public AllStatic {
   static word InstanceSize();
   FINAL_CLASS();
 
+  static const word kAllDynamicHash;
   static const word kMaxElements;
 };
 
@@ -1628,6 +1671,34 @@ class ForwardingCorpse : public AllStatic {
 class FieldTable : public AllStatic {
  public:
   static word OffsetOf(const dart::Field& field);
+};
+
+class CallbackMetadata : public AllStatic {
+ public:
+  static const word kCall;
+  static const word kTailCall;
+  static const word kCallRet4;
+
+  static word InstanceSize();
+  static word entry_point_offset();
+  static word type_offset();
+  static word epilogue_offset();
+  static word caller_isolate_offset();
+  static word caller_isolate_group_offset();
+  static word function_handle_offset();
+  static word interpreted_runtime_entry_offset();
+};
+
+class CallbackContext : public AllStatic {
+ public:
+  static const word kNumIntegerArguments;
+  static const word kNumDoubleArguments;
+
+  static word InstanceSize();
+  static word integer_arguments_offset();
+  static word double_arguments_offset();
+  static word return_struct_pointer_offset();
+  static word sp_offset();
 };
 
 void UnboxFieldIfSupported(const dart::Field& field,

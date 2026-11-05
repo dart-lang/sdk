@@ -37,9 +37,9 @@ void main() {
 ''';
 
 String _resolvePath(String executableRelativePath) {
-  return Uri.file(
-    Platform.resolvedExecutable,
-  ).resolve(executableRelativePath).toFilePath();
+  return Uri.file(Platform.resolvedExecutable)
+      .resolve(executableRelativePath)
+      .toFilePath();
 }
 
 Future<void> main() async {

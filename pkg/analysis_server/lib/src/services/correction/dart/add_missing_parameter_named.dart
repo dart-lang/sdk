@@ -7,6 +7,7 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
@@ -93,7 +94,7 @@ class AddMissingParameterNamed extends ResolvedCorrectionProducer {
     _parameterName = namedExpression.name.lexeme;
     // It isn't valid to have a private named parameter that is not assigning a
     // value to a field, so we can't support this case.
-    if (Identifier.isPrivateName(_parameterName)) return;
+    if (_parameterName.isPrivateName) return;
 
     // We should be in an ArgumentList.
     var argumentList = namedExpression.parent;

@@ -39,22 +39,6 @@ static void TestSignExtendedBitField() {
   EXPECT_EQ(2U, F4::decode(value));
 }
 
-template <typename T>
-static void TestNotSignExtendedBitField() {
-  using F1 = BitField<T, intptr_t, 0, 8, /*sign_extend=*/false>;
-  using F2 = BitField<T, uintptr_t, F1::kNextBit, 8, /*sign_extend=*/false>;
-  using F3 = BitField<T, intptr_t, F2::kNextBit, 8, /*sign_extend=*/false>;
-  using F4 = BitField<T, uintptr_t, F3::kNextBit, 8, /*sign_extend=*/false>;
-
-  const uint32_t value =
-      F1::encode(-1) | F2::encode(1) | F3::encode(-2) | F4::encode(2);
-  EXPECT_EQ(0x02fe01ffU, value);
-  EXPECT_EQ(3, F1::decode(value));
-  EXPECT_EQ(1, F2::decode(value));
-  EXPECT_EQ(2, F3::decode(value));
-  EXPECT_EQ(2, F3::decode(value));
-}
-
 VM_UNIT_TEST_CASE(BitFields_SignedField) {
   TestSignExtendedBitField<uint32_t>();
   TestSignExtendedBitField<int32_t>();

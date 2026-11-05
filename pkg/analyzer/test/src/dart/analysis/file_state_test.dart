@@ -1236,6 +1236,165 @@ driver
 ''');
   }
 
+  test_newFile_library_docImports_hideCombinator() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+/// @docImport 'dart:math' hide max, min;
+library;
+''');
+
+    fileStateFor(a);
+
+    assertDriverStateString(testFile, r'''
+driver
+  workState
+    fileTracker
+      anyPendingFile: null
+      numberOfPendingFiles: 0
+    workPriority: nothing
+  fileSystemState
+    files
+      /home/test/lib/a.dart
+        uri: package:test/a.dart
+        current
+          id: file_0
+          kind: library_0
+            libraryImports
+              library_1 dart:core synthetic
+            docLibraryImports
+              library_6 dart:math hide max, min
+            fileKinds: library_0
+            cycle_0
+              dependencies: dart:core
+              libraries: library_0
+              apiSignature_0
+          unlinkedKey: k00
+  libraryContext
+    libraryCycles
+    elementFactory
+''');
+  }
+
+  test_newFile_library_docImports_multipleDirectives() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+/// @docImport 'dart:async';
+/// @docImport 'dart:math';
+library first;
+/// @docImport 'dart:collection';
+library second;
+''');
+
+    fileStateFor(a);
+
+    assertDriverStateString(testFile, r'''
+driver
+  workState
+    fileTracker
+      anyPendingFile: null
+      numberOfPendingFiles: 0
+    workPriority: nothing
+  fileSystemState
+    files
+      /home/test/lib/a.dart
+        uri: package:test/a.dart
+        current
+          id: file_0
+          kind: library_0
+            name: first
+            libraryImports
+              library_1 dart:core synthetic
+            docLibraryImports
+              library_3 dart:async
+              library_6 dart:math
+            fileKinds: library_0
+            cycle_0
+              dependencies: dart:core
+              libraries: library_0
+              apiSignature_0
+          unlinkedKey: k00
+  libraryContext
+    libraryCycles
+    elementFactory
+''');
+  }
+
+  test_newFile_library_docImports_prefix() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+/// @docImport 'dart:async' as async;
+/// @docImport 'dart:math' deferred as math;
+library;
+''');
+
+    fileStateFor(a);
+
+    assertDriverStateString(testFile, r'''
+driver
+  workState
+    fileTracker
+      anyPendingFile: null
+      numberOfPendingFiles: 0
+    workPriority: nothing
+  fileSystemState
+    files
+      /home/test/lib/a.dart
+        uri: package:test/a.dart
+        current
+          id: file_0
+          kind: library_0
+            libraryImports
+              library_1 dart:core synthetic
+            docLibraryImports
+              library_3 dart:async as async
+              library_6 dart:math deferred as math
+            fileKinds: library_0
+            cycle_0
+              dependencies: dart:core
+              libraries: library_0
+              apiSignature_0
+          unlinkedKey: k00
+  libraryContext
+    libraryCycles
+    elementFactory
+''');
+  }
+
+  test_newFile_library_docImports_showCombinator() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+/// @docImport 'dart:math' show max, min;
+library;
+''');
+
+    fileStateFor(a);
+
+    assertDriverStateString(testFile, r'''
+driver
+  workState
+    fileTracker
+      anyPendingFile: null
+      numberOfPendingFiles: 0
+    workPriority: nothing
+  fileSystemState
+    files
+      /home/test/lib/a.dart
+        uri: package:test/a.dart
+        current
+          id: file_0
+          kind: library_0
+            libraryImports
+              library_1 dart:core synthetic
+            docLibraryImports
+              library_6 dart:math show max, min
+            fileKinds: library_0
+            cycle_0
+              dependencies: dart:core
+              libraries: library_0
+              apiSignature_0
+          unlinkedKey: k00
+  libraryContext
+    libraryCycles
+    elementFactory
+''');
+  }
+
   test_newFile_library_exports_dart() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 export 'dart:async';
@@ -4742,6 +4901,63 @@ driver
               library_4 dart:async
           referencingFiles: file_0
           unlinkedKey: k02
+  libraryContext
+    libraryCycles
+    elementFactory
+''');
+  }
+
+  test_part_docImports_partOfName() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library my.lib;
+part 'b.dart';
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+/// @docImport 'dart:async';
+/// @docImport 'dart:math';
+part of my.lib;
+''');
+
+    fileStateFor(b);
+
+    assertDriverStateString(testFile, r'''
+driver
+  workState
+    fileTracker
+      anyPendingFile: null
+      numberOfPendingFiles: 0
+    workPriority: nothing
+  fileSystemState
+    files
+      /home/test/lib/a.dart
+        uri: package:test/a.dart
+        current
+          id: file_0
+          kind: library_0
+            name: my.lib
+            libraryImports
+              library_2 dart:core synthetic
+            partIncludes
+              partOfName_1
+            fileKinds: library_0 partOfName_1
+            cycle_0
+              dependencies: dart:core
+              libraries: library_0
+              apiSignature_0
+          unlinkedKey: k00
+      /home/test/lib/b.dart
+        uri: package:test/b.dart
+        current
+          id: file_1
+          kind: partOfName_1
+            libraries: library_0
+            library: library_0
+            docLibraryImports
+              library_4 dart:async
+              library_7 dart:math
+          referencingFiles: file_0
+          unlinkedKey: k01
   libraryContext
     libraryCycles
     elementFactory

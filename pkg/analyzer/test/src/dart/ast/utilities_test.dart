@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -13,6 +13,7 @@ import '../../diagnostics/parser_diagnostics.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NodeLocator2Test);
+    defineReflectiveTests(ScopedNameFinderTest);
   });
 }
 
@@ -28,7 +29,7 @@ class NodeLocator2Test extends ParserDiagnosticsTest {
     var code = ' f() {} ';
     //             01234567
     var unit = parseTestCodeWithDiagnostics(code).unit;
-    var function = unit.declarations.single as FunctionDeclaration;
+    var function = unit.declarations2.single as FunctionDeclaration;
     var expression = function.functionExpression;
     var body = expression.body as BlockFunctionBody;
     expect(NodeLocator2(0).searchWithin(unit), same(unit));
@@ -127,7 +128,7 @@ set s(int i) {}
     var code = ' f() {} ';
     //             01234567
     var unit = parseTestCodeWithDiagnostics(code).unit;
-    var function = unit.declarations.single as FunctionDeclaration;
+    var function = unit.declarations2.single as FunctionDeclaration;
     expect(NodeLocator2(-1, 2).searchWithin(unit), isNull);
     expect(NodeLocator2(0, 2).searchWithin(unit), same(unit));
     expect(NodeLocator2(1, 2).searchWithin(unit), same(function));
@@ -148,5 +149,35 @@ set s(int i) {}
       reason: "Node ends before range",
     );
     return node;
+  }
+}
+
+@reflectiveTest
+class ScopedNameFinderTest extends ParserDiagnosticsTest {
+  @ToBeDeprecated('Tests the V1 projection.')
+  void test_constructorInvocation_views() {
+    var code = '''
+void f(int parameter) {
+  var local = 0;
+  new C();
+  var after = 1;
+}
+''';
+    var unit = parseTestCodeWithDiagnostics(code).unit;
+    var offset = code.indexOf('new C();');
+    var node = unit.nodeCovering(offset: offset, length: 7)!;
+    var node2 = unit.nodeCovering2(offset: offset, length: 7)!;
+
+    expect(node, isA<InstanceCreationExpressionImpl>());
+    expect(node2, isA<ConstructorInvocationImpl>());
+
+    var finder = ScopedNameFinder(offset);
+    node.accept(finder);
+    var finder2 = ScopedNameFinder2(offset);
+    node2.accept2(finder2);
+
+    expect(finder.locals, {'parameter', 'local'});
+    expect(finder2.locals, finder.locals);
+    expect(finder2.declaration, same(finder.declaration));
   }
 }

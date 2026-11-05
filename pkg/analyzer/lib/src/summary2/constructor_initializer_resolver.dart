@@ -44,8 +44,8 @@ class ConstructorInitializerResolver {
           var initializerScope = node.formalParameterInitializerScope!;
           var analysisOptions = _libraryBuilder.kind.file.analysisOptions;
 
-          var localElementsVisitor = ElementBindingVisitor.forPartialResolution(
-            fragment: fragment.libraryFragment,
+          var localElementsVisitor = ElementBindingVisitor(
+            fragment.libraryFragment,
           );
           for (var initializer in node.initializers) {
             localElementsVisitor.bindSubtree(
@@ -53,10 +53,11 @@ class ConstructorInitializerResolver {
               initializer,
             );
           }
-          if (node.redirectedConstructor case var redirectedConstructor?) {
+          if (node.factoryRedirectionTarget
+              case var factoryRedirectionTarget?) {
             localElementsVisitor.bindSubtree(
               fragment as FragmentImpl,
-              redirectedConstructor,
+              factoryRedirectionTarget,
             );
           }
 
@@ -75,7 +76,8 @@ class ConstructorInitializerResolver {
           astResolver.resolveConstructorDeclaration(node);
 
           if (node.factoryKeyword != null) {
-            element.redirectedConstructor = node.redirectedConstructor?.element;
+            element.redirectedConstructor =
+                node.factoryRedirectionTarget?.element;
           } else {
             for (var initializer in node.initializers) {
               if (initializer is RedirectingConstructorInvocationImpl) {

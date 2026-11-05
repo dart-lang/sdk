@@ -705,7 +705,7 @@ class PatternConverter with SpaceCreator<DartPattern, TypeImpl> {
         if (entry is RestPatternElement) {
           // Rest patterns are illegal in map patterns, so just skip over it.
         } else {
-          Expression expression = (entry as MapPatternEntry).key;
+          Expression expression = (entry as MapPatternEntry).key2;
           // TODO(johnniwinther): Assert that we have a constant value.
           DartObjectImpl? constant = mapPatternKeyValues[expression];
           if (constant == null) {

@@ -36,11 +36,7 @@ class SortUnnamedConstructorsFirst extends AnalysisRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final AnalysisRule rule;
-
-  new(this.rule);
-
+class _Visitor(final AnalysisRule rule) extends SimpleAstVisitor<void> {
   void check(NodeList<ClassMember> members) {
     var seenNamedConstructor = false;
     // Members are sorted by source position in the AST.

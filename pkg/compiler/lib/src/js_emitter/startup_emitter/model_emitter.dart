@@ -707,11 +707,13 @@ var $startupMetricsGlobal =
         },
       );
     } else {
-      epilogue = js.js
-          .statement('((d)=>{d[#hash]=d.current;})(#deferredInitializers)', {
-            'deferredInitializers': deferredInitializersGlobal,
-            'hash': js.string(hash),
-          });
+      epilogue = js.js.statement(
+        '((d)=>{d[#hash]=d.current;})(#deferredInitializers)',
+        {
+          'deferredInitializers': deferredInitializersGlobal,
+          'hash': js.string(hash),
+        },
+      );
     }
     output.add('\n');
     output.add(

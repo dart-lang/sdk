@@ -95,208 +95,202 @@ static method testRemovalOfStatementBodies() → dynamic {
   on core::Object catch(final core::Object e) {
   }
   {}
-  #L1:
   switch(42) /* core::int */ {
-    #L2:
+    #L1:
     case #C15:
       {}
   }
-  #L3:
   switch(42) /* core::int */ {
-    #L4:
+    #L2:
     default:
       {}
   }
 }
 static method testConstantSwitches() → dynamic {
-  #L5:
+  #L3:
   {
     core::print("1_yes");
+    break #L3;
+  }
+  #L4:
+  {
+    core::print("4_not_yes");
+  }
+  #L5:
+  {
+    core::print("7_windows");
     break #L5;
   }
   #L6:
   {
-    core::print("4_not_yes");
+    core::print("8_not_windows");
+    break #L6;
   }
   #L7:
-  {
-    core::print("7_windows");
-    break #L7;
-  }
-  #L8:
-  {
-    core::print("8_not_windows");
-    break #L8;
-  }
-  #L9:
   switch(#C3) /* isExplicitlyExhaustive, self::TestPlatform */ {
-    #L10:
+    #L8:
     case #C3:
       {
-        continue #L11;
+        continue #L9;
       }
-    #L11:
+    #L9:
       {
         core::print("10_not_windows");
-        break #L9;
+        break #L7;
       }
   }
-  #L12:
+  #L10:
   {
     core::print("14_default");
   }
-  #L13:
+  #L11:
   switch(#C9) /* self::TestPlatform */ {
-    #L14:
+    #L12:
     case #C9:
       {
-        continue #L15;
+        continue #L13;
       }
-    #L15:
+    #L13:
     default:
       {
         core::print("17_default");
       }
   }
-  #L16:
+  #L14:
   switch(#C6) /* isExplicitlyExhaustive, self::TestPlatform */ {
-    #L17:
+    #L15:
       {
         core::print("18_notwindows");
-        break #L16;
+        break #L14;
       }
-    #L18:
+    #L16:
     case #C6:
       {
-        continue #L17;
+        continue #L15;
       }
   }
-  #L19:
+  #L17:
   switch(#C6) /* isExplicitlyExhaustive, self::TestPlatform */ {
-    #L20:
+    #L18:
       {
         core::print("21_notwindows");
-        break #L19;
+        break #L17;
       }
-    #L21:
+    #L19:
     case #C6:
       {
         if(self::foo()!) {
-          continue #L20;
+          continue #L18;
         }
-        break #L19;
+        break #L17;
       }
   }
-  #L22:
+  #L20:
   {
     core::print("26_default");
   }
-  #L23:
+  #L21:
   switch(#C13) /* core::String */ {
-    #L24:
+    #L22:
       {
         core::print("28_isNotMatch");
-        break #L23;
+        break #L21;
       }
-    #L25:
+    #L23:
     default:
       {
-        continue #L24;
+        continue #L22;
       }
   }
-  #L26:
+  #L24:
   {
     core::print("31_default");
   }
-  #L27:
+  #L25:
   {
     core::print("33_twentythree");
-    break #L27;
+    break #L25;
   }
-  #L28:
+  #L26:
   {
-    #L29:
+    #L27:
     {
       core::print("38_default_default");
     }
   }
-  #L30:
+  #L28:
   switch(#C13) /* core::String */ {
-    #L31:
+    #L29:
       {
-        #L32:
+        #L30:
         {
           core::print("40_foo_nonzero");
         }
-        break #L30;
+        break #L28;
       }
-    #L33:
+    #L31:
     default:
       {
-        #L34:
+        #L32:
         {
-          continue #L31;
+          continue #L29;
         }
       }
+  }
+  #L33:
+  {
+    #L34:
+    {
+      core::print("43_default_twentythree");
+      break #L34;
+    }
   }
   #L35:
   {
     #L36:
     {
-      core::print("43_default_twentythree");
+      core::print("46_default_twentythree");
       break #L36;
     }
   }
   #L37:
-  {
-    #L38:
-    {
-      core::print("46_default_twentythree");
-      break #L38;
-    }
-  }
-  #L39:
   switch(#C13) /* core::String */ {
-    #L40:
+    #L38:
       {
-        #L41:
         {
-          continue #L42;
+          continue #L39;
         }
-        break #L39;
+        break #L37;
       }
-    #L42:
+    #L39:
     default:
       {
-        #L43:
+        #L40:
         {
-          continue #L40;
+          continue #L38;
         }
       }
   }
-  #L44:
   {
     core::print("49_twentythree");
   }
-  #L45:
-  ;
-  #L46:
+  #L41:
   {
     core::print("52_23_and_default");
   }
-  #L47:
+  #L42:
   switch(#C14) /* core::int */ {
-    #L48:
+    #L43:
       {
         core::print("51_zero");
-        break #L47;
+        break #L42;
       }
-    #L49:
+    #L44:
     case #C14:
     default:
       {
         core::print("52_23_and_default");
-        continue #L48;
+        continue #L43;
       }
   }
 }

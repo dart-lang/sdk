@@ -2,52 +2,36 @@ library;
 import self as self;
 import "dart:core" as core;
 
-static method foo(positional-parameter functions) → dynamic/* scope=[
-  #ctx1: not-captured VariableContext([
-    positional-parameter functions;
-  ]),
+static method foo(core::List<() → void> functions) → dynamic/* scope=[
+  #ctx1: not-captured [functions],
 ] */ /* scope=[
-  #ctx2: not-captured VariableContext([
-    local-variable a;
-  ]),
+  #ctx2: not-captured [a],
 ] */ {
-  a := 0;
+  core::int a = 0;
   /* scope=[
-    #ctx3: direct-captured VariableContext([
-      local-variable b;
-    ]),
+    #ctx3: direct-captured [b],
   ] */{
-    b := 0;
+    core::int b = 0;
     /* scope=[
-      #ctx4: direct-captured VariableContext([
-        local-variable c;
-      ]),
+      #ctx4: direct-captured [c],
     ] */{
-      c := 0;
+      core::int c = 0;
       for (; c.{core::num::<}(10){(core::num) → core::bool}; c = c.{core::num::+}(1){(core::num) → core::int})/* scope=[
-        #ctx5: not-captured VariableContext([
-          local-variable d;
-        ]),
+        #ctx5: not-captured [d],
       ] */ {
-        d := 0;
+        core::int d = 0;
         /* scope=[
-          #ctx6: direct-captured VariableContext([
-            local-variable e;
-          ]),
+          #ctx6: direct-captured [e],
         ] */{
-          e := 0;
+          core::int e = 0;
           /* scope=[
-            #ctx7: direct-captured VariableContext([
-              local-variable f;
-            ]),
+            #ctx7: direct-captured [f],
           ] */{
-            f := 0;
+            core::int f = 0;
             for (; f.{core::num::<}(10){(core::num) → core::bool}; f = f.{core::num::+}(1){(core::num) → core::int})/* scope=[
-              #ctx8: not-captured VariableContext([
-                local-variable g;
-              ]),
+              #ctx8: not-captured [g],
             ] */ {
-              g := () /* #ctx7 #ctx6 #ctx4 #ctx3 */ → void => core::_GrowableList::_literal4<core::int>(b, c, e, f);
+              () → void g = () /* #ctx7 #ctx6 #ctx4 #ctx3 */ → void => core::_GrowableList::_literal4<core::int>(b, c, e, f);
               functions.{core::List::add}(g){(() → void) → void};
             }
           }
@@ -56,58 +40,40 @@ static method foo(positional-parameter functions) → dynamic/* scope=[
     }
   }
 }
-static method bar(positional-parameter functions) → dynamic/* scope=[
-  #ctx9: not-captured VariableContext([
-    positional-parameter functions;
-  ]),
+static method bar(core::List<() → core::int> functions) → dynamic/* scope=[
+  #ctx9: not-captured [functions],
 ] */ /* scope=[
-  #ctx10: not-captured VariableContext([
-    local-variable a;
-  ]),
+  #ctx10: not-captured [a],
 ] */ {
-  a := 0;
+  core::int a = 0;
   /* scope=[
-    #ctx11: not-captured VariableContext([
-      local-variable b;
-    ]),
+    #ctx11: not-captured [b],
   ] */{
-    b := 0;
+    core::int b = 0;
     for /* scope=[
-      #ctx12: not-captured VariableContext([
-        local-variable i;
-      ]),
-    ] */ (i := 0; i.{core::num::<}(10){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int})/* scope=[
-      #ctx13: direct-captured VariableContext([
-        local-variable c;
-      ]),
+      #ctx12: not-captured [i],
+    ] */ (core::int i = 0; i.{core::num::<}(10){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int})/* scope=[
+      #ctx13: direct-captured [c],
     ] */ {
-      c := a.{core::num::+}(i){(core::num) → core::int};
+      core::int c = a.{core::num::+}(i){(core::num) → core::int};
       /* scope=[
-        #ctx14: direct-captured VariableContext([
-          local-variable d;
-        ]),
+        #ctx14: direct-captured [d],
       ] */{
-        d := b.{core::num::+}(i){(core::num) → core::int};
+        core::int d = b.{core::num::+}(i){(core::num) → core::int};
         functions.{core::List::add}(() /* #ctx14 #ctx13 */ → core::int => c.{core::num::+}(d){(core::num) → core::int}){(() → core::int) → void};
       }
     }
     for /* scope=[
-      #ctx15: not-captured VariableContext([
-        local-variable i;
-      ]),
-    ] */ (i := 0; i.{core::num::<}(10){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int})/* scope=[
-      #ctx16: direct-captured VariableContext([
-        local-variable c;
-      ]),
+      #ctx15: not-captured [i##1],
+    ] */ (core::int i##1 = 0; i##1.{core::num::<}(10){(core::num) → core::bool}; i##1 = i##1.{core::num::+}(1){(core::num) → core::int})/* scope=[
+      #ctx16: direct-captured [c##1],
     ] */ {
-      c := a.{core::num::+}(i){(core::num) → core::int};
+      core::int c##1 = a.{core::num::+}(i##1){(core::num) → core::int};
       /* scope=[
-        #ctx17: direct-captured VariableContext([
-          local-variable d;
-        ]),
+        #ctx17: direct-captured [d##1],
       ] */{
-        d := b.{core::num::+}(i){(core::num) → core::int};
-        functions.{core::List::add}(() /* #ctx17 #ctx16 */ → core::int => c.{core::num::+}(d){(core::num) → core::int}){(() → core::int) → void};
+        core::int d##1 = b.{core::num::+}(i##1){(core::num) → core::int};
+        functions.{core::List::add}(() /* #ctx17 #ctx16 */ → core::int => c##1.{core::num::+}(d##1){(core::num) → core::int}){(() → core::int) → void};
       }
     }
   }

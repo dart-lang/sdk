@@ -6,6 +6,7 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/source/source_range.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -28,19 +29,26 @@ class RemoveNameFromCombinator extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var node = coveringNode;
-    if (node is SimpleIdentifier) {
-      var parent = node.parent;
-      if (parent is Combinator) {
-        var rangeToRemove = rangeForNameInCombinator(parent, node);
-        if (rangeToRemove == null) {
+    var targetNode = node;
+
+    if (targetNode case SimpleIdentifier(parent: Combinator combinator)) {
+      // ignore: experimental_member_use
+      if (combinator.names.length == 1) {
+        // For several diagnostic codes, if there is only one name in the
+        // combinator list, we do _not_ want to offer this fix. For others (like
+        // `undefinedHiddenName`, it's OK).
+        if (diag.invalidExportOfInternalElement == diagnostic?.diagnosticCode) {
           return;
         }
-        await builder.addDartFileEdit(file, (builder) {
-          builder.addDeletion(rangeToRemove);
-        });
-        _combinatorKind = parent is HideCombinator ? 'hide' : 'show';
       }
+
+      var rangeToRemove = rangeForNameInCombinator(combinator, targetNode);
+      if (rangeToRemove == null) return;
+
+      await builder.addDartFileEdit(file, (builder) {
+        builder.addDeletion(rangeToRemove);
+      });
+      _combinatorKind = combinator is HideCombinator ? 'hide' : 'show';
     }
   }
 

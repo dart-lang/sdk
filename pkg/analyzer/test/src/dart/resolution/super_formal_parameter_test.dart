@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/dart/element/member.dart';
-import 'package:analyzer/src/test_utilities/find_element2.dart';
+import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -82,6 +82,19 @@ SuperFormalParameter
             defaultType: null
       rightBracket: >
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          name: b
+          declaredFragment: <testLibraryFragment> b@69
+            element: isPublic
+              type: int
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -225,9 +238,16 @@ class B extends A {
 }
 ''');
 
-    var node = result.findNode.simple('a; // ref');
+    var node = result.findNode.unqualifiedNameExpression('a; // ref');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: a
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::A::@getter::a
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: SimpleIdentifier
   token: a
   element: <testLibrary>::@class::A::@getter::a
   staticType: int
@@ -246,9 +266,15 @@ class B extends A {
 }
 ''');
 
-    var node = result.findNode.simple('a; }');
+    var node = result.findNode.unqualifiedNameExpression('a; }');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: a
+  resolution: VariableReadResolution
+    element: <testLibrary>::@class::B::@constructor::new::@formalParameter::a
+    type: int
+  staticType: int
+V1: SimpleIdentifier
   token: a
   element: <testLibrary>::@class::B::@constructor::new::@formalParameter::a
   staticType: int

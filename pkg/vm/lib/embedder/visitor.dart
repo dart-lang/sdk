@@ -6,7 +6,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/target/targets.dart' show TargetFlags;
 import 'package:vm/modular/target/vm.dart' show VmTarget;
-import 'package:vm/transformations/pragma.dart';
+import 'package:vm/modular/transformations/pragma.dart';
 
 import 'collector.dart';
 
@@ -77,7 +77,8 @@ class EntryPointShimVisitor extends RecursiveVisitor {
               p.type != PragmaEntryPointType.Extendable &&
               p.type != PragmaEntryPointType.ImplicitlyExtendable &&
               p.type != PragmaEntryPointType.CanBeOverridden &&
-              p.type != PragmaEntryPointType.CanBeUsedAsType,
+              p.type != PragmaEntryPointType.CanBeUsedAsType &&
+              p.type != PragmaEntryPointType.InitializerOnly,
         );
     if (pragmas.isEmpty) return null;
     var pragma = pragmas.first;

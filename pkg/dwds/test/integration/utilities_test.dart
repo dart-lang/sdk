@@ -2,14 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-@Timeout(Duration(minutes: 1))
-library;
-
 import 'package:dwds/src/utilities/shared.dart';
+import 'package:dwds_test_common/fixtures/context.dart';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
-
-import 'fixtures/context.dart';
 
 void main() {
   group('wrapInErrorHandlerAsync', () {

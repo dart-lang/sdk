@@ -10,9 +10,56 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GenericFunctionTypeCannotBeBoundTest);
     defineReflectiveTests(
-      GenericFunctionTypeCannotBeBoundWithoutGenericMetadataTest,
+      GenericFunctionTypeCannotBeBoundBeforeGenericMetadataTest,
     );
   });
+}
+
+@reflectiveTest
+class GenericFunctionTypeCannotBeBoundBeforeGenericMetadataTest
+    extends PubPackageResolutionTest {
+  test_class() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: generic-metadata
+class C<T extends S Function<S>(S)> {
+//                ^^^^^^^^^^^^^^^^
+// [diag.genericFunctionTypeCannotBeBound] Generic function types can't be used as type parameter bounds.
+}
+''');
+  }
+
+  test_genericFunction() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: generic-metadata
+late T Function<T extends S Function<S>(S)>(T) fun;
+//                        ^^^^^^^^^^^^^^^^
+// [diag.genericFunctionTypeCannotBeBound] Generic function types can't be used as type parameter bounds.
+''');
+  }
+
+  test_genericFunctionTypedef() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: generic-metadata
+typedef foo = T Function<T extends S Function<S>(S)>(T t);
+//                                 ^^^^^^^^^^^^^^^^
+// [diag.genericFunctionTypeCannotBeBound] Generic function types can't be used as type parameter bounds.
+''');
+  }
+
+  test_parameterOfFunction() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class C<T extends void Function(S Function<S>(S))> {}
+''');
+  }
+
+  test_typedef() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: generic-metadata
+typedef T foo<T extends S Function<S>(S)>(T t);
+//                      ^^^^^^^^^^^^^^^^
+// [diag.genericFunctionTypeCannotBeBound] Generic function types can't be used as type parameter bounds.
+''');
+  }
 }
 
 @reflectiveTest
@@ -30,12 +77,12 @@ late T Function<T extends S Function<S>(S)>(T) fun;
 ''');
   }
 
-  test_genericFunction_optOutOfGenericMetadata() async {
+  test_genericFunction_beforeGenericMetadata() async {
     newFile('$testPackageLibPath/a.dart', '''
 typedef F = S Function<S>(S);
 ''');
     await resolveTestCodeWithDiagnostics(r'''
-// @dart=2.12
+// %before-language-feature: generic-metadata
 import 'a.dart';
 late T Function<T extends F>(T) fun;
 //                        ^
@@ -58,53 +105,6 @@ class C<T extends void Function(S Function<S>(S))> {}
   test_typedef() async {
     await resolveTestCodeWithDiagnostics(r'''
 typedef T foo<T extends S Function<S>(S)>(T t);
-''');
-  }
-}
-
-@reflectiveTest
-class GenericFunctionTypeCannotBeBoundWithoutGenericMetadataTest
-    extends PubPackageResolutionTest {
-  test_class() async {
-    await resolveTestCodeWithDiagnostics(r'''
-// @dart=2.12
-class C<T extends S Function<S>(S)> {
-//                ^^^^^^^^^^^^^^^^
-// [diag.genericFunctionTypeCannotBeBound] Generic function types can't be used as type parameter bounds.
-}
-''');
-  }
-
-  test_genericFunction() async {
-    await resolveTestCodeWithDiagnostics(r'''
-// @dart=2.12
-late T Function<T extends S Function<S>(S)>(T) fun;
-//                        ^^^^^^^^^^^^^^^^
-// [diag.genericFunctionTypeCannotBeBound] Generic function types can't be used as type parameter bounds.
-''');
-  }
-
-  test_genericFunctionTypedef() async {
-    await resolveTestCodeWithDiagnostics(r'''
-// @dart=2.12
-typedef foo = T Function<T extends S Function<S>(S)>(T t);
-//                                 ^^^^^^^^^^^^^^^^
-// [diag.genericFunctionTypeCannotBeBound] Generic function types can't be used as type parameter bounds.
-''');
-  }
-
-  test_parameterOfFunction() async {
-    await resolveTestCodeWithDiagnostics(r'''
-class C<T extends void Function(S Function<S>(S))> {}
-''');
-  }
-
-  test_typedef() async {
-    await resolveTestCodeWithDiagnostics(r'''
-// @dart=2.12
-typedef T foo<T extends S Function<S>(S)>(T t);
-//                      ^^^^^^^^^^^^^^^^
-// [diag.genericFunctionTypeCannotBeBound] Generic function types can't be used as type parameter bounds.
 ''');
   }
 }

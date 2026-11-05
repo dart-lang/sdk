@@ -95,6 +95,21 @@
     'vm_compiler': {
       'filepath': '^runtime/(vm|docs)/compiler/',
     },
+    'typed_data': {
+      'filepath': (
+        '^runtime/lib/simd128\\.cc|'
+        '^runtime/lib/typed_data\\.cc|'
+        '^sdk/lib/typed_data/|'
+        '^sdk/lib/_internal/js_dev_runtime/patch/typed_data_patch\\.dart|'
+        '^sdk/lib/_internal/js_dev_runtime/private/native_typed_data\\.dart|'
+        '^sdk/lib/_internal/js_runtime/lib/native_typed_data\\.dart|'
+        '^sdk/lib/_internal/js_runtime/lib/typed_data_patch\\.dart|'
+        '^sdk/lib/_internal/vm/lib/typed_data_patch\\.dart|'
+        '^sdk/lib/_internal/wasm/.*/simd.*\\.dart|'
+        '^sdk/lib/_internal/wasm/.*/typed_data.*\\.dart|'
+        '^tests/lib/typed_data/'
+      )
+    },
   },
 
   'WATCHLISTS': {
@@ -109,6 +124,7 @@
     'observatory': [ 'bkonyi@google.com' ],
     'package_vm': [ 'alexmarkov@google.com' ],
     'runtime': [ 'vm-dev@dartlang.org' ],
+    'typed_data': [ 'valauskasmodestas@gmail.com' ],
     'vm_compiler': [ 'dart-vm-compiler-team+reviews@google.com' ],
   },
 }

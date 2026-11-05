@@ -122,6 +122,10 @@ final class MessageScheduler {
           //  cancel pending messages of the same kind.
         }
       }
+    } else if (message is LegacyNotificationMessage) {
+      // Notifications have no response and nothing to cancel, so there is no
+      // pre-processing to do for them.
+      listener?.addPendingMessage(message);
     } else if (message is LspMessage) {
       var msg = message.message;
       if (msg is lsp.ResponseMessage) {
@@ -238,6 +242,12 @@ final class MessageScheduler {
               _completer,
               currentMessage.cancellationToken,
             );
+          case LegacyNotificationMessage():
+            var notification = currentMessage.notification;
+            (server as LegacyAnalysisServer).handleNotification(
+              notification,
+              _completer,
+            );
           case DtdMessage():
             server.dtd!.processMessage(
               currentMessage.message,
@@ -274,10 +284,22 @@ final class MessageScheduler {
         );
       }
     } catch (error, stackTrace) {
+      var fatalException = FatalException(
+        'Failed to process message',
+        error,
+        stackTrace,
+      );
+      var attachments = server.crashReportingAttachmentsBuilder.forException(
+        error,
+      );
       server.instrumentationService.logException(
-        FatalException('Failed to process message', error, stackTrace),
+        fatalException,
         null,
-        server.crashReportingAttachmentsBuilder.forException(error),
+        attachments,
+      );
+      server.sessionLogger.logException(
+        exception: fatalException,
+        attachments: attachments,
       );
     }
     _processingIsScheduled = false;

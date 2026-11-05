@@ -17,6 +17,9 @@ void main() {
 @reflectiveTest
 class RemoveNameFromCombinatorTest extends FixProcessorTest {
   @override
+  bool get addMetaPackageDep => true;
+
+  @override
   FixKind get kind => DartFixKind.removeNameFromCombinator;
 
   Future<void> test_duplicateHiddenName_last() async {
@@ -125,6 +128,46 @@ f(x) {
   print(cos(x) + sin(x));
 }
 ''');
+  }
+
+  Future<void> test_invalidExportOfInternalElement() async {
+    newFile('$testPackageLibPath/src/a.dart', '''
+import 'package:meta/meta.dart';
+class A {}
+@internal
+class B {}
+''');
+    await resolveTestCode('''
+export 'src/a.dart';
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_invalidExportOfInternalElement_shownName_multiple() async {
+    newFile('$testPackageLibPath/src/a.dart', '''
+import 'package:meta/meta.dart';
+class A {}
+@internal
+class B {}
+''');
+    await resolveTestCode('''
+export 'src/a.dart' show A, B;
+''');
+    await assertHasFix('''
+export 'src/a.dart' show A;
+''');
+  }
+
+  Future<void> test_invalidExportOfInternalElement_shownName_single() async {
+    newFile('$testPackageLibPath/src/a.dart', '''
+import 'package:meta/meta.dart';
+@internal
+class A {}
+''');
+    await resolveTestCode('''
+export 'src/a.dart' show A;
+''');
+    await assertNoFix();
   }
 
   Future<void> test_undefinedHiddenName_first() async {

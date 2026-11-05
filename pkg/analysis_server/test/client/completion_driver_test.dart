@@ -215,15 +215,20 @@ name: test
     printerConfiguration = printer.Configuration(
       filter: (suggestion) {
         var kind = suggestion.kind;
-        if (kind == CompletionSuggestionKind.IDENTIFIER ||
-            kind == CompletionSuggestionKind.INVOCATION) {
+        if (kind case .IDENTIFIER || .INVOCATION) {
           var completion = suggestion.completion;
           if (includeClosures && completion.startsWith('(')) {
             return true;
           }
           var periodIndex = completion.indexOf('.');
           if (periodIndex > 0) {
-            completion = completion.substring(0, periodIndex);
+            // Compare against the target of the access, without the `?` of a
+            // null-aware access, so that, for example, both `this.foo` and
+            // `this?.foo` are matched by the identifier `this`.
+            var target = completion.substring(0, periodIndex);
+            completion = target.endsWith('?')
+                ? target.substring(0, target.length - 1)
+                : target;
           }
           return identifierRegExp.hasMatch(completion) ||
               allowedIdentifiers.contains(completion);

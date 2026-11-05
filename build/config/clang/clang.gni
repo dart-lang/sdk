@@ -2,7 +2,13 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+# The cpu the toolchain runs on. Usually the same as host_cpu, what the
+# programs produced and executed during this build run on, but we don't
+# have toolchains built for every host architecture.
 _toolchain_cpu = host_cpu
+if (_toolchain_cpu == "arm64e") {
+  _toolchain_cpu = "arm64"
+}
 
 default_clang_prefix =
     rebase_path("//buildtools/${host_os}-${_toolchain_cpu}/clang/bin",

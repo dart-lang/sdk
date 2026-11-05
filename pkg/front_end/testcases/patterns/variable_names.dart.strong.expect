@@ -60,16 +60,16 @@ static method test(dynamic x, dynamic y, dynamic z) → dynamic {
         synthesized core::Object? #1#7;
         synthesized core::bool #1#7#isSet = false;
         {
-          hoisted dynamic foo;
-          hoisted dynamic bar;
-          hoisted dynamic baz;
-          hoisted core::double boz;
-          hoisted dynamic foobar;
-          if(#1#0 is (core::Object?, {bar: core::Object?, baz: core::Object?, foo: core::Object?, foobar: core::Object?}) && (let final dynamic #t10 = (#1#2#isSet ?{core::Object?} #1#2 : let final dynamic #t11 = #1#2#isSet = true in #1#2 = #1#0{(core::Object?, {bar: core::Object?, baz: core::Object?, foo: core::Object?, foobar: core::Object?})}.foo{core::Object?})! in let final dynamic #t12 = foo = (#1#2#isSet ?{core::Object?} #1#2 : let final dynamic #t13 = #1#2#isSet = true in #1#2 = #1#0{(core::Object?, {bar: core::Object?, baz: core::Object?, foo: core::Object?, foobar: core::Object?})}.foo{core::Object?})! in true) && (let final dynamic #t14 = bar = #1#0{(core::Object?, {bar: core::Object?, baz: core::Object?, foo: core::Object?, foobar: core::Object?})}.bar{core::Object?} in true) && !((#1#5#isSet ?{core::Object?} #1#5 : let final dynamic #t15 = #1#5#isSet = true in #1#5 = #1#0{(core::Object?, {bar: core::Object?, baz: core::Object?, foo: core::Object?, foobar: core::Object?})}.baz{core::Object?}) == null)) {
-            baz = #1#5#isSet ?{core::Object?} #1#5 : let final dynamic #t16 = #1#5#isSet = true in #1#5 = #1#0{(core::Object?, {bar: core::Object?, baz: core::Object?, foo: core::Object?, foobar: core::Object?})}.baz{core::Object?};
+          hoisted dynamic foo##1;
+          hoisted dynamic bar##1;
+          hoisted dynamic baz##1;
+          hoisted core::double boz##1;
+          hoisted dynamic foobar##1;
+          if(#1#0 is (core::Object?, {bar: core::Object?, baz: core::Object?, foo: core::Object?, foobar: core::Object?}) && (let final dynamic #t10 = (#1#2#isSet ?{core::Object?} #1#2 : let final dynamic #t11 = #1#2#isSet = true in #1#2 = #1#0{(core::Object?, {bar: core::Object?, baz: core::Object?, foo: core::Object?, foobar: core::Object?})}.foo{core::Object?})! in let final dynamic #t12 = foo##1 = (#1#2#isSet ?{core::Object?} #1#2 : let final dynamic #t13 = #1#2#isSet = true in #1#2 = #1#0{(core::Object?, {bar: core::Object?, baz: core::Object?, foo: core::Object?, foobar: core::Object?})}.foo{core::Object?})! in true) && (let final dynamic #t14 = bar##1 = #1#0{(core::Object?, {bar: core::Object?, baz: core::Object?, foo: core::Object?, foobar: core::Object?})}.bar{core::Object?} in true) && !((#1#5#isSet ?{core::Object?} #1#5 : let final dynamic #t15 = #1#5#isSet = true in #1#5 = #1#0{(core::Object?, {bar: core::Object?, baz: core::Object?, foo: core::Object?, foobar: core::Object?})}.baz{core::Object?}) == null)) {
+            baz##1 = #1#5#isSet ?{core::Object?} #1#5 : let final dynamic #t16 = #1#5#isSet = true in #1#5 = #1#0{(core::Object?, {bar: core::Object?, baz: core::Object?, foo: core::Object?, foobar: core::Object?})}.baz{core::Object?};
             (#1#7#isSet ?{core::Object?} #1#7 : let final dynamic #t17 = #1#7#isSet = true in #1#7 = #1#0{(core::Object?, {bar: core::Object?, baz: core::Object?, foo: core::Object?, foobar: core::Object?})}.$1{core::Object?}) as core::double;
-            boz = (#1#7#isSet ?{core::Object?} #1#7 : let final dynamic #t18 = #1#7#isSet = true in #1#7 = #1#0{(core::Object?, {bar: core::Object?, baz: core::Object?, foo: core::Object?, foobar: core::Object?})}.$1{core::Object?}) as core::double;
-            foobar = #1#0{(core::Object?, {bar: core::Object?, baz: core::Object?, foo: core::Object?, foobar: core::Object?})}.foobar{core::Object?};
+            boz##1 = (#1#7#isSet ?{core::Object?} #1#7 : let final dynamic #t18 = #1#7#isSet = true in #1#7 = #1#0{(core::Object?, {bar: core::Object?, baz: core::Object?, foo: core::Object?, foobar: core::Object?})}.$1{core::Object?}) as core::double;
+            foobar##1 = #1#0{(core::Object?, {bar: core::Object?, baz: core::Object?, foo: core::Object?, foobar: core::Object?})}.foobar{core::Object?};
             {
               return 1;
             }

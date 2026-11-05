@@ -467,6 +467,8 @@ Future<api.CompilationResult> compile(
     _OneOption(Flags.noNativeNullAssertions, passThrough),
     _OneOption(Flags.interopNullAssertions, passThrough),
     _OneOption(Flags.noInteropNullAssertions, passThrough),
+    _OneOption(Flags.deprecatedJsInterop, passThrough),
+    _OneOption(Flags.noDeprecatedJsInterop, passThrough),
     _OneOption(Flags.trustTypeAnnotations, setTrustTypeAnnotations),
     _OneOption(Flags.trustPrimitives, passThrough),
     _OneOption(Flags.trustJSInteropTypeAnnotations, ignoreOption),
@@ -1134,6 +1136,13 @@ Usage: dart compile js [arguments] <dart entry point>
     Add assertions to web library APIs to ensure that non-nullable APIs do not
     return null. This is set to true by default unless -O3 or higher is passed.
 
+  --no-deprecated-js-interop
+    Disallow the deprecated JS interop libraries (dart:html, dart:html_common,
+    dart:indexed_db, dart:js, dart:js_util, dart:svg, dart:web_audio and
+    dart:web_gl). Conditional imports on these libraries resolve to false, and
+    importing any of them is an error. The import paths through which they are
+    reached are reported as a tree.
+
   -O<0,1,2,3,4>
     Controls optimizations that can help reduce code-size and improve
     performance of the generated code for deployment.
@@ -1338,13 +1347,12 @@ Iterable<String> _readLines(String path) {
 }
 
 typedef ExitFunc = Never Function(int exitCode);
-typedef CompileFunc =
-    Future<api.CompilationResult> Function(
-      CompilerOptions compilerOptions,
-      api.CompilerInput compilerInput,
-      api.CompilerDiagnostics compilerDiagnostics,
-      api.CompilerOutput compilerOutput,
-    );
+typedef CompileFunc = Future<api.CompilationResult> Function(
+  CompilerOptions compilerOptions,
+  api.CompilerInput compilerInput,
+  api.CompilerDiagnostics compilerDiagnostics,
+  api.CompilerOutput compilerOutput,
+);
 
 ExitFunc exitFunc = exit;
 CompileFunc compileFunc = api.compile;

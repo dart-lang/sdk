@@ -10,8 +10,40 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(AddCurlyBracesBulkTest);
     defineReflectiveTests(AddCurlyBracesTest);
   });
+}
+
+@reflectiveTest
+class AddCurlyBracesBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.curly_braces_in_flow_control_structures;
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/60600')
+  Future<void> test_if_elseIf_chain() async {
+    await resolveTestCode('''
+void foo(bool x, bool y) {
+  if (x)
+    print(0);
+  else if (y)
+    print(1);
+  else
+    print(2);
+}
+''');
+    await assertHasFix('''
+void foo(bool x, bool y) {
+  if (x) {
+    print(0);
+  } else if (y) {
+    print(1);
+  } else {
+    print(2);
+  }
+}
+''');
+  }
 }
 
 @reflectiveTest

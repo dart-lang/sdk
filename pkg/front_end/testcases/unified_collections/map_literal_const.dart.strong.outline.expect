@@ -1,0 +1,26 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static const field core::Map<core::int, core::String>? nullableIntMap1 = const <core::int, core::String>{0: "0", 1: "1", 2: "2"};
+static const field core::Map<core::int, core::String>? nullableIntMap2 = null;
+static const field core::List<core::int> intList = const <core::int>[3, 4, 5];
+static const field core::Map<core::int, core::String> intMap = const <core::int, core::String>{6: "6", 7: "7", 8: "8"};
+static const field core::Map<core::num, core::String> numMap = const <core::num, core::String>{9: "9", 10: "10", 11: "11"};
+static const field core::List<(core::int, core::int)> intIntList = const <(core::int, core::int)>[const (12, 13), const (14, 15)];
+static const field core::num? nullableNum1 = 16;
+static const field core::num? nullableNum2 = null;
+static const field core::num? nullableNum3 = 17;
+static const field core::String? nullableString1 = "18";
+static const field core::String? nullableString2 = null;
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: MapLiteral @ org-dartlang-testcase:///map_literal_const.dart:5:56 -> MapConstant(const <int, String>{0: "0", 1: "1", 2: "2"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///map_literal_const.dart:7:32 -> ListConstant(const <int>[3, 4, 5])
+Evaluated: MapLiteral @ org-dartlang-testcase:///map_literal_const.dart:8:46 -> MapConstant(const <int, String>{6: "6", 7: "7", 8: "8"})
+Evaluated: MapLiteral @ org-dartlang-testcase:///map_literal_const.dart:9:46 -> MapConstant(const <num, String>{9: "9", 10: "10", 11: "11"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///map_literal_const.dart:10:49 -> ListConstant(const <(int, int)>[const (12, 13), const (14, 15)])
+Extra constant evaluation: evaluated: 5, effectively constant: 5

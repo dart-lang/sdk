@@ -1,0 +1,190 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+interface class I extends core::Object {
+  synthetic constructor •() → self::I
+    : super core::Object::•()
+    ;
+  get id() → core::String
+    return "I";
+}
+class C1 extends core::Object implements self::I {
+  synthetic constructor •() → self::C1
+    : super core::Object::•()
+    ;
+  get id() → core::String
+    return "C1";
+}
+class C2 extends core::Object implements self::I, self::I {
+  synthetic constructor •() → self::C2
+    : super core::Object::•()
+    ;
+  get id() → core::String
+    return "C2";
+}
+class C3 extends core::Object implements self::I, self::I {
+  synthetic constructor •() → self::C3
+    : super core::Object::•()
+    ;
+  get id() → core::String
+    return "C3";
+}
+abstract class M1 extends core::Object implements self::I /*isMixinDeclaration*/  {
+  get id() → core::String
+    return "M1";
+}
+abstract class M2 extends core::Object implements self::I, self::I /*isMixinDeclaration*/  {
+  get id() → core::String
+    return "M2";
+}
+abstract class M3 extends core::Object implements self::I, self::I /*isMixinDeclaration*/  {
+  get id() → core::String
+    return "M3";
+}
+class E1 extends core::_Enum implements self::I /*isEnum*/  {
+  enum-element static const field self::E1 e1 = #C3;
+  static const field core::List<self::E1> values = #C4;
+  const synthetic constructor •(core::int #index, core::String #name) → self::E1
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E1.${this.{core::_Enum::_name}{core::String}}";
+  get id() → core::String
+    return "E1";
+}
+class E2 extends core::_Enum implements self::I, self::I /*isEnum*/  {
+  enum-element static const field self::E2 e1 = #C5;
+  static const field core::List<self::E2> values = #C6;
+  const synthetic constructor •(core::int #index, core::String #name) → self::E2
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E2.${this.{core::_Enum::_name}{core::String}}";
+  get id() → core::String
+    return "E2";
+}
+class E3 extends core::_Enum implements self::I, self::I /*isEnum*/  {
+  enum-element static const field self::E3 e1 = #C7;
+  static const field core::List<self::E3> values = #C8;
+  const synthetic constructor •(core::int #index, core::String #name) → self::E3
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E3.${this.{core::_Enum::_name}{core::String}}";
+  get id() → core::String
+    return "E3";
+}
+class MA1 extends core::Object implements self::M1 /*isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::MA1
+    : super core::Object::•()
+    ;
+  get id() → core::String
+    return "M1";
+}
+class MA2 extends core::Object implements self::M2 /*isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::MA2
+    : super core::Object::•()
+    ;
+  get id() → core::String
+    return "M2";
+}
+class MA3 extends core::Object implements self::M3 /*isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::MA3
+    : super core::Object::•()
+    ;
+  get id() → core::String
+    return "M3";
+}
+extension type ET1(self::I v) implements self::I {
+  abstract extension-type-member representation-field get v() → self::I;
+  get id = self::ET1|get#id;
+  constructor • = self::ET1|constructor#;
+  constructor tearoff • = self::ET1|constructor#_#new#tearOff;
+}
+extension type ET2(self::I v) implements self::I, self::I {
+  abstract extension-type-member representation-field get v() → self::I;
+  get id = self::ET2|get#id;
+  constructor • = self::ET2|constructor#;
+  constructor tearoff • = self::ET2|constructor#_#new#tearOff;
+}
+extension type ET3(self::I v) implements self::I, self::I {
+  abstract extension-type-member representation-field get v() → self::I;
+  get id = self::ET3|get#id;
+  constructor • = self::ET3|constructor#;
+  constructor tearoff • = self::ET3|constructor#_#new#tearOff;
+}
+static extension-type-member method ET1|constructor#(initializing-formal self::I v) → self::ET1 /* erasure=self::I */ {
+  lowered final self::ET1 /* erasure=self::I */ #this = v;
+  return #this;
+}
+static extension-type-member synthetic method ET1|constructor#_#new#tearOff(self::I v) → self::ET1 /* erasure=self::I */
+  return self::ET1|constructor#(v);
+static extension-type-member method ET1|get#id(lowered final self::ET1 /* erasure=self::I */ #this) → core::String
+  return "ET1";
+static extension-type-member method ET2|constructor#(initializing-formal self::I v) → self::ET2 /* erasure=self::I */ {
+  lowered final self::ET2 /* erasure=self::I */ #this = v;
+  return #this;
+}
+static extension-type-member synthetic method ET2|constructor#_#new#tearOff(self::I v) → self::ET2 /* erasure=self::I */
+  return self::ET2|constructor#(v);
+static extension-type-member method ET2|get#id(lowered final self::ET2 /* erasure=self::I */ #this) → core::String
+  return "ET2";
+static extension-type-member method ET3|constructor#(initializing-formal self::I v) → self::ET3 /* erasure=self::I */ {
+  lowered final self::ET3 /* erasure=self::I */ #this = v;
+  return #this;
+}
+static extension-type-member synthetic method ET3|constructor#_#new#tearOff(self::I v) → self::ET3 /* erasure=self::I */
+  return self::ET3|constructor#(v);
+static extension-type-member method ET3|get#id(lowered final self::ET3 /* erasure=self::I */ #this) → core::String
+  return "ET3";
+static method main() → dynamic {
+  self::I c1 = new self::C1::•();
+  self::I c2 = new self::C2::•();
+  self::I c3 = new self::C3::•();
+  self::I m1 = new self::MA1::•();
+  self::I m2 = new self::MA2::•();
+  self::I m3 = new self::MA3::•();
+  self::I e1 = #C3;
+  self::I e2 = #C5;
+  self::I e3 = #C7;
+  self::I et1 = self::ET1|constructor#(new self::I::•());
+  self::I et2 = self::ET2|constructor#(new self::I::•());
+  self::I et3 = self::ET3|constructor#(new self::I::•());
+  self::expect("C1", c1.{self::I::id}{core::String});
+  self::expect("C2", c2.{self::I::id}{core::String});
+  self::expect("C3", c3.{self::I::id}{core::String});
+  self::expect("M1", m1.{self::I::id}{core::String});
+  self::expect("M2", m2.{self::I::id}{core::String});
+  self::expect("M3", m3.{self::I::id}{core::String});
+  self::expect("E1", e1.{self::I::id}{core::String});
+  self::expect("E2", e2.{self::I::id}{core::String});
+  self::expect("E3", e3.{self::I::id}{core::String});
+  self::expect("I", et1.{self::I::id}{core::String});
+  self::expect("I", et2.{self::I::id}{core::String});
+  self::expect("I", et3.{self::I::id}{core::String});
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+    throw "Expected ${expected}, actual ${actual}.";
+}
+
+constants  {
+  #C1 = 0
+  #C2 = "e1"
+  #C3 = self::E1 {index:#C1, _name:#C2}
+  #C4 = <self::E1>[#C3]
+  #C5 = self::E2 {index:#C1, _name:#C2}
+  #C6 = <self::E2>[#C5]
+  #C7 = self::E3 {index:#C1, _name:#C2}
+  #C8 = <self::E3>[#C7]
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///implements.dart:
+- E1. (from org-dartlang-testcase:///implements.dart:46:6)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
+- E2. (from org-dartlang-testcase:///implements.dart:55:6)
+- E3. (from org-dartlang-testcase:///implements.dart:64:6)

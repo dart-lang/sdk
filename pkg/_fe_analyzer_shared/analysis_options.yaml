@@ -22,3 +22,4 @@ linter:
     # - always_specify_types
     - use_super_parameters
     - comment_references
+    - prefer_generic_function_type_aliases

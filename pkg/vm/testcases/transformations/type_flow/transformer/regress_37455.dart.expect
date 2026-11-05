@@ -11,11 +11,11 @@ class A extends core::Object {
     : self::A::afield = afield, super core::Object::•()
     ;
 
-  [@vm.inferred-return-type.metadata=!]
+  [@vm.inferred-return-type.metadata=dart.core::_StringBase (inexact)]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:2,getterSelectorId:3]
   [@vm.unboxing-info.metadata=[!regcc]]
   method toString() → core::String
-    return [@vm.inferred-type.metadata=! (receiver not int)] [@vm.direct-call.metadata=#lib::A.afield] [@vm.inferred-type.metadata=!] this.{self::A::afield}{core::List<dynamic>}.{core::Object::toString}(){() → core::String};
+    return [@vm.inferred-type.metadata=dart.core::_StringBase (inexact) (receiver not int)] [@vm.direct-call.metadata=#lib::A.afield] [@vm.inferred-type.metadata=!] this.{self::A::afield}{core::List<dynamic>}.{core::Object::toString}(){() → core::String};
 }
 class B extends core::Object {
   synthetic constructor •() → self::B

@@ -100,7 +100,7 @@ static method test() → dynamic {
     new self::A::•().{self::A::d} = null;
     threw = false;
   }
-  on core::Object catch(final core::Object e) {
+  on core::Object catch(final core::Object e##1) {
   }
   if(!threw) {
     throw "Expected an error above.";
@@ -110,7 +110,7 @@ static method test() → dynamic {
     self::b = null;
     threw = false;
   }
-  on core::Object catch(final core::Object e) {
+  on core::Object catch(final core::Object e##2) {
   }
   if(!threw) {
     throw "Expected an error above.";
@@ -123,7 +123,7 @@ static method test() → dynamic {
     self::c = null;
     threw = false;
   }
-  on core::Object catch(final core::Object e) {
+  on core::Object catch(final core::Object e##3) {
   }
   if(!threw) {
     throw "Expected an error above.";

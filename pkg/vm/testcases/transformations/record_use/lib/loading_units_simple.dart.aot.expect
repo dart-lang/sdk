@@ -15,7 +15,7 @@ class SomeClass extends core::Object {
   static method someStaticMethod([@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 42)] core::int i) → void {}
 }
 
-[@vm.inferred-return-type.metadata=dart.async::_Future]
+[@vm.inferred-return-type.metadata=dart.async::_Future<dynamic> (inexact type args)]
 static method main() → void async /* emittedValueType= void */ {
   self::SomeClass::someStaticMethod(42);
   await LoadLibrary(helper);

@@ -5,10 +5,11 @@
 import 'dart:io' show Directory, Platform;
 
 import 'package:_fe_analyzer_shared/src/testing/id.dart'
-    show ActualData, Id, IdKind;
+    show Id, IdKind, ActualDataMap;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart'
     show DataInterpreter, runTests;
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/promotion_key_store.dart';
 import 'package:front_end/src/kernel/internal_ast.dart';
 import 'package:front_end/src/source/source_loader.dart';
 import 'package:front_end/src/source/source_member_builder.dart';
@@ -48,19 +49,19 @@ class AssignedVariablesDataComputer extends CfeDataComputer<_Data> {
   void computeMemberData(
     CfeTestResultData testResultData,
     Member member,
-    Map<Id, ActualData<_Data>> actualMap, {
+    ActualDataMap<_Data> actualMap, {
     bool? verbose,
   }) {
     SourceMemberBuilder memberBuilder = lookupMemberBuilder(
       testResultData.compilerResult,
       member,
     ) as SourceMemberBuilder;
-    AssignedVariablesForTesting<TreeNode, InternalVariable>? assignedVariables =
-        memberBuilder
-            .dataForTesting!
-            .inferenceData
-            .flowAnalysisResult
-            .assignedVariables;
+    AssignedVariablesForTesting<InternalNode, InternalVariable>?
+    assignedVariables = memberBuilder
+        .dataForTesting!
+        .inferenceData
+        .flowAnalysisResult
+        .assignedVariables;
     if (assignedVariables == null) return;
     member.accept(
       new AssignedVariablesDataExtractor(
@@ -74,16 +75,12 @@ class AssignedVariablesDataComputer extends CfeDataComputer<_Data> {
 
 class AssignedVariablesDataExtractor extends CfeDataExtractor<_Data> {
   final SourceLoaderDataForTesting _sourceLoaderDataForTesting;
-  final AssignedVariablesForTesting<TreeNode, InternalVariable>
+  final AssignedVariablesForTesting<InternalNode, InternalVariable>
   _assignedVariables;
 
-  new(
-    InternalCompilerResult compilerResult,
-    Map<Id, ActualData<_Data>> actualMap,
-    this._assignedVariables,
-  ) : _sourceLoaderDataForTesting =
-          compilerResult.kernelTargetForTesting!.loader.dataForTesting!,
-      super(compilerResult, actualMap);
+  new(super.compilerResult, super.actualMap, this._assignedVariables)
+    : _sourceLoaderDataForTesting =
+          compilerResult.kernelTargetForTesting!.loader.dataForTesting!;
 
   @override
   _Data computeMemberValue(Id id, Member member) {
@@ -96,7 +93,7 @@ class AssignedVariablesDataExtractor extends CfeDataExtractor<_Data> {
     );
   }
 
-  Set<String> _convertVars(Iterable<int> x) =>
+  Set<String> _convertVars(Iterable<PromotionKey> x) =>
       x.map((e) => _assignedVariables.variableForKey(e).cosmeticName!).toSet();
 
   @override
@@ -108,8 +105,8 @@ class AssignedVariablesDataExtractor extends CfeDataExtractor<_Data> {
         return null;
       default:
     }
-    TreeNode alias = _sourceLoaderDataForTesting.toOriginal(node);
-    if (!_assignedVariables.isTracked(alias)) return null;
+    InternalNode? alias = _sourceLoaderDataForTesting.toInternalNode(node);
+    if (alias == null || !_assignedVariables.isTracked(alias)) return null;
     return new _Data(
       _convertVars(_assignedVariables.declaredInNode(alias)),
       _convertVars(_assignedVariables.readInNode(alias)),

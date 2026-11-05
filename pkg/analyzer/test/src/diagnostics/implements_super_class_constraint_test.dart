@@ -21,9 +21,9 @@ mixin M on A implements A {}
 ''');
   }
 
-  test_it_language305() async {
+  test_it_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 class A {}
 mixin M on A implements A {}
 //                      ^

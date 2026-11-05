@@ -122,7 +122,7 @@ String get v3 => _v;
 ''');
   }
 
-  test_returnFromGetter_binaryExpression() async {
+  test_returnFromGetter_ifNull() async {
     await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 

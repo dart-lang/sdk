@@ -5,11 +5,11 @@ import "dart:core" as core;
 static method main() → dynamic {
   core::print(#C1 is () → dynamic);
   core::print((<T extends core::Object? = dynamic>(T% x) → T% => x).{core::Object::runtimeType}{core::Type});
-  core::print((<T extends core::num>(T x) → T => x).{core::Object::runtimeType}{core::Type});
-  core::print((<T extends core::Comparable<T> = core::Comparable<dynamic>>(T x) → T => x).{core::Object::runtimeType}{core::Type});
-  core::print((<T extends core::Comparable<S%> = core::Comparable<dynamic>, S extends core::Object? = dynamic>(T x) → T => x).{core::Object::runtimeType}{core::Type});
-  core::print((<T extends (T) → dynamic = (Null) → dynamic>(T x) → T => x).{core::Object::runtimeType}{core::Type});
-  core::print((<T extends core::List<core::List<T>> = core::List<core::List<dynamic>>>(T x) → T => x).{core::Object::runtimeType}{core::Type});
+  core::print((<T extends core::num>(T x##1) → T => x##1).{core::Object::runtimeType}{core::Type});
+  core::print((<T extends core::Comparable<T> = core::Comparable<dynamic>>(T x##2) → T => x##2).{core::Object::runtimeType}{core::Type});
+  core::print((<T extends core::Comparable<S%> = core::Comparable<dynamic>, S extends core::Object? = dynamic>(T x##3) → T => x##3).{core::Object::runtimeType}{core::Type});
+  core::print((<T extends (T) → dynamic = (Null) → dynamic>(T x##4) → T => x##4).{core::Object::runtimeType}{core::Type});
+  core::print((<T extends core::List<core::List<T>> = core::List<core::List<dynamic>>>(T x##5) → T => x##5).{core::Object::runtimeType}{core::Type});
 }
 
 constants  {

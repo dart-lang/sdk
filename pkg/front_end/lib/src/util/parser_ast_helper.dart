@@ -211,6 +211,15 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
+  void handleCascadeExpressionEnd(int sectionCount) {
+    CascadeExpressionEndHandle data = new CascadeExpressionEndHandle(
+      ParserAstType.HANDLE,
+      sectionCount: sectionCount,
+    );
+    seen(data);
+  }
+
+  @override
   void beginCaseExpression(Token caseKeyword) {
     CaseExpressionBegin data = new CaseExpressionBegin(
       ParserAstType.BEGIN,
@@ -567,10 +576,11 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void beginPrimaryConstructorBody(Token token) {
+  void beginPrimaryConstructorBody(Token token, Token? augmentToken) {
     PrimaryConstructorBodyBegin data = new PrimaryConstructorBodyBegin(
       ParserAstType.BEGIN,
       token: token,
+      augmentToken: augmentToken,
     );
     seen(data);
   }
@@ -578,12 +588,14 @@ abstract class AbstractParserAstListener implements Listener {
   @override
   void endPrimaryConstructorBody(
     Token beginToken,
+    Token thisToken,
     Token? beginInitializers,
     Token endToken,
   ) {
     PrimaryConstructorBodyEnd data = new PrimaryConstructorBodyEnd(
       ParserAstType.END,
       beginToken: beginToken,
+      thisToken: thisToken,
       beginInitializers: beginInitializers,
       endToken: endToken,
     );
@@ -2201,6 +2213,32 @@ abstract class AbstractParserAstListener implements Listener {
       beginToken: beginToken,
       endToken: endToken,
     );
+    seen(data);
+  }
+
+  @override
+  void handleSendWithoutArguments(
+    Token beginToken,
+    Token endToken,
+    Token nextToken,
+  ) {
+    SendWithoutArgumentsHandle data = new SendWithoutArgumentsHandle(
+      ParserAstType.HANDLE,
+      beginToken: beginToken,
+      endToken: endToken,
+      nextToken: nextToken,
+    );
+    seen(data);
+  }
+
+  @override
+  void handleInvocationWithoutTypeArguments(Token beginToken, Token endToken) {
+    InvocationWithoutTypeArgumentsHandle data =
+        new InvocationWithoutTypeArgumentsHandle(
+          ParserAstType.HANDLE,
+          beginToken: beginToken,
+          endToken: endToken,
+        );
     seen(data);
   }
 
@@ -4305,6 +4343,21 @@ class CascadeEnd extends ParserAstNode {
   R accept<R>(ParserAstVisitor<R> v) => v.visitCascadeEnd(this);
 }
 
+class CascadeExpressionEndHandle extends ParserAstNode {
+  final int sectionCount;
+
+  new(ParserAstType type, {required this.sectionCount})
+    : super("CascadeExpressionEnd", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+    "sectionCount": sectionCount,
+  };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitCascadeExpressionEndHandle(this);
+}
+
 class CaseExpressionBegin extends ParserAstNode {
   final Token caseKeyword;
 
@@ -4898,12 +4951,16 @@ class NoPrimaryConstructorHandle extends ParserAstNode {
 
 class PrimaryConstructorBodyBegin extends ParserAstNode {
   final Token token;
+  final Token? augmentToken;
 
-  new(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token, this.augmentToken})
     : super("PrimaryConstructorBody", type);
 
   @override
-  Map<String, Object?> get deprecatedArguments => {"token": token};
+  Map<String, Object?> get deprecatedArguments => {
+    "token": token,
+    "augmentToken": augmentToken,
+  };
 
   @override
   R accept<R>(ParserAstVisitor<R> v) =>
@@ -4914,6 +4971,7 @@ class PrimaryConstructorBodyEnd extends ParserAstNode
     implements BeginAndEndTokenParserAstNode {
   @override
   final Token beginToken;
+  final Token thisToken;
   final Token? beginInitializers;
   @override
   final Token endToken;
@@ -4921,6 +4979,7 @@ class PrimaryConstructorBodyEnd extends ParserAstNode
   new(
     ParserAstType type, {
     required this.beginToken,
+    required this.thisToken,
     this.beginInitializers,
     required this.endToken,
   }) : super("PrimaryConstructorBody", type);
@@ -4928,6 +4987,7 @@ class PrimaryConstructorBodyEnd extends ParserAstNode
   @override
   Map<String, Object?> get deprecatedArguments => {
     "beginToken": beginToken,
+    "thisToken": thisToken,
     "beginInitializers": beginInitializers,
     "endToken": endToken,
   };
@@ -7552,6 +7612,53 @@ class SendHandle extends ParserAstNode
 
   @override
   R accept<R>(ParserAstVisitor<R> v) => v.visitSendHandle(this);
+}
+
+class SendWithoutArgumentsHandle extends ParserAstNode
+    implements BeginAndEndTokenParserAstNode {
+  @override
+  final Token beginToken;
+  @override
+  final Token endToken;
+  final Token nextToken;
+
+  new(
+    ParserAstType type, {
+    required this.beginToken,
+    required this.endToken,
+    required this.nextToken,
+  }) : super("SendWithoutArguments", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+    "beginToken": beginToken,
+    "endToken": endToken,
+    "nextToken": nextToken,
+  };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitSendWithoutArgumentsHandle(this);
+}
+
+class InvocationWithoutTypeArgumentsHandle extends ParserAstNode
+    implements BeginAndEndTokenParserAstNode {
+  @override
+  final Token beginToken;
+  @override
+  final Token endToken;
+
+  new(ParserAstType type, {required this.beginToken, required this.endToken})
+    : super("InvocationWithoutTypeArguments", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+    "beginToken": beginToken,
+    "endToken": endToken,
+  };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) =>
+      v.visitInvocationWithoutTypeArgumentsHandle(this);
 }
 
 class ShowBegin extends ParserAstNode {
@@ -10549,6 +10656,7 @@ abstract class ParserAstVisitor<R> {
   R visitInvalidTopLevelBlockHandle(InvalidTopLevelBlockHandle node);
   R visitCascadeBegin(CascadeBegin node);
   R visitCascadeEnd(CascadeEnd node);
+  R visitCascadeExpressionEndHandle(CascadeExpressionEndHandle node);
   R visitCaseExpressionBegin(CaseExpressionBegin node);
   R visitCaseExpressionEnd(CaseExpressionEnd node);
   R visitClassOrMixinOrExtensionBodyBegin(
@@ -10747,6 +10855,10 @@ abstract class ParserAstVisitor<R> {
   R visitExpressionFunctionBodyHandle(ExpressionFunctionBodyHandle node);
   R visitReturnStatementEnd(ReturnStatementEnd node);
   R visitSendHandle(SendHandle node);
+  R visitSendWithoutArgumentsHandle(SendWithoutArgumentsHandle node);
+  R visitInvocationWithoutTypeArgumentsHandle(
+    InvocationWithoutTypeArgumentsHandle node,
+  );
   R visitShowBegin(ShowBegin node);
   R visitShowEnd(ShowEnd node);
   R visitSwitchStatementBegin(SwitchStatementBegin node);
@@ -11003,6 +11115,10 @@ class RecursiveParserAstVisitor implements ParserAstVisitor<void> {
 
   @override
   void visitCascadeEnd(CascadeEnd node) => node.visitChildren(this);
+
+  @override
+  void visitCascadeExpressionEndHandle(CascadeExpressionEndHandle node) =>
+      node.visitChildren(this);
 
   @override
   void visitCaseExpressionBegin(CaseExpressionBegin node) =>
@@ -11684,6 +11800,15 @@ class RecursiveParserAstVisitor implements ParserAstVisitor<void> {
 
   @override
   void visitSendHandle(SendHandle node) => node.visitChildren(this);
+
+  @override
+  void visitSendWithoutArgumentsHandle(SendWithoutArgumentsHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitInvocationWithoutTypeArgumentsHandle(
+    InvocationWithoutTypeArgumentsHandle node,
+  ) => node.visitChildren(this);
 
   @override
   void visitShowBegin(ShowBegin node) => node.visitChildren(this);
@@ -12445,6 +12570,11 @@ class RecursiveParserAstVisitorWithDefaultNodeAsync
   Future<void> visitCascadeEnd(CascadeEnd node) => defaultNode(node);
 
   @override
+  Future<void> visitCascadeExpressionEndHandle(
+    CascadeExpressionEndHandle node,
+  ) => defaultNode(node);
+
+  @override
   Future<void> visitCaseExpressionBegin(CaseExpressionBegin node) =>
       defaultNode(node);
 
@@ -13157,6 +13287,16 @@ class RecursiveParserAstVisitorWithDefaultNodeAsync
 
   @override
   Future<void> visitSendHandle(SendHandle node) => defaultNode(node);
+
+  @override
+  Future<void> visitSendWithoutArgumentsHandle(
+    SendWithoutArgumentsHandle node,
+  ) => defaultNode(node);
+
+  @override
+  Future<void> visitInvocationWithoutTypeArgumentsHandle(
+    InvocationWithoutTypeArgumentsHandle node,
+  ) => defaultNode(node);
 
   @override
   Future<void> visitShowBegin(ShowBegin node) => defaultNode(node);

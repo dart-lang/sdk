@@ -34,11 +34,7 @@ class NoRuntimeTypeToString extends AnalysisRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final AnalysisRule rule;
-
-  new(this.rule);
-
+class _Visitor(final AnalysisRule rule) extends SimpleAstVisitor<void> {
   @override
   void visitInterpolationExpression(InterpolationExpression node) {
     if (!_isRuntimeTypeAccess(node.expression)) return;

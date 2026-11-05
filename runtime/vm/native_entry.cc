@@ -150,7 +150,15 @@ void NativeEntry::BootstrapNativeCallWrapper(Dart_NativeArguments args,
     ObjectPtr return_value_unsafe = reinterpret_cast<BootstrapNativeFunction>(
         reinterpret_cast<void*>(func))(thread, zone.GetZone(), arguments);
     if (return_value_unsafe != Object::sentinel().ptr()) {
+#if defined(DART_DYNAMIC_MODULES)
+      // The native entries for creating FFI callbacks can return Functions,
+      // but those native entries are only used in generated code that consumes
+      // those values before user code would see it.
+      ASSERT(return_value_unsafe->IsDartInstance() ||
+             return_value_unsafe->IsFunction());
+#else
       ASSERT(return_value_unsafe->IsDartInstance());
+#endif
       arguments->SetReturnUnsafe(return_value_unsafe);
     }
     DEOPTIMIZE_ALOT;

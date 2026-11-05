@@ -25,21 +25,12 @@ class AstBinaryFlags {
 
   static final _hasPrefix = _checkBit(1, ImportDirective);
 
-  static final _hasPeriod = _checkBit(
-    0,
-    IndexExpression,
-    MethodInvocation,
-    PropertyAccess,
-  );
-
-  static final _hasPeriod2 = _checkBit(1, MethodInvocation, PropertyAccess);
-
   static final _hasQuestion = _checkBit(
     2,
     GenericFunctionType,
-    IndexExpression,
     NamedType,
-    PropertyAccess,
+    ReceiverIndexAssignmentTarget,
+    ReceiverIndexExpression,
   );
 
   static final _hasSeparatorColon = _checkBit(0, ConstructorDeclaration);
@@ -74,27 +65,14 @@ class AstBinaryFlags {
     3,
     ConstructorDeclaration,
     DeclaredIdentifier,
-    InstanceCreationExpression,
+    ConstructorInvocation,
     TypedLiteral,
     VariableDeclarationList,
   );
 
   static final _isCovariant = _checkBit(2, FieldDeclaration);
 
-  static final _isDeclaration = _checkBit(0, SimpleIdentifier);
-
-  static final _isDotShorthand = _checkBit(
-    0,
-    DotShorthandConstructorInvocation,
-    DotShorthandInvocation,
-    DotShorthandPropertyAccess,
-  );
-
   static final _isDeferred = _checkBit(0, ImportDirective);
-
-  static final _isDelimiterCurly = _checkBit(0, FormalParameterList);
-
-  static final _isDelimiterSquare = _checkBit(1, FormalParameterList);
 
   static final _isExternal = _checkBit(
     7,
@@ -121,9 +99,11 @@ class AstBinaryFlags {
 
   static final _isLate = _checkBit(0, VariableDeclarationList);
 
+  static final _isNamed = _checkBit(0, DelimitedFormalParameters);
+
   static final _isNative = _checkBit(8, MethodDeclaration);
 
-  static final _isNew = _checkBit(0, InstanceCreationExpression);
+  static final _isNew = _checkBit(0, ConstructorInvocation);
 
   static final _isOperator = _checkBit(0, MethodDeclaration);
 
@@ -171,8 +151,6 @@ class AstBinaryFlags {
     bool hasInitializer = false,
     bool hasName = false,
     bool hasNot = false,
-    bool hasPeriod = false,
-    bool hasPeriod2 = false,
     bool hasPrefix = false,
     bool hasQuestion = false,
     bool hasSeparatorColon = false,
@@ -183,17 +161,14 @@ class AstBinaryFlags {
     bool isAsync = false,
     bool isConst = false,
     bool isCovariant = false,
-    bool isDeclaration = false,
     bool isDeferred = false,
-    bool isDelimiterCurly = false,
-    bool isDelimiterSquare = false,
-    bool isDotShorthand = false,
     bool isExternal = false,
     bool isFactory = false,
     bool isFinal = false,
     bool isGenerator = false,
     bool isGet = false,
     bool isLate = false,
+    bool isNamed = false,
     bool isNative = false,
     bool isNew = false,
     bool isOperator = false,
@@ -224,12 +199,6 @@ class AstBinaryFlags {
     if (hasNot) {
       result |= _hasNot;
     }
-    if (hasPeriod) {
-      result |= _hasPeriod;
-    }
-    if (hasPeriod2) {
-      result |= _hasPeriod2;
-    }
     if (hasPrefix) {
       result |= _hasPrefix;
     }
@@ -257,20 +226,8 @@ class AstBinaryFlags {
     if (isCovariant) {
       result |= _isCovariant;
     }
-    if (isDeclaration) {
-      result |= _isDeclaration;
-    }
     if (isDeferred) {
       result |= _isDeferred;
-    }
-    if (isDelimiterCurly) {
-      result |= _isDelimiterCurly;
-    }
-    if (isDelimiterSquare) {
-      result |= _isDelimiterSquare;
-    }
-    if (isDotShorthand) {
-      result |= _isDotShorthand;
     }
     if (isConst) {
       result |= _isConst;
@@ -292,6 +249,9 @@ class AstBinaryFlags {
     }
     if (isLate) {
       result |= _isLate;
+    }
+    if (isNamed) {
+      result |= _isNamed;
     }
     if (isNative) {
       result |= _isNative;
@@ -423,14 +383,6 @@ class AstBinaryFlags {
     return (flags & _hasNot) != 0;
   }
 
-  static bool hasPeriod(int flags) {
-    return (flags & _hasPeriod) != 0;
-  }
-
-  static bool hasPeriod2(int flags) {
-    return (flags & _hasPeriod2) != 0;
-  }
-
   static bool hasPrefix(int flags) {
     return (flags & _hasPrefix) != 0;
   }
@@ -471,24 +423,8 @@ class AstBinaryFlags {
     return (flags & _isCovariant) != 0;
   }
 
-  static bool isDeclaration(int flags) {
-    return (flags & _isDeclaration) != 0;
-  }
-
   static bool isDeferred(int flags) {
     return (flags & _isDeferred) != 0;
-  }
-
-  static bool isDelimiterCurly(int flags) {
-    return (flags & _isDelimiterCurly) != 0;
-  }
-
-  static bool isDelimiterSquare(int flags) {
-    return (flags & _isDelimiterSquare) != 0;
-  }
-
-  static bool isDotShorthand(int flags) {
-    return (flags & _isDotShorthand) != 0;
   }
 
   static bool isExternal(int flags) {
@@ -513,6 +449,10 @@ class AstBinaryFlags {
 
   static bool isLate(int flags) {
     return (flags & _isLate) != 0;
+  }
+
+  static bool isNamed(int flags) {
+    return (flags & _isNamed) != 0;
   }
 
   static bool isNative(int flags) {

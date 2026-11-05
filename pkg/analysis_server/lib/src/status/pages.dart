@@ -11,7 +11,29 @@ import 'package:collection/collection.dart';
 
 String escape(String? text) => text == null ? '' : htmlEscape.convert(text);
 
-String printMilliseconds(int value) => '$value ms';
+/// Formats [bytes] using binary units, e.g. `1.50 MiB`.
+String printBytes(int bytes) {
+  const units = ['B', 'KiB', 'MiB', 'GiB', 'TiB'];
+  var value = bytes.toDouble();
+  var unitIndex = 0;
+  while (value >= 1024 && unitIndex < units.length - 1) {
+    value /= 1024;
+    unitIndex++;
+  }
+
+  if (unitIndex == 0) {
+    return '$bytes ${units[unitIndex]}';
+  }
+
+  var fractionDigits = value >= 100
+      ? 0
+      : value >= 10
+      ? 1
+      : 2;
+  return '${value.toStringAsFixed(fractionDigits)} ${units[unitIndex]}';
+}
+
+String printMilliseconds(int? value) => value != null ? '$value ms' : '';
 
 String printPercentage(num value, [int fractionDigits = 1]) =>
     '${(value * 100).toStringAsFixed(fractionDigits)}%';
@@ -149,14 +171,24 @@ mixin PerformanceChartMixin on Page {
     );
     var rowData = StringBuffer();
     for (var i = items.length - 1; i >= 0; i--) {
+      var item = items[i];
       if (rowData.isNotEmpty) {
         rowData.write(',');
       }
-      var latency = items[i].requestLatency ?? 0;
-      var time = items[i].performance.elapsed.inMilliseconds;
-      // label, latency, time
+      var latency = item.requestLatency ?? 0;
+      var totalTime = item.performance.elapsed.inMilliseconds;
+      var totalAdditional = item.additionalTimings?.totalTime ?? 0;
+      var totalExcludingAdditional = totalTime - totalAdditional;
+      // label, latency, time-ex-additional, additional1, additional2
       // [' ', 21.0, 101.5]
-      rowData.write("[' ', $latency, $time]");
+      rowData.write("[' ', $latency, $totalExcludingAdditional, ");
+      // Enumerate in enum order so legend matches.
+      for (var kind in RequestPerformanceAdditionalTimingKind.values) {
+        var time =
+            item.additionalTimings?.timingsInMilliseconds[kind.name] ?? 0;
+        rowData.write('$time ,');
+      }
+      rowData.write(']');
     }
     buf.writeln('''
       <script type="text/javascript">
@@ -164,7 +196,7 @@ mixin PerformanceChartMixin on Page {
       google.charts.setOnLoadCallback(drawChart);
       function drawChart() {
         var data = google.visualization.arrayToDataTable([
-          [ 'Request', 'Latency', 'Time' ],
+          [ 'Request', 'Latency', 'Time', ${RequestPerformanceAdditionalTimingKind.values.map((kind) => jsonEncode(kind.name)).join(', ')} ],
           $rowData
         ]);
         var options = {
@@ -173,8 +205,9 @@ mixin PerformanceChartMixin on Page {
           height: 300,
           isStacked: true,
           series: {
-            0: { color: '#C0C0C0' },
-            1: { color: '#4285f4' },
+            0: { color: '#C0C0C0' }, // Grey, latency
+            1: { color: '#4285f4' }, // Blue, request time
+            2: { color: '#F4B142' }, // Orange, first additional (analysis)
           }
         };
         var chart = new google.charts.Bar(document.getElementById('chart-div'));

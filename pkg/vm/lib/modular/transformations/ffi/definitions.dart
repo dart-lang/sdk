@@ -14,6 +14,7 @@ import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/target/changed_structure_notifier.dart';
 import 'package:kernel/target/targets.dart' show DiagnosticReporter;
 import 'package:kernel/util/graph.dart';
+import 'package:vm/modular/transformations/pragma.dart';
 
 import 'abi.dart';
 import 'common.dart';
@@ -312,8 +313,10 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         // to allow those values flow seamlessly through shared static fields.
         node.addAnnotation(
           ConstantExpression(
-            InstanceConstant(pragmaClass.reference, [], {
-              pragmaName.fieldReference: StringConstant("vm:deeply-immutable"),
+            InstanceConstant(pragmaClass.reference, DartTypeList.empty, {
+              pragmaName.fieldReference: StringConstant(
+                vmDeeplyImmutablePragmaName,
+              ),
               pragmaOptions.fieldReference: NullConstant(),
             }),
           ),
@@ -591,12 +594,12 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     ///   super._fromTypedDataBase(#typedDataBase, #offsetInBytes);
     /// ```
     final PositionalParameter typedDataBase = PositionalParameter(
-      cosmeticName: "#typedDataBase",
+      parameterName: "#typedDataBase",
       type: coreTypes.objectNonNullableRawType,
       isSynthesized: true,
     );
     final PositionalParameter offsetInBytes = PositionalParameter(
-      cosmeticName: "#offsetInBytes",
+      parameterName: "#offsetInBytes",
       type: coreTypes.intNonNullableRawType,
       isSynthesized: true,
     );
@@ -605,7 +608,10 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     final Constructor ctor = Constructor(
       FunctionNode(
         EmptyStatement(),
-        positionalParameters: [typedDataBase, offsetInBytes],
+        positionalParameters: PositionalParameterList(
+          typedDataBase,
+          offsetInBytes,
+        ),
         returnType: InterfaceType(node, Nullability.nonNullable),
       ),
       name: name,
@@ -614,7 +620,12 @@ class _FfiDefinitionTransformer extends FfiTransformer {
           node.superclass == structClass
               ? structFromTypedDataBase
               : unionFromTypedDataBase,
-          Arguments([VariableGet(typedDataBase), VariableGet(offsetInBytes)]),
+          Arguments(
+            ExpressionList(
+              VariableGet(typedDataBase),
+              VariableGet(offsetInBytes),
+            ),
+          ),
         ),
       ],
       fileUri: node.fileUri,
@@ -637,21 +648,21 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       /// ) : super._fromTypedData();
       /// ```
       final PositionalParameter typedData = PositionalParameter(
-        cosmeticName: "#typedData",
+        parameterName: "#typedData",
         type: InterfaceType(
           typedDataClass,
           Nullability.nonNullable,
-          const <DartType>[],
+          DartTypeList.empty,
         ),
         isSynthesized: true,
       );
       final PositionalParameter offset = PositionalParameter(
-        cosmeticName: "#offset",
+        parameterName: "#offset",
         type: coreTypes.intNonNullableRawType,
         isSynthesized: true,
       );
       final PositionalParameter sizeInBytes = PositionalParameter(
-        cosmeticName: "#sizeInBytes",
+        parameterName: "#sizeInBytes",
         type: coreTypes.intNonNullableRawType,
         isSynthesized: true,
       );
@@ -660,7 +671,11 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       final Constructor ctor = Constructor(
         FunctionNode(
           EmptyStatement(),
-          positionalParameters: [typedData, offset, sizeInBytes],
+          positionalParameters: PositionalParameterList(
+            typedData,
+            offset,
+            sizeInBytes,
+          ),
           returnType: InterfaceType(node, Nullability.nonNullable),
         ),
         name: name,
@@ -669,11 +684,13 @@ class _FfiDefinitionTransformer extends FfiTransformer {
             node.superclass == structClass
                 ? structFromTypedData
                 : unionFromTypedData,
-            Arguments([
-              VariableGet(typedData),
-              VariableGet(offset),
-              VariableGet(sizeInBytes),
-            ]),
+            Arguments(
+              ExpressionList(
+                VariableGet(typedData),
+                VariableGet(offset),
+                VariableGet(sizeInBytes),
+              ),
+            ),
           ),
         ],
         fileUri: node.fileUri,
@@ -798,6 +815,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       node,
       compoundType.members,
       compoundData.packing,
+      [for (final f in compoundData.compoundFields) f.name],
     );
     if (compoundType.members.isEmpty) {
       diagnosticReporter.report(
@@ -966,27 +984,39 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     Class node,
     List<NativeTypeCfe> types,
     int? packing,
+    List<String> fieldNames,
   ) {
-    List<Constant> constants = types
-        .map((t) => t.generateConstant(this))
-        .toList();
+    ConstantList constants = ConstantList.mapped(
+      types,
+      (type) => type.generateConstant(this),
+    );
 
     node.addAnnotation(
       ConstantExpression(
-        InstanceConstant(pragmaClass.reference, [], {
+        InstanceConstant(pragmaClass.reference, DartTypeList.empty, {
           pragmaName.fieldReference: StringConstant(vmFfiStructFields),
-          pragmaOptions.fieldReference:
-              InstanceConstant(ffiStructLayoutClass.reference, [], {
-                ffiStructLayoutTypesField.fieldReference: ListConstant(
-                  InterfaceType(typeClass, Nullability.nonNullable),
-                  constants,
+          pragmaOptions.fieldReference: InstanceConstant(
+            ffiStructLayoutClass.reference,
+            DartTypeList.empty,
+            {
+              ffiStructLayoutTypesField.fieldReference: ListConstant(
+                InterfaceType(typeClass, Nullability.nonNullable),
+                constants,
+              ),
+              ffiStructLayoutPackingField.fieldReference: packing == null
+                  ? NullConstant()
+                  : IntConstant(packing),
+              ffiStructLayoutFieldNamesField.fieldReference: ListConstant(
+                InterfaceType(
+                  coreTypes.stringNonNullableRawType.classNode,
+                  Nullability.nonNullable,
                 ),
-                ffiStructLayoutPackingField.fieldReference: packing == null
-                    ? NullConstant()
-                    : IntConstant(packing),
-              }),
+                ConstantList.mapped(fieldNames, StringConstant.new),
+              ),
+            },
+          ),
         }),
-        InterfaceType(pragmaClass, Nullability.nonNullable, []),
+        InterfaceType(pragmaClass, Nullability.nonNullable),
       ),
     );
   }
@@ -997,25 +1027,29 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     Class node,
     AbiSpecificNativeTypeCfe nativeTypeCfe,
   ) {
-    final constants = [
-      for (final abi in Abi.values)
-        nativeTypeCfe.abiSpecificTypes[abi]?.generateConstant(this) ??
-            NullConstant(),
-    ];
+    final constants = ConstantList.mapped(
+      Abi.values,
+      (abi) =>
+          nativeTypeCfe.abiSpecificTypes[abi]?.generateConstant(this) ??
+          NullConstant(),
+    );
     node.addAnnotation(
       ConstantExpression(
-        InstanceConstant(pragmaClass.reference, [], {
+        InstanceConstant(pragmaClass.reference, DartTypeList.empty, {
           pragmaName.fieldReference: StringConstant(vmFfiAbiSpecificIntMapping),
-          pragmaOptions.fieldReference:
-              InstanceConstant(ffiAbiSpecificMappingClass.reference, [], {
-                ffiAbiSpecificMappingNativeTypesField.fieldReference:
-                    ListConstant(
-                      InterfaceType(typeClass, Nullability.nullable),
-                      constants,
-                    ),
-              }),
+          pragmaOptions.fieldReference: InstanceConstant(
+            ffiAbiSpecificMappingClass.reference,
+            DartTypeList.empty,
+            {
+              ffiAbiSpecificMappingNativeTypesField.fieldReference:
+                  ListConstant(
+                    InterfaceType(typeClass, Nullability.nullable),
+                    constants,
+                  ),
+            },
+          ),
         }),
-        InterfaceType(pragmaClass, Nullability.nonNullable, []),
+        InterfaceType(pragmaClass, Nullability.nonNullable),
       ),
     );
   }
@@ -1096,7 +1130,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         "Unexpected setter reference for ${field}, found $setterReference.",
       );
       final PositionalParameter argument = PositionalParameter(
-        cosmeticName: '#v',
+        parameterName: '#v',
         type: field.type,
         isSynthesized: true,
       )..fileOffset = field.fileOffset;
@@ -1114,7 +1148,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         FunctionNode(
           setterStatement,
           returnType: VoidType(),
-          positionalParameters: [argument],
+          positionalParameters: PositionalParameterList(argument),
         ),
         fileUri: field.fileUri,
         reference: setterReference,
@@ -1209,4 +1243,6 @@ class CompoundField {
   final Procedure? setter;
 
   CompoundField(this.type, this.field, this.getter, this.setter);
+
+  String get name => field?.name.text ?? getter!.name.text;
 }

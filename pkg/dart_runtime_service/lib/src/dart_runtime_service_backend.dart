@@ -84,7 +84,7 @@ abstract class DartRuntimeServiceBackend<IM extends IsolateManager> {
   /// `streamListen` request.
   ///
   /// Returns true when the stream was successfully listened to.
-  bool onStreamListen({
+  FutureOr<bool> onStreamListen({
     required String streamId,
     required Map<String, Object?> params,
   }) {
@@ -93,7 +93,13 @@ abstract class DartRuntimeServiceBackend<IM extends IsolateManager> {
 
   /// Invoked when [EventStreamManager.streamCancel] is called and there are no
   /// more clients listening to [streamId].
-  void onStreamCancel({required String streamId}) {}
+  FutureOr<void> onStreamCancel({required String streamId}) {}
+
+  /// Invoked when a client subscribes to [streamId].
+  void onClientSubscribe(Client client, String streamId) {}
+
+  /// Invoked when a client unsubscribes from [streamId].
+  void onClientUnsubscribe(Client client, String streamId) {}
 
   /// RPCs to be registered with the [DartRuntimeService].
   UnmodifiableListView<ServiceRpcHandler> get rpcs =>

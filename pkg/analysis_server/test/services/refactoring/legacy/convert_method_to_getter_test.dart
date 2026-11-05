@@ -4,7 +4,7 @@
 
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/test_utilities/find_element2.dart';
+import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show RefactoringProblemSeverity;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -30,7 +30,7 @@ void f() {
   var b = test();
 }
 ''');
-    var element = findElement2.topFunction('test');
+    var element = findElement.topFunction('test');
     _createRefactoringForElement(element);
     // apply refactoring
     return _assertSuccessfulRefactoring('''
@@ -63,7 +63,7 @@ void f(A a, B b, C c, D d) {
   var vd = d.test();
 }
 ''');
-    var element = findElement2.method('test', of: 'B');
+    var element = findElement.method('test', of: 'B');
     _createRefactoringForElement(element);
     // apply refactoring
     return _assertSuccessfulRefactoring('''
@@ -104,7 +104,7 @@ void f(A a, B b) {
   b.test();
 }
 ''');
-    var element = findElement2.method('test', of: 'B');
+    var element = findElement.method('test', of: 'B');
     _createRefactoringForElement(element);
     // apply refactoring
     return _assertSuccessfulRefactoring('''
@@ -127,7 +127,7 @@ void f() {
   var b = test;
 }
 ''');
-    var element = findElement2.topGet('test');
+    var element = findElement.topGet('test');
     _createRefactoringForElement(element);
     // check conditions
     await _assertInitialConditions_fatal(
@@ -142,7 +142,7 @@ void f() {
   var v = test(1);
 }
 ''');
-    var element = findElement2.topFunction('test');
+    var element = findElement.topFunction('test');
     _createRefactoringForElement(element);
     // check conditions
     await _assertInitialConditions_fatal(
@@ -157,7 +157,7 @@ void f() {
   var v = test();
 }
 ''');
-    var element = findElement2.localFunction('test');
+    var element = findElement.localFunction('test');
     _createRefactoringForElement(element);
     // check conditions
     await _assertInitialConditions_fatal(
@@ -171,7 +171,7 @@ class A {
   A.test();
 }
 ''');
-    var element = findElement2.constructor('test');
+    var element = findElement.constructor('test');
     _createRefactoringForElement(element);
     // check conditions
     await _assertInitialConditions_fatal(
@@ -188,7 +188,7 @@ String foo() => '';
 
     await indexTestUnit(''); // Initialize project.
 
-    var element = FindElement2(externalUnit.unit).topFunction('foo');
+    var element = FindElement(externalUnit.unit).topFunction('foo');
     _createRefactoringForElement(element);
 
     // check conditions
@@ -201,7 +201,7 @@ String foo() => '';
     await indexTestUnit('''
 void test() {}
 ''');
-    var element = findElement2.topFunction('test');
+    var element = findElement.topFunction('test');
     _createRefactoringForElement(element);
     // check conditions
     await _assertInitialConditions_fatal(

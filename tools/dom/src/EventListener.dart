@@ -4,4 +4,4 @@
 
 part of html;
 
-typedef EventListener(Event event);
+typedef EventListener = dynamic Function(Event event);

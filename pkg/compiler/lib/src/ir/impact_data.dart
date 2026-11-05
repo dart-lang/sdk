@@ -343,7 +343,7 @@ class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
     ir.InterfaceType? iterableInterfaceType = getInterfaceTypeOf(iterableType);
     if (iterableInterfaceType != null) {
       if (node.isAsync) {
-        List<ir.DartType>? typeArguments = typeEnvironment
+        ir.DartTypeList? typeArguments = typeEnvironment
             .getTypeArgumentsAsInstanceOf(
               iterableInterfaceType,
               typeEnvironment.coreTypes.streamClass,
@@ -556,7 +556,7 @@ class ImpactBuilder extends ir.RecursiveVisitor implements ImpactRegistry {
           ir.InterfaceType(
             node.target.enclosingClass!,
             node.target.enclosingLibrary.nonNullable,
-            typeArguments,
+            ir.DartTypeList.from(typeArguments),
           ),
           positionArguments,
           namedArguments,

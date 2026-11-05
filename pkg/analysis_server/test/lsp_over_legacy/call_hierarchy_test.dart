@@ -24,6 +24,7 @@ String g() => [!f!]();
 ''';
     var code = TestCode.parse(content);
     newFile(testFilePath, code.code);
+    await initializeServer();
     var prepareResults = await prepareCallHierarchy(
       testFileUri,
       code.position.position,
@@ -44,6 +45,7 @@ String g^() => [!f!]();
 ''';
     var code = TestCode.parse(content);
     newFile(testFilePath, code.code);
+    await initializeServer();
     var prepareResults = await prepareCallHierarchy(
       testFileUri,
       code.position.position,
@@ -63,6 +65,7 @@ void f^() {}
 ''';
     var code = TestCode.parse(content);
     newFile(testFilePath, code.code);
+    await initializeServer();
     var results = await prepareCallHierarchy(
       testFileUri,
       code.position.position,

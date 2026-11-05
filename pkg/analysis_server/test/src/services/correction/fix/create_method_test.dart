@@ -1796,6 +1796,29 @@ void test() {
 ''');
   }
 
+  Future<void> test_enum_invocation_static_dotShorthand_argument() async {
+    await resolveTestCode('''
+enum E {
+  a;
+}
+void f(E e) {}
+void g() {
+  f(.b());
+}
+''');
+    await assertHasFix('''
+enum E {
+  a;
+
+  static E b() {}
+}
+void f(E e) {}
+void g() {
+  f(.b());
+}
+''');
+  }
+
   Future<void> test_functionType_argument() async {
     await resolveTestCode('''
 class A {

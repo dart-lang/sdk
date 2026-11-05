@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 export 'package:analyzer/src/dart/error/lint_codes.dart';
+export 'package:analyzer/src/utilities/extensions/string.dart'
+    show StringExtension;
 
 export 'lint_codes.dart';
 export 'lint_names.dart';

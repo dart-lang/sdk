@@ -22,8 +22,6 @@ class B extends A {
       // [analyzer] COMPILE_TIME_ERROR.INITIALIZER_FOR_NON_EXISTENT_FIELD
       // [cfe] Can't access 'this' in a field initializer.
       // [cfe] Expected an assignment after the field name.
-      //        ^^^
-      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
 
   B.c3() : super;
   //            ^
@@ -44,7 +42,6 @@ class B extends A {
       //       ^
       // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
       // [cfe] Expected '.' before this.
-      // [cfe] Expected an identifier, but got ''.
 }
 
 main() {

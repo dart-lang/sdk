@@ -17,6 +17,137 @@ void main() {
 
 @reflectiveTest
 class SourceChangeMergerTest {
+  SourceEdit edit(
+    int offset,
+    int length,
+    String replacement, [
+    String? description,
+  ]) {
+    return SourceEdit(offset, length, replacement, description: description);
+  }
+
+  SourceFileEdit fileEdit(String file, List<SourceEdit> edits) {
+    return SourceFileEdit(file, -1, edits: edits);
+  }
+
+  void test_description_insertsAtSameLocation() {
+    var original = [
+      fileEdit('fileA', [edit(3, 1, 'A', 'Desc1')]),
+      fileEdit('fileA', [edit(2, 1, 'B', 'Desc2')]),
+      fileEdit('fileA', [edit(1, 1, 'C', 'Desc3')]),
+    ];
+    var expected = [
+      fileEdit('fileA', [edit(1, 3, 'CBA', 'Desc1, Desc2, Desc3')]),
+    ];
+    var merged = SourceChangeMerger().merge(original);
+    expect(merged, expected);
+  }
+
+  void test_description_insertsIntoFirst() {
+    var original = [
+      // Replace 1:1 with three characters.
+      fileEdit('fileA', [edit(1, 1, 'ABC', 'Desc1')]),
+      // Insert between the first and second characters.
+      fileEdit('fileA', [edit(2, 0, 'X', 'Desc2')]),
+    ];
+    var expected = [
+      // We only list the description once, even though parts of it appear at
+      // the start and end.
+      fileEdit('fileA', [edit(1, 1, 'AXBC', 'Desc1, Desc2')]),
+    ];
+    var merged = SourceChangeMerger().merge(original);
+    expect(merged, expected);
+  }
+
+  void test_description_onlyFirst() {
+    var original = [
+      // Replace 1:1 with two characters.
+      fileEdit('fileA', [edit(1, 1, 'XY', 'Desc1')]),
+      // Replace the first character without a description.
+      fileEdit('fileA', [edit(1, 1, 'Z')]),
+    ];
+    var expected = [
+      fileEdit('fileA', [edit(1, 1, 'ZY', 'Desc1')]),
+    ];
+    var merged = SourceChangeMerger().merge(original);
+    expect(merged, expected);
+  }
+
+  void test_description_onlySecond() {
+    var original = [
+      // Replace 1:1 with two characters without a description.
+      fileEdit('fileA', [edit(1, 1, 'XY')]),
+      // Replace the second character.
+      fileEdit('fileA', [edit(2, 1, 'Z', 'Desc2')]),
+    ];
+    var expected = [
+      fileEdit('fileA', [edit(1, 1, 'XZ', 'Desc2')]),
+    ];
+    var merged = SourceChangeMerger().merge(original);
+    expect(merged, expected);
+  }
+
+  void test_description_secondDeletesFirst_end() {
+    var original = [
+      // Replace 1:1 with two characters.
+      fileEdit('fileA', [edit(1, 1, 'XY', 'Desc1')]),
+      // Delete the second character.
+      fileEdit('fileA', [edit(2, 1, '', 'Desc2')]),
+    ];
+    var expected = [
+      fileEdit('fileA', [edit(1, 1, 'X', 'Desc1, Desc2')]),
+    ];
+    var merged = SourceChangeMerger().merge(original);
+    expect(merged, expected);
+  }
+
+  void test_description_secondReplacesFirst_end() {
+    var original = [
+      // Replace 1:1 with two characters.
+      fileEdit('fileA', [edit(1, 1, 'XY', 'Desc1')]),
+      // Replace the second character.
+      fileEdit('fileA', [edit(2, 1, 'Z', 'Desc2')]),
+    ];
+    var expected = [
+      // The result is a mix of both.
+      fileEdit('fileA', [edit(1, 1, 'XZ', 'Desc1, Desc2')]),
+    ];
+    var merged = SourceChangeMerger().merge(original);
+    expect(merged, expected);
+  }
+
+  void test_description_secondReplacesFirst_entirely() {
+    var original = [
+      // Replace 1:1 with two characters.
+      fileEdit('fileA', [edit(1, 1, 'XY', 'Desc1')]),
+      // Replace both of those characters.
+      fileEdit('fileA', [edit(1, 2, 'Z', 'Desc2')]),
+    ];
+    var expected = [
+      // The result is replacing 1:1 with the second edit but we still include
+      // both edits, because the second might describe a change that doesn't
+      // make sense without knowing that the first occurred.
+      fileEdit('fileA', [edit(1, 1, 'Z', 'Desc1, Desc2')]),
+    ];
+    var merged = SourceChangeMerger().merge(original);
+    expect(merged, expected);
+  }
+
+  void test_description_secondReplacesFirst_start() {
+    var original = [
+      // Replace 1:1 with two characters.
+      fileEdit('fileA', [edit(1, 1, 'XY', 'Desc1')]),
+      // Replace the first character.
+      fileEdit('fileA', [edit(1, 1, 'Z', 'Desc2')]),
+    ];
+    var expected = [
+      // The result is a mix of both.
+      fileEdit('fileA', [edit(1, 1, 'ZY', 'Desc1, Desc2')]),
+    ];
+    var merged = SourceChangeMerger().merge(original);
+    expect(merged, expected);
+  }
+
   void test_multipleFiles_mergeIndividually() {
     var original = [
       SourceFileEdit('fileA', -1, edits: [SourceEdit(4, 1, '4')]),

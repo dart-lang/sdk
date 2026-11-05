@@ -1,0 +1,7 @@
+@Foobarbaz
+typedef Foo1 = List<String>;
+
+
+@[SimpleToken]Foobarbaz[StringToken]
+typedef[KeywordToken] Foo1[StringToken] =[SimpleToken] List[StringToken]<[BeginToken]String[StringToken]>[SimpleToken];[SimpleToken]
+[SimpleToken]

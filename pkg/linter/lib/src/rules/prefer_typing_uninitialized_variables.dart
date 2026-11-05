@@ -38,11 +38,7 @@ class PreferTypingUninitializedVariables extends MultiAnalysisRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final MultiAnalysisRule rule;
-
-  new(this.rule);
-
+class _Visitor(final MultiAnalysisRule rule) extends SimpleAstVisitor<void> {
   @override
   void visitVariableDeclarationList(VariableDeclarationList node) {
     if (node.type != null) return;

@@ -3,7 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:front_end/src/codes/diagnostic.dart' as diag;
-import 'package:kernel/ast.dart';
+import 'package:kernel/ast.dart' as ast;
+import 'package:kernel/ast.dart' hide ExtensionTypeDeclaration;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/reference_from_index.dart';
@@ -16,26 +17,30 @@ import '../base/modifiers.dart';
 import '../base/name_space.dart';
 import '../base/problems.dart';
 import '../base/scope.dart';
+import '../base/uri_offset.dart';
 import '../builder/constructor_reference_builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
-import '../builder/metadata_builder.dart';
 import '../builder/omitted_type_builder.dart';
+import '../builder/property_builder.dart';
 import '../builder/record_type_builder.dart';
 import '../builder/type_builder.dart';
+import '../fragment/extension_type/declaration.dart';
 import '../fragment/fragment.dart';
 import '../kernel/body_builder_context.dart';
 import '../kernel/hierarchy/hierarchy_builder.dart';
 import '../kernel/kernel_helper.dart';
 import '../type_inference/type_inference_engine.dart';
+import 'check_helper.dart';
 import 'name_scheme.dart';
 import 'name_space_builder.dart';
 import 'source_builder_mixins.dart';
 import 'source_factory_builder.dart';
 import 'source_library_builder.dart';
 import 'source_member_builder.dart';
+import 'source_method_builder.dart';
 import 'source_property_builder.dart';
 import 'source_type_parameter_builder.dart';
 
@@ -61,7 +66,7 @@ class SourceExtensionTypeDeclarationBuilder
 
   final List<ConstructorReferenceBuilder> constructorReferences;
 
-  late final ExtensionTypeDeclaration _extensionTypeDeclaration;
+  late final ast.ExtensionTypeDeclaration _extensionTypeDeclaration;
 
   final DeclarationNameSpaceBuilder _nameSpaceBuilder;
 
@@ -75,9 +80,11 @@ class SourceExtensionTypeDeclarationBuilder
   @override
   List<TypeBuilder>? interfaceBuilders;
 
-  final ExtensionTypeFragment _introductory;
+  final ExtensionTypeDeclaration _introductory;
 
   PrimaryConstructorFieldFragment? _representationFieldFragment;
+
+  final List<ExtensionTypeDeclaration> _augmentations;
 
   final IndexedContainer? indexedContainer;
 
@@ -91,33 +98,33 @@ class SourceExtensionTypeDeclarationBuilder
     required int startOffset,
     required int nameOffset,
     required int endOffset,
-    required ExtensionTypeFragment fragment,
+    required this._modifiers,
+    required this.typeParameters,
+    required this.interfaceBuilders,
+    required this._nameSpaceBuilder,
+    required this._introductory,
+    required this._augmentations,
     required this.indexedContainer,
-    required PrimaryConstructorFieldFragment? representationFieldFragment,
+    required this._representationFieldFragment,
   }) : parent = enclosingLibraryBuilder,
-       fileOffset = nameOffset,
-       _modifiers = fragment.modifiers,
-       typeParameters = fragment.typeParameters?.builders,
-       interfaceBuilders = fragment.interfaces,
-       _introductory = fragment,
-       _nameSpaceBuilder = fragment.toDeclarationNameSpaceBuilder(),
-       _representationFieldFragment = representationFieldFragment {
-    _introductory.builder = this;
-    _introductory.bodyScope.declarationBuilder = this;
-
+       fileOffset = nameOffset {
     _representationFieldFragment?.type.registerInferredTypeListener(this);
 
     // TODO(johnniwinther): Move this to the [build] once augmentations are
     // handled through fragments.
-    _extensionTypeDeclaration = new ExtensionTypeDeclaration(
+    _extensionTypeDeclaration = new ast.ExtensionTypeDeclaration(
       name: name,
       fileUri: fileUri,
       typeParameters: SourceNominalParameterBuilder.typeParametersFromBuilders(
-        fragment.typeParameters?.builders,
+        typeParameters,
       ),
       reference: indexedContainer?.reference,
     )..fileOffset = nameOffset;
   }
+
+  // Coverage-ignore(suite): Not run.
+  /// [UriOffsetLength] for the introductory declaration.
+  UriOffsetLength get uriOffset => _introductory.uriOffset;
 
   @override
   Iterator<SourceMemberBuilder> get unfilteredMembersIterator =>
@@ -145,12 +152,9 @@ class SourceExtensionTypeDeclarationBuilder
 
   @override
   int resolveConstructors(SourceLibraryBuilder library) {
-    int count = 0;
-    if (constructorReferences.isNotEmpty) {
-      for (ConstructorReferenceBuilder ref in constructorReferences) {
-        ref.resolveIn(_introductory.bodyScope, library);
-      }
-      count += constructorReferences.length;
+    int count = _introductory.resolveConstructors(library);
+    for (ExtensionTypeDeclaration augmentation in _augmentations) {
+      count += augmentation.resolveConstructors(library);
     }
     if (count > 0) {
       Iterator<SourceFactoryBuilder> iterator = filteredConstructorsIterator(
@@ -195,6 +199,40 @@ class SourceExtensionTypeDeclarationBuilder
       memberBuilders: _memberBuilders,
       typeParameterFactory: libraryBuilder.typeParameterFactory,
     );
+    for (SourceMemberBuilder memberBuilder in _memberBuilders) {
+      if (memberBuilder is SourceMethodBuilder) {
+        if (memberBuilder.isAbstract) {
+          libraryBuilder.addProblem(
+            diag.extensionTypeWithAbstractMember.withArguments(
+              extensionTypeName: name,
+              methodName: memberBuilder.name,
+            ),
+            memberBuilder.fileOffset,
+            memberBuilder.name.length,
+            memberBuilder.fileUri,
+          );
+        }
+      } else if (memberBuilder is SourcePropertyBuilder) {
+        if (memberBuilder.declaresAbstractGetter) {
+          libraryBuilder.addProblem2(
+            diag.extensionTypeWithAbstractMember.withArguments(
+              extensionTypeName: name,
+              methodName: memberBuilder.name,
+            ),
+            memberBuilder.getterUriOffset!,
+          );
+        }
+        if (memberBuilder.declaresAbstractSetter) {
+          libraryBuilder.addProblem2(
+            diag.extensionTypeWithAbstractMember.withArguments(
+              extensionTypeName: name,
+              methodName: memberBuilder.name,
+            ),
+            memberBuilder.setterUriOffset!,
+          );
+        }
+      }
+    }
   }
 
   @override
@@ -206,7 +244,7 @@ class SourceExtensionTypeDeclarationBuilder
       _representationFieldFragment?.type;
 
   @override
-  ExtensionTypeDeclaration get extensionTypeDeclaration =>
+  ast.ExtensionTypeDeclaration get extensionTypeDeclaration =>
       _extensionTypeDeclaration;
 
   @override
@@ -216,15 +254,16 @@ class SourceExtensionTypeDeclarationBuilder
     return fileOffset.compareTo(other.fileOffset);
   }
 
-  /// Builds the [ExtensionTypeDeclaration] for this extension type declaration
-  /// builder and inserts the members into the [Library] of [libraryBuilder].
+  /// Builds the [ast.ExtensionTypeDeclaration] for this extension type
+  /// declaration builder and inserts the members into the [Library] of
+  /// [libraryBuilder].
   ///
   /// [addMembersToLibrary] is `true` if the extension type members should be
   /// added to the library. This is `false` if the extension type declaration is
   /// in conflict with another library member. In this case, the extension type
   /// member should not be added to the library to avoid name clashes with other
   /// members in the library.
-  ExtensionTypeDeclaration build(
+  ast.ExtensionTypeDeclaration build(
     LibraryBuilder coreLibrary, {
     required bool addMembersToLibrary,
   }) {
@@ -678,8 +717,9 @@ class SourceExtensionTypeDeclarationBuilder
     ClassHierarchyBuilder hierarchyBuilder,
   ) {
     if (interfaceBuilders != null) {
-      Map<TypeDeclarationBuilder, ({int count, int offset})>?
-      duplicationProblems;
+      bool allowRepeatedImplements =
+          libraryBuilder.libraryFeatures.augmentations.isEnabled;
+      Map<TypeDeclarationBuilder, RepeatedImplements>? duplicationProblems;
       Set<TypeDeclarationBuilder> implemented = {};
       for (int i = 0; i < interfaceBuilders!.length; ++i) {
         TypeBuilder typeBuilder = interfaceBuilders![i];
@@ -736,37 +776,28 @@ class SourceExtensionTypeDeclarationBuilder
             .computeUnaliasedDeclaration(isUsedAsClass: false);
         if (typeDeclaration is ClassBuilder ||
             typeDeclaration is ExtensionTypeDeclarationBuilder) {
-          if (!implemented.add(typeDeclaration!)) {
+          if (!allowRepeatedImplements &&
+              implemented.contains(typeDeclaration!)) {
             duplicationProblems ??= {};
             switch (duplicationProblems[typeDeclaration]) {
-              case (:var count, :var offset):
-                duplicationProblems[typeDeclaration] = (
-                  count: count + 1,
-                  offset: offset,
-                );
+              case RepeatedImplements problem:
+                problem.extraCount++;
               case null:
-                duplicationProblems[typeDeclaration] = (
-                  count: 1,
-                  offset: typeBuilder.charOffset ?? TreeNode.noOffset,
+                duplicationProblems[typeDeclaration] = new RepeatedImplements(
+                  uriOffset:
+                      typeBuilder
+                          .uriOffset ?? // Coverage-ignore(suite): Not run.
+                      uriOffset,
                 );
             }
+          } else {
+            implemented.add(typeDeclaration!);
           }
         }
       }
 
       if (duplicationProblems != null) {
-        for (var MapEntry(key: typeDeclaration, value: (:count, :offset))
-            in duplicationProblems.entries) {
-          libraryBuilder.addProblem(
-            diag.implementsRepeated.withArguments(
-              name: typeDeclaration.name,
-              extraCount: count,
-            ),
-            offset,
-            noLength,
-            fileUri,
-          );
-        }
+        libraryBuilder.reportImplementsRepeated(duplicationProblems);
       }
     }
   }
@@ -857,25 +888,19 @@ class SourceExtensionTypeDeclarationBuilder
     List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
   ) {
     BodyBuilderContext bodyBuilderContext = createBodyBuilderContext();
-    MetadataBuilder.buildAnnotations(
-      annotatable: extensionTypeDeclaration,
-      annotatableFileUri: extensionTypeDeclaration.fileUri,
-      metadata: _introductory.metadata,
-      annotationsFileUri: _introductory.fileUri,
-      bodyBuilderContext: bodyBuilderContext,
+    _introductory.buildOutlineExpressions(
       libraryBuilder: libraryBuilder,
-      extensionScope: _introductory.enclosingCompilationUnit.extensionScope,
-      scope: _introductory.enclosingScope,
+      extensionTypeDeclaration: extensionTypeDeclaration,
+      classHierarchy: classHierarchy,
+      bodyBuilderContext: bodyBuilderContext,
     );
-
-    if (_introductory.typeParameters != null) {
-      for (int i = 0; i < _introductory.typeParameters!.length; i++) {
-        _introductory.typeParameters![i].builder.buildOutlineExpressions(
-          libraryBuilder,
-          bodyBuilderContext,
-          classHierarchy,
-        );
-      }
+    for (ExtensionTypeDeclaration augmentation in _augmentations) {
+      augmentation.buildOutlineExpressions(
+        libraryBuilder: libraryBuilder,
+        extensionTypeDeclaration: extensionTypeDeclaration,
+        classHierarchy: classHierarchy,
+        bodyBuilderContext: bodyBuilderContext,
+      );
     }
 
     Iterator<SourceMemberBuilder> iterator = filteredMembersIterator(

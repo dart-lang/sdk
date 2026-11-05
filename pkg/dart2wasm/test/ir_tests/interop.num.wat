@@ -1,8 +1,8 @@
 (module $M
   (type $#Top (struct
-    (field $field0 i32)))
+    (field $#classId i32)))
   (type $BoxedDouble (sub final $#Top (struct
-    (field $field0 i32)
+    (field $#classId i32)
     (field $value f64))))
   (func $"dart2wasm.M (import)" (import "dart2wasm" "M") (param externref) (result externref))
   (func $"dart2wasm.P (import)" (import "dart2wasm" "P") (param f64) (result externref))

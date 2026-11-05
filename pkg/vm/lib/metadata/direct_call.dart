@@ -11,17 +11,17 @@ import 'package:kernel/src/printer.dart';
 class DirectCallMetadata {
   // Target of the direct call or enclosing member of a closure.
   final Reference _memberReference;
-  final int _flags;
-  final int _closureId;
+  final int _flagsAndClosureId;
 
-  static const int flagCheckReceiverForNull = 1 << 0;
-  static const int flagClosure = 1 << 1;
+  static const int _checkReceiverForNullBit = 1 << 0;
+  static const int _closureBit = 1 << 1;
+  static const int _closureIdShift = 2;
+  static const int _maxClosureId = (1 << (30 - _closureIdShift)) - 1;
 
   DirectCallMetadata.targetMember(Member target, bool checkReceiverForNull)
     : this._(
         getNonNullableMemberReferenceGetter(target),
-        checkReceiverForNull ? flagCheckReceiverForNull : 0,
-        0,
+        _encodeFlagsAndClosureId(checkReceiverForNull, false, 0),
       );
 
   DirectCallMetadata.targetClosure(
@@ -30,20 +30,34 @@ class DirectCallMetadata {
     bool checkReceiverForNull,
   ) : this._(
         getNonNullableMemberReferenceGetter(closureMember),
-        (checkReceiverForNull ? flagCheckReceiverForNull : 0) | flagClosure,
-        closureId,
+        _encodeFlagsAndClosureId(checkReceiverForNull, true, closureId),
       );
 
-  DirectCallMetadata._(this._memberReference, this._flags, this._closureId)
-    : assert(_closureId >= 0);
+  DirectCallMetadata._(this._memberReference, this._flagsAndClosureId);
+
+  static int _encodeFlagsAndClosureId(
+    bool checkReceiverForNull,
+    bool isClosure,
+    int closureId,
+  ) {
+    if (closureId < 0 || closureId > _maxClosureId) {
+      throw RangeError.range(closureId, 0, _maxClosureId, 'closureId');
+    }
+    return (closureId << _closureIdShift) |
+        (checkReceiverForNull ? _checkReceiverForNullBit : 0) |
+        (isClosure ? _closureBit : 0);
+  }
 
   // Target member or enclosing member of a closure.
   Member get _member => _memberReference.asMember;
 
   Member? get targetMember => isClosure ? null : _member;
 
-  bool get checkReceiverForNull => (_flags & flagCheckReceiverForNull) != 0;
-  bool get isClosure => (_flags & flagClosure) != 0;
+  int get _closureId => _flagsAndClosureId >>> _closureIdShift;
+
+  bool get checkReceiverForNull =>
+      (_flagsAndClosureId & _checkReceiverForNullBit) != 0;
+  bool get isClosure => (_flagsAndClosureId & _closureBit) != 0;
 
   /// When calling a closure, the enclosing member of the closure, and the
   /// closure index.
@@ -77,10 +91,7 @@ class DirectCallMetadataRepository
     sink.writeNullAllowedCanonicalNameReference(
       getMemberReferenceGetter(metadata._member),
     );
-    sink.writeByte(metadata._flags);
-    if (metadata.isClosure) {
-      sink.writeUInt30(metadata._closureId);
-    }
+    sink.writeUInt30(metadata._flagsAndClosureId);
   }
 
   @override
@@ -91,10 +102,7 @@ class DirectCallMetadataRepository
     if (memberReference == null) {
       throw 'DirectCallMetadata should have a non-null member';
     }
-    final flags = source.readByte();
-    final closureId = (flags & DirectCallMetadata.flagClosure) != 0
-        ? source.readUInt30()
-        : 0;
-    return DirectCallMetadata._(memberReference, flags, closureId);
+    final flagsAndClosureId = source.readUInt30();
+    return DirectCallMetadata._(memberReference, flagsAndClosureId);
   }
 }

@@ -100,6 +100,8 @@ class AddReturnType extends ResolvedCorrectionProducer {
           nullabilitySuffix: .none,
         );
       } else {
+        // An `async` function that returns a `Future<T>` completes with a `T`.
+        baseType = unitResult.typeSystem.flatten(baseType);
         return typeProvider.futureElement.instantiate(
           typeArguments: [baseType],
           nullabilitySuffix: .none,

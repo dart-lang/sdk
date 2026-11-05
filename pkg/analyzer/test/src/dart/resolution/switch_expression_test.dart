@@ -33,7 +33,13 @@ void g() {}
 SwitchExpression
   switchKeyword: switch
   leftParenthesis: (
-  expression: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Object?
+    staticType: Object?
+  expression(v1): SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -43,12 +49,12 @@ SwitchExpression
     SwitchExpressionCase
       guardedPattern: GuardedPattern
         pattern: ConstantPattern
-          expression: IntegerLiteral
+          expression2: IntegerLiteral
             literal: 0
             staticType: int
           matchedValueType: Object?
       arrow: =>
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
         staticType: int
     SwitchExpressionCase
@@ -57,7 +63,17 @@ SwitchExpression
           name: _
           matchedValueType: Object?
       arrow: =>
-      expression: MethodInvocation
+      expression2: UnqualifiedFunctionInvocation
+        name: g
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        resolution: ExecutableInvocationResolution
+          element: <testLibrary>::@function::g
+          invokeType: void Function()
+          type: void
+        staticType: void
+      expression(v1): MethodInvocation
         methodName: SimpleIdentifier
           token: g
           element: <testLibrary>::@function::g
@@ -84,7 +100,7 @@ final a = switch (0) {};
 SwitchExpression
   switchKeyword: switch
   leftParenthesis: (
-  expression: IntegerLiteral
+  expression2: IntegerLiteral
     literal: 0
     staticType: int
   rightParenthesis: )
@@ -112,7 +128,13 @@ class A {
 SwitchExpression
   switchKeyword: switch
   leftParenthesis: (
-  expression: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@class::A::@method::bar::@formalParameter::x
+      type: Object?
+    staticType: Object?
+  expression(v1): SimpleIdentifier
     token: x
     element: <testLibrary>::@class::A::@method::bar::@formalParameter::x
     staticType: Object?
@@ -125,7 +147,19 @@ SwitchExpression
           name: _
           matchedValueType: Object?
       arrow: =>
-      expression: MethodInvocation
+      expression2: UnqualifiedFunctionInvocation
+        name: foo
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        resolution: ExecutableInvocationResolution
+          element: <testLibrary>::@class::A::@method::foo
+          invokeType: int Function()
+          type: int
+        staticType: int
+        typeArgumentTypes
+          int
+      expression(v1): MethodInvocation
         methodName: SimpleIdentifier
           token: foo
           element: <testLibrary>::@class::A::@method::foo
@@ -158,7 +192,13 @@ void f(void x) {
 SwitchExpression
   switchKeyword: switch
   leftParenthesis: (
-  expression: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: void
+    staticType: void
+  expression(v1): SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: void
@@ -171,7 +211,7 @@ SwitchExpression
           name: _
           matchedValueType: void
       arrow: =>
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
         staticType: int
   rightBracket: }
@@ -197,9 +237,15 @@ test(Object o) => () =>
   };
 ''');
 
-    var node = result.findNode.simple('value + 1');
+    var node = result.findNode.unqualifiedNameExpression('value + 1');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: value
+  resolution: VariableReadResolution
+    element: value@185
+    type: int
+  staticType: int
+V1: SimpleIdentifier
   token: value
   element: value@185
   staticType: int
@@ -221,7 +267,14 @@ final b = switch (a) {
 SwitchExpression
   switchKeyword: switch
   leftParenthesis: (
-  expression: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: a
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::a
+      invokeType: num Function()
+      type: num
+    staticType: num
+  expression(v1): SimpleIdentifier
     token: a
     element: <testLibrary>::@getter::a
     staticType: num
@@ -252,12 +305,18 @@ SwitchExpression
           matchedValueType: num
         whenClause: WhenClause
           whenKeyword: when
-          expression: SimpleIdentifier
+          expression2: UnqualifiedNameExpression
+            name: isEven
+            resolution: VariableReadResolution
+              element: isEven@46
+              type: bool
+            staticType: bool
+          expression(v1): SimpleIdentifier
             token: isEven
             element: isEven@46
             staticType: bool
       arrow: =>
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 1
         staticType: int
     SwitchExpressionCase
@@ -266,7 +325,7 @@ SwitchExpression
           name: _
           matchedValueType: num
       arrow: =>
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
         staticType: int
   rightBracket: }
@@ -291,7 +350,21 @@ SwitchExpressionCase
       name: _
       matchedValueType: Object?
   arrow: =>
-  expression: FunctionExpressionInvocation
+  expression2: CallInvocation
+    receiver: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: int Function()
+      staticType: int Function()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    resolution: FunctionTypeInvocationResolution
+      invokeType: int Function()
+      type: int
+    staticType: int
+  expression(v1): FunctionExpressionInvocation
     function: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::f::@formalParameter::a
@@ -325,7 +398,18 @@ SwitchExpressionCase
   guardedPattern: GuardedPattern
     pattern: ConstantPattern
       constKeyword: const
-      expression: InstanceCreationExpression
+      expression2: ConstructorInvocation
+        constructorReference: ConstructorReference2
+          typeReference: ConstructorTypeReference
+            name: A
+            element: <testLibrary>::@class::A
+            type: A
+          element: <testLibrary>::@class::A::@constructor::new
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        staticType: A
+      expression(v1): InstanceCreationExpression
         constructorName: ConstructorName
           type: NamedType
             name: A
@@ -338,7 +422,7 @@ SwitchExpressionCase
         staticType: A
       matchedValueType: Object?
   arrow: =>
-  expression: IntegerLiteral
+  expression2: IntegerLiteral
     literal: 0
     staticType: int
 ''');
@@ -359,13 +443,27 @@ void f(Object? x, bool Function() a) {
 SwitchExpressionCase
   guardedPattern: GuardedPattern
     pattern: ConstantPattern
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
         staticType: int
       matchedValueType: Object?
     whenClause: WhenClause
       whenKeyword: when
-      expression: FunctionExpressionInvocation
+      expression2: CallInvocation
+        receiver: UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: bool Function()
+          staticType: bool Function()
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        resolution: FunctionTypeInvocationResolution
+          invokeType: bool Function()
+          type: bool
+        staticType: bool
+      expression(v1): FunctionExpressionInvocation
         function: SimpleIdentifier
           token: a
           element: <testLibrary>::@function::f::@formalParameter::a
@@ -377,7 +475,7 @@ SwitchExpressionCase
         staticInvokeType: bool Function()
         staticType: bool
   arrow: =>
-  expression: BooleanLiteral
+  expression2: BooleanLiteral
     literal: true
     staticType: bool
 ''');
@@ -397,7 +495,21 @@ void f(int Function() a) {
 SwitchExpression
   switchKeyword: switch
   leftParenthesis: (
-  expression: FunctionExpressionInvocation
+  expression2: CallInvocation
+    receiver: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: int Function()
+      staticType: int Function()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    resolution: FunctionTypeInvocationResolution
+      invokeType: int Function()
+      type: int
+    staticType: int
+  expression(v1): FunctionExpressionInvocation
     function: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::f::@formalParameter::a
@@ -417,7 +529,7 @@ SwitchExpression
           name: _
           matchedValueType: int
       arrow: =>
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
         staticType: int
   rightBracket: }
@@ -440,7 +552,13 @@ void f(Object? x) {
 SwitchExpression
   switchKeyword: switch
   leftParenthesis: (
-  expression: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Object?
+    staticType: Object?
+  expression(v1): SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -450,12 +568,12 @@ SwitchExpression
     SwitchExpressionCase
       guardedPattern: GuardedPattern
         pattern: ConstantPattern
-          expression: BooleanLiteral
+          expression2: BooleanLiteral
             literal: true
             staticType: bool
           matchedValueType: Object?
       arrow: =>
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
         staticType: int
     SwitchExpressionCase
@@ -464,7 +582,7 @@ SwitchExpression
           name: _
           matchedValueType: Object?
       arrow: =>
-      expression: NullLiteral
+      expression2: NullLiteral
         literal: null
         staticType: Null
   rightBracket: }
@@ -487,7 +605,13 @@ void f(Object? x) {
 SwitchExpression
   switchKeyword: switch
   leftParenthesis: (
-  expression: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Object?
+    staticType: Object?
+  expression(v1): SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -497,12 +621,12 @@ SwitchExpression
     SwitchExpressionCase
       guardedPattern: GuardedPattern
         pattern: ConstantPattern
-          expression: BooleanLiteral
+          expression2: BooleanLiteral
             literal: true
             staticType: bool
           matchedValueType: Object?
       arrow: =>
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
         staticType: int
     SwitchExpressionCase
@@ -511,7 +635,7 @@ SwitchExpression
           name: _
           matchedValueType: Object?
       arrow: =>
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 1
         staticType: int
   rightBracket: }
@@ -536,7 +660,13 @@ void f(Object? x) {
 SwitchExpression
   switchKeyword: switch
   leftParenthesis: (
-  expression: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Object?
+    staticType: Object?
+  expression(v1): SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -577,7 +707,13 @@ SwitchExpression
           matchedValueType: Object?
           requiredType: List<int>
       arrow: =>
-      expression: SimpleIdentifier
+      expression2: UnqualifiedNameExpression
+        name: a
+        resolution: VariableReadResolution
+          element: a@null
+          type: int
+        staticType: int
+      expression(v1): SimpleIdentifier
         token: a
         element: a@null
         staticType: int
@@ -587,7 +723,7 @@ SwitchExpression
           name: _
           matchedValueType: Object?
       arrow: =>
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
         staticType: int
   rightBracket: }
@@ -616,7 +752,13 @@ void f(Object? x) {
 SwitchExpression
   switchKeyword: switch
   leftParenthesis: (
-  expression: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Object?
+    staticType: Object?
+  expression(v1): SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -640,7 +782,13 @@ SwitchExpression
               matchedValueType: Object?
             RelationalPattern
               operator: ==
-              operand: SimpleIdentifier
+              operand2: UnqualifiedNameExpression
+                name: a
+                resolution: VariableReadResolution
+                  element: a@58
+                  type: int
+                staticType: int
+              operand(v1): SimpleIdentifier
                 token: a
                 element: a@58
                 staticType: int
@@ -651,7 +799,22 @@ SwitchExpression
           requiredType: List<Object?>
         whenClause: WhenClause
           whenKeyword: when
-          expression: BinaryExpression
+          expression2: BinaryOperatorInvocation
+            leftOperand: UnqualifiedNameExpression
+              name: a
+              resolution: VariableReadResolution
+                element: a@58
+                type: int
+              staticType: int
+            operator: >
+            rightOperand: IntegerLiteral
+              literal: 0
+              correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
+              staticType: int
+            binaryOperator: greaterThan
+            element: dart:core::@class::num::@method::>
+            staticType: bool
+          expression(v1): BinaryExpression
             leftOperand: SimpleIdentifier
               token: a
               element: a@58
@@ -665,7 +828,13 @@ SwitchExpression
             staticInvokeType: bool Function(num)
             staticType: bool
       arrow: =>
-      expression: SimpleIdentifier
+      expression2: UnqualifiedNameExpression
+        name: a
+        resolution: VariableReadResolution
+          element: a@58
+          type: int
+        staticType: int
+      expression(v1): SimpleIdentifier
         token: a
         element: a@58
         staticType: int
@@ -675,7 +844,7 @@ SwitchExpression
           name: _
           matchedValueType: Object?
       arrow: =>
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
         staticType: int
   rightBracket: }
@@ -700,7 +869,13 @@ void f(Object? x) {
 SwitchExpression
   switchKeyword: switch
   leftParenthesis: (
-  expression: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Object?
+    staticType: Object?
+  expression(v1): SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -721,7 +896,22 @@ SwitchExpression
           matchedValueType: Object?
         whenClause: WhenClause
           whenKeyword: when
-          expression: BinaryExpression
+          expression2: BinaryOperatorInvocation
+            leftOperand: UnqualifiedNameExpression
+              name: a
+              resolution: VariableReadResolution
+                element: a@44
+                type: int
+              staticType: int
+            operator: >
+            rightOperand: IntegerLiteral
+              literal: 0
+              correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
+              staticType: int
+            binaryOperator: greaterThan
+            element: dart:core::@class::num::@method::>
+            staticType: bool
+          expression(v1): BinaryExpression
             leftOperand: SimpleIdentifier
               token: a
               element: a@44
@@ -735,7 +925,13 @@ SwitchExpression
             staticInvokeType: bool Function(num)
             staticType: bool
       arrow: =>
-      expression: SimpleIdentifier
+      expression2: UnqualifiedNameExpression
+        name: a
+        resolution: VariableReadResolution
+          element: a@44
+          type: int
+        staticType: int
+      expression(v1): SimpleIdentifier
         token: a
         element: a@44
         staticType: int
@@ -745,7 +941,12 @@ SwitchExpression
           name: _
           matchedValueType: Object?
       arrow: =>
-      expression: SimpleIdentifier
+      expression2: UnqualifiedNameExpression
+        name: a
+        resolution: InvalidNamedReadResolution
+          recoveryElement: <null>
+        staticType: InvalidType
+      expression(v1): SimpleIdentifier
         token: a
         element: <null>
         staticType: InvalidType

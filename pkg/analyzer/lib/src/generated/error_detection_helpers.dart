@@ -73,11 +73,9 @@ mixin ErrorDetectionHelpers {
     TypeImpl? correspondingParameterType;
     if (parameter != null) {
       correspondingParameterType = parameter.type;
-    } else if (argument.parent
+    } else if (argument.parent2
         case ArgumentListImpl(
-          parent: FunctionExpressionInvocationImpl(
-            function: Expression(:var staticType),
-          ),
+          parent2: CallInvocationImpl(receiver: Expression(:var staticType)),
         )
         when identical(staticType, DynamicTypeImpl.instance) ||
             identical(staticType, NeverTypeImpl.instance) ||
@@ -89,7 +87,7 @@ mixin ErrorDetectionHelpers {
 
     if (correspondingParameterType != null) {
       _checkForArgumentTypeNotAssignableForArgument(
-        argument: argument.argumentExpression,
+        argument: argument.argumentExpression2,
         staticParameterType: correspondingParameterType,
         promoteParameterToNullable: promoteParameterToNullable,
         whyNotPromoted: whyNotPromoted,
@@ -116,10 +114,10 @@ mixin ErrorDetectionHelpers {
     )) {
       AstNode getErrorNode(AstNode node) {
         if (node is CascadeExpression) {
-          return getErrorNode(node.target);
+          return getErrorNode(node.target2);
         }
         if (node is ParenthesizedExpression) {
-          return getErrorNode(node.expression);
+          return getErrorNode(node.expression2);
         }
         return node;
       }
@@ -171,7 +169,7 @@ mixin ErrorDetectionHelpers {
     // prepare field type
     var fieldType = fieldElement.type;
     // prepare expression type
-    Expression expression = initializer.expression;
+    Expression expression = initializer.expression2;
     // test the static type of the expression
     var staticType = expression.typeOrThrow;
     if (typeSystem.isAssignableTo(
@@ -247,9 +245,8 @@ mixin ErrorDetectionHelpers {
       return false;
     }
 
-    if (expression is MethodInvocation) {
-      SimpleIdentifier methodName = expression.methodName;
-      diagnosticReporter.report(diag.useOfVoidResult.at(methodName));
+    if (expression is NamedFunctionInvocation) {
+      diagnosticReporter.report(diag.useOfVoidResult.at(expression.name));
     } else {
       diagnosticReporter.report(diag.useOfVoidResult.at(expression));
     }
@@ -317,20 +314,24 @@ mixin ErrorDetectionHelpers {
     DartType context,
     SyntacticEntity errorNode,
   ) {
-    var visitedTypes = {type};
+    if (!typeSystem.acceptsFunctionType(context)) {
+      return null;
+    }
+
+    Set<DartType>? visitedTypes;
     while (type is TypeParameterType) {
       if (type.nullabilitySuffix != NullabilitySuffix.none) {
         // The value might be `null`, so implicit `.call` tearoff is invalid.
         return null;
       }
+      visitedTypes ??= {type};
       type = type.bound;
       if (!visitedTypes.add(type)) {
         // A cycle!
         return null;
       }
     }
-    if (typeSystem.acceptsFunctionType(context) &&
-        type is InterfaceType &&
+    if (type is InterfaceType &&
         type.nullabilitySuffix != NullabilitySuffix.question) {
       return inheritance
           .getMember3(
@@ -344,18 +345,6 @@ mixin ErrorDetectionHelpers {
     } else {
       return null;
     }
-  }
-
-  /// Return the variable element represented by the given [expression], or
-  /// `null` if there is no such element.
-  VariableElement? getVariableElement(Expression? expression) {
-    if (expression is Identifier) {
-      var element = expression.element;
-      if (element is VariableElement) {
-        return element;
-      }
-    }
-    return null;
   }
 
   void _checkForArgumentTypeNotAssignableForArgument({

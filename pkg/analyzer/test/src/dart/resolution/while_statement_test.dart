@@ -30,7 +30,7 @@ void f() {
 WhileStatement
   whileKeyword: while
   leftParenthesis: (
-  condition: BooleanLiteral
+  condition2: BooleanLiteral
     literal: true
     staticType: bool
   rightParenthesis: )
@@ -64,7 +64,7 @@ LabeledStatement
   statement: WhileStatement
     whileKeyword: while
     leftParenthesis: (
-    condition: BooleanLiteral
+    condition2: BooleanLiteral
       literal: true
       staticType: bool
     rightParenthesis: )
@@ -97,7 +97,7 @@ void f() {
 WhileStatement
   whileKeyword: while
   leftParenthesis: (
-  condition: BooleanLiteral
+  condition2: BooleanLiteral
     literal: true
     staticType: bool
   rightParenthesis: )
@@ -121,7 +121,6 @@ class A {
     while (super) {}
 //         ^^^^^
 // [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
-// [diag.nonBoolCondition] Conditions must have a static type of 'bool'.
   }
 }
 ''');
@@ -131,7 +130,11 @@ class A {
 WhileStatement
   whileKeyword: while
   leftParenthesis: (
-  condition: SuperExpression
+  condition2: InvalidSuperExpression
+    superReference: SuperReference
+      superKeyword: super
+    staticType: InvalidType
+  condition(v1): SuperExpression
     superKeyword: super
     staticType: A
   rightParenthesis: )
@@ -155,7 +158,7 @@ void f() {
 WhileStatement
   whileKeyword: while
   leftParenthesis: (
-  condition: BooleanLiteral
+  condition2: BooleanLiteral
     literal: true
     staticType: bool
   rightParenthesis: )
@@ -189,7 +192,7 @@ LabeledStatement
   statement: WhileStatement
     whileKeyword: while
     leftParenthesis: (
-    condition: BooleanLiteral
+    condition2: BooleanLiteral
       literal: true
       staticType: bool
     rightParenthesis: )
@@ -222,7 +225,7 @@ void f() {
 WhileStatement
   whileKeyword: while
   leftParenthesis: (
-  condition: BooleanLiteral
+  condition2: BooleanLiteral
     literal: true
     staticType: bool
   rightParenthesis: )

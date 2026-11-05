@@ -30,9 +30,20 @@ class FunctionReferenceParserTest extends ParserDiagnosticsTest {
       ),
     );
 
-    var node = parseResult.findNode.singleExpressionStatement.expression;
+    var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
-FunctionReference
+ParsedTypeArguments
+  operand: ParsedUnqualifiedName
+    name: f
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: a
+      NamedType
+        name: b
+    rightBracket: >
+V1: FunctionReference
   function: SimpleIdentifier
     token: f
   typeArguments: TypeArgumentList
@@ -50,9 +61,20 @@ FunctionReference
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = {f<a, b>};
 ''');
-    var node = parseResult.findNode.singleSetOrMapLiteral.elements[0];
+    var node = parseResult.findNode.singleSetOrMapLiteral.elements2[0];
     assertParsedNodeText(node, r'''
-FunctionReference
+ParsedTypeArguments
+  operand: ParsedUnqualifiedName
+    name: f
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: a
+      NamedType
+        name: b
+    rightBracket: >
+V1: FunctionReference
   function: SimpleIdentifier
     token: f
   typeArguments: TypeArgumentList
@@ -70,9 +92,20 @@ FunctionReference
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = [f<a, b>];
 ''');
-    var node = parseResult.findNode.singleListLiteral.elements[0];
+    var node = parseResult.findNode.singleListLiteral.elements2[0];
     assertParsedNodeText(node, r'''
-FunctionReference
+ParsedTypeArguments
+  operand: ParsedUnqualifiedName
+    name: f
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: a
+      NamedType
+        name: b
+    rightBracket: >
+V1: FunctionReference
   function: SimpleIdentifier
     token: f
   typeArguments: TypeArgumentList
@@ -90,10 +123,20 @@ FunctionReference
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = g(f<a, b>);
 ''');
-    var node =
-        parseResult.findNode.singleMethodInvocation.argumentList.arguments[0];
+    var node = parseResult.findNode.parsedExpression('f<a');
     assertParsedNodeText(node, r'''
-FunctionReference
+ParsedTypeArguments
+  operand: ParsedUnqualifiedName
+    name: f
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: a
+      NamedType
+        name: b
+    rightBracket: >
+V1: FunctionReference
   function: SimpleIdentifier
     token: f
   typeArguments: TypeArgumentList
@@ -111,9 +154,20 @@ FunctionReference
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = {f<a, b>: null};
 ''');
-    var node = parseResult.findNode.mapLiteralEntry('null').key;
+    var node = parseResult.findNode.mapLiteralEntry('null').key2;
     assertParsedNodeText(node, r'''
-FunctionReference
+ParsedTypeArguments
+  operand: ParsedUnqualifiedName
+    name: f
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: a
+      NamedType
+        name: b
+    rightBracket: >
+V1: FunctionReference
   function: SimpleIdentifier
     token: f
   typeArguments: TypeArgumentList
@@ -131,9 +185,20 @@ FunctionReference
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = [f<a, b>, null];
 ''');
-    var node = parseResult.findNode.singleListLiteral.elements[0];
+    var node = parseResult.findNode.singleListLiteral.elements2[0];
     assertParsedNodeText(node, r'''
-FunctionReference
+ParsedTypeArguments
+  operand: ParsedUnqualifiedName
+    name: f
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: a
+      NamedType
+        name: b
+    rightBracket: >
+V1: FunctionReference
   function: SimpleIdentifier
     token: f
   typeArguments: TypeArgumentList
@@ -151,9 +216,20 @@ FunctionReference
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = f<a, b> == null;
 ''');
-    var node = parseResult.findNode.singleBinaryExpression.leftOperand;
+    var node = parseResult.findNode.singleBinaryOperatorInvocation.leftOperand;
     assertParsedNodeText(node, r'''
-FunctionReference
+ParsedTypeArguments
+  operand: ParsedUnqualifiedName
+    name: f
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: a
+      NamedType
+        name: b
+    rightBracket: >
+V1: FunctionReference
   function: SimpleIdentifier
     token: f
   typeArguments: TypeArgumentList
@@ -171,9 +247,20 @@ FunctionReference
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = f<a, b> != null;
 ''');
-    var node = parseResult.findNode.singleBinaryExpression.leftOperand;
+    var node = parseResult.findNode.singleBinaryOperatorInvocation.leftOperand;
     assertParsedNodeText(node, r'''
-FunctionReference
+ParsedTypeArguments
+  operand: ParsedUnqualifiedName
+    name: f
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: a
+      NamedType
+        name: b
+    rightBracket: >
+V1: FunctionReference
   function: SimpleIdentifier
     token: f
   typeArguments: TypeArgumentList
@@ -191,9 +278,24 @@ FunctionReference
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = f<a, b>();
 ''');
-    var node = parseResult.findNode.singleMethodInvocation;
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-MethodInvocation
+ParsedValueArguments
+  operand: ParsedTypeArguments
+    operand: ParsedUnqualifiedName
+      name: f
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: a
+        NamedType
+          name: b
+      rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: f
   typeArguments: TypeArgumentList
@@ -214,9 +316,27 @@ MethodInvocation
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = f<a, b>.toString();
 ''');
-    var node = parseResult.findNode.singleInstanceCreationExpression;
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-InstanceCreationExpression
+ParsedValueArguments
+  operand: ParsedNameAccess
+    operand: ParsedTypeArguments
+      operand: ParsedUnqualifiedName
+        name: f
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: a
+          NamedType
+            name: b
+        rightBracket: >
+    operator: .
+    name: toString
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: f
@@ -241,19 +361,57 @@ InstanceCreationExpression
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = f<a, b>.foo<c>();
 ''');
-    var node = parseResult.findNode.singleMethodInvocation.target!;
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-FunctionReference
-  function: SimpleIdentifier
-    token: f
+ParsedValueArguments
+  operand: ParsedTypeArguments
+    operand: ParsedNameAccess
+      operand: ParsedTypeArguments
+        operand: ParsedUnqualifiedName
+          name: f
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: a
+            NamedType
+              name: b
+          rightBracket: >
+      operator: .
+      name: foo
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: c
+      rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+V1: MethodInvocation
+  target: FunctionReference
+    function: SimpleIdentifier
+      token: f
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: a
+        NamedType
+          name: b
+      rightBracket: >
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
-        name: a
-      NamedType
-        name: b
+        name: c
     rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
 ''');
   }
 
@@ -261,19 +419,37 @@ FunctionReference
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = f<a, b>.hashCode;
 ''');
-    var node = parseResult.findNode.singlePropertyAccess.target!;
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-FunctionReference
-  function: SimpleIdentifier
-    token: f
-  typeArguments: TypeArgumentList
-    leftBracket: <
-    arguments
-      NamedType
-        name: a
-      NamedType
-        name: b
-    rightBracket: >
+ParsedNameAccess
+  operand: ParsedTypeArguments
+    operand: ParsedUnqualifiedName
+      name: f
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: a
+        NamedType
+          name: b
+      rightBracket: >
+  operator: .
+  name: hashCode
+V1: PropertyAccess
+  target: FunctionReference
+    function: SimpleIdentifier
+      token: f
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: a
+        NamedType
+          name: b
+      rightBracket: >
+  operator: .
+  propertyName: SimpleIdentifier
+    token: hashCode
 ''');
   }
 
@@ -283,9 +459,20 @@ void f() {
   f<a, b>;
 }
 ''');
-    var node = parseResult.findNode.singleExpressionStatement.expression;
+    var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
-FunctionReference
+ParsedTypeArguments
+  operand: ParsedUnqualifiedName
+    name: f
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: a
+      NamedType
+        name: b
+    rightBracket: >
+V1: FunctionReference
   function: SimpleIdentifier
     token: f
   typeArguments: TypeArgumentList
@@ -305,9 +492,35 @@ var x = f(a<b,c>&d);
 //              ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleMethodInvocation;
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-MethodInvocation
+ParsedValueArguments
+  operand: ParsedUnqualifiedName
+    name: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      BinaryOperatorInvocation
+        leftOperand: ParsedUnqualifiedName
+          name: a
+        operator: <
+        rightOperand: ParsedUnqualifiedName
+          name: b
+        binaryOperator: lessThan
+      BinaryOperatorInvocation
+        leftOperand: ParsedUnqualifiedName
+          name: c
+        operator: >
+        rightOperand: BinaryOperatorInvocation
+          leftOperand: ParsedUnqualifiedName
+            name: <empty> <synthetic>
+          operator: &
+          rightOperand: ParsedUnqualifiedName
+            name: d
+          binaryOperator: bitwiseAnd
+        binaryOperator: greaterThan
+    rightParenthesis: )
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: f
   argumentList: ArgumentList
@@ -337,9 +550,30 @@ MethodInvocation
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = f(a < b, c > as);
 ''');
-    var node = parseResult.findNode.singleMethodInvocation;
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-MethodInvocation
+ParsedValueArguments
+  operand: ParsedUnqualifiedName
+    name: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      BinaryOperatorInvocation
+        leftOperand: ParsedUnqualifiedName
+          name: a
+        operator: <
+        rightOperand: ParsedUnqualifiedName
+          name: b
+        binaryOperator: lessThan
+      BinaryOperatorInvocation
+        leftOperand: ParsedUnqualifiedName
+          name: c
+        operator: >
+        rightOperand: ParsedUnqualifiedName
+          name: as
+        binaryOperator: greaterThan
+    rightParenthesis: )
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: f
   argumentList: ArgumentList
@@ -367,9 +601,35 @@ var x = f(a<b,c>*d);
 //              ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleMethodInvocation;
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-MethodInvocation
+ParsedValueArguments
+  operand: ParsedUnqualifiedName
+    name: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      BinaryOperatorInvocation
+        leftOperand: ParsedUnqualifiedName
+          name: a
+        operator: <
+        rightOperand: ParsedUnqualifiedName
+          name: b
+        binaryOperator: lessThan
+      BinaryOperatorInvocation
+        leftOperand: ParsedUnqualifiedName
+          name: c
+        operator: >
+        rightOperand: BinaryOperatorInvocation
+          leftOperand: ParsedUnqualifiedName
+            name: <empty> <synthetic>
+          operator: *
+          rightOperand: ParsedUnqualifiedName
+            name: d
+          binaryOperator: multiply
+        binaryOperator: greaterThan
+    rightParenthesis: )
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: f
   argumentList: ArgumentList
@@ -399,9 +659,36 @@ MethodInvocation
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = f(a < b, c > ![d]);
 ''');
-    var node = parseResult.findNode.singleMethodInvocation;
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-MethodInvocation
+ParsedValueArguments
+  operand: ParsedUnqualifiedName
+    name: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      BinaryOperatorInvocation
+        leftOperand: ParsedUnqualifiedName
+          name: a
+        operator: <
+        rightOperand: ParsedUnqualifiedName
+          name: b
+        binaryOperator: lessThan
+      BinaryOperatorInvocation
+        leftOperand: ParsedUnqualifiedName
+          name: c
+        operator: >
+        rightOperand: LogicalNot
+          operator: !
+          operand: ListLiteral
+            leftBracket: [
+            elements2
+              ParsedUnqualifiedName
+                name: d
+            rightBracket: ]
+        binaryOperator: greaterThan
+    rightParenthesis: )
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: f
   argumentList: ArgumentList
@@ -433,9 +720,35 @@ MethodInvocation
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = f(a < b, c > !(d));
 ''');
-    var node = parseResult.findNode.singleMethodInvocation;
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-MethodInvocation
+ParsedValueArguments
+  operand: ParsedUnqualifiedName
+    name: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      BinaryOperatorInvocation
+        leftOperand: ParsedUnqualifiedName
+          name: a
+        operator: <
+        rightOperand: ParsedUnqualifiedName
+          name: b
+        binaryOperator: lessThan
+      BinaryOperatorInvocation
+        leftOperand: ParsedUnqualifiedName
+          name: c
+        operator: >
+        rightOperand: LogicalNot
+          operator: !
+          operand: ParenthesizedExpression
+            leftParenthesis: (
+            expression2: ParsedUnqualifiedName
+              name: d
+            rightParenthesis: )
+        binaryOperator: greaterThan
+    rightParenthesis: )
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: f
   argumentList: ArgumentList
@@ -468,9 +781,35 @@ var x = f(a<b,c>|d);
 //              ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleMethodInvocation;
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-MethodInvocation
+ParsedValueArguments
+  operand: ParsedUnqualifiedName
+    name: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      BinaryOperatorInvocation
+        leftOperand: ParsedUnqualifiedName
+          name: a
+        operator: <
+        rightOperand: ParsedUnqualifiedName
+          name: b
+        binaryOperator: lessThan
+      BinaryOperatorInvocation
+        leftOperand: ParsedUnqualifiedName
+          name: c
+        operator: >
+        rightOperand: BinaryOperatorInvocation
+          leftOperand: ParsedUnqualifiedName
+            name: <empty> <synthetic>
+          operator: |
+          rightOperand: ParsedUnqualifiedName
+            name: d
+          binaryOperator: bitwiseOr
+        binaryOperator: greaterThan
+    rightParenthesis: )
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: f
   argumentList: ArgumentList
@@ -502,9 +841,35 @@ var x = f(a<b,c>^d);
 //              ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleMethodInvocation;
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-MethodInvocation
+ParsedValueArguments
+  operand: ParsedUnqualifiedName
+    name: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      BinaryOperatorInvocation
+        leftOperand: ParsedUnqualifiedName
+          name: a
+        operator: <
+        rightOperand: ParsedUnqualifiedName
+          name: b
+        binaryOperator: lessThan
+      BinaryOperatorInvocation
+        leftOperand: ParsedUnqualifiedName
+          name: c
+        operator: >
+        rightOperand: BinaryOperatorInvocation
+          leftOperand: ParsedUnqualifiedName
+            name: <empty> <synthetic>
+          operator: ^
+          rightOperand: ParsedUnqualifiedName
+            name: d
+          binaryOperator: bitwiseXor
+        binaryOperator: greaterThan
+    rightParenthesis: )
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: f
   argumentList: ArgumentList
@@ -536,9 +901,34 @@ var x = f(a<b,c> is int);
 //               ^^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleMethodInvocation;
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-MethodInvocation
+ParsedValueArguments
+  operand: ParsedUnqualifiedName
+    name: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      BinaryOperatorInvocation
+        leftOperand: ParsedUnqualifiedName
+          name: a
+        operator: <
+        rightOperand: ParsedUnqualifiedName
+          name: b
+        binaryOperator: lessThan
+      IsExpression
+        expression2: BinaryOperatorInvocation
+          leftOperand: ParsedUnqualifiedName
+            name: c
+          operator: >
+          rightOperand: ParsedUnqualifiedName
+            name: <empty> <synthetic>
+          binaryOperator: greaterThan
+        isOperator: is
+        type: NamedType
+          name: int
+    rightParenthesis: )
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: f
   argumentList: ArgumentList
@@ -572,9 +962,28 @@ var x = f<a><b>;
 //             ^
 // [diag.expectedToken] Expected to find '['.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer!;
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-BinaryExpression
+BinaryOperatorInvocation
+  leftOperand: BinaryOperatorInvocation
+    leftOperand: ParsedUnqualifiedName
+      name: f
+    operator: <
+    rightOperand: ParsedUnqualifiedName
+      name: a
+    binaryOperator: lessThan
+  operator: >
+  rightOperand: ListLiteral
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: b
+      rightBracket: >
+    leftBracket: [ <synthetic>
+    rightBracket: ] <synthetic>
+  binaryOperator: greaterThan
+V1: BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SimpleIdentifier
       token: f
@@ -598,9 +1007,33 @@ BinaryExpression
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = f(a < b, c > -d);
 ''');
-    var node = parseResult.findNode.singleMethodInvocation;
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-MethodInvocation
+ParsedValueArguments
+  operand: ParsedUnqualifiedName
+    name: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      BinaryOperatorInvocation
+        leftOperand: ParsedUnqualifiedName
+          name: a
+        operator: <
+        rightOperand: ParsedUnqualifiedName
+          name: b
+        binaryOperator: lessThan
+      BinaryOperatorInvocation
+        leftOperand: ParsedUnqualifiedName
+          name: c
+        operator: >
+        rightOperand: UnaryOperatorInvocation
+          operator: -
+          operand: ParsedUnqualifiedName
+            name: d
+          unaryOperator: negate
+        binaryOperator: greaterThan
+    rightParenthesis: )
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: f
   argumentList: ArgumentList
@@ -628,9 +1061,34 @@ MethodInvocation
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = f(a < b, c > [d]);
 ''');
-    var node = parseResult.findNode.singleMethodInvocation;
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-MethodInvocation
+ParsedValueArguments
+  operand: ParsedUnqualifiedName
+    name: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      BinaryOperatorInvocation
+        leftOperand: ParsedUnqualifiedName
+          name: a
+        operator: <
+        rightOperand: ParsedUnqualifiedName
+          name: b
+        binaryOperator: lessThan
+      BinaryOperatorInvocation
+        leftOperand: ParsedUnqualifiedName
+          name: c
+        operator: >
+        rightOperand: ListLiteral
+          leftBracket: [
+          elements2
+            ParsedUnqualifiedName
+              name: d
+          rightBracket: ]
+        binaryOperator: greaterThan
+    rightParenthesis: )
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: f
   argumentList: ArgumentList
@@ -662,9 +1120,39 @@ var x = f(a<b,c>[d]>e);
 //                 ^
 // [diag.equalityCannotBeEqualityOperand] A comparison expression can't be an operand of another comparison expression.
 ''');
-    var node = parseResult.findNode.singleMethodInvocation;
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-MethodInvocation
+ParsedValueArguments
+  operand: ParsedUnqualifiedName
+    name: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      BinaryOperatorInvocation
+        leftOperand: ParsedUnqualifiedName
+          name: a
+        operator: <
+        rightOperand: ParsedUnqualifiedName
+          name: b
+        binaryOperator: lessThan
+      BinaryOperatorInvocation
+        leftOperand: BinaryOperatorInvocation
+          leftOperand: ParsedUnqualifiedName
+            name: c
+          operator: >
+          rightOperand: ListLiteral
+            leftBracket: [
+            elements2
+              ParsedUnqualifiedName
+                name: d
+            rightBracket: ]
+          binaryOperator: greaterThan
+        operator: >
+        rightOperand: ParsedUnqualifiedName
+          name: e
+        binaryOperator: greaterThan
+    rightParenthesis: )
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: f
   argumentList: ArgumentList
@@ -698,9 +1186,36 @@ MethodInvocation
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = f(a < b, c > [d, e]);
 ''');
-    var node = parseResult.findNode.singleMethodInvocation;
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-MethodInvocation
+ParsedValueArguments
+  operand: ParsedUnqualifiedName
+    name: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      BinaryOperatorInvocation
+        leftOperand: ParsedUnqualifiedName
+          name: a
+        operator: <
+        rightOperand: ParsedUnqualifiedName
+          name: b
+        binaryOperator: lessThan
+      BinaryOperatorInvocation
+        leftOperand: ParsedUnqualifiedName
+          name: c
+        operator: >
+        rightOperand: ListLiteral
+          leftBracket: [
+          elements2
+            ParsedUnqualifiedName
+              name: d
+            ParsedUnqualifiedName
+              name: e
+          rightBracket: ]
+        binaryOperator: greaterThan
+    rightParenthesis: )
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: f
   argumentList: ArgumentList
@@ -734,9 +1249,35 @@ var x = f(a<b,c>%d);
 //              ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleMethodInvocation;
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-MethodInvocation
+ParsedValueArguments
+  operand: ParsedUnqualifiedName
+    name: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      BinaryOperatorInvocation
+        leftOperand: ParsedUnqualifiedName
+          name: a
+        operator: <
+        rightOperand: ParsedUnqualifiedName
+          name: b
+        binaryOperator: lessThan
+      BinaryOperatorInvocation
+        leftOperand: ParsedUnqualifiedName
+          name: c
+        operator: >
+        rightOperand: BinaryOperatorInvocation
+          leftOperand: ParsedUnqualifiedName
+            name: <empty> <synthetic>
+          operator: %
+          rightOperand: ParsedUnqualifiedName
+            name: d
+          binaryOperator: modulo
+        binaryOperator: greaterThan
+    rightParenthesis: )
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: f
   argumentList: ArgumentList
@@ -768,9 +1309,40 @@ var x = f(a<b,c>..toString());
 //              ^^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.methodInvocation('f(');
+    var node = parseResult.findNode.parsedExpression('f(');
     assertParsedNodeText(node, r'''
-MethodInvocation
+ParsedValueArguments
+  operand: ParsedUnqualifiedName
+    name: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      BinaryOperatorInvocation
+        leftOperand: ParsedUnqualifiedName
+          name: a
+        operator: <
+        rightOperand: ParsedUnqualifiedName
+          name: b
+        binaryOperator: lessThan
+      CascadeExpression
+        target2: BinaryOperatorInvocation
+          leftOperand: ParsedUnqualifiedName
+            name: c
+          operator: >
+          rightOperand: ParsedUnqualifiedName
+            name: <empty> <synthetic>
+          binaryOperator: greaterThan
+        sections
+          CascadeSection
+            operator: ..
+            body: ParsedValueArguments
+              operand: ParsedCascadeName
+                name: toString
+              argumentList: ArgumentList
+                leftParenthesis: (
+                rightParenthesis: )
+    rightParenthesis: )
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: f
   argumentList: ArgumentList
@@ -807,9 +1379,35 @@ var x = f(a<b,c>+d);
 //              ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleMethodInvocation;
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-MethodInvocation
+ParsedValueArguments
+  operand: ParsedUnqualifiedName
+    name: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      BinaryOperatorInvocation
+        leftOperand: ParsedUnqualifiedName
+          name: a
+        operator: <
+        rightOperand: ParsedUnqualifiedName
+          name: b
+        binaryOperator: lessThan
+      BinaryOperatorInvocation
+        leftOperand: ParsedUnqualifiedName
+          name: c
+        operator: >
+        rightOperand: BinaryOperatorInvocation
+          leftOperand: ParsedUnqualifiedName
+            name: <empty> <synthetic>
+          operator: +
+          rightOperand: ParsedUnqualifiedName
+            name: d
+          binaryOperator: add
+        binaryOperator: greaterThan
+    rightParenthesis: )
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: f
   argumentList: ArgumentList
@@ -841,9 +1439,37 @@ var x = f(a<b,c> ? null : null);
 //               ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleMethodInvocation;
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-MethodInvocation
+ParsedValueArguments
+  operand: ParsedUnqualifiedName
+    name: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      BinaryOperatorInvocation
+        leftOperand: ParsedUnqualifiedName
+          name: a
+        operator: <
+        rightOperand: ParsedUnqualifiedName
+          name: b
+        binaryOperator: lessThan
+      ConditionalExpression
+        condition2: BinaryOperatorInvocation
+          leftOperand: ParsedUnqualifiedName
+            name: c
+          operator: >
+          rightOperand: ParsedUnqualifiedName
+            name: <empty> <synthetic>
+          binaryOperator: greaterThan
+        question: ?
+        thenExpression2: NullLiteral
+          literal: null
+        colon: :
+        elseExpression2: NullLiteral
+          literal: null
+    rightParenthesis: )
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: f
   argumentList: ArgumentList
@@ -878,9 +1504,37 @@ var x = f(a<b,c>?.toString());
 //              ^^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.methodInvocation('f(');
+    var node = parseResult.findNode.parsedExpression('f(');
     assertParsedNodeText(node, r'''
-MethodInvocation
+ParsedValueArguments
+  operand: ParsedUnqualifiedName
+    name: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      BinaryOperatorInvocation
+        leftOperand: ParsedUnqualifiedName
+          name: a
+        operator: <
+        rightOperand: ParsedUnqualifiedName
+          name: b
+        binaryOperator: lessThan
+      BinaryOperatorInvocation
+        leftOperand: ParsedUnqualifiedName
+          name: c
+        operator: >
+        rightOperand: ParsedValueArguments
+          operand: ParsedNameAccess
+            operand: ParsedUnqualifiedName
+              name: <empty> <synthetic>
+            operator: ?.
+            name: toString
+          argumentList: ArgumentList
+            leftParenthesis: (
+            rightParenthesis: )
+        binaryOperator: greaterThan
+    rightParenthesis: )
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: f
   argumentList: ArgumentList
@@ -915,9 +1569,44 @@ var x = f(a<b,c>?.foo<c>());
 //              ^^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.methodInvocation('f(');
+    var node = parseResult.findNode.parsedExpression('f(');
     assertParsedNodeText(node, r'''
-MethodInvocation
+ParsedValueArguments
+  operand: ParsedUnqualifiedName
+    name: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      BinaryOperatorInvocation
+        leftOperand: ParsedUnqualifiedName
+          name: a
+        operator: <
+        rightOperand: ParsedUnqualifiedName
+          name: b
+        binaryOperator: lessThan
+      BinaryOperatorInvocation
+        leftOperand: ParsedUnqualifiedName
+          name: c
+        operator: >
+        rightOperand: ParsedValueArguments
+          operand: ParsedTypeArguments
+            operand: ParsedNameAccess
+              operand: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              operator: ?.
+              name: foo
+            typeArguments: TypeArgumentList
+              leftBracket: <
+              arguments
+                NamedType
+                  name: c
+              rightBracket: >
+          argumentList: ArgumentList
+            leftParenthesis: (
+            rightParenthesis: )
+        binaryOperator: greaterThan
+    rightParenthesis: )
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: f
   argumentList: ArgumentList
@@ -960,9 +1649,36 @@ var x = f(a<b,c>?..toString());
 //                 ^^^^^^^^
 // [diag.expectedToken] Expected to find ','.
 ''');
-    var node = parseResult.findNode.methodInvocation('f(');
+    var node = parseResult.findNode.parsedExpression('f(');
     assertParsedNodeText(node, r'''
-MethodInvocation
+ParsedValueArguments
+  operand: ParsedUnqualifiedName
+    name: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      BinaryOperatorInvocation
+        leftOperand: ParsedUnqualifiedName
+          name: a
+        operator: <
+        rightOperand: ParsedUnqualifiedName
+          name: b
+        binaryOperator: lessThan
+      BinaryOperatorInvocation
+        leftOperand: ParsedUnqualifiedName
+          name: c
+        operator: >
+        rightOperand: ParsedUnqualifiedName
+          name: <empty> <synthetic>
+        binaryOperator: greaterThan
+      ParsedValueArguments
+        operand: ParsedUnqualifiedName
+          name: toString
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+    rightParenthesis: )
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: f
   argumentList: ArgumentList
@@ -996,9 +1712,33 @@ var x = f(a<b,c>?.hashCode);
 //              ^^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleMethodInvocation;
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-MethodInvocation
+ParsedValueArguments
+  operand: ParsedUnqualifiedName
+    name: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      BinaryOperatorInvocation
+        leftOperand: ParsedUnqualifiedName
+          name: a
+        operator: <
+        rightOperand: ParsedUnqualifiedName
+          name: b
+        binaryOperator: lessThan
+      BinaryOperatorInvocation
+        leftOperand: ParsedUnqualifiedName
+          name: c
+        operator: >
+        rightOperand: ParsedNameAccess
+          operand: ParsedUnqualifiedName
+            name: <empty> <synthetic>
+          operator: ?.
+          name: hashCode
+        binaryOperator: greaterThan
+    rightParenthesis: )
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: f
   argumentList: ArgumentList
@@ -1030,9 +1770,34 @@ var x = f(a<b,c> ?? d);
 //               ^^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleMethodInvocation;
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-MethodInvocation
+ParsedValueArguments
+  operand: ParsedUnqualifiedName
+    name: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      BinaryOperatorInvocation
+        leftOperand: ParsedUnqualifiedName
+          name: a
+        operator: <
+        rightOperand: ParsedUnqualifiedName
+          name: b
+        binaryOperator: lessThan
+      IfNull
+        leftOperand: BinaryOperatorInvocation
+          leftOperand: ParsedUnqualifiedName
+            name: c
+          operator: >
+          rightOperand: ParsedUnqualifiedName
+            name: <empty> <synthetic>
+          binaryOperator: greaterThan
+        operator: ??
+        rightOperand: ParsedUnqualifiedName
+          name: d
+    rightParenthesis: )
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: f
   argumentList: ArgumentList
@@ -1064,9 +1829,35 @@ var x = f(a<b,c>/d);
 //              ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleMethodInvocation;
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-MethodInvocation
+ParsedValueArguments
+  operand: ParsedUnqualifiedName
+    name: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      BinaryOperatorInvocation
+        leftOperand: ParsedUnqualifiedName
+          name: a
+        operator: <
+        rightOperand: ParsedUnqualifiedName
+          name: b
+        binaryOperator: lessThan
+      BinaryOperatorInvocation
+        leftOperand: ParsedUnqualifiedName
+          name: c
+        operator: >
+        rightOperand: BinaryOperatorInvocation
+          leftOperand: ParsedUnqualifiedName
+            name: <empty> <synthetic>
+          operator: /
+          rightOperand: ParsedUnqualifiedName
+            name: d
+          binaryOperator: divide
+        binaryOperator: greaterThan
+    rightParenthesis: )
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: f
   argumentList: ArgumentList
@@ -1098,9 +1889,35 @@ var x = f(a<b,c>~/d);
 //              ^^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleMethodInvocation;
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-MethodInvocation
+ParsedValueArguments
+  operand: ParsedUnqualifiedName
+    name: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      BinaryOperatorInvocation
+        leftOperand: ParsedUnqualifiedName
+          name: a
+        operator: <
+        rightOperand: ParsedUnqualifiedName
+          name: b
+        binaryOperator: lessThan
+      BinaryOperatorInvocation
+        leftOperand: ParsedUnqualifiedName
+          name: c
+        operator: >
+        rightOperand: BinaryOperatorInvocation
+          leftOperand: ParsedUnqualifiedName
+            name: <empty> <synthetic>
+          operator: ~/
+          rightOperand: ParsedUnqualifiedName
+            name: d
+          binaryOperator: truncatingDivide
+        binaryOperator: greaterThan
+    rightParenthesis: )
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: f
   argumentList: ArgumentList
@@ -1130,9 +1947,25 @@ MethodInvocation
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = x[0]<a, b>;
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer!;
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-FunctionReference
+ParsedTypeArguments
+  operand: ReceiverIndexExpression
+    receiver: ParsedUnqualifiedName
+      name: x
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+    rightBracket: ]
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: a
+      NamedType
+        name: b
+    rightBracket: >
+V1: FunctionReference
   function: IndexExpression
     target: SimpleIdentifier
       token: x
@@ -1155,9 +1988,27 @@ FunctionReference
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = x[0]!<a, b>;
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer!;
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-FunctionReference
+ParsedTypeArguments
+  operand: NullAssertionExpression
+    operand: ReceiverIndexExpression
+      receiver: ParsedUnqualifiedName
+        name: x
+      leftBracket: [
+      index: IntegerLiteral
+        literal: 0
+      rightBracket: ]
+    operator: !
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: a
+      NamedType
+        name: b
+    rightBracket: >
+V1: FunctionReference
   function: PostfixExpression
     operand: IndexExpression
       target: SimpleIdentifier
@@ -1182,9 +2033,29 @@ FunctionReference
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = x[0]()<a, b>;
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer!;
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-FunctionReference
+ParsedTypeArguments
+  operand: CallInvocation
+    receiver: ReceiverIndexExpression
+      receiver: ParsedUnqualifiedName
+        name: x
+      leftBracket: [
+      index: IntegerLiteral
+        literal: 0
+      rightBracket: ]
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: a
+      NamedType
+        name: b
+    rightBracket: >
+V1: FunctionReference
   function: FunctionExpressionInvocation
     function: IndexExpression
       target: SimpleIdentifier
@@ -1211,9 +2082,26 @@ FunctionReference
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = x?[0]<a, b>;
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer!;
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-FunctionReference
+ParsedTypeArguments
+  operand: ReceiverIndexExpression
+    receiver: ParsedUnqualifiedName
+      name: x
+    question: ?
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+    rightBracket: ]
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: a
+      NamedType
+        name: b
+    rightBracket: >
+V1: FunctionReference
   function: IndexExpression
     target: SimpleIdentifier
       token: x
@@ -1237,9 +2125,27 @@ FunctionReference
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = f().m<a, b>;
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer!;
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-FunctionReference
+ParsedTypeArguments
+  operand: ParsedNameAccess
+    operand: ParsedValueArguments
+      operand: ParsedUnqualifiedName
+        name: f
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+    operator: .
+    name: m
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: a
+      NamedType
+        name: b
+    rightBracket: >
+V1: FunctionReference
   function: PropertyAccess
     target: MethodInvocation
       methodName: SimpleIdentifier
@@ -1265,9 +2171,20 @@ FunctionReference
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = f()..m<a, b>;
 ''');
-    var node = parseResult.findNode.singleCascadeExpression.cascadeSections[0];
+    var node = parseResult.findNode.singleCascadeExpression.sections[0].body;
     assertParsedNodeText(node, r'''
-FunctionReference
+ParsedTypeArguments
+  operand: ParsedCascadeName
+    name: m
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: a
+      NamedType
+        name: b
+    rightBracket: >
+V1: FunctionReference
   function: PropertyAccess
     operator: ..
     propertyName: SimpleIdentifier
@@ -1287,9 +2204,23 @@ FunctionReference
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = prefix.f<a, b>;
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer!;
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-FunctionReference
+ParsedTypeArguments
+  operand: ParsedNameAccess
+    operand: ParsedUnqualifiedName
+      name: prefix
+    operator: .
+    name: f
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: a
+      NamedType
+        name: b
+    rightBracket: >
+V1: FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: prefix
@@ -1311,9 +2242,26 @@ FunctionReference
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = prefix.ClassName.m<a, b>;
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer!;
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-FunctionReference
+ParsedTypeArguments
+  operand: ParsedNameAccess
+    operand: ParsedNameAccess
+      operand: ParsedUnqualifiedName
+        name: prefix
+      operator: .
+      name: ClassName
+    operator: .
+    name: m
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: a
+      NamedType
+        name: b
+    rightBracket: >
+V1: FunctionReference
   function: PropertyAccess
     target: PrefixedIdentifier
       prefix: SimpleIdentifier

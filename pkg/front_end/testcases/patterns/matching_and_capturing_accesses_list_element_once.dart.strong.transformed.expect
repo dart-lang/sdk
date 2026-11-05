@@ -368,8 +368,8 @@ abstract class _A&Object&ListMixin extends core::Object implements col::ListBase
       }
     }
     else {
-      for (core::int i = 0; i.{core::num::<}(length){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
-        this.{core::List::[]=}(start.{core::num::+}(i){(core::num) → core::int}, otherList.{core::List::[]}(otherStart.{core::num::+}(i){(core::num) → core::int}){(core::int) → core::int}){(core::int, core::int) → void};
+      for (core::int i##1 = 0; i##1.{core::num::<}(length){(core::num) → core::bool}; i##1 = i##1.{core::num::+}(1){(core::num) → core::int}) {
+        this.{core::List::[]=}(start.{core::num::+}(i##1){(core::num) → core::int}, otherList.{core::List::[]}(otherStart.{core::num::+}(i##1){(core::num) → core::int}){(core::int) → core::int}){(core::int, core::int) → void};
       }
     }
   }
@@ -413,14 +413,14 @@ abstract class _A&Object&ListMixin extends core::Object implements col::ListBase
       else {
         core::int delta = insertLength.{core::num::-}(removeLength){(core::num) → core::int};
         core::int oldLength = this.{core::List::length}{core::int};
-        core::int insertEnd = start.{core::num::+}(insertLength){(core::num) → core::int};
-        for (core::int i = oldLength.{core::num::-}(delta){(core::num) → core::int}; i.{core::num::<}(oldLength){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
-          this.{col::ListBase::add}(this.{core::List::[]}(i.{core::num::>}(0){(core::num) → core::bool} ?{core::int} i : 0){(core::int) → core::int}){(core::int) → void};
+        core::int insertEnd##1 = start.{core::num::+}(insertLength){(core::num) → core::int};
+        for (core::int i##1 = oldLength.{core::num::-}(delta){(core::num) → core::int}; i##1.{core::num::<}(oldLength){(core::num) → core::bool}; i##1 = i##1.{core::num::+}(1){(core::num) → core::int}) {
+          this.{col::ListBase::add}(this.{core::List::[]}(i##1.{core::num::>}(0){(core::num) → core::bool} ?{core::int} i##1 : 0){(core::int) → core::int}){(core::int) → void};
         }
-        if(insertEnd.{core::num::<}(oldLength){(core::num) → core::bool}) {
-          this.{col::ListBase::setRange}(insertEnd, oldLength, this, end){(core::int, core::int, core::Iterable<core::int>, [core::int]) → void};
+        if(insertEnd##1.{core::num::<}(oldLength){(core::num) → core::bool}) {
+          this.{col::ListBase::setRange}(insertEnd##1, oldLength, this, end){(core::int, core::int, core::Iterable<core::int>, [core::int]) → void};
         }
-        this.{col::ListBase::setRange}(start, insertEnd, newContents){(core::int, core::int, core::Iterable<core::int>, [core::int]) → void};
+        this.{col::ListBase::setRange}(start, insertEnd##1, newContents){(core::int, core::int, core::Iterable<core::int>, [core::int]) → void};
       }
   }
   method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ indexOf(covariant-by-class core::Object? element, [core::int start = #C7]) → core::int {

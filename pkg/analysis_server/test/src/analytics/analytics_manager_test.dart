@@ -525,7 +525,7 @@ class AnalyticsManagerTest with ResourceProviderMixin {
   Future<void> test_startup_withPlugins() async {
     _defaultStartup();
     await manager.changedPlugins(
-      TestPluginManager()
+      TestPluginManager(resourceProvider)
         ..pluginIsolates.addAll([_pluginIsolate('a'), _pluginIsolate('b')]),
     );
     await manager.shutdown();

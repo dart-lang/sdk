@@ -256,4 +256,14 @@ class A([int x = y]);
 // [diag.nonConstantDefaultValue] The default value of an optional parameter must be constant.
 ''');
   }
+
+  test_topLevelConstant_declaredLater() async {
+    await resolveTestCode('''
+class A {
+  static void f([Object? value = sentinelValue]) {}
+}
+
+const Object sentinelValue = 0;
+''');
+  }
 }

@@ -40,12 +40,8 @@ class UnrelatedTypeEqualityChecks extends MultiAnalysisRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final MultiAnalysisRule rule;
-  final TypeSystem typeSystem;
-
-  new(this.rule, this.typeSystem);
-
+class _Visitor(final MultiAnalysisRule rule, final TypeSystem typeSystem)
+    extends SimpleAstVisitor<void> {
   @override
   void visitBinaryExpression(BinaryExpression node) {
     var isDartCoreBoolean = node.staticType?.isDartCoreBool ?? false;

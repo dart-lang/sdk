@@ -1,0 +1,17 @@
+T id<T>(T t) => t;
+
+List<int>? nullableIntList1 = [0, 1, 2];
+
+List<int>? nullableIntList2 = null;
+
+var intList = [0, 1, 2];
+
+List<num> numList = [0, 1, 2];
+
+var intIntList = [(0, 1), (2, 3)];
+
+num? nullableNum1 = 0;
+
+num? nullableNum2 = null;
+
+main() {}

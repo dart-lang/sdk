@@ -17,15 +17,12 @@ void main() {
 }
 
 @reflectiveTest
-class FlutterWrapSizedBoxTest extends AssistProcessorTest {
+class FlutterWrapSizedBoxTest extends BuiltInAssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.flutterWrapSizedBox;
+  bool get addFlutterPackageDep => true;
 
   @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(flutter: true);
-  }
+  AssistKind get kind => DartAssistKind.flutterWrapSizedBox;
 
   Future<void> test_aroundContainer() async {
     await resolveTestCode('''

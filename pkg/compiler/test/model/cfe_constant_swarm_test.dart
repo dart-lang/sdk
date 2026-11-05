@@ -6,6 +6,7 @@ import 'package:args/args.dart';
 import 'package:expect/async_helper.dart';
 
 import '../helpers/args_helper.dart';
+
 import 'package:compiler/src/util/memory_compiler.dart';
 
 main(List<String> args) {

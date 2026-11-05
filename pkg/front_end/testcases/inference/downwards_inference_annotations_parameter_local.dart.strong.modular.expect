@@ -9,7 +9,7 @@ class Foo extends core::Object /*hasConstConstructor*/  {
 }
 static method test() → void {
   function f(@#C1 dynamic x) → void {}
-  (dynamic) → Null x = (@#C1 dynamic x) → Null {};
+  (dynamic) → Null x##1 = (@#C1 dynamic x##2) → Null {};
 }
 static method main() → dynamic {}
 

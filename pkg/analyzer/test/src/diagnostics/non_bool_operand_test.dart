@@ -27,7 +27,7 @@ bool f(int left, bool right) {
 ''');
   }
 
-  test_and_left_fromInstanceCreationExpression() async {
+  test_and_left_fromConstructorInvocation() async {
     await resolveTestCodeWithDiagnostics(r'''
 main() {
   new Object() && true;

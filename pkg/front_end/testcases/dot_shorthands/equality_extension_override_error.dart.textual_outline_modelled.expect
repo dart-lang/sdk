@@ -1,0 +1,8 @@
+class C {
+  const C();
+  static const member = C();
+}
+
+extension E on int {}
+
+void test() {}

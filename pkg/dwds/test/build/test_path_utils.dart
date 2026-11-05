@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:isolate';
+
 import 'package:path/path.dart' as p;
 
 /// Returns the path to the `dwds` package root directory.

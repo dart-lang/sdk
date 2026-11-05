@@ -1,0 +1,17 @@
+typedef a(x, x);
+
+typedef b(x, [x]);
+
+typedef c([x, x]);
+
+typedef int F1(_, int _);
+
+typedef int F2(_, int _, [_, int _]);
+
+typedef int F3<T>(T _, T _, [T? _, T? _]);
+
+typedef F4 = int Function(dynamic _, int _);
+
+typedef F5 = int Function(dynamic _, int _, [dynamic _, int _]);
+
+typedef F6<T> = int Function(T _, T _, [T? _, T? _]);

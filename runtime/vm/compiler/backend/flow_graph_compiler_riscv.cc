@@ -1052,11 +1052,7 @@ void FlowGraphCompiler::EmitNativeLoad(Register dst,
       return;
     case compiler::ffi::kUint32:
     case compiler::ffi::kFloat:
-#if XLEN == 32
-      __ lw(dst, compiler::Address(base, offset));
-#else
       __ lwu(dst, compiler::Address(base, offset));
-#endif
       return;
 #if XLEN >= 64
     case compiler::ffi::kInt64:

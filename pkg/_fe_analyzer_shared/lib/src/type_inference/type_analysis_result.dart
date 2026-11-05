@@ -4,6 +4,7 @@
 
 import '../flow_analysis/flow_analysis.dart';
 import '../types/shared_type.dart';
+import 'promotion_key_store.dart';
 import 'type_analyzer.dart';
 
 /// Result for analyzing an assigned variable pattern in
@@ -210,7 +211,7 @@ class MatchContext<
 
   /// For each variable name in the pattern, the promotion key holding the value
   /// captured by that variable.
-  final Map<String, int> patternVariablePromotionKeys;
+  final Map<String, PromotionKey> patternVariablePromotionKeys;
 
   /// If non-null, the warning that should be issued if the pattern is `_`
   final UnnecessaryWildcardKind? unnecessaryWildcardKind;
@@ -242,7 +243,7 @@ class MatchContext<
   /// Returns a modified version of `this`, with a new value of
   /// [patternVariablePromotionKeys].
   MatchContext<Node, Expression, Pattern, Variable> withPromotionKeys(
-    Map<String, int> patternVariablePromotionKeys,
+    Map<String, PromotionKey> patternVariablePromotionKeys,
   ) => new MatchContext(
     irrefutableContext: irrefutableContext,
     isFinal: isFinal,

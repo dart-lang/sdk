@@ -5,10 +5,11 @@
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
+import 'package:analyzer_testing/src/single_unit.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../../abstract_single_unit.dart';
+import '../../../../find_element.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -17,7 +18,7 @@ void main() {
 }
 
 @reflectiveTest
-class SuggestionBuilderTest extends AbstractSingleUnitTest {
+class SuggestionBuilderTest extends SingleUnitTest with FindElementMixin {
   void assertSuggestion(
     CompletionSuggestion suggestion, {
     String? expectedDefaultArgumentList,
@@ -34,7 +35,7 @@ class SuggestionBuilderTest extends AbstractSingleUnitTest {
       offset: 0,
     );
     var builder = SuggestionBuilder(request, useFilter: false);
-    builder.suggestTopLevelFunction(findElement2.topFunction('f'));
+    builder.suggestTopLevelFunction(findElement.topFunction('f'));
     var suggestions = builder.suggestions.map((e) => e.build()).toList();
     expect(suggestions, hasLength(1));
     return suggestions[0];

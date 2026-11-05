@@ -21,28 +21,30 @@ class SubtypeInstrumenterConfig implements InstrumenterConfig {
 
   @override
   Arguments createAfterArguments(List<String> namesById) {
-    return new Arguments([]);
+    return new Arguments.empty();
   }
 
   @override
   Arguments createBeforeArguments(List<String> namesById) {
-    return new Arguments([]);
+    return new Arguments.empty();
   }
 
   @override
   Arguments createEnterArguments(int id, Member member) {
     FunctionNode function = member.function!;
-    return new Arguments([
-      new ThisExpression(),
-      ...function.positionalParameters.map<Expression>(
-        (e) => new VariableGet(e),
+    return new Arguments(
+      new ExpressionList.generate(
+        1 + function.positionalParameters.length,
+        (i) => i == 0
+            ? new ThisExpression()
+            : new VariableGet(function.positionalParameters[i - 1]),
       ),
-    ]);
+    );
   }
 
   @override
   Arguments createExitArguments(int id, Member member) {
-    return new Arguments([]);
+    return new Arguments.empty();
   }
 
   @override

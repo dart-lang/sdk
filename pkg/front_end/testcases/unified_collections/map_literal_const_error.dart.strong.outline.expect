@@ -1,0 +1,16 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static const field core::List<core::int> intList = const <core::int>[3, 4, 5];
+static const field core::Map<core::int, core::String> intMap = const <core::int, core::String>{0: "0", 1: "1", 2: "2"};
+static const field core::List<(core::int, core::int)> intIntList = const <(core::int, core::int)>[const (12, 13), const (14, 15)];
+static method test() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ListLiteral @ org-dartlang-testcase:///map_literal_const_error.dart:5:32 -> ListConstant(const <int>[3, 4, 5])
+Evaluated: MapLiteral @ org-dartlang-testcase:///map_literal_const_error.dart:6:46 -> MapConstant(const <int, String>{0: "0", 1: "1", 2: "2"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///map_literal_const_error.dart:7:49 -> ListConstant(const <(int, int)>[const (12, 13), const (14, 15)])
+Extra constant evaluation: evaluated: 3, effectively constant: 3

@@ -16,13 +16,18 @@ class Box {
   int foo = 0;
 }
 
+// This is effectively shared, which is currently not allowed, but
+// we still want to have tests that shows tsan diagnostic in presence
+// of data races accessing list elements.
+Box box = getObjectFromAddr(boxAddr) as Box;
+
 @pragma("vm:entry-point")
 @pragma("vm:shared")
-Box? box;
+final int boxAddr = getAddrFromObject(Box());
 
 @pragma("vm:never-inline")
 dataRaceFromMain() {
-  final localBox = box!;
+  final localBox = box;
   for (var i = 0; i < 50000; i++) {
     usleep(100);
     var t = localBox.foo;
@@ -33,7 +38,7 @@ dataRaceFromMain() {
 
 @pragma("vm:never-inline")
 dataRaceFromChild() {
-  final localBox = box!;
+  final localBox = box;
   for (var i = 0; i < 50000; i++) {
     usleep(100);
     var t = localBox.foo;
@@ -48,17 +53,16 @@ child(replyPort) {
 }
 
 final nativeLib = dlopenPlatformSpecific('ffi_test_functions');
-
-final getRootLibraryUrl = nativeLib
-    .lookupFunction<Handle Function(), Object Function()>('GetRootLibraryUrl');
-
-final setFfiNativeResolverForTest = nativeLib
-    .lookupFunction<Void Function(Handle), void Function(Object)>(
-      'SetFfiNativeResolverForTest',
+final getAddrFromObject = nativeLib
+    .lookupFunction<IntPtr Function(Handle), int Function(Object)>(
+      'GetAddrFromObject',
     );
-
-@Native<IntPtr Function(Handle, Handle, Handle)>(symbol: 'UnsafeSetSharedTo')
-external int unsafeSetSharedTo(Object library_name, String name, Object value);
+final getObjectFromAddr = nativeLib
+    .lookupFunction<Handle Function(IntPtr), Object Function(int)>(
+      'GetObjectFromAddr',
+    );
+final releaseAddr = nativeLib
+    .lookupFunction<Void Function(IntPtr), void Function(int)>('ReleaseAddr');
 
 // Leaf: we don't want the two threads to synchronize via safepoint.
 final usleep = DynamicLibrary.process()
@@ -69,9 +73,6 @@ final usleep = DynamicLibrary.process()
 
 main(List<String> arguments) {
   if (arguments.contains("--testee")) {
-    setFfiNativeResolverForTest(getRootLibraryUrl());
-    unsafeSetSharedTo(getRootLibraryUrl(), "box", Box());
-
     // Avoid synchronizing via lazy compilation.
     usleep(0);
     box!.foo += 0;

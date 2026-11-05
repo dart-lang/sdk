@@ -60,6 +60,9 @@ abstract class CompilerConfiguration {
 
   bool get _enableAsserts => _configuration.enableAsserts;
 
+  bool get isWasmBrowserConfiguration =>
+      _configuration.runtime.isBrowser && !_configuration.isDart2wasmStandalone;
+
   /// Whether to run the runtime on the compilation result of a test which
   /// expects a compile-time error and the compiler did not emit one.
   bool get runRuntimeDespiteMissingCompileTimeError => false;
@@ -571,6 +574,7 @@ class Dart2WasmCompilerConfiguration extends CompilerConfiguration {
     return [
       if (!_useSdk && _enableHostAsserts) '--compiler-asserts',
       if (_enableAsserts) '--enable-asserts',
+      if (isWasmBrowserConfiguration) '--enable-deferred-loading',
       ...testFile.sharedOptions,
       ..._configuration.sharedOptions,
       ..._experimentsArgument(_configuration, testFile),
@@ -913,7 +917,8 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
 
   bool get _isArm64 =>
       _configuration.architecture == Architecture.arm64 ||
-      _configuration.architecture == Architecture.arm64c;
+      _configuration.architecture == Architecture.arm64c ||
+      _configuration.architecture == Architecture.arm64e;
 
   bool get _isX64 =>
       _configuration.architecture == Architecture.x64 ||
@@ -1244,6 +1249,9 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
         case Architecture.simarm64:
         case Architecture.simarm64c:
           target = ['-arch', 'arm64'];
+          break;
+        case Architecture.arm64e:
+          target = ['-arch', 'arm64e'];
           break;
         case Architecture.riscv32:
         case Architecture.simriscv32:
@@ -2082,6 +2090,10 @@ class ModularAotCompilerConfiguration extends CompilerConfiguration {
       ? '${_configuration.buildDirectory}/dart-sdk/lib/_internal/vm_platform.dill'
       : '${_configuration.buildDirectory}/vm_platform.dill';
 
+  String _platformSnapshotFile() => _useSdk
+      ? '${_configuration.buildDirectory}/dart-sdk/bin/snapshots/platform.dylib'
+      : '${_configuration.buildDirectory}/gen/platform.dylib';
+
   String _tempBytecodeFile(String tempDir) =>
       Path('$tempDir/out.bytecode').toNativePath();
 
@@ -2226,6 +2238,7 @@ class ModularAotCompilerConfiguration extends CompilerConfiguration {
       ...testFile.sharedOptions,
       ..._configuration.sharedOptions,
       ..._experimentsArgument(_configuration, testFile),
+      '--load-module-snapshot=${_platformSnapshotFile()}',
       '--load-module-snapshot=${_tempSnapshotFile(dir)}',
       ..._replaceDartFiles(originalArguments, _tempBytecodeFile(dir)),
       ...testFile.dartOptions,

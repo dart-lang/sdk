@@ -16,11 +16,11 @@ static method main() → void {
     }
   }
   {
-    core::int p = 1;
+    core::int p##1 = 1;
     Null #t2;
     #L2:
     {
-      p;
+      p##1;
       {
         #t2 = null;
         break #L2;
@@ -28,11 +28,11 @@ static method main() → void {
     }
   }
   {
-    core::int p = 1;
+    core::int p##2 = 1;
     Null #t3;
     #L3:
     {
-      p.{core::int::isEven}{core::bool};
+      p##2.{core::int::isEven}{core::bool};
       {
         #t3 = null;
         break #L3;
@@ -40,7 +40,7 @@ static method main() → void {
     }
   }
   {
-    core::int p = 1;
+    core::int p##3 = 1;
     core::int #t4;
     #L4:
     {
@@ -51,23 +51,23 @@ static method main() → void {
     }
   }
   {
-    core::int p = 1;
+    core::int p##4 = 1;
     core::int #t5;
     #L5:
     {
       {
-        #t5 = p;
+        #t5 = p##4;
         break #L5;
       }
     }
   }
   {
-    core::int p = 1;
+    core::int p##5 = 1;
     core::bool #t6;
     #L6:
     {
       {
-        #t6 = p.{core::int::isEven}{core::bool};
+        #t6 = p##5.{core::int::isEven}{core::bool};
         break #L6;
       }
     }

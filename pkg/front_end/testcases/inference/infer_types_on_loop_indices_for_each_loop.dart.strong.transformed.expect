@@ -89,82 +89,82 @@ static method test() → dynamic {
     }
   }
   {
-    synthesized core::Iterator<self::Foo> :sync-for-iterator = list.{core::Iterable::iterator}{core::Iterator<self::Foo>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      dynamic x = :sync-for-iterator.{core::Iterator::current}{self::Foo};
+    synthesized core::Iterator<self::Foo> :sync-for-iterator##1 = list.{core::Iterable::iterator}{core::Iterator<self::Foo>};
+    for (; :sync-for-iterator##1.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      dynamic x##1 = :sync-for-iterator##1.{core::Iterator::current}{self::Foo};
       {
-        core::String y = x as{TypeError,ForDynamic} core::String;
+        core::String y##1 = x##1 as{TypeError,ForDynamic} core::String;
       }
     }
   }
   {
-    synthesized core::Iterator<self::Foo> :sync-for-iterator = list.{core::Iterable::iterator}{core::Iterator<self::Foo>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final self::Foo #t1 = :sync-for-iterator.{core::Iterator::current}{self::Foo};
+    synthesized core::Iterator<self::Foo> :sync-for-iterator##2 = list.{core::Iterable::iterator}{core::Iterator<self::Foo>};
+    for (; :sync-for-iterator##2.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final self::Foo #t1 = :sync-for-iterator##2.{core::Iterator::current}{self::Foo};
       {
-        core::String x = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart:38:15: Error: A value of type 'Foo' can't be assigned to a variable of type 'String'.
+        core::String x##2 = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart:38:15: Error: A value of type 'Foo' can't be assigned to a variable of type 'String'.
  - 'Foo' is from 'pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart'.
 Try changing the type of the variable.
   for (String x in /*error:FOR_IN_OF_INVALID_ELEMENT_TYPE*/ list) {
               ^" in #t1 as{TypeError} core::String;
-        core::String y = x;
+        core::String y##2 = x##2;
       }
     }
   }
   dynamic z;
   {
-    synthesized core::Iterator<self::Foo> :sync-for-iterator = list.{core::Iterable::iterator}{core::Iterator<self::Foo>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final self::Foo #t2 = :sync-for-iterator.{core::Iterator::current}{self::Foo};
+    synthesized core::Iterator<self::Foo> :sync-for-iterator##3 = list.{core::Iterable::iterator}{core::Iterator<self::Foo>};
+    for (; :sync-for-iterator##3.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final self::Foo #t2 = :sync-for-iterator##3.{core::Iterator::current}{self::Foo};
       {
         z = #t2;
-        core::String y = z as{TypeError,ForDynamic} core::String;
+        core::String y##3 = z as{TypeError,ForDynamic} core::String;
       }
     }
   }
   core::Iterable<dynamic> iter = list;
   {
-    synthesized core::Iterator<dynamic> :sync-for-iterator = iter.{core::Iterable::iterator}{core::Iterator<dynamic>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final dynamic #t3 = :sync-for-iterator.{core::Iterator::current}{dynamic};
+    synthesized core::Iterator<dynamic> :sync-for-iterator##4 = iter.{core::Iterable::iterator}{core::Iterator<dynamic>};
+    for (; :sync-for-iterator##4.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final dynamic #t3 = :sync-for-iterator##4.{core::Iterator::current}{dynamic};
       {
-        self::Foo x = #t3 as{TypeError,ForDynamic} self::Foo;
-        self::Foo y = x;
+        self::Foo x##3 = #t3 as{TypeError,ForDynamic} self::Foo;
+        self::Foo y##4 = x##3;
       }
     }
   }
   dynamic iter2 = list;
   {
-    synthesized core::Iterator<dynamic> :sync-for-iterator = (iter2 as{TypeError,ForDynamic} core::Iterable<dynamic>).{core::Iterable::iterator}{core::Iterator<dynamic>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final dynamic #t4 = :sync-for-iterator.{core::Iterator::current}{dynamic};
+    synthesized core::Iterator<dynamic> :sync-for-iterator##5 = (iter2 as{TypeError,ForDynamic} core::Iterable<dynamic>).{core::Iterable::iterator}{core::Iterator<dynamic>};
+    for (; :sync-for-iterator##5.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final dynamic #t4 = :sync-for-iterator##5.{core::Iterator::current}{dynamic};
       {
-        self::Foo x = #t4 as{TypeError,ForDynamic} self::Foo;
-        self::Foo y = x;
+        self::Foo x##4 = #t4 as{TypeError,ForDynamic} self::Foo;
+        self::Foo y##5 = x##4;
       }
     }
   }
   core::Map<core::String, self::Foo> map = <core::String, self::Foo>{};
   {
-    synthesized core::Iterator<Never> :sync-for-iterator = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart:59:50: Error: The type 'Map<String, Foo>' used in the 'for' loop must implement 'Iterable<dynamic>'.
+    synthesized core::Iterator<Never> :sync-for-iterator##6 = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart:59:50: Error: The type 'Map<String, Foo>' used in the 'for' loop must implement 'Iterable<dynamic>'.
  - 'Map' is from 'dart:core'.
  - 'Foo' is from 'pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart'.
  - 'Iterable' is from 'dart:core'.
   for (var x in /*error:FOR_IN_OF_INVALID_TYPE*/ map) {
                                                  ^" in map as{TypeError} core::Iterable<dynamic>.{core::Iterable::iterator}{core::Iterator<Never>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      dynamic x = :sync-for-iterator.{core::Iterator::current}{Never};
+    for (; :sync-for-iterator##6.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      dynamic x##5 = :sync-for-iterator##6.{core::Iterator::current}{Never};
       {
-        core::String y = x as{TypeError,ForDynamic} core::String;
+        core::String y##6 = x##5 as{TypeError,ForDynamic} core::String;
       }
     }
   }
   {
-    synthesized core::Iterator<core::String> :sync-for-iterator = map.{core::Map::keys}{core::Iterable<core::String>}.{core::Iterable::iterator}{core::Iterator<core::String>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      core::String x = :sync-for-iterator.{core::Iterator::current}{core::String};
+    synthesized core::Iterator<core::String> :sync-for-iterator##7 = map.{core::Map::keys}{core::Iterable<core::String>}.{core::Iterable::iterator}{core::Iterator<core::String>};
+    for (; :sync-for-iterator##7.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      core::String x##6 = :sync-for-iterator##7.{core::Iterator::current}{core::String};
       {
-        core::String y = x;
+        core::String y##7 = x##6;
       }
     }
   }

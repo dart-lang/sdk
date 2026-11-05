@@ -8,6 +8,7 @@ import 'package:analysis_server/src/utilities/strings.dart';
 import 'package:analyzer/dart/analysis/code_style_options.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -331,7 +332,7 @@ class _PriorityItem {
   new(this.isStatic, this.kind, this.isPrivate);
 
   factory forName(bool isStatic, String name, _MemberKind kind) {
-    var isPrivate = Identifier.isPrivateName(name);
+    var isPrivate = name.isPrivateName;
     return _PriorityItem(isStatic, kind, isPrivate);
   }
 

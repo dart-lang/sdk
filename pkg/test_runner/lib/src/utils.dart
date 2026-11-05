@@ -300,28 +300,8 @@ class TestUtils {
   }
 
   static Future deleteDirectory(String path) {
-    // We are seeing issues with long path names on windows when
-    // deleting them. Use the system tools to delete our long paths.
-    // See issue 16264.
-    if (Platform.operatingSystem == 'windows') {
-      var nativePath = Path(path).toNativePath();
-      // Running this in a shell sucks, but rmdir is not part of the standard
-      // path.
-      return Process.run('rmdir', [
-        '/s',
-        '/q',
-        nativePath,
-      ], runInShell: true).then((ProcessResult result) {
-        if (result.exitCode != 0) {
-          throw Exception(
-            "Can't delete path $nativePath. This path might be too long",
-          );
-        }
-      });
-    } else {
-      var dir = Directory(path);
-      return dir.delete(recursive: true);
-    }
+    var dir = Directory(path);
+    return dir.delete(recursive: true);
   }
 
   static void deleteTempSnapshotDirectory(TestConfiguration configuration) {
@@ -449,4 +429,32 @@ class TestUtils {
     }
     return path;
   }
+}
+
+String oomHelper =
+    "${Directory.current.path}/pkg/test_runner/tool/oom_kill_first";
+
+Future<Process> startProcess(
+  String executable,
+  List<String> arguments, {
+  String? workingDirectory,
+  Map<String, String>? environment,
+}) {
+  // Make the OOM killer prefer to kill the tests instead of the test harness or
+  // swarming client.
+  if (Platform.isLinux) {
+    arguments = [executable, ...arguments];
+    executable = oomHelper;
+  }
+  // TODO(rmacnak): How to reliably find this? What should the limit's value be?
+  // if (Platform.isWindows) {
+  //   arguments = [executable, ...arguments];
+  //   executable = "out\\DebugX64\\job_helper.exe";
+  // }
+  return Process.start(
+    executable,
+    arguments,
+    workingDirectory: workingDirectory,
+    environment: environment,
+  );
 }

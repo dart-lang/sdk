@@ -36,12 +36,8 @@ class UnnecessaryPrimaryConstructorBody extends AnalysisRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final AnalysisRule rule;
-  final TypeSystem typeSystem;
-
-  new(this.rule, this.typeSystem);
-
+class _Visitor(final AnalysisRule rule, final TypeSystem typeSystem)
+    extends SimpleAstVisitor<void> {
   @override
   void visitPrimaryConstructorBody(PrimaryConstructorBody node) {
     var body = node.body;

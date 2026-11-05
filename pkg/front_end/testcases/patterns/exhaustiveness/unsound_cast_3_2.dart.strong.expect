@@ -87,7 +87,6 @@ static method sound1(self::S s) → core::int?
     }
   } =>#t4;
 static method unsound2(self::S s) → core::int {
-  #L3:
   {
     final synthesized self::S #0#0 = s;
     {
@@ -108,7 +107,6 @@ static method unsound2(self::S s) → core::int {
   }
 }
 static method sound2(self::S s) → core::int? {
-  #L4:
   {
     final synthesized self::S #0#0 = s;
     {

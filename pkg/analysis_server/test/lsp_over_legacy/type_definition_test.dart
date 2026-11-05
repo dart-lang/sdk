@@ -25,6 +25,7 @@ final a^ = A();
 ''';
     var code = TestCode.parse(content);
     newFile(testFilePath, code.code);
+    await initializeServer();
     var results = await getTypeDefinitionAsLocation(
       testFileUri,
       code.position.position,

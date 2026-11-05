@@ -442,9 +442,10 @@ class ExpressionCompiler {
   /// [scope] current dart scope information.
   /// [expression] expression to compile in given [scope].
   Future<String?> _compileExpression(DartScope scope, String expression) async {
-    var methodName = scope.member?.name.text;
+    String? methodName;
     var member = scope.member;
     if (member != null) {
+      methodName = member.name.text;
       if (member.isExtensionMember || member.isExtensionTypeMember) {
         methodName = extractQualifiedNameFromExtensionMethodName(methodName);
       }

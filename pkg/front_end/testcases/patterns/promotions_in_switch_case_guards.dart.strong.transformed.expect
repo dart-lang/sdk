@@ -3,7 +3,6 @@ import self as self;
 import "dart:core" as core;
 
 static method test(core::String? x) → dynamic {
-  #L1:
   {
     final synthesized core::String? #0#0 = x;
     dynamic #t1;

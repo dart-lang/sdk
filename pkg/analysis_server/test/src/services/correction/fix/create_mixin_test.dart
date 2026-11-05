@@ -25,6 +25,14 @@ class CreateMixinLowercaseTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.createMixinLowercase;
 
+  Future<void> test_annotation() async {
+    await resolveTestCode('''
+@foo
+void f() {}
+''');
+    await assertNoFix();
+  }
+
   Future<void> test_ifNull_notType() async {
     await resolveTestCode('''
 class A {
@@ -183,6 +191,14 @@ A? a;
 class CreateMixinUppercaseTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.createMixinUppercase;
+
+  Future<void> test_annotation() async {
+    await resolveTestCode('''
+@Foo
+void f() {}
+''');
+    await assertNoFix();
+  }
 
   Future<void> test_hasUnresolvedPrefix() async {
     await resolveTestCode('''

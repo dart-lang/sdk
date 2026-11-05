@@ -868,7 +868,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     });
 
     _addImplicitInstantiation(thisType);
-    List<InterfaceType> instantiatedTypes = List<InterfaceType>.from(
+    List<InterfaceType> instantiatedTypes = List<InterfaceType>.of(
       _currentImplicitInstantiations,
     );
 
@@ -2622,13 +2622,13 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
   ///
   /// In this case we build:
   ///
-  ///    int end = a.length;
-  ///    for (int i = 0;
-  ///         i < a.length;
-  ///         checkConcurrentModificationError(a.length == end, a), ++i) {
-  ///      <declaredIdentifier> = a[i];
-  ///      <body>
-  ///    }
+  ///     int end = a.length;
+  ///     for (int i = 0;
+  ///          i < a.length;
+  ///          checkConcurrentModificationError(a.length == end, a), ++i) {
+  ///       <declaredIdentifier> = a[i];
+  ///       <body>
+  ///     }
   void _buildForInIndexable(ir.ForInStatement node) {
     SyntheticLocal indexVariable = localsHandler.createLocal('_i');
 
@@ -2889,9 +2889,9 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     List<HInstruction> arguments = [pop()];
     ClassEntity cls = _commonElements.streamIterator;
     DartType typeArg = _elementMap.getDartType(node.variable.type);
-    final instanceType =
-        localsHandler.substInContext(dartTypes.interfaceType(cls, [typeArg]))
-            as InterfaceType;
+    final instanceType = localsHandler.substInContext(
+      dartTypes.interfaceType(cls, [typeArg]),
+    ) as InterfaceType;
     _addImplicitInstantiation(instanceType);
     final sourceInformation = _sourceInformationBuilder.buildForInIterator(
       node,
@@ -3704,12 +3704,12 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     )!;
     localsHandler.updateLocal(switchTarget, graph.addConstantNull(closedWorld));
 
-    var switchCases = List<ir.SwitchCase?>.from(switchStatement.cases);
+    var switchCases = List<ir.SwitchCase?>.of(switchStatement.cases);
     if (!hasDefault) {
       // Use null as the marker for a synthetic default clause.
       // The synthetic default is added because otherwise there would be no
       // good place to give a default value to the local.
-      switchCases = List<ir.SwitchCase?>.from(switchCases);
+      switchCases = List<ir.SwitchCase?>.of(switchCases);
       switchCases.add(null);
     }
 
@@ -4107,13 +4107,9 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       final sourceInformation = _sourceInformationBuilder.buildListLiteral(
         node,
       );
-      final type =
-          localsHandler.substInContext(
-                _commonElements.listType(
-                  _elementMap.getDartType(node.typeArgument),
-                ),
-              )
-              as InterfaceType;
+      final type = localsHandler.substInContext(
+        _commonElements.listType(_elementMap.getDartType(node.typeArgument)),
+      ) as InterfaceType;
       listInstruction = _setListRuntimeTypeInfoIfNeeded(
         listInstruction,
         type,
@@ -4163,13 +4159,9 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       constructor is ConstructorEntity && constructor.isFactoryConstructor,
     );
 
-    final type =
-        localsHandler.substInContext(
-              _commonElements.setType(
-                _elementMap.getDartType(node.typeArgument),
-              ),
-            )
-            as InterfaceType;
+    final type = localsHandler.substInContext(
+      _commonElements.setType(_elementMap.getDartType(node.typeArgument)),
+    ) as InterfaceType;
     final cls = constructor.enclosingClass!;
 
     if (_rtiNeed.classNeedsTypeArguments(cls)) {
@@ -4251,14 +4243,12 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       constructor is ConstructorEntity && constructor.isFactoryConstructor,
     );
 
-    final type =
-        localsHandler.substInContext(
-              _commonElements.mapType(
-                _elementMap.getDartType(node.keyType),
-                _elementMap.getDartType(node.valueType),
-              ),
-            )
-            as InterfaceType;
+    final type = localsHandler.substInContext(
+      _commonElements.mapType(
+        _elementMap.getDartType(node.keyType),
+        _elementMap.getDartType(node.valueType),
+      ),
+    ) as InterfaceType;
     final cls = constructor.enclosingClass!;
 
     if (_rtiNeed.classNeedsTypeArguments(cls)) {
@@ -4908,9 +4898,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     ir.Arguments arguments,
   ) {
     // Visit arguments in source order, then re-order and fill in defaults.
-    List<HInstruction?> values = List.from(
-      _visitPositionalArguments(arguments),
-    );
+    List<HInstruction?> values = List.of(_visitPositionalArguments(arguments));
 
     if (target.namedParameters.isNotEmpty) {
       // Only anonymous factory or extension type literal constructors involving
@@ -5660,8 +5648,13 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
         break;
     }
 
+    final libraryUri = memberName.isPrivate ? memberName.uri : null;
     HConstant nameConstant = graph.addConstant(
-      constant_system.createSymbol(closedWorld.commonElements, name),
+      constant_system.createSymbol(
+        closedWorld.commonElements,
+        name,
+        libraryUri,
+      ),
       closedWorld,
     )..sourceInformation = sourceInformation;
 
@@ -6808,7 +6801,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     )..sourceInformation = sourceInformation;
 
     if (_currentImplicitInstantiations.isNotEmpty) {
-      instruction.instantiatedTypes = List<InterfaceType>.from(
+      instruction.instantiatedTypes = List<InterfaceType>.of(
         _currentImplicitInstantiations,
       );
     }
@@ -8179,7 +8172,6 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     // have been included if necessary, see [makeStaticArgumentList].
     if (!isInstanceMember ||
         currentNode == null || // In erroneous code, currentNode can be null.
-        _providedArgumentsKnownToBeComplete(currentNode) ||
         function is ConstructorBodyEntity ||
         selector!.isGetter) {
       // For these cases, the provided argument list is known to be complete.
@@ -8475,17 +8467,6 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     _returnType = state.oldReturnType;
     assert(stack.isEmpty);
     stack = state.oldStack;
-  }
-
-  bool _providedArgumentsKnownToBeComplete(ir.Node currentNode) {
-    /* When inlining the iterator methods generated for a for-in loop, the
-     * [currentNode] is the [ForIn] tree. The compiler-generated iterator
-     * invocations are known to have fully specified argument lists, no default
-     * arguments are used. See invocations of [pushInvokeDynamic] in
-     * [visitForIn].
-     */
-    // TODO(redemption): Is this valid here?
-    return currentNode is ir.ForInStatement;
   }
 
   void _emitReturn(HInstruction? value, SourceInformation? sourceInformation) {
@@ -8963,7 +8944,7 @@ class _ErroneousInitializerVisitor extends ir.VisitorDefault<bool>
 
   @override
   bool visitLocalInitializer(ir.LocalInitializer node) {
-    return node.variable.initializer?.accept(this) ?? false;
+    return node.value.accept(this);
   }
 
   // Expressions: Does the expression always throw?

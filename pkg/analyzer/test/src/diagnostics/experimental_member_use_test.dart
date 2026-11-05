@@ -560,7 +560,7 @@ class A {
 import 'package:aaa/a.dart';
 f(A a, A b) {
   a += b;
-//^^^^^^
+//  ^^
 // [diag.experimentalMemberUse] '+' is experimental and could be removed or changed at any time.
 }
 ''');
@@ -584,10 +584,10 @@ import 'package:aaa/a.dart';
 
 void f() {
   g(.new());
-//  ^^^^^^
+//  ^^^^
 // [diag.experimentalMemberUse] 'A' is experimental and could be removed or changed at any time.
 //   ^^^
-// [diag.experimentalMemberUse] 'A' is experimental and could be removed or changed at any time.
+// [diag.experimentalMemberUse] 'A.new' is experimental and could be removed or changed at any time.
 }
 ''');
   }
@@ -608,7 +608,7 @@ import 'package:aaa/a.dart';
 
 void f() {
   g(.new());
-//  ^^^^^^
+//  ^^^^
 // [diag.experimentalMemberUse] 'A' is experimental and could be removed or changed at any time.
 }
 ''');
@@ -630,7 +630,7 @@ import 'package:aaa/a.dart';
 
 void f() {
   g(.a());
-//  ^^^^
+//  ^^
 // [diag.experimentalMemberUse] 'A' is experimental and could be removed or changed at any time.
 }
 ''');
@@ -674,7 +674,7 @@ import 'package:aaa/a.dart';
 void f() {
   g(.new());
 //   ^^^
-// [diag.experimentalMemberUse] 'A' is experimental and could be removed or changed at any time.
+// [diag.experimentalMemberUse] 'A.new' is experimental and could be removed or changed at any time.
 }
 ''');
   }
@@ -1285,6 +1285,7 @@ void f() {
   A();
 //^
 // [diag.experimentalMemberUse] 'A' is experimental and could be removed or changed at any time.
+// [diag.experimentalMemberUse] 'A.new' is experimental and could be removed or changed at any time.
 }
 ''');
   }
@@ -1383,7 +1384,7 @@ import 'package:aaa/a.dart';
 void f() {
   A();
 //^
-// [diag.experimentalMemberUse] 'A' is experimental and could be removed or changed at any time.
+// [diag.experimentalMemberUse] 'A.new' is experimental and could be removed or changed at any time.
 }
 ''');
   }
@@ -1404,7 +1405,7 @@ import 'package:aaa/a.dart';
 f() {
   return new A(1);
 //           ^
-// [diag.experimentalMemberUse] 'A' is experimental and could be removed or changed at any time.
+// [diag.experimentalMemberUse] 'A.new' is experimental and could be removed or changed at any time.
 }
 ''');
   }
@@ -1545,7 +1546,7 @@ class A {
 import 'package:aaa/a.dart';
 f(A a, A b) {
   return a + b;
-//       ^^^^^
+//         ^
 // [diag.experimentalMemberUse] '+' is experimental and could be removed or changed at any time.
 }
 ''');
@@ -2034,7 +2035,7 @@ class A {
 import 'package:aaa/a.dart';
 class B extends A {
   B() : super.named() {}
-//      ^^^^^^^^^^^^^
+//      ^^^^^^^^^^^
 // [diag.experimentalMemberUse] 'A.named' is experimental and could be removed or changed at any time.
 }
 ''');
@@ -2054,8 +2055,8 @@ class A {
 import 'package:aaa/a.dart';
 class B extends A {
   B() : super() {}
-//      ^^^^^^^
-// [diag.experimentalMemberUse] 'A' is experimental and could be removed or changed at any time.
+//      ^^^^^
+// [diag.experimentalMemberUse] 'A.new' is experimental and could be removed or changed at any time.
 }
 ''');
   }
@@ -2371,7 +2372,7 @@ void f(int a) {
 ''');
   }
 
-  test_topLevelVariable_switchCase_language219() async {
+  test_topLevelVariable_switchCase_beforePatterns() async {
     newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
@@ -2379,7 +2380,7 @@ import 'package:meta/meta.dart';
 const int x = 1;
 ''');
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
+// %before-language-feature: patterns
 import 'package:aaa/a.dart';
 void f(int a) {
   switch (a) {
@@ -2410,7 +2411,7 @@ void f() {
 ''');
   }
 
-  test_topLevelVariable_switchStatement_language219() async {
+  test_topLevelVariable_switchStatement_beforePatterns() async {
     newFile('$aaaPackageRootPath/lib/a.dart', r'''
 import 'package:meta/meta.dart';
 
@@ -2418,7 +2419,7 @@ import 'package:meta/meta.dart';
 int x = 1;
 ''');
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
+// %before-language-feature: patterns
 import 'package:aaa/a.dart';
 void f() {
   switch (x) {}

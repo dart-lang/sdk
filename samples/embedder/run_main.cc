@@ -3,6 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include <iostream>
+#include <string>
+#include <vector>
+
 #include "helpers.h"
 #include "include/dart_api.h"
 #include "include/dart_engine.h"

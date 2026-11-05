@@ -388,7 +388,23 @@ void f() {
     expect(field.description, 'Constructor Name');
     expect(field.defaultValue, 'name');
     expect(field.error, isNull);
-    expect(field.type, isA<FormFieldTypeString>());
+    expect(
+      field.type,
+      isA<FormFieldTypeString>().having(
+        (type) => type.validators,
+        'validators',
+        allOf(
+          isNotEmpty,
+          everyElement(
+            isA<RegexValidator>().having(
+              (e) => e.message,
+              'message',
+              startsWith('Constructor name'),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   Future<void> test_primary() async {

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:collection';
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:analyzer/dart/analysis/analysis_options.dart';
@@ -34,7 +35,7 @@ final class AnalysisOptionsBuilder {
 
   List<ErrorProcessor> errorProcessors = [];
 
-  List<String> excludePatterns = [];
+  Set<AnalysisOptionsExcludePattern> excludePatterns = {};
 
   bool lint = false;
 
@@ -81,7 +82,7 @@ final class AnalysisOptionsBuilder {
           : Map.of(options.pluginsOptions.dependencyOverrides!),
     );
     errorProcessors = options.errorProcessors.toList();
-    excludePatterns = options.excludePatterns.toList();
+    excludePatterns = options.excludePatterns2.toSet();
     lint = options.lint;
     warning = options.warning;
     lintRules = options.lintRules.toList();
@@ -121,7 +122,7 @@ final class AnalysisOptionsBuilder {
             : Map.of(pluginsOptions.dependencyOverrides!),
       ),
       errorProcessors: errorProcessors.toList(),
-      excludePatterns: excludePatterns.toList(),
+      excludePatterns2: excludePatterns.toList(),
       lint: lint,
       warning: warning,
       lintRules: lintRules.toList(),
@@ -139,6 +140,30 @@ final class AnalysisOptionsBuilder {
       ),
       unignorableDiagnosticCodeNames: unignorableDiagnosticCodeNames.toSet(),
     );
+  }
+}
+
+/// An exclude pattern declared in an analysis options file.
+final class AnalysisOptionsExcludePattern {
+  /// The analysis options file that declares [pattern].
+  final File declaringFile;
+
+  /// The pattern as written in [declaringFile].
+  final String pattern;
+
+  AnalysisOptionsExcludePattern({
+    required this.declaringFile,
+    required this.pattern,
+  });
+
+  @override
+  int get hashCode => Object.hash(declaringFile, pattern);
+
+  @override
+  bool operator ==(Object other) {
+    return other is AnalysisOptionsExcludePattern &&
+        other.declaringFile == declaringFile &&
+        other.pattern == pattern;
   }
 }
 
@@ -160,14 +185,15 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     '>= 2.12.0',
   );
 
-  ExperimentStatus _contextFeatures;
+  @override
+  final ExperimentStatus contextFeatures;
 
   /// The set of features to use for libraries that are not in a package.
   ///
   /// If a library is in a package, this feature set is *not* used, even if the
   /// package does not specify the language version. Instead [contextFeatures]
   /// is used.
-  FeatureSet nonPackageFeatureSet;
+  final FeatureSet nonPackageFeatureSet;
 
   @override
   final List<String> enabledLegacyPluginNames;
@@ -178,17 +204,19 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @override
   final List<ErrorProcessor> errorProcessors;
 
-  @override
-  final List<String> excludePatterns;
+  final List<AnalysisOptionsExcludePattern> excludePatterns2;
 
   /// The associated `analysis_options.yaml` file (or `null` if there is none).
   final File? file;
 
-  bool _lint;
+  @override
+  final bool lint;
 
-  bool _warning;
+  @override
+  final bool warning;
 
-  List<AbstractAnalysisRule> _lintRules;
+  @override
+  final List<AbstractAnalysisRule> lintRules;
 
   /// Whether linter exceptions should be propagated to the caller (by
   /// rethrowing them).
@@ -228,15 +256,15 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
   AnalysisOptionsImpl._({
     required this.file,
-    required ExperimentStatus contextFeatures,
+    required this.contextFeatures,
     required this.nonPackageFeatureSet,
-    required this.excludePatterns,
+    required this.excludePatterns2,
     required this.enabledLegacyPluginNames,
     required this.pluginsOptions,
     required this.errorProcessors,
-    required bool lint,
-    required bool warning,
-    required List<AbstractAnalysisRule> lintRules,
+    required this.lint,
+    required this.warning,
+    required this.lintRules,
     required this.propagateLinterExceptions,
     required this.strictCasts,
     required this.strictInference,
@@ -245,43 +273,19 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     required this.codeStyleOptions,
     required this.formatterOptions,
     required this.unignorableDiagnosticCodeNames,
-  }) : _contextFeatures = contextFeatures,
-       _lint = lint,
-       _warning = warning,
-       _lintRules = lintRules {
+  }) {
     assert(unignorableDiagnosticCodeNames.every((n) => n == n.toLowerCase()));
     (codeStyleOptions as CodeStyleOptionsImpl).options = this;
   }
 
+  @Deprecated(
+    "Use 'AnalysisContext.contextRoot.isAnalyzed' or "
+    "'AnalysisContext.contextRoot.analyzedFiles' instead.",
+  )
   @override
-  FeatureSet get contextFeatures => _contextFeatures;
-
-  // TODO(scheglov): Remove these compatibility setters after clients migrate
-  // to AnalysisOptionsBuilder.
-  @Deprecated('Use AnalysisOptionsBuilder instead.')
-  set contextFeatures(FeatureSet featureSet) {
-    _contextFeatures = featureSet as ExperimentStatus;
-    nonPackageFeatureSet = featureSet;
-    _clearCachedSignatures();
-  }
-
-  @override
-  bool get lint => _lint;
-
-  @Deprecated('Use AnalysisOptionsBuilder instead.')
-  set lint(bool value) {
-    _lint = value;
-    _clearCachedSignatures();
-  }
-
-  @override
-  List<AbstractAnalysisRule> get lintRules => _lintRules;
-
-  @Deprecated('Use AnalysisOptionsBuilder instead.')
-  set lintRules(List<AbstractAnalysisRule> value) {
-    _lintRules = value;
-    _clearCachedSignatures();
-  }
+  List<String> get excludePatterns => {
+    for (var excludePattern in excludePatterns2) excludePattern.pattern,
+  }.toList();
 
   /// The language version to use for libraries that are not in a package.
   ///
@@ -431,15 +435,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   }
 
   @override
-  bool get warning => _warning;
-
-  @Deprecated('Use AnalysisOptionsBuilder instead.')
-  set warning(bool value) {
-    _warning = value;
-    _clearCachedSignatures();
-  }
-
-  @override
   bool isLintEnabled(String name) {
     return lintRules.any((rule) => rule.name == name);
   }
@@ -455,7 +450,13 @@ class AnalysisOptionsImpl implements AnalysisOptions {
         for (var processor in errorProcessors)
           processor.code: processor.severity,
       },
-      'excludes': excludePatterns,
+      'excludes': [
+        for (var excludePattern in excludePatterns2)
+          {
+            'file': excludePattern.declaringFile.path,
+            'pattern': excludePattern.pattern,
+          },
+      ],
       'lint rules': lintRules.map(
         (e) => DebugLink(e.name, e.diagnosticCodes.first.url),
       ),
@@ -489,12 +490,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
           ),
         },
     };
-  }
-
-  void _clearCachedSignatures() {
-    _unlinkedSignature = null;
-    _signature = null;
-    _signatureForElements = null;
   }
 }
 
@@ -572,7 +567,7 @@ final class PathPluginSource implements PluginSource {
   String toYaml({required String name}) =>
       '''
   $name:
-    path: $path
+    path: ${jsonEncode(path)}
 ''';
 }
 

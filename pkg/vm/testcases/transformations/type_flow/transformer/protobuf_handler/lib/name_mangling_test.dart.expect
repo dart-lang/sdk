@@ -47,7 +47,7 @@ class NameManglingKeep extends int::GeneratedMessage {
 
   [@vm.inferred-type.metadata=library package:protobuf/src/protobuf/internal.dart::BuilderInfo]
   static final field int::BuilderInfo _i = let final int::BuilderInfo #t2 = new int::BuilderInfo::•(#C1 ?{core::String} "" : "NameManglingKeep", #C6) in block {
-    let final core::String #t3 = #C1 ?{core::String} "" : "clone" in [@vm.direct-call.metadata=library package:protobuf/src/protobuf/internal.dart::BuilderInfo.aOM] [@vm.inferred-type.metadata=? (skip check)] #t2.{int::BuilderInfo::aOM}<self::AKeep>(){(core::int, core::String, {protoName: core::String?, required subBuilder: () → self::AKeep}) → void};
+    let final core::String #t3 = #C1 ?{core::String} "" : "clone" in [@vm.direct-call.metadata=library package:protobuf/src/protobuf/internal.dart::BuilderInfo.aOM] [@vm.inferred-type.metadata=? (skip check)] #t2.{int::BuilderInfo::aOM}<self::AKeep>(){(core::int, core::String, {protoName: core::String?, required subBuilder: () → int::GeneratedMessage}) → void};
     [@vm.direct-call.metadata=library package:protobuf/src/protobuf/internal.dart::BuilderInfo.hasRequiredFields] [@vm.inferred-type.metadata=? (skip check)] #t2.{int::BuilderInfo::hasRequiredFields} = false;
   } =>#t2;
   constructor _() → self::NameManglingKeep

@@ -44,7 +44,7 @@
 #   issue created for it.
 #
 # Stats:
-# -  85 "needsEvaluation"
+# -  87 "needsEvaluation"
 # - 302 "needsFix"
 # - 525 "hasFix"
 # - 487 "noFix"
@@ -78,6 +78,10 @@ deprecated_lint_with_replacement:
     We should be able to replace the deprecated lint rule with its replacement.
 duplicate_rule:
   status: hasFix
+exclude_invalid_glob:
+  status: needsFix
+  notes: |-
+    Remove the leading forward slash.
 include_file_not_found:
   status: noFix
   notes: |-
@@ -106,6 +110,12 @@ incompatible_lint_included:
   notes: |-
     Allowing the user to select which rule they would prefer to use so we can
     disable the incompatible ones.
+incompatible_plugin_source:
+  status: needsFix
+  notes: |-
+    The fix is pretty simple; change this plugin source to be the same as the
+    other. We could even offer two fixes; the second would be to change the
+    other plugin source to match this one.
 invalid_option:
   status: needsFix
   notes: |-
@@ -121,10 +131,6 @@ multiple_plugins:
   notes: |-
     The fix is to remove the plugin name. Might not be worth the cost if we
     can address the question of if/how we're supporting plugins.
-plugins_in_inner_options:
-  status: needsFix
-  notes: |-
-    The fix is to delete the 'plugins' section.
 recursive_include_file:
   status: noFix
   notes: |-
@@ -167,6 +173,16 @@ abstract_super_member_reference:
   notes: |-
     The only fix we could automate is to remove the call to super, which is
     unlikely to be the right solution.
+ambiguous_comment_reference_name:
+  status: needsFix
+  notes: |-
+    For each library, add a fix to hide the name from the other imports or doc
+    imports.
+ambiguous_comment_reference_prefix:
+  status: needsFix
+  notes: |-
+    For each library, add a fix to give its import or doc import a new prefix,
+    and use it in the comment reference.
 ambiguous_export:
   status: needsFix
   notes: |-
@@ -281,6 +297,8 @@ augmentation_type_parameter_name:
   status: needsFix
   notes: |-
     We could rename the type parameter, this is purely local operation.
+augmentation_variable_different_getter_setter_types:
+  status: needsEvaluation
 augmentation_without_declaration:
   status: noFix
 augmentation_without_getter_declaration:
@@ -602,6 +620,8 @@ deferred_import_of_extension:
     Remove the `deferred` keyword from the import.
 definitely_unassigned_late_local_variable:
   status: noFix
+different_inherited_getter_and_setter_types:
+  status: needsEvaluation
 disallowed_type_instantiation_expression:
   status: needsFix
   since: 2.15
@@ -1097,6 +1117,11 @@ invocation_of_non_function:
     Suggest similarly named functions.
 invocation_of_non_function_expression:
   status: hasFix
+js_interop_extension_constructor_js_annotation_has_no_effect:
+  status: needsFix
+  notes: |-
+    Move the `@JS` annotation to the extension type declaration.
+    Remove the `@JS` annotation (`RemoveAnnotation`).
 label_in_outer_scope:
   status: noFix
 label_undefined:
@@ -1277,10 +1302,6 @@ non_const_map_as_expression_statement:
   status: needsFix
   notes: |-
     Add `const` keyword.
-non_constant_annotation_constructor:
-  status: needsFix
-  notes: |-
-    Add `const` to the constructor (if doing so would be valid).
 non_constant_case_expression:
   status: noFix
   notes: |-
@@ -1392,7 +1413,7 @@ not_initialized_non_nullable_instance_field:
 not_initialized_non_nullable_instance_field_constructor:
   status: noFix
 not_initialized_non_nullable_variable:
-  status: noFix
+  status: hasFix
 not_instantiated_bound:
   status: noFix
 not_iterable_spread:
@@ -1550,7 +1571,9 @@ return_of_invalid_type_from_function:
 return_of_invalid_type_from_method:
   status: hasFix
 return_without_value:
-  status: noFix
+  status: hasFix
+  notes: |-
+    Only when the enclosing function's return type is a function type.
 sealed_class_subtype_outside_of_library:
   status: noFix
 set_element_from_deferred_library:
@@ -1667,8 +1690,6 @@ unchecked_use_of_nullable_value_in_yield_each:
   status: hasFix
 unawaited_return_in_try_block:
   status: hasFix
-undefined_annotation:
-  status: hasFix
 undefined_class:
   status: hasFix
 undefined_class_boolean:
@@ -1712,6 +1733,8 @@ undefined_method:
 undefined_method_on_function_type:
   status: needsFix
   since: 2.15
+undefined_method_on_type_literal:
+  status: hasFix
 undefined_named_parameter:
   status: hasFix
 undefined_operator:
@@ -1941,6 +1964,14 @@ deprecated_colon_for_default_value:
   status: hasFix
 deprecated_member_use:
   status: hasFix
+deprecated_member_use_implicit_super_constructor_invocation:
+  status: needsEvaluation
+deprecated_member_use_implicit_super_constructor_invocation_with_message:
+  status: needsEvaluation
+deprecated_member_use_implicit_type:
+  status: needsEvaluation
+deprecated_member_use_implicit_type_with_message:
+  status: needsEvaluation
 deprecated_member_use_with_message:
   status: hasFix
 import_deferred_library_with_load_function:
@@ -1980,6 +2011,8 @@ analyzer_public_api_experimental_inconsistency:
 analyzer_public_api_exports_non_public_name:
   status: noFix
 analyzer_public_api_impl_in_public_api:
+  status: noFix
+analyzer_to_be_deprecated_use:
   status: noFix
 annotate_overrides:
   status: hasFix
@@ -2183,6 +2216,8 @@ directives_ordering_exports:
   status: hasFix
 directives_ordering_package_before_relative:
   status: hasFix
+discarded_future_or:
+  status: hasFix
 discarded_futures:
   status: hasFix
 do_not_use_environment:
@@ -2213,6 +2248,8 @@ file_names:
   notes: |-
     The fix is to rename the file, but that's a refactoring.
 flutter_style_todos:
+  status: hasFix
+future_sync_value:
   status: hasFix
 hash_and_equals:
   status: hasFix
@@ -2307,8 +2344,14 @@ no_dynamic_casts:
   notes: The easy fix is to wrap the expression in a cast.
 no_leading_underscores_for_library_prefixes:
   status: hasFix
+no_leading_underscores_for_library_prefixes_shadowed:
+  status: noFix
+  notes: The real fix should be manual rename.
 no_leading_underscores_for_local_identifiers:
   status: hasFix
+no_leading_underscores_for_local_identifiers_shadowed:
+  status: noFix
+  notes: The real fix should be manual rename.
 no_literal_bool_comparisons:
   status: hasFix
 no_logic_in_create_state:
@@ -2506,7 +2549,7 @@ sort_child_properties_last:
 sort_constructors_first:
   status: hasFix
 sort_pub_dependencies:
-  status: needsFix
+  status: hasFix
 sort_unnamed_constructors_first:
   status: hasFix
 specify_nonobvious_local_variable_types:
@@ -2542,6 +2585,8 @@ type_annotate_public_apis:
 type_init_formals:
   status: hasFix
 type_literal_in_constant_pattern:
+  status: hasFix
+unawaited_future_or:
   status: hasFix
 unawaited_futures:
   status: hasFix
@@ -2614,6 +2659,8 @@ unnecessary_string_escapes:
 unnecessary_string_interpolations:
   status: hasFix
 unnecessary_this:
+  status: hasFix
+unnecessary_this_alias:
   status: hasFix
 unnecessary_to_list_in_spreads:
   status: hasFix
@@ -2936,6 +2983,8 @@ export_directive_after_part_directive:
     Move the directive to a valid place.
 extension_augmentation_has_on_clause:
   status: hasFix
+extension_augmentation_without_name:
+  status: needsEvaluation
 extension_declares_abstract_member:
   status: needsFix
   notes: |-
@@ -3192,7 +3241,11 @@ missing_get:
   notes: |-
     Add the `get`.
 missing_identifier:
-  status: noFix
+  status: hasFix
+  notes: |-
+    Only where a function-typed expression is missing: a named argument, a
+    variable's initializer, a switch expression case's result, or an arrow
+    function's body.
 missing_initializer:
   status: noFix
 missing_keyword_operator:
@@ -3227,6 +3280,8 @@ missing_variable_in_for_each:
   status: noFix
 mixed_parameter_groups:
   status: noFix
+mixin_augmentation_has_on_clause:
+  status: needsEvaluation
 mixin_declares_constructor:
   status: hasFix
 mixin_with_clause:
@@ -3612,8 +3667,6 @@ deprecated_mixin_function:
   status: needsFix
   notes: |-
     The fix is to remove `Function` from where it's referenced.
-deprecated_new_in_comment_reference:
-  status: hasFix
 deprecated_optional:
   status: needsEvaluation
 deprecated_subclass:
@@ -3649,12 +3702,12 @@ doc_directive_unknown:
   status: noFix
 doc_import_cannot_be_deferred:
   status: needsFix
-doc_import_cannot_have_combinators:
-  status: needsFix
 doc_import_cannot_have_configurations:
   status: needsFix
-doc_import_cannot_have_prefix:
+doc_import_in_part_file:
   status: needsFix
+  notes: |-
+    The fix is to move the doc import to the library file.
 duplicate_export:
   status: needsFix
   notes: |-
@@ -3722,12 +3775,7 @@ invalid_deprecated_subclass_annotation:
   status: needsFix
   notes: The fix is to remove the annotation.
 invalid_export_of_internal_element:
-  status: needsFix
-  notes: |-
-    Low priority, because this is likely not encountered often.
-
-    The fix is to update the export directive so that the name is no longer
-    exported.
+  status: hasFix
 invalid_export_of_internal_element_indirectly:
   status: needsFix
   notes: |-
@@ -3832,6 +3880,8 @@ mixin_on_sealed_class:
     `sealed` annotation is likely to be replaced by the `sealed` keyword
     in the next stable release.
 multiple_combinators:
+  status: hasFix
+multiple_combinators_deprecated:
   status: hasFix
 multiple_primary_constructor_body_declarations:
   status: needsEvaluation

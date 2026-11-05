@@ -42,12 +42,8 @@ class UnnecessaryNullableForFinalVariableDeclarations extends AnalysisRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final AnalysisRule rule;
-
-  final RuleContext context;
-  new(this.rule, this.context);
-
+class _Visitor(final AnalysisRule rule, final RuleContext context)
+    extends SimpleAstVisitor<void> {
   void check(AstNode node) {
     if (node is! DeclaredVariablePattern) return;
     var type = node.declaredFragment?.element.type;
@@ -64,7 +60,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
     for (var variable in node.fields.variables) {
-      if (Identifier.isPrivateName(variable.name.lexeme) || node.isStatic) {
+      if (variable.name.lexeme.isPrivateName || node.isStatic) {
         _visit(variable);
       }
     }

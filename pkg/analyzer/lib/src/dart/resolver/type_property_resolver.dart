@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -28,7 +27,7 @@ class TypePropertyResolver {
   final TypeProviderImpl _typeProvider;
   final ExtensionMemberResolver _extensionResolver;
 
-  late Expression? _receiver;
+  late InstanceReceiver? _receiver;
   late SyntacticEntity _nameErrorEntity;
   late String _name;
   late bool _hasRead;
@@ -63,7 +62,7 @@ class TypePropertyResolver {
   ///
   /// The [nameErrorEntity] is used to report an ambiguous extension issue.
   ResolutionResult resolve({
-    required ExpressionImpl? receiver,
+    required InstanceReceiverImpl? receiver,
     required TypeImpl receiverType,
     required String name,
     required bool hasRead,
@@ -113,9 +112,9 @@ class TypePropertyResolver {
 
       if (parentNode == null) {
         if (receiver != null) {
-          parentNode = receiver.parent;
+          parentNode = receiver.parent2;
         } else if (propertyErrorEntity is AstNode) {
-          parentNode = propertyErrorEntity.parent;
+          parentNode = propertyErrorEntity.parent2;
         } else {
           throw StateError(
             'Either `receiver` must be non-null or '
@@ -130,16 +129,23 @@ class TypePropertyResolver {
         locatableDiagnostic = diag.uncheckedInvocationOfNullableValue;
       } else {
         if (parentNode is CascadeExpression) {
-          parentNode = parentNode.cascadeSections.first;
+          parentNode = parentNode.sections.first.body;
         }
-        if (parentNode is BinaryExpression || parentNode is RelationalPattern) {
+        if (parentNode is BinaryOperatorInvocation ||
+            parentNode is RelationalPattern) {
           locatableDiagnostic = diag.uncheckedOperatorInvocationOfNullableValue
               .withArguments(operator: name);
-        } else if (parentNode is MethodInvocation ||
-            parentNode is MethodReferenceExpression) {
+        } else if (parentNode is ParsedValueArguments ||
+            parentNode is NamedFunctionInvocation ||
+            parentNode is MethodReferenceExpression ||
+            parentNode is CompoundAssignment ||
+            parentNode is IndexAssignmentTarget ||
+            parentNode is IndexExpression2 ||
+            parentNode is IncrementOrDecrementExpression ||
+            parentNode is UnaryOperatorInvocation) {
           locatableDiagnostic = diag.uncheckedMethodInvocationOfNullableValue
               .withArguments(name: name);
-        } else if (parentNode is FunctionExpressionInvocation) {
+        } else if (parentNode is CallInvocation) {
           locatableDiagnostic = diag.uncheckedInvocationOfNullableValue;
         } else {
           locatableDiagnostic = diag.uncheckedPropertyAccessOfNullableValue
@@ -150,7 +156,7 @@ class TypePropertyResolver {
       List<DiagnosticMessage> messages = [];
       var flow = _resolver.flowAnalysis.flow;
       if (flow != null) {
-        if (receiver != null) {
+        if (receiver is ExpressionImpl) {
           messages = _resolver.computeWhyNotPromotedMessages(
             nameErrorEntity,
             flow.whyNotPromoted(
@@ -158,11 +164,11 @@ class TypePropertyResolver {
             )(),
           );
         } else {
-          var thisType = _resolver.thisType;
+          var thisType = _resolver.unpromotedThisType;
           if (thisType != null) {
             messages = _resolver.computeWhyNotPromotedMessages(
               nameErrorEntity,
-              flow.whyNotPromotedImplicitThis(SharedTypeView(thisType))(),
+              flow.whyNotPromotedImplicitThis()(),
             );
           }
         }
@@ -301,7 +307,7 @@ class TypePropertyResolver {
     InterfaceTypeImpl type, {
     bool recoverWithStatic = true,
   }) {
-    var isSuper = _receiver is SuperExpression;
+    var isSuper = _receiver is SuperReference;
 
     if (_hasRead) {
       var getterName = Name(_definingLibrary.uri, _name);

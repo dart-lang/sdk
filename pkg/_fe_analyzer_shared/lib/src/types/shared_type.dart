@@ -250,7 +250,7 @@ abstract interface class SharedTypeParameter {
 abstract interface class SharedUnknownType implements SharedType {}
 
 /// Base class for all structural context schemas.
-sealed class SharedStructuralContextSchema implements SharedType {}
+sealed class SharedStructuralContextType implements SharedUnknownType {}
 
 /// Structural context schema describing an invocation.
 ///
@@ -260,14 +260,14 @@ sealed class SharedStructuralContextSchema implements SharedType {}
 ///
 /// For example, in `List<num> list = [1, 2, 3].map((x) => x + 1).toList()`, if
 /// `e` is `[1, 2, 3].map((x) => x + 1).toList` then the
-/// [SharedInvocationStructuralContextSchema] describing `e` is the one with
+/// [SharedInvocationStructuralContextType] describing `e` is the one with
 /// [returnType] set to `List<num>`.  For simplicity we'll denote such
 /// structural context schemas as `(...) -> returnType`. In the example, the
 /// partially known static type of `e` is described by `(...) -> List<num>`.
 ///
-/// See also [SharedLookupStructuralContextSchema].
-abstract interface class SharedInvocationStructuralContextSchema
-    implements SharedStructuralContextSchema {
+/// See also [SharedLookupStructuralContextType].
+abstract interface class SharedInvocationStructuralContextType
+    implements SharedStructuralContextType {
   SharedType get returnType;
 }
 
@@ -279,14 +279,14 @@ abstract interface class SharedInvocationStructuralContextSchema
 ///
 /// For example, in `List<num> list = [1, 2, 3].map((x) => x + 1).toList()`, if
 /// `e` is `[1, 2, 3].map((x) => x + 1)` then the
-/// [SharedLookupStructuralContextSchema] describing `e` is the one with
+/// [SharedLookupStructuralContextType] describing `e` is the one with
 /// [lookupName] set to `toList` and [lookupType] set to `(...) -> List<num>`
-/// (see [SharedInvocationStructuralContextSchema] for the explanation of the
+/// (see [SharedInvocationStructuralContextType] for the explanation of the
 /// notation).  For simplicity we'll denote such structural context schema as
 /// `{lookupName: lookupType}`.  In the example, the partially known static type
 /// of `e` is described by `{toList: (...) -> List<num>}`.
-abstract interface class SharedLookupStructuralContextSchema
-    implements SharedStructuralContextSchema {
+abstract interface class SharedLookupStructuralContextType
+    implements SharedStructuralContextType {
   String get lookupName;
   SharedType get lookupType;
 }

@@ -176,6 +176,7 @@ abstract class DartType {
   String getDisplayString({
     @Deprecated('Only non-nullable by default mode is supported')
     bool withNullability = true,
+    bool includePositionalParameterNames = false,
   });
 }
 

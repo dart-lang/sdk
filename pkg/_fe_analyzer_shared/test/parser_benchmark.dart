@@ -118,4 +118,14 @@ class FooListener extends StackListener {
 
   @override
   bool get isDartLibrary => false;
+
+  @override
+  void handleSendWithoutArguments(
+    Token beginToken,
+    Token endToken,
+    Token nextToken,
+  ) {}
+
+  @override
+  void handleInvocationWithoutTypeArguments(Token beginToken, Token endToken) {}
 }

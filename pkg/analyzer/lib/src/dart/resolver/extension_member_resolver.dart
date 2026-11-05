@@ -51,11 +51,11 @@ class ExtensionMemberResolver {
   ///
   /// The context of the invocation that is made through the override does
   /// not affect the type inference of the override and the receiver.
-  TypeImpl? computeOverrideReceiverContextType(ExtensionOverride node) {
+  TypeImpl? computeOverrideReceiverContextType(ExtensionOverride2 node) {
     var element = node.element;
     var typeParameters = element.typeParameters;
 
-    var arguments = node.argumentList.arguments;
+    var arguments = node.argumentList.arguments2;
     if (arguments.length != 1) {
       return null;
     }
@@ -192,7 +192,7 @@ class ExtensionMemberResolver {
   ///
   /// The [node] is fully resolved, and its type arguments are set.
   ExtensionResolutionResult getOverrideMember(
-    ExtensionOverrideImpl node,
+    ExtensionOverride2Impl node,
     String name,
   ) {
     var element = node.element;
@@ -224,13 +224,13 @@ class ExtensionMemberResolver {
 
   /// Perform upward inference for the override.
   void resolveOverride(
-    ExtensionOverride node,
+    ExtensionOverride2 node,
     List<WhyNotPromotedGetter> whyNotPromotedArguments,
   ) {
-    var nodeImpl = node as ExtensionOverrideImpl;
+    var nodeImpl = node as ExtensionOverride2Impl;
     var element = node.element;
     // TODO(paulberry): make this cast unnecessary by changing the type of
-    // `ExtensionOverrideImpl.element2`.
+    // `ExtensionOverride2Impl.element2`.
     var typeParameters = element.typeParameters
         .cast<TypeParameterElementImpl>();
 
@@ -240,10 +240,10 @@ class ExtensionMemberResolver {
           diag.extensionOverrideWithoutAccess.at(node),
         );
       }
-      nodeImpl.setPseudoExpressionStaticType(DynamicTypeImpl.instance);
+      nodeImpl.legacyStaticType = DynamicTypeImpl.instance;
     }
 
-    var arguments = node.argumentList.arguments;
+    var arguments = node.argumentList.arguments2;
     if (arguments.length != 1) {
       _diagnosticReporter.report(
         diag.invalidExtensionArgumentCount.at(node.argumentList),
@@ -253,7 +253,7 @@ class ExtensionMemberResolver {
       return;
     }
 
-    var receiverExpression = arguments[0].argumentExpression;
+    var receiverExpression = arguments[0].argumentExpression2;
     var receiverType = receiverExpression.typeOrThrow;
 
     if (node.isNullAware) {
@@ -393,7 +393,7 @@ class ExtensionMemberResolver {
   /// of extension's type parameters, or inference fails, returns `dynamic`
   /// for all type parameters.
   List<TypeImpl>? _inferTypeArguments(
-    ExtensionOverrideImpl node,
+    ExtensionOverride2Impl node,
     TypeImpl receiverType, {
     required TypeConstraintGenerationDataForTesting? dataForTesting,
     required AstNodeImpl? nodeForTesting,
@@ -510,21 +510,39 @@ class ExtensionMemberResolver {
     return List<TypeImpl>.filled(parameters.length, DynamicTypeImpl.instance);
   }
 
-  static bool _isCascadeTarget(ExtensionOverride node) {
-    var parent = node.parent;
-    return parent is CascadeExpression && parent.target == node;
+  static bool _isCascadeTarget(ExtensionOverride2 node) {
+    var parent = node.parent2;
+    if (parent is InvalidExtensionOverrideExpression) {
+      var grandparent = parent.parent2;
+      if (grandparent is CascadeExpression) {
+        // Cascade sections are CascadeSection nodes, so an
+        // InvalidExtensionOverrideExpression must be the target.
+        assert(identical(grandparent.target2, parent));
+        return true;
+      }
+    }
+    return false;
   }
 
   /// Return `true` if the extension override [node] is being used as a target
   /// of an operation that might be accessing an instance member.
-  static bool _isValidContext(ExtensionOverride node) {
-    var parent = node.parent;
-    return parent is BinaryExpression && parent.leftOperand == node ||
-        parent is FunctionExpressionInvocation && parent.function == node ||
-        parent is IndexExpression && parent.target == node ||
-        parent is MethodInvocation && parent.target == node ||
-        parent is PrefixExpression ||
-        parent is PropertyAccess && parent.target == node;
+  static bool _isValidContext(ExtensionOverride2 node) {
+    var parent = node.parent2;
+    // Increment and decrement wrap a syntactically invalid write-back target,
+    // but still constitute an attempted implicit member access.
+    if (parent case InvalidExtensionOverrideAssignmentTarget target) {
+      parent = target.parent2;
+    }
+    return parent is BinaryOperatorInvocation && parent.leftOperand == node ||
+        parent is CallInvocation && parent.receiver == node ||
+        parent is ReceiverIndexAssignmentTarget && parent.receiver == node ||
+        parent is ReceiverIndexExpression && parent.receiver == node ||
+        parent is IncrementOrDecrementExpression ||
+        parent is ParsedNameAccess && parent.operand == node ||
+        parent is ReceiverMethodInvocation && parent.receiver == node ||
+        parent is ReceiverPropertyExtraction && parent.receiver == node ||
+        parent is ReceiverPropertyAssignmentTarget && parent.receiver == node ||
+        parent is UnaryOperatorInvocation && parent.operand == node;
   }
 }
 

@@ -540,6 +540,14 @@ class CompilerOptions implements DiagnosticOptions {
   bool interopNullAssertions = false;
   bool _noInteropNullAssertions = false;
 
+  /// Whether the deprecated JS interop libraries (e.g. `dart:html`, `dart:js`)
+  /// may be used.
+  ///
+  /// When `false`, `dart.library.<name>` conditions for these libraries are
+  /// considered `false` and importing any of them is a compile-time error.
+  bool deprecatedJsInterop = true;
+  bool _explicitDeprecatedJsInterop = false;
+
   /// Whether to generate a source-map file together with the output program.
   bool generateSourceMap = true;
 
@@ -908,6 +916,11 @@ class CompilerOptions implements DiagnosticOptions {
         options,
         Flags.noInteropNullAssertions,
       )
+      ..deprecatedJsInterop = !_hasOption(options, Flags.noDeprecatedJsInterop)
+      .._explicitDeprecatedJsInterop = _hasOption(
+        options,
+        Flags.deprecatedJsInterop,
+      )
       ..experimentalTrackAllocations = _hasOption(
         options,
         Flags.experimentalTrackAllocations,
@@ -1050,7 +1063,7 @@ class CompilerOptions implements DiagnosticOptions {
         "[librariesSpecificationUri] should be a file: $librariesSpecificationUri",
       );
     }
-    Map<fe.ExperimentalFlag, bool> experimentalFlags = Map.from(
+    Map<fe.ExperimentalFlag, bool> experimentalFlags = Map.of(
       fe.defaultExperimentalFlags,
     );
     experimentalFlags.addAll(explicitExperimentalFlags);
@@ -1068,6 +1081,12 @@ class CompilerOptions implements DiagnosticOptions {
       throw ArgumentError(
         "'${Flags.interopNullAssertions}' is incompatible with "
         "'${Flags.noInteropNullAssertions}'",
+      );
+    }
+    if (!deprecatedJsInterop && _explicitDeprecatedJsInterop) {
+      throw ArgumentError(
+        "'${Flags.deprecatedJsInterop}' is incompatible with "
+        "'${Flags.noDeprecatedJsInterop}'",
       );
     }
   }

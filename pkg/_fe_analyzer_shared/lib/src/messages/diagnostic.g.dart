@@ -143,6 +143,16 @@ const MessageCode assignmentToPrimaryConstructorParameter = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode augmentationExtendsClauseAlreadyPresent = const MessageCode(
+  "AugmentationExtendsClauseAlreadyPresent",
+  sharedCode: SharedCode.augmentationExtendsClauseAlreadyPresent,
+  problemMessage:
+      """The augmentation has an 'extends' clause, but an augmentation target already includes an 'extends' clause and it isn't allowed to be repeated or changed.""",
+  correctionMessage:
+      """Try removing the 'extends' clause, either here or in the augmentation target.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode awaitAsIdentifier = const MessageCode(
   "AwaitAsIdentifier",
   pseudoSharedCode: PseudoSharedCode.asyncKeywordUsedAsIdentifier,
@@ -1031,6 +1041,14 @@ const MessageCode extensionAugmentationHasOnClause = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode extensionAugmentationWithoutName = const MessageCode(
+  "ExtensionAugmentationWithoutName",
+  sharedCode: SharedCode.extensionAugmentationWithoutName,
+  problemMessage: """An extension augmentation must have a name.""",
+  correctionMessage: """Try adding the name of the extension to augment.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode extensionDeclaresAbstractMember = const MessageCode(
   "ExtensionDeclaresAbstractMember",
   sharedCode: SharedCode.extensionDeclaresAbstractMember,
@@ -1075,14 +1093,6 @@ extensionTypeAugmentationSpecifiesRepresentationField = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode extensionTypeDeclaresAbstractMember = const MessageCode(
-  "ExtensionTypeDeclaresAbstractMember",
-  pseudoSharedCode: PseudoSharedCode.extensionTypeWithAbstractMember,
-  problemMessage: """Extension types can't declare abstract members.""",
-  correctionMessage: """Try providing an implementation for the member.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode extensionTypeDeclaresInstanceField = const MessageCode(
   "ExtensionTypeDeclaresInstanceField",
   pseudoSharedCode: PseudoSharedCode.extensionTypeDeclaresInstanceField,
@@ -1110,6 +1120,38 @@ const MessageCode extensionTypeWith = const MessageCode(
   correctionMessage:
       """Try removing the 'with' clause or replacing the 'with' with 'implements'.""",
 );
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+  Message Function({
+    required String methodName,
+    required String extensionTypeName,
+  })
+>
+extensionTypeWithAbstractMember = const Template(
+  "ExtensionTypeWithAbstractMember",
+  withArguments: _withArgumentsExtensionTypeWithAbstractMember,
+  sharedCode: SharedCode.extensionTypeWithAbstractMember,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsExtensionTypeWithAbstractMember({
+  required String methodName,
+  required String extensionTypeName,
+}) {
+  var methodName_0 = conversions.validateString(methodName);
+  var extensionTypeName_0 = conversions.validateString(extensionTypeName);
+  return new Message(
+    extensionTypeWithAbstractMember,
+    problemMessage:
+        """'${methodName_0}' must have a method body because '${extensionTypeName_0}' is an extension type.""",
+    correctionMessage: """Try adding a body to '${methodName_0}'.""",
+    arguments: {
+      'methodName': methodName,
+      'extensionTypeName': extensionTypeName,
+    },
+  );
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode externalClass = const MessageCode(
@@ -2153,6 +2195,14 @@ const MessageCode mixinApplicationClassAugmentation = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode mixinAugmentationHasOnClause = const MessageCode(
+  "MixinAugmentationHasOnClause",
+  sharedCode: SharedCode.mixinAugmentationHasOnClause,
+  problemMessage: """Mixin augmentations can't have 'on' clauses.""",
+  correctionMessage: """Try removing the 'on' clause.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode mixinDeclaresConstructor = const MessageCode(
   "MixinDeclaresConstructor",
   sharedCode: SharedCode.mixinDeclaresConstructor,
@@ -2235,6 +2285,16 @@ Message _withArgumentsMultipleClauses({
     arguments: {'definitionKind': definitionKind, 'clauseKind': clauseKind},
   );
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode multipleCombinators = const MessageCode(
+  "MultipleCombinators",
+  sharedCode: SharedCode.multipleCombinators,
+  problemMessage:
+      """At most one 'show' or 'hide' combinator can be used on an import or export directive.""",
+  correctionMessage:
+      """Try combining all of the combinators into a single combinator.""",
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode multipleExtends = const MessageCode(
@@ -3069,7 +3129,6 @@ enum PseudoSharedCode {
   expectedTypeName,
   extensionDeclaresInstanceField,
   extensionTypeDeclaresInstanceField,
-  extensionTypeWithAbstractMember,
   fastaCliArgumentRequired,
   finalNotInitialized,
   getterWithParameters,
@@ -3127,6 +3186,7 @@ enum SharedCode {
   annotationWithTypeArgumentsUninstantiated,
   anonymousMethodWrongParameterList,
   assignmentToPrimaryConstructorParameter,
+  augmentationExtendsClauseAlreadyPresent,
   baseEnum,
   binaryOperatorWrittenOut,
   breakOutsideOfLoop,
@@ -3174,12 +3234,14 @@ enum SharedCode {
   experimentNotEnabledOffByDefault,
   exportDirectiveAfterPartDirective,
   extensionAugmentationHasOnClause,
+  extensionAugmentationWithoutName,
   extensionDeclaresAbstractMember,
   extensionDeclaresConstructor,
   extensionPrimaryConstructor,
   extensionTypeAugmentationSpecifiesRepresentationField,
   extensionTypeExtends,
   extensionTypeWith,
+  extensionTypeWithAbstractMember,
   externalClass,
   externalConstructorWithFieldInitializers,
   externalConstructorWithInitializer,
@@ -3259,11 +3321,13 @@ enum SharedCode {
   missingPrimaryConstructorParameters,
   missingStatement,
   mixinApplicationClassAugmentation,
+  mixinAugmentationHasOnClause,
   mixinDeclaresConstructor,
   mixinPrimaryConstructor,
   mixinWithClause,
   modifierOutOfOrder,
   multipleClauses,
+  multipleCombinators,
   multipleExtendsClauses,
   multipleLibraryDirectives,
   multipleOnClauses,

@@ -29,9 +29,9 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.extensionOverride('E<int>');
+    var node = result.findNode.extensionOverride2('E<int>');
     assertResolvedNodeText(node, r'''
-ExtensionOverride
+ExtensionOverride2
   name: E
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -43,7 +43,7 @@ ExtensionOverride
     rightBracket: >
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 0
         correspondingParameter: <null>
@@ -51,7 +51,6 @@ ExtensionOverride
     rightParenthesis: )
   element: <testLibrary>::@extension::E
   extendedType: int
-  staticType: null
 ''');
   }
 
@@ -68,9 +67,9 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.extensionOverride('E<bool>');
+    var node = result.findNode.extensionOverride2('E<bool>');
     assertResolvedNodeText(node, r'''
-ExtensionOverride
+ExtensionOverride2
   name: E
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -82,7 +81,7 @@ ExtensionOverride
     rightBracket: >
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 0
         correspondingParameter: <null>
@@ -90,7 +89,6 @@ ExtensionOverride
     rightParenthesis: )
   element: <testLibrary>::@extension::E
   extendedType: int
-  staticType: null
   typeArgumentTypes
     dynamic
     dynamic
@@ -110,9 +108,9 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.extensionOverride('E<bool, int>');
+    var node = result.findNode.extensionOverride2('E<bool, int>');
     assertResolvedNodeText(node, r'''
-ExtensionOverride
+ExtensionOverride2
   name: E
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -128,7 +126,7 @@ ExtensionOverride
     rightBracket: >
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 0
         correspondingParameter: <null>
@@ -136,7 +134,6 @@ ExtensionOverride
     rightParenthesis: )
   element: <testLibrary>::@extension::E
   extendedType: int
-  staticType: null
   typeArgumentTypes
     dynamic
 ''');

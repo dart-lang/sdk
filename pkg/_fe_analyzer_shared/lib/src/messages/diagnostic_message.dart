@@ -10,13 +10,13 @@ import 'severity.dart' show CfeSeverity;
 
 /// The type of a diagnostic message callback. For example:
 ///
-///    void handler(DiagnosticMessage message) {
-///      if (enableTerminalColors) { // See [terminal_color_support.dart].
-///        message.ansiFormatted.forEach(stderr.writeln);
-///      } else {
-///        message.plainTextFormatted.forEach(stderr.writeln);
-///      }
-///    }
+///     void handler(DiagnosticMessage message) {
+///       if (enableTerminalColors) { // See [terminal_color_support.dart].
+///         message.ansiFormatted.forEach(stderr.writeln);
+///       } else {
+///         message.plainTextFormatted.forEach(stderr.writeln);
+///       }
+///     }
 typedef DiagnosticMessageHandler = void Function(CfeDiagnosticMessage);
 
 /// Represents a diagnostic message that can be reported from a tool, for

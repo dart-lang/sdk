@@ -210,10 +210,10 @@ class DevToolsCommand extends DartdevCommand {
       )) {
         uri = debugSession.ddsUri!;
         if (!machineMode) {
-          print('Started the Dart Development Service (DDS) at $uri');
+          log.stdout('Started the Dart Development Service (DDS) at $uri');
         }
       } else if (!machineMode) {
-        print(
+        log.stdout(
           'WARNING: Failed to start the Dart Development Service (DDS). '
           'Some development features may be disabled or degraded.',
         );

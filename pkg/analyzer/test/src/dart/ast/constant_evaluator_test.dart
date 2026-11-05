@@ -4,6 +4,8 @@
 
 // ignore_for_file: deprecated_member_use_from_same_package
 
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/ast.dart' show ToBeDeprecated;
 import 'package:analyzer/src/dart/ast/constant_evaluator.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -13,13 +15,41 @@ import '../resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
+    // ignore: analyzer_to_be_deprecated_use
     defineReflectiveTests(ConstantEvaluatorTest);
+    defineReflectiveTests(ConstantEvaluator2Test);
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
-class ConstantEvaluatorTest extends ParserDiagnosticsTest {
+class ConstantEvaluator2Test extends _ConstantEvaluatorTestBase {
+  @override
+  Object get notAConstant => ConstantEvaluator2.NOT_A_CONSTANT;
+
+  @override
+  Object? evaluate(ParenthesizedExpression node) {
+    return node.expression2.accept2(ConstantEvaluator2());
+  }
+}
+
+@reflectiveTest
+@ToBeDeprecated('Use ConstantEvaluator2Test instead.')
+class ConstantEvaluatorTest extends _ConstantEvaluatorTestBase {
+  @override
+  Object get notAConstant => ConstantEvaluator.NOT_A_CONSTANT;
+
+  @override
+  Object? evaluate(ParenthesizedExpression node) {
+    return node.expression.accept(ConstantEvaluator());
+  }
+}
+
+abstract class _ConstantEvaluatorTestBase extends ParserDiagnosticsTest {
+  Object get notAConstant;
+
+  Object? evaluate(ParenthesizedExpression node);
+
   void test_binary_bitAnd() {
     var value = _getConstantValue("74 & 42") as int;
     expect(value, 74 & 42);
@@ -57,12 +87,12 @@ class ConstantEvaluatorTest extends ParserDiagnosticsTest {
 
   void test_binary_equal_invalidLeft() {
     var value = _getConstantValue("a == 3");
-    expect(value, ConstantEvaluator.NOT_A_CONSTANT);
+    expect(value, notAConstant);
   }
 
   void test_binary_equal_invalidRight() {
     var value = _getConstantValue("2 == a");
-    expect(value, ConstantEvaluator.NOT_A_CONSTANT);
+    expect(value, notAConstant);
   }
 
   void test_binary_equal_string() {
@@ -127,12 +157,12 @@ class ConstantEvaluatorTest extends ParserDiagnosticsTest {
 
   void test_binary_notEqual_invalidLeft() {
     var value = _getConstantValue("a != 3");
-    expect(value, ConstantEvaluator.NOT_A_CONSTANT);
+    expect(value, notAConstant);
   }
 
   void test_binary_notEqual_invalidRight() {
     var value = _getConstantValue("2 != a");
-    expect(value, ConstantEvaluator.NOT_A_CONSTANT);
+    expect(value, notAConstant);
   }
 
   void test_binary_notEqual_string() {
@@ -147,12 +177,12 @@ class ConstantEvaluatorTest extends ParserDiagnosticsTest {
 
   void test_binary_plus_double_string() {
     var value = _getConstantValue("'world' + 5.5");
-    expect(value, ConstantEvaluator.NOT_A_CONSTANT);
+    expect(value, notAConstant);
   }
 
   void test_binary_plus_int_string() {
     var value = _getConstantValue("'world' + 5");
-    expect(value, ConstantEvaluator.NOT_A_CONSTANT);
+    expect(value, notAConstant);
   }
 
   void test_binary_plus_integer() {
@@ -167,12 +197,12 @@ class ConstantEvaluatorTest extends ParserDiagnosticsTest {
 
   void test_binary_plus_string_double() {
     var value = _getConstantValue("5.5 + 'world'");
-    expect(value, ConstantEvaluator.NOT_A_CONSTANT);
+    expect(value, notAConstant);
   }
 
   void test_binary_plus_string_int() {
     var value = _getConstantValue("5 + 'world'");
-    expect(value, ConstantEvaluator.NOT_A_CONSTANT);
+    expect(value, notAConstant);
   }
 
   void test_binary_remainder_double() {
@@ -210,46 +240,66 @@ class ConstantEvaluatorTest extends ParserDiagnosticsTest {
     expect(value, 3);
   }
 
-  @skippedTest // TODO(scheglov): fix it
+  @failingTest // TODO(scheglov): fix it
   void test_constructor() {
     var value = _getConstantValue("?");
     expect(value, null);
   }
 
-  @skippedTest // TODO(scheglov): fix it
+  @failingTest // TODO(scheglov): fix it
   void test_identifier_class() {
     var value = _getConstantValue("?");
     expect(value, null);
   }
 
-  @skippedTest // TODO(scheglov): fix it
+  @failingTest // TODO(scheglov): fix it
   void test_identifier_function() {
     var value = _getConstantValue("?");
     expect(value, null);
   }
 
-  @skippedTest // TODO(scheglov): fix it
+  @failingTest // TODO(scheglov): fix it
   void test_identifier_static() {
     var value = _getConstantValue("?");
     expect(value, null);
   }
 
-  @skippedTest // TODO(scheglov): fix it
+  @failingTest // TODO(scheglov): fix it
   void test_identifier_staticMethod() {
     var value = _getConstantValue("?");
     expect(value, null);
   }
 
-  @skippedTest // TODO(scheglov): fix it
+  @failingTest // TODO(scheglov): fix it
   void test_identifier_topLevel() {
     var value = _getConstantValue("?");
     expect(value, null);
   }
 
-  @skippedTest // TODO(scheglov): fix it
+  @failingTest // TODO(scheglov): fix it
   void test_identifier_typeParameter() {
     var value = _getConstantValue("?");
     expect(value, null);
+  }
+
+  void test_ifNull_leftNotConstant() {
+    var value = _getConstantValue("a ?? 1");
+    expect(value, notAConstant);
+  }
+
+  void test_ifNull_leftNotNull() {
+    var value = _getConstantValue("0 ?? 1");
+    expect(value, 0);
+  }
+
+  void test_ifNull_leftNull() {
+    var value = _getConstantValue("null ?? 1");
+    expect(value, 1);
+  }
+
+  void test_ifNull_rightNotConstant() {
+    var value = _getConstantValue("0 ?? a");
+    expect(value, notAConstant);
   }
 
   void test_literal_boolean_false() {
@@ -270,6 +320,11 @@ class ConstantEvaluatorTest extends ParserDiagnosticsTest {
     expect(value[2], "c");
   }
 
+  void test_literal_list_binaryOperation() {
+    var value = _getConstantValue("[1 + 2]") as List<Object>;
+    expect(value, [3]);
+  }
+
   void test_literal_map() {
     var value =
         _getConstantValue("{'a' : 'm', 'b' : 'n', 'c' : 'o'}")
@@ -278,6 +333,11 @@ class ConstantEvaluatorTest extends ParserDiagnosticsTest {
     expect(value["a"], "m");
     expect(value["b"], "n");
     expect(value["c"], "o");
+  }
+
+  void test_literal_map_binaryOperation() {
+    var value = _getConstantValue("{'a' + 'b' : 1 + 2}") as Map<Object, Object>;
+    expect(value, {'ab': 3});
   }
 
   void test_literal_null() {
@@ -302,7 +362,7 @@ class ConstantEvaluatorTest extends ParserDiagnosticsTest {
 
   void test_literal_string_interpolation_invalid() {
     var value = _getConstantValue("'a\${f()}c'");
-    expect(value, ConstantEvaluator.NOT_A_CONSTANT);
+    expect(value, notAConstant);
   }
 
   void test_literal_string_interpolation_valid() {
@@ -318,6 +378,11 @@ class ConstantEvaluatorTest extends ParserDiagnosticsTest {
   void test_parenthesizedExpression() {
     var value = _getConstantValue("('a')");
     expect(value, "a");
+  }
+
+  void test_parenthesizedExpression_binaryOperation() {
+    var value = _getConstantValue("((1 + 2))");
+    expect(value, 3);
   }
 
   void test_unary_bitNot() {
@@ -347,9 +412,6 @@ void f() {
 }
 ''');
 
-    var findNode = parseResult.findNode;
-    var expression = findNode.parenthesized('); // ref').expression;
-
-    return expression.accept(ConstantEvaluator());
+    return evaluate(parseResult.findNode.parenthesized('); // ref'));
   }
 }

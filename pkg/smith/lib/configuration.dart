@@ -124,6 +124,12 @@ class Configuration {
       words.remove("vm");
       words.add("dart_precompiled");
     }
+    // "vm-dyn" -> "vm-dart2bytecode"
+    // "vm-aot-dyn" -> "dart_precompiled-aot-dart2bytecode"
+    if (words.contains("dyn")) {
+      words.remove("dyn");
+      words.add("dart2bytecode");
+    }
     var optionsCopy = Map.of(optionsJson);
 
     // Apply overrides from the global environment variable.
@@ -775,6 +781,7 @@ enum Architecture {
   arm_x64._('arm_x64'),
   arm64._('arm64'),
   arm64c._('arm64c'),
+  arm64e._('arm64e'),
   simarm._('simarm', isSimulator: true),
   // ignore: constant_identifier_names
   simarm_x64._('simarm_x64', isSimulator: true),

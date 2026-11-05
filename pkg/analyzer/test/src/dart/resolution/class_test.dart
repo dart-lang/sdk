@@ -121,9 +121,9 @@ class A extends Function {}
     assertType(a.supertype, 'Object');
   }
 
-  test_element_typeFunction_extends_language219() async {
+  test_element_typeFunction_extends_beforeClassModifiers() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
+// %before-language-feature: class-modifiers
 class A extends Function {}
 //              ^^^^^^^^
 // [diag.deprecatedExtendsFunction] Extending 'Function' is deprecated.
@@ -144,9 +144,9 @@ class C extends Object with A, Function, B {}
     assertElementTypes(result.findElement.class_('C').mixins, ['A', 'B']);
   }
 
-  test_element_typeFunction_with_language219() async {
+  test_element_typeFunction_with_beforeClassModifiers() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
+// %before-language-feature: class-modifiers
 mixin A {}
 mixin B {}
 class C extends Object with A, Function, B {}
@@ -299,6 +299,29 @@ ClassDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: {
+        formalParameters
+          RegularFormalParameter
+            constFinalOrVarKeyword: final
+            type: NamedType
+              name: int
+              element: dart:core::@class::int
+              type: int
+            name: a
+            defaultClause: FormalParameterDefaultClause
+              separator: =
+              value2: IntegerLiteral
+                literal: 0
+                staticType: int
+            declaredFragment: <testLibraryFragment> a@19
+              element: isFinal isPublic
+                type: int
+                field: <testLibrary>::@class::A::@field::a
+        rightDelimiter: }
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
         constFinalOrVarKeyword: final
@@ -340,6 +363,25 @@ ClassDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: {
+        formalParameters
+          RegularFormalParameter
+            requiredKeyword: required
+            constFinalOrVarKeyword: final
+            type: NamedType
+              name: int
+              element: dart:core::@class::int
+              type: int
+            name: a
+            declaredFragment: <testLibraryFragment> a@28
+              element: isFinal isPublic
+                type: int
+                field: <testLibrary>::@class::A::@field::a
+        rightDelimiter: }
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
         requiredKeyword: required
@@ -376,6 +418,47 @@ ClassDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          constFinalOrVarKeyword: final
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          name: a
+          functionTypedSuffix: FunctionTypedFormalParameterSuffix
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: String
+                    element: dart:core::@class::String
+                    type: String
+                  name: x
+                  declaredFragment: <testLibraryFragment> x@27
+                    element: isPublic
+                      type: String
+              rightParenthesis: )
+            formalParameters(v1): FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                type: NamedType
+                  name: String
+                  element: dart:core::@class::String
+                  type: String
+                name: x
+                declaredFragment: <testLibraryFragment> x@27
+                  element: isPublic
+                    type: String
+              rightParenthesis: )
+          declaredFragment: <testLibraryFragment> a@18
+            element: isFinal isPublic
+              type: int Function(String)
+              field: <testLibrary>::@class::A::@field::a
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         constFinalOrVarKeyword: final
@@ -424,6 +507,21 @@ ClassDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          constFinalOrVarKeyword: final
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          name: a
+          declaredFragment: <testLibraryFragment> a@18
+            element: isFinal isPublic
+              type: int
+              field: <testLibrary>::@class::A::@field::a
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         constFinalOrVarKeyword: final
         type: NamedType
@@ -458,6 +556,21 @@ ClassDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          constFinalOrVarKeyword: var
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          name: a
+          declaredFragment: <testLibraryFragment> a@16
+            element: isFinal isPublic
+              type: int
+              field: <testLibrary>::@class::A::@field::a
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         constFinalOrVarKeyword: var
@@ -496,6 +609,32 @@ ClassDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          constFinalOrVarKeyword: final
+          type: NamedType
+            name: String
+            element: dart:core::@class::String
+            type: String
+          name: a
+          declaredFragment: <testLibraryFragment> a@21
+            element: isFinal isPublic
+              type: String
+              field: <testLibrary>::@class::A::@field::a
+        RegularFormalParameter
+          constFinalOrVarKeyword: final
+          type: NamedType
+            name: bool
+            element: dart:core::@class::bool
+            type: bool
+          name: b
+          declaredFragment: <testLibraryFragment> b@35
+            element: isFinal isPublic
+              type: bool
+              field: <testLibrary>::@class::A::@field::b
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         constFinalOrVarKeyword: final
@@ -538,7 +677,7 @@ ClassDeclaration
             VariableDeclaration
               name: foo
               equals: =
-              initializer: IntegerLiteral
+              initializer2: IntegerLiteral
                 literal: 0
                 staticType: int
               declaredFragment: <testLibraryFragment> foo@59
@@ -556,7 +695,7 @@ ClassDeclaration
             VariableDeclaration
               name: bar
               equals: =
-              initializer: IntegerLiteral
+              initializer2: IntegerLiteral
                 literal: 1
                 staticType: int
               declaredFragment: <testLibraryFragment> bar@87
@@ -581,6 +720,22 @@ ClassDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        FieldFormalParameter
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          thisKeyword: this
+          period: .
+          name: a
+          declaredFragment: <testLibraryFragment> a@17
+            element: isFinal isPublic
+              type: int
+              field: <testLibrary>::@class::A::@field::a
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: FieldFormalParameter
         type: NamedType
@@ -633,6 +788,34 @@ PrimaryConstructorDeclaration
   typeName: A
   formalParameters: FormalParameterList
     leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        metadata
+          Annotation
+            atSign: @
+            expression: UnqualifiedNameExpression
+              name: foo
+              resolution: GetterInvocationResolution
+                element: <testLibrary>::@class::A::@getter::foo
+                invokeType: int Function()
+                type: int
+              staticType: int
+            name: SimpleIdentifier
+              token: foo
+              element: <testLibrary>::@class::A::@getter::foo
+              staticType: null
+            element: <testLibrary>::@class::A::@getter::foo
+        type: NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        name: x
+        declaredFragment: <testLibraryFragment> x@32
+          element: isPublic
+            type: int
+    rightParenthesis: )
+  formalParameters(v1): FormalParameterList
+    leftParenthesis: (
     parameter: RegularFormalParameter
       metadata
         Annotation
@@ -671,6 +854,19 @@ class A(int x) {
 PrimaryConstructorDeclaration
   typeName: A
   formalParameters: FormalParameterList
+    leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: int
+          element: <testLibrary>::@class::A::@getter::int
+          type: InvalidType
+        name: x
+        declaredFragment: <testLibraryFragment> x@12
+          element: isPublic
+            type: InvalidType
+    rightParenthesis: )
+  formalParameters(v1): FormalParameterList
     leftParenthesis: (
     parameter: RegularFormalParameter
       type: NamedType
@@ -711,6 +907,19 @@ ClassDeclaration
       period: .
       name: named
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: T
+            element: #E0 T
+            type: T
+          name: t
+          declaredFragment: <testLibraryFragment> t@19
+            element: isPublic
+              type: T
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -753,6 +962,19 @@ ClassDeclaration
       rightBracket: >
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: T
+            element: #E0 T
+            type: T
+          name: t
+          declaredFragment: <testLibraryFragment> t@13
+            element: isPublic
+              type: T
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: T
@@ -789,6 +1011,19 @@ ClassDeclaration
       name: named
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          name: a
+          declaredFragment: <testLibraryFragment> a@18
+            element: isPublic
+              type: int
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: int
@@ -821,6 +1056,19 @@ ClassDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          name: a
+          declaredFragment: <testLibraryFragment> a@12
+            element: isPublic
+              type: int
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -861,6 +1109,13 @@ PrimaryConstructorDeclaration
         metadata
           Annotation
             atSign: @
+            expression: UnqualifiedNameExpression
+              name: foo
+              resolution: GetterInvocationResolution
+                element: <testLibrary>::@getter::foo
+                invokeType: int Function()
+                type: int
+              staticType: int
             name: SimpleIdentifier
               token: foo
               element: <testLibrary>::@getter::foo
@@ -871,6 +1126,50 @@ PrimaryConstructorDeclaration
           defaultType: dynamic
     rightBracket: >
   formalParameters: FormalParameterList
+    leftParenthesis: (
+    delimitedFormalParameters: DelimitedFormalParameters
+      leftDelimiter: [
+      formalParameters
+        RegularFormalParameter
+          metadata
+            Annotation
+              atSign: @
+              expression: UnqualifiedNameExpression
+                name: foo
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@class::A::@getter::foo
+                  invokeType: int Function()
+                  type: int
+                staticType: int
+              name: SimpleIdentifier
+                token: foo
+                element: <testLibrary>::@class::A::@getter::foo
+                staticType: null
+              element: <testLibrary>::@class::A::@getter::foo
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          name: x
+          defaultClause: FormalParameterDefaultClause
+            separator: =
+            value2: UnqualifiedNameExpression
+              name: foo
+              resolution: GetterInvocationResolution
+                element: <testLibrary>::@class::A::@getter::foo
+                invokeType: int Function()
+                type: int
+              staticType: int
+            value(v1): SimpleIdentifier
+              token: foo
+              element: <testLibrary>::@class::A::@getter::foo
+              staticType: int
+          declaredFragment: <testLibraryFragment> x@41
+            element: isPublic
+              type: int
+      rightDelimiter: ]
+    rightParenthesis: )
+  formalParameters(v1): FormalParameterList
     leftParenthesis: (
     leftDelimiter: [
     parameter: RegularFormalParameter
@@ -917,6 +1216,17 @@ ClassDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: B
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        SuperFormalParameter
+          superKeyword: super
+          period: .
+          name: a
+          declaredFragment: <testLibraryFragment> a@36
+            element: hasImplicitType isFinal isPublic
+              type: int
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: SuperFormalParameter
         superKeyword: super
@@ -976,6 +1286,28 @@ ClassDeclaration
       rightBracket: >
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: T
+            element: #E1 T
+            type: T
+          name: t
+          declaredFragment: <testLibraryFragment> t@38
+            element: isPublic
+              type: T
+        RegularFormalParameter
+          type: NamedType
+            name: U
+            element: #E0 U
+            type: U
+          name: u
+          declaredFragment: <testLibraryFragment> u@43
+            element: isPublic
+              type: U
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: T
@@ -1026,6 +1358,28 @@ ClassDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: bool
+            element: dart:core::@class::bool
+            type: bool
+          name: x
+          declaredFragment: <testLibraryFragment> x@13
+            element: isPublic
+              type: bool
+        RegularFormalParameter
+          type: NamedType
+            name: bool
+            element: dart:core::@class::bool
+            type: bool
+          name: y
+          declaredFragment: <testLibraryFragment> y@21
+            element: isPublic
+              type: bool
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: bool
@@ -1058,7 +1412,13 @@ ClassDeclaration
           AssertInitializer
             assertKeyword: assert
             leftParenthesis: (
-            condition: SimpleIdentifier
+            condition2: UnqualifiedNameExpression
+              name: x
+              resolution: VariableReadResolution
+                element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
+                type: bool
+              staticType: bool
+            condition(v1): SimpleIdentifier
               token: x
               element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
               staticType: bool
@@ -1068,7 +1428,13 @@ ClassDeclaration
             leftBracket: {
             statements
               ExpressionStatement
-                expression: SimpleIdentifier
+                expression2: UnqualifiedNameExpression
+                  name: y
+                  resolution: VariableReadResolution
+                    element: <testLibrary>::@class::A::@constructor::new::@formalParameter::y
+                    type: bool
+                  staticType: bool
+                expression(v1): SimpleIdentifier
                   token: y
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::y
                   staticType: bool
@@ -1081,7 +1447,16 @@ ClassDeclaration
           AssertInitializer
             assertKeyword: assert
             leftParenthesis: (
-            condition: PrefixExpression
+            condition2: LogicalNot
+              operator: !
+              operand: UnqualifiedNameExpression
+                name: x
+                resolution: VariableReadResolution
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
+                  type: bool
+                staticType: bool
+              staticType: bool
+            condition(v1): PrefixExpression
               operator: !
               operand: SimpleIdentifier
                 token: x
@@ -1095,7 +1470,16 @@ ClassDeclaration
             leftBracket: {
             statements
               ExpressionStatement
-                expression: PrefixExpression
+                expression2: LogicalNot
+                  operator: !
+                  operand: UnqualifiedNameExpression
+                    name: y
+                    resolution: VariableReadResolution
+                      element: <testLibrary>::@class::A::@constructor::new::@formalParameter::y
+                      type: bool
+                    staticType: bool
+                  staticType: bool
+                expression(v1): PrefixExpression
                   operator: !
                   operand: SimpleIdentifier
                     token: y
@@ -1124,6 +1508,13 @@ PrimaryConstructorBody
   metadata
     Annotation
       atSign: @
+      expression: UnqualifiedNameExpression
+        name: deprecated
+        resolution: GetterInvocationResolution
+          element: dart:core::@getter::deprecated
+          invokeType: Deprecated Function()
+          type: Deprecated
+        staticType: Deprecated
       name: SimpleIdentifier
         token: deprecated
         element: dart:core::@getter::deprecated
@@ -1151,6 +1542,13 @@ PrimaryConstructorBody
   metadata
     Annotation
       atSign: @
+      expression: UnqualifiedNameExpression
+        name: deprecated
+        resolution: GetterInvocationResolution
+          element: dart:core::@getter::deprecated
+          invokeType: Deprecated Function()
+          type: Deprecated
+        staticType: Deprecated
       name: SimpleIdentifier
         token: deprecated
         element: dart:core::@getter::deprecated
@@ -1186,7 +1584,12 @@ PrimaryConstructorBody
     AssertInitializer
       assertKeyword: assert
       leftParenthesis: (
-      condition: SimpleIdentifier
+      condition2: UnqualifiedNameExpression
+        name: x
+        resolution: InvalidNamedReadResolution
+          recoveryElement: <null>
+        staticType: InvalidType
+      condition(v1): SimpleIdentifier
         token: x
         element: <null>
         staticType: InvalidType
@@ -1196,12 +1599,71 @@ PrimaryConstructorBody
       leftBracket: {
       statements
         ExpressionStatement
-          expression: SimpleIdentifier
+          expression2: UnqualifiedNameExpression
+            name: y
+            resolution: InvalidNamedReadResolution
+              recoveryElement: <null>
+            staticType: InvalidType
+          expression(v1): SimpleIdentifier
             token: y
             element: <null>
             staticType: InvalidType
           semicolon: ;
       rightBracket: }
+''');
+  }
+
+  test_primaryConstructorBody_noDeclaration_flowAnalysis_deadCode() async {
+    // Even though there is no primary constructor declaration, flow analysis
+    // is performed on the primary constructor body, so unreachable code is
+    // reported.
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  this {
+//^^^^
+// [diag.primaryConstructorBodyWithoutDeclaration] A primary constructor body requires a primary constructor declaration.
+    return;
+    0;
+// [diag.deadCode][column 5][length 6] Dead code.
+  }
+}
+''');
+  }
+
+  test_primaryConstructorBody_noDeclaration_flowAnalysis_definiteAssignment() async {
+    // Even though there is no primary constructor declaration, flow analysis
+    // is performed on the primary constructor body, so the use of an
+    // unassigned local variable is reported.
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  this {
+//^^^^
+// [diag.primaryConstructorBodyWithoutDeclaration] A primary constructor body requires a primary constructor declaration.
+    int v;
+    v;
+//  ^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v' must be assigned before it can be used.
+  }
+}
+''');
+  }
+
+  test_primaryConstructorBody_noDeclaration_flowAnalysis_promotion() async {
+    // Even though there is no primary constructor declaration, flow analysis
+    // is performed on the primary constructor body, so `i` is promoted to
+    // `int`.
+    await resolveTestCodeWithDiagnostics(r'''
+int? f() => 0;
+class A {
+  this {
+//^^^^
+// [diag.primaryConstructorBodyWithoutDeclaration] A primary constructor body requires a primary constructor declaration.
+    var i = f();
+    if (i != null) {
+      i.isEven;
+    }
+  }
+}
 ''');
   }
 
@@ -1221,7 +1683,13 @@ PrimaryConstructorBody
     AssertInitializer
       assertKeyword: assert
       leftParenthesis: (
-      condition: SimpleIdentifier
+      condition2: UnqualifiedNameExpression
+        name: a
+        resolution: VariableReadResolution
+          element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+          type: bool
+        staticType: bool
+      condition(v1): SimpleIdentifier
         token: a
         element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
         staticType: bool
@@ -1238,9 +1706,23 @@ class A(final int A()) {
 }
 ''');
 
-    var node = result.findNode.singleFunctionExpressionInvocation;
+    var node = result.findNode.singleCallInvocation;
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
+CallInvocation
+  receiver: UnqualifiedNameExpression
+    name: A
+    resolution: VariableReadResolution
+      element: <testLibrary>::@class::A::@constructor::new::@formalParameter::A
+      type: int Function()
+    staticType: int Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: FunctionTypeInvocationResolution
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: FunctionExpressionInvocation
   function: SimpleIdentifier
     token: A
     element: <testLibrary>::@class::A::@constructor::new::@formalParameter::A
@@ -1271,7 +1753,13 @@ PrimaryConstructorBody
     AssertInitializer
       assertKeyword: assert
       leftParenthesis: (
-      condition: SimpleIdentifier
+      condition2: UnqualifiedNameExpression
+        name: a
+        resolution: VariableReadResolution
+          element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+          type: bool
+        staticType: bool
+      condition(v1): SimpleIdentifier
         token: a
         element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
         staticType: bool
@@ -1293,9 +1781,23 @@ class B(this.A) {
 }
 ''');
 
-    var node = result.findNode.singleFunctionExpressionInvocation;
+    var node = result.findNode.singleCallInvocation;
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
+CallInvocation
+  receiver: UnqualifiedNameExpression
+    name: A
+    resolution: VariableReadResolution
+      element: <testLibrary>::@class::B::@constructor::new::@formalParameter::A
+      type: int Function()
+    staticType: int Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: FunctionTypeInvocationResolution
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: FunctionExpressionInvocation
   function: SimpleIdentifier
     token: A
     element: <testLibrary>::@class::B::@constructor::new::@formalParameter::A
@@ -1325,7 +1827,13 @@ PrimaryConstructorBody
     AssertInitializer
       assertKeyword: assert
       leftParenthesis: (
-      condition: SimpleIdentifier
+      condition2: UnqualifiedNameExpression
+        name: a
+        resolution: VariableReadResolution
+          element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+          type: bool
+        staticType: bool
+      condition(v1): SimpleIdentifier
         token: a
         element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
         staticType: bool
@@ -1352,7 +1860,13 @@ PrimaryConstructorBody
     AssertInitializer
       assertKeyword: assert
       leftParenthesis: (
-      condition: SimpleIdentifier
+      condition2: UnqualifiedNameExpression
+        name: a
+        resolution: VariableReadResolution
+          element: <testLibrary>::@class::B::@constructor::new::@formalParameter::a
+          type: bool
+        staticType: bool
+      condition(v1): SimpleIdentifier
         token: a
         element: <testLibrary>::@class::B::@constructor::new::@formalParameter::a
         staticType: bool
@@ -1370,9 +1884,23 @@ class B(super.A) extends A {
 }
 ''');
 
-    var node = result.findNode.singleFunctionExpressionInvocation;
+    var node = result.findNode.singleCallInvocation;
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
+CallInvocation
+  receiver: UnqualifiedNameExpression
+    name: A
+    resolution: VariableReadResolution
+      element: <testLibrary>::@class::B::@constructor::new::@formalParameter::A
+      type: int Function()
+    staticType: int Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: FunctionTypeInvocationResolution
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: FunctionExpressionInvocation
   function: SimpleIdentifier
     token: A
     element: <testLibrary>::@class::B::@constructor::new::@formalParameter::A
@@ -1406,13 +1934,26 @@ PrimaryConstructorBody
       leftBracket: {
       statements
         ExpressionStatement
-          expression: SimpleIdentifier
+          expression2: UnqualifiedNameExpression
+            name: a
+            resolution: GetterInvocationResolution
+              element: <testLibrary>::@class::A::@getter::a
+              invokeType: int Function()
+              type: int
+            staticType: int
+          expression(v1): SimpleIdentifier
             token: a
             element: <testLibrary>::@class::A::@getter::a
             staticType: int
           semicolon: ;
         ExpressionStatement
-          expression: SimpleIdentifier
+          expression2: UnqualifiedNameExpression
+            name: foo
+            resolution: ExecutableTearOffResolution
+              element: <testLibrary>::@class::A::@method::foo
+              type: void Function()
+            staticType: void Function()
+          expression(v1): SimpleIdentifier
             token: foo
             element: <testLibrary>::@class::A::@method::foo
             staticType: void Function()
@@ -1442,13 +1983,26 @@ PrimaryConstructorBody
       leftBracket: {
       statements
         ExpressionStatement
-          expression: SimpleIdentifier
+          expression2: UnqualifiedNameExpression
+            name: a
+            resolution: GetterInvocationResolution
+              element: <testLibrary>::@class::A::@getter::a
+              invokeType: int Function()
+              type: int
+            staticType: int
+          expression(v1): SimpleIdentifier
             token: a
             element: <testLibrary>::@class::A::@getter::a
             staticType: int
           semicolon: ;
         ExpressionStatement
-          expression: SimpleIdentifier
+          expression2: UnqualifiedNameExpression
+            name: foo
+            resolution: ExecutableTearOffResolution
+              element: <testLibrary>::@class::A::@method::foo
+              type: void Function()
+            staticType: void Function()
+          expression(v1): SimpleIdentifier
             token: foo
             element: <testLibrary>::@class::A::@method::foo
             staticType: void Function()
@@ -1478,19 +2032,31 @@ PrimaryConstructorBody
       leftBracket: {
       statements
         ExpressionStatement
-          expression: SimpleIdentifier
+          expression2: UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+              type: int
+            staticType: int
+          expression(v1): SimpleIdentifier
             token: a
             element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
             staticType: int
           semicolon: ;
         ExpressionStatement
-          expression: SimpleIdentifier
+          expression2: UnqualifiedNameExpression
+            name: foo
+            resolution: ExecutableTearOffResolution
+              element: <testLibrary>::@class::A::@method::foo
+              type: void Function()
+            staticType: void Function()
+          expression(v1): SimpleIdentifier
             token: foo
             element: <testLibrary>::@class::A::@method::foo
             staticType: void Function()
           semicolon: ;
         ExpressionStatement
-          expression: PatternAssignment
+          expression2: PatternAssignment
             pattern: RecordPattern
               leftParenthesis: (
               fields
@@ -1503,9 +2069,9 @@ PrimaryConstructorBody
               rightParenthesis: )
               matchedValueType: (int,)
             equals: =
-            expression: RecordLiteral
+            expression2: RecordLiteral
               leftParenthesis: (
-              fields
+              fields2
                 IntegerLiteral
                   literal: 0
                   staticType: int
@@ -1539,13 +2105,26 @@ PrimaryConstructorBody
       leftBracket: {
       statements
         ExpressionStatement
-          expression: SimpleIdentifier
+          expression2: UnqualifiedNameExpression
+            name: a
+            resolution: GetterInvocationResolution
+              element: <testLibrary>::@class::A::@getter::a
+              invokeType: int Function()
+              type: int
+            staticType: int
+          expression(v1): SimpleIdentifier
             token: a
             element: <testLibrary>::@class::A::@getter::a
             staticType: int
           semicolon: ;
         ExpressionStatement
-          expression: SimpleIdentifier
+          expression2: UnqualifiedNameExpression
+            name: foo
+            resolution: ExecutableTearOffResolution
+              element: <testLibrary>::@class::B::@method::foo
+              type: void Function()
+            staticType: void Function()
+          expression(v1): SimpleIdentifier
             token: foo
             element: <testLibrary>::@class::B::@method::foo
             staticType: void Function()
@@ -1570,7 +2149,13 @@ FieldDeclaration
       VariableDeclaration
         name: bar
         equals: =
-        initializer: SimpleIdentifier
+        initializer2: UnqualifiedNameExpression
+          name: foo
+          resolution: VariableReadResolution
+            element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
+            type: int
+          staticType: int
+        initializer(v1): SimpleIdentifier
           token: foo
           element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
           staticType: int
@@ -1596,7 +2181,13 @@ FieldDeclaration
       VariableDeclaration
         name: bar
         equals: =
-        initializer: SimpleIdentifier
+        initializer2: UnqualifiedNameExpression
+          name: foo
+          resolution: VariableReadResolution
+            element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
+            type: int
+          staticType: int
+        initializer(v1): SimpleIdentifier
           token: foo
           element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
           staticType: int
@@ -1625,7 +2216,12 @@ FieldDeclaration
       VariableDeclaration
         name: bar
         equals: =
-        initializer: SimpleIdentifier
+        initializer2: UnqualifiedNameExpression
+          name: foo
+          resolution: InvalidNamedReadResolution
+            recoveryElement: <null>
+          staticType: InvalidType
+        initializer(v1): SimpleIdentifier
           token: foo
           element: <null>
           staticType: InvalidType
@@ -1654,7 +2250,12 @@ FieldDeclaration
       VariableDeclaration
         name: bar
         equals: =
-        initializer: SimpleIdentifier
+        initializer2: UnqualifiedNameExpression
+          name: foo
+          resolution: InvalidNamedReadResolution
+            recoveryElement: <null>
+          staticType: InvalidType
+        initializer(v1): SimpleIdentifier
           token: foo
           element: <null>
           staticType: InvalidType

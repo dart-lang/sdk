@@ -3,10 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/name_suggestion.dart';
+import 'package:analyzer_testing/src/single_unit.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../abstract_single_unit.dart';
+import '../../find_element.dart';
+import '../../find_node.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -15,7 +17,8 @@ void main() {
 }
 
 @reflectiveTest
-class VariableNameSuggestionTest extends AbstractSingleUnitTest {
+class VariableNameSuggestionTest extends SingleUnitTest
+    with FindElementMixin, FindNodeMixin {
   Future<void> test_forExpression_cast() async {
     await resolveTestCode('''
 void f(Object sortedNodes) {
@@ -38,7 +41,7 @@ void f() {
 }
 ''');
     var excluded = <String>{};
-    var expectedType = findElement2.localVar('node').type;
+    var expectedType = findElement.localVar('node').type;
     var assignedExpression = findNode.nullLiteral('null;');
     var suggestions = getVariableNameSuggestionsForExpression(
       expectedType,
@@ -54,7 +57,7 @@ void f() {
   double res = 0.0;
 }
 ''');
-    var expectedType = findElement2.localVar('res').type;
+    var expectedType = findElement.localVar('res').type;
     var assignedExpression = findNode.doubleLiteral('0.0;');
     // first choice for "double" is "d"
     expect(
@@ -82,7 +85,7 @@ void f() {
   int res = 0;
 }
 ''');
-    var expectedType = findElement2.localVar('res').type;
+    var expectedType = findElement.localVar('res').type;
     var assignedExpression = findNode.integerLiteral('0;');
     // first choice for "int" is "i"
     expect(
@@ -110,7 +113,7 @@ void f() {
   String res = 'abc';
 }
 ''');
-    var expectedType = findElement2.localVar('res').type;
+    var expectedType = findElement.localVar('res').type;
     var assignedExpression = findNode.stringLiteral("'abc';");
     // first choice for "String" is "s"
     expect(

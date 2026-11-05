@@ -117,6 +117,7 @@ class WasmTarget extends Target {
   Class? _wasmImmutableMap;
   Class? _wasmImmutableSet;
   Class? _stringImpl;
+  Class? _symbol;
   Class? _closure;
   Class? _boxedInt;
   Class? _boxedDouble;
@@ -482,7 +483,9 @@ class WasmTarget extends Target {
           .firstWhere((c) => c.name.text == "setter");
       return StaticInvocation(
         invocationSetter,
-        Arguments([SymbolLiteral(name), arguments.positional.single]),
+        Arguments(
+          ExpressionList(SymbolLiteral(name), arguments.positional.single),
+        ),
       );
     } else if (name.startsWith("get:")) {
       name = name.substring(4);
@@ -490,44 +493,50 @@ class WasmTarget extends Target {
           .firstWhere((c) => c.name.text == "getter");
       return StaticInvocation(
         invocationGetter,
-        Arguments([SymbolLiteral(name)]),
+        Arguments(ExpressionList(SymbolLiteral(name))),
       );
     } else if (arguments.types.isEmpty) {
       Procedure invocationMethod = coreTypes.invocationClass.procedures
           .firstWhere((c) => c.name.text == "method");
       return StaticInvocation(
         invocationMethod,
-        Arguments([
-          SymbolLiteral(name),
-          ListLiteral(arguments.positional),
-          MapLiteral(
-            List<MapLiteralEntry>.from(
-              arguments.named.map((NamedExpression arg) {
-                return MapLiteralEntry(SymbolLiteral(arg.name), arg.value);
-              }),
-            ),
-            keyType: coreTypes.symbolNonNullableRawType,
-          )..isConst = (arguments.named.isEmpty),
-        ]),
+        Arguments(
+          ExpressionList(
+            SymbolLiteral(name),
+            ListLiteral(arguments.positional),
+            MapLiteral(
+              List<MapLiteralEntry>.from(
+                arguments.named.map((NamedExpression arg) {
+                  return MapLiteralEntry(SymbolLiteral(arg.name), arg.value);
+                }),
+              ),
+              keyType: coreTypes.symbolNonNullableRawType,
+            )..isConst = (arguments.named.isEmpty),
+          ),
+        ),
       );
     } else {
       Procedure invocationGenericMethod = coreTypes.invocationClass.procedures
           .firstWhere((c) => c.name.text == "genericMethod");
       return StaticInvocation(
         invocationGenericMethod,
-        Arguments([
-          SymbolLiteral(name),
-          ListLiteral(arguments.types.map((t) => TypeLiteral(t)).toList()),
-          ListLiteral(arguments.positional),
-          MapLiteral(
-            List<MapLiteralEntry>.from(
-              arguments.named.map((NamedExpression arg) {
-                return MapLiteralEntry(SymbolLiteral(arg.name), arg.value);
-              }),
+        Arguments(
+          ExpressionList(
+            SymbolLiteral(name),
+            ListLiteral(
+              ExpressionList.mapped(arguments.types, TypeLiteral.new),
             ),
-            keyType: coreTypes.symbolNonNullableRawType,
-          )..isConst = (arguments.named.isEmpty),
-        ]),
+            ListLiteral(arguments.positional),
+            MapLiteral(
+              List<MapLiteralEntry>.from(
+                arguments.named.map((NamedExpression arg) {
+                  return MapLiteralEntry(SymbolLiteral(arg.name), arg.value);
+                }),
+              ),
+              keyType: coreTypes.symbolNonNullableRawType,
+            )..isConst = (arguments.named.isEmpty),
+          ),
+        ),
       );
     }
   }
@@ -612,6 +621,11 @@ class WasmTarget extends Target {
       'dart:_compact_hash',
       '_ConstSet',
     );
+  }
+
+  @override
+  Class concreteConstSymbolLiteralClass(CoreTypes coreTypes) {
+    return _symbol ??= coreTypes.index.getClass('dart:_internal', 'Symbol');
   }
 
   @override

@@ -83,6 +83,20 @@ f(C c) {
 ''');
   }
 
+  test_override_undefined_hasNonExtensionSetter_eq() async {
+    await resolveTestCodeWithDiagnostics('''
+class C {
+  set foo(int value) {}
+}
+extension E on C {}
+void f(C c) {
+  E(c).foo = 1;
+//     ^^^
+// [diag.undefinedExtensionSetter] The setter 'foo' isn't defined for the extension 'E'.
+}
+''');
+  }
+
   test_static_undefined() async {
     await resolveTestCodeWithDiagnostics('''
 extension E on int {}

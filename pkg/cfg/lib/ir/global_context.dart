@@ -5,6 +5,7 @@
 import 'package:cfg/front_end/ast_to_ir_types.dart' show AstToIrTypes;
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
+import 'package:kernel/library_index.dart' show LibraryIndex;
 import 'package:kernel/type_environment.dart'
     show StaticTypeContext, TypeEnvironment;
 import 'package:meta/meta.dart';
@@ -21,8 +22,11 @@ class GlobalContext {
   /// implements operations on Dart static types, such as a subtype test.
   final TypeEnvironment typeEnvironment;
 
+  /// Index of all core libraries.
+  final LibraryIndex coreLibraries;
+
   /// Create a new context.
-  GlobalContext({required this.typeEnvironment});
+  GlobalContext({required this.typeEnvironment, required this.coreLibraries});
 
   /// AST nodes of core libraries, classes and members.
   CoreTypes get coreTypes => typeEnvironment.coreTypes;

@@ -42,7 +42,14 @@ library
           element: <testLibrary>::@topLevelVariable::b
           initializer: expression_1
             AsExpression
-              expression: SimpleIdentifier
+              expression2: UnqualifiedNameExpression
+                name: a @27
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::a
+                  invokeType: num Function()
+                  type: num
+                staticType: num
+              expression(v1): SimpleIdentifier
                 token: a @27
                 element: <testLibrary>::@getter::a
                 staticType: num
@@ -95,6 +102,7 @@ library
     var library = await buildLibrary(r'''
 const a = 0;
 const b = (a += 1);
+const c = (a = 1);
 ''');
     checkElementText(library, r'''
 library
@@ -115,7 +123,24 @@ library
           initializer: expression_1
             ParenthesizedExpression
               leftParenthesis: ( @23
-              expression: AssignmentExpression
+              expression2: CompoundAssignment
+                target: UnqualifiedNameAssignmentTarget
+                  name: a @24
+                  read: GetterInvocationResolution
+                    element: <testLibrary>::@getter::a
+                    invokeType: int Function()
+                    type: int
+                  write: InvalidNamedWriteResolution
+                    recoveryElement: <testLibrary>::@getter::a
+                operator: += @26
+                value: IntegerLiteral
+                  literal: 1 @29
+                  staticType: int
+                binaryOperator: add
+                element: dart:core::@class::num::@method::+
+                operatorResultType: int
+                staticType: int
+              expression(v1): AssignmentExpression
                 leftHandSide: SimpleIdentifier
                   token: a @24
                   element: <null>
@@ -133,11 +158,218 @@ library
               rightParenthesis: ) @30
               staticType: int
           inducedGetter: #F4
+        #F5 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic c (nameOffset:39) (firstTokenOffset:39) (offset:39)
+          element: <testLibrary>::@topLevelVariable::c
+          initializer: expression_2
+            ParenthesizedExpression
+              leftParenthesis: ( @43
+              expression2: DirectAssignment
+                target: UnqualifiedNameAssignmentTarget
+                  name: a @44
+                  read: <null>
+                  write: InvalidNamedWriteResolution
+                    recoveryElement: <testLibrary>::@getter::a
+                operator: = @46
+                value: IntegerLiteral
+                  literal: 1 @48
+                  staticType: int
+                staticType: int
+              expression(v1): AssignmentExpression
+                leftHandSide: SimpleIdentifier
+                  token: a @44
+                  element: <null>
+                  staticType: null
+                operator: = @46
+                rightHandSide: IntegerLiteral
+                  literal: 1 @48
+                  staticType: int
+                readElement: <null>
+                readType: null
+                writeElement: <testLibrary>::@getter::a
+                writeType: InvalidType
+                element: <null>
+                staticType: int
+              rightParenthesis: ) @49
+              staticType: int
+          inducedGetter: #F6
       getters
         #F2 isComplete isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::a
           inducingVariable: #F1
         #F4 isComplete isOriginVariable isStatic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+          element: <testLibrary>::@getter::b
+          inducingVariable: #F3
+        #F6 isComplete isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
+          element: <testLibrary>::@getter::c
+          inducingVariable: #F5
+  topLevelVariables
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer a
+      reference: <testLibrary>::@topLevelVariable::a
+      firstFragment: #F1
+      type: int
+      constantInitializer
+        fragment: #F1
+        expression: expression_0
+      getter: <testLibrary>::@getter::a
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer b
+      reference: <testLibrary>::@topLevelVariable::b
+      firstFragment: #F3
+      type: int
+      constantInitializer
+        fragment: #F3
+        expression: expression_1
+      getter: <testLibrary>::@getter::b
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer c
+      reference: <testLibrary>::@topLevelVariable::c
+      firstFragment: #F5
+      type: int
+      constantInitializer
+        fragment: #F5
+        expression: expression_2
+      getter: <testLibrary>::@getter::c
+  getters
+    isOriginVariable isStatic a
+      reference: <testLibrary>::@getter::a
+      firstFragment: #F2
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::a
+    isOriginVariable isStatic b
+      reference: <testLibrary>::@getter::b
+      firstFragment: #F4
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::b
+    isOriginVariable isStatic c
+      reference: <testLibrary>::@getter::c
+      firstFragment: #F6
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
+  test_const_assignmentExpression_importPrefixed() async {
+    newFile('$testPackageLibPath/a.dart', 'int x = 0;');
+    var library = await buildLibrary('''
+import 'a.dart' as p;
+const a = (p.x += 1);
+const b = (p.x = 2);
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      libraryImports
+        package:test/a.dart as p (nameOffset:19) (firstTokenOffset:<null>) (offset:19)
+      prefixes
+        <testLibraryFragment>::@prefix::p
+          fragments: @19
+      topLevelVariables
+        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:28) (firstTokenOffset:28) (offset:28)
+          element: <testLibrary>::@topLevelVariable::a
+          initializer: expression_0
+            ParenthesizedExpression
+              leftParenthesis: ( @32
+              expression2: CompoundAssignment
+                target: ImportPrefixedAssignmentTarget
+                  importPrefix: ImportPrefixReference
+                    name: p @33
+                    period: . @34
+                    element: <testLibraryFragment>::@prefix::p
+                  name: x @35
+                  read: GetterInvocationResolution
+                    element: package:test/a.dart::@getter::x
+                    invokeType: int Function()
+                    type: int
+                  write: SetterInvocationResolution
+                    element: package:test/a.dart::@setter::x
+                    acceptedType: int
+                operator: += @37
+                value: IntegerLiteral
+                  literal: 1 @40
+                  staticType: int
+                binaryOperator: add
+                element: dart:core::@class::num::@method::+
+                operatorResultType: int
+                staticType: int
+              expression(v1): AssignmentExpression
+                leftHandSide: PrefixedIdentifier
+                  prefix: SimpleIdentifier
+                    token: p @33
+                    element: <testLibraryFragment>::@prefix::p
+                    staticType: null
+                  period: . @34
+                  identifier: SimpleIdentifier
+                    token: x @35
+                    element: <null>
+                    staticType: null
+                  element: <null>
+                  staticType: null
+                operator: += @37
+                rightHandSide: IntegerLiteral
+                  literal: 1 @40
+                  staticType: int
+                readElement: package:test/a.dart::@getter::x
+                readType: int
+                writeElement: package:test/a.dart::@setter::x
+                writeType: int
+                element: dart:core::@class::num::@method::+
+                staticType: int
+              rightParenthesis: ) @41
+              staticType: int
+          inducedGetter: #F2
+        #F3 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic b (nameOffset:50) (firstTokenOffset:50) (offset:50)
+          element: <testLibrary>::@topLevelVariable::b
+          initializer: expression_1
+            ParenthesizedExpression
+              leftParenthesis: ( @54
+              expression2: DirectAssignment
+                target: ImportPrefixedAssignmentTarget
+                  importPrefix: ImportPrefixReference
+                    name: p @55
+                    period: . @56
+                    element: <testLibraryFragment>::@prefix::p
+                  name: x @57
+                  read: <null>
+                  write: SetterInvocationResolution
+                    element: package:test/a.dart::@setter::x
+                    acceptedType: int
+                operator: = @59
+                value: IntegerLiteral
+                  literal: 2 @61
+                  staticType: int
+                staticType: int
+              expression(v1): AssignmentExpression
+                leftHandSide: PrefixedIdentifier
+                  prefix: SimpleIdentifier
+                    token: p @55
+                    element: <testLibraryFragment>::@prefix::p
+                    staticType: null
+                  period: . @56
+                  identifier: SimpleIdentifier
+                    token: x @57
+                    element: <null>
+                    staticType: null
+                  element: <null>
+                  staticType: null
+                operator: = @59
+                rightHandSide: IntegerLiteral
+                  literal: 2 @61
+                  staticType: int
+                readElement: <null>
+                readType: null
+                writeElement: package:test/a.dart::@setter::x
+                writeType: int
+                element: <null>
+                staticType: int
+              rightParenthesis: ) @62
+              staticType: int
+          inducedGetter: #F4
+      getters
+        #F2 isComplete isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
+          element: <testLibrary>::@getter::a
+          inducingVariable: #F1
+        #F4 isComplete isOriginVariable isStatic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:50)
           element: <testLibrary>::@getter::b
           inducingVariable: #F3
   topLevelVariables
@@ -171,6 +403,139 @@ library
 ''');
   }
 
+  test_const_assignmentExpression_invalidTarget_direct() async {
+    var library = await buildLibrary(r'''
+const a = (0 = 1);
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:6) (firstTokenOffset:6) (offset:6)
+          element: <testLibrary>::@topLevelVariable::a
+          initializer: expression_0
+            ParenthesizedExpression
+              leftParenthesis: ( @10
+              expression2: DirectAssignment
+                target: InvalidExpressionAssignmentTarget
+                  expression: IntegerLiteral
+                    literal: 0 @11
+                    staticType: int
+                  write: InvalidWriteResolution
+                operator: = @13
+                value: IntegerLiteral
+                  literal: 1 @15
+                  staticType: int
+                staticType: int
+              expression(v1): AssignmentExpression
+                leftHandSide: IntegerLiteral
+                  literal: 0 @11
+                  staticType: int
+                operator: = @13
+                rightHandSide: IntegerLiteral
+                  literal: 1 @15
+                  staticType: int
+                readElement: <null>
+                readType: null
+                writeElement: <null>
+                writeType: InvalidType
+                element: <null>
+                staticType: int
+              rightParenthesis: ) @16
+              staticType: int
+          inducedGetter: #F2
+      getters
+        #F2 isComplete isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+          element: <testLibrary>::@getter::a
+          inducingVariable: #F1
+  topLevelVariables
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer a
+      reference: <testLibrary>::@topLevelVariable::a
+      firstFragment: #F1
+      type: int
+      constantInitializer
+        fragment: #F1
+        expression: expression_0
+      getter: <testLibrary>::@getter::a
+  getters
+    isOriginVariable isStatic a
+      reference: <testLibrary>::@getter::a
+      firstFragment: #F2
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
+  test_const_assignmentExpression_invalidTarget_ifNull() async {
+    var library = await buildLibrary(r'''
+const a = (0 ??= 1);
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:6) (firstTokenOffset:6) (offset:6)
+          element: <testLibrary>::@topLevelVariable::a
+          initializer: expression_0
+            ParenthesizedExpression
+              leftParenthesis: ( @10
+              expression2: IfNullAssignment
+                target: InvalidExpressionAssignmentTarget
+                  expression: IntegerLiteral
+                    literal: 0 @11
+                    staticType: int
+                  read: InvalidReadResolution
+                  write: InvalidWriteResolution
+                operator: ??= @13
+                value: IntegerLiteral
+                  literal: 1 @17
+                  staticType: int
+                staticType: int
+              expression(v1): AssignmentExpression
+                leftHandSide: IntegerLiteral
+                  literal: 0 @11
+                  staticType: int
+                operator: ??= @13
+                rightHandSide: IntegerLiteral
+                  literal: 1 @17
+                  staticType: int
+                readElement: <null>
+                readType: int
+                writeElement: <null>
+                writeType: InvalidType
+                element: <null>
+                staticType: int
+              rightParenthesis: ) @18
+              staticType: int
+          inducedGetter: #F2
+      getters
+        #F2 isComplete isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+          element: <testLibrary>::@getter::a
+          inducingVariable: #F1
+  topLevelVariables
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer a
+      reference: <testLibrary>::@topLevelVariable::a
+      firstFragment: #F1
+      type: int
+      constantInitializer
+        fragment: #F1
+        expression: expression_0
+      getter: <testLibrary>::@getter::a
+  getters
+    isOriginVariable isStatic a
+      reference: <testLibrary>::@getter::a
+      firstFragment: #F2
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
   test_const_cascadeExpression() async {
     var library = await buildLibrary(r'''
 const a = 0
@@ -188,9 +553,31 @@ library
           element: <testLibrary>::@topLevelVariable::a
           initializer: expression_0
             CascadeExpression
-              target: IntegerLiteral
+              target2: IntegerLiteral
                 literal: 0 @10
                 staticType: int
+              sections
+                CascadeSection
+                  operator: .. @14
+                  body: CascadePropertyExtraction
+                    name: isEven @16
+                    resolution: GetterInvocationResolution
+                      element: dart:core::@class::int::@getter::isEven
+                      invokeType: bool Function()
+                      type: bool
+                    staticType: bool
+                CascadeSection
+                  operator: .. @25
+                  body: CascadeMethodInvocation
+                    name: abs @27
+                    argumentList: ArgumentList
+                      leftParenthesis: ( @30
+                      rightParenthesis: ) @31
+                    resolution: ExecutableInvocationResolution
+                      element: dart:core::@class::int::@method::abs
+                      invokeType: int Function()
+                      type: int
+                    staticType: int
               cascadeSections
                 PropertyAccess
                   operator: .. @14
@@ -234,6 +621,134 @@ library
 ''');
   }
 
+  test_const_cascadeExpression_indexSections() async {
+    var library = await buildLibrary(r'''
+const a = <int>[0]
+  ..[0]
+  ..[0] = 1;
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:6) (firstTokenOffset:6) (offset:6)
+          element: <testLibrary>::@topLevelVariable::a
+          initializer: expression_0
+            CascadeExpression
+              target2: ListLiteral
+                typeArguments: TypeArgumentList
+                  leftBracket: < @10
+                  arguments
+                    NamedType
+                      name: int @11
+                      element: dart:core::@class::int
+                      type: int
+                  rightBracket: > @14
+                leftBracket: [ @15
+                elements2
+                  IntegerLiteral
+                    literal: 0 @16
+                    staticType: int
+                rightBracket: ] @17
+                staticType: List<int>
+              sections
+                CascadeSection
+                  operator: .. @21
+                  body: CascadeIndexExpression
+                    leftBracket: [ @23
+                    index: IntegerLiteral
+                      literal: 0 @24
+                      staticType: int
+                    rightBracket: ] @25
+                    resolution: MethodIndexReadResolution
+                      element: SubstitutedMethodElementImpl
+                        baseElement: dart:core::@class::List::@method::[]
+                        substitution: {E: int}
+                      invokeType: int Function(int)
+                      type: int
+                    staticType: int
+                CascadeSection
+                  operator: .. @29
+                  body: DirectAssignment
+                    target: CascadeIndexAssignmentTarget
+                      leftBracket: [ @31
+                      index: IntegerLiteral
+                        literal: 0 @32
+                        staticType: int
+                      rightBracket: ] @33
+                      read: <null>
+                      write: MethodIndexWriteResolution
+                        element: SubstitutedMethodElementImpl
+                          baseElement: dart:core::@class::List::@method::[]=
+                          substitution: {E: int}
+                        invokeType: void Function(int, int)
+                        acceptedType: int
+                    operator: = @35
+                    value: IntegerLiteral
+                      literal: 1 @37
+                      staticType: int
+                    staticType: int
+              cascadeSections
+                IndexExpression
+                  period: .. @21
+                  leftBracket: [ @23
+                  index: IntegerLiteral
+                    literal: 0 @24
+                    staticType: int
+                  rightBracket: ] @25
+                  element: SubstitutedMethodElementImpl
+                    baseElement: dart:core::@class::List::@method::[]
+                    substitution: {E: int}
+                  staticType: int
+                AssignmentExpression
+                  leftHandSide: IndexExpression
+                    period: .. @29
+                    leftBracket: [ @31
+                    index: IntegerLiteral
+                      literal: 0 @32
+                      staticType: int
+                    rightBracket: ] @33
+                    element: <null>
+                    staticType: null
+                  operator: = @35
+                  rightHandSide: IntegerLiteral
+                    literal: 1 @37
+                    staticType: int
+                  readElement: <null>
+                  readType: null
+                  writeElement: SubstitutedMethodElementImpl
+                    baseElement: dart:core::@class::List::@method::[]=
+                    substitution: {E: int}
+                  writeType: int
+                  element: <null>
+                  staticType: int
+              staticType: List<int>
+          inducedGetter: #F2
+      getters
+        #F2 isComplete isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+          element: <testLibrary>::@getter::a
+          inducingVariable: #F1
+  topLevelVariables
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer a
+      reference: <testLibrary>::@topLevelVariable::a
+      firstFragment: #F1
+      type: List<int>
+      constantInitializer
+        fragment: #F1
+        expression: expression_0
+      getter: <testLibrary>::@getter::a
+  getters
+    isOriginVariable isStatic a
+      reference: <testLibrary>::@getter::a
+      firstFragment: #F2
+      returnType: List<int>
+      variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
   test_const_classField() async {
     var library = await buildLibrary(r'''
 class C {
@@ -261,33 +776,31 @@ library
             #F4 hasInitializer isConst isOriginDeclaration isStatic f2 (nameOffset:56) (firstTokenOffset:56) (offset:56)
               element: <testLibrary>::@class::C::@field::f2
               initializer: expression_1
-                PrefixedIdentifier
-                  prefix: SimpleIdentifier
-                    token: C @61
+                ReceiverPropertyExtraction
+                  receiver: StaticQualifier
+                    name: C @61
                     element: <testLibrary>::@class::C
-                    staticType: null
-                  period: . @62
-                  identifier: SimpleIdentifier
-                    token: f1 @63
+                  operator: . @62
+                  name: f1 @63
+                  resolution: GetterInvocationResolution
                     element: <testLibrary>::@class::C::@getter::f1
-                    staticType: int
-                  element: <testLibrary>::@class::C::@getter::f1
+                    invokeType: int Function()
+                    type: int
                   staticType: int
               inducedGetter: #F5
             #F6 hasInitializer isConst isOriginDeclaration isStatic f3 (nameOffset:67) (firstTokenOffset:67) (offset:67)
               element: <testLibrary>::@class::C::@field::f3
               initializer: expression_2
-                PrefixedIdentifier
-                  prefix: SimpleIdentifier
-                    token: C @72
+                ReceiverPropertyExtraction
+                  receiver: StaticQualifier
+                    name: C @72
                     element: <testLibrary>::@class::C
-                    staticType: null
-                  period: . @73
-                  identifier: SimpleIdentifier
-                    token: f2 @74
+                  operator: . @73
+                  name: f2 @74
+                  resolution: GetterInvocationResolution
                     element: <testLibrary>::@class::C::@getter::f2
-                    staticType: int
-                  element: <testLibrary>::@class::C::@getter::f2
+                    invokeType: int Function()
+                    type: int
                   staticType: int
               inducedGetter: #F7
           constructors
@@ -407,10 +920,10 @@ library
         #F9 hasInitializer isConst isOriginDeclaration isStatic x (nameOffset:86) (firstTokenOffset:86) (offset:86)
           element: <testLibrary>::@topLevelVariable::x
           initializer: expression_0
-            InstanceCreationExpression
+            ConstructorInvocation
               keyword: const @90
-              constructorName: ConstructorName
-                type: NamedType
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
                   name: C @96
                   element: <testLibrary>::@class::C
                   type: C<int>
@@ -419,7 +932,7 @@ library
                   substitution: {T: int}
               argumentList: ArgumentList
                 leftParenthesis: ( @97
-                arguments
+                arguments2
                   IntegerLiteral
                     literal: 0 @98
                     staticType: int
@@ -429,26 +942,22 @@ library
         #F11 hasInitializer isConst isOriginDeclaration isStatic y (nameOffset:115) (firstTokenOffset:115) (offset:115)
           element: <testLibrary>::@topLevelVariable::y
           initializer: expression_1
-            InstanceCreationExpression
+            ConstructorInvocation
               keyword: const @119
-              constructorName: ConstructorName
-                type: NamedType
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
                   name: C @125
                   element: <testLibrary>::@class::C
                   type: C<int>
-                period: . @126
-                name: SimpleIdentifier
-                  token: named @127
-                  element: SubstitutedConstructorElementImpl
-                    baseElement: <testLibrary>::@class::C::@constructor::named
-                    substitution: {T: dynamic}
-                  staticType: null
+                selector: ConstructorSelector
+                  period: . @126
+                  name2: named @127
                 element: SubstitutedConstructorElementImpl
                   baseElement: <testLibrary>::@class::C::@constructor::named
                   substitution: {T: int}
               argumentList: ArgumentList
                 leftParenthesis: ( @132
-                arguments
+                arguments2
                   IntegerLiteral
                     literal: 0 @133
                     staticType: int
@@ -528,16 +1037,16 @@ library
       variable: <testLibrary>::@topLevelVariable::y
 ''');
     var x = library.firstFragment.topLevelVariables[0];
-    var xExpr = x.constantInitializer as InstanceCreationExpression;
-    var xType = xExpr.constructorName.element!.returnType;
+    var xExpr = x.constantInitializer2 as ConstructorInvocation;
+    var xType = xExpr.constructorReference.element!.returnType;
     _assertTypeStr(xType, 'C<int>');
     var y = library.firstFragment.topLevelVariables[0];
-    var yExpr = y.constantInitializer as InstanceCreationExpression;
-    var yType = yExpr.constructorName.element!.returnType;
+    var yExpr = y.constantInitializer2 as ConstructorInvocation;
+    var yType = yExpr.constructorReference.element!.returnType;
     _assertTypeStr(yType, 'C<int>');
   }
 
-  test_const_constructorReference() async {
+  test_const_constructorTearOff() async {
     var library = await buildLibrary(r'''
 class A {
   A.named();
@@ -564,18 +1073,15 @@ library
         #F3 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic v (nameOffset:32) (firstTokenOffset:32) (offset:32)
           element: <testLibrary>::@topLevelVariable::v
           initializer: expression_0
-            ConstructorReference
-              constructorName: ConstructorName
-                type: NamedType
-                  name: A @36
-                  element: <testLibrary>::@class::A
-                  type: null
+            ConstructorTearOff
+              typeReference: ConstructorTypeReference
+                name: A @36
+                element: <testLibrary>::@class::A
+                type: A
+              selector: ConstructorSelector
                 period: . @37
-                name: SimpleIdentifier
-                  token: named @38
-                  element: <testLibrary>::@class::A::@constructor::named
-                  staticType: null
-                element: <testLibrary>::@class::A::@constructor::named
+                name2: named @38
+              element: <testLibrary>::@class::A::@constructor::named
               staticType: A Function()
           inducedGetter: #F4
       getters
@@ -608,6 +1114,143 @@ library
 ''');
   }
 
+  test_const_constructorTearOff_genericElementIsSubstituted() async {
+    var library = await buildLibrary(r'''
+class A<T> {
+  const A();
+}
+typedef TA<T> = A<T>;
+
+const inferred = TA.new;
+const explicit = TA<int>.new;
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          typeParameters
+            #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
+              element: #E0 T
+          constructors
+            #F3 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:15) (offset:21)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 21
+      typeAliases
+        #F4 TA (nameOffset:36) (firstTokenOffset:28) (offset:36)
+          element: <testLibrary>::@typeAlias::TA
+          typeParameters
+            #F5 T (nameOffset:39) (firstTokenOffset:39) (offset:39)
+              element: #E1 T
+      topLevelVariables
+        #F6 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic inferred (nameOffset:57) (firstTokenOffset:57) (offset:57)
+          element: <testLibrary>::@topLevelVariable::inferred
+          initializer: expression_0
+            ConstructorTearOff
+              typeReference: ConstructorTypeReference
+                name: TA @68
+                element: <testLibrary>::@typeAlias::TA
+                type: A<dynamic>
+                  alias: <testLibrary>::@typeAlias::TA
+                    typeArguments
+                      dynamic
+              selector: ConstructorSelector
+                period: . @70
+                name2: new @71
+              element: SubstitutedConstructorElementImpl
+                baseElement: <testLibrary>::@class::A::@constructor::new
+                substitution: {T: T}
+              staticType: A<T> Function<T>()
+          inducedGetter: #F7
+        #F8 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic explicit (nameOffset:82) (firstTokenOffset:82) (offset:82)
+          element: <testLibrary>::@topLevelVariable::explicit
+          initializer: expression_1
+            ConstructorTearOff
+              typeReference: ConstructorTypeReference
+                name: TA @93
+                typeArguments: TypeArgumentList
+                  leftBracket: < @95
+                  arguments
+                    NamedType
+                      name: int @96
+                      element: dart:core::@class::int
+                      type: int
+                  rightBracket: > @99
+                element: <testLibrary>::@typeAlias::TA
+                type: A<int>
+                  alias: <testLibrary>::@typeAlias::TA
+                    typeArguments
+                      int
+              selector: ConstructorSelector
+                period: . @100
+                name2: new @101
+              element: SubstitutedConstructorElementImpl
+                baseElement: <testLibrary>::@class::A::@constructor::new
+                substitution: {T: int}
+              staticType: A<int> Function()
+          inducedGetter: #F9
+      getters
+        #F7 isComplete isOriginVariable isStatic inferred (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
+          element: <testLibrary>::@getter::inferred
+          inducingVariable: #F6
+        #F9 isComplete isOriginVariable isStatic explicit (nameOffset:<null>) (firstTokenOffset:<null>) (offset:82)
+          element: <testLibrary>::@getter::explicit
+          inducingVariable: #F8
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      typeParameters
+        #E0 T
+          firstFragment: #F2
+      constructors
+        hasEnclosingTypeParameterReference isConst isOriginDeclaration new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
+  typeAliases
+    isSimplyBounded TA
+      reference: <testLibrary>::@typeAlias::TA
+      firstFragment: #F4
+      typeParameters
+        #E1 T
+          firstFragment: #F5
+      aliasedType: A<T>
+  topLevelVariables
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer inferred
+      reference: <testLibrary>::@topLevelVariable::inferred
+      firstFragment: #F6
+      type: A<T> Function<T>()
+      constantInitializer
+        fragment: #F6
+        expression: expression_0
+      getter: <testLibrary>::@getter::inferred
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer explicit
+      reference: <testLibrary>::@topLevelVariable::explicit
+      firstFragment: #F8
+      type: A<int> Function()
+      constantInitializer
+        fragment: #F8
+        expression: expression_1
+      getter: <testLibrary>::@getter::explicit
+  getters
+    isOriginVariable isStatic inferred
+      reference: <testLibrary>::@getter::inferred
+      firstFragment: #F7
+      returnType: A<T> Function<T>()
+      variable: <testLibrary>::@topLevelVariable::inferred
+    isOriginVariable isStatic explicit
+      reference: <testLibrary>::@getter::explicit
+      firstFragment: #F9
+      returnType: A<int> Function()
+      variable: <testLibrary>::@topLevelVariable::explicit
+''');
+  }
+
   test_const_dotShorthand_constructor_explicit() async {
     var library = await buildLibrary(r'''
 class A {
@@ -634,17 +1277,17 @@ library
         #F3 hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:34) (firstTokenOffset:34) (offset:34)
           element: <testLibrary>::@topLevelVariable::a
           initializer: expression_0
-            DotShorthandConstructorInvocation
+            DotShorthandConstructorInvocation2
               constKeyword: const @38
               period: . @44
-              constructorName: SimpleIdentifier
-                token: new @45
-                element: <testLibrary>::@class::A::@constructor::new
-                staticType: null
+              name: new @45
               argumentList: ArgumentList
                 leftParenthesis: ( @48
                 rightParenthesis: ) @49
-              isDotShorthand: true
+              shorthandContext: ValidDotShorthandContextResolution
+                contextType: A
+                lookupType: A
+              element: <testLibrary>::@class::A::@constructor::new
               staticType: A
           inducedGetter: #F4
       getters
@@ -703,16 +1346,16 @@ library
         #F3 hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:34) (firstTokenOffset:34) (offset:34)
           element: <testLibrary>::@topLevelVariable::a
           initializer: expression_0
-            DotShorthandConstructorInvocation
+            DotShorthandConstructorInvocation2
               period: . @38
-              constructorName: SimpleIdentifier
-                token: new @39
-                element: <testLibrary>::@class::A::@constructor::new
-                staticType: null
+              name: new @39
               argumentList: ArgumentList
                 leftParenthesis: ( @42
                 rightParenthesis: ) @43
-              isDotShorthand: true
+              shorthandContext: ValidDotShorthandContextResolution
+                contextType: A
+                lookupType: A
+              element: <testLibrary>::@class::A::@constructor::new
               staticType: A
           inducedGetter: #F4
       getters
@@ -773,17 +1416,19 @@ library
         #F4 hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:49) (firstTokenOffset:49) (offset:49)
           element: <testLibrary>::@topLevelVariable::a
           initializer: expression_0
-            DotShorthandInvocation
+            DotShorthandMethodInvocation
               period: . @53
-              memberName: SimpleIdentifier
-                token: method @54
-                element: <testLibrary>::@class::A::@method::method
-                staticType: A Function()
+              name: method @54
               argumentList: ArgumentList
                 leftParenthesis: ( @60
                 rightParenthesis: ) @61
-              isDotShorthand: true
-              staticInvokeType: A Function()
+              shorthandContext: ValidDotShorthandContextResolution
+                contextType: A
+                lookupType: A
+              resolution: ExecutableInvocationResolution
+                element: <testLibrary>::@class::A::@method::method
+                invokeType: A Function()
+                type: A
               staticType: A
           inducedGetter: #F5
       getters
@@ -843,9 +1488,9 @@ library
             #F2 hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:27) (firstTokenOffset:27) (offset:27)
               element: <testLibrary>::@class::A::@field::a
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @31
                       element: <testLibrary>::@class::A
                       type: A
@@ -868,13 +1513,16 @@ library
         #F5 hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:60) (firstTokenOffset:60) (offset:60)
           element: <testLibrary>::@topLevelVariable::a
           initializer: expression_1
-            DotShorthandPropertyAccess
+            DotShorthandNameExpression
               period: . @64
-              propertyName: SimpleIdentifier
-                token: a @65
+              name: a @65
+              shorthandContext: ValidDotShorthandContextResolution
+                contextType: A
+                lookupType: A
+              resolution: GetterInvocationResolution
                 element: <testLibrary>::@class::A::@getter::a
-                staticType: A
-              isDotShorthand: true
+                invokeType: A Function()
+                type: A
               staticType: A
           inducedGetter: #F6
       getters
@@ -920,6 +1568,229 @@ library
       returnType: A
       variable: <testLibrary>::@topLevelVariable::a
 ''');
+  }
+
+  test_const_extensionOverride_assignment() async {
+    var library = await buildLibrary(r'''
+extension E<T> on T {}
+const value = E<int>(0) ??= 1;
+''');
+    assertResolvedNodeText(
+      library.getTopLevelVariable('value')!.constantInitializer2!,
+      r'''
+IfNullAssignment
+  target: InvalidExtensionOverrideAssignmentTarget
+    extensionOverride: ExtensionOverride2
+      name: E
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+        rightBracket: >
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments2
+          IntegerLiteral
+            literal: 0
+            correspondingParameter: <null>
+            staticType: int
+        rightParenthesis: )
+      element: <testLibrary>::@extension::E
+      extendedType: int
+      typeArgumentTypes
+        int
+    read: InvalidReadResolution
+    write: InvalidWriteResolution
+  operator: ??=
+  value: IntegerLiteral
+    literal: 1
+    correspondingParameter: <null>
+    staticType: int
+  staticType: dynamic
+V1: AssignmentExpression
+  leftHandSide: ExtensionOverride
+    name: E
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        IntegerLiteral
+          literal: 0
+          correspondingParameter: <null>
+          staticType: int
+      rightParenthesis: )
+    element: <testLibrary>::@extension::E
+    extendedType: int
+    staticType: dynamic
+    typeArgumentTypes
+      int
+  operator: ??=
+  rightHandSide: IntegerLiteral
+    literal: 1
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: dynamic
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: dynamic
+''',
+    );
+  }
+
+  test_const_extensionOverride_cascade() async {
+    var library = await buildLibrary(r'''
+extension E<T> on T {
+  T get value => this;
+}
+const value = E<int>(0)..value;
+''');
+    assertResolvedNodeText(
+      library.getTopLevelVariable('value')!.constantInitializer2!,
+      r'''
+CascadeExpression
+  target2: InvalidExtensionOverrideExpression
+    extensionOverride: ExtensionOverride2
+      name: E
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+        rightBracket: >
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments2
+          IntegerLiteral
+            literal: 0
+            correspondingParameter: <null>
+            staticType: int
+        rightParenthesis: )
+      element: <testLibrary>::@extension::E
+      extendedType: int
+      typeArgumentTypes
+        int
+    staticType: InvalidType
+  target(v1): ExtensionOverride
+    name: E
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        IntegerLiteral
+          literal: 0
+          correspondingParameter: <null>
+          staticType: int
+      rightParenthesis: )
+    element: <testLibrary>::@extension::E
+    extendedType: int
+    staticType: dynamic
+    typeArgumentTypes
+      int
+  sections
+    CascadeSection
+      operator: ..
+      body: CascadePropertyExtraction
+        name: value
+        resolution: GetterInvocationResolution
+          element: SubstitutedGetterElementImpl
+            baseElement: <testLibrary>::@extension::E::@getter::value
+            substitution: {T: int}
+          invokeType: int Function()
+          type: int
+        staticType: int
+  cascadeSections
+    PropertyAccess
+      operator: ..
+      propertyName: SimpleIdentifier
+        token: value
+        element: SubstitutedGetterElementImpl
+          baseElement: <testLibrary>::@extension::E::@getter::value
+          substitution: {T: int}
+        staticType: int
+      staticType: int
+  staticType: InvalidType
+''',
+    );
+  }
+
+  test_const_extensionOverride_value() async {
+    var library = await buildLibrary(r'''
+extension E<T> on T {}
+const value = E<int>(0);
+''');
+    assertResolvedNodeText(
+      library.getTopLevelVariable('value')!.constantInitializer2!,
+      r'''
+InvalidExtensionOverrideExpression
+  extensionOverride: ExtensionOverride2
+    name: E
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        IntegerLiteral
+          literal: 0
+          correspondingParameter: <null>
+          staticType: int
+      rightParenthesis: )
+    element: <testLibrary>::@extension::E
+    extendedType: int
+    typeArgumentTypes
+      int
+  staticType: InvalidType
+V1: ExtensionOverride
+  name: E
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <null>
+        staticType: int
+    rightParenthesis: )
+  element: <testLibrary>::@extension::E
+  extendedType: int
+  staticType: dynamic
+  typeArgumentTypes
+    int
+''',
+    );
   }
 
   test_const_finalField_hasConstConstructor() async {
@@ -981,6 +1852,80 @@ library
 ''');
   }
 
+  test_const_functionCallTearOff() async {
+    var library = await buildLibrary(r'''
+int f(String value) => 0;
+const v = (f).call;
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic v (nameOffset:32) (firstTokenOffset:32) (offset:32)
+          element: <testLibrary>::@topLevelVariable::v
+          initializer: expression_0
+            ReceiverPropertyExtraction
+              receiver: ParenthesizedExpression
+                leftParenthesis: ( @36
+                expression2: UnqualifiedNameExpression
+                  name: f @37
+                  resolution: ExecutableTearOffResolution
+                    element: <testLibrary>::@function::f
+                    type: int Function(String)
+                  staticType: int Function(String)
+                expression(v1): SimpleIdentifier
+                  token: f @37
+                  element: <testLibrary>::@function::f
+                  staticType: int Function(String)
+                rightParenthesis: ) @38
+                staticType: int Function(String)
+              operator: . @39
+              name: call @40
+              resolution: FunctionCallTearOffResolution
+                type: int Function(String)
+                associatedFunctionType: int Function(String)
+              staticType: int Function(String)
+          inducedGetter: #F2
+      getters
+        #F2 isComplete isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
+          element: <testLibrary>::@getter::v
+          inducingVariable: #F1
+      functions
+        #F3 isComplete isOriginDeclaration isStatic f (nameOffset:4) (firstTokenOffset:0) (offset:4)
+          element: <testLibrary>::@function::f
+          formalParameters
+            #F4 requiredPositional isOriginDeclaration value (nameOffset:13) (firstTokenOffset:6) (offset:13)
+              element: <testLibrary>::@function::f::@formalParameter::value
+  topLevelVariables
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer v
+      reference: <testLibrary>::@topLevelVariable::v
+      firstFragment: #F1
+      type: int Function(String)
+      constantInitializer
+        fragment: #F1
+        expression: expression_0
+      getter: <testLibrary>::@getter::v
+  getters
+    isOriginVariable isStatic v
+      reference: <testLibrary>::@getter::v
+      firstFragment: #F2
+      returnType: int Function(String)
+      variable: <testLibrary>::@topLevelVariable::v
+  functions
+    isOriginDeclaration isStatic f
+      reference: <testLibrary>::@function::f
+      firstFragment: #F3
+      formalParameters
+        #E0 requiredPositional value
+          firstFragment: #F4
+          type: String
+      returnType: int
+''');
+  }
+
   test_const_functionExpression_typeArgumentTypes() async {
     var library = await buildLibrary(r'''
 void f<T>(T a) {}
@@ -997,10 +1942,12 @@ library
         #F1 hasInitializer isConst isOriginDeclaration isStatic v (nameOffset:44) (firstTokenOffset:44) (offset:44)
           element: <testLibrary>::@topLevelVariable::v
           initializer: expression_0
-            FunctionReference
-              function: SimpleIdentifier
-                token: f @48
-                element: <testLibrary>::@function::f
+            ImplicitFunctionInstantiation
+              operand: UnqualifiedNameExpression
+                name: f @48
+                resolution: ExecutableTearOffResolution
+                  element: <testLibrary>::@function::f
+                  type: void Function<T>(T)
                 staticType: void Function<T>(T)
               staticType: void Function(int)
               typeArgumentTypes
@@ -1049,6 +1996,211 @@ library
 ''');
   }
 
+  test_const_functionInstantiation_implicitCallTearOff() async {
+    var library = await buildLibrary(r'''
+class C {
+  const C();
+  T call<T>(T value) => value;
+}
+const f = C()<int>;
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::C
+          constructors
+            #F2 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:12) (offset:18)
+              element: <testLibrary>::@class::C::@constructor::new
+              typeName: C
+              typeNameOffset: 18
+          methods
+            #F3 isComplete isOriginDeclaration call (nameOffset:27) (firstTokenOffset:25) (offset:27)
+              element: <testLibrary>::@class::C::@method::call
+              typeParameters
+                #F4 T (nameOffset:32) (firstTokenOffset:32) (offset:32)
+                  element: #E0 T
+              formalParameters
+                #F5 requiredPositional isOriginDeclaration value (nameOffset:37) (firstTokenOffset:35) (offset:37)
+                  element: <testLibrary>::@class::C::@method::call::@formalParameter::value
+      topLevelVariables
+        #F6 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic f (nameOffset:62) (firstTokenOffset:62) (offset:62)
+          element: <testLibrary>::@topLevelVariable::f
+          initializer: expression_0
+            FunctionInstantiation
+              operand: ImplicitCallTearOff
+                operand: ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
+                      name: C @66
+                      element: <testLibrary>::@class::C
+                      type: C
+                    element: <testLibrary>::@class::C::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @67
+                    rightParenthesis: ) @68
+                  staticType: C
+                element: <testLibrary>::@class::C::@method::call
+                staticType: T Function<T>(T)
+              typeArguments: TypeArgumentList
+                leftBracket: < @69
+                arguments
+                  NamedType
+                    name: int @70
+                    element: dart:core::@class::int
+                    type: int
+                rightBracket: > @73
+              staticType: int Function(int)
+              typeArgumentTypes
+                int
+          inducedGetter: #F7
+      getters
+        #F7 isComplete isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:62)
+          element: <testLibrary>::@getter::f
+          inducingVariable: #F6
+  classes
+    isSimplyBounded class C
+      reference: <testLibrary>::@class::C
+      firstFragment: #F1
+      constructors
+        isConst isOriginDeclaration new
+          reference: <testLibrary>::@class::C::@constructor::new
+          firstFragment: #F2
+      methods
+        isOriginDeclaration call
+          reference: <testLibrary>::@class::C::@method::call
+          firstFragment: #F3
+          typeParameters
+            #E0 T
+              firstFragment: #F4
+          formalParameters
+            #E1 requiredPositional value
+              firstFragment: #F5
+              type: T
+          returnType: T
+  topLevelVariables
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer f
+      reference: <testLibrary>::@topLevelVariable::f
+      firstFragment: #F6
+      type: int Function(int)
+      constantInitializer
+        fragment: #F6
+        expression: expression_0
+      getter: <testLibrary>::@getter::f
+  getters
+    isOriginVariable isStatic f
+      reference: <testLibrary>::@getter::f
+      firstFragment: #F7
+      returnType: int Function(int)
+      variable: <testLibrary>::@topLevelVariable::f
+''');
+  }
+
+  test_const_functionInterfaceCallTearOff() async {
+    var library = await buildLibrary(r'''
+int f(String value) => 0;
+const Function untyped = f;
+const v = (untyped).call;
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 hasInitializer isConst isOriginDeclaration isStatic untyped (nameOffset:41) (firstTokenOffset:41) (offset:41)
+          element: <testLibrary>::@topLevelVariable::untyped
+          initializer: expression_0
+            UnqualifiedNameExpression
+              name: f @51
+              resolution: ExecutableTearOffResolution
+                element: <testLibrary>::@function::f
+                type: int Function(String)
+              staticType: int Function(String)
+          inducedGetter: #F2
+        #F3 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic v (nameOffset:60) (firstTokenOffset:60) (offset:60)
+          element: <testLibrary>::@topLevelVariable::v
+          initializer: expression_1
+            ReceiverPropertyExtraction
+              receiver: ParenthesizedExpression
+                leftParenthesis: ( @64
+                expression2: UnqualifiedNameExpression
+                  name: untyped @65
+                  resolution: GetterInvocationResolution
+                    element: <testLibrary>::@getter::untyped
+                    invokeType: Function Function()
+                    type: Function
+                  staticType: Function
+                expression(v1): SimpleIdentifier
+                  token: untyped @65
+                  element: <testLibrary>::@getter::untyped
+                  staticType: Function
+                rightParenthesis: ) @72
+                staticType: Function
+              operator: . @73
+              name: call @74
+              resolution: FunctionInterfaceCallTearOffResolution
+                type: Function
+              staticType: Function
+          inducedGetter: #F4
+      getters
+        #F2 isComplete isOriginVariable isStatic untyped (nameOffset:<null>) (firstTokenOffset:<null>) (offset:41)
+          element: <testLibrary>::@getter::untyped
+          inducingVariable: #F1
+        #F4 isComplete isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:60)
+          element: <testLibrary>::@getter::v
+          inducingVariable: #F3
+      functions
+        #F5 isComplete isOriginDeclaration isStatic f (nameOffset:4) (firstTokenOffset:0) (offset:4)
+          element: <testLibrary>::@function::f
+          formalParameters
+            #F6 requiredPositional isOriginDeclaration value (nameOffset:13) (firstTokenOffset:6) (offset:13)
+              element: <testLibrary>::@function::f::@formalParameter::value
+  topLevelVariables
+    hasInitializer isConst isOriginDeclaration isStatic untyped
+      reference: <testLibrary>::@topLevelVariable::untyped
+      firstFragment: #F1
+      type: Function
+      constantInitializer
+        fragment: #F1
+        expression: expression_0
+      getter: <testLibrary>::@getter::untyped
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer v
+      reference: <testLibrary>::@topLevelVariable::v
+      firstFragment: #F3
+      type: Function
+      constantInitializer
+        fragment: #F3
+        expression: expression_1
+      getter: <testLibrary>::@getter::v
+  getters
+    isOriginVariable isStatic untyped
+      reference: <testLibrary>::@getter::untyped
+      firstFragment: #F2
+      returnType: Function
+      variable: <testLibrary>::@topLevelVariable::untyped
+    isOriginVariable isStatic v
+      reference: <testLibrary>::@getter::v
+      firstFragment: #F4
+      returnType: Function
+      variable: <testLibrary>::@topLevelVariable::v
+  functions
+    isOriginDeclaration isStatic f
+      reference: <testLibrary>::@function::f
+      firstFragment: #F5
+      formalParameters
+        #E0 requiredPositional value
+          firstFragment: #F6
+          type: String
+      returnType: int
+''');
+  }
+
   test_const_functionReference() async {
     var library = await buildLibrary(r'''
 void f<T>(T a) {}
@@ -1064,10 +2216,12 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic v (nameOffset:24) (firstTokenOffset:24) (offset:24)
           element: <testLibrary>::@topLevelVariable::v
           initializer: expression_0
-            FunctionReference
-              function: SimpleIdentifier
-                token: f @28
-                element: <testLibrary>::@function::f
+            FunctionInstantiation
+              operand: UnqualifiedNameExpression
+                name: f @28
+                resolution: ExecutableTearOffResolution
+                  element: <testLibrary>::@function::f
+                  type: void Function<T>(T)
                 staticType: void Function<T>(T)
               typeArguments: TypeArgumentList
                 leftBracket: < @29
@@ -1124,6 +2278,266 @@ library
 ''');
   }
 
+  test_const_implicitCallTearOff() async {
+    var library = await buildLibrary(r'''
+class C {
+  const C();
+  int call(int value) => value;
+}
+const int Function(int) f = C();
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::C
+          constructors
+            #F2 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:12) (offset:18)
+              element: <testLibrary>::@class::C::@constructor::new
+              typeName: C
+              typeNameOffset: 18
+          methods
+            #F3 isComplete isOriginDeclaration call (nameOffset:29) (firstTokenOffset:25) (offset:29)
+              element: <testLibrary>::@class::C::@method::call
+              formalParameters
+                #F4 requiredPositional isOriginDeclaration value (nameOffset:38) (firstTokenOffset:34) (offset:38)
+                  element: <testLibrary>::@class::C::@method::call::@formalParameter::value
+      topLevelVariables
+        #F5 hasInitializer isConst isOriginDeclaration isStatic f (nameOffset:81) (firstTokenOffset:81) (offset:81)
+          element: <testLibrary>::@topLevelVariable::f
+          initializer: expression_0
+            ImplicitCallTearOff
+              operand: ConstructorInvocation
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    name: C @85
+                    element: <testLibrary>::@class::C
+                    type: C
+                  element: <testLibrary>::@class::C::@constructor::new
+                argumentList: ArgumentList
+                  leftParenthesis: ( @86
+                  rightParenthesis: ) @87
+                staticType: C
+              element: <testLibrary>::@class::C::@method::call
+              staticType: int Function(int)
+          inducedGetter: #F6
+      getters
+        #F6 isComplete isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:81)
+          element: <testLibrary>::@getter::f
+          inducingVariable: #F5
+  classes
+    isSimplyBounded class C
+      reference: <testLibrary>::@class::C
+      firstFragment: #F1
+      constructors
+        isConst isOriginDeclaration new
+          reference: <testLibrary>::@class::C::@constructor::new
+          firstFragment: #F2
+      methods
+        isOriginDeclaration call
+          reference: <testLibrary>::@class::C::@method::call
+          firstFragment: #F3
+          formalParameters
+            #E0 requiredPositional value
+              firstFragment: #F4
+              type: int
+          returnType: int
+  topLevelVariables
+    hasInitializer isConst isOriginDeclaration isStatic f
+      reference: <testLibrary>::@topLevelVariable::f
+      firstFragment: #F5
+      type: int Function(int)
+      constantInitializer
+        fragment: #F5
+        expression: expression_0
+      getter: <testLibrary>::@getter::f
+  getters
+    isOriginVariable isStatic f
+      reference: <testLibrary>::@getter::f
+      firstFragment: #F6
+      returnType: int Function(int)
+      variable: <testLibrary>::@topLevelVariable::f
+''');
+  }
+
+  test_const_implicitCallTearOff_generic() async {
+    var library = await buildLibrary(r'''
+class C {
+  const C();
+  T call<T>(T value) => value;
+}
+const int Function(int) f = C();
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::C
+          constructors
+            #F2 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:12) (offset:18)
+              element: <testLibrary>::@class::C::@constructor::new
+              typeName: C
+              typeNameOffset: 18
+          methods
+            #F3 isComplete isOriginDeclaration call (nameOffset:27) (firstTokenOffset:25) (offset:27)
+              element: <testLibrary>::@class::C::@method::call
+              typeParameters
+                #F4 T (nameOffset:32) (firstTokenOffset:32) (offset:32)
+                  element: #E0 T
+              formalParameters
+                #F5 requiredPositional isOriginDeclaration value (nameOffset:37) (firstTokenOffset:35) (offset:37)
+                  element: <testLibrary>::@class::C::@method::call::@formalParameter::value
+      topLevelVariables
+        #F6 hasInitializer isConst isOriginDeclaration isStatic f (nameOffset:80) (firstTokenOffset:80) (offset:80)
+          element: <testLibrary>::@topLevelVariable::f
+          initializer: expression_0
+            ImplicitFunctionInstantiation
+              operand: ImplicitCallTearOff
+                operand: ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
+                      name: C @84
+                      element: <testLibrary>::@class::C
+                      type: C
+                    element: <testLibrary>::@class::C::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @85
+                    rightParenthesis: ) @86
+                  staticType: C
+                element: <testLibrary>::@class::C::@method::call
+                staticType: T Function<T>(T)
+              staticType: int Function(int)
+              typeArgumentTypes
+                int
+          inducedGetter: #F7
+      getters
+        #F7 isComplete isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:80)
+          element: <testLibrary>::@getter::f
+          inducingVariable: #F6
+  classes
+    isSimplyBounded class C
+      reference: <testLibrary>::@class::C
+      firstFragment: #F1
+      constructors
+        isConst isOriginDeclaration new
+          reference: <testLibrary>::@class::C::@constructor::new
+          firstFragment: #F2
+      methods
+        isOriginDeclaration call
+          reference: <testLibrary>::@class::C::@method::call
+          firstFragment: #F3
+          typeParameters
+            #E0 T
+              firstFragment: #F4
+          formalParameters
+            #E1 requiredPositional value
+              firstFragment: #F5
+              type: T
+          returnType: T
+  topLevelVariables
+    hasInitializer isConst isOriginDeclaration isStatic f
+      reference: <testLibrary>::@topLevelVariable::f
+      firstFragment: #F6
+      type: int Function(int)
+      constantInitializer
+        fragment: #F6
+        expression: expression_0
+      getter: <testLibrary>::@getter::f
+  getters
+    isOriginVariable isStatic f
+      reference: <testLibrary>::@getter::f
+      firstFragment: #F7
+      returnType: int Function(int)
+      variable: <testLibrary>::@topLevelVariable::f
+''');
+  }
+
+  test_const_implicitFunctionInstantiation_constructor() async {
+    var library = await buildLibrary(r'''
+class C<T> {
+  C(T value);
+}
+const C<int> Function(int) f = C.new;
+''');
+    assertResolvedNodeText(
+      library.getTopLevelVariable('f')!.constantInitializer2!,
+      r'''
+ImplicitFunctionInstantiation
+  operand: ConstructorTearOff
+    typeReference: ConstructorTypeReference
+      name: C
+      element: <testLibrary>::@class::C
+      type: C<dynamic>
+    selector: ConstructorSelector
+      period: .
+      name2: new
+    element: SubstitutedConstructorElementImpl
+      baseElement: <testLibrary>::@class::C::@constructor::new
+      substitution: {T: T}
+    staticType: C<T> Function<T>(T)
+  staticType: C<int> Function(int)
+  typeArgumentTypes
+    int
+V1: ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: C
+      element: <testLibrary>::@class::C
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: new
+      element: SubstitutedConstructorElementImpl
+        baseElement: <testLibrary>::@class::C::@constructor::new
+        substitution: {T: int}
+      staticType: null
+      tearOffTypeArgumentTypes
+        int
+    element: SubstitutedConstructorElementImpl
+      baseElement: <testLibrary>::@class::C::@constructor::new
+      substitution: {T: int}
+  staticType: C<int> Function(int)
+''',
+    );
+  }
+
+  test_const_implicitFunctionInstantiation_legacy() async {
+    var library = await buildLibrary(r'''
+// %before-language-feature: constructor-tearoffs
+T id<T>(T value) => value;
+const int Function(int) f = id;
+''');
+    assertResolvedNodeText(
+      library.getTopLevelVariable('f')!.constantInitializer2!,
+      r'''
+ImplicitFunctionInstantiation
+  operand: UnqualifiedNameExpression
+    name: id
+    resolution: ExecutableTearOffResolution
+      element: <testLibrary>::@function::id
+      type: T Function<T>(T)
+    staticType: T Function<T>(T)
+  staticType: int Function(int)
+  typeArgumentTypes
+    int
+V1: SimpleIdentifier
+  token: id
+  element: <testLibrary>::@function::id
+  staticType: int Function(int)
+  tearOffTypeArgumentTypes
+    int
+''',
+    );
+  }
+
   test_const_indexExpression() async {
     var library = await buildLibrary(r'''
 const a = [0];
@@ -1142,7 +2556,7 @@ library
           initializer: expression_0
             ListLiteral
               leftBracket: [ @10
-              elements
+              elements2
                 IntegerLiteral
                   literal: 0 @11
                   staticType: int
@@ -1159,20 +2573,29 @@ library
         #F5 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic c (nameOffset:34) (firstTokenOffset:34) (offset:34)
           element: <testLibrary>::@topLevelVariable::c
           initializer: expression_2
-            IndexExpression
-              target: SimpleIdentifier
-                token: a @38
-                element: <testLibrary>::@getter::a
+            ReceiverIndexExpression
+              receiver: UnqualifiedNameExpression
+                name: a @38
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::a
+                  invokeType: List<int> Function()
+                  type: List<int>
                 staticType: List<int>
               leftBracket: [ @39
-              index: SimpleIdentifier
-                token: b @40
-                element: <testLibrary>::@getter::b
+              index: UnqualifiedNameExpression
+                name: b @40
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::b
+                  invokeType: int Function()
+                  type: int
                 staticType: int
               rightBracket: ] @41
-              element: SubstitutedMethodElementImpl
-                baseElement: dart:core::@class::List::@method::[]
-                substitution: {E: int}
+              resolution: MethodIndexReadResolution
+                element: SubstitutedMethodElementImpl
+                  baseElement: dart:core::@class::List::@method::[]
+                  substitution: {E: int}
+                invokeType: int Function(int)
+                type: int
               staticType: int
           inducedGetter: #F6
       getters
@@ -1225,6 +2648,121 @@ library
       reference: <testLibrary>::@getter::c
       firstFragment: #F6
       returnType: int
+      variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
+  test_const_indexExpression_nullAware() async {
+    var library = await buildLibrary(r'''
+const List<int>? a = [0];
+const b = 0;
+const c = a?[b];
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:17) (firstTokenOffset:17) (offset:17)
+          element: <testLibrary>::@topLevelVariable::a
+          initializer: expression_0
+            ListLiteral
+              leftBracket: [ @21
+              elements2
+                IntegerLiteral
+                  literal: 0 @22
+                  staticType: int
+              rightBracket: ] @23
+              staticType: List<int>
+          inducedGetter: #F2
+        #F3 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic b (nameOffset:32) (firstTokenOffset:32) (offset:32)
+          element: <testLibrary>::@topLevelVariable::b
+          initializer: expression_1
+            IntegerLiteral
+              literal: 0 @36
+              staticType: int
+          inducedGetter: #F4
+        #F5 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic c (nameOffset:45) (firstTokenOffset:45) (offset:45)
+          element: <testLibrary>::@topLevelVariable::c
+          initializer: expression_2
+            ReceiverIndexExpression
+              receiver: UnqualifiedNameExpression
+                name: a @49
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::a
+                  invokeType: List<int>? Function()
+                  type: List<int>?
+                staticType: List<int>?
+              question: ? @50
+              leftBracket: [ @51
+              index: UnqualifiedNameExpression
+                name: b @52
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::b
+                  invokeType: int Function()
+                  type: int
+                staticType: int
+              rightBracket: ] @53
+              resolution: MethodIndexReadResolution
+                element: SubstitutedMethodElementImpl
+                  baseElement: dart:core::@class::List::@method::[]
+                  substitution: {E: int}
+                invokeType: int Function(int)
+                type: int?
+              staticType: int?
+          inducedGetter: #F6
+      getters
+        #F2 isComplete isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
+          element: <testLibrary>::@getter::a
+          inducingVariable: #F1
+        #F4 isComplete isOriginVariable isStatic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
+          element: <testLibrary>::@getter::b
+          inducingVariable: #F3
+        #F6 isComplete isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:45)
+          element: <testLibrary>::@getter::c
+          inducingVariable: #F5
+  topLevelVariables
+    hasInitializer isConst isOriginDeclaration isStatic a
+      reference: <testLibrary>::@topLevelVariable::a
+      firstFragment: #F1
+      type: List<int>?
+      constantInitializer
+        fragment: #F1
+        expression: expression_0
+      getter: <testLibrary>::@getter::a
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer b
+      reference: <testLibrary>::@topLevelVariable::b
+      firstFragment: #F3
+      type: int
+      constantInitializer
+        fragment: #F3
+        expression: expression_1
+      getter: <testLibrary>::@getter::b
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer c
+      reference: <testLibrary>::@topLevelVariable::c
+      firstFragment: #F5
+      type: int?
+      constantInitializer
+        fragment: #F5
+        expression: expression_2
+      getter: <testLibrary>::@getter::c
+  getters
+    isOriginVariable isStatic a
+      reference: <testLibrary>::@getter::a
+      firstFragment: #F2
+      returnType: List<int>?
+      variable: <testLibrary>::@topLevelVariable::a
+    isOriginVariable isStatic b
+      reference: <testLibrary>::@getter::b
+      firstFragment: #F4
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::b
+    isOriginVariable isStatic c
+      reference: <testLibrary>::@getter::c
+      firstFragment: #F6
+      returnType: int?
       variable: <testLibrary>::@topLevelVariable::c
 ''');
   }
@@ -1288,7 +2826,42 @@ library
           initializer: expression_0
             ListLiteral
               leftBracket: [ @140
-              elements
+              elements2
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
+                      name: P1 @141
+                      element: <testLibrary>::@class::P1
+                      type: P1<dynamic>
+                    element: SubstitutedConstructorElementImpl
+                      baseElement: <testLibrary>::@class::P1::@constructor::new
+                      substitution: {T: dynamic}
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @143
+                    rightParenthesis: ) @144
+                  staticType: P1<dynamic>
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
+                      name: P2 @147
+                      typeArguments: TypeArgumentList
+                        leftBracket: < @149
+                        arguments
+                          NamedType
+                            name: int @150
+                            element: dart:core::@class::int
+                            type: int
+                        rightBracket: > @153
+                      element: <testLibrary>::@class::P2
+                      type: P2<int>
+                    element: SubstitutedConstructorElementImpl
+                      baseElement: <testLibrary>::@class::P2::@constructor::new
+                      substitution: {T: int}
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @154
+                    rightParenthesis: ) @155
+                  staticType: P2<int>
+              elements(v1)
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -1408,23 +2981,23 @@ library
             #F2 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic f (nameOffset:25) (firstTokenOffset:25) (offset:25)
               element: <testLibrary>::@class::C::@field::f
               initializer: expression_0
-                BinaryExpression
+                BinaryOperatorInvocation
                   leftOperand: IntegerLiteral
                     literal: 1 @29
                     staticType: int
                   operator: + @31
-                  rightOperand: MethodInvocation
-                    methodName: SimpleIdentifier
-                      token: foo @33
-                      element: <testLibrary>::@function::foo
-                      staticType: int Function()
+                  rightOperand: UnqualifiedFunctionInvocation
+                    name: foo @33
                     argumentList: ArgumentList
                       leftParenthesis: ( @36
                       rightParenthesis: ) @37
-                    staticInvokeType: int Function()
+                    resolution: ExecutableInvocationResolution
+                      element: <testLibrary>::@function::foo
+                      invokeType: int Function()
+                      type: int
                     staticType: int
+                  binaryOperator: add
                   element: dart:core::@class::num::@method::+
-                  staticInvokeType: num Function(num)
                   staticType: int
               inducedGetter: #F3
           constructors
@@ -1545,9 +3118,9 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic v (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::v
           initializer: expression_0
-            SimpleIdentifier
-              token: _notSerializableExpression @-1
-              element: <null>
+            UnqualifiedNameExpression
+              name: _notSerializableExpression @-1
+              resolution: <null>
               staticType: null
           inducedGetter: #F2
       getters
@@ -1604,7 +3177,11 @@ library
             AssertInitializer
               assertKeyword: assert @24
               leftParenthesis: ( @30
-              condition: SimpleIdentifier
+              condition2: UnqualifiedNameExpression
+                name: _notSerializableExpression @-1
+                resolution: <null>
+                staticType: null
+              condition(v1): SimpleIdentifier
                 token: _notSerializableExpression @-1
                 element: <null>
                 staticType: null
@@ -1644,12 +3221,21 @@ library
             AssertInitializer
               assertKeyword: assert @24
               leftParenthesis: ( @30
-              condition: SimpleIdentifier
+              condition2: UnqualifiedNameExpression
+                name: b @31
+                resolution: InvalidNamedReadResolution
+                  recoveryElement: <null>
+                staticType: InvalidType
+              condition(v1): SimpleIdentifier
                 token: b @31
                 element: <null>
                 staticType: InvalidType
               comma: , @32
-              message: SimpleIdentifier
+              message2: UnqualifiedNameExpression
+                name: _notSerializableExpression @-1
+                resolution: <null>
+                staticType: null
+              message(v1): SimpleIdentifier
                 token: _notSerializableExpression @-1
                 element: <null>
                 staticType: null
@@ -1702,15 +3288,21 @@ library
           firstFragment: #F4
           constantInitializers
             ConstructorFieldInitializer
-              fieldName: SimpleIdentifier
+              fieldName2: foo @45
+              fieldName(v1): SimpleIdentifier
                 token: foo @45
                 element: <testLibrary>::@class::A::@field::foo
                 staticType: null
               equals: = @49
-              expression: SimpleIdentifier
+              expression2: UnqualifiedNameExpression
+                name: _notSerializableExpression @-1
+                resolution: <null>
+                staticType: null
+              expression(v1): SimpleIdentifier
                 token: _notSerializableExpression @-1
                 element: <null>
                 staticType: null
+              fieldElement: <testLibrary>::@class::A::@field::foo
       getters
         isOriginVariable foo
           reference: <testLibrary>::@class::A::@getter::foo
@@ -1738,9 +3330,9 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic v (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::v
           initializer: expression_0
-            SimpleIdentifier
-              token: _notSerializableExpression @-1
-              element: <null>
+            UnqualifiedNameExpression
+              name: _notSerializableExpression @-1
+              resolution: <null>
               staticType: null
           inducedGetter: #F2
       getters
@@ -1819,7 +3411,15 @@ library
               thisKeyword: this @61
               argumentList: ArgumentList
                 leftParenthesis: ( @65
-                arguments
+                arguments2
+                  IntegerLiteral
+                    literal: 0 @66
+                    staticType: int
+                  UnqualifiedNameExpression
+                    name: _notSerializableExpression @-1
+                    resolution: <null>
+                    staticType: null
+                arguments(v1)
                   IntegerLiteral
                     literal: 0 @66
                     staticType: int
@@ -1897,7 +3497,15 @@ library
               superKeyword: super @78
               argumentList: ArgumentList
                 leftParenthesis: ( @83
-                arguments
+                arguments2
+                  IntegerLiteral
+                    literal: 0 @84
+                    staticType: int
+                  UnqualifiedNameExpression
+                    name: _notSerializableExpression @-1
+                    resolution: <null>
+                    staticType: null
+                arguments(v1)
                   IntegerLiteral
                     literal: 0 @84
                     staticType: int
@@ -1911,7 +3519,7 @@ library
 ''');
   }
 
-  @SkippedTest(issue: 'https://github.com/dart-lang/sdk/issues/44522')
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/44522')
   test_const_invalid_intLiteral() async {
     var library = await buildLibrary(r'''
 const int x = 0x;
@@ -1935,22 +3543,22 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::a
           initializer: expression_0
-            MethodInvocation
-              target: SimpleStringLiteral
+            ReceiverMethodInvocation
+              receiver: SimpleStringLiteral
                 literal: 'abc' @10
               operator: . @15
-              methodName: SimpleIdentifier
-                token: codeUnitAt @16
-                element: dart:core::@class::String::@method::codeUnitAt
-                staticType: int Function(int)
+              name: codeUnitAt @16
               argumentList: ArgumentList
                 leftParenthesis: ( @26
-                arguments
+                arguments2
                   IntegerLiteral
                     literal: 0 @27
                     staticType: int
                 rightParenthesis: ) @28
-              staticInvokeType: int Function(int)
+              resolution: ExecutableInvocationResolution
+                element: dart:core::@class::String::@method::codeUnitAt
+                invokeType: int Function(int)
+                type: int
               staticType: int
           inducedGetter: #F2
       getters
@@ -1989,9 +3597,9 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic v (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::v
           initializer: expression_0
-            SimpleIdentifier
-              token: _notSerializableExpression @-1
-              element: <null>
+            UnqualifiedNameExpression
+              name: _notSerializableExpression @-1
+              resolution: <null>
               staticType: null
           inducedGetter: #F2
       getters
@@ -2031,23 +3639,23 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic v (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::v
           initializer: expression_0
-            BinaryExpression
+            BinaryOperatorInvocation
               leftOperand: IntegerLiteral
                 literal: 1 @10
                 staticType: int
               operator: + @12
-              rightOperand: MethodInvocation
-                methodName: SimpleIdentifier
-                  token: foo @14
-                  element: <testLibrary>::@function::foo
-                  staticType: int Function()
+              rightOperand: UnqualifiedFunctionInvocation
+                name: foo @14
                 argumentList: ArgumentList
                   leftParenthesis: ( @17
                   rightParenthesis: ) @18
-                staticInvokeType: int Function()
+                resolution: ExecutableInvocationResolution
+                  element: <testLibrary>::@function::foo
+                  invokeType: int Function()
+                  type: int
                 staticType: int
+              binaryOperator: add
               element: dart:core::@class::num::@method::+
-              staticInvokeType: num Function(num)
               staticType: int
           inducedGetter: #F2
       getters
@@ -2098,9 +3706,9 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::a
           initializer: expression_0
-            SimpleIdentifier
-              token: _notSerializableExpression @-1
-              element: <null>
+            UnqualifiedNameExpression
+              name: _notSerializableExpression @-1
+              resolution: <null>
               staticType: null
           inducedGetter: #F2
       getters
@@ -2147,17 +3755,20 @@ library
         #F3 hasInitializer isConst isOriginDeclaration isStatic b (nameOffset:28) (firstTokenOffset:28) (offset:28)
           element: <testLibrary>::@topLevelVariable::b
           initializer: expression_1
-            BinaryExpression
-              leftOperand: SimpleIdentifier
-                token: a @32
-                element: <testLibrary>::@getter::a
+            BinaryOperatorInvocation
+              leftOperand: UnqualifiedNameExpression
+                name: a @32
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::a
+                  invokeType: int Function()
+                  type: int
                 staticType: int
               operator: + @34
               rightOperand: IntegerLiteral
                 literal: 5 @36
                 staticType: int
+              binaryOperator: add
               element: dart:core::@class::num::@method::+
-              staticInvokeType: num Function(num)
               staticType: int
           inducedGetter: #F4
       getters
@@ -2235,10 +3846,10 @@ library
         #F7 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:52) (firstTokenOffset:52) (offset:52)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
-            InstanceCreationExpression
+            ConstructorInvocation
               keyword: const @56
-              constructorName: ConstructorName
-                type: NamedType
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
                   name: C @62
                   typeArguments: TypeArgumentList
                     leftBracket: < @63
@@ -2254,19 +3865,15 @@ library
                     rightBracket: > @75
                   element: <testLibrary>::@class::C
                   type: C<int, String>
-                period: . @76
-                name: SimpleIdentifier
-                  token: named @77
-                  element: SubstitutedConstructorElementImpl
-                    baseElement: <testLibrary>::@class::C::@constructor::named
-                    substitution: {K: int, V: String}
-                  staticType: null
+                selector: ConstructorSelector
+                  period: . @76
+                  name2: named @77
                 element: SubstitutedConstructorElementImpl
                   baseElement: <testLibrary>::@class::C::@constructor::named
                   substitution: {K: int, V: String}
               argumentList: ArgumentList
                 leftParenthesis: ( @82
-                arguments
+                arguments2
                   IntegerLiteral
                     literal: 1 @83
                     staticType: int
@@ -2340,10 +3947,10 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:24) (firstTokenOffset:24) (offset:24)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
-            InstanceCreationExpression
+            ConstructorInvocation
               keyword: const @28
-              constructorName: ConstructorName
-                type: NamedType
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
                   name: C @34
                   typeArguments: TypeArgumentList
                     leftBracket: < @35
@@ -2359,19 +3966,15 @@ library
                     rightBracket: > @47
                   element: package:test/a.dart::@class::C
                   type: C<int, String>
-                period: . @48
-                name: SimpleIdentifier
-                  token: named @49
-                  element: SubstitutedConstructorElementImpl
-                    baseElement: package:test/a.dart::@class::C::@constructor::named
-                    substitution: {K: int, V: String}
-                  staticType: null
+                selector: ConstructorSelector
+                  period: . @48
+                  name2: named @49
                 element: SubstitutedConstructorElementImpl
                   baseElement: package:test/a.dart::@class::C::@constructor::named
                   substitution: {K: int, V: String}
               argumentList: ArgumentList
                 leftParenthesis: ( @54
-                arguments
+                arguments2
                   IntegerLiteral
                     literal: 1 @55
                     staticType: int
@@ -2428,10 +4031,10 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:29) (firstTokenOffset:29) (offset:29)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
-            InstanceCreationExpression
+            ConstructorInvocation
               keyword: const @33
-              constructorName: ConstructorName
-                type: NamedType
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
                   importPrefix: ImportPrefixReference
                     name: p @39
                     period: . @40
@@ -2451,19 +4054,15 @@ library
                     rightBracket: > @54
                   element: package:test/a.dart::@class::C
                   type: C<int, String>
-                period: . @55
-                name: SimpleIdentifier
-                  token: named @56
-                  element: SubstitutedConstructorElementImpl
-                    baseElement: package:test/a.dart::@class::C::@constructor::named
-                    substitution: {K: int, V: String}
-                  staticType: null
+                selector: ConstructorSelector
+                  period: . @55
+                  name2: named @56
                 element: SubstitutedConstructorElementImpl
                   baseElement: package:test/a.dart::@class::C::@constructor::named
                   substitution: {K: int, V: String}
               argumentList: ArgumentList
                 leftParenthesis: ( @61
-                arguments
+                arguments2
                   IntegerLiteral
                     literal: 1 @62
                     staticType: int
@@ -2525,10 +4124,10 @@ library
         #F5 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:38) (firstTokenOffset:38) (offset:38)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
-            InstanceCreationExpression
+            ConstructorInvocation
               keyword: const @42
-              constructorName: ConstructorName
-                type: NamedType
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
                   name: C @48
                   element: <testLibrary>::@class::C
                   type: C<dynamic, dynamic>
@@ -2616,10 +4215,10 @@ library
         #F7 hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:61) (firstTokenOffset:61) (offset:61)
           element: <testLibrary>::@topLevelVariable::a
           initializer: expression_0
-            InstanceCreationExpression
+            ConstructorInvocation
               keyword: const @65
-              constructorName: ConstructorName
-                type: NamedType
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
                   name: A @71
                   element: <testLibrary>::@class::A
                   type: A<int>
@@ -2628,7 +4227,7 @@ library
                   substitution: {T: int}
               argumentList: ArgumentList
                 leftParenthesis: ( @72
-                arguments
+                arguments2
                   IntegerLiteral
                     literal: 0 @73
                     staticType: int
@@ -2716,10 +4315,10 @@ library
         #F5 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:38) (firstTokenOffset:38) (offset:38)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
-            InstanceCreationExpression
+            ConstructorInvocation
               keyword: const @42
-              constructorName: ConstructorName
-                type: NamedType
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
                   name: C @48
                   typeArguments: TypeArgumentList
                     leftBracket: < @49
@@ -2801,10 +4400,10 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:24) (firstTokenOffset:24) (offset:24)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
-            InstanceCreationExpression
+            ConstructorInvocation
               keyword: const @28
-              constructorName: ConstructorName
-                type: NamedType
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
                   name: C @34
                   typeArguments: TypeArgumentList
                     leftBracket: < @35
@@ -2876,10 +4475,10 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:29) (firstTokenOffset:29) (offset:29)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
-            InstanceCreationExpression
+            ConstructorInvocation
               keyword: const @33
-              constructorName: ConstructorName
-                type: NamedType
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
                   importPrefix: ImportPrefixReference
                     name: p @39
                     period: . @40
@@ -2967,22 +4566,20 @@ library
         #F8 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:80) (firstTokenOffset:80) (offset:80)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
-            InstanceCreationExpression
+            ConstructorInvocation
               keyword: const @84
-              constructorName: ConstructorName
-                type: NamedType
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
                   name: C @90
                   element: <testLibrary>::@class::C
                   type: C
-                period: . @91
-                name: SimpleIdentifier
-                  token: named @92
-                  element: <testLibrary>::@class::C::@constructor::named
-                  staticType: null
+                selector: ConstructorSelector
+                  period: . @91
+                  name2: named @92
                 element: <testLibrary>::@class::C::@constructor::named
               argumentList: ArgumentList
                 leftParenthesis: ( @97
-                arguments
+                arguments2
                   BooleanLiteral
                     literal: true @98
                     staticType: bool
@@ -2995,12 +4592,12 @@ library
                   NamedArgument
                     name: d @110
                     colon: : @111
-                    argumentExpression: SimpleStringLiteral
+                    argumentExpression2: SimpleStringLiteral
                       literal: 'ccc' @113
                   NamedArgument
                     name: e @120
                     colon: : @121
-                    argumentExpression: DoubleLiteral
+                    argumentExpression2: DoubleLiteral
                       literal: 3.4 @123
                       staticType: double
                 rightParenthesis: ) @126
@@ -3075,18 +4672,16 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:24) (firstTokenOffset:24) (offset:24)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
-            InstanceCreationExpression
+            ConstructorInvocation
               keyword: const @28
-              constructorName: ConstructorName
-                type: NamedType
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
                   name: C @34
                   element: package:test/a.dart::@class::C
                   type: C
-                period: . @35
-                name: SimpleIdentifier
-                  token: named @36
-                  element: package:test/a.dart::@class::C::@constructor::named
-                  staticType: null
+                selector: ConstructorSelector
+                  period: . @35
+                  name2: named @36
                 element: package:test/a.dart::@class::C::@constructor::named
               argumentList: ArgumentList
                 leftParenthesis: ( @41
@@ -3141,10 +4736,10 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:29) (firstTokenOffset:29) (offset:29)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
-            InstanceCreationExpression
+            ConstructorInvocation
               keyword: const @33
-              constructorName: ConstructorName
-                type: NamedType
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
                   importPrefix: ImportPrefixReference
                     name: p @39
                     period: . @40
@@ -3152,11 +4747,9 @@ library
                   name: C @41
                   element: package:test/a.dart::@class::C
                   type: C
-                period: . @42
-                name: SimpleIdentifier
-                  token: named @43
-                  element: package:test/a.dart::@class::C::@constructor::named
-                  staticType: null
+                selector: ConstructorSelector
+                  period: . @42
+                  name2: named @43
                 element: package:test/a.dart::@class::C::@constructor::named
               argumentList: ArgumentList
                 leftParenthesis: ( @48
@@ -3208,18 +4801,16 @@ library
         #F3 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:18) (firstTokenOffset:18) (offset:18)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
-            InstanceCreationExpression
+            ConstructorInvocation
               keyword: const @22
-              constructorName: ConstructorName
-                type: NamedType
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
                   name: C @28
                   element: <testLibrary>::@class::C
                   type: C
-                period: . @29
-                name: SimpleIdentifier
-                  token: named @30
-                  element: <null>
-                  staticType: null
+                selector: ConstructorSelector
+                  period: . @29
+                  name2: named @30
                 element: <null>
               argumentList: ArgumentList
                 leftParenthesis: ( @35
@@ -3270,10 +4861,10 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
-            InstanceCreationExpression
+            ConstructorInvocation
               keyword: const @10
-              constructorName: ConstructorName
-                type: NamedType
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
                   importPrefix: ImportPrefixReference
                     name: C @16
                     period: . @17
@@ -3334,10 +4925,10 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:29) (firstTokenOffset:29) (offset:29)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
-            InstanceCreationExpression
+            ConstructorInvocation
               keyword: const @33
-              constructorName: ConstructorName
-                type: NamedType
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
                   importPrefix: ImportPrefixReference
                     name: p @39
                     period: . @40
@@ -3345,11 +4936,9 @@ library
                   name: C @41
                   element: package:test/a.dart::@class::C
                   type: C
-                period: . @42
-                name: SimpleIdentifier
-                  token: named @43
-                  element: <null>
-                  staticType: null
+                selector: ConstructorSelector
+                  period: . @42
+                  name2: named @43
                 element: <null>
               argumentList: ArgumentList
                 leftParenthesis: ( @48
@@ -3401,10 +4990,10 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:29) (firstTokenOffset:29) (offset:29)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
-            InstanceCreationExpression
+            ConstructorInvocation
               keyword: const @33
-              constructorName: ConstructorName
-                type: NamedType
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
                   importPrefix: ImportPrefixReference
                     name: p @39
                     period: . @40
@@ -3412,11 +5001,9 @@ library
                   name: C @41
                   element: <null>
                   type: InvalidType
-                period: . @42
-                name: SimpleIdentifier
-                  token: named @43
-                  element: <null>
-                  staticType: null
+                selector: ConstructorSelector
+                  period: . @42
+                  name2: named @43
                 element: <null>
               argumentList: ArgumentList
                 leftParenthesis: ( @48
@@ -3459,10 +5046,10 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
-            InstanceCreationExpression
+            ConstructorInvocation
               keyword: const @10
-              constructorName: ConstructorName
-                type: NamedType
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
                   importPrefix: ImportPrefixReference
                     name: p @16
                     period: . @17
@@ -3470,11 +5057,9 @@ library
                   name: C @18
                   element: <null>
                   type: InvalidType
-                period: . @19
-                name: SimpleIdentifier
-                  token: named @20
-                  element: <null>
-                  staticType: null
+                selector: ConstructorSelector
+                  period: . @19
+                  name2: named @20
                 element: <null>
               argumentList: ArgumentList
                 leftParenthesis: ( @25
@@ -3529,18 +5114,16 @@ library
         #F4 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:21) (firstTokenOffset:21) (offset:21)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
-            InstanceCreationExpression
+            ConstructorInvocation
               keyword: const @25
-              constructorName: ConstructorName
-                type: NamedType
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
                   name: C @31
                   element: <testLibrary>::@class::C
                   type: C<dynamic>
-                period: . @32
-                name: SimpleIdentifier
-                  token: named @33
-                  element: <null>
-                  staticType: null
+                selector: ConstructorSelector
+                  period: . @32
+                  name2: named @33
                 element: <null>
               argumentList: ArgumentList
                 leftParenthesis: ( @38
@@ -3606,10 +5189,10 @@ library
         #F3 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:32) (firstTokenOffset:32) (offset:32)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
-            InstanceCreationExpression
+            ConstructorInvocation
               keyword: const @36
-              constructorName: ConstructorName
-                type: NamedType
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
                   name: C @42
                   element: <testLibrary>::@class::C
                   type: C
@@ -3672,10 +5255,10 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:24) (firstTokenOffset:24) (offset:24)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
-            InstanceCreationExpression
+            ConstructorInvocation
               keyword: const @28
-              constructorName: ConstructorName
-                type: NamedType
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
                   name: C @34
                   element: package:test/a.dart::@class::C
                   type: C
@@ -3733,10 +5316,10 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:29) (firstTokenOffset:29) (offset:29)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
-            InstanceCreationExpression
+            ConstructorInvocation
               keyword: const @33
-              constructorName: ConstructorName
-                type: NamedType
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
                   importPrefix: ImportPrefixReference
                     name: p @39
                     period: . @40
@@ -3786,10 +5369,10 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
-            InstanceCreationExpression
+            ConstructorInvocation
               keyword: const @10
-              constructorName: ConstructorName
-                type: NamedType
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
                   name: C @16
                   element: <null>
                   type: InvalidType
@@ -3844,10 +5427,10 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:29) (firstTokenOffset:29) (offset:29)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
-            InstanceCreationExpression
+            ConstructorInvocation
               keyword: const @33
-              constructorName: ConstructorName
-                type: NamedType
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
                   importPrefix: ImportPrefixReference
                     name: p @39
                     period: . @40
@@ -3897,10 +5480,10 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
-            InstanceCreationExpression
+            ConstructorInvocation
               keyword: const @10
-              constructorName: ConstructorName
-                type: NamedType
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
                   importPrefix: ImportPrefixReference
                     name: p @16
                     period: . @17
@@ -3959,7 +5542,14 @@ library
           element: <testLibrary>::@topLevelVariable::b
           initializer: expression_1
             IsExpression
-              expression: SimpleIdentifier
+              expression2: UnqualifiedNameExpression
+                name: a @23
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::a
+                  invokeType: int Function()
+                  type: int
+                staticType: int
+              expression(v1): SimpleIdentifier
                 token: a @23
                 element: <testLibrary>::@getter::a
                 staticType: int
@@ -4044,24 +5634,24 @@ library
         #F5 hasInitializer isConst isOriginDeclaration isStatic v (nameOffset:53) (firstTokenOffset:53) (offset:53)
           element: <testLibrary>::@topLevelVariable::v
           initializer: expression_1
-            PropertyAccess
-              target: PrefixedIdentifier
-                prefix: SimpleIdentifier
-                  token: C @57
+            ReceiverPropertyExtraction
+              receiver: ReceiverPropertyExtraction
+                receiver: StaticQualifier
+                  name: C @57
                   element: <testLibrary>::@class::C
-                  staticType: null
-                period: . @58
-                identifier: SimpleIdentifier
-                  token: F @59
+                operator: . @58
+                name: F @59
+                resolution: GetterInvocationResolution
                   element: <testLibrary>::@class::C::@getter::F
-                  staticType: String
-                element: <testLibrary>::@class::C::@getter::F
+                  invokeType: String Function()
+                  type: String
                 staticType: String
               operator: . @60
-              propertyName: SimpleIdentifier
-                token: length @61
+              name: length @61
+              resolution: GetterInvocationResolution
                 element: dart:core::@class::String::@getter::length
-                staticType: int
+                invokeType: int Function()
+                type: int
               staticType: int
           inducedGetter: #F6
       getters
@@ -4132,24 +5722,24 @@ library
         #F1 hasInitializer isConst isOriginDeclaration isStatic v (nameOffset:28) (firstTokenOffset:28) (offset:28)
           element: <testLibrary>::@topLevelVariable::v
           initializer: expression_0
-            PropertyAccess
-              target: PrefixedIdentifier
-                prefix: SimpleIdentifier
-                  token: C @32
+            ReceiverPropertyExtraction
+              receiver: ReceiverPropertyExtraction
+                receiver: StaticQualifier
+                  name: C @32
                   element: package:test/a.dart::@class::C
-                  staticType: null
-                period: . @33
-                identifier: SimpleIdentifier
-                  token: F @34
+                operator: . @33
+                name: F @34
+                resolution: GetterInvocationResolution
                   element: package:test/a.dart::@class::C::@getter::F
-                  staticType: String
-                element: package:test/a.dart::@class::C::@getter::F
+                  invokeType: String Function()
+                  type: String
                 staticType: String
               operator: . @35
-              propertyName: SimpleIdentifier
-                token: length @36
+              name: length @36
+              resolution: GetterInvocationResolution
                 element: dart:core::@class::String::@getter::length
-                staticType: int
+                invokeType: int Function()
+                type: int
               staticType: int
           inducedGetter: #F2
       getters
@@ -4200,31 +5790,28 @@ library
         #F1 hasInitializer isConst isOriginDeclaration isStatic v (nameOffset:33) (firstTokenOffset:33) (offset:33)
           element: <testLibrary>::@topLevelVariable::v
           initializer: expression_0
-            PropertyAccess
-              target: PropertyAccess
-                target: PrefixedIdentifier
-                  prefix: SimpleIdentifier
-                    token: p @37
+            ReceiverPropertyExtraction
+              receiver: ReceiverPropertyExtraction
+                receiver: StaticQualifier
+                  importPrefix: ImportPrefixReference
+                    name: p @37
+                    period: . @38
                     element: <testLibraryFragment>::@prefix::p
-                    staticType: null
-                  period: . @38
-                  identifier: SimpleIdentifier
-                    token: C @39
-                    element: package:test/a.dart::@class::C
-                    staticType: null
+                  name: C @39
                   element: package:test/a.dart::@class::C
-                  staticType: null
                 operator: . @40
-                propertyName: SimpleIdentifier
-                  token: F @41
+                name: F @41
+                resolution: GetterInvocationResolution
                   element: package:test/a.dart::@class::C::@getter::F
-                  staticType: String
+                  invokeType: String Function()
+                  type: String
                 staticType: String
               operator: . @42
-              propertyName: SimpleIdentifier
-                token: length @43
+              name: length @43
+              resolution: GetterInvocationResolution
                 element: dart:core::@class::String::@getter::length
-                staticType: int
+                invokeType: int Function()
+                type: int
               staticType: int
           inducedGetter: #F2
       getters
@@ -4263,14 +5850,15 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic v (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::v
           initializer: expression_0
-            PropertyAccess
-              target: SimpleStringLiteral
+            ReceiverPropertyExtraction
+              receiver: SimpleStringLiteral
                 literal: 'abc' @10
               operator: . @15
-              propertyName: SimpleIdentifier
-                token: length @16
+              name: length @16
+              resolution: GetterInvocationResolution
                 element: dart:core::@class::String::@getter::length
-                staticType: int
+                invokeType: int Function()
+                type: int
               staticType: int
           inducedGetter: #F2
       getters
@@ -4316,17 +5904,20 @@ library
         #F3 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic v (nameOffset:30) (firstTokenOffset:30) (offset:30)
           element: <testLibrary>::@topLevelVariable::v
           initializer: expression_1
-            PrefixedIdentifier
-              prefix: SimpleIdentifier
-                token: S @34
-                element: <testLibrary>::@getter::S
+            ReceiverPropertyExtraction
+              receiver: UnqualifiedNameExpression
+                name: S @34
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::S
+                  invokeType: String Function()
+                  type: String
                 staticType: String
-              period: . @35
-              identifier: SimpleIdentifier
-                token: length @36
+              operator: . @35
+              name: length @36
+              resolution: GetterInvocationResolution
                 element: dart:core::@class::String::@getter::length
-                staticType: int
-              element: dart:core::@class::String::@getter::length
+                invokeType: int Function()
+                type: int
               staticType: int
           inducedGetter: #F4
       getters
@@ -4388,17 +5979,20 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic v (nameOffset:24) (firstTokenOffset:24) (offset:24)
           element: <testLibrary>::@topLevelVariable::v
           initializer: expression_0
-            PrefixedIdentifier
-              prefix: SimpleIdentifier
-                token: S @28
-                element: package:test/a.dart::@getter::S
+            ReceiverPropertyExtraction
+              receiver: UnqualifiedNameExpression
+                name: S @28
+                resolution: GetterInvocationResolution
+                  element: package:test/a.dart::@getter::S
+                  invokeType: String Function()
+                  type: String
                 staticType: String
-              period: . @29
-              identifier: SimpleIdentifier
-                token: length @30
+              operator: . @29
+              name: length @30
+              resolution: GetterInvocationResolution
                 element: dart:core::@class::String::@getter::length
-                staticType: int
-              element: dart:core::@class::String::@getter::length
+                invokeType: int Function()
+                type: int
               staticType: int
           inducedGetter: #F2
       getters
@@ -4447,24 +6041,24 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic v (nameOffset:29) (firstTokenOffset:29) (offset:29)
           element: <testLibrary>::@topLevelVariable::v
           initializer: expression_0
-            PropertyAccess
-              target: PrefixedIdentifier
-                prefix: SimpleIdentifier
-                  token: p @33
+            ReceiverPropertyExtraction
+              receiver: ImportPrefixedNameExpression
+                importPrefix: ImportPrefixReference
+                  name: p @33
+                  period: . @34
                   element: <testLibraryFragment>::@prefix::p
-                  staticType: null
-                period: . @34
-                identifier: SimpleIdentifier
-                  token: S @35
+                name: S @35
+                resolution: GetterInvocationResolution
                   element: package:test/a.dart::@getter::S
-                  staticType: String
-                element: package:test/a.dart::@getter::S
+                  invokeType: String Function()
+                  type: String
                 staticType: String
               operator: . @36
-              propertyName: SimpleIdentifier
-                token: length @37
+              name: length @37
+              resolution: GetterInvocationResolution
                 element: dart:core::@class::String::@getter::length
-                staticType: int
+                invokeType: int Function()
+                type: int
               staticType: int
           inducedGetter: #F2
       getters
@@ -4517,17 +6111,15 @@ library
         #F4 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic v (nameOffset:48) (firstTokenOffset:48) (offset:48)
           element: <testLibrary>::@topLevelVariable::v
           initializer: expression_0
-            PrefixedIdentifier
-              prefix: SimpleIdentifier
-                token: C @52
+            ReceiverPropertyExtraction
+              receiver: StaticQualifier
+                name: C @52
                 element: <testLibrary>::@class::C
-                staticType: null
-              period: . @53
-              identifier: SimpleIdentifier
-                token: length @54
+              operator: . @53
+              name: length @54
+              resolution: ExecutableTearOffResolution
                 element: <testLibrary>::@class::C::@method::length
-                staticType: int Function()
-              element: <testLibrary>::@class::C::@method::length
+                type: int Function()
               staticType: int Function()
           inducedGetter: #F5
       getters
@@ -4590,15 +6182,15 @@ library
                     type: int
                 rightBracket: > @27
               leftBracket: [ @28
-              elements
+              elements2
                 IfElement
                   ifKeyword: if @29
                   leftParenthesis: ( @32
-                  expression: BooleanLiteral
+                  expression2: BooleanLiteral
                     literal: true @33
                     staticType: bool
                   rightParenthesis: ) @37
-                  thenElement: IntegerLiteral
+                  thenElement2: IntegerLiteral
                     literal: 1 @39
                     staticType: int
               rightBracket: ] @40
@@ -4651,19 +6243,19 @@ library
                     type: int
                 rightBracket: > @27
               leftBracket: [ @28
-              elements
+              elements2
                 IfElement
                   ifKeyword: if @29
                   leftParenthesis: ( @32
-                  expression: BooleanLiteral
+                  expression2: BooleanLiteral
                     literal: true @33
                     staticType: bool
                   rightParenthesis: ) @37
-                  thenElement: IntegerLiteral
+                  thenElement2: IntegerLiteral
                     literal: 1 @39
                     staticType: int
                   elseKeyword: else @41
-                  elseElement: IntegerLiteral
+                  elseElement2: IntegerLiteral
                     literal: 2 @46
                     staticType: int
               rightBracket: ] @47
@@ -4711,7 +6303,7 @@ library
             ListLiteral
               constKeyword: const @17
               leftBracket: [ @23
-              elements
+              elements2
                 IntegerLiteral
                   literal: 1 @24
                   staticType: int
@@ -4767,10 +6359,10 @@ library
                     type: int
                 rightBracket: > @27
               leftBracket: [ @28
-              elements
+              elements2
                 SpreadElement
                   spreadOperator: ... @32
-                  expression: ListLiteral
+                  expression2: ListLiteral
                     typeArguments: TypeArgumentList
                       leftBracket: < @35
                       arguments
@@ -4780,7 +6372,7 @@ library
                           type: int
                       rightBracket: > @39
                     leftBracket: [ @40
-                    elements
+                    elements2
                       IntegerLiteral
                         literal: 1 @41
                         staticType: int
@@ -4838,10 +6430,10 @@ library
                     type: int
                 rightBracket: > @27
               leftBracket: [ @28
-              elements
+              elements2
                 SpreadElement
                   spreadOperator: ...? @32
-                  expression: ListLiteral
+                  expression2: ListLiteral
                     typeArguments: TypeArgumentList
                       leftBracket: < @36
                       arguments
@@ -4851,7 +6443,7 @@ library
                           type: int
                       rightBracket: > @40
                     leftBracket: [ @41
-                    elements
+                    elements2
                       IntegerLiteral
                         literal: 1 @42
                         staticType: int
@@ -4911,20 +6503,20 @@ library
                     type: int
                 rightBracket: > @32
               leftBracket: { @33
-              elements
+              elements2
                 IfElement
                   ifKeyword: if @34
                   leftParenthesis: ( @37
-                  expression: BooleanLiteral
+                  expression2: BooleanLiteral
                     literal: true @38
                     staticType: bool
                   rightParenthesis: ) @42
-                  thenElement: MapLiteralEntry
-                    key: IntegerLiteral
+                  thenElement2: MapLiteralEntry
+                    key2: IntegerLiteral
                       literal: 1 @44
                       staticType: int
                     separator: : @45
-                    value: IntegerLiteral
+                    value2: IntegerLiteral
                       literal: 2 @47
                       staticType: int
               rightBracket: } @48
@@ -4973,13 +6565,13 @@ library
             SetOrMapLiteral
               constKeyword: const @17
               leftBracket: { @23
-              elements
+              elements2
                 MapLiteralEntry
-                  key: IntegerLiteral
+                  key2: IntegerLiteral
                     literal: 1 @24
                     staticType: int
                   separator: : @25
-                  value: DoubleLiteral
+                  value2: DoubleLiteral
                     literal: 1.0 @27
                     staticType: double
               rightBracket: } @30
@@ -5039,10 +6631,10 @@ library
                     type: int
                 rightBracket: > @32
               leftBracket: { @33
-              elements
+              elements2
                 SpreadElement
                   spreadOperator: ... @37
-                  expression: SetOrMapLiteral
+                  expression2: SetOrMapLiteral
                     typeArguments: TypeArgumentList
                       leftBracket: < @40
                       arguments
@@ -5056,13 +6648,13 @@ library
                           type: int
                       rightBracket: > @49
                     leftBracket: { @50
-                    elements
+                    elements2
                       MapLiteralEntry
-                        key: IntegerLiteral
+                        key2: IntegerLiteral
                           literal: 1 @51
                           staticType: int
                         separator: : @52
-                        value: IntegerLiteral
+                        value2: IntegerLiteral
                           literal: 2 @54
                           staticType: int
                     rightBracket: } @55
@@ -5125,10 +6717,10 @@ library
                     type: int
                 rightBracket: > @32
               leftBracket: { @33
-              elements
+              elements2
                 SpreadElement
                   spreadOperator: ...? @37
-                  expression: SetOrMapLiteral
+                  expression2: SetOrMapLiteral
                     typeArguments: TypeArgumentList
                       leftBracket: < @41
                       arguments
@@ -5142,13 +6734,13 @@ library
                           type: int
                       rightBracket: > @50
                     leftBracket: { @51
-                    elements
+                    elements2
                       MapLiteralEntry
-                        key: IntegerLiteral
+                        key2: IntegerLiteral
                           literal: 1 @52
                           staticType: int
                         separator: : @53
-                        value: IntegerLiteral
+                        value2: IntegerLiteral
                           literal: 2 @55
                           staticType: int
                     rightBracket: } @56
@@ -5195,11 +6787,8 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic b (nameOffset:24) (firstTokenOffset:24) (offset:24)
           element: <testLibrary>::@topLevelVariable::b
           initializer: expression_0
-            MethodInvocation
-              methodName: SimpleIdentifier
-                token: f @28
-                element: <testLibrary>::@function::f
-                staticType: T Function<T>(T)
+            UnqualifiedFunctionInvocation
+              name: f @28
               typeArguments: TypeArgumentList
                 leftBracket: < @29
                 arguments
@@ -5210,12 +6799,15 @@ library
                 rightBracket: > @33
               argumentList: ArgumentList
                 leftParenthesis: ( @34
-                arguments
+                arguments2
                   IntegerLiteral
                     literal: 0 @35
                     staticType: int
                 rightParenthesis: ) @36
-              staticInvokeType: int Function(int)
+              resolution: ExecutableInvocationResolution
+                element: <testLibrary>::@function::f
+                invokeType: int Function(int)
+                type: int
               staticType: int
               typeArgumentTypes
                 int
@@ -5263,6 +6855,77 @@ library
 ''');
   }
 
+  test_const_nullAssertionExpression() async {
+    var library = await buildLibrary(r'''
+const int? a = 0;
+const b = a!;
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:11) (firstTokenOffset:11) (offset:11)
+          element: <testLibrary>::@topLevelVariable::a
+          initializer: expression_0
+            IntegerLiteral
+              literal: 0 @15
+              staticType: int
+          inducedGetter: #F2
+        #F3 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic b (nameOffset:24) (firstTokenOffset:24) (offset:24)
+          element: <testLibrary>::@topLevelVariable::b
+          initializer: expression_1
+            NullAssertionExpression
+              operand: UnqualifiedNameExpression
+                name: a @28
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::a
+                  invokeType: int? Function()
+                  type: int?
+                staticType: int?
+              operator: ! @29
+              staticType: int
+          inducedGetter: #F4
+      getters
+        #F2 isComplete isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+          element: <testLibrary>::@getter::a
+          inducingVariable: #F1
+        #F4 isComplete isOriginVariable isStatic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
+          element: <testLibrary>::@getter::b
+          inducingVariable: #F3
+  topLevelVariables
+    hasInitializer isConst isOriginDeclaration isStatic a
+      reference: <testLibrary>::@topLevelVariable::a
+      firstFragment: #F1
+      type: int?
+      constantInitializer
+        fragment: #F1
+        expression: expression_0
+      getter: <testLibrary>::@getter::a
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer b
+      reference: <testLibrary>::@topLevelVariable::b
+      firstFragment: #F3
+      type: int
+      constantInitializer
+        fragment: #F3
+        expression: expression_1
+      getter: <testLibrary>::@getter::b
+  getters
+    isOriginVariable isStatic a
+      reference: <testLibrary>::@getter::a
+      firstFragment: #F2
+      returnType: int?
+      variable: <testLibrary>::@topLevelVariable::a
+    isOriginVariable isStatic b
+      reference: <testLibrary>::@getter::b
+      firstFragment: #F4
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::b
+''');
+  }
+
   test_const_parameterDefaultValue_initializingFormal_functionTyped() async {
     var library = await buildLibrary(r'''
 class C {
@@ -5294,9 +6957,11 @@ library
                 #F5 optionalNamed hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:37) (firstTokenOffset:32) (offset:37)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
                   initializer: expression_0
-                    SimpleIdentifier
-                      token: foo @40
-                      element: <testLibrary>::@function::foo
+                    UnqualifiedNameExpression
+                      name: foo @40
+                      resolution: ExecutableTearOffResolution
+                        element: <testLibrary>::@function::foo
+                        type: int Function()
                       staticType: int Function()
           getters
             #F3 isComplete isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
@@ -5370,7 +7035,7 @@ library
                 #F5 optionalNamed hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:37) (firstTokenOffset:32) (offset:37)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
                   initializer: expression_0
-                    BinaryExpression
+                    BinaryOperatorInvocation
                       leftOperand: IntegerLiteral
                         literal: 1 @40
                         staticType: int
@@ -5378,8 +7043,8 @@ library
                       rightOperand: IntegerLiteral
                         literal: 2 @44
                         staticType: int
+                      binaryOperator: add
                       element: dart:core::@class::num::@method::+
-                      staticInvokeType: num Function(num)
                       staticType: int
           getters
             #F3 isComplete isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
@@ -5445,7 +7110,7 @@ library
                 #F5 optionalPositional hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:37) (firstTokenOffset:32) (offset:37)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
                   initializer: expression_0
-                    BinaryExpression
+                    BinaryOperatorInvocation
                       leftOperand: IntegerLiteral
                         literal: 1 @41
                         staticType: int
@@ -5453,8 +7118,8 @@ library
                       rightOperand: IntegerLiteral
                         literal: 2 @45
                         staticType: int
+                      binaryOperator: add
                       element: dart:core::@class::num::@method::+
-                      staticInvokeType: num Function(num)
                       staticType: int
           getters
             #F3 isComplete isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
@@ -5521,7 +7186,7 @@ library
                 #F3 optionalPositional hasImplicitType isOriginDeclaration p (nameOffset:32) (firstTokenOffset:32) (offset:32)
                   element: <testLibrary>::@class::C::@constructor::positional::@formalParameter::p
                   initializer: expression_0
-                    BinaryExpression
+                    BinaryOperatorInvocation
                       leftOperand: IntegerLiteral
                         literal: 1 @36
                         staticType: int
@@ -5529,8 +7194,8 @@ library
                       rightOperand: IntegerLiteral
                         literal: 2 @40
                         staticType: int
+                      binaryOperator: add
                       element: dart:core::@class::num::@method::+
-                      staticInvokeType: num Function(num)
                       staticType: int
             #F4 isConst isOriginDeclaration named (nameOffset:55) (firstTokenOffset:47) (offset:55)
               element: <testLibrary>::@class::C::@constructor::named
@@ -5541,7 +7206,7 @@ library
                 #F5 optionalNamed hasImplicitType isOriginDeclaration p (nameOffset:62) (firstTokenOffset:62) (offset:62)
                   element: <testLibrary>::@class::C::@constructor::named::@formalParameter::p
                   initializer: expression_1
-                    BinaryExpression
+                    BinaryOperatorInvocation
                       leftOperand: IntegerLiteral
                         literal: 1 @65
                         staticType: int
@@ -5549,8 +7214,8 @@ library
                       rightOperand: IntegerLiteral
                         literal: 2 @69
                         staticType: int
+                      binaryOperator: add
                       element: dart:core::@class::num::@method::+
-                      staticInvokeType: num Function(num)
                       staticType: int
           methods
             #F6 isComplete isOriginDeclaration methodPositional (nameOffset:81) (firstTokenOffset:76) (offset:81)
@@ -5559,7 +7224,7 @@ library
                 #F7 optionalPositional hasImplicitType isOriginDeclaration p (nameOffset:99) (firstTokenOffset:99) (offset:99)
                   element: <testLibrary>::@class::C::@method::methodPositional::@formalParameter::p
                   initializer: expression_2
-                    BinaryExpression
+                    BinaryOperatorInvocation
                       leftOperand: IntegerLiteral
                         literal: 1 @103
                         staticType: int
@@ -5567,8 +7232,8 @@ library
                       rightOperand: IntegerLiteral
                         literal: 2 @107
                         staticType: int
+                      binaryOperator: add
                       element: dart:core::@class::num::@method::+
-                      staticInvokeType: num Function(num)
                       staticType: int
             #F8 isComplete isOriginDeclaration methodPositionalWithoutDefault (nameOffset:121) (firstTokenOffset:116) (offset:121)
               element: <testLibrary>::@class::C::@method::methodPositionalWithoutDefault
@@ -5581,7 +7246,7 @@ library
                 #F11 optionalNamed hasImplicitType isOriginDeclaration p (nameOffset:180) (firstTokenOffset:180) (offset:180)
                   element: <testLibrary>::@class::C::@method::methodNamed::@formalParameter::p
                   initializer: expression_3
-                    BinaryExpression
+                    BinaryOperatorInvocation
                       leftOperand: IntegerLiteral
                         literal: 1 @183
                         staticType: int
@@ -5589,8 +7254,8 @@ library
                       rightOperand: IntegerLiteral
                         literal: 2 @187
                         staticType: int
+                      binaryOperator: add
                       element: dart:core::@class::num::@method::+
-                      staticInvokeType: num Function(num)
                       staticType: int
             #F12 isComplete isOriginDeclaration methodNamedWithoutDefault (nameOffset:201) (firstTokenOffset:196) (offset:201)
               element: <testLibrary>::@class::C::@method::methodNamedWithoutDefault
@@ -5686,17 +7351,20 @@ library
         #F3 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic b (nameOffset:19) (firstTokenOffset:19) (offset:19)
           element: <testLibrary>::@topLevelVariable::b
           initializer: expression_1
-            PostfixExpression
-              operand: SimpleIdentifier
-                token: a @23
-                element: <null>
-                staticType: null
+            IncrementOrDecrementExpression
+              target: UnqualifiedNameAssignmentTarget
+                name: a @23
+                read: GetterInvocationResolution
+                  element: <testLibrary>::@getter::a
+                  invokeType: int Function()
+                  type: int
+                write: InvalidNamedWriteResolution
+                  recoveryElement: <testLibrary>::@getter::a
               operator: ++ @24
-              readElement: <testLibrary>::@getter::a
-              readType: int
-              writeElement: <testLibrary>::@getter::a
-              writeType: InvalidType
+              operation: increment
+              position: postfix
               element: dart:core::@class::num::@method::+
+              operatorResultType: int
               staticType: int
           inducedGetter: #F4
       getters
@@ -5737,10 +7405,9 @@ library
 ''');
   }
 
-  test_const_postfixExpression_nullCheck() async {
+  test_const_postfixExpression_increment_invalidTarget() async {
     var library = await buildLibrary(r'''
-const int? a = 0;
-const b = a!;
+const a = ((0)++);
 ''');
     checkElementText(library, r'''
 library
@@ -5749,60 +7416,65 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:11) (firstTokenOffset:11) (offset:11)
+        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::a
           initializer: expression_0
-            IntegerLiteral
-              literal: 0 @15
-              staticType: int
+            ParenthesizedExpression
+              leftParenthesis: ( @10
+              expression2: IncrementOrDecrementExpression
+                target: InvalidExpressionAssignmentTarget
+                  expression: ParenthesizedExpression
+                    leftParenthesis: ( @11
+                    expression2: IntegerLiteral
+                      literal: 0 @12
+                      staticType: int
+                    rightParenthesis: ) @13
+                    staticType: int
+                  read: InvalidReadResolution
+                  write: InvalidWriteResolution
+                operator: ++ @14
+                operation: increment
+                position: postfix
+                element: <null>
+                operatorResultType: InvalidType
+                staticType: InvalidType
+              expression(v1): PostfixExpression
+                operand: ParenthesizedExpression
+                  leftParenthesis: ( @11
+                  expression: IntegerLiteral
+                    literal: 0 @12
+                    staticType: int
+                  rightParenthesis: ) @13
+                  staticType: int
+                operator: ++ @14
+                readElement: <null>
+                readType: InvalidType
+                writeElement: <null>
+                writeType: InvalidType
+                element: <null>
+                staticType: InvalidType
+              rightParenthesis: ) @16
+              staticType: InvalidType
           inducedGetter: #F2
-        #F3 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic b (nameOffset:24) (firstTokenOffset:24) (offset:24)
-          element: <testLibrary>::@topLevelVariable::b
-          initializer: expression_1
-            PostfixExpression
-              operand: SimpleIdentifier
-                token: a @28
-                element: <testLibrary>::@getter::a
-                staticType: int?
-              operator: ! @29
-              element: <null>
-              staticType: int
-          inducedGetter: #F4
       getters
-        #F2 isComplete isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+        #F2 isComplete isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::a
           inducingVariable: #F1
-        #F4 isComplete isOriginVariable isStatic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
-          element: <testLibrary>::@getter::b
-          inducingVariable: #F3
   topLevelVariables
-    hasInitializer isConst isOriginDeclaration isStatic a
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F1
-      type: int?
+      type: InvalidType
       constantInitializer
         fragment: #F1
         expression: expression_0
       getter: <testLibrary>::@getter::a
-    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer b
-      reference: <testLibrary>::@topLevelVariable::b
-      firstFragment: #F3
-      type: int
-      constantInitializer
-        fragment: #F3
-        expression: expression_1
-      getter: <testLibrary>::@getter::b
   getters
     isOriginVariable isStatic a
       reference: <testLibrary>::@getter::a
       firstFragment: #F2
-      returnType: int?
+      returnType: InvalidType
       variable: <testLibrary>::@topLevelVariable::a
-    isOriginVariable isStatic b
-      reference: <testLibrary>::@getter::b
-      firstFragment: #F4
-      returnType: int
-      variable: <testLibrary>::@topLevelVariable::b
 ''');
   }
 
@@ -5828,12 +7500,16 @@ library
         #F3 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic b (nameOffset:19) (firstTokenOffset:19) (offset:19)
           element: <testLibrary>::@topLevelVariable::b
           initializer: expression_1
-            PrefixExpression
+            UnaryOperatorInvocation
               operator: - @23
-              operand: SimpleIdentifier
-                token: a @24
-                element: <testLibrary>::@getter::a
+              operand: UnqualifiedNameExpression
+                name: a @24
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::a
+                  invokeType: int Function()
+                  type: int
                 staticType: int
+              unaryOperator: negate
               element: dart:core::@class::int::@method::unary-
               staticType: int
           inducedGetter: #F4
@@ -5899,12 +7575,16 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic b (nameOffset:24) (firstTokenOffset:24) (offset:24)
           element: <testLibrary>::@topLevelVariable::b
           initializer: expression_0
-            PrefixExpression
+            UnaryOperatorInvocation
               operator: - @28
-              operand: SimpleIdentifier
-                token: a @29
-                element: package:test/a.dart::@getter::a
+              operand: UnqualifiedNameExpression
+                name: a @29
+                resolution: GetterInvocationResolution
+                  element: package:test/a.dart::@getter::a
+                  invokeType: Object Function()
+                  type: Object
                 staticType: Object
+              unaryOperator: negate
               element: package:test/a.dart::@extension::E::@method::unary-
               staticType: int
           inducedGetter: #F2
@@ -5952,17 +7632,20 @@ library
         #F3 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic b (nameOffset:19) (firstTokenOffset:19) (offset:19)
           element: <testLibrary>::@topLevelVariable::b
           initializer: expression_1
-            PrefixExpression
+            IncrementOrDecrementExpression
               operator: ++ @23
-              operand: SimpleIdentifier
-                token: a @25
-                element: <null>
-                staticType: null
-              readElement: <testLibrary>::@getter::a
-              readType: int
-              writeElement: <testLibrary>::@getter::a
-              writeType: InvalidType
+              target: UnqualifiedNameAssignmentTarget
+                name: a @25
+                read: GetterInvocationResolution
+                  element: <testLibrary>::@getter::a
+                  invokeType: int Function()
+                  type: int
+                write: InvalidNamedWriteResolution
+                  recoveryElement: <testLibrary>::@getter::a
+              operation: increment
+              position: prefix
               element: dart:core::@class::num::@method::+
+              operatorResultType: int
               staticType: int
           inducedGetter: #F4
       getters
@@ -6003,6 +7686,79 @@ library
 ''');
   }
 
+  test_const_prefixExpression_increment_invalidTarget() async {
+    var library = await buildLibrary(r'''
+const a = (++(0));
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:6) (firstTokenOffset:6) (offset:6)
+          element: <testLibrary>::@topLevelVariable::a
+          initializer: expression_0
+            ParenthesizedExpression
+              leftParenthesis: ( @10
+              expression2: IncrementOrDecrementExpression
+                operator: ++ @11
+                target: InvalidExpressionAssignmentTarget
+                  expression: ParenthesizedExpression
+                    leftParenthesis: ( @13
+                    expression2: IntegerLiteral
+                      literal: 0 @14
+                      staticType: int
+                    rightParenthesis: ) @15
+                    staticType: int
+                  read: InvalidReadResolution
+                  write: InvalidWriteResolution
+                operation: increment
+                position: prefix
+                element: <null>
+                operatorResultType: InvalidType
+                staticType: InvalidType
+              expression(v1): PrefixExpression
+                operator: ++ @11
+                operand: ParenthesizedExpression
+                  leftParenthesis: ( @13
+                  expression: IntegerLiteral
+                    literal: 0 @14
+                    staticType: int
+                  rightParenthesis: ) @15
+                  staticType: int
+                readElement: <null>
+                readType: InvalidType
+                writeElement: <null>
+                writeType: InvalidType
+                element: <null>
+                staticType: InvalidType
+              rightParenthesis: ) @16
+              staticType: InvalidType
+          inducedGetter: #F2
+      getters
+        #F2 isComplete isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+          element: <testLibrary>::@getter::a
+          inducingVariable: #F1
+  topLevelVariables
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer a
+      reference: <testLibrary>::@topLevelVariable::a
+      firstFragment: #F1
+      type: InvalidType
+      constantInitializer
+        fragment: #F1
+        expression: expression_0
+      getter: <testLibrary>::@getter::a
+  getters
+    isOriginVariable isStatic a
+      reference: <testLibrary>::@getter::a
+      firstFragment: #F2
+      returnType: InvalidType
+      variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
   void test_const_recordLiteral() async {
     var library = await buildLibrary(r'''
 const a = 0;
@@ -6027,7 +7783,29 @@ library
           initializer: expression_1
             RecordLiteral
               leftParenthesis: ( @23
-              fields
+              fields2
+                UnqualifiedNameExpression
+                  name: a @24
+                  resolution: GetterInvocationResolution
+                    element: <testLibrary>::@getter::a
+                    invokeType: int Function()
+                    type: int
+                  staticType: int
+                RecordLiteralNamedField
+                  name: a @27
+                  colon: : @28
+                  fieldExpression2: UnqualifiedNameExpression
+                    name: a @30
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@getter::a
+                      invokeType: int Function()
+                      type: int
+                    staticType: int
+                  fieldExpression(v1): SimpleIdentifier
+                    token: a @30
+                    element: <testLibrary>::@getter::a
+                    staticType: int
+              fields(v1)
                 SimpleIdentifier
                   token: a @24
                   element: <testLibrary>::@getter::a
@@ -6105,7 +7883,29 @@ library
             RecordLiteral
               constKeyword: const @23
               leftParenthesis: ( @29
-              fields
+              fields2
+                UnqualifiedNameExpression
+                  name: a @30
+                  resolution: GetterInvocationResolution
+                    element: <testLibrary>::@getter::a
+                    invokeType: int Function()
+                    type: int
+                  staticType: int
+                RecordLiteralNamedField
+                  name: a @33
+                  colon: : @34
+                  fieldExpression2: UnqualifiedNameExpression
+                    name: a @36
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@getter::a
+                      invokeType: int Function()
+                      type: int
+                    staticType: int
+                  fieldExpression(v1): SimpleIdentifier
+                    token: a @36
+                    element: <testLibrary>::@getter::a
+                    staticType: int
+              fields(v1)
                 SimpleIdentifier
                   token: a @30
                   element: <testLibrary>::@getter::a
@@ -6195,17 +7995,16 @@ library
         #F5 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:46) (firstTokenOffset:46) (offset:46)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_1
-            PrefixedIdentifier
-              prefix: SimpleIdentifier
-                token: C @50
+            ReceiverPropertyExtraction
+              receiver: StaticQualifier
+                name: C @50
                 element: <testLibrary>::@class::C
-                staticType: null
-              period: . @51
-              identifier: SimpleIdentifier
-                token: F @52
+              operator: . @51
+              name: F @52
+              resolution: GetterInvocationResolution
                 element: <testLibrary>::@class::C::@getter::F
-                staticType: int
-              element: <testLibrary>::@class::C::@getter::F
+                invokeType: int Function()
+                type: int
               staticType: int
           inducedGetter: #F6
       getters
@@ -6276,17 +8075,16 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:24) (firstTokenOffset:24) (offset:24)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
-            PrefixedIdentifier
-              prefix: SimpleIdentifier
-                token: C @28
+            ReceiverPropertyExtraction
+              receiver: StaticQualifier
+                name: C @28
                 element: package:test/a.dart::@class::C
-                staticType: null
-              period: . @29
-              identifier: SimpleIdentifier
-                token: F @30
+              operator: . @29
+              name: F @30
+              resolution: GetterInvocationResolution
                 element: package:test/a.dart::@class::C::@getter::F
-                staticType: int
-              element: package:test/a.dart::@class::C::@getter::F
+                invokeType: int Function()
+                type: int
               staticType: int
           inducedGetter: #F2
       getters
@@ -6337,24 +8135,20 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:29) (firstTokenOffset:29) (offset:29)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
-            PropertyAccess
-              target: PrefixedIdentifier
-                prefix: SimpleIdentifier
-                  token: p @33
+            ReceiverPropertyExtraction
+              receiver: StaticQualifier
+                importPrefix: ImportPrefixReference
+                  name: p @33
+                  period: . @34
                   element: <testLibraryFragment>::@prefix::p
-                  staticType: null
-                period: . @34
-                identifier: SimpleIdentifier
-                  token: C @35
-                  element: package:test/a.dart::@class::C
-                  staticType: null
+                name: C @35
                 element: package:test/a.dart::@class::C
-                staticType: null
               operator: . @36
-              propertyName: SimpleIdentifier
-                token: F @37
+              name: F @37
+              resolution: GetterInvocationResolution
                 element: package:test/a.dart::@class::C::@getter::F
-                staticType: int
+                invokeType: int Function()
+                type: int
               staticType: int
           inducedGetter: #F2
       getters
@@ -6412,17 +8206,15 @@ library
         #F6 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:58) (firstTokenOffset:58) (offset:58)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
-            PrefixedIdentifier
-              prefix: SimpleIdentifier
-                token: C @62
+            ReceiverPropertyExtraction
+              receiver: StaticQualifier
+                name: C @62
                 element: <testLibrary>::@class::C
-                staticType: null
-              period: . @63
-              identifier: SimpleIdentifier
-                token: m @64
+              operator: . @63
+              name: m @64
+              resolution: ExecutableTearOffResolution
                 element: <testLibrary>::@class::C::@method::m
-                staticType: int Function(int, String)
-              element: <testLibrary>::@class::C::@method::m
+                type: int Function(int, String)
               staticType: int Function(int, String)
           inducedGetter: #F7
       getters
@@ -6490,17 +8282,15 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:24) (firstTokenOffset:24) (offset:24)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
-            PrefixedIdentifier
-              prefix: SimpleIdentifier
-                token: C @28
+            ReceiverPropertyExtraction
+              receiver: StaticQualifier
+                name: C @28
                 element: package:test/a.dart::@class::C
-                staticType: null
-              period: . @29
-              identifier: SimpleIdentifier
-                token: m @30
+              operator: . @29
+              name: m @30
+              resolution: ExecutableTearOffResolution
                 element: package:test/a.dart::@class::C::@method::m
-                staticType: int Function(int, String)
-              element: package:test/a.dart::@class::C::@method::m
+                type: int Function(int, String)
               staticType: int Function(int, String)
           inducedGetter: #F2
       getters
@@ -6551,24 +8341,19 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:29) (firstTokenOffset:29) (offset:29)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
-            PropertyAccess
-              target: PrefixedIdentifier
-                prefix: SimpleIdentifier
-                  token: p @33
+            ReceiverPropertyExtraction
+              receiver: StaticQualifier
+                importPrefix: ImportPrefixReference
+                  name: p @33
+                  period: . @34
                   element: <testLibraryFragment>::@prefix::p
-                  staticType: null
-                period: . @34
-                identifier: SimpleIdentifier
-                  token: C @35
-                  element: package:test/a.dart::@class::C
-                  staticType: null
+                name: C @35
                 element: package:test/a.dart::@class::C
-                staticType: null
               operator: . @36
-              propertyName: SimpleIdentifier
-                token: m @37
+              name: m @37
+              resolution: ExecutableTearOffResolution
                 element: package:test/a.dart::@class::C::@method::m
-                staticType: int Function(int, String)
+                type: int Function(int, String)
               staticType: int Function(int, String)
           inducedGetter: #F2
       getters
@@ -6626,17 +8411,15 @@ library
         #F5 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic x (nameOffset:61) (firstTokenOffset:61) (offset:61)
           element: <testLibrary>::@topLevelVariable::x
           initializer: expression_0
-            PrefixedIdentifier
-              prefix: SimpleIdentifier
-                token: E @65
+            ReceiverPropertyExtraction
+              receiver: StaticQualifier
+                name: E @65
                 element: <testLibrary>::@extension::E
-                staticType: null
-              period: . @66
-              identifier: SimpleIdentifier
-                token: f @67
+              operator: . @66
+              name: f @67
+              resolution: ExecutableTearOffResolution
                 element: <testLibrary>::@extension::E::@method::f
-                staticType: void Function()
-              element: <testLibrary>::@extension::E::@method::f
+                type: void Function()
               staticType: void Function()
           inducedGetter: #F6
       getters
@@ -6695,9 +8478,11 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:15) (firstTokenOffset:15) (offset:15)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
-            SimpleIdentifier
-              token: foo @19
-              element: <testLibrary>::@function::foo
+            UnqualifiedNameExpression
+              name: foo @19
+              resolution: ExecutableTearOffResolution
+                element: <testLibrary>::@function::foo
+                type: dynamic Function()
               staticType: dynamic Function()
           inducedGetter: #F2
       getters
@@ -6723,7 +8508,7 @@ library
       returnType: dynamic Function()
       variable: <testLibrary>::@topLevelVariable::V
   functions
-    isOriginDeclaration isStatic foo
+    hasImplicitReturnType isOriginDeclaration isStatic foo
       reference: <testLibrary>::@function::foo
       firstFragment: #F3
       returnType: dynamic
@@ -6745,9 +8530,11 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:26) (firstTokenOffset:26) (offset:26)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
-            SimpleIdentifier
-              token: foo @30
-              element: <testLibrary>::@function::foo
+            UnqualifiedNameExpression
+              name: foo @30
+              resolution: ExecutableTearOffResolution
+                element: <testLibrary>::@function::foo
+                type: R Function<P, R>(P)
               staticType: R Function<P, R>(P)
           inducedGetter: #F2
       getters
@@ -6818,9 +8605,11 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:24) (firstTokenOffset:24) (offset:24)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
-            SimpleIdentifier
-              token: foo @28
-              element: package:test/a.dart::@function::foo
+            UnqualifiedNameExpression
+              name: foo @28
+              resolution: ExecutableTearOffResolution
+                element: package:test/a.dart::@function::foo
+                type: dynamic Function()
               staticType: dynamic Function()
           inducedGetter: #F2
       getters
@@ -6869,17 +8658,15 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:29) (firstTokenOffset:29) (offset:29)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
-            PrefixedIdentifier
-              prefix: SimpleIdentifier
-                token: p @33
+            ImportPrefixedNameExpression
+              importPrefix: ImportPrefixReference
+                name: p @33
+                period: . @34
                 element: <testLibraryFragment>::@prefix::p
-                staticType: null
-              period: . @34
-              identifier: SimpleIdentifier
-                token: foo @35
+              name: foo @35
+              resolution: ExecutableTearOffResolution
                 element: package:test/a.dart::@function::foo
-                staticType: dynamic Function()
-              element: package:test/a.dart::@function::foo
+                type: dynamic Function()
               staticType: dynamic Function()
           inducedGetter: #F2
       getters
@@ -6926,17 +8713,20 @@ library
         #F3 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic B (nameOffset:19) (firstTokenOffset:19) (offset:19)
           element: <testLibrary>::@topLevelVariable::B
           initializer: expression_1
-            BinaryExpression
-              leftOperand: SimpleIdentifier
-                token: A @23
-                element: <testLibrary>::@getter::A
+            BinaryOperatorInvocation
+              leftOperand: UnqualifiedNameExpression
+                name: A @23
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::A
+                  invokeType: int Function()
+                  type: int
                 staticType: int
               operator: + @25
               rightOperand: IntegerLiteral
                 literal: 2 @27
                 staticType: int
+              binaryOperator: add
               element: dart:core::@class::num::@method::+
-              staticInvokeType: num Function(num)
               staticType: int
           inducedGetter: #F4
       getters
@@ -6998,17 +8788,20 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic B (nameOffset:24) (firstTokenOffset:24) (offset:24)
           element: <testLibrary>::@topLevelVariable::B
           initializer: expression_0
-            BinaryExpression
-              leftOperand: SimpleIdentifier
-                token: A @28
-                element: package:test/a.dart::@getter::A
+            BinaryOperatorInvocation
+              leftOperand: UnqualifiedNameExpression
+                name: A @28
+                resolution: GetterInvocationResolution
+                  element: package:test/a.dart::@getter::A
+                  invokeType: int Function()
+                  type: int
                 staticType: int
               operator: + @30
               rightOperand: IntegerLiteral
                 literal: 2 @32
                 staticType: int
+              binaryOperator: add
               element: dart:core::@class::num::@method::+
-              staticInvokeType: num Function(num)
               staticType: int
           inducedGetter: #F2
       getters
@@ -7057,25 +8850,24 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic B (nameOffset:29) (firstTokenOffset:29) (offset:29)
           element: <testLibrary>::@topLevelVariable::B
           initializer: expression_0
-            BinaryExpression
-              leftOperand: PrefixedIdentifier
-                prefix: SimpleIdentifier
-                  token: p @33
+            BinaryOperatorInvocation
+              leftOperand: ImportPrefixedNameExpression
+                importPrefix: ImportPrefixReference
+                  name: p @33
+                  period: . @34
                   element: <testLibraryFragment>::@prefix::p
-                  staticType: null
-                period: . @34
-                identifier: SimpleIdentifier
-                  token: A @35
+                name: A @35
+                resolution: GetterInvocationResolution
                   element: package:test/a.dart::@getter::A
-                  staticType: int
-                element: package:test/a.dart::@getter::A
+                  invokeType: int Function()
+                  type: int
                 staticType: int
               operator: + @37
               rightOperand: IntegerLiteral
                 literal: 2 @39
                 staticType: int
+              binaryOperator: add
               element: dart:core::@class::num::@method::+
-              staticInvokeType: num Function(num)
               staticType: int
           inducedGetter: #F2
       getters
@@ -7146,9 +8938,9 @@ library
             #F7 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic a (nameOffset:36) (firstTokenOffset:36) (offset:36)
               element: <testLibrary>::@enum::E::@field::a
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -7161,9 +8953,9 @@ library
             #F9 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic b (nameOffset:39) (firstTokenOffset:39) (offset:39)
               element: <testLibrary>::@enum::E::@field::b
               initializer: expression_1
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -7176,9 +8968,9 @@ library
             #F11 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic c (nameOffset:42) (firstTokenOffset:42) (offset:42)
               element: <testLibrary>::@enum::E::@field::c
               initializer: expression_2
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -7193,7 +8985,29 @@ library
               initializer: expression_3
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
+                    UnqualifiedNameExpression
+                      name: a @-1
+                      resolution: GetterInvocationResolution
+                        element: <testLibrary>::@enum::E::@getter::a
+                        invokeType: E Function()
+                        type: E
+                      staticType: E
+                    UnqualifiedNameExpression
+                      name: b @-1
+                      resolution: GetterInvocationResolution
+                        element: <testLibrary>::@enum::E::@getter::b
+                        invokeType: E Function()
+                        type: E
+                      staticType: E
+                    UnqualifiedNameExpression
+                      name: c @-1
+                      resolution: GetterInvocationResolution
+                        element: <testLibrary>::@enum::E::@getter::c
+                        invokeType: E Function()
+                        type: E
+                      staticType: E
+                  elements(v1)
                     SimpleIdentifier
                       token: a @-1
                       element: <testLibrary>::@enum::E::@getter::a
@@ -7865,9 +9679,10 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
-            SimpleIdentifier
-              token: foo @10
-              element: <null>
+            UnqualifiedNameExpression
+              name: foo @10
+              resolution: InvalidNamedReadResolution
+                recoveryElement: <null>
               staticType: InvalidType
           inducedGetter: #F2
       getters
@@ -7915,17 +9730,14 @@ library
         #F3 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:18) (firstTokenOffset:18) (offset:18)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
-            PrefixedIdentifier
-              prefix: SimpleIdentifier
-                token: C @22
+            ReceiverPropertyExtraction
+              receiver: StaticQualifier
+                name: C @22
                 element: <testLibrary>::@class::C
-                staticType: null
-              period: . @23
-              identifier: SimpleIdentifier
-                token: foo @24
-                element: <null>
-                staticType: InvalidType
-              element: <null>
+              operator: . @23
+              name: foo @24
+              resolution: InvalidNamedReadResolution
+                recoveryElement: <null>
               staticType: InvalidType
           inducedGetter: #F4
       getters
@@ -7982,24 +9794,18 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:31) (firstTokenOffset:31) (offset:31)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
-            PropertyAccess
-              target: PrefixedIdentifier
-                prefix: SimpleIdentifier
-                  token: p @35
+            ReceiverPropertyExtraction
+              receiver: StaticQualifier
+                importPrefix: ImportPrefixReference
+                  name: p @35
+                  period: . @36
                   element: <testLibraryFragment>::@prefix::p
-                  staticType: null
-                period: . @36
-                identifier: SimpleIdentifier
-                  token: C @37
-                  element: package:test/foo.dart::@class::C
-                  staticType: null
+                name: C @37
                 element: package:test/foo.dart::@class::C
-                staticType: null
               operator: . @38
-              propertyName: SimpleIdentifier
-                token: foo @39
-                element: <null>
-                staticType: InvalidType
+              name: foo @39
+              resolution: InvalidNamedReadResolution
+                recoveryElement: <null>
               staticType: InvalidType
           inducedGetter: #F2
       getters
@@ -8049,15 +9855,15 @@ library
                     type: int
                 rightBracket: > @27
               leftBracket: { @28
-              elements
+              elements2
                 IfElement
                   ifKeyword: if @29
                   leftParenthesis: ( @32
-                  expression: BooleanLiteral
+                  expression2: BooleanLiteral
                     literal: true @33
                     staticType: bool
                   rightParenthesis: ) @37
-                  thenElement: IntegerLiteral
+                  thenElement2: IntegerLiteral
                     literal: 1 @39
                     staticType: int
               rightBracket: } @40
@@ -8106,7 +9912,7 @@ library
             SetOrMapLiteral
               constKeyword: const @17
               leftBracket: { @23
-              elements
+              elements2
                 IntegerLiteral
                   literal: 1 @24
                   staticType: int
@@ -8163,10 +9969,10 @@ library
                     type: int
                 rightBracket: > @27
               leftBracket: { @28
-              elements
+              elements2
                 SpreadElement
                   spreadOperator: ... @32
-                  expression: SetOrMapLiteral
+                  expression2: SetOrMapLiteral
                     typeArguments: TypeArgumentList
                       leftBracket: < @35
                       arguments
@@ -8176,7 +9982,7 @@ library
                           type: int
                       rightBracket: > @39
                     leftBracket: { @40
-                    elements
+                    elements2
                       IntegerLiteral
                         literal: 1 @41
                         staticType: int
@@ -8236,10 +10042,10 @@ library
                     type: int
                 rightBracket: > @27
               leftBracket: { @28
-              elements
+              elements2
                 SpreadElement
                   spreadOperator: ...? @32
-                  expression: SetOrMapLiteral
+                  expression2: SetOrMapLiteral
                     typeArguments: TypeArgumentList
                       leftBracket: < @36
                       arguments
@@ -8249,7 +10055,7 @@ library
                           type: int
                       rightBracket: > @40
                     leftBracket: { @41
-                    elements
+                    elements2
                       IntegerLiteral
                         literal: 1 @42
                         staticType: int
@@ -8313,7 +10119,7 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic vEqual (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::vEqual
           initializer: expression_0
-            BinaryExpression
+            BinaryOperatorInvocation
               leftOperand: IntegerLiteral
                 literal: 1 @15
                 staticType: int
@@ -8321,14 +10127,14 @@ library
               rightOperand: IntegerLiteral
                 literal: 2 @20
                 staticType: int
+              binaryOperator: equal
               element: dart:core::@class::num::@method::==
-              staticInvokeType: bool Function(Object)
               staticType: bool
           inducedGetter: #F2
         #F3 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic vAnd (nameOffset:29) (firstTokenOffset:29) (offset:29)
           element: <testLibrary>::@topLevelVariable::vAnd
           initializer: expression_1
-            BinaryExpression
+            LogicalAnd
               leftOperand: BooleanLiteral
                 literal: true @36
                 staticType: bool
@@ -8336,14 +10142,12 @@ library
               rightOperand: BooleanLiteral
                 literal: false @44
                 staticType: bool
-              element: <null>
-              staticInvokeType: null
               staticType: bool
           inducedGetter: #F4
         #F5 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic vOr (nameOffset:57) (firstTokenOffset:57) (offset:57)
           element: <testLibrary>::@topLevelVariable::vOr
           initializer: expression_2
-            BinaryExpression
+            LogicalOr
               leftOperand: BooleanLiteral
                 literal: false @63
                 staticType: bool
@@ -8351,14 +10155,12 @@ library
               rightOperand: BooleanLiteral
                 literal: true @72
                 staticType: bool
-              element: <null>
-              staticInvokeType: null
               staticType: bool
           inducedGetter: #F6
         #F7 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic vBitXor (nameOffset:84) (firstTokenOffset:84) (offset:84)
           element: <testLibrary>::@topLevelVariable::vBitXor
           initializer: expression_3
-            BinaryExpression
+            BinaryOperatorInvocation
               leftOperand: IntegerLiteral
                 literal: 1 @94
                 staticType: int
@@ -8366,14 +10168,14 @@ library
               rightOperand: IntegerLiteral
                 literal: 2 @98
                 staticType: int
+              binaryOperator: bitwiseXor
               element: dart:core::@class::int::@method::^
-              staticInvokeType: int Function(int)
               staticType: int
           inducedGetter: #F8
         #F9 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic vBitAnd (nameOffset:107) (firstTokenOffset:107) (offset:107)
           element: <testLibrary>::@topLevelVariable::vBitAnd
           initializer: expression_4
-            BinaryExpression
+            BinaryOperatorInvocation
               leftOperand: IntegerLiteral
                 literal: 1 @117
                 staticType: int
@@ -8381,14 +10183,14 @@ library
               rightOperand: IntegerLiteral
                 literal: 2 @121
                 staticType: int
+              binaryOperator: bitwiseAnd
               element: dart:core::@class::int::@method::&
-              staticInvokeType: int Function(int)
               staticType: int
           inducedGetter: #F10
         #F11 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic vBitOr (nameOffset:130) (firstTokenOffset:130) (offset:130)
           element: <testLibrary>::@topLevelVariable::vBitOr
           initializer: expression_5
-            BinaryExpression
+            BinaryOperatorInvocation
               leftOperand: IntegerLiteral
                 literal: 1 @139
                 staticType: int
@@ -8396,14 +10198,14 @@ library
               rightOperand: IntegerLiteral
                 literal: 2 @143
                 staticType: int
+              binaryOperator: bitwiseOr
               element: dart:core::@class::int::@method::|
-              staticInvokeType: int Function(int)
               staticType: int
           inducedGetter: #F12
         #F13 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic vBitShiftLeft (nameOffset:152) (firstTokenOffset:152) (offset:152)
           element: <testLibrary>::@topLevelVariable::vBitShiftLeft
           initializer: expression_6
-            BinaryExpression
+            BinaryOperatorInvocation
               leftOperand: IntegerLiteral
                 literal: 1 @168
                 staticType: int
@@ -8411,14 +10213,14 @@ library
               rightOperand: IntegerLiteral
                 literal: 2 @173
                 staticType: int
+              binaryOperator: shiftLeft
               element: dart:core::@class::int::@method::<<
-              staticInvokeType: int Function(int)
               staticType: int
           inducedGetter: #F14
         #F15 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic vBitShiftRight (nameOffset:182) (firstTokenOffset:182) (offset:182)
           element: <testLibrary>::@topLevelVariable::vBitShiftRight
           initializer: expression_7
-            BinaryExpression
+            BinaryOperatorInvocation
               leftOperand: IntegerLiteral
                 literal: 1 @199
                 staticType: int
@@ -8426,14 +10228,14 @@ library
               rightOperand: IntegerLiteral
                 literal: 2 @204
                 staticType: int
+              binaryOperator: shiftRight
               element: dart:core::@class::int::@method::>>
-              staticInvokeType: int Function(int)
               staticType: int
           inducedGetter: #F16
         #F17 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic vAdd (nameOffset:213) (firstTokenOffset:213) (offset:213)
           element: <testLibrary>::@topLevelVariable::vAdd
           initializer: expression_8
-            BinaryExpression
+            BinaryOperatorInvocation
               leftOperand: IntegerLiteral
                 literal: 1 @220
                 staticType: int
@@ -8441,14 +10243,14 @@ library
               rightOperand: IntegerLiteral
                 literal: 2 @224
                 staticType: int
+              binaryOperator: add
               element: dart:core::@class::num::@method::+
-              staticInvokeType: num Function(num)
               staticType: int
           inducedGetter: #F18
         #F19 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic vSubtract (nameOffset:233) (firstTokenOffset:233) (offset:233)
           element: <testLibrary>::@topLevelVariable::vSubtract
           initializer: expression_9
-            BinaryExpression
+            BinaryOperatorInvocation
               leftOperand: IntegerLiteral
                 literal: 1 @245
                 staticType: int
@@ -8456,14 +10258,14 @@ library
               rightOperand: IntegerLiteral
                 literal: 2 @249
                 staticType: int
+              binaryOperator: subtract
               element: dart:core::@class::num::@method::-
-              staticInvokeType: num Function(num)
               staticType: int
           inducedGetter: #F20
         #F21 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic vMiltiply (nameOffset:258) (firstTokenOffset:258) (offset:258)
           element: <testLibrary>::@topLevelVariable::vMiltiply
           initializer: expression_10
-            BinaryExpression
+            BinaryOperatorInvocation
               leftOperand: IntegerLiteral
                 literal: 1 @270
                 staticType: int
@@ -8471,14 +10273,14 @@ library
               rightOperand: IntegerLiteral
                 literal: 2 @274
                 staticType: int
+              binaryOperator: multiply
               element: dart:core::@class::num::@method::*
-              staticInvokeType: num Function(num)
               staticType: int
           inducedGetter: #F22
         #F23 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic vDivide (nameOffset:283) (firstTokenOffset:283) (offset:283)
           element: <testLibrary>::@topLevelVariable::vDivide
           initializer: expression_11
-            BinaryExpression
+            BinaryOperatorInvocation
               leftOperand: IntegerLiteral
                 literal: 1 @293
                 staticType: int
@@ -8486,14 +10288,14 @@ library
               rightOperand: IntegerLiteral
                 literal: 2 @297
                 staticType: int
+              binaryOperator: divide
               element: dart:core::@class::num::@method::/
-              staticInvokeType: double Function(num)
               staticType: double
           inducedGetter: #F24
         #F25 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic vFloorDivide (nameOffset:306) (firstTokenOffset:306) (offset:306)
           element: <testLibrary>::@topLevelVariable::vFloorDivide
           initializer: expression_12
-            BinaryExpression
+            BinaryOperatorInvocation
               leftOperand: IntegerLiteral
                 literal: 1 @321
                 staticType: int
@@ -8501,14 +10303,14 @@ library
               rightOperand: IntegerLiteral
                 literal: 2 @326
                 staticType: int
+              binaryOperator: truncatingDivide
               element: dart:core::@class::num::@method::~/
-              staticInvokeType: int Function(num)
               staticType: int
           inducedGetter: #F26
         #F27 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic vModulo (nameOffset:335) (firstTokenOffset:335) (offset:335)
           element: <testLibrary>::@topLevelVariable::vModulo
           initializer: expression_13
-            BinaryExpression
+            BinaryOperatorInvocation
               leftOperand: IntegerLiteral
                 literal: 1 @345
                 staticType: int
@@ -8516,14 +10318,14 @@ library
               rightOperand: IntegerLiteral
                 literal: 2 @349
                 staticType: int
+              binaryOperator: modulo
               element: dart:core::@class::num::@method::%
-              staticInvokeType: num Function(num)
               staticType: int
           inducedGetter: #F28
         #F29 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic vGreater (nameOffset:358) (firstTokenOffset:358) (offset:358)
           element: <testLibrary>::@topLevelVariable::vGreater
           initializer: expression_14
-            BinaryExpression
+            BinaryOperatorInvocation
               leftOperand: IntegerLiteral
                 literal: 1 @369
                 staticType: int
@@ -8531,14 +10333,14 @@ library
               rightOperand: IntegerLiteral
                 literal: 2 @373
                 staticType: int
+              binaryOperator: greaterThan
               element: dart:core::@class::num::@method::>
-              staticInvokeType: bool Function(num)
               staticType: bool
           inducedGetter: #F30
         #F31 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic vGreaterEqual (nameOffset:382) (firstTokenOffset:382) (offset:382)
           element: <testLibrary>::@topLevelVariable::vGreaterEqual
           initializer: expression_15
-            BinaryExpression
+            BinaryOperatorInvocation
               leftOperand: IntegerLiteral
                 literal: 1 @398
                 staticType: int
@@ -8546,14 +10348,14 @@ library
               rightOperand: IntegerLiteral
                 literal: 2 @403
                 staticType: int
+              binaryOperator: greaterThanOrEqual
               element: dart:core::@class::num::@method::>=
-              staticInvokeType: bool Function(num)
               staticType: bool
           inducedGetter: #F32
         #F33 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic vLess (nameOffset:412) (firstTokenOffset:412) (offset:412)
           element: <testLibrary>::@topLevelVariable::vLess
           initializer: expression_16
-            BinaryExpression
+            BinaryOperatorInvocation
               leftOperand: IntegerLiteral
                 literal: 1 @420
                 staticType: int
@@ -8561,14 +10363,14 @@ library
               rightOperand: IntegerLiteral
                 literal: 2 @424
                 staticType: int
+              binaryOperator: lessThan
               element: dart:core::@class::num::@method::<
-              staticInvokeType: bool Function(num)
               staticType: bool
           inducedGetter: #F34
         #F35 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic vLessEqual (nameOffset:433) (firstTokenOffset:433) (offset:433)
           element: <testLibrary>::@topLevelVariable::vLessEqual
           initializer: expression_17
-            BinaryExpression
+            BinaryOperatorInvocation
               leftOperand: IntegerLiteral
                 literal: 1 @446
                 staticType: int
@@ -8576,8 +10378,8 @@ library
               rightOperand: IntegerLiteral
                 literal: 2 @451
                 staticType: int
+              binaryOperator: lessThanOrEqual
               element: dart:core::@class::num::@method::<=
-              staticInvokeType: bool Function(num)
               staticType: bool
           inducedGetter: #F36
       getters
@@ -8889,9 +10691,20 @@ library
           element: <testLibrary>::@topLevelVariable::vConditional
           initializer: expression_0
             ConditionalExpression
-              condition: ParenthesizedExpression
+              condition2: ParenthesizedExpression
                 leftParenthesis: ( @21
-                expression: BinaryExpression
+                expression2: BinaryOperatorInvocation
+                  leftOperand: IntegerLiteral
+                    literal: 1 @22
+                    staticType: int
+                  operator: == @24
+                  rightOperand: IntegerLiteral
+                    literal: 2 @27
+                    staticType: int
+                  binaryOperator: equal
+                  element: dart:core::@class::num::@method::==
+                  staticType: bool
+                expression(v1): BinaryExpression
                   leftOperand: IntegerLiteral
                     literal: 1 @22
                     staticType: int
@@ -8905,11 +10718,11 @@ library
                 rightParenthesis: ) @28
                 staticType: bool
               question: ? @30
-              thenExpression: IntegerLiteral
+              thenExpression2: IntegerLiteral
                 literal: 11 @32
                 staticType: int
               colon: : @35
-              elseExpression: IntegerLiteral
+              elseExpression2: IntegerLiteral
                 literal: 22 @37
                 staticType: int
               staticType: int
@@ -8951,9 +10764,20 @@ library
           element: <testLibrary>::@topLevelVariable::vIdentical
           initializer: expression_0
             ConditionalExpression
-              condition: ParenthesizedExpression
+              condition2: ParenthesizedExpression
                 leftParenthesis: ( @19
-                expression: BinaryExpression
+                expression2: BinaryOperatorInvocation
+                  leftOperand: IntegerLiteral
+                    literal: 1 @20
+                    staticType: int
+                  operator: == @22
+                  rightOperand: IntegerLiteral
+                    literal: 2 @25
+                    staticType: int
+                  binaryOperator: equal
+                  element: dart:core::@class::num::@method::==
+                  staticType: bool
+                expression(v1): BinaryExpression
                   leftOperand: IntegerLiteral
                     literal: 1 @20
                     staticType: int
@@ -8967,11 +10791,11 @@ library
                 rightParenthesis: ) @26
                 staticType: bool
               question: ? @28
-              thenExpression: IntegerLiteral
+              thenExpression2: IntegerLiteral
                 literal: 11 @30
                 staticType: int
               colon: : @33
-              elseExpression: IntegerLiteral
+              elseExpression2: IntegerLiteral
                 literal: 22 @35
                 staticType: int
               staticType: int
@@ -9012,7 +10836,7 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic vIfNull (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::vIfNull
           initializer: expression_0
-            BinaryExpression
+            IfNull
               leftOperand: IntegerLiteral
                 literal: 1 @16
                 staticType: int
@@ -9020,8 +10844,6 @@ library
               rightOperand: DoubleLiteral
                 literal: 2.0 @21
                 staticType: double
-              element: <null>
-              staticInvokeType: null
               staticType: num
           inducedGetter: #F2
       getters
@@ -9102,11 +10924,12 @@ library
         #F9 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic vIntNegative (nameOffset:100) (firstTokenOffset:100) (offset:100)
           element: <testLibrary>::@topLevelVariable::vIntNegative
           initializer: expression_4
-            PrefixExpression
+            UnaryOperatorInvocation
               operator: - @115
               operand: IntegerLiteral
                 literal: 2 @116
                 staticType: int
+              unaryOperator: negate
               element: dart:core::@class::int::@method::unary-
               staticType: int
           inducedGetter: #F10
@@ -9165,7 +10988,7 @@ library
                   contents: 'aaa  @349
                 InterpolationExpression
                   leftBracket: ${ @354
-                  expression: BooleanLiteral
+                  expression2: BooleanLiteral
                     literal: true @356
                     staticType: bool
                   rightBracket: } @360
@@ -9173,7 +10996,7 @@ library
                   contents:   @361
                 InterpolationExpression
                   leftBracket: ${ @362
-                  expression: IntegerLiteral
+                  expression2: IntegerLiteral
                     literal: 42 @364
                     staticType: int
                   rightBracket: } @366
@@ -9428,20 +11251,23 @@ library
         #F3 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic b (nameOffset:24) (firstTokenOffset:24) (offset:24)
           element: <testLibrary>::@topLevelVariable::b
           initializer: expression_1
-            MethodInvocation
-              target: SimpleIdentifier
-                token: a @28
-                element: <testLibrary>::@getter::a
+            ReceiverMethodInvocation
+              receiver: UnqualifiedNameExpression
+                name: a @28
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::a
+                  invokeType: int? Function()
+                  type: int?
                 staticType: int?
               operator: ?. @29
-              methodName: SimpleIdentifier
-                token: toString @31
-                element: dart:core::@class::int::@method::toString
-                staticType: String Function()
+              name: toString @31
               argumentList: ArgumentList
                 leftParenthesis: ( @39
                 rightParenthesis: ) @40
-              staticInvokeType: String Function()
+              resolution: ExecutableInvocationResolution
+                element: dart:core::@class::int::@method::toString
+                invokeType: String Function()
+                type: String
               staticType: String?
           inducedGetter: #F4
       getters
@@ -9505,10 +11331,30 @@ library
           element: <testLibrary>::@topLevelVariable::b
           initializer: expression_1
             CascadeExpression
-              target: SimpleIdentifier
+              target2: UnqualifiedNameExpression
+                name: a @28
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::a
+                  invokeType: int? Function()
+                  type: int?
+                staticType: int?
+              target(v1): SimpleIdentifier
                 token: a @28
                 element: <testLibrary>::@getter::a
                 staticType: int?
+              sections
+                CascadeSection
+                  operator: ?.. @29
+                  body: CascadeMethodInvocation
+                    name: toString @32
+                    argumentList: ArgumentList
+                      leftParenthesis: ( @40
+                      rightParenthesis: ) @41
+                    resolution: ExecutableInvocationResolution
+                      element: dart:core::@class::int::@method::toString
+                      invokeType: String Function()
+                      type: String
+                    staticType: String
               cascadeSections
                 MethodInvocation
                   operator: ?.. @29
@@ -9585,7 +11431,23 @@ library
           initializer: expression_1
             ListLiteral
               leftBracket: [ @44
-              elements
+              elements2
+                ReceiverPropertyExtraction
+                  receiver: UnqualifiedNameExpression
+                    name: a @45
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@getter::a
+                      invokeType: String? Function()
+                      type: String?
+                    staticType: String?
+                  operator: ?. @46
+                  name: length @48
+                  resolution: GetterInvocationResolution
+                    element: dart:core::@class::String::@getter::length
+                    invokeType: int Function()
+                    type: int
+                  staticType: int?
+              elements(v1)
                 PropertyAccess
                   target: SimpleIdentifier
                     token: a @45
@@ -9654,10 +11516,21 @@ library
         #F1 hasInitializer isConst isOriginDeclaration isStatic v1 (nameOffset:10) (firstTokenOffset:10) (offset:10)
           element: <testLibrary>::@topLevelVariable::v1
           initializer: expression_0
-            BinaryExpression
+            BinaryOperatorInvocation
               leftOperand: ParenthesizedExpression
                 leftParenthesis: ( @15
-                expression: BinaryExpression
+                expression2: BinaryOperatorInvocation
+                  leftOperand: IntegerLiteral
+                    literal: 1 @16
+                    staticType: int
+                  operator: + @18
+                  rightOperand: IntegerLiteral
+                    literal: 2 @20
+                    staticType: int
+                  binaryOperator: add
+                  element: dart:core::@class::num::@method::+
+                  staticType: int
+                expression(v1): BinaryExpression
                   leftOperand: IntegerLiteral
                     literal: 1 @16
                     staticType: int
@@ -9674,18 +11547,29 @@ library
               rightOperand: IntegerLiteral
                 literal: 3 @25
                 staticType: int
+              binaryOperator: multiply
               element: dart:core::@class::num::@method::*
-              staticInvokeType: num Function(num)
               staticType: int
           inducedGetter: #F2
         #F3 hasInitializer isConst isOriginDeclaration isStatic v2 (nameOffset:38) (firstTokenOffset:38) (offset:38)
           element: <testLibrary>::@topLevelVariable::v2
           initializer: expression_1
-            PrefixExpression
+            UnaryOperatorInvocation
               operator: - @43
               operand: ParenthesizedExpression
                 leftParenthesis: ( @44
-                expression: BinaryExpression
+                expression2: BinaryOperatorInvocation
+                  leftOperand: IntegerLiteral
+                    literal: 1 @45
+                    staticType: int
+                  operator: + @47
+                  rightOperand: IntegerLiteral
+                    literal: 2 @49
+                    staticType: int
+                  binaryOperator: add
+                  element: dart:core::@class::num::@method::+
+                  staticType: int
+                expression(v1): BinaryExpression
                   leftOperand: IntegerLiteral
                     literal: 1 @45
                     staticType: int
@@ -9698,16 +11582,26 @@ library
                   staticType: int
                 rightParenthesis: ) @50
                 staticType: int
+              unaryOperator: negate
               element: dart:core::@class::int::@method::unary-
               staticType: int
           inducedGetter: #F4
         #F5 hasInitializer isConst isOriginDeclaration isStatic v3 (nameOffset:63) (firstTokenOffset:63) (offset:63)
           element: <testLibrary>::@topLevelVariable::v3
           initializer: expression_2
-            PropertyAccess
-              target: ParenthesizedExpression
+            ReceiverPropertyExtraction
+              receiver: ParenthesizedExpression
                 leftParenthesis: ( @68
-                expression: BinaryExpression
+                expression2: BinaryOperatorInvocation
+                  leftOperand: SimpleStringLiteral
+                    literal: 'aaa' @69
+                  operator: + @75
+                  rightOperand: SimpleStringLiteral
+                    literal: 'bbb' @77
+                  binaryOperator: add
+                  element: dart:core::@class::String::@method::+
+                  staticType: String
+                expression(v1): BinaryExpression
                   leftOperand: SimpleStringLiteral
                     literal: 'aaa' @69
                   operator: + @75
@@ -9719,10 +11613,11 @@ library
                 rightParenthesis: ) @82
                 staticType: String
               operator: . @83
-              propertyName: SimpleIdentifier
-                token: length @84
+              name: length @84
+              resolution: GetterInvocationResolution
                 element: dart:core::@class::String::@getter::length
-                staticType: int
+                invokeType: int Function()
+                type: int
               staticType: int
           inducedGetter: #F6
       getters
@@ -9796,7 +11691,7 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic vNotEqual (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::vNotEqual
           initializer: expression_0
-            BinaryExpression
+            BinaryOperatorInvocation
               leftOperand: IntegerLiteral
                 literal: 1 @18
                 staticType: int
@@ -9804,40 +11699,41 @@ library
               rightOperand: IntegerLiteral
                 literal: 2 @23
                 staticType: int
+              binaryOperator: notEqual
               element: dart:core::@class::num::@method::==
-              staticInvokeType: bool Function(Object)
               staticType: bool
           inducedGetter: #F2
         #F3 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic vNot (nameOffset:32) (firstTokenOffset:32) (offset:32)
           element: <testLibrary>::@topLevelVariable::vNot
           initializer: expression_1
-            PrefixExpression
+            LogicalNot
               operator: ! @39
               operand: BooleanLiteral
                 literal: true @40
                 staticType: bool
-              element: <null>
               staticType: bool
           inducedGetter: #F4
         #F5 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic vNegate (nameOffset:52) (firstTokenOffset:52) (offset:52)
           element: <testLibrary>::@topLevelVariable::vNegate
           initializer: expression_2
-            PrefixExpression
+            UnaryOperatorInvocation
               operator: - @62
               operand: IntegerLiteral
                 literal: 1 @63
                 staticType: int
+              unaryOperator: negate
               element: dart:core::@class::int::@method::unary-
               staticType: int
           inducedGetter: #F6
         #F7 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic vComplement (nameOffset:72) (firstTokenOffset:72) (offset:72)
           element: <testLibrary>::@topLevelVariable::vComplement
           initializer: expression_3
-            PrefixExpression
+            UnaryOperatorInvocation
               operator: ~ @86
               operand: IntegerLiteral
                 literal: 1 @87
                 staticType: int
+              unaryOperator: bitwiseComplement
               element: dart:core::@class::int::@method::~
               staticType: int
           inducedGetter: #F8
@@ -9925,8 +11821,9 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic vSuper (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::vSuper
           initializer: expression_0
-            SuperExpression
-              superKeyword: super @15
+            InvalidSuperExpression
+              superReference: SuperReference
+                superKeyword: super @15
               staticType: InvalidType
           inducedGetter: #F2
       getters
@@ -9967,7 +11864,7 @@ library
           initializer: expression_0
             ThisExpression
               thisKeyword: this @14
-              staticType: dynamic
+              staticType: InvalidType
           inducedGetter: #F2
       getters
         #F2 isComplete isOriginVariable isStatic vThis (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
@@ -9977,7 +11874,7 @@ library
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer vThis
       reference: <testLibrary>::@topLevelVariable::vThis
       firstFragment: #F1
-      type: dynamic
+      type: InvalidType
       constantInitializer
         fragment: #F1
         expression: expression_0
@@ -9986,7 +11883,7 @@ library
     isOriginVariable isStatic vThis
       reference: <testLibrary>::@getter::vThis
       firstFragment: #F2
-      returnType: dynamic
+      returnType: InvalidType
       variable: <testLibrary>::@topLevelVariable::vThis
 ''');
   }
@@ -10007,7 +11904,7 @@ library
           initializer: expression_0
             ThrowExpression
               throwKeyword: throw @10
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 42 @16
                 staticType: int
               staticType: Never
@@ -10081,7 +11978,7 @@ library
                     type: dynamic
                 rightBracket: > @61
               leftBracket: [ @62
-              elements
+              elements2
                 IntegerLiteral
                   literal: 1 @63
                   staticType: int
@@ -10108,7 +12005,7 @@ library
                     type: int
                 rightBracket: > @118
               leftBracket: [ @119
-              elements
+              elements2
                 IntegerLiteral
                   literal: 1 @120
                   staticType: int
@@ -10809,7 +12706,7 @@ library
             ListLiteral
               constKeyword: const @10
               leftBracket: [ @16
-              elements
+              elements2
                 IntegerLiteral
                   literal: 1 @17
                   staticType: int
@@ -10861,27 +12758,27 @@ library
             SetOrMapLiteral
               constKeyword: const @10
               leftBracket: { @16
-              elements
+              elements2
                 MapLiteralEntry
-                  key: IntegerLiteral
+                  key2: IntegerLiteral
                     literal: 0 @17
                     staticType: int
                   separator: : @18
-                  value: SimpleStringLiteral
+                  value2: SimpleStringLiteral
                     literal: 'aaa' @20
                 MapLiteralEntry
-                  key: IntegerLiteral
+                  key2: IntegerLiteral
                     literal: 1 @27
                     staticType: int
                   separator: : @28
-                  value: SimpleStringLiteral
+                  value2: SimpleStringLiteral
                     literal: 'bbb' @30
                 MapLiteralEntry
-                  key: IntegerLiteral
+                  key2: IntegerLiteral
                     literal: 2 @37
                     staticType: int
                   separator: : @38
-                  value: SimpleStringLiteral
+                  value2: SimpleStringLiteral
                     literal: 'ccc' @40
               rightBracket: } @45
               isMap: true
@@ -10926,7 +12823,7 @@ library
             SetOrMapLiteral
               constKeyword: const @10
               leftBracket: { @16
-              elements
+              elements2
                 IntegerLiteral
                   literal: 0 @17
                   staticType: int
@@ -11034,9 +12931,9 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic a (nameOffset:9) (firstTokenOffset:9) (offset:9)
               element: <testLibrary>::@enum::E::@field::a
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -11049,9 +12946,9 @@ library
             #F4 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic b (nameOffset:12) (firstTokenOffset:12) (offset:12)
               element: <testLibrary>::@enum::E::@field::b
               initializer: expression_1
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -11064,9 +12961,9 @@ library
             #F6 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic c (nameOffset:15) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@enum::E::@field::c
               initializer: expression_2
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -11081,7 +12978,29 @@ library
               initializer: expression_3
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
+                    UnqualifiedNameExpression
+                      name: a @-1
+                      resolution: GetterInvocationResolution
+                        element: <testLibrary>::@enum::E::@getter::a
+                        invokeType: E Function()
+                        type: E
+                      staticType: E
+                    UnqualifiedNameExpression
+                      name: b @-1
+                      resolution: GetterInvocationResolution
+                        element: <testLibrary>::@enum::E::@getter::b
+                        invokeType: E Function()
+                        type: E
+                      staticType: E
+                    UnqualifiedNameExpression
+                      name: c @-1
+                      resolution: GetterInvocationResolution
+                        element: <testLibrary>::@enum::E::@getter::c
+                        invokeType: E Function()
+                        type: E
+                      staticType: E
+                  elements(v1)
                     SimpleIdentifier
                       token: a @-1
                       element: <testLibrary>::@enum::E::@getter::a
@@ -11252,9 +13171,9 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic a (nameOffset:9) (firstTokenOffset:9) (offset:9)
               element: <testLibrary>::@enum::E::@field::a
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -11269,7 +13188,15 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
+                    UnqualifiedNameExpression
+                      name: a @-1
+                      resolution: GetterInvocationResolution
+                        element: <testLibrary>::@enum::E::@getter::a
+                        invokeType: E Function()
+                        type: E
+                      staticType: E
+                  elements(v1)
                     SimpleIdentifier
                       token: a @-1
                       element: <testLibrary>::@enum::E::@getter::a
@@ -11369,9 +13296,12 @@ library
             #F2 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:25) (firstTokenOffset:25) (offset:25)
               element: <testLibrary>::@class::C::@field::a
               initializer: expression_0
-                SimpleIdentifier
-                  token: b @29
-                  element: <testLibrary>::@class::C::@getter::b
+                UnqualifiedNameExpression
+                  name: b @29
+                  resolution: GetterInvocationResolution
+                    element: <testLibrary>::@class::C::@getter::b
+                    invokeType: dynamic Function()
+                    type: dynamic
                   staticType: dynamic
               inducedGetter: #F3
             #F4 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic b (nameOffset:47) (firstTokenOffset:47) (offset:47)
@@ -11451,9 +13381,11 @@ library
             #F2 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:25) (firstTokenOffset:25) (offset:25)
               element: <testLibrary>::@class::C::@field::a
               initializer: expression_0
-                SimpleIdentifier
-                  token: m @29
-                  element: <testLibrary>::@class::C::@method::m
+                UnqualifiedNameExpression
+                  name: m @29
+                  resolution: ExecutableTearOffResolution
+                    element: <testLibrary>::@class::C::@method::m
+                    type: dynamic Function()
                   staticType: dynamic Function()
               inducedGetter: #F3
           constructors
@@ -11491,7 +13423,7 @@ library
           returnType: dynamic Function()
           variable: <testLibrary>::@class::C::@field::a
       methods
-        isOriginDeclaration isStatic m
+        hasImplicitReturnType isOriginDeclaration isStatic m
           reference: <testLibrary>::@class::C::@method::m
           firstFragment: #F5
           returnType: dynamic

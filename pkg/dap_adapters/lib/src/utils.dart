@@ -1,0 +1,243 @@
+// Copyright (c) 2022, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'dart:io';
+
+import 'package:path/path.dart' as path;
+import 'package:vm_service/vm_service.dart' as vm;
+
+import 'rpc_error_codes.dart';
+
+/// Returns whether this URI is something that can be resolved to a file
+/// URI via the VM Service.
+bool isResolvableUri(Uri uri) {
+  return !uri.isScheme('file') &&
+      !uri.isScheme('http') &&
+      !uri.isScheme('https') &&
+      // Parsed stack frames may have URIs with no scheme and the text
+      // "unparsed" if they looked like stack frames but had no file
+      // information.
+      !uri.isScheme('') &&
+      // Valid URIs will always have a non-empty path. Empty paths usually
+      // indicate badly parsed URIs when parsing stack frames.
+      // The string 'usage: ' will parse as a valid URI in `parseStackFrame`.
+      !uri.hasEmptyPath;
+}
+
+/// Attempts to parse a line as a stack frame in order to read path/line/col
+/// information.
+///
+/// Frames that do not look like real Dart stack frames (such as including path
+/// or URIs that look like real Dart libraries) will be filtered out but it
+/// should not be assumed that if a value is returned that the input
+/// was necessarily a stack frame.
+StackFrameLocation? parseDartStackFrame(String line) {
+  final frame = _parseStackFrame(line);
+  final uri = frame?.uri;
+  return uri != null && _isDartUri(uri) ? frame : null;
+}
+
+/// Checks whether [uri] is a possible Dart URI that should be mapped to try
+/// and attach location metadata to an output event.
+///
+/// This is a performance optimization to avoid calling the VM's
+/// `lookupResolvedUris` method for output events that are probably not
+/// stack frames.
+bool _isDartUri(Uri uri) {
+  // Stack frame parsing captures a lot of things that aren't real URIs, often
+  // with no scheme or empty paths.
+  if (!uri.hasScheme || uri.hasEmptyPath) {
+    return false;
+  }
+
+  // Anything starting with dart: is potential
+  // - dart:io
+  if (uri.isScheme('dart')) {
+    return true;
+  }
+
+  // Only accept package: and file: URIs if they end with .dart.
+  // - package:foo/foo.dart
+  // - file:///c:/foo/bar.dart
+  if (uri.isScheme('package') || uri.isScheme('file')) {
+    return uri.path.endsWith('.dart');
+  }
+
+  // Some other scheme we didn't recognize and likely cannot parse.
+  return false;
+}
+
+/// A [RegExp] that matches `file:///` or `package:`.
+final _uriSchemePattern = RegExp('file:///|package:');
+
+/// A [RegExp] for extracting URIs and optional line/columns out of a line from
+/// a stack trace.
+///
+/// This regex is slightly greedy and in the case of Flutter structured errors
+/// may match the additional widget name as part of the URI:
+///
+///   The relevant error-causing widget was:
+///     Container Container:file:///D:/Dev/my_app/lib/main.dart:1:2
+///
+/// This is trimmed off in [_parseStackFrame].
+final _stackFrameLocationPattern =
+    // Characters we consider part of a path:
+    //
+    //   - `\w` word characters
+    //   - `.` dots (valid in paths)
+    //   - `-` dash (valid in paths and URI schemes)
+    //   - `:` colons (scheme or drive letters)
+    //   - `/` forward slashes (URIs)
+    //   - `\` black slashes (Windows paths)
+    //   - `%` percent (URL percent encoding)
+    //   - `+` plus (possible URL encoding of space)
+    //
+    // To avoid matching too much, we don't allow spaces even though they could
+    // appear in relative paths. Most output should be URIs where they would be
+    // encoded.
+    //
+    // The whole string must end with the line/col sequence, a non-word
+    // character or be the end of the line. This avoids matching some strings
+    // that contain ".dart" but probably aren't valid paths, like ".dart2".
+    RegExp(r'([\w\.\-:\/\\%+]+\.dart)(?:(?:(?: +|:)(\d+):(\d+))|\W|$)');
+
+/// Attempts to parse a line as a stack frame in order to read path/line/col
+/// information.
+///
+/// It should not be assumed that if a value is returned that the input
+/// was necessarily a stack frame.
+StackFrameLocation? _parseStackFrame(String input) {
+  final match = _stackFrameLocationPattern.firstMatch(input);
+  if (match == null) return null;
+
+  var uriMatch = match[1];
+  if (uriMatch == null) return null;
+
+  // Flutter structured error output sometimes contains widget:uri:line:col
+  // which our regex will merge together because we have to allow colons and
+  // the scheme has to be optional, and `widget:relative-path` is similar to
+  // `file:///absolute-path`. Rather than trying to handle this in the regex,
+  // just trim anything before `(package:|file:///)` if it appears in the
+  // middle.
+  //
+  // Example:
+  //
+  // The relevant error-causing widget was:
+  //   Container Container:file:///D:/Dev/my_app/lib/main.dart:1:2
+  final schemeMatch = _uriSchemePattern.firstMatch(uriMatch);
+  if (schemeMatch != null && schemeMatch.start > 0) {
+    uriMatch = uriMatch.substring(schemeMatch.start);
+  }
+
+  final lineMatch = match[2];
+  final colMatch = match[3];
+
+  var uri = Uri.tryParse(uriMatch);
+  final line = lineMatch != null ? int.tryParse(lineMatch) : null;
+  final col = colMatch != null ? int.tryParse(colMatch) : null;
+
+  if (uri == null) return null;
+
+  // If the URI has no scheme, assume a relative path from Directory.current.
+  if (!uri.hasScheme && path.isRelative(uriMatch)) {
+    final currentDirectoryPath = Directory.current.path;
+    if (currentDirectoryPath.isNotEmpty) {
+      uri = Uri.file(path.join(currentDirectoryPath, uriMatch));
+    }
+  }
+
+  return (uri: uri, line: line, column: col);
+}
+
+/// Checks whether [flagName] is in [args], allowing for both underscore and
+/// dash format, and `--$flagName` or `starting with `--$flagName=`.
+bool containsVmFlag(List<String> args, String flagName) {
+  assert(!flagName.startsWith('--'), 'flagName should not include `--` prefix');
+
+  final flagUnderscores = '--${flagName.replaceAll('-', '_')}';
+  final flagDashes = '--${flagName.replaceAll('_', '-')}';
+
+  return args.contains(flagUnderscores) ||
+      args.contains(flagDashes) ||
+      args.any(
+        (arg) =>
+            arg.startsWith('$flagUnderscores=') ||
+            arg.startsWith('$flagDashes='),
+      );
+}
+
+typedef StackFrameLocation = ({Uri uri, int? line, int? column});
+
+extension RpcErrorExtension on vm.RPCError {
+  /// Whether this [vm.RPCError] is some kind of "VM Service connection has
+  /// gone"
+  /// error that may occur if the VM is shut down.
+  bool get isServiceDisposedError {
+    if (code == RpcErrorCodes.kServiceDisappeared ||
+        code == RpcErrorCodes.kConnectionDisposed) {
+      return true;
+    }
+
+    if (code == RpcErrorCodes.kExtensionError) {
+      // Always ignore "client is closed" and "closed with pending request"
+      // errors because these can always occur during shutdown if we were
+      // just starting to send (or had just sent) a request.
+      return message.contains('The client is closed') ||
+          message.contains('The client closed with pending request') ||
+          message.contains('Service connection disposed');
+    }
+
+    return false;
+  }
+}
+
+// dart:ffi primitive type name constants.
+const ffiInt8 = 'Int8';
+const ffiUint8 = 'Uint8';
+const ffiInt16 = 'Int16';
+const ffiUint16 = 'Uint16';
+const ffiInt32 = 'Int32';
+const ffiUint32 = 'Uint32';
+const ffiInt64 = 'Int64';
+const ffiUint64 = 'Uint64';
+const ffiFloat = 'Float';
+const ffiDouble = 'Double';
+const ffiBool = 'Bool';
+
+/// Sizes in bytes for each dart:ffi primitive type.
+const _ffiTypeSizes = <String, int>{
+  ffiInt8: 1,
+  ffiUint8: 1,
+  ffiInt16: 2,
+  ffiUint16: 2,
+  ffiInt32: 4,
+  ffiUint32: 4,
+  ffiInt64: 8,
+  ffiUint64: 8,
+  ffiFloat: 4,
+  ffiDouble: 8,
+  ffiBool: 1,
+};
+
+/// Returns the byte count for [ffiTypeName], defaulting to 8 if unrecognized.
+int ffiByteCount(String? ffiTypeName) => _ffiTypeSizes[ffiTypeName] ?? 8;
+
+/// Maps the C-semantics native type names emitted in `ffiLayout` (e.g. "uint8",
+/// "int64") to the dart:ffi primitive names.
+const _ffiNativeTypeNames = <String, String>{
+  'int8': ffiInt8,
+  'uint8': ffiUint8,
+  'int16': ffiInt16,
+  'uint16': ffiUint16,
+  'int32': ffiInt32,
+  'uint32': ffiUint32,
+  'int64': ffiInt64,
+  'uint64': ffiUint64,
+  'float': ffiFloat,
+  'double': ffiDouble,
+  'bool': ffiBool,
+};
+
+/// Normalizes an FFI type name to the dart:ffi primitive form.
+String normalizeFfiTypeName(String name) => _ffiNativeTypeNames[name] ?? name;

@@ -686,4 +686,23 @@ class C {
 }
 ''');
   }
+
+  Future<void> test_futureOr() async {
+    await resolveTestCode('''
+import 'dart:async';
+FutureOr<void> f() async {}
+
+void foo() {
+  f();
+}
+''');
+    await assertHasFix('''
+import 'dart:async';
+FutureOr<void> f() async {}
+
+Future<void> foo() async {
+  await f();
+}
+''');
+  }
 }

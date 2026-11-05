@@ -151,7 +151,11 @@ class DynamicDispatchTable {
       setter: selector.isSetter,
     );
 
-    if (member == null || member.isAbstract) return null;
+    if (member == null ||
+        member.isAbstract ||
+        translator.unreachableMetadata.mapping[member] != null) {
+      return null;
+    }
 
     final metadata = translator.procedureAttributeMetadata[member];
     if (metadata == null) return null;

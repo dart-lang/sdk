@@ -42,13 +42,11 @@ class PreferRelativeImports extends AnalysisRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final PreferRelativeImports rule;
-  final Uri sourceUri;
-  final RuleContext context;
-
-  new(this.rule, this.sourceUri, this.context);
-
+class _Visitor(
+  final PreferRelativeImports rule,
+  final Uri sourceUri,
+  final RuleContext context,
+) extends SimpleAstVisitor<void> {
   bool isPackageSelfReference(ImportDirective node) {
     if (node.libraryImport?.uri case DirectiveUriWithSource importedLibrary) {
       var importUri = importedLibrary.relativeUri;

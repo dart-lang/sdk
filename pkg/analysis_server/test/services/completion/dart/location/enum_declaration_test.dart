@@ -409,6 +409,80 @@ suggestions
 ''');
   }
 
+  Future<void> test_primaryConstructor_blockBody() async {
+    await computeSuggestions('''
+enum E() ^{}
+''');
+    assertResponse(r'''
+suggestions
+  implements
+    kind: keyword
+  with
+    kind: keyword
+''');
+  }
+
+  Future<void> test_primaryConstructor_blockBody_afterConstructor() async {
+    await computeSuggestions('''
+enum E()^{}
+''');
+    assertResponse(r'''
+suggestions
+  implements
+    kind: keyword
+  with
+    kind: keyword
+''');
+  }
+
+  Future<void> test_primaryConstructor_blockBody_extends() async {
+    await computeSuggestions('''
+enum E() with foo ^{}
+''');
+    assertResponse(r'''
+suggestions
+  implements
+    kind: keyword
+''');
+  }
+
+  Future<void> test_primaryConstructor_emptyBody() async {
+    await computeSuggestions('''
+enum E() ^;
+''');
+    assertResponse(r'''
+suggestions
+  implements
+    kind: keyword
+  with
+    kind: keyword
+''');
+  }
+
+  Future<void> test_primaryConstructor_emptyBody_afterConstructor() async {
+    await computeSuggestions('''
+enum E()^;
+''');
+    assertResponse(r'''
+suggestions
+  implements
+    kind: keyword
+  with
+    kind: keyword
+''');
+  }
+
+  Future<void> test_primaryConstructor_emptyBody_extends() async {
+    await computeSuggestions('''
+enum E() with foo ^;
+''');
+    assertResponse(r'''
+suggestions
+  implements
+    kind: keyword
+''');
+  }
+
   Future<void> test_static() async {
     allowedIdentifiers = {'other'};
     await computeSuggestions('''

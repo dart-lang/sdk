@@ -64,7 +64,9 @@ class StubCode : public AllStatic {
 
 // Define the shared stub code accessors.
 #define STUB_CODE_ACCESSOR(name)                                               \
-  static const Code& name() { return Roots::stub_handle(k##name##Index); }
+  static const Code& name() {                                                  \
+    return Roots::stub_handle(k##name##Index);                                 \
+  }
   VM_STUB_CODE_LIST(STUB_CODE_ACCESSOR);
 #undef STUB_CODE_ACCESSOR
 

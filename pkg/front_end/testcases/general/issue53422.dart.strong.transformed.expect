@@ -13,5 +13,5 @@ import self as self;
 
 static method foo(dynamic x, dynamic y) → dynamic {
   y = x;
-  dynamic x;
+  dynamic x##1;
 }

@@ -62,6 +62,17 @@ void main([List<String> args = const []]) async {
             .resolve(OS.current.executableFileName('dart_app'));
         final absoluteExeUri = dartAppUri.resolveUri(relativeExeUri);
         expect(await File.fromUri(absoluteExeUri).exists(), true);
+        if (Platform.isLinux) {
+          final relativeSnapshotUri = relativeBundleUri
+              .resolve('lib/')
+              .resolve(_linuxAotSnapshotFileName('dart_app'));
+          expect(
+            await File.fromUri(
+              dartAppUri.resolveUri(relativeSnapshotUri),
+            ).exists(),
+            true,
+          );
+        }
         await _withTempDir((tempUri) async {
           // The link needs to have the same extension as the executable on
           // Windows to be able to be executable.
@@ -90,6 +101,33 @@ void main([List<String> args = const []]) async {
       });
     });
   }
+
+  test('dart build cli --verbosity=error is silent', timeout: longTimeout,
+      () async {
+    await nativeAssetsTest('dart_app', (dartAppUri) async {
+      await runPubGet(workingDirectory: dartAppUri, logger: logger);
+      // Build twice, so that the second build also deletes the previous
+      // output directory.
+      for (var i = 0; i < 2; i++) {
+        final result = await runDart(
+          arguments: [
+            if (fromDartdevSource) dartDevEntryScriptUri.toFilePath(),
+            'build',
+            'cli',
+            '--verbosity=error',
+          ],
+          workingDirectory: dartAppUri,
+          logger: logger,
+        );
+        expect(result.stdout, isEmpty);
+        // Errors (such as the hooks' toolchain probing) are still reported,
+        // but status messages are not.
+        expect(result.stderr, isNot(contains('Running build hooks')));
+        expect(result.stderr, isNot(contains('Deleting output directory')));
+        expect(result.stderr, isNot(contains('Generated: ')));
+      }
+    });
+  });
 
   test('dart build native assets build failure', timeout: longTimeout,
       () async {
@@ -430,7 +468,7 @@ void main(List<String> args) {
         );
         final Directory binDir = File(Platform.resolvedExecutable).parent;
         final sanitizedRuntime =
-            File.fromUri(binDir.uri.resolve('dartaotruntime_$sanitizer'));
+            File.fromUri(binDir.uri.resolve('dartcliruntime_$sanitizer'));
         if (sanitizedRuntime.existsSync()) {
           expect(result.exitCode, 0);
           final relativeExeUri = relativeBundleUri
@@ -438,8 +476,17 @@ void main(List<String> args) {
               .resolve(OS.current.executableFileName('dart_app'));
           final absoluteExeUri = dartAppUri.resolveUri(relativeExeUri);
           expect(await File.fromUri(absoluteExeUri).exists(), true);
+          final relativeSnapshotUri = relativeBundleUri
+              .resolve('lib/')
+              .resolve(_linuxAotSnapshotFileName('dart_app'));
+          expect(
+            await File.fromUri(
+              dartAppUri.resolveUri(relativeSnapshotUri),
+            ).exists(),
+            true,
+          );
         } else {
-          expect(result.stderr, contains('dartaotruntime_$sanitizer'));
+          expect(result.stderr, contains('dartcliruntime_$sanitizer'));
           expect(result.exitCode, 255);
         }
       });
@@ -461,6 +508,40 @@ void main(List<String> args) {
       );
       expect(result.stderr, contains('Unexpected arguments'));
       expect(result.exitCode, isNot(0));
+    });
+  });
+
+  test('dart build cli --enable-asserts', timeout: longTimeout, () async {
+    await nativeAssetsTest('dart_app', (dartAppUri) async {
+      final binFile = File.fromUri(dartAppUri.resolve('bin/dart_app.dart'));
+      await binFile.writeAsString('''
+void main() {
+  assert(false, 'assertion failed');
+  print('Hello world');
+}
+''');
+      await runDart(
+        arguments: [
+          'build',
+          'cli',
+          '--enable-asserts',
+        ],
+        workingDirectory: dartAppUri,
+        logger: logger,
+      );
+
+      final relativeExeUri = relativeBundleUri
+          .resolve('bin/')
+          .resolve(OS.current.executableFileName('dart_app'));
+      final absoluteExeUri = dartAppUri.resolveUri(relativeExeUri);
+      expect(await File.fromUri(absoluteExeUri).exists(), true);
+
+      final processResult = await runProcess(
+        executable: absoluteExeUri,
+        logger: logger,
+        expectedExitCode: 255,
+      );
+      expect(processResult.stderr, contains('assertion failed'));
     });
   });
 
@@ -616,6 +697,56 @@ void main() {
     });
   });
 
+  test('dart build cli dev_dependency_with_hook', timeout: longTimeout,
+      () async {
+    await nativeAssetsTest('dev_dependency_with_hook', (packageUri) async {
+      await runPubGet(workingDirectory: packageUri, logger: logger);
+
+      final binMain = File.fromUri(packageUri.resolve('bin/main.dart'));
+      await binMain.create(recursive: true);
+      await binMain.writeAsString('''
+void main() {
+  print('Hello bin');
+}
+''');
+
+      // Building an entrypoint in bin/ should not run dev_dependency hooks.
+      final binResult = await runDart(
+        arguments: [
+          'build',
+          'cli',
+          '--target=bin/main.dart',
+        ],
+        workingDirectory: packageUri,
+        logger: logger,
+      );
+      expect(binResult.stdout, isNot(contains('Running build hooks')));
+
+      // Building an entrypoint outside bin/ and lib/ (e.g., test/) should run
+      // dev_dependency hooks.
+      final testResult = await runDart(
+        arguments: [
+          'build',
+          'cli',
+          '--target=test/my_test.dart',
+        ],
+        workingDirectory: packageUri,
+        logger: logger,
+      );
+      expect(testResult.stdout, contains('Running build hooks'));
+      final testExeUri = packageUri.resolveUri(
+        relativeBundleUri
+            .resolve('bin/')
+            .resolve(OS.current.executableFileName('my_test')),
+      );
+      final processResult = await runProcess(
+        executable: testExeUri,
+        logger: logger,
+      );
+      expect(processResult.stdout, contains('All tests passed!'));
+    });
+  });
+
   test(
     'dart build cli cross compilation to linux (no build)',
     timeout: longTimeout,
@@ -685,6 +816,14 @@ Future<void> _runDownloadHookAppTest(
             .resolve('third_party/pkg/native/pkgs/hooks/')
             .toFilePath(),
       },
+      // Include package:record_use in dependency_overrides alongside hooks so
+      // unreleased record_use versions required by package:hooks are resolved
+      // directly from the local SDK checkout rather than pub.dev.
+      'record_use': {
+        'path': sdkRootUri
+            .resolve('third_party/pkg/native/pkgs/record_use/')
+            .toFilePath(),
+      },
     });
     await pubspecFile.writeAsString(pubspec.toString());
 
@@ -717,3 +856,6 @@ Uri removeDotExe(Uri withExe) {
   final fileName = exeName.replaceAll('.exe', '');
   return withExe.resolve(fileName);
 }
+
+String _linuxAotSnapshotFileName(String executableName) =>
+    'libdartaot$executableName.so';

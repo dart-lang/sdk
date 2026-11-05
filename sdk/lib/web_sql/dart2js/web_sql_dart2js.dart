@@ -40,7 +40,7 @@ import 'dart:_js_helper'
 
 // WARNING: Do not edit - generated code.
 
-typedef void SqlStatementCallback(
+typedef SqlStatementCallback = void Function(
   SqlTransaction transaction,
   SqlResultSet resultSet,
 );
@@ -50,7 +50,7 @@ typedef void SqlStatementCallback(
 
 // WARNING: Do not edit - generated code.
 
-typedef void SqlStatementErrorCallback(
+typedef SqlStatementErrorCallback = void Function(
   SqlTransaction transaction,
   SqlError error,
 );
@@ -60,14 +60,14 @@ typedef void SqlStatementErrorCallback(
 
 // WARNING: Do not edit - generated code.
 
-typedef void SqlTransactionCallback(SqlTransaction transaction);
+typedef SqlTransactionCallback = void Function(SqlTransaction transaction);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
 
-typedef void SqlTransactionErrorCallback(SqlError error);
+typedef SqlTransactionErrorCallback = void Function(SqlError error);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.

@@ -15,6 +15,7 @@ class C<T>.named() {}
 class const C<T>.named {}
 class const C = O with M;
 class const C<T> = O with M;
+class C({var int a})
 
 
 class[KeywordToken] C[StringToken]([BeginToken] {[BeginToken]}[SimpleToken]
@@ -34,4 +35,5 @@ class[KeywordToken] C[StringToken]<[BeginToken]T[StringToken]>[SimpleToken].[Sim
 class[KeywordToken] const[KeywordToken] C[StringToken]<[BeginToken]T[StringToken]>[SimpleToken].[SimpleToken]named[StringToken] {[BeginToken]}[SimpleToken]
 class[KeywordToken] const[KeywordToken] C[StringToken] =[SimpleToken] O[StringToken] with[KeywordToken] M[StringToken];[SimpleToken]
 class[KeywordToken] const[KeywordToken] C[StringToken]<[BeginToken]T[StringToken]>[SimpleToken] =[SimpleToken] O[StringToken] with[KeywordToken] M[StringToken];[SimpleToken]
+class[KeywordToken] C[StringToken]([BeginToken]{[BeginToken]var[KeywordToken] int[StringToken] a[StringToken]}[SimpleToken])[SimpleToken]
 [SimpleToken]

@@ -8,6 +8,8 @@ library;
 import 'dart:convert';
 import 'dart:io';
 
+// ignore: implementation_imports
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer_testing/package_root.dart' as pkg_root;
 import 'package:analyzer_testing/utilities/extensions/string.dart';
 import 'package:analyzer_utilities/analyzer_messages.dart';
@@ -188,7 +190,6 @@ abstract class CfeStyleMessage extends Message {
       'declaration',
       'exampleAllowMultipleReports',
       'exampleAllowOtherCodes',
-      'experiments',
       'expression',
       'external',
       'includeErrorContext',
@@ -580,6 +581,14 @@ abstract class Message {
   /// If present, user-facing documentation for the error.
   final String? documentation;
 
+  /// The names of the experimental features that are related to this
+  /// diagnostic, obtained from the (optional) comma-separated `experiments`
+  /// entry in the yaml file.
+  ///
+  /// Each name is validated against the set of known experiments. If the
+  /// `experiments` entry is absent, this list is empty.
+  final List<String> experiments;
+
   /// Indicates whether this error is caused by an unresolved identifier.
   final bool isUnresolvedIdentifier;
 
@@ -630,6 +639,11 @@ abstract class Message {
       ),
       deprecatedMessage = messageYaml.getOptionalString('deprecatedMessage'),
       documentation = messageYaml.getOptionalString('documentation'),
+      experiments = messageYaml.get(
+        'experiments',
+        decode: _decodeExperiments,
+        ifAbsent: () => const [],
+      ),
       isUnresolvedIdentifier =
           messageYaml.getOptionalBool('isUnresolvedIdentifier') ?? false,
       problemMessage =
@@ -663,6 +677,29 @@ abstract class Message {
   /// A string suitable for identifying the location of this message's key node
   /// in the source YAML file.
   String get location => keySpan.location;
+
+  /// Decodes the value of an `experiments` entry, which should be a string
+  /// containing a comma-separated list of known experiment names.
+  static List<String> _decodeExperiments(YamlNode node) {
+    if (node case YamlScalar(:String value)) {
+      var experiments = value.split(',').map((e) => e.trim()).toList();
+      var seen = <String>{};
+      for (var experiment in experiments) {
+        if (experiment.isEmpty) {
+          throw 'Empty experiment name';
+        }
+        if (!ExperimentStatus.knownFeatures.containsKey(experiment)) {
+          throw 'Unknown experiment ${json.encode(experiment)}';
+        }
+        if (!seen.add(experiment)) {
+          throw 'Duplicate experiment ${json.encode(experiment)}';
+        }
+      }
+      return experiments;
+    } else {
+      throw 'Must be a string';
+    }
+  }
 }
 
 /// The raw YAML key/value pair representing a single diagnostic message.

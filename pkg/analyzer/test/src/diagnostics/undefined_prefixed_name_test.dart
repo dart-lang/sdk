@@ -16,6 +16,39 @@ main() {
 
 @reflectiveTest
 class UndefinedPrefixedNameTest extends PubPackageResolutionTest {
+  test_annotation() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'dart:math' as p;
+
+@p.unresolved
+// ^^^^^^^^^^
+// [diag.undefinedPrefixedName] The name 'unresolved' is being referenced through the prefix 'p', but it isn't defined in any of the libraries imported using that prefix.
+void f() {}
+''');
+  }
+
+  test_annotation_synthetic() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'dart:math' as p;
+
+@p.
+void f() {}
+// [diag.missingIdentifier][column 1][length 4] Expected an identifier.
+''');
+  }
+
+  test_assignment_synthetic() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'dart:math' as p;
+
+void f() {
+  p. = 0;
+//   ^
+// [diag.missingIdentifier] Expected an identifier.
+}
+''');
+  }
+
   test_getterContext() async {
     newFile('$testPackageLibPath/lib.dart', '');
     await resolveTestCodeWithDiagnostics('''
@@ -23,6 +56,90 @@ import 'lib.dart' as p;
 f() => p.c;
 //       ^
 // [diag.undefinedPrefixedName] The name 'c' is being referenced through the prefix 'p', but it isn't defined in any of the libraries imported using that prefix.
+''');
+  }
+
+  test_getterContext_synthetic() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'dart:math' as p;
+
+var x = p.;
+//        ^
+// [diag.missingIdentifier] Expected an identifier.
+''');
+  }
+
+  test_getterContext_synthetic_listLiteral() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'dart:math' as p;
+
+var x = p.[0];
+//        ^
+// [diag.missingIdentifier] Expected an identifier.
+''');
+  }
+
+  test_getterContext_synthetic_setOrMapLiteral() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'dart:math' as p;
+
+var x = p.{};
+//        ^
+// [diag.missingIdentifier] Expected an identifier.
+''');
+  }
+
+  test_getterContext_synthetic_stringLiteral() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'dart:math' as p;
+
+var x = p."s";
+//        ^^^
+// [diag.missingIdentifier] Expected an identifier.
+''');
+  }
+
+  test_getterContext_synthetic_typedListLiteral() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'dart:math' as p;
+
+var x = p.<int>[];
+//        ^
+// [diag.missingIdentifier] Expected an identifier.
+''');
+  }
+
+  test_invocation_synthetic() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'dart:math' as p;
+
+var x = p.(0);
+//        ^
+// [diag.missingIdentifier] Expected an identifier.
+''');
+  }
+
+  test_invocation_synthetic_argumentsResolved() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'dart:math' as p;
+
+var x = p.(unresolved);
+//        ^
+// [diag.missingIdentifier] Expected an identifier.
+//         ^^^^^^^^^^
+// [diag.undefinedIdentifier] Undefined name 'unresolved'.
+''');
+  }
+
+  test_invocation_synthetic_statement() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'dart:math' as p;
+
+void f() {
+  p.();
+//  ^
+// [diag.missingIdentifier] Expected an identifier.
+}
 ''');
   }
 

@@ -36,7 +36,7 @@ RESULT: _T (#lib::TestEnum, const #lib::TestEnum{dart.core::_Enum.index: 0, dart
 RESULT: _T (#lib::TestEnum, const #lib::TestEnum{dart.core::_Enum.index: 1, dart.core::_Enum._name: "v2"})
 ------------ TestEnum.values ------------
 
-RESULT: _T (dart.core::_ImmutableList, const <#lib::TestEnum>[const #lib::TestEnum{dart.core::_Enum.index: 0, dart.core::_Enum._name: "v1"}, const #lib::TestEnum{dart.core::_Enum.index: 1, dart.core::_Enum._name: "v2"}])
+RESULT: _T (dart.core::_ImmutableList<#lib::TestEnum>, const <#lib::TestEnum>[const #lib::TestEnum{dart.core::_Enum.index: 0, dart.core::_Enum._name: "v1"}, const #lib::TestEnum{dart.core::_Enum.index: 1, dart.core::_Enum._name: "v2"}])
 ------------ foo ------------
 %x = _Parameter #0 [_T ANY?]
 RESULT: _T {}?

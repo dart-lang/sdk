@@ -11,36 +11,145 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:cli_util/cli_logging.dart' as cli_logging;
+import 'package:clock/clock.dart';
+import 'package:pub/pub.dart';
+
+import 'core.dart';
+
+/// The shared progress grace period instance for dartdev.
+final progressGracePeriod = ProgressGracePeriod();
+
+/// Resets the shared grace period timer.
+void resetProgressGracePeriod() {
+  progressGracePeriod.reset();
+}
+
+/// Destination for progress and build status updates.
+enum ProgressOutput {
+  /// Write progress and status updates to [stdout].
+  stdout,
+
+  /// Write progress and status updates to [stderr].
+  stderr,
+
+  /// Suppress progress and status updates.
+  none,
+}
+
 /// Runs [callback] while displaying a live-updating progress indicator.
 ///
 /// The [message] is shown to the user, followed by "..." and a timer.
-/// The progress indicator is only animated if output is going to a terminal.
-/// When the [callback] completes, the progress indicator is stopped and the
-/// final time is shown.
+/// The progress indicator is only animated if output is going to a terminal
+/// that supports ANSI escape codes.
+///
+/// If [transient] is `true`, the progress indicator is erased from the terminal
+/// when [callback] completes (and omitted entirely when ANSI escape codes are
+/// not supported). By default, transient progress is only shown after the
+/// shared [progressGracePeriod] (500ms since program start or last
+/// non-progress output), unless overridden by [delay].
+///
+/// If [transient] is `false`, the progress indicator is stopped and the final
+/// time is shown on completion. If omitted, [transient] defaults to the active
+/// [DartdevLogger.transientProgress] in the current [Zone].
+///
+/// [output] controls whether progress updates are written to [stdout],
+/// [stderr], or suppressed ([ProgressOutput.none]). If omitted, [output]
+/// defaults to the active [DartdevLogger.output] in the current [Zone] (and is
+/// always [ProgressOutput.none] if the zone logger is configured with
+/// [ProgressOutput.none]).
 Future<T> progress<T>(
   String message,
-  Future<T> Function() callback, {
-  bool progressUpdatesOnStderr = false,
-}) async {
-  final progress = _Progress(message, progressUpdatesOnStderr);
-  return callback().whenComplete(progress._stop);
+  FutureOr<T> Function() callback, {
+  bool? transient,
+  ProgressOutput? output,
+  Duration? delay,
+}) {
+  final currentOutput = dartdevLogger.output;
+  final effectiveOutput = currentOutput == ProgressOutput.none
+      ? ProgressOutput.none
+      : (output ?? currentOutput);
+  if (effectiveOutput == ProgressOutput.none) {
+    return Future.sync(callback);
+  }
+  stopActiveProgress();
+  final effectiveTransient = transient ?? dartdevLogger.transientProgress;
+  final effectiveDelay =
+      delay ??
+      (effectiveTransient ? progressGracePeriod.remainingDelay : Duration.zero);
+  final progress = _Progress(
+    message,
+    effectiveOutput == ProgressOutput.stderr,
+    transient: effectiveTransient,
+    delay: effectiveDelay,
+  );
+  return Future.sync(
+    callback,
+  ).whenComplete(
+    effectiveTransient ? progress._stopAndClear : progress._stop,
+  );
+}
+
+/// Starts a live-updating progress indicator and returns its
+/// [cli_logging.Progress] handle.
+///
+/// Prefer [progress] when wrapping a callback.
+cli_logging.Progress startProgress(
+  String message, {
+  bool? transient,
+  ProgressOutput? output,
+}) {
+  final currentOutput = dartdevLogger.output;
+  final effectiveOutput = currentOutput == ProgressOutput.none
+      ? ProgressOutput.none
+      : (output ?? currentOutput);
+  if (effectiveOutput != ProgressOutput.none) {
+    stopActiveProgress();
+  }
+  final effectiveTransient = transient ?? dartdevLogger.transientProgress;
+  final effectiveDelay = effectiveTransient
+      ? progressGracePeriod.remainingDelay
+      : Duration.zero;
+  return _Progress(
+    message,
+    effectiveOutput == ProgressOutput.stderr,
+    transient: effectiveTransient,
+    delay: effectiveDelay,
+    suppressed: effectiveOutput == ProgressOutput.none,
+  );
+}
+
+_Progress? _activeProgress;
+
+/// Stops animating any currently active progress indicator.
+void stopActiveProgress() {
+  if (_activeProgress != null) {
+    _activeProgress!._stopAnimating();
+    _activeProgress = null;
+  }
 }
 
 /// A live-updating progress indicator for long-running log entries.
-class _Progress {
+final class _Progress implements cli_logging.Progress {
   /// Whether progress updates should be printed to [stderr] instead of [stdout].
   final bool _progressUpdatesOnStderr;
 
   /// The timer used to write "..." during a progress log.
-  late final Timer _timer;
+  Timer? _timer;
 
   /// The [Stopwatch] used to track how long a progress log has been running.
-  final _stopwatch = Stopwatch();
-
-  /// The progress message as it's being incrementally appended.
   ///
-  /// When the progress is done, a single entry will be added to the log for it.
+  /// Backed by the current [clock], so tests can control elapsed time.
+  final _stopwatch = clock.stopwatch();
+
+  /// The message displayed for this progress indicator.
   final String _message;
+
+  @override
+  String get message => _message;
+
+  @override
+  Duration get elapsed => _stopwatch.elapsed;
 
   /// Gets the current progress time as a parenthesized, formatted string.
   String get _time => '(${_niceDuration(_stopwatch.elapsed)})';
@@ -48,48 +157,147 @@ class _Progress {
   /// The length of the most recently-printed [_time] string.
   var _timeLength = 0;
 
+  /// Whether the initial start message has been printed.
+  var _hasStarted = false;
+
   /// The output sink for progress updates.
   IOSink get _sink => _progressUpdatesOnStderr ? stderr : stdout;
 
-  /// Whether the output sink should be treated as a terminal.
-  bool get _terminalOutput =>
-      _progressUpdatesOnStderr ? stderr.hasTerminal : stdout.hasTerminal;
+  /// Whether this progress indicator is transient (erased upon completion).
+  final bool _transient;
+
+  /// Whether all output of this progress indicator is suppressed.
+  final bool _suppressed;
 
   /// Creates a new progress indicator.
-  _Progress(this._message, this._progressUpdatesOnStderr) {
+  _Progress(
+    this._message,
+    this._progressUpdatesOnStderr, {
+    bool transient = false,
+    Duration delay = Duration.zero,
+    bool suppressed = false,
+  }) : _transient = transient,
+       _suppressed = suppressed {
     _stopwatch.start();
+    if (suppressed) {
+      return;
+    }
 
     // The animation is only shown when it would be meaningful to a human.
     // That means we're writing a visible message to a TTY at normal log levels
-    // with non-JSON output.
-    if (!_terminalOutput) {
+    // with ANSI support and non-JSON output.
+    if (!_canUseAnsiCodes(_progressUpdatesOnStderr)) {
+      if (transient) {
+        // In non-terminal mode or without ANSI, transient progress produces no output.
+        return;
+      }
       // Not animating, so just log the start and wait until the task is
       // completed.
-      _sink.write('$_message...');
+      _sink.writeln('$_message...');
+      resetProgressGracePeriod();
       return;
     }
 
-    _timer = Timer.periodic(const Duration(milliseconds: 100), (_) {
+    _activeProgress = this;
+
+    _timer = Timer.periodic(const Duration(milliseconds: 50), (_) {
+      if (_stopwatch.elapsed < delay) return;
+      if (!_hasStarted) {
+        _sink.write('$_message... ');
+        _hasStarted = true;
+        progressGracePeriod.markProgressShown();
+      }
       _update();
     });
 
-    _sink.write('$_message... ');
+    if (delay == Duration.zero) {
+      _sink.write('$_message... ');
+      _hasStarted = true;
+      progressGracePeriod.markProgressShown();
+    }
+  }
+
+  /// Erases the progress message from the terminal.
+  void _erase() {
+    _sink.write('\r$_eraseLine');
+  }
+
+  /// Stops animating the progress indicator.
+  void _stopAnimating() {
+    if (_timer == null) return;
+    if (_hasStarted) {
+      if (_transient) {
+        _erase();
+      } else {
+        _sink.write('\r$_message... $_eraseToLineEnd');
+        _sink.writeln();
+        resetProgressGracePeriod();
+      }
+    }
+    _timeLength = 0;
+    _timer!.cancel();
+    _timer = null;
+  }
+
+  /// Stops the progress indicator, leaving its line on the terminal.
+  ///
+  /// The final elapsed time is shown if [showTiming] is `true`; otherwise any
+  /// time shown by the animation is erased.
+  void _stop({bool showTiming = true}) {
+    if (identical(_activeProgress, this)) _activeProgress = null;
+    _stopwatch.stop();
+    if (_timer == null) return;
+    _timer!.cancel();
+    _timer = null;
+    if (!_hasStarted) return;
+    if (showTiming) {
+      // Print one final update to show the user the final time.
+      _update();
+    } else if (_timeLength > 0) {
+      // Erase the time shown by the animation.
+      _sink.write('\r$_message... $_eraseToLineEnd');
+      _timeLength = 0;
+    }
+    _sink.writeln();
+    resetProgressGracePeriod();
+  }
+
+  /// Stops the progress indicator and erases it from the terminal.
+  void _stopAndClear() {
+    if (identical(_activeProgress, this)) _activeProgress = null;
+    _stopwatch.stop();
+    if (_timer != null) {
+      _timer!.cancel();
+      _timer = null;
+      if (_hasStarted) {
+        _erase();
+      }
+    }
   }
 
   /// Stops the progress indicator.
-  void _stop() {
-    if (!_terminalOutput) {
-      // Not animating, so just log the start and wait until the task is
-      // completed.
-      _sink.write('$_message...');
-      return;
+  ///
+  /// A transient indicator is erased from the terminal. Otherwise its line is
+  /// left on the terminal, showing the final elapsed time if [showTiming] is
+  /// `true`. A [message], if given, is then written on a line of its own
+  /// (unless progress output is suppressed).
+  @override
+  void finish({String? message, bool showTiming = false}) {
+    if (_transient) {
+      _stopAndClear();
+    } else {
+      _stop(showTiming: showTiming);
     }
+    if (message != null && !_suppressed) {
+      _sink.writeln(message);
+      resetProgressGracePeriod();
+    }
+  }
 
-    _stopwatch.stop();
-    _timer.cancel();
-    // print one final update to show the user the final time.
-    _update();
-    _sink.writeln();
+  /// Stops the progress indicator and erases it from the terminal.
+  @override
+  void cancel() {
+    _stopAndClear();
   }
 
   /// Refreshes the progress line.
@@ -103,7 +311,7 @@ class _Progress {
     _sink.write('\b' * _timeLength);
     final time = _time;
     _timeLength = time.length;
-    _sink.write(gray(time, _progressUpdatesOnStderr));
+    _sink.write(_grayText(time, _progressUpdatesOnStderr));
   }
 }
 
@@ -117,45 +325,34 @@ String _niceDuration(Duration duration) {
 
   final msString = (ms ~/ 100).toString();
 
-  return "$result${hasMinutes ? _padLeft(s.toString(), 2, '0') : s}"
+  return "$result${hasMinutes ? s.toString().padLeft(2, '0') : s}"
       '.${msString}s';
-}
-
-/// Pads [source] to [length] by adding [char]s at the beginning.
-///
-/// If [char] is `null`, it defaults to a space.
-String _padLeft(String source, int length, [String char = ' ']) {
-  if (source.length >= length) return source;
-
-  return char * (length - source.length) + source;
 }
 
 /// Wraps [text] in the ANSI escape codes to make it gray when on a platform
 /// that supports that.
 ///
-/// Use this for text that's less important than the text around it.
-String gray(String text, bool progressUpdatesOnStderr) =>
-    '${_gray(progressUpdatesOnStderr)}$text${_none(progressUpdatesOnStderr)}';
+/// Honors the `NO_COLOR` convention (https://no-color.org): when the
+/// `NO_COLOR` environment variable is set, [text] is returned uncolored.
+/// `NO_COLOR` only affects colors, not the cursor-control sequences used to
+/// animate the progress indicator.
+String _grayText(String text, bool progressUpdatesOnStderr) {
+  if (_noColor || !_canUseAnsiCodes(progressUpdatesOnStderr)) return text;
+  return '\u001b[38;5;245m$text\u001b[0m';
+}
 
-String _none(bool progressUpdatesOnStderr) =>
-    _getAnsi('\u001b[0m', progressUpdatesOnStderr);
-String _gray(bool progressUpdatesOnStderr) =>
-    _getAnsi('\u001b[38;5;245m', progressUpdatesOnStderr);
+/// ANSI escape sequence erasing the entire current line.
+const _eraseLine = '\u001b[2K';
 
-String _getAnsi(String ansiCode, bool progressUpdatesOnStderr) =>
-    canUseAnsiCodes(progressUpdatesOnStderr) ? ansiCode : '';
+/// ANSI escape sequence erasing from the cursor to the end of the line.
+const _eraseToLineEnd = '\u001b[0K';
 
-/// Whether ansi codes such as color escapes are safe to use.
-///
-/// On a terminal we can use ansi codes also on Windows.
-///
-/// Tests should make sure to run the subprocess with or without an attached
-/// terminal to decide if colors will be provided.
-bool canUseAnsiCodes(bool progressUpdatesOnStderr) {
-  if (Platform.environment.containsKey('NO_COLOR')) return false;
-  if (progressUpdatesOnStderr) {
-    return stderr.hasTerminal && stderr.supportsAnsiEscapes;
-  } else {
-    return stdout.hasTerminal && stdout.supportsAnsiEscapes;
-  }
+/// Whether the `NO_COLOR` environment variable is set.
+bool get _noColor => Platform.environment.containsKey('NO_COLOR');
+
+/// Whether the sink for progress updates is a terminal that supports ANSI
+/// escape codes.
+bool _canUseAnsiCodes(bool progressUpdatesOnStderr) {
+  final sink = progressUpdatesOnStderr ? stderr : stdout;
+  return sink.hasTerminal && sink.supportsAnsiEscapes;
 }

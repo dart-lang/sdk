@@ -17,13 +17,10 @@ void main() {
 @reflectiveTest
 class ConvertFlutterChildTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.convertFlutterChild;
+  bool get addFlutterPackageDep => true;
 
   @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(flutter: true);
-  }
+  FixKind get kind => DartFixKind.convertFlutterChild;
 
   Future<void> test_hasList() async {
     await resolveTestCode('''

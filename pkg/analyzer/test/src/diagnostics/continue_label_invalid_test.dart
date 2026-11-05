@@ -44,9 +44,9 @@ void f(int x) {
 ''');
   }
 
-  test_onSwitchStatement_language219() async {
+  test_onSwitchStatement_beforePatterns() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
+// %before-language-feature: patterns
 void f(int x) {
   L: switch (x) {
     case 0:

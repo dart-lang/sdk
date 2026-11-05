@@ -216,6 +216,11 @@ class DartRuntimeServiceVMBackend
         stderr.writeln('Could not start the VM service: ${e.message}');
       }
     }
+    final serviceInfoFilenameLocal = serviceInfoFilename;
+    if (serviceInfoFilenameLocal != null &&
+        serviceInfoFilenameLocal.isNotEmpty) {
+      await _dumpServiceInfoToFile(serviceInfoFilenameLocal, httpUri);
+    }
     if (!httpUri.path.endsWith('/')) {
       httpUri = httpUri.replace(path: '${httpUri.path}/');
     }
@@ -233,12 +238,6 @@ class DartRuntimeServiceVMBackend
       );
     }
     _nativeBindings.onServerAddressChange(httpUri.toString());
-
-    final serviceInfoFilenameLocal = serviceInfoFilename;
-    if (serviceInfoFilenameLocal != null &&
-        serviceInfoFilenameLocal.isNotEmpty) {
-      await _dumpServiceInfoToFile(serviceInfoFilenameLocal, httpUri);
-    }
   }
 
   Future<void> _dumpServiceInfoToFile(String filename, Uri httpUri) async {

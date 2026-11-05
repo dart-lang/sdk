@@ -4,7 +4,7 @@
 
 part of app;
 
-typedef String ValueFormatter(dynamic value);
+typedef ValueFormatter = String Function(dynamic value);
 
 class SortedTableColumn {
   static String toStringFormatter(dynamic v) {

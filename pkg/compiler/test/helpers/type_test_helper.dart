@@ -5,6 +5,7 @@
 library type_test_helper;
 
 import 'dart:async';
+
 import 'package:compiler/src/elements/names.dart';
 import 'package:compiler/src/js_model/elements.dart';
 import 'package:expect/expect.dart';

@@ -1,0 +1,41 @@
+library;
+import self as self;
+import "dart:async" as asy;
+import "dart:core" as core;
+
+static method getNull() → asy::Future<core::String?> /* emittedValueType= core::String? */ /* originally async */ 
+  return asy::Future::value<core::String?>(null);
+static method testAnd() → asy::Future<core::bool> async /* emittedValueType= core::bool */ {
+  core::bool :async_temporary_0;
+  core::bool :async_temporary_1;
+  core::String? :async_temporary_2;
+  :async_temporary_1 = false;
+  :async_temporary_2 = await self::getNull();
+  if(!(:async_temporary_2 == null)) {
+    :async_temporary_0 = await asy::Future::value<core::bool>(true);
+    :async_temporary_1 = :async_temporary_0;
+  }
+  return :async_temporary_1;
+}
+static method testOr() → asy::Future<core::bool> async /* emittedValueType= core::bool */ {
+  core::bool :async_temporary_0;
+  core::bool :async_temporary_1;
+  core::String? :async_temporary_2;
+  :async_temporary_1 = true;
+  :async_temporary_2 = await self::getNull();
+  if(:async_temporary_2 == null)
+    ;
+  else {
+    :async_temporary_0 = await asy::Future::value<core::bool>(false);
+    :async_temporary_1 = :async_temporary_0;
+  }
+  return :async_temporary_1;
+}
+static method main() → void async /* emittedValueType= void */ {
+  core::bool :async_temporary_0;
+  core::bool :async_temporary_1;
+  :async_temporary_0 = await self::testAnd();
+  core::print(:async_temporary_0);
+  :async_temporary_1 = await self::testOr();
+  core::print(:async_temporary_1);
+}

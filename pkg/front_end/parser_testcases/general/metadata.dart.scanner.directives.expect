@@ -1,0 +1,31 @@
+@abstract
+@foo.abstract
+@foo.bar.abstract
+@foo("hello")
+@foo.abstract("hello")
+@foo.bar.abstract("hello")
+@foo<int>("hello")
+@foo<int>.abstract("hello")
+@foo.bar<int>("hello")
+@foo.bar<int>.abstract("hello")
+class X {}
+
+
+typedef F<@abstract T> = int Function<@abstract X>(@abstract int);
+
+
+@[SimpleToken]abstract[KeywordToken]
+@[SimpleToken]foo[StringToken].[SimpleToken]abstract[KeywordToken]
+@[SimpleToken]foo[StringToken].[SimpleToken]bar[StringToken].[SimpleToken]abstract[KeywordToken]
+@[SimpleToken]foo[StringToken]([BeginToken]"hello"[StringToken])[SimpleToken]
+@[SimpleToken]foo[StringToken].[SimpleToken]abstract[KeywordToken]([BeginToken]"hello"[StringToken])[SimpleToken]
+@[SimpleToken]foo[StringToken].[SimpleToken]bar[StringToken].[SimpleToken]abstract[KeywordToken]([BeginToken]"hello"[StringToken])[SimpleToken]
+@[SimpleToken]foo[StringToken]<[BeginToken]int[StringToken]>[SimpleToken]([BeginToken]"hello"[StringToken])[SimpleToken]
+@[SimpleToken]foo[StringToken]<[BeginToken]int[StringToken]>[SimpleToken].[SimpleToken]abstract[KeywordToken]([BeginToken]"hello"[StringToken])[SimpleToken]
+@[SimpleToken]foo[StringToken].[SimpleToken]bar[StringToken]<[BeginToken]int[StringToken]>[SimpleToken]([BeginToken]"hello"[StringToken])[SimpleToken]
+@[SimpleToken]foo[StringToken].[SimpleToken]bar[StringToken]<[BeginToken]int[StringToken]>[SimpleToken].[SimpleToken]abstract[KeywordToken]([BeginToken]"hello"[StringToken])[SimpleToken]
+class[KeywordToken] X[StringToken] {[BeginToken]}[SimpleToken]
+
+
+typedef[KeywordToken] F[StringToken]<[BeginToken]@[SimpleToken]abstract[KeywordToken] T[StringToken]>[SimpleToken] =[SimpleToken] int[StringToken] Function[KeywordToken]<[BeginToken]@[SimpleToken]abstract[KeywordToken] X[StringToken]>[SimpleToken]([BeginToken]@[SimpleToken]abstract[KeywordToken] int[StringToken])[SimpleToken];[SimpleToken]
+[SimpleToken]

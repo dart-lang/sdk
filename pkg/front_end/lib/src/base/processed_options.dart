@@ -198,6 +198,12 @@ class ProcessedOptions {
   /// The number of fatal diagnostics encountered so far.
   int fatalDiagnosticCount = 0;
 
+  /// Setting this to true will stop reporting errors.
+  ///
+  /// Currently only intended to be used for deps calculation as a step in
+  /// loading from cache.
+  bool temporarilySkipReporting = false;
+
   /// Initializes a [ProcessedOptions] object wrapping the given [rawOptions].
   new({CompilerOptions? options, List<Uri>? inputs, this.output})
     : this._raw = options ?? new CompilerOptions(),
@@ -283,6 +289,7 @@ class ProcessedOptions {
       List<Uri>? involvedFiles,
     }),
   }) {
+    if (temporarilySkipReporting) return;
     if (command_line_reporting.isHidden(severity)) return;
     if (setExitCodeOnProblem) {
       // Coverage-ignore-block(suite): Not run.
@@ -363,7 +370,7 @@ class ProcessedOptions {
   ///
   /// If `CompilerOptions.omitOsMessageForTesting` is `true, the message will
   /// be a fixed string, otherwise the toString of [error] will be returned.
-  String osErrorMessage(Object? error) {
+  String osErrorMessage(Object error) {
     if (_raw.omitOsMessageForTesting) return '<os-message>';
     return '$error';
   }
@@ -810,7 +817,11 @@ class ProcessedOptions {
   /// Note: this is a fork from `package:package_config`s discovery to make sure
   /// we use the expected error reporting etc.
   Future<_PackageConfigAndUri?> _findPackages(Uri scriptUri) async {
-    Uri dir = scriptUri.resolve('.');
+    // Inline code evaluation (`dart run -e`) uses a `data:` URI as the entry
+    // point; resolve `.dart_tool/package_config.json` starting from the
+    // current working directory (`Uri.base`).
+    Uri searchUri = scriptUri.isScheme('data') ? Uri.base : scriptUri;
+    Uri dir = searchUri.resolve('.');
     if (!dir.isAbsolute) {
       reportWithoutLocation(
         diag.internalProblemUnsupported.withArguments(

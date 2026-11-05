@@ -1,0 +1,7 @@
+const List<(int, int)> intIntList = <(int, int)>[(12, 13), (14, 15)];
+
+const List<int> intList = <int>[3, 4, 5];
+
+const Map<int, String> intMap = <int, String>{0: '0', 1: '1', 2: '2'};
+
+test() {}

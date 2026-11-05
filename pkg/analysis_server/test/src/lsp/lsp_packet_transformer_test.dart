@@ -89,6 +89,22 @@ void main() {
       );
     });
   });
+
+  group('lsp_packet_encoder', () {
+    test('encodes JSON payloads as LSP packets', () async {
+      var payload = '{ json payload }';
+      var output = await Stream.value(payload)
+          .transform(LspPacketEncoder())
+          .toList();
+
+      expect(
+        output,
+        equals([
+          makeLspPacket(payload, 'application/vscode-jsonrpc; charset=utf-8'),
+        ]),
+      );
+    });
+  });
 }
 
 List<int> makeLspPacket(String json, [String? contentType]) {

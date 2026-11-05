@@ -274,10 +274,7 @@ void f(A a1) {
 @reflectiveTest
 class ImportLibraryHidePriorityTest extends FixPriorityTest {
   @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(flutter: true);
-  }
+  bool get addFlutterPackageDep => true;
 
   Future<void> test_dartUi() async {
     newFile(join(testPackageLibPath, 'size.dart'), '''
@@ -597,7 +594,7 @@ import 'lib.dart' as lib;
 void f(String s, lib.C c) {
   s.m();
 }
-''', matchFixMessage: "Import 'E' from lib.dart");
+''', fixMessageContains: "Import 'E' from lib.dart");
   }
 
   Future<void> test_static_samePackage() async {

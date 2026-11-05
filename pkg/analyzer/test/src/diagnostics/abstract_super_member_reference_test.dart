@@ -31,9 +31,27 @@ mixin M implements A {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('super.foo(0)');
+    var node = result.findNode.receiverMethodInvocation('super.foo(0)');
     assertResolvedNodeText(node, r'''
-MethodInvocation
+ReceiverMethodInvocation
+  receiver: SuperReference
+    superKeyword: super
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <testLibrary>::@class::A::@method::foo::@formalParameter::_
+        staticType: int
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::A::@method::foo
+    invokeType: void Function(int)
+    type: void
+  staticType: void
+V1: MethodInvocation
   target: SuperExpression
     superKeyword: super
     staticType: M
@@ -72,9 +90,22 @@ class C extends B {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('super.foo()');
+    var node = result.findNode.receiverMethodInvocation('super.foo()');
     assertResolvedNodeText(node, r'''
-MethodInvocation
+ReceiverMethodInvocation
+  receiver: SuperReference
+    superKeyword: super
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@mixin::M::@method::foo
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
   target: SuperExpression
     superKeyword: super
     staticType: C
@@ -106,9 +137,22 @@ class B extends Object with A {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('super.foo()');
+    var node = result.findNode.receiverMethodInvocation('super.foo()');
     assertResolvedNodeText(node, r'''
-MethodInvocation
+ReceiverMethodInvocation
+  receiver: SuperReference
+    superKeyword: super
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@mixin::A::@method::foo
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
   target: SuperExpression
     superKeyword: super
     staticType: B
@@ -142,9 +186,27 @@ abstract class B extends A {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('super.foo(0)');
+    var node = result.findNode.receiverMethodInvocation('super.foo(0)');
     assertResolvedNodeText(node, r'''
-MethodInvocation
+ReceiverMethodInvocation
+  receiver: SuperReference
+    superKeyword: super
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <testLibrary>::@class::A::@method::foo::@formalParameter::_
+        staticType: int
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::A::@method::foo
+    invokeType: void Function(int)
+    type: void
+  staticType: void
+V1: MethodInvocation
   target: SuperExpression
     superKeyword: super
     staticType: B
@@ -183,9 +245,22 @@ class C extends A with B {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('foo(); // ref');
+    var node = result.findNode.receiverMethodInvocation('foo(); // ref');
     assertResolvedNodeText(node, r'''
-MethodInvocation
+ReceiverMethodInvocation
+  receiver: SuperReference
+    superKeyword: super
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::A::@method::foo
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
   target: SuperExpression
     superKeyword: super
     staticType: C
@@ -215,9 +290,22 @@ class B extends A {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('super.foo()');
+    var node = result.findNode.receiverMethodInvocation('super.foo()');
     assertResolvedNodeText(node, r'''
-MethodInvocation
+ReceiverMethodInvocation
+  receiver: SuperReference
+    superKeyword: super
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::A::@method::foo
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: MethodInvocation
   target: SuperExpression
     superKeyword: super
     staticType: B
@@ -251,9 +339,22 @@ class C extends B {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('super.foo()');
+    var node = result.findNode.receiverMethodInvocation('super.foo()');
     assertResolvedNodeText(node, r'''
-MethodInvocation
+ReceiverMethodInvocation
+  receiver: SuperReference
+    superKeyword: super
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::A::@method::foo
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
   target: SuperExpression
     superKeyword: super
     staticType: C
@@ -285,9 +386,19 @@ abstract class B extends A {
 }
 ''');
 
-    var node = result.findNode.singlePropertyAccess;
+    var node = result.findNode.singleReceiverPropertyExtraction;
     assertResolvedNodeText(node, r'''
-PropertyAccess
+ReceiverPropertyExtraction
+  receiver: SuperReference
+    superKeyword: super
+  operator: .
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::A::@getter::foo
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: PropertyAccess
   target: SuperExpression
     superKeyword: super
     staticType: B
@@ -315,9 +426,19 @@ mixin M implements A {
 }
 ''');
 
-    var node = result.findNode.singlePropertyAccess;
+    var node = result.findNode.singleReceiverPropertyExtraction;
     assertResolvedNodeText(node, r'''
-PropertyAccess
+ReceiverPropertyExtraction
+  receiver: SuperReference
+    superKeyword: super
+  operator: .
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::A::@getter::foo
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: PropertyAccess
   target: SuperExpression
     superKeyword: super
     staticType: M
@@ -345,9 +466,19 @@ class B extends Object with A {
 }
 ''');
 
-    var node = result.findNode.singlePropertyAccess;
+    var node = result.findNode.singleReceiverPropertyExtraction;
     assertResolvedNodeText(node, r'''
-PropertyAccess
+ReceiverPropertyExtraction
+  receiver: SuperReference
+    superKeyword: super
+  operator: .
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@mixin::A::@getter::foo
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: PropertyAccess
   target: SuperExpression
     superKeyword: super
     staticType: B
@@ -373,9 +504,19 @@ class B extends A {
 }
 ''');
 
-    var node = result.findNode.singlePropertyAccess;
+    var node = result.findNode.singleReceiverPropertyExtraction;
     assertResolvedNodeText(node, r'''
-PropertyAccess
+ReceiverPropertyExtraction
+  receiver: SuperReference
+    superKeyword: super
+  operator: .
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::A::@getter::foo
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: PropertyAccess
   target: SuperExpression
     superKeyword: super
     staticType: B
@@ -404,9 +545,19 @@ class C extends B {
 }
 ''');
 
-    var node = result.findNode.singlePropertyAccess;
+    var node = result.findNode.singleReceiverPropertyExtraction;
     assertResolvedNodeText(node, r'''
-PropertyAccess
+ReceiverPropertyExtraction
+  receiver: SuperReference
+    superKeyword: super
+  operator: .
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::A::@getter::foo
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: PropertyAccess
   target: SuperExpression
     superKeyword: super
     staticType: C
@@ -434,9 +585,19 @@ class C extends B {
 }
 ''');
 
-    var node = result.findNode.singlePropertyAccess;
+    var node = result.findNode.singleReceiverPropertyExtraction;
     assertResolvedNodeText(node, r'''
-PropertyAccess
+ReceiverPropertyExtraction
+  receiver: SuperReference
+    superKeyword: super
+  operator: .
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::A::@getter::foo
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: PropertyAccess
   target: SuperExpression
     superKeyword: super
     staticType: C
@@ -464,9 +625,18 @@ abstract class B extends A {
 }
 ''');
 
-    var node = result.findNode.singlePropertyAccess;
+    var node = result.findNode.singleReceiverPropertyExtraction;
     assertResolvedNodeText(node, r'''
-PropertyAccess
+ReceiverPropertyExtraction
+  receiver: SuperReference
+    superKeyword: super
+  operator: .
+  name: foo
+  resolution: ExecutableTearOffResolution
+    element: <testLibrary>::@class::A::@method::foo
+    type: void Function()
+  staticType: void Function()
+V1: PropertyAccess
   target: SuperExpression
     superKeyword: super
     staticType: B
@@ -494,9 +664,25 @@ abstract class B extends A {
 }
 ''');
 
-    var node = result.findNode.assignment('foo =');
+    var node = result.findNode.directAssignment('foo =');
     assertResolvedNodeText(node, r'''
-AssignmentExpression
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: SuperReference
+      superKeyword: super
+    operator: .
+    name: foo
+    read: <null>
+    write: SetterInvocationResolution
+      element: <testLibrary>::@class::A::@setter::foo
+      acceptedType: int
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <testLibrary>::@class::A::@setter::foo::@formalParameter::_
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
   leftHandSide: PropertyAccess
     target: SuperExpression
       superKeyword: super
@@ -536,9 +722,25 @@ mixin M implements A {
 }
 ''');
 
-    var node = result.findNode.assignment('foo =');
+    var node = result.findNode.directAssignment('foo =');
     assertResolvedNodeText(node, r'''
-AssignmentExpression
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: SuperReference
+      superKeyword: super
+    operator: .
+    name: foo
+    read: <null>
+    write: SetterInvocationResolution
+      element: <testLibrary>::@class::A::@setter::foo
+      acceptedType: int
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <testLibrary>::@class::A::@setter::foo::@formalParameter::_
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
   leftHandSide: PropertyAccess
     target: SuperExpression
       superKeyword: super
@@ -578,9 +780,28 @@ class B extends Object with A {
 }
 ''');
 
-    var node = result.findNode.assignment('foo =');
+    var node = result.findNode.directAssignment('foo =');
     assertResolvedNodeText(node, r'''
-AssignmentExpression
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: SuperReference
+      superKeyword: super
+    operator: .
+    name: foo
+    read: <null>
+    write: SetterInvocationResolution
+      element: <testLibrary>::@mixin::A::@setter::foo
+      acceptedType: int
+  operator: =
+  value: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@class::B::@setter::foo::@formalParameter::a
+      type: int
+    correspondingParameter: <testLibrary>::@mixin::A::@setter::foo::@formalParameter::a
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
   leftHandSide: PropertyAccess
     target: SuperExpression
       superKeyword: super
@@ -619,9 +840,28 @@ class B extends A {
 }
 ''');
 
-    var node = result.findNode.assignment('foo =');
+    var node = result.findNode.directAssignment('foo =');
     assertResolvedNodeText(node, r'''
-AssignmentExpression
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: SuperReference
+      superKeyword: super
+    operator: .
+    name: foo
+    read: <null>
+    write: SetterInvocationResolution
+      element: <testLibrary>::@class::A::@setter::foo
+      acceptedType: int
+  operator: =
+  value: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@class::B::@setter::foo::@formalParameter::a
+      type: int
+    correspondingParameter: <testLibrary>::@class::A::@setter::foo::@formalParameter::a
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
   leftHandSide: PropertyAccess
     target: SuperExpression
       superKeyword: super
@@ -664,9 +904,25 @@ class C extends B {
 }
 ''');
 
-    var node = result.findNode.assignment('foo =');
+    var node = result.findNode.directAssignment('foo =');
     assertResolvedNodeText(node, r'''
-AssignmentExpression
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: SuperReference
+      superKeyword: super
+    operator: .
+    name: foo
+    read: <null>
+    write: SetterInvocationResolution
+      element: <testLibrary>::@class::A::@setter::foo
+      acceptedType: int
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <testLibrary>::@class::A::@setter::foo::@formalParameter::_
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
   leftHandSide: PropertyAccess
     target: SuperExpression
       superKeyword: super

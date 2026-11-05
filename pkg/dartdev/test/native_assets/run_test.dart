@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:test/test.dart';
@@ -58,7 +59,7 @@ void main([List<String> args = const []]) async {
           workingDirectory: dartAppUri,
           logger: logger,
         );
-        expect(result.stderr, contains('Running build hooks'));
+        expect(result.stderr, isNot(contains('Running build hooks')));
         expect(result.stderr, isNot(contains('Running link hooks')));
         expectDartAppStdout(result.stdout);
         if (verbose) {
@@ -69,6 +70,33 @@ void main([List<String> args = const []]) async {
       });
     });
   }
+
+  test(
+    'dart run stdout is exactly the program output',
+    timeout: longTimeout,
+    () async {
+      await nativeAssetsTest('dart_app', (dartAppUri) async {
+        // Resolve dependencies up front, so that `dart run` only has to run the
+        // build hooks and compile the program.
+        await runPubGet(workingDirectory: dartAppUri, logger: logger);
+        final result = await runDart(
+          arguments: ['run'],
+          workingDirectory: dartAppUri,
+          logger: logger,
+        );
+        expect(
+          const LineSplitter().convert(result.stdout),
+          ['add(5, 6) = 11', 'subtract(5, 6) = -1'],
+        );
+        // Hook errors are still forwarded to stderr, but dartdev's own status
+        // messages are not shown when the output is not a terminal.
+        expect(result.stderr, contains('Some stderr.'));
+        expect(result.stderr, isNot(contains('Running build hooks')));
+        expect(result.stderr, isNot(contains('Running link hooks')));
+        expect(result.stderr, isNot(contains('Generated: ')));
+      });
+    },
+  );
 
   test('dart run --verbosity=error', timeout: longTimeout, () async {
     await nativeAssetsTest('dart_app', (dartAppUri) async {
@@ -249,4 +277,93 @@ Couldn't resolve native function 'multiply' in 'package:drop_dylib_link/dylib_mu
       expectDartAppStdout(result.stdout);
     });
   });
+
+  test(
+    'dart run cleans up temp dir on shutdown',
+    timeout: longTimeout,
+    () async {
+      await nativeAssetsTest('dart_app', (dartAppUri) async {
+        final result = await runDart(
+          arguments: ['run', 'bin/dart_app.dart'],
+          workingDirectory: dartAppUri,
+          logger: logger,
+        );
+        expectDartAppStdout(result.stdout);
+
+        // Read `.dart_tool/native_assets.yaml` to hermetically determine the exact
+        // temporary assets directory (`dart_native_assets_...`) created by this run.
+        final nativeAssetsYaml = File.fromUri(
+          dartAppUri.resolve('.dart_tool/native_assets.yaml'),
+        );
+        expect(await nativeAssetsYaml.exists(), isTrue);
+        final content = await nativeAssetsYaml.readAsString();
+        final match = RegExp(
+          r'dart_native_assets_[^\/\\]+',
+        ).firstMatch(content);
+        expect(match, isNotNull);
+        final dartdevAssetsTempDir = Directory.fromUri(
+          Directory.systemTemp.uri.resolve('${match!.group(0)}/'),
+        );
+
+        // On Windows, the detached cleanup process deletes the temp dir
+        // shortly after the main process exits.
+        await pollUntil(() async => !(await dartdevAssetsTempDir.exists()));
+        expect(await dartdevAssetsTempDir.exists(), isFalse);
+      });
+    },
+  );
+
+  test(
+    'dart run concurrently (10 parallel processes)',
+    timeout: longTimeout,
+    () async {
+      await nativeAssetsTest('dart_app', (dartAppUri) async {
+        final futures = List.generate(
+          10,
+          (_) => runDart(
+            arguments: ['run', 'bin/dart_app.dart'],
+            workingDirectory: dartAppUri,
+            logger: logger,
+          ),
+        );
+        final results = await Future.wait(futures);
+        for (final result in results) {
+          expectDartAppStdout(result.stdout);
+        }
+      });
+    },
+  );
+
+  test(
+    '--delete-temp-dir-on-shutdown VM flag cleans up directory on exit',
+    () async {
+      final tempDir = await Directory.systemTemp.createTemp(
+        'test_delete_flag_',
+      );
+      expect(await tempDir.exists(), isTrue);
+
+      final scriptDir = await Directory.systemTemp.createTemp(
+        'test_script_dir_',
+      );
+      try {
+        final scriptFile = File.fromUri(scriptDir.uri.resolve('script.dart'));
+        await scriptFile.writeAsString('void main() => print("hello");');
+
+        final result = await runDart(
+          arguments: [
+            '--delete-temp-dir-on-shutdown=${tempDir.path}',
+            scriptFile.path,
+          ],
+          logger: logger,
+        );
+        expect(result.stdout, contains('hello'));
+
+        await pollUntil(() async => !(await tempDir.exists()));
+        expect(await tempDir.exists(), isFalse);
+      } finally {
+        if (await tempDir.exists()) await tempDir.delete(recursive: true);
+        if (await scriptDir.exists()) await scriptDir.delete(recursive: true);
+      }
+    },
+  );
 }

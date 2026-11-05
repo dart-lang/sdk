@@ -27,6 +27,7 @@ void f() {
 ''';
     var code = TestCode.parse(content);
     newFile(testFilePath, code.code);
+    await initializeServer();
     var results = await getDocumentHighlights(
       testFileUri,
       code.position.position,

@@ -52,6 +52,7 @@ class DevToolsServer {
   static const argTryPorts = 'try-ports';
   static const argVerbose = 'verbose';
   static const argVersion = 'version';
+  static const argDisableServiceOriginCheck = 'disable-service-origin-check';
   static const launchDevToolsService = 'launchDevTools';
 
   MachineModeCommandHandler? _machineModeCommandHandler;
@@ -125,6 +126,14 @@ class DevToolsServer {
         argMachine,
         negatable: false,
         help: 'Sets output format to JSON for consumption in tools.',
+      )
+      ..addFlag(
+        argDisableServiceOriginCheck,
+        negatable: false,
+        help: 'Disables the requirements for Host and Origin header validation '
+            'for DevTools server connections. Host and Origin validation helps '
+            'protect against DNS-rebinding and CSRF attacks, so it is not '
+            'recommended to disable them.',
       )
       ..addSeparator('Memory profiling options:')
       ..addOption(
@@ -278,6 +287,7 @@ class DevToolsServer {
     String? appSizeBase,
     String? appSizeTest,
     DtdInfo? dtdInfo,
+    bool disableServiceOriginCheck = false,
   }) async {
     hostname ??= 'localhost';
 
@@ -310,13 +320,6 @@ class DevToolsServer {
       printDtdUri: printDtdUri,
     );
 
-    handler ??= await defaultHandler(
-      buildDir: customDevToolsPath,
-      clientManager: clientManager,
-      dtd: dtdInfo,
-      devtoolsExtensionsManager: ExtensionsManager(),
-    );
-
     HttpServer? server;
     SocketException? ex;
     while (server == null && numPortsToTry >= 0) {
@@ -340,6 +343,21 @@ class DevToolsServer {
 
     // Type promote server.
     server!;
+
+    final serverUri = Uri(
+      scheme: 'http',
+      host: hostname,
+      port: server.port,
+    );
+
+    handler ??= await defaultHandler(
+      buildDir: customDevToolsPath,
+      clientManager: clientManager,
+      dtd: dtdInfo,
+      devtoolsExtensionsManager: ExtensionsManager(),
+      disableServiceOriginCheck: disableServiceOriginCheck,
+      serverUri: serverUri,
+    );
 
     if (allowEmbedding) {
       server.defaultResponseHeaders.remove('x-frame-options', 'SAMEORIGIN');
@@ -507,6 +525,10 @@ class DevToolsServer {
         args.wasParsed(argAllowEmbedding) ? args[argAllowEmbedding] : true;
     final bool disableCors =
         args.wasParsed(argDisableCors) ? args[argDisableCors] : false;
+    final bool disableServiceOriginCheck =
+        args.wasParsed(argDisableServiceOriginCheck)
+            ? args[argDisableServiceOriginCheck]
+            : false;
 
     final port = args[argPort] != null ? int.tryParse(args[argPort]) ?? 0 : 0;
 
@@ -618,6 +640,7 @@ class DevToolsServer {
       dtdInfo:
           dtdUri != null ? DtdInfo(dtdUri, exposedUri: dtdExposedUri) : null,
       printDtdUri: printDtdUri,
+      disableServiceOriginCheck: disableServiceOriginCheck,
     );
   }
 

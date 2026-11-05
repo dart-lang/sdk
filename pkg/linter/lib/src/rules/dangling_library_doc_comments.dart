@@ -33,11 +33,8 @@ class DanglingLibraryDocComments extends AnalysisRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final DanglingLibraryDocComments rule;
-
-  new(this.rule);
-
+class _Visitor(final DanglingLibraryDocComments rule)
+    extends SimpleAstVisitor<void> {
   @override
   void visitCompilationUnit(CompilationUnit node) {
     if (node.directives.isNotEmpty) {

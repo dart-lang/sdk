@@ -134,12 +134,8 @@ class _NonEnumVisitor extends _BaseVisitor {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final AnalysisRule rule;
-  final RuleContext context;
-
-  new(this.rule, this.context);
-
+class _Visitor(final AnalysisRule rule, final RuleContext context)
+    extends SimpleAstVisitor<void> {
   @override
   visitClassDeclaration(ClassDeclaration node) {
     // Don't lint augmentations.
@@ -160,8 +156,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (constructor == null) return;
       if (!constructor.isConst) return;
       var name = namePart.constructorName?.name.lexeme;
-      if (classElement.isPublic &&
-          (name == null || !Identifier.isPrivateName(name))) {
+      if (classElement.isPublic && (name == null || !name.isPrivateName)) {
         return;
       }
       for (var parameter in namePart.formalParameters.parameters) {
@@ -208,8 +203,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         if (constructor == null) return;
         if (!constructor.isFactory && !constructor.isConst) return;
         var name = member.name?.lexeme;
-        if (classElement.isPublic &&
-            (name == null || !Identifier.isPrivateName(name))) {
+        if (classElement.isPublic && (name == null || !name.isPrivateName)) {
           return;
         }
       }

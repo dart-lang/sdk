@@ -26,6 +26,15 @@ class Bar with Comparable<int> {
 ''');
   }
 
+  test_coreLib_beforeClassModifiers() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: class-modifiers
+class Bar with Comparable<int> {
+  int compareTo(int x) => 0;
+}
+''');
+  }
+
   test_coreLib_dartCoreEnum() async {
     await resolveTestCodeWithDiagnostics(r'''
 abstract class A with Enum {}
@@ -37,20 +46,11 @@ abstract class B = Object with Enum;
 ''');
   }
 
-  test_coreLib_dartCoreEnum_language219() async {
+  test_coreLib_dartCoreEnum_beforeClassModifiers() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
+// %before-language-feature: class-modifiers
 abstract class A with Enum {}
 abstract class B = Object with Enum;
-''');
-  }
-
-  test_coreLib_language219() async {
-    await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
-class Bar with Comparable<int> {
-  int compareTo(int x) => 0;
-}
 ''');
   }
 
@@ -60,6 +60,14 @@ class Foo {}
 class Bar with Foo {}
 //             ^^^
 // [diag.classUsedAsMixin] The class 'Foo' can't be used as a mixin because it's neither a mixin class nor a mixin.
+''');
+  }
+
+  test_inside_beforeClassModifiers() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: class-modifiers
+class Foo {}
+class Bar with Foo {}
 ''');
   }
 
@@ -99,14 +107,6 @@ enum E with A {
 ''');
   }
 
-  test_inside_language219() async {
-    await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
-class Foo {}
-class Bar with Foo {}
-''');
-  }
-
   test_inside_mixinClass() async {
     await resolveTestCodeWithDiagnostics(r'''
 mixin class Foo {}
@@ -127,25 +127,26 @@ class Bar with Foo {}
 ''');
   }
 
-  test_outside_language219() async {
-    newFile('$testPackageLibPath/foo.dart', r'''
-// @dart = 2.19
+  test_outside_beforeClassModifiers() async {
+    await resolveFilesWithDiagnostics({
+      getFile('$testPackageLibPath/foo.dart'): r'''
+// %before-language-feature: class-modifiers
 class Foo {}
-''');
-
-    await resolveTestCodeWithDiagnostics(r'''
+''',
+      testFile: r'''
 import 'foo.dart';
 class Bar with Foo {}
-''');
+''',
+    });
   }
 
-  test_outside_language219_mixedIn() async {
+  test_outside_beforeClassModifiers_mixedIn() async {
     newFile('$testPackageLibPath/foo.dart', r'''
 class Foo {}
 ''');
 
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
+// %before-language-feature: class-modifiers
 import 'foo.dart';
 class Bar with Foo {}
 //             ^^^
@@ -178,17 +179,18 @@ class Bar with FooTypedef {}
 ''');
   }
 
-  test_outside_viaTypedef_inside_language219() async {
-    newFile('$testPackageLibPath/foo.dart', r'''
-// @dart = 2.19
+  test_outside_viaTypedef_inside_beforeClassModifiers() async {
+    await resolveFilesWithDiagnostics({
+      getFile('$testPackageLibPath/foo.dart'): r'''
+// %before-language-feature: class-modifiers
 class Foo {}
 typedef FooTypedef = Foo;
-''');
-
-    await resolveTestCodeWithDiagnostics(r'''
+''',
+      testFile: r'''
 import 'foo.dart';
 class Bar with FooTypedef {}
-''');
+''',
+    });
   }
 
   test_outside_viaTypedef_inside_mixinClass() async {
@@ -217,17 +219,18 @@ class Bar with FooTypedef {}
 ''');
   }
 
-  test_outside_viaTypedef_outside_language219() async {
-    newFile('$testPackageLibPath/foo.dart', r'''
-// @dart = 2.19
+  test_outside_viaTypedef_outside_beforeClassModifiers() async {
+    await resolveFilesWithDiagnostics({
+      getFile('$testPackageLibPath/foo.dart'): r'''
+// %before-language-feature: class-modifiers
 class Foo {}
-''');
-
-    await resolveTestCodeWithDiagnostics(r'''
+''',
+      testFile: r'''
 import 'foo.dart';
 typedef FooTypedef = Foo;
 class Bar with FooTypedef {}
-''');
+''',
+    });
   }
 
   test_outside_viaTypedef_outside_mixinClass() async {

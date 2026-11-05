@@ -9,6 +9,8 @@ import 'package:web/web.dart' as web;
 
 import 'asset_server/asset_server_client.dart';
 
+export 'package:dartpad/dartpad.dart'
+    show ConsoleLevel, SandboxNotFoundException;
 export 'package:test/test.dart' show TestOn, printOnFailure;
 export 'checks_ext.dart';
 
@@ -16,13 +18,16 @@ final class TestContext {
   final AssetServerClient server;
   final DartPad dartpad;
   final Workspace ws;
+  final SandboxedIframe iframe;
   final Sandbox sandbox;
-  final consoleLog = <String>[];
+  final consoleLog = <({ConsoleLevel level, String message})>[];
 
-  TestContext._(this.server, this.dartpad, this.ws, this.sandbox) {
-    sandbox.onConsole.listen((event) {
-      consoleLog.add(event.message);
-      printOnFailure('[sandbox] console.${event.level.name}: ${event.message}');
+  TestContext._(this.server, this.dartpad, this.ws, this.iframe, this.sandbox) {
+    sandbox.console.listen((entry) {
+      consoleLog.add(entry);
+      printOnFailure(
+        '[sandbox] console (${entry.level.name}): ${entry.message}',
+      );
     });
   }
 
@@ -30,19 +35,24 @@ final class TestContext {
   /// [condition].
   Future<void> checkConsole(
     Condition<String> condition, {
+    ConsoleLevel? level,
     Duration timeLimit = const Duration(seconds: 5),
   }) async {
-    if (consoleLog.any((line) => softCheck(line, condition) == null)) {
+    bool matches(({ConsoleLevel level, String message}) entry) =>
+        (level == null || entry.level == level) &&
+        condition.softCheckSync(entry.message) == null;
+
+    if (consoleLog.any(matches)) {
       return;
     }
 
-    await sandbox.onConsole
-        .firstWhere((event) => softCheck(event.message, condition) == null)
+    await sandbox.console
+        .firstWhere(matches)
         .timeout(
           timeLimit,
           onTimeout: () => throw TestFailure(
             'Expected console message with $timeLimit that '
-            '${describe(condition).join('\n')}',
+            '${condition.describeSync().join('\n')}',
           ),
         );
   }
@@ -57,35 +67,24 @@ void testDartIntegration(
 
     // Initialize DartPad Worker
     printOnFailure('# Creating worker');
-    final dartpad = await DartPad.create(
-      assetBaseUrl: server.assetUrl,
-      sdkLocation: Uri.parse('dart/'),
-      pubHostedUrl: server.baseUrl,
-    );
+    final sdk = DartPadSdk(assetBaseUrl: server.baseUrl.resolve('dart/'));
+    final dartpad = await sdk.dedicatedWorker(pubHostedUrl: server.baseUrl);
 
     printOnFailure('# Creating workspace');
     final workspace = await dartpad.createWorkspace();
 
     // Initialize Sandbox
     printOnFailure('# Initializing sandbox');
-    final sandbox = await Sandbox.createIFrame(
-      web.document.body!,
-      assetBaseUrl: server.assetUrl,
-      sdkLocation: server.assetUrl.resolve('dart/'),
-    );
+    final iframe = await sdk.createSandboxedIframe(web.document.body!);
+    final sandbox = await workspace.connectSandboxedIframe(iframe.port);
 
     try {
-      await fn(TestContext._(server, dartpad, workspace, sandbox));
+      await fn(TestContext._(server, dartpad, workspace, iframe, sandbox));
     } finally {
-      try {
-        sandbox.dispose();
-      } finally {
-        try {
-          await workspace.dispose();
-        } finally {
-          await dartpad.dispose();
-        }
-      }
+      await sandbox.close();
+      await iframe.close();
+      await workspace.close();
+      await dartpad.close();
     }
   });
 }
@@ -107,35 +106,24 @@ void testFlutterIntegration(
 
     // Initialize DartPad Worker
     printOnFailure('# Creating worker');
-    final dartpad = await DartPad.create(
-      assetBaseUrl: server.assetUrl,
-      sdkLocation: Uri.parse('flutter/'),
-      pubHostedUrl: server.baseUrl,
-    );
+    final sdk = DartPadSdk(assetBaseUrl: server.baseUrl.resolve('flutter/'));
+    final dartpad = await sdk.dedicatedWorker(pubHostedUrl: server.baseUrl);
 
     printOnFailure('# Creating workspace');
     final workspace = await dartpad.createWorkspace();
 
     // Initialize Sandbox
     printOnFailure('# Initializing sandbox');
-    final sandbox = await Sandbox.createIFrame(
-      web.document.body!,
-      assetBaseUrl: server.assetUrl,
-      sdkLocation: server.assetUrl.resolve('flutter/'),
-    );
+    final iframe = await sdk.createSandboxedIframe(web.document.body!);
+    final sandbox = await workspace.connectSandboxedIframe(iframe.port);
 
     try {
-      await fn(TestContext._(server, dartpad, workspace, sandbox));
+      await fn(TestContext._(server, dartpad, workspace, iframe, sandbox));
     } finally {
-      try {
-        sandbox.dispose();
-      } finally {
-        try {
-          await workspace.dispose();
-        } finally {
-          await dartpad.dispose();
-        }
-      }
+      await sandbox.close();
+      await iframe.close();
+      await workspace.close();
+      await dartpad.close();
     }
   });
 }

@@ -35,8 +35,10 @@ class TypeSpecificGlobalTable {
   /// Contents of wasm table.
   final Map<Object, (int, w.InstructionsBuilder?)> _table = {};
 
-  late final w.TableBuilder _definedWasmTable = translator.mainModule.tables
-      .define(w.RefType(_tableHeapType, nullable: true), _table.length);
+  late final w.Table _definedWasmTable = translator.mainModule.tables.define(
+    w.RefType(_tableHeapType, nullable: true),
+    _table.length,
+  );
   final WasmTableImporter _importedWasmTables;
 
   TypeSpecificGlobalTable(
@@ -85,7 +87,7 @@ class TypeSpecificGlobalTable {
       if (expression != null) {
         final moduleBuilder = expression.moduleBuilder;
         if (translator.isMainModule(moduleBuilder)) {
-          _definedWasmTable.moduleBuilder.elements
+          translator.mainModule.elements
               .activeExpressionSegmentBuilderFor(_definedWasmTable)
               .setExpressionAt(index, expression);
         } else {

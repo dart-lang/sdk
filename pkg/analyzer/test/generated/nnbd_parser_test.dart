@@ -46,7 +46,21 @@ Block
           VariableDeclaration
             name: x2
             equals: =
-            initializer: BinaryExpression
+            initializer2: BinaryOperatorInvocation
+              leftOperand: ParsedUnqualifiedName
+                name: x
+              operator: +
+              rightOperand: ParsedValueArguments
+                operand: ParsedUnqualifiedName
+                  name: bar
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  arguments2
+                    IntegerLiteral
+                      literal: 7
+                  rightParenthesis: )
+              binaryOperator: add
+            initializer(v1): BinaryExpression
               leftOperand: SimpleIdentifier
                 token: x
               operator: +
@@ -98,13 +112,48 @@ Block
           VariableDeclaration
             name: s
             equals: =
-            initializer: SimpleStringLiteral
+            initializer2: SimpleStringLiteral
               literal: ''
       semicolon: ;
     ExpressionStatement
-      expression: CascadeExpression
-        target: SimpleIdentifier
+      expression2: CascadeExpression
+        target2: ParsedUnqualifiedName
+          name: a
+        target(v1): SimpleIdentifier
           token: a
+        sections
+          CascadeSection
+            operator: ?..
+            body: ParsedNameAccess
+              operand: ParsedValueArguments
+                operand: ParsedCascadeName
+                  name: foo
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  rightParenthesis: )
+              operator: .
+              name: length
+          CascadeSection
+            operator: ..
+            body: DirectAssignment
+              target: CascadePropertyAssignmentTarget
+                name: x27
+              operator: =
+              value: NullAssertionExpression
+                operand: ParsedUnqualifiedName
+                  name: s
+                operator: !
+          CascadeSection
+            operator: ..
+            body: ParsedNameAccess
+              operand: ParsedValueArguments
+                operand: ParsedCascadeName
+                  name: toString
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  rightParenthesis: )
+              operator: .
+              name: length
         cascadeSections
           PropertyAccess
             target: MethodInvocation
@@ -173,7 +222,9 @@ Block
           VariableDeclaration
             name: x2
             equals: =
-            initializer: SimpleIdentifier
+            initializer2: ParsedUnqualifiedName
+              name: x
+            initializer(v1): SimpleIdentifier
               token: x
       semicolon: ;
   rightBracket: }
@@ -202,7 +253,18 @@ Block
             name: f1
       semicolon: ;
     ExpressionStatement
-      expression: FunctionExpressionInvocation
+      expression2: CallInvocation
+        receiver: NullAssertionExpression
+          operand: ParsedUnqualifiedName
+            name: f1
+          operator: !
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments2
+            IntegerLiteral
+              literal: 42
+          rightParenthesis: )
+      expression(v1): FunctionExpressionInvocation
         function: PostfixExpression
           operand: SimpleIdentifier
             token: f1
@@ -239,7 +301,24 @@ Block
             name: f2
       semicolon: ;
     ExpressionStatement
-      expression: FunctionExpressionInvocation
+      expression2: CallInvocation
+        receiver: NullAssertionExpression
+          operand: ParsedUnqualifiedName
+            name: f2
+          operator: !
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: int
+          rightBracket: >
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments2
+            IntegerLiteral
+              literal: 42
+          rightParenthesis: )
+      expression(v1): FunctionExpressionInvocation
         function: PostfixExpression
           operand: SimpleIdentifier
             token: f2
@@ -273,7 +352,17 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression: IndexExpression
+      expression2: ReceiverIndexExpression
+        receiver: NullAssertionExpression
+          operand: ParsedUnqualifiedName
+            name: a
+          operator: !
+        question: ?
+        leftBracket: [
+        index: IntegerLiteral
+          literal: 0
+        rightBracket: ]
+      expression(v1): IndexExpression
         target: PostfixExpression
           operand: SimpleIdentifier
             token: a
@@ -300,7 +389,13 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression: BinaryExpression
+      expression2: IfNull
+        leftOperand: ParsedUnqualifiedName
+          name: X
+        operator: ??
+        rightOperand: ParsedUnqualifiedName
+          name: x2
+      expression(v1): BinaryExpression
         leftOperand: SimpleIdentifier
           token: X
         operator: ??
@@ -323,9 +418,19 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression: CascadeExpression
-        target: SimpleIdentifier
+      expression2: CascadeExpression
+        target2: ParsedUnqualifiedName
+          name: a
+        target(v1): SimpleIdentifier
           token: a
+        sections
+          CascadeSection
+            operator: ?..
+            body: CascadeIndexExpression
+              leftBracket: [
+              index: IntegerLiteral
+                literal: 27
+              rightBracket: ]
         cascadeSections
           IndexExpression
             period: ?..
@@ -350,9 +455,23 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression: CascadeExpression
-        target: SimpleIdentifier
+      expression2: CascadeExpression
+        target2: ParsedUnqualifiedName
+          name: a
+        target(v1): SimpleIdentifier
           token: a
+        sections
+          CascadeSection
+            operator: ..
+            body: CascadeIndexExpression
+              leftBracket: [
+              index: IntegerLiteral
+                literal: 27
+              rightBracket: ]
+          CascadeSection
+            operator: ?..
+            body: ParsedCascadeName
+              name: x
         cascadeSections
           IndexExpression
             period: ..
@@ -381,9 +500,20 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression: CascadeExpression
-        target: SimpleIdentifier
+      expression2: CascadeExpression
+        target2: ParsedUnqualifiedName
+          name: a
+        target(v1): SimpleIdentifier
           token: a
+        sections
+          CascadeSection
+            operator: ?..
+            body: ParsedValueArguments
+              operand: ParsedCascadeName
+                name: foo
+              argumentList: ArgumentList
+                leftParenthesis: (
+                rightParenthesis: )
         cascadeSections
           MethodInvocation
             operator: ?..
@@ -409,9 +539,16 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression: CascadeExpression
-        target: SimpleIdentifier
+      expression2: CascadeExpression
+        target2: ParsedUnqualifiedName
+          name: a
+        target(v1): SimpleIdentifier
           token: a
+        sections
+          CascadeSection
+            operator: ?..
+            body: ParsedCascadeName
+              name: x27
         cascadeSections
           PropertyAccess
             operator: ?..
@@ -434,14 +571,18 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression: ConditionalExpression
-        condition: SimpleIdentifier
+      expression2: ConditionalExpression
+        condition2: ParsedUnqualifiedName
+          name: X
+        condition(v1): SimpleIdentifier
           token: X
         question: ?
-        thenExpression: IntegerLiteral
+        thenExpression2: IntegerLiteral
           literal: 7
         colon: :
-        elseExpression: SimpleIdentifier
+        elseExpression2: ParsedUnqualifiedName
+          name: y
+        elseExpression(v1): SimpleIdentifier
           token: y
       semicolon: ;
   rightBracket: }
@@ -460,11 +601,31 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression: ConditionalExpression
-        condition: SimpleIdentifier
+      expression2: ConditionalExpression
+        condition2: ParsedUnqualifiedName
+          name: X
+        condition(v1): SimpleIdentifier
           token: X
         question: ?
-        thenExpression: AssignmentExpression
+        thenExpression2: DirectAssignment
+          target: ParsedUnqualifiedNameAssignmentTarget
+            name: x2
+          operator: =
+          value: BinaryOperatorInvocation
+            leftOperand: ParsedUnqualifiedName
+              name: x
+            operator: +
+            rightOperand: ParsedValueArguments
+              operand: ParsedUnqualifiedName
+                name: bar
+              argumentList: ArgumentList
+                leftParenthesis: (
+                arguments2
+                  IntegerLiteral
+                    literal: 7
+                rightParenthesis: )
+            binaryOperator: add
+        thenExpression(v1): AssignmentExpression
           leftHandSide: SimpleIdentifier
             token: x2
           operator: =
@@ -482,7 +643,9 @@ Block
                     literal: 7
                 rightParenthesis: )
         colon: :
-        elseExpression: SimpleIdentifier
+        elseExpression2: ParsedUnqualifiedName
+          name: y
+        elseExpression(v1): SimpleIdentifier
           token: y
       semicolon: ;
   rightBracket: }
@@ -504,15 +667,37 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression: ConditionalExpression
-        condition: SimpleIdentifier
+      expression2: ConditionalExpression
+        condition2: ParsedUnqualifiedName
+          name: X
+        condition(v1): SimpleIdentifier
           token: X
         question: ?
-        thenExpression: ConditionalExpression
-          condition: SimpleIdentifier
+        thenExpression2: ConditionalExpression
+          condition2: ParsedUnqualifiedName
+            name: <empty> <synthetic>
+          condition(v1): SimpleIdentifier
             token: <empty> <synthetic>
           question: ?
-          thenExpression: AssignmentExpression
+          thenExpression2: DirectAssignment
+            target: ParsedUnqualifiedNameAssignmentTarget
+              name: x2
+            operator: =
+            value: BinaryOperatorInvocation
+              leftOperand: ParsedUnqualifiedName
+                name: x
+              operator: +
+              rightOperand: ParsedValueArguments
+                operand: ParsedUnqualifiedName
+                  name: bar
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  arguments2
+                    IntegerLiteral
+                      literal: 7
+                  rightParenthesis: )
+              binaryOperator: add
+          thenExpression(v1): AssignmentExpression
             leftHandSide: SimpleIdentifier
               token: x2
             operator: =
@@ -530,10 +715,14 @@ Block
                       literal: 7
                   rightParenthesis: )
           colon: :
-          elseExpression: SimpleIdentifier
+          elseExpression2: ParsedUnqualifiedName
+            name: y
+          elseExpression(v1): SimpleIdentifier
             token: y
         colon: : <synthetic>
-        elseExpression: SimpleIdentifier
+        elseExpression2: ParsedUnqualifiedName
+          name: <empty> <synthetic>
+        elseExpression(v1): SimpleIdentifier
           token: <empty> <synthetic>
       semicolon: ;
   rightBracket: }
@@ -552,18 +741,28 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression: ConditionalExpression
-        condition: SimpleIdentifier
+      expression2: ConditionalExpression
+        condition2: ParsedUnqualifiedName
+          name: X
+        condition(v1): SimpleIdentifier
           token: X
         question: ?
-        thenExpression: AssignmentExpression
+        thenExpression2: DirectAssignment
+          target: ParsedUnqualifiedNameAssignmentTarget
+            name: x2
+          operator: =
+          value: ParsedUnqualifiedName
+            name: x
+        thenExpression(v1): AssignmentExpression
           leftHandSide: SimpleIdentifier
             token: x2
           operator: =
           rightHandSide: SimpleIdentifier
             token: x
         colon: :
-        elseExpression: SimpleIdentifier
+        elseExpression2: ParsedUnqualifiedName
+          name: y
+        elseExpression(v1): SimpleIdentifier
           token: y
       semicolon: ;
   rightBracket: }
@@ -592,17 +791,31 @@ Block
             VariableDeclaration
               name: x
               equals: =
-              initializer: IntegerLiteral
+              initializer2: IntegerLiteral
                 literal: 0
         leftSeparator: ;
-        condition: BinaryExpression
+        condition2: BinaryOperatorInvocation
+          leftOperand: ParsedUnqualifiedName
+            name: x
+          operator: <
+          rightOperand: IntegerLiteral
+            literal: 7
+          binaryOperator: lessThan
+        condition(v1): BinaryExpression
           leftOperand: SimpleIdentifier
             token: x
           operator: <
           rightOperand: IntegerLiteral
             literal: 7
         rightSeparator: ;
-        updaters
+        updaters2
+          IncrementOrDecrementExpression
+            operator: ++
+            target: ParsedUnqualifiedNameAssignmentTarget
+              name: x
+            operation: increment
+            position: prefix
+        updaters(v1)
           PrefixExpression
             operator: ++
             operand: SimpleIdentifier
@@ -630,32 +843,60 @@ Block
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForPartsWithExpression
-        initialization: ConditionalExpression
-          condition: SimpleIdentifier
+        initialization2: ConditionalExpression
+          condition2: ParsedUnqualifiedName
+            name: x
+          condition(v1): SimpleIdentifier
             token: x
           question: ?
-          thenExpression: AssignmentExpression
+          thenExpression2: DirectAssignment
+            target: ParsedUnqualifiedNameAssignmentTarget
+              name: y
+            operator: =
+            value: IntegerLiteral
+              literal: 7
+          thenExpression(v1): AssignmentExpression
             leftHandSide: SimpleIdentifier
               token: y
             operator: =
             rightHandSide: IntegerLiteral
               literal: 7
           colon: :
-          elseExpression: AssignmentExpression
+          elseExpression2: DirectAssignment
+            target: ParsedUnqualifiedNameAssignmentTarget
+              name: y
+            operator: =
+            value: IntegerLiteral
+              literal: 8
+          elseExpression(v1): AssignmentExpression
             leftHandSide: SimpleIdentifier
               token: y
             operator: =
             rightHandSide: IntegerLiteral
               literal: 8
         leftSeparator: ;
-        condition: BinaryExpression
+        condition2: BinaryOperatorInvocation
+          leftOperand: ParsedUnqualifiedName
+            name: y
+          operator: <
+          rightOperand: IntegerLiteral
+            literal: 10
+          binaryOperator: lessThan
+        condition(v1): BinaryExpression
           leftOperand: SimpleIdentifier
             token: y
           operator: <
           rightOperand: IntegerLiteral
             literal: 10
         rightSeparator: ;
-        updaters
+        updaters2
+          IncrementOrDecrementExpression
+            operator: ++
+            target: ParsedUnqualifiedNameAssignmentTarget
+              name: y
+            operation: increment
+            position: prefix
+        updaters(v1)
           PrefixExpression
             operator: ++
             operand: SimpleIdentifier
@@ -691,17 +932,31 @@ Block
             VariableDeclaration
               name: x
               equals: =
-              initializer: IntegerLiteral
+              initializer2: IntegerLiteral
                 literal: 0
         leftSeparator: ;
-        condition: BinaryExpression
+        condition2: BinaryOperatorInvocation
+          leftOperand: ParsedUnqualifiedName
+            name: x
+          operator: <
+          rightOperand: IntegerLiteral
+            literal: 7
+          binaryOperator: lessThan
+        condition(v1): BinaryExpression
           leftOperand: SimpleIdentifier
             token: x
           operator: <
           rightOperand: IntegerLiteral
             literal: 7
         rightSeparator: ;
-        updaters
+        updaters2
+          IncrementOrDecrementExpression
+            operator: ++
+            target: ParsedUnqualifiedNameAssignmentTarget
+              name: x
+            operation: increment
+            position: prefix
+        updaters(v1)
           PrefixExpression
             operator: ++
             operand: SimpleIdentifier
@@ -734,9 +989,9 @@ Block
             name: int
           name: x
         inKeyword: in
-        iterable: ListLiteral
+        iterable2: ListLiteral
           leftBracket: [
-          elements
+          elements2
             IntegerLiteral
               literal: 7
           rightBracket: ]
@@ -769,9 +1024,9 @@ Block
             question: ?
           name: x
         inKeyword: in
-        iterable: ListLiteral
+        iterable2: ListLiteral
           leftBracket: [
-          elements
+          elements2
             IntegerLiteral
               literal: 7
             NullLiteral
@@ -805,14 +1060,18 @@ Block
       leftBracket: {
       statements
         ExpressionStatement
-          expression: ConditionalExpression
-            condition: SimpleIdentifier
+          expression2: ConditionalExpression
+            condition2: ParsedUnqualifiedName
+              name: r
+            condition(v1): SimpleIdentifier
               token: r
             question: ?
-            thenExpression: ThisExpression
+            thenExpression2: ThisExpression
               thisKeyword: this
             colon: : <synthetic>
-            elseExpression: SimpleIdentifier
+            elseExpression2: ParsedUnqualifiedName
+              name: <empty> <synthetic>
+            elseExpression(v1): SimpleIdentifier
               token: <empty> <synthetic>
           semicolon: ; <synthetic>
       rightBracket: }
@@ -845,7 +1104,7 @@ Block
           VariableDeclaration
             name: x
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 7
       semicolon: ;
   rightBracket: }
@@ -877,7 +1136,7 @@ Block
           VariableDeclaration
             name: x
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 7
       semicolon: ;
   rightBracket: }
@@ -910,7 +1169,7 @@ Block
           VariableDeclaration
             name: x
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 7
       semicolon: ;
   rightBracket: }
@@ -949,7 +1208,7 @@ Block
           VariableDeclaration
             name: x
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 7
       semicolon: ;
   rightBracket: }
@@ -985,7 +1244,7 @@ Block
           VariableDeclaration
             name: x
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 7
       semicolon: ;
   rightBracket: }
@@ -1004,7 +1263,14 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression: IndexExpression
+      expression2: ReceiverIndexExpression
+        receiver: ParsedUnqualifiedName
+          name: a
+        leftBracket: [
+        index: IntegerLiteral
+          literal: 7
+        rightBracket: ]
+      expression(v1): IndexExpression
         target: SimpleIdentifier
           token: a
         leftBracket: [
@@ -1028,7 +1294,15 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression: IndexExpression
+      expression2: ReceiverIndexExpression
+        receiver: ParsedUnqualifiedName
+          name: a
+        question: ?
+        leftBracket: [
+        index: IntegerLiteral
+          literal: 7
+        rightBracket: ]
+      expression(v1): IndexExpression
         target: SimpleIdentifier
           token: a
         question: ?
@@ -1053,18 +1327,27 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression: ConditionalExpression
-        condition: IsExpression
-          expression: SimpleIdentifier
+      expression2: ConditionalExpression
+        condition2: IsExpression
+          expression2: ParsedUnqualifiedName
+            name: x
+          expression(v1): SimpleIdentifier
             token: x
           isOperator: is
           type: NamedType
             name: String
             question: ?
         question: ?
-        thenExpression: ParenthesizedExpression
+        thenExpression2: ParenthesizedExpression
           leftParenthesis: (
-          expression: BinaryExpression
+          expression2: BinaryOperatorInvocation
+            leftOperand: ParsedUnqualifiedName
+              name: x
+            operator: +
+            rightOperand: ParsedUnqualifiedName
+              name: y
+            binaryOperator: add
+          expression(v1): BinaryExpression
             leftOperand: SimpleIdentifier
               token: x
             operator: +
@@ -1072,7 +1355,9 @@ Block
               token: y
           rightParenthesis: )
         colon: :
-        elseExpression: SimpleIdentifier
+        elseExpression2: ParsedUnqualifiedName
+          name: z
+        elseExpression(v1): SimpleIdentifier
           token: z
       semicolon: ;
   rightBracket: }
@@ -1091,11 +1376,13 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression: ConditionalExpression
-        condition: ParenthesizedExpression
+      expression2: ConditionalExpression
+        condition2: ParenthesizedExpression
           leftParenthesis: (
-          expression: IsExpression
-            expression: SimpleIdentifier
+          expression2: IsExpression
+            expression2: ParsedUnqualifiedName
+              name: x
+            expression(v1): SimpleIdentifier
               token: x
             isOperator: is
             type: NamedType
@@ -1103,9 +1390,16 @@ Block
               question: ?
           rightParenthesis: )
         question: ?
-        thenExpression: ParenthesizedExpression
+        thenExpression2: ParenthesizedExpression
           leftParenthesis: (
-          expression: BinaryExpression
+          expression2: BinaryOperatorInvocation
+            leftOperand: ParsedUnqualifiedName
+              name: x
+            operator: +
+            rightOperand: ParsedUnqualifiedName
+              name: y
+            binaryOperator: add
+          expression(v1): BinaryExpression
             leftOperand: SimpleIdentifier
               token: x
             operator: +
@@ -1113,7 +1407,9 @@ Block
               token: y
           rightParenthesis: )
         colon: :
-        elseExpression: SimpleIdentifier
+        elseExpression2: ParsedUnqualifiedName
+          name: z
+        elseExpression(v1): SimpleIdentifier
           token: z
       semicolon: ;
   rightBracket: }
@@ -1140,7 +1436,26 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression: MethodInvocation
+      expression2: ParsedValueArguments
+        operand: ParsedUnqualifiedName
+          name: print
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments2
+            ParsedNameAccess
+              operand: ParsedUnqualifiedName
+                name: c
+              operator: .
+              name: late
+          arguments(v1)
+            PrefixedIdentifier
+              prefix: SimpleIdentifier
+                token: c
+              period: .
+              identifier: SimpleIdentifier
+                token: late
+          rightParenthesis: )
+      expression(v1): MethodInvocation
         methodName: SimpleIdentifier
           token: print
         argumentList: ArgumentList
@@ -1158,9 +1473,9 @@ Block
 ''');
   }
 
-  void test_late_as_identifier_optOut() {
+  void test_late_asIdentifier_beforeNonNullable() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart = 2.2
+// %before-language-feature: non-nullable
 class C {
   int late;
 }
@@ -1179,7 +1494,26 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression: MethodInvocation
+      expression2: ParsedValueArguments
+        operand: ParsedUnqualifiedName
+          name: print
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments2
+            ParsedNameAccess
+              operand: ParsedUnqualifiedName
+                name: c
+              operator: .
+              name: late
+          arguments(v1)
+            PrefixedIdentifier
+              prefix: SimpleIdentifier
+                token: c
+              period: .
+              identifier: SimpleIdentifier
+                token: late
+          rightParenthesis: )
+      expression(v1): MethodInvocation
         methodName: SimpleIdentifier
           token: print
         argumentList: ArgumentList
@@ -1209,7 +1543,7 @@ class Foo {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -1235,9 +1569,19 @@ CompilationUnit
                   name: y
             semicolon: ;
           ConstructorDeclaration
-            typeName: SimpleIdentifier
+            typeName2: Foo
+            typeName(v1): SimpleIdentifier
               token: Foo
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: Object
+                    question: ?
+                  name: o
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -1248,21 +1592,25 @@ CompilationUnit
             separator: :
             initializers
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: x
+                fieldName(v1): SimpleIdentifier
                   token: x
                 equals: =
-                expression: AsExpression
-                  expression: SimpleIdentifier
+                expression2: AsExpression
+                  expression2: ParsedUnqualifiedName
+                    name: o
+                  expression(v1): SimpleIdentifier
                     token: o
                   asOperator: as
                   type: NamedType
                     name: String
                     question: ?
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: y
+                fieldName(v1): SimpleIdentifier
                   token: y
                 equals: =
-                expression: IntegerLiteral
+                expression2: IntegerLiteral
                   literal: 0
             body: EmptyFunctionBody
               semicolon: ;
@@ -1282,7 +1630,7 @@ class Foo {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -1308,9 +1656,19 @@ CompilationUnit
                   name: y
             semicolon: ;
           ConstructorDeclaration
-            typeName: SimpleIdentifier
+            typeName2: Foo
+            typeName(v1): SimpleIdentifier
               token: Foo
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: Object
+                    question: ?
+                  name: o
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -1321,32 +1679,41 @@ CompilationUnit
             separator: :
             initializers
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: y
+                fieldName(v1): SimpleIdentifier
                   token: y
                 equals: =
-                expression: ConditionalExpression
-                  condition: IsExpression
-                    expression: SimpleIdentifier
+                expression2: ConditionalExpression
+                  condition2: IsExpression
+                    expression2: ParsedUnqualifiedName
+                      name: o
+                    expression(v1): SimpleIdentifier
                       token: o
                     isOperator: is
                     type: NamedType
                       name: String
                       question: ?
                   question: ?
-                  thenExpression: PrefixedIdentifier
+                  thenExpression2: ParsedNameAccess
+                    operand: ParsedUnqualifiedName
+                      name: o
+                    operator: .
+                    name: length
+                  thenExpression(v1): PrefixedIdentifier
                     prefix: SimpleIdentifier
                       token: o
                     period: .
                     identifier: SimpleIdentifier
                       token: length
                   colon: :
-                  elseExpression: NullLiteral
+                  elseExpression2: NullLiteral
                     literal: null
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: x
+                fieldName(v1): SimpleIdentifier
                   token: x
                 equals: =
-                expression: NullLiteral
+                expression2: NullLiteral
                   literal: null
             body: EmptyFunctionBody
               semicolon: ;
@@ -1366,7 +1733,7 @@ class Foo {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -1392,9 +1759,19 @@ CompilationUnit
                   name: y
             semicolon: ;
           ConstructorDeclaration
-            typeName: SimpleIdentifier
+            typeName2: Foo
+            typeName(v1): SimpleIdentifier
               token: Foo
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: Object
+                    question: ?
+                  name: o
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -1405,31 +1782,40 @@ CompilationUnit
             separator: :
             initializers
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: y
+                fieldName(v1): SimpleIdentifier
                   token: y
                 equals: =
-                expression: ConditionalExpression
-                  condition: IsExpression
-                    expression: SimpleIdentifier
+                expression2: ConditionalExpression
+                  condition2: IsExpression
+                    expression2: ParsedUnqualifiedName
+                      name: o
+                    expression(v1): SimpleIdentifier
                       token: o
                     isOperator: is
                     type: NamedType
                       name: String
                   question: ?
-                  thenExpression: PrefixedIdentifier
+                  thenExpression2: ParsedNameAccess
+                    operand: ParsedUnqualifiedName
+                      name: o
+                    operator: .
+                    name: length
+                  thenExpression(v1): PrefixedIdentifier
                     prefix: SimpleIdentifier
                       token: o
                     period: .
                     identifier: SimpleIdentifier
                       token: length
                   colon: :
-                  elseExpression: NullLiteral
+                  elseExpression2: NullLiteral
                     literal: null
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: x
+                fieldName(v1): SimpleIdentifier
                   token: x
                 equals: =
-                expression: NullLiteral
+                expression2: NullLiteral
                   literal: null
             body: EmptyFunctionBody
               semicolon: ;
@@ -1455,7 +1841,11 @@ Block
           VariableDeclaration
             name: x
             equals: =
-            initializer: PostfixExpression
+            initializer2: NullAssertionExpression
+              operand: ParsedUnqualifiedName
+                name: y
+              operator: !
+            initializer(v1): PostfixExpression
               operand: SimpleIdentifier
                 token: y
               operator: !
@@ -1482,7 +1872,22 @@ Block
           VariableDeclaration
             name: x
             equals: =
-            initializer: BinaryExpression
+            initializer2: BinaryOperatorInvocation
+              leftOperand: ParsedNameAccess
+                operand: NullAssertionExpression
+                  operand: ParsedNameAccess
+                    operand: ParsedUnqualifiedName
+                      name: g
+                    operator: .
+                    name: x
+                  operator: !
+                operator: .
+                name: y
+              operator: +
+              rightOperand: IntegerLiteral
+                literal: 7
+              binaryOperator: add
+            initializer(v1): BinaryExpression
               leftOperand: PropertyAccess
                 target: PostfixExpression
                   operand: PrefixedIdentifier
@@ -1521,7 +1926,26 @@ Block
           VariableDeclaration
             name: x
             equals: =
-            initializer: BinaryExpression
+            initializer2: BinaryOperatorInvocation
+              leftOperand: ParsedNameAccess
+                operand: NullAssertionExpression
+                  operand: ParsedValueArguments
+                    operand: ParsedNameAccess
+                      operand: ParsedUnqualifiedName
+                        name: g
+                      operator: .
+                      name: m
+                    argumentList: ArgumentList
+                      leftParenthesis: (
+                      rightParenthesis: )
+                  operator: !
+                operator: .
+                name: y
+              operator: +
+              rightOperand: IntegerLiteral
+                literal: 7
+              binaryOperator: add
+            initializer(v1): BinaryExpression
               leftOperand: PropertyAccess
                 target: PostfixExpression
                   operand: MethodInvocation
@@ -1563,7 +1987,19 @@ Block
           VariableDeclaration
             name: x
             equals: =
-            initializer: BinaryExpression
+            initializer2: BinaryOperatorInvocation
+              leftOperand: ParsedNameAccess
+                operand: NullAssertionExpression
+                  operand: ParsedUnqualifiedName
+                    name: g
+                  operator: !
+                operator: .
+                name: x
+              operator: +
+              rightOperand: IntegerLiteral
+                literal: 7
+              binaryOperator: add
+            initializer(v1): BinaryExpression
               leftOperand: PropertyAccess
                 target: PostfixExpression
                   operand: SimpleIdentifier
@@ -1592,7 +2028,22 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression: IndexExpression
+      expression2: ReceiverIndexExpression
+        receiver: ParsedNameAccess
+          operand: NullAssertionExpression
+            operand: ParsedNameAccess
+              operand: ParsedUnqualifiedName
+                name: foo
+              operator: .
+              name: bar
+            operator: !
+          operator: .
+          name: baz
+        leftBracket: [
+        index: ParsedUnqualifiedName
+          name: arg
+        rightBracket: ]
+      expression(v1): IndexExpression
         target: PropertyAccess
           target: PostfixExpression
             operand: PrefixedIdentifier
@@ -1632,7 +2083,23 @@ Block
           VariableDeclaration
             name: x
             equals: =
-            initializer: BinaryExpression
+            initializer2: BinaryOperatorInvocation
+              leftOperand: ParsedValueArguments
+                operand: ParsedNameAccess
+                  operand: NullAssertionExpression
+                    operand: ParsedUnqualifiedName
+                      name: g
+                    operator: !
+                  operator: .
+                  name: m
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  rightParenthesis: )
+              operator: +
+              rightOperand: IntegerLiteral
+                literal: 7
+              binaryOperator: add
+            initializer(v1): BinaryExpression
               leftOperand: MethodInvocation
                 target: PostfixExpression
                   operand: SimpleIdentifier
@@ -1670,7 +2137,20 @@ Block
           VariableDeclaration
             name: x
             equals: =
-            initializer: BinaryExpression
+            initializer2: BinaryOperatorInvocation
+              leftOperand: NullAssertionExpression
+                operand: ParsedValueArguments
+                  operand: ParsedUnqualifiedName
+                    name: g
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                operator: !
+              operator: +
+              rightOperand: IntegerLiteral
+                literal: 7
+              binaryOperator: add
+            initializer(v1): BinaryExpression
               leftOperand: PostfixExpression
                 operand: MethodInvocation
                   methodName: SimpleIdentifier
@@ -1705,7 +2185,21 @@ Block
           VariableDeclaration
             name: x
             equals: =
-            initializer: BinaryExpression
+            initializer2: BinaryOperatorInvocation
+              leftOperand: NullAssertionExpression
+                operand: ReceiverIndexExpression
+                  receiver: ParsedUnqualifiedName
+                    name: y
+                  leftBracket: [
+                  index: IntegerLiteral
+                    literal: 0
+                  rightBracket: ]
+                operator: !
+              operator: +
+              rightOperand: IntegerLiteral
+                literal: 7
+              binaryOperator: add
+            initializer(v1): BinaryExpression
               leftOperand: PostfixExpression
                 operand: IndexExpression
                   target: SimpleIdentifier
@@ -1741,7 +2235,24 @@ Block
           VariableDeclaration
             name: x
             equals: =
-            initializer: BinaryExpression
+            initializer2: BinaryOperatorInvocation
+              leftOperand: NullAssertionExpression
+                operand: ReceiverIndexExpression
+                  receiver: ParsedNameAccess
+                    operand: SuperReference
+                      superKeyword: super
+                    operator: .
+                    name: y
+                  leftBracket: [
+                  index: IntegerLiteral
+                    literal: 0
+                  rightBracket: ]
+                operator: !
+              operator: +
+              rightOperand: IntegerLiteral
+                literal: 7
+              binaryOperator: add
+            initializer(v1): BinaryExpression
               leftOperand: PostfixExpression
                 operand: IndexExpression
                   target: PropertyAccess
@@ -1781,7 +2292,16 @@ Block
           VariableDeclaration
             name: x
             equals: =
-            initializer: BinaryExpression
+            initializer2: BinaryOperatorInvocation
+              leftOperand: NullAssertionExpression
+                operand: ParsedUnqualifiedName
+                  name: y
+                operator: !
+              operator: +
+              rightOperand: IntegerLiteral
+                literal: 7
+              binaryOperator: add
+            initializer(v1): BinaryExpression
               leftOperand: PostfixExpression
                 operand: SimpleIdentifier
                   token: y
@@ -1812,7 +2332,23 @@ Block
           VariableDeclaration
             name: x
             equals: =
-            initializer: BinaryExpression
+            initializer2: BinaryOperatorInvocation
+              leftOperand: NullAssertionExpression
+                operand: ParsedValueArguments
+                  operand: ParsedNameAccess
+                    operand: ParsedUnqualifiedName
+                      name: g
+                    operator: .
+                    name: m
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                operator: !
+              operator: +
+              rightOperand: IntegerLiteral
+                literal: 7
+              binaryOperator: add
+            initializer(v1): BinaryExpression
               leftOperand: PostfixExpression
                 operand: MethodInvocation
                   target: SimpleIdentifier
@@ -1850,7 +2386,23 @@ Block
           VariableDeclaration
             name: x
             equals: =
-            initializer: BinaryExpression
+            initializer2: BinaryOperatorInvocation
+              leftOperand: NullAssertionExpression
+                operand: ParsedValueArguments
+                  operand: ParsedNameAccess
+                    operand: ParsedUnqualifiedName
+                      name: g
+                    operator: ?.
+                    name: m
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                operator: !
+              operator: +
+              rightOperand: IntegerLiteral
+                literal: 7
+              binaryOperator: add
+            initializer(v1): BinaryExpression
               leftOperand: PostfixExpression
                 operand: MethodInvocation
                   target: SimpleIdentifier
@@ -1888,7 +2440,23 @@ Block
           VariableDeclaration
             name: x
             equals: =
-            initializer: BinaryExpression
+            initializer2: BinaryOperatorInvocation
+              leftOperand: NullAssertionExpression
+                operand: ParsedValueArguments
+                  operand: ParsedNameAccess
+                    operand: SuperReference
+                      superKeyword: super
+                    operator: .
+                    name: m
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                operator: !
+              operator: +
+              rightOperand: IntegerLiteral
+                literal: 7
+              binaryOperator: add
+            initializer(v1): BinaryExpression
               leftOperand: PostfixExpression
                 operand: MethodInvocation
                   target: SuperExpression
@@ -1926,7 +2494,17 @@ Block
           VariableDeclaration
             name: x
             equals: =
-            initializer: PostfixExpression
+            initializer2: NullAssertionExpression
+              operand: ConstructorInvocation
+                keyword: const
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    name: Foo
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  rightParenthesis: )
+              operator: !
+            initializer(v1): PostfixExpression
               operand: InstanceCreationExpression
                 keyword: const
                 constructorName: ConstructorName
@@ -1959,7 +2537,17 @@ Block
           VariableDeclaration
             name: x
             equals: =
-            initializer: PostfixExpression
+            initializer2: NullAssertionExpression
+              operand: ConstructorInvocation
+                keyword: new
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    name: Foo
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  rightParenthesis: )
+              operator: !
+            initializer(v1): PostfixExpression
               operand: InstanceCreationExpression
                 keyword: new
                 constructorName: ConstructorName
@@ -1986,7 +2574,16 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression: IndexExpression
+      expression2: ReceiverIndexExpression
+        receiver: NullAssertionExpression
+          operand: ParsedUnqualifiedName
+            name: obj
+          operator: !
+        leftBracket: [
+        index: ParsedUnqualifiedName
+          name: arg
+        rightBracket: ]
+      expression(v1): IndexExpression
         target: PostfixExpression
           operand: SimpleIdentifier
             token: obj
@@ -2012,7 +2609,23 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression: IndexExpression
+      expression2: ReceiverIndexExpression
+        receiver: NullAssertionExpression
+          operand: ReceiverIndexExpression
+            receiver: NullAssertionExpression
+              operand: ParsedUnqualifiedName
+                name: obj
+              operator: !
+            leftBracket: [
+            index: ParsedUnqualifiedName
+              name: arg
+            rightBracket: ]
+          operator: !
+        leftBracket: [
+        index: ParsedUnqualifiedName
+          name: arg2
+        rightBracket: ]
+      expression(v1): IndexExpression
         target: PostfixExpression
           operand: IndexExpression
             target: PostfixExpression
@@ -2045,7 +2658,19 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression: IndexExpression
+      expression2: ReceiverIndexExpression
+        receiver: NullAssertionExpression
+          operand: ParsedNameAccess
+            operand: ParsedUnqualifiedName
+              name: foo
+            operator: .
+            name: bar
+          operator: !
+        leftBracket: [
+        index: ParsedUnqualifiedName
+          name: arg
+        rightBracket: ]
+      expression(v1): IndexExpression
         target: PostfixExpression
           operand: PrefixedIdentifier
             prefix: SimpleIdentifier
@@ -2075,7 +2700,21 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression: IndexExpression
+      expression2: ReceiverIndexExpression
+        receiver: NullAssertionExpression
+          operand: ParsedNameAccess
+            operand: NullAssertionExpression
+              operand: ParsedUnqualifiedName
+                name: foo
+              operator: !
+            operator: .
+            name: bar
+          operator: !
+        leftBracket: [
+        index: ParsedUnqualifiedName
+          name: arg
+        rightBracket: ]
+      expression(v1): IndexExpression
         target: PostfixExpression
           operand: PropertyAccess
             target: PostfixExpression
@@ -2107,7 +2746,26 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression: IndexExpression
+      expression2: ReceiverIndexExpression
+        receiver: NullAssertionExpression
+          operand: ReceiverIndexExpression
+            receiver: NullAssertionExpression
+              operand: ParsedNameAccess
+                operand: ParsedUnqualifiedName
+                  name: foo
+                operator: .
+                name: bar
+              operator: !
+            leftBracket: [
+            index: ParsedUnqualifiedName
+              name: arg
+            rightBracket: ]
+          operator: !
+        leftBracket: [
+        index: ParsedUnqualifiedName
+          name: arg2
+        rightBracket: ]
+      expression(v1): IndexExpression
         target: PostfixExpression
           operand: IndexExpression
             target: PostfixExpression
@@ -2144,7 +2802,28 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression: IndexExpression
+      expression2: ReceiverIndexExpression
+        receiver: NullAssertionExpression
+          operand: ReceiverIndexExpression
+            receiver: NullAssertionExpression
+              operand: ParsedNameAccess
+                operand: NullAssertionExpression
+                  operand: ParsedUnqualifiedName
+                    name: foo
+                  operator: !
+                operator: .
+                name: bar
+              operator: !
+            leftBracket: [
+            index: ParsedUnqualifiedName
+              name: arg
+            rightBracket: ]
+          operator: !
+        leftBracket: [
+        index: ParsedUnqualifiedName
+          name: arg2
+        rightBracket: ]
+      expression(v1): IndexExpression
         target: PostfixExpression
           operand: IndexExpression
             target: PostfixExpression
@@ -2189,7 +2868,11 @@ Block
           VariableDeclaration
             name: x
             equals: =
-            initializer: PostfixExpression
+            initializer2: NullAssertionExpression
+              operand: DoubleLiteral
+                literal: 1.2
+              operator: !
+            initializer(v1): PostfixExpression
               operand: DoubleLiteral
                 literal: 1.2
               operator: !
@@ -2216,7 +2899,11 @@ Block
           VariableDeclaration
             name: x
             equals: =
-            initializer: PostfixExpression
+            initializer2: NullAssertionExpression
+              operand: IntegerLiteral
+                literal: 0
+              operator: !
+            initializer(v1): PostfixExpression
               operand: IntegerLiteral
                 literal: 0
               operator: !
@@ -2243,7 +2930,17 @@ Block
           VariableDeclaration
             name: x
             equals: =
-            initializer: PostfixExpression
+            initializer2: NullAssertionExpression
+              operand: ListLiteral
+                leftBracket: [
+                elements2
+                  IntegerLiteral
+                    literal: 1
+                  IntegerLiteral
+                    literal: 2
+                rightBracket: ]
+              operator: !
+            initializer(v1): PostfixExpression
               operand: ListLiteral
                 leftBracket: [
                 elements
@@ -2276,7 +2973,20 @@ Block
           VariableDeclaration
             name: x
             equals: =
-            initializer: PostfixExpression
+            initializer2: NullAssertionExpression
+              operand: SetOrMapLiteral
+                leftBracket: {
+                elements2
+                  MapLiteralEntry
+                    key2: IntegerLiteral
+                      literal: 1
+                    separator: :
+                    value2: IntegerLiteral
+                      literal: 2
+                rightBracket: }
+                isMap: false
+              operator: !
+            initializer(v1): PostfixExpression
               operand: SetOrMapLiteral
                 leftBracket: {
                 elements
@@ -2312,7 +3022,18 @@ Block
           VariableDeclaration
             name: x
             equals: =
-            initializer: PostfixExpression
+            initializer2: NullAssertionExpression
+              operand: SetOrMapLiteral
+                leftBracket: {
+                elements2
+                  IntegerLiteral
+                    literal: 1
+                  IntegerLiteral
+                    literal: 2
+                rightBracket: }
+                isMap: false
+              operator: !
+            initializer(v1): PostfixExpression
               operand: SetOrMapLiteral
                 leftBracket: {
                 elements
@@ -2346,7 +3067,11 @@ Block
           VariableDeclaration
             name: x
             equals: =
-            initializer: PostfixExpression
+            initializer2: NullAssertionExpression
+              operand: SimpleStringLiteral
+                literal: "seven"
+              operator: !
+            initializer(v1): PostfixExpression
               operand: SimpleStringLiteral
                 literal: "seven"
               operator: !
@@ -2373,7 +3098,11 @@ Block
           VariableDeclaration
             name: x
             equals: =
-            initializer: PostfixExpression
+            initializer2: NullAssertionExpression
+              operand: NullLiteral
+                literal: null
+              operator: !
+            initializer(v1): PostfixExpression
               operand: NullLiteral
                 literal: null
               operator: !
@@ -2394,7 +3123,21 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression: FunctionExpressionInvocation
+      expression2: CallInvocation
+        receiver: NullAssertionExpression
+          operand: ParsedUnqualifiedName
+            name: obj
+          operator: !
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments2
+            ParsedUnqualifiedName
+              name: arg
+          arguments(v1)
+            SimpleIdentifier
+              token: arg
+          rightParenthesis: )
+      expression(v1): FunctionExpressionInvocation
         function: PostfixExpression
           operand: SimpleIdentifier
             token: obj
@@ -2422,7 +3165,33 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression: FunctionExpressionInvocation
+      expression2: CallInvocation
+        receiver: NullAssertionExpression
+          operand: CallInvocation
+            receiver: NullAssertionExpression
+              operand: ParsedUnqualifiedName
+                name: obj
+              operator: !
+            argumentList: ArgumentList
+              leftParenthesis: (
+              arguments2
+                ParsedUnqualifiedName
+                  name: arg
+              arguments(v1)
+                SimpleIdentifier
+                  token: arg
+              rightParenthesis: )
+          operator: !
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments2
+            ParsedUnqualifiedName
+              name: arg2
+          arguments(v1)
+            SimpleIdentifier
+              token: arg2
+          rightParenthesis: )
+      expression(v1): FunctionExpressionInvocation
         function: PostfixExpression
           operand: FunctionExpressionInvocation
             function: PostfixExpression
@@ -2465,7 +3234,13 @@ Block
           VariableDeclaration
             name: x
             equals: =
-            initializer: PostfixExpression
+            initializer2: NullAssertionExpression
+              operand: SymbolLiteral
+                poundSign: #
+                components
+                  seven
+              operator: !
+            initializer(v1): PostfixExpression
               operand: SymbolLiteral
                 poundSign: #
                 components
@@ -2494,7 +3269,19 @@ Block
           VariableDeclaration
             name: x
             equals: =
-            initializer: BinaryExpression
+            initializer2: BinaryOperatorInvocation
+              leftOperand: NullAssertionExpression
+                operand: ParsedNameAccess
+                  operand: ParsedUnqualifiedName
+                    name: p
+                  operator: .
+                  name: y
+                operator: !
+              operator: +
+              rightOperand: IntegerLiteral
+                literal: 7
+              binaryOperator: add
+            initializer(v1): BinaryExpression
               leftOperand: PostfixExpression
                 operand: PrefixedIdentifier
                   prefix: SimpleIdentifier
@@ -2529,7 +3316,21 @@ Block
           VariableDeclaration
             name: x
             equals: =
-            initializer: BinaryExpression
+            initializer2: BinaryOperatorInvocation
+              leftOperand: NullAssertionExpression
+                operand: ParenthesizedExpression
+                  leftParenthesis: (
+                  expression2: ParsedUnqualifiedName
+                    name: y
+                  expression(v1): SimpleIdentifier
+                    token: y
+                  rightParenthesis: )
+                operator: !
+              operator: +
+              rightOperand: IntegerLiteral
+                literal: 7
+              binaryOperator: add
+            initializer(v1): BinaryExpression
               leftOperand: PostfixExpression
                 operand: ParenthesizedExpression
                   leftParenthesis: (
@@ -2563,7 +3364,19 @@ Block
           VariableDeclaration
             name: x
             equals: =
-            initializer: BinaryExpression
+            initializer2: BinaryOperatorInvocation
+              leftOperand: NullAssertionExpression
+                operand: ParsedNameAccess
+                  operand: ParsedUnqualifiedName
+                    name: g
+                  operator: .
+                  name: p
+                operator: !
+              operator: +
+              rightOperand: IntegerLiteral
+                literal: 7
+              binaryOperator: add
+            initializer(v1): BinaryExpression
               leftOperand: PostfixExpression
                 operand: PrefixedIdentifier
                   prefix: SimpleIdentifier
@@ -2598,7 +3411,19 @@ Block
           VariableDeclaration
             name: x
             equals: =
-            initializer: BinaryExpression
+            initializer2: BinaryOperatorInvocation
+              leftOperand: NullAssertionExpression
+                operand: ParsedNameAccess
+                  operand: ParsedUnqualifiedName
+                    name: g
+                  operator: ?.
+                  name: p
+                operator: !
+              operator: +
+              rightOperand: IntegerLiteral
+                literal: 7
+              binaryOperator: add
+            initializer(v1): BinaryExpression
               leftOperand: PostfixExpression
                 operand: PropertyAccess
                   target: SimpleIdentifier
@@ -2633,7 +3458,19 @@ Block
           VariableDeclaration
             name: x
             equals: =
-            initializer: BinaryExpression
+            initializer2: BinaryOperatorInvocation
+              leftOperand: NullAssertionExpression
+                operand: ParsedNameAccess
+                  operand: SuperReference
+                    superKeyword: super
+                  operator: .
+                  name: p
+                operator: !
+              operator: +
+              rightOperand: IntegerLiteral
+                literal: 7
+              binaryOperator: add
+            initializer(v1): BinaryExpression
               leftOperand: PostfixExpression
                 operand: PropertyAccess
                   target: SuperExpression
@@ -2662,7 +3499,14 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression: PrefixExpression
+      expression2: UnaryOperatorInvocation
+        operator: -
+        operand: NullAssertionExpression
+          operand: ParsedUnqualifiedName
+            name: x
+          operator: !
+        unaryOperator: negate
+      expression(v1): PrefixExpression
         operator: -
         operand: PostfixExpression
           operand: SimpleIdentifier
@@ -2685,7 +3529,15 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression: PostfixExpression
+      expression2: NullAssertionExpression
+        operand: IncrementOrDecrementExpression
+          target: ParsedUnqualifiedNameAssignmentTarget
+            name: x
+          operator: ++
+          operation: increment
+          position: postfix
+        operator: !
+      expression(v1): PostfixExpression
         operand: PostfixExpression
           operand: SimpleIdentifier
             token: x

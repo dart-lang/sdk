@@ -55,7 +55,7 @@ FunctionDeclaration
         statements
           ReturnStatement
             returnKeyword: return
-            expression: IntegerLiteral
+            expression2: IntegerLiteral
               literal: 0
               staticType: int
             semicolon: ;
@@ -103,7 +103,7 @@ FunctionDeclaration
       keyword: async
       star: *
       functionDefinition: =>
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
         staticType: int
       semicolon: ;
@@ -125,9 +125,16 @@ void bar([int foo = foo + 1]) {
 }
 ''');
 
-    var node = result.findNode.simple('foo + 1');
+    var node = result.findNode.unqualifiedNameExpression('foo + 1');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@getter::foo
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: SimpleIdentifier
   token: foo
   element: <testLibrary>::@getter::foo
   staticType: int
@@ -151,9 +158,15 @@ NamedType
   type: a
 ''');
 
-    var node2 = result.findNode.simple('a;');
+    var node2 = result.findNode.unqualifiedNameExpression('a;');
     assertResolvedNodeText(node2, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: a
+  resolution: VariableReadResolution
+    element: <testLibrary>::@function::bar::@formalParameter::a
+    type: a
+  staticType: a
+V1: SimpleIdentifier
   token: a
   element: <testLibrary>::@function::bar::@formalParameter::a
   staticType: a
@@ -362,6 +375,53 @@ FunctionDeclaration
 ''');
   }
 
+  test_getter() async {
+    var result = await resolveTestCode('''
+int get foo => 0;
+''');
+
+    var node = result.findNode.singleTopLevelGetterDeclaration;
+    assertResolvedNodeText(node, r'''
+TopLevelGetterDeclaration
+  returnType: NamedType
+    name: int
+    element: dart:core::@class::int
+    type: int
+  getKeyword: get
+  name: foo
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression2: IntegerLiteral
+      literal: 0
+      staticType: int
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> foo@8
+    element: <testLibrary>::@getter::foo
+      type: int Function()
+V1: FunctionDeclaration
+  returnType: NamedType
+    name: int
+    element: dart:core::@class::int
+    type: int
+  propertyKeyword: get
+  name: foo
+  functionExpression: FunctionExpression
+    body: ExpressionFunctionBody
+      functionDefinition: =>
+      expression: IntegerLiteral
+        literal: 0
+        staticType: int
+      semicolon: ;
+    declaredFragment: <testLibraryFragment> foo@8
+      element: <testLibrary>::@getter::foo
+        type: int Function()
+    staticType: int Function()
+  declaredFragment: <testLibraryFragment> foo@8
+    element: <testLibrary>::@getter::foo
+      type: int Function()
+''');
+  }
+
   test_getter_formalParameters() async {
     var result = await resolveTestCodeWithDiagnostics('''
 int get foo(double a) => 0;
@@ -369,9 +429,38 @@ int get foo(double a) => 0;
 // [diag.getterWithParameters] Getters must be declared without a parameter list.
 ''');
 
-    var node = result.findNode.singleFunctionDeclaration;
+    var node = result.findNode.singleTopLevelGetterDeclaration;
     assertResolvedNodeText(node, r'''
-FunctionDeclaration
+TopLevelGetterDeclaration
+  returnType: NamedType
+    name: int
+    element: dart:core::@class::int
+    type: int
+  getKeyword: get
+  name: foo
+  recoveryFormalParameters: FormalParameterList
+    leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: double
+          element: dart:core::@class::double
+          type: double
+        name: a
+        declaredFragment: <testLibraryFragment> a@19
+          element: isPublic
+            type: double
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression2: IntegerLiteral
+      literal: 0
+      staticType: int
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> foo@8
+    element: <testLibrary>::@getter::foo
+      type: int Function(double)
+V1: FunctionDeclaration
   returnType: NamedType
     name: int
     element: dart:core::@class::int
@@ -444,7 +533,7 @@ FunctionDeclaration
         statements
           ReturnStatement
             returnKeyword: return
-            expression: IntegerLiteral
+            expression2: IntegerLiteral
               literal: 0
               staticType: int
             semicolon: ;
@@ -490,7 +579,7 @@ FunctionDeclaration
       keyword: sync
       star: *
       functionDefinition: =>
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
         staticType: int
       semicolon: ;
@@ -532,10 +621,9 @@ FunctionDeclaration
 ''');
   }
 
-  test_wildCardFunction_preWildCards() async {
+  test_wildCardFunction_beforeWildcardVariables() async {
     var result = await resolveTestCodeWithDiagnostics('''
-// @dart = 3.4
-// (pre wildcard-variables)
+// %before-language-feature: wildcard-variables
 
 _() {}
 // [diag.unusedElement][column 1][length 1] The declaration '_' isn't referenced.
@@ -553,11 +641,11 @@ FunctionDeclaration
       block: Block
         leftBracket: {
         rightBracket: }
-    declaredFragment: <testLibraryFragment> _@44
+    declaredFragment: <testLibraryFragment> _@16
       element: <testLibrary>::@function::_
         type: dynamic Function()
     staticType: dynamic Function()
-  declaredFragment: <testLibraryFragment> _@44
+  declaredFragment: <testLibraryFragment> _@16
     element: <testLibrary>::@function::_
       type: dynamic Function()
 ''');
@@ -595,6 +683,26 @@ TypeParameter
             defaultType: null
       rightBracket: >
     parameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: _
+            element: <null>
+            type: InvalidType
+          declaredFragment: <testLibraryFragment> null@null
+            element: isPrivate
+              type: InvalidType
+        RegularFormalParameter
+          type: NamedType
+            name: _
+            element: <null>
+            type: InvalidType
+          declaredFragment: <testLibraryFragment> null@null
+            element: isPrivate
+              type: InvalidType
+      rightParenthesis: )
+    parameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType

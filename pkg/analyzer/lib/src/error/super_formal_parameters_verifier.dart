@@ -12,7 +12,7 @@ VerifySuperFormalParametersResult verifySuperFormalParameters({
   bool hasExplicitPositionalArguments = false,
 }) {
   var result = VerifySuperFormalParametersResult();
-  for (var parameter in formalParameterList.parameters) {
+  for (var parameter in formalParameterList.allFormalParameters) {
     if (parameter is SuperFormalParameterImpl) {
       var declaredFragment = parameter.declaredFragment!;
       if (parameter.isNamed) {

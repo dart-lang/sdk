@@ -65,8 +65,8 @@ base class AstNodes extends AstToIREventListener {
 
   @override
   void onFinished(CodedIRContainer ir) {
-    check(_nodeStack).isEmpty();
-    check(_nodeStartStack).isEmpty();
+    check(_nodeStack).isEmpty;
+    check(_nodeStartStack).isEmpty;
     this.ir = ir;
     super.onFinished(ir);
   }

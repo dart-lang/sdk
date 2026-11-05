@@ -34,12 +34,8 @@ class PreferSingleQuotes extends AnalysisRule {
   }
 }
 
-class QuoteVisitor extends SimpleAstVisitor<void> {
-  final AnalysisRule rule;
-  final bool useSingle;
-
-  new(this.rule, {required this.useSingle});
-
+class QuoteVisitor(final AnalysisRule rule, {required final bool useSingle})
+    extends SimpleAstVisitor<void> {
   /// Strings interpolations can contain other string nodes. Check like this.
   bool containsString(StringInterpolation string) {
     var checkHasString = _IsOrContainsStringVisitor();

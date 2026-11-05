@@ -13,7 +13,7 @@ import '../resolution/node_text_expectations.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConstantVisitorTest);
-    defineReflectiveTests(InstanceCreationEvaluatorTest);
+    defineReflectiveTests(ConstructorInvocationEvaluatorTest);
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
@@ -88,6 +88,70 @@ int 6
 ''');
   }
 
+  test_constructorInvocation_custom_generic_extensionType_explicit() async {
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
+extension type const E(int it) {}
+
+class C<T> {
+  const C();
+}
+
+const x = C<E>();
+''');
+    var result = _topLevelVar(unitResult, 'x');
+    assertDartObjectText(result, r'''
+C<int>
+  constructorInvocation
+    constructor: SubstitutedConstructorElementImpl
+      baseElement: <testLibrary>::@class::C::@constructor::new
+      substitution: {T: E}
+  variable: <testLibrary>::@topLevelVariable::x
+  typeNotExtensionTypeErased: C<E>
+''');
+  }
+
+  test_constructorInvocation_custom_generic_extensionType_inferred() async {
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
+extension type const E(int it) {}
+
+class C<T> {
+  final T f;
+  const C(this.f);
+}
+
+const x = C(E(42));
+''');
+    var result = _topLevelVar(unitResult, 'x');
+    assertDartObjectText(result, r'''
+C<int>
+  f: int 42
+    typeNotExtensionTypeErased: E
+  constructorInvocation
+    constructor: SubstitutedConstructorElementImpl
+      baseElement: <testLibrary>::@class::C::@constructor::new
+      substitution: {T: E}
+    positionalArguments
+      0: int 42
+        typeNotExtensionTypeErased: E
+  variable: <testLibrary>::@topLevelVariable::x
+  typeNotExtensionTypeErased: C<E>
+''');
+  }
+
+  test_constructorInvocation_extensionType() async {
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
+extension type const E(int it) {}
+
+const x = E(42);
+''');
+    var result = _topLevelVar(unitResult, 'x');
+    assertDartObjectText(result, r'''
+int 42
+  variable: <testLibrary>::@topLevelVariable::x
+  typeNotExtensionTypeErased: E
+''');
+  }
+
   test_declaration_staticError_notAssignable() async {
     await resolveTestCodeWithDiagnostics('''
 const int x = 'foo';
@@ -143,9 +207,8 @@ class A {
 
 const v = .new() == A();
 //        ^^^^^^
+// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
 // [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
-//         ^^^
-// [diag.dotShorthandUndefinedInvocation] The static method or constructor 'new' isn't defined for the context type '_'.
 ''');
   }
 
@@ -193,9 +256,8 @@ const A a = .method();
     await resolveTestCodeWithDiagnostics('''
 const a = .new();
 //        ^^^^^^
+// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
 // [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
-//         ^^^
-// [diag.dotShorthandUndefinedInvocation] The static method or constructor 'new' isn't defined for the context type '_'.
 ''');
   }
 
@@ -239,6 +301,28 @@ E
   constructorInvocation
     constructor: <testLibrary>::@enum::E::@constructor::new
   variable: <testLibrary>::@topLevelVariable::e
+''');
+  }
+
+  test_dotShorthand_propertyAccess_imported() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  const A();
+  static const A field = A();
+}
+''');
+
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+import 'a.dart';
+
+const A a = .field;
+''');
+    var result = _topLevelVar(unitResult, 'a');
+    assertDartObjectText(result, r'''
+A
+  constructorInvocation
+    constructor: package:test/a.dart::@class::A::@constructor::new
+  variable: <testLibrary>::@topLevelVariable::a
 ''');
   }
 
@@ -645,6 +729,104 @@ bool false
 ''');
   }
 
+  test_equalEqual_typeLiteral_typeAlias_dynamic() async {
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+typedef A = dynamic;
+const c = A == A;
+''');
+    var result = _topLevelVar(unitResult, 'c');
+    assertDartObjectText(result, r'''
+bool true
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
+  test_equalEqual_typeLiteral_typeAlias_dynamic_aliasLeft() async {
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+typedef A = dynamic;
+const c = A == dynamic;
+''');
+    var result = _topLevelVar(unitResult, 'c');
+    assertDartObjectText(result, r'''
+bool true
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
+  test_equalEqual_typeLiteral_typeAlias_dynamic_aliasRight() async {
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+typedef A = dynamic;
+const c = dynamic == A;
+''');
+    var result = _topLevelVar(unitResult, 'c');
+    assertDartObjectText(result, r'''
+bool true
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
+  test_equalEqual_typeLiteral_typeAlias_dynamic_differentAlias() async {
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+typedef A = dynamic;
+typedef B = dynamic;
+const c = A == B;
+''');
+    var result = _topLevelVar(unitResult, 'c');
+    assertDartObjectText(result, r'''
+bool true
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
+  test_equalEqual_typeLiteral_typeAlias_void() async {
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+typedef A = void;
+const c = A == A;
+''');
+    var result = _topLevelVar(unitResult, 'c');
+    assertDartObjectText(result, r'''
+bool true
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
+  test_equalEqual_typeLiteral_typeAlias_void_differentAlias() async {
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+typedef A = void;
+typedef B = void;
+const c = A == B;
+''');
+    var result = _topLevelVar(unitResult, 'c');
+    assertDartObjectText(result, r'''
+bool true
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
+  test_equalEqual_typeLiteral_typeAlias_void_typeArgument_aliasLeft() async {
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+typedef A = void;
+const c = List<A> == List<void>;
+''');
+    var result = _topLevelVar(unitResult, 'c');
+    assertDartObjectText(result, r'''
+bool true
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
+  test_equalEqual_typeLiteral_typeAlias_void_typeArgument_aliasRight() async {
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+typedef A = void;
+const c = List<void> == List<A>;
+''');
+    var result = _topLevelVar(unitResult, 'c');
+    assertDartObjectText(result, r'''
+bool true
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
   test_equalEqual_userClass_hasEqEq() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 class A {
@@ -679,6 +861,23 @@ const v = A() == 0;
 ''');
   }
 
+  test_equalEqual_userClass_hasPrimitiveEquality_beforePatterns() async {
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+// %before-language-feature: patterns
+class A {
+  const A();
+}
+
+const v = A() == 0;
+//        ^^^^^^^^
+// [diag.constEvalTypeBoolNumString] In constant expressions, operands of this operator must be of type 'bool', 'num', 'String' or 'null'.
+''');
+    var result = _topLevelVar(unitResult, 'v');
+    assertDartObjectText(result, r'''
+<null>
+''');
+  }
+
   test_equalEqual_userClass_hasPrimitiveEquality_false() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 class A {
@@ -692,23 +891,6 @@ const v = A(0) == 0;
     assertDartObjectText(result, r'''
 bool false
   variable: <testLibrary>::@topLevelVariable::v
-''');
-  }
-
-  test_equalEqual_userClass_hasPrimitiveEquality_language219() async {
-    var unitResult = await resolveTestCodeWithDiagnostics('''
-// @dart = 2.19
-class A {
-  const A();
-}
-
-const v = A() == 0;
-//        ^^^^^^^^
-// [diag.constEvalTypeBoolNumString] In constant expressions, operands of this operator must be of type 'bool', 'num', 'String' or 'null'.
-''');
-    var result = _topLevelVar(unitResult, 'v');
-    assertDartObjectText(result, r'''
-<null>
 ''');
   }
 
@@ -760,9 +942,9 @@ class A {
     _assertHasPrimitiveEqualityFalse(result, 'v');
   }
 
-  test_hasPrimitiveEquality_class_hasEqEq_language219() async {
+  test_hasPrimitiveEquality_class_hasEqEq_beforePatterns() async {
     var result = await resolveTestCodeWithDiagnostics('''
-// @dart = 2.19
+// %before-language-feature: patterns
 const v = const A();
 
 class A {
@@ -785,9 +967,9 @@ class A {
     _assertHasPrimitiveEqualityFalse(result, 'v');
   }
 
-  test_hasPrimitiveEquality_class_hasHashCode_language219() async {
+  test_hasPrimitiveEquality_class_hasHashCode_beforePatterns() async {
     var result = await resolveTestCodeWithDiagnostics('''
-// @dart = 2.19
+// %before-language-feature: patterns
 const v = const A();
 
 class A {
@@ -1096,6 +1278,104 @@ bool true
 ''');
   }
 
+  test_identical_typeLiteral_typeAlias_dynamic() async {
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+typedef A = dynamic;
+const c = identical(A, A);
+''');
+    var result = _topLevelVar(unitResult, 'c');
+    assertDartObjectText(result, r'''
+bool true
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
+  test_identical_typeLiteral_typeAlias_dynamic_aliasLeft() async {
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+typedef A = dynamic;
+const c = identical(A, dynamic);
+''');
+    var result = _topLevelVar(unitResult, 'c');
+    assertDartObjectText(result, r'''
+bool true
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
+  test_identical_typeLiteral_typeAlias_dynamic_aliasRight() async {
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+typedef A = dynamic;
+const c = identical(dynamic, A);
+''');
+    var result = _topLevelVar(unitResult, 'c');
+    assertDartObjectText(result, r'''
+bool true
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
+  test_identical_typeLiteral_typeAlias_dynamic_differentAlias() async {
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+typedef A = dynamic;
+typedef B = dynamic;
+const c = identical(A, B);
+''');
+    var result = _topLevelVar(unitResult, 'c');
+    assertDartObjectText(result, r'''
+bool true
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
+  test_identical_typeLiteral_typeAlias_void() async {
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+typedef A = void;
+const c = identical(A, A);
+''');
+    var result = _topLevelVar(unitResult, 'c');
+    assertDartObjectText(result, r'''
+bool true
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
+  test_identical_typeLiteral_typeAlias_void_differentAlias() async {
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+typedef A = void;
+typedef B = void;
+const c = identical(A, B);
+''');
+    var result = _topLevelVar(unitResult, 'c');
+    assertDartObjectText(result, r'''
+bool true
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
+  test_identical_typeLiteral_typeAlias_void_typeArgument_aliasLeft() async {
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+typedef A = void;
+const c = identical(List<A>, List<void>);
+''');
+    var result = _topLevelVar(unitResult, 'c');
+    assertDartObjectText(result, r'''
+bool true
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
+  test_identical_typeLiteral_typeAlias_void_typeArgument_aliasRight() async {
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+typedef A = void;
+const c = identical(List<void>, List<A>);
+''');
+    var result = _topLevelVar(unitResult, 'c');
+    assertDartObjectText(result, r'''
+bool true
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
   test_instanceCreation_generic_noTypeArguments_inferred_imported() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A<T> {
@@ -1122,70 +1402,6 @@ A<int>
     positionalArguments
       0: int 0
   variable: <testLibrary>::@topLevelVariable::b
-''');
-  }
-
-  test_instanceCreationExpression_custom_generic_extensionType_explicit() async {
-    var unitResult = await resolveTestCodeWithDiagnostics(r'''
-extension type const E(int it) {}
-
-class C<T> {
-  const C();
-}
-
-const x = C<E>();
-''');
-    var result = _topLevelVar(unitResult, 'x');
-    assertDartObjectText(result, r'''
-C<int>
-  constructorInvocation
-    constructor: SubstitutedConstructorElementImpl
-      baseElement: <testLibrary>::@class::C::@constructor::new
-      substitution: {T: E}
-  variable: <testLibrary>::@topLevelVariable::x
-  typeNotExtensionTypeErased: C<E>
-''');
-  }
-
-  test_instanceCreationExpression_custom_generic_extensionType_inferred() async {
-    var unitResult = await resolveTestCodeWithDiagnostics(r'''
-extension type const E(int it) {}
-
-class C<T> {
-  final T f;
-  const C(this.f);
-}
-
-const x = C(E(42));
-''');
-    var result = _topLevelVar(unitResult, 'x');
-    assertDartObjectText(result, r'''
-C<int>
-  f: int 42
-    typeNotExtensionTypeErased: E
-  constructorInvocation
-    constructor: SubstitutedConstructorElementImpl
-      baseElement: <testLibrary>::@class::C::@constructor::new
-      substitution: {T: E}
-    positionalArguments
-      0: int 42
-        typeNotExtensionTypeErased: E
-  variable: <testLibrary>::@topLevelVariable::x
-  typeNotExtensionTypeErased: C<E>
-''');
-  }
-
-  test_instanceCreationExpression_extensionType() async {
-    var unitResult = await resolveTestCodeWithDiagnostics(r'''
-extension type const E(int it) {}
-
-const x = E(42);
-''');
-    var result = _topLevelVar(unitResult, 'x');
-    assertDartObjectText(result, r'''
-int 42
-  variable: <testLibrary>::@topLevelVariable::x
-  typeNotExtensionTypeErased: E
 ''');
   }
 
@@ -1388,6 +1604,18 @@ int 3
     var unitResult = await resolveTestCodeWithDiagnostics(r'''
 const String? s = null;
 const int? c = s?.length;
+''');
+    var result = _topLevelVar(unitResult, 'c');
+    assertDartObjectText(result, r'''
+Null null
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
+  test_propertyAccess_nullAware_string_length_null_parenthesized() async {
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
+const String? s = null;
+const int? c = (s)?.length;
 ''');
     var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
@@ -1786,7 +2014,173 @@ class A {
 ''');
   }
 
-  test_visitConstructorReference_generic_named() async {
+  test_visitConstructorInvocation_invalidNamedArg() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  const A({ required int x });
+}
+const a = A(x: false);
+//          ^^^^^^^^
+// [diag.constConstructorParamTypeMismatch] A value of type 'bool' can't be assigned to a parameter of type 'int' in a const constructor.
+//             ^^^^^
+// [diag.argumentTypeNotAssignable] The argument type 'bool' can't be assigned to the parameter type 'int'.
+''');
+  }
+
+  test_visitConstructorInvocation_invalidNamedArg_superParam() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  const A({ required int x });
+}
+class B extends A {
+  const B({ required super.x });
+}
+const a = B(x: false);
+//          ^^^^^^^^
+// [diag.constConstructorParamTypeMismatch] A value of type 'bool' can't be assigned to a parameter of type 'int' in a const constructor.
+//             ^^^^^
+// [diag.argumentTypeNotAssignable] The argument type 'bool' can't be assigned to the parameter type 'int'.
+''');
+  }
+
+  test_visitConstructorInvocation_invalidPositionalArg() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  const A(int x);
+}
+const a = A(false);
+//          ^^^^^
+// [diag.argumentTypeNotAssignable] The argument type 'bool' can't be assigned to the parameter type 'int'.
+// [diag.constConstructorParamTypeMismatch] A value of type 'bool' can't be assigned to a parameter of type 'int' in a const constructor.
+''');
+  }
+
+  test_visitConstructorInvocation_invalidPositionalArg_superParam() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  const A(int x);
+}
+class B extends A {
+  const B(super.x);
+}
+const a = B(false);
+//          ^^^^^
+// [diag.argumentTypeNotAssignable] The argument type 'bool' can't be assigned to the parameter type 'int'.
+// [diag.constConstructorParamTypeMismatch] A value of type 'bool' can't be assigned to a parameter of type 'int' in a const constructor.
+''');
+  }
+
+  test_visitConstructorInvocation_missingNamedArg() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  const A({required int x });
+}
+const a = A();
+//        ^
+// [diag.missingRequiredArgument] The named parameter 'x' is required, but there's no corresponding argument.
+''');
+  }
+
+  test_visitConstructorInvocation_missingNamedArg_superParam() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  const A({required int x });
+}
+class B extends A {
+  const B({required super.x });
+}
+const a = B();
+//        ^
+// [diag.missingRequiredArgument] The named parameter 'x' is required, but there's no corresponding argument.
+''');
+  }
+
+  test_visitConstructorInvocation_missingPositionalArg() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  const A(int x);
+}
+const a = A();
+//          ^
+// [diag.notEnoughPositionalArgumentsNameSingular] 1 positional argument expected by 'A.new', but 0 found.
+''');
+  }
+
+  test_visitConstructorInvocation_missingPositionalArg_superParam() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  const A(int x);
+}
+class B extends A {
+  const B(super.x);
+}
+const a = B();
+//          ^
+// [diag.notEnoughPositionalArgumentsNameSingular] 1 positional argument expected by 'B.new', but 0 found.
+''');
+  }
+
+  test_visitConstructorInvocation_noArgs() async {
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+class A {
+  const A();
+}
+const a = A();
+''');
+    var result = _topLevelVar(unitResult, 'a');
+    assertDartObjectText(result, r'''
+A
+  constructorInvocation
+    constructor: <testLibrary>::@class::A::@constructor::new
+  variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
+  test_visitConstructorInvocation_noConstConstructor() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {}
+const a = A();
+//        ^^^
+// [diag.constWithNonConst] The constructor being called isn't a const constructor.
+// [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
+''');
+  }
+
+  test_visitConstructorInvocation_simpleArgs() async {
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+class A {
+  const A(int x);
+}
+const a = A(1);
+''');
+    var result = _topLevelVar(unitResult, 'a');
+    assertDartObjectText(result, r'''
+A
+  constructorInvocation
+    constructor: <testLibrary>::@class::A::@constructor::new
+    positionalArguments
+      0: int 1
+  variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
+  test_visitConstructorInvocation_unknown() async {
+    // TODO(kallentu): This should not be reported.
+    // https://github.com/dart-lang/sdk/issues/50441
+    await resolveTestCodeWithDiagnostics(r'''
+class C<T> {
+  const C.named();
+}
+
+const x = C<int>.();
+//        ^^^^^^^^^
+// [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
+//               ^
+// [diag.missingIdentifier] Expected an identifier.
+''');
+  }
+
+  test_visitConstructorTearOff_generic_named() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {
   C.foo();
@@ -1803,7 +2197,7 @@ C<int> Function()
 ''');
   }
 
-  test_visitConstructorReference_generic_unnamed() async {
+  test_visitConstructorTearOff_generic_unnamed() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {
   C();
@@ -1820,7 +2214,7 @@ C<int> Function()
 ''');
   }
 
-  test_visitConstructorReference_identical_aliasIsNotGeneric() async {
+  test_visitConstructorTearOff_identical_aliasIsNotGeneric() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 typedef MyC = C<int>;
@@ -1833,7 +2227,7 @@ bool true
 ''');
   }
 
-  test_visitConstructorReference_identical_aliasIsNotProperRename_differentBound() async {
+  test_visitConstructorTearOff_identical_aliasIsNotProperRename_differentBound() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 typedef MyC<T extends num> = C<T>;
@@ -1846,7 +2240,7 @@ bool false
 ''');
   }
 
-  test_visitConstructorReference_identical_aliasIsNotProperRename_differentCount() async {
+  test_visitConstructorTearOff_identical_aliasIsNotProperRename_differentCount() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T, U> {}
 typedef MyC<T> = C<T, int>;
@@ -1859,7 +2253,7 @@ bool false
 ''');
   }
 
-  test_visitConstructorReference_identical_aliasIsNotProperRename_differentCount2() async {
+  test_visitConstructorTearOff_identical_aliasIsNotProperRename_differentCount2() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T, U> {}
 typedef MyC<T> = C;
@@ -1872,7 +2266,7 @@ bool false
 ''');
   }
 
-  test_visitConstructorReference_identical_aliasIsNotProperRename_differentOrder() async {
+  test_visitConstructorTearOff_identical_aliasIsNotProperRename_differentOrder() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T, U> {}
 typedef MyC<T, U> = C<U, T>;
@@ -1885,7 +2279,7 @@ bool false
 ''');
   }
 
-  test_visitConstructorReference_identical_aliasIsNotProperRename_instantiated() async {
+  test_visitConstructorTearOff_identical_aliasIsNotProperRename_instantiated() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 typedef MyC<T extends num> = C<T>;
@@ -1898,7 +2292,7 @@ bool true
 ''');
   }
 
-  test_visitConstructorReference_identical_aliasIsNotProperRename_mixedInstantiations() async {
+  test_visitConstructorTearOff_identical_aliasIsNotProperRename_mixedInstantiations() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 typedef MyC<T extends num> = C<T>;
@@ -1911,7 +2305,7 @@ bool false
 ''');
   }
 
-  test_visitConstructorReference_identical_aliasIsProperRename_instantiated() async {
+  test_visitConstructorTearOff_identical_aliasIsProperRename_instantiated() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 typedef MyC<T> = C<T>;
@@ -1924,7 +2318,7 @@ bool true
 ''');
   }
 
-  test_visitConstructorReference_identical_aliasIsProperRename_mixedInstantiations() async {
+  test_visitConstructorTearOff_identical_aliasIsProperRename_mixedInstantiations() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 typedef MyC<T> = C<T>;
@@ -1937,7 +2331,7 @@ bool true
 ''');
   }
 
-  test_visitConstructorReference_identical_aliasIsProperRename_mutualSubtypes_dynamic() async {
+  test_visitConstructorTearOff_identical_aliasIsProperRename_mutualSubtypes_dynamic() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 typedef MyC<T extends Object?> = C<T>;
@@ -1950,7 +2344,7 @@ bool true
 ''');
   }
 
-  test_visitConstructorReference_identical_aliasIsProperRename_mutualSubtypes_futureOr() async {
+  test_visitConstructorTearOff_identical_aliasIsProperRename_mutualSubtypes_futureOr() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 import 'dart:async';
 class C<T extends FutureOr<num>> {}
@@ -1964,7 +2358,7 @@ bool true
 ''');
   }
 
-  test_visitConstructorReference_identical_aliasIsProperRename_uninstantiated() async {
+  test_visitConstructorTearOff_identical_aliasIsProperRename_uninstantiated() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 typedef MyC<T> = C<T>;
@@ -1977,7 +2371,7 @@ bool true
 ''');
   }
 
-  test_visitConstructorReference_identical_explicitTypeArgs_differentClasses() async {
+  test_visitConstructorTearOff_identical_explicitTypeArgs_differentClasses() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 class D<T> {}
@@ -1990,7 +2384,7 @@ bool false
 ''');
   }
 
-  test_visitConstructorReference_identical_explicitTypeArgs_differentConstructors() async {
+  test_visitConstructorTearOff_identical_explicitTypeArgs_differentConstructors() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {
   C();
@@ -2005,7 +2399,7 @@ bool false
 ''');
   }
 
-  test_visitConstructorReference_identical_explicitTypeArgs_differentTypeArgs() async {
+  test_visitConstructorTearOff_identical_explicitTypeArgs_differentTypeArgs() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 const a = identical(C<int>.new, C<String>.new);
@@ -2017,7 +2411,7 @@ bool false
 ''');
   }
 
-  test_visitConstructorReference_identical_explicitTypeArgs_sameElement() async {
+  test_visitConstructorTearOff_identical_explicitTypeArgs_sameElement() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 const a = identical(C<int>.new, C<int>.new);
@@ -2029,7 +2423,7 @@ bool true
 ''');
   }
 
-  test_visitConstructorReference_identical_inferredTypeArgs_sameElement() async {
+  test_visitConstructorTearOff_identical_inferredTypeArgs_sameElement() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 const C<int> Function() c1 = C.new;
@@ -2043,7 +2437,7 @@ bool true
 ''');
   }
 
-  test_visitConstructorReference_identical_notInstantiated_differentClasses() async {
+  test_visitConstructorTearOff_identical_notInstantiated_differentClasses() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 class D<T> {}
@@ -2056,7 +2450,7 @@ bool false
 ''');
   }
 
-  test_visitConstructorReference_identical_notInstantiated_differentConstructors() async {
+  test_visitConstructorTearOff_identical_notInstantiated_differentConstructors() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {
   C();
@@ -2071,7 +2465,7 @@ bool false
 ''');
   }
 
-  test_visitConstructorReference_identical_notInstantiated_sameElement() async {
+  test_visitConstructorTearOff_identical_notInstantiated_sameElement() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 const a = identical(C.new, C.new);
@@ -2083,7 +2477,7 @@ bool true
 ''');
   }
 
-  test_visitConstructorReference_identical_onlyOneHasTypeArgs() async {
+  test_visitConstructorTearOff_identical_onlyOneHasTypeArgs() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {}
 const a = identical(C<int>.new, C.new);
@@ -2095,7 +2489,7 @@ bool false
 ''');
   }
 
-  test_visitConstructorReference_nonGeneric_named() async {
+  test_visitConstructorTearOff_nonGeneric_named() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {
   const C.foo();
@@ -2112,7 +2506,7 @@ C<int> Function()
 ''');
   }
 
-  test_visitConstructorReference_nonGeneric_unnamed() async {
+  test_visitConstructorTearOff_nonGeneric_unnamed() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 class C<T> {
   const C();
@@ -2523,170 +2917,41 @@ const c = _;
 ''');
   }
 
-  test_visitInstanceCreationExpression_invalidNamedArg() async {
-    await resolveTestCodeWithDiagnostics(r'''
-class A {
-  const A({ required int x });
-}
-const a = A(x: false);
-//          ^^^^^^^^
-// [diag.constConstructorParamTypeMismatch] A value of type 'bool' can't be assigned to a parameter of type 'int' in a const constructor.
-//             ^^^^^
-// [diag.argumentTypeNotAssignable] The argument type 'bool' can't be assigned to the parameter type 'int'.
-''');
-  }
-
-  test_visitInstanceCreationExpression_invalidNamedArg_superParam() async {
-    await resolveTestCodeWithDiagnostics(r'''
-class A {
-  const A({ required int x });
-}
-class B extends A {
-  const B({ required super.x });
-}
-const a = B(x: false);
-//          ^^^^^^^^
-// [diag.constConstructorParamTypeMismatch] A value of type 'bool' can't be assigned to a parameter of type 'int' in a const constructor.
-//             ^^^^^
-// [diag.argumentTypeNotAssignable] The argument type 'bool' can't be assigned to the parameter type 'int'.
-''');
-  }
-
-  test_visitInstanceCreationExpression_invalidPositionalArg() async {
-    await resolveTestCodeWithDiagnostics(r'''
-class A {
-  const A(int x);
-}
-const a = A(false);
-//          ^^^^^
-// [diag.argumentTypeNotAssignable] The argument type 'bool' can't be assigned to the parameter type 'int'.
-// [diag.constConstructorParamTypeMismatch] A value of type 'bool' can't be assigned to a parameter of type 'int' in a const constructor.
-''');
-  }
-
-  test_visitInstanceCreationExpression_invalidPositionalArg_superParam() async {
-    await resolveTestCodeWithDiagnostics(r'''
-class A {
-  const A(int x);
-}
-class B extends A {
-  const B(super.x);
-}
-const a = B(false);
-//          ^^^^^
-// [diag.argumentTypeNotAssignable] The argument type 'bool' can't be assigned to the parameter type 'int'.
-// [diag.constConstructorParamTypeMismatch] A value of type 'bool' can't be assigned to a parameter of type 'int' in a const constructor.
-''');
-  }
-
-  test_visitInstanceCreationExpression_missingNamedArg() async {
-    await resolveTestCodeWithDiagnostics(r'''
-class A {
-  const A({required int x });
-}
-const a = A();
-//        ^
-// [diag.missingRequiredArgument] The named parameter 'x' is required, but there's no corresponding argument.
-''');
-  }
-
-  test_visitInstanceCreationExpression_missingNamedArg_superParam() async {
-    await resolveTestCodeWithDiagnostics(r'''
-class A {
-  const A({required int x });
-}
-class B extends A {
-  const B({required super.x });
-}
-const a = B();
-//        ^
-// [diag.missingRequiredArgument] The named parameter 'x' is required, but there's no corresponding argument.
-''');
-  }
-
-  test_visitInstanceCreationExpression_missingPositionalArg() async {
-    await resolveTestCodeWithDiagnostics(r'''
-class A {
-  const A(int x);
-}
-const a = A();
-//          ^
-// [diag.notEnoughPositionalArgumentsNameSingular] 1 positional argument expected by 'A.new', but 0 found.
-''');
-  }
-
-  test_visitInstanceCreationExpression_missingPositionalArg_superParam() async {
-    await resolveTestCodeWithDiagnostics(r'''
-class A {
-  const A(int x);
-}
-class B extends A {
-  const B(super.x);
-}
-const a = B();
-//          ^
-// [diag.notEnoughPositionalArgumentsNameSingular] 1 positional argument expected by 'B.new', but 0 found.
-''');
-  }
-
-  test_visitInstanceCreationExpression_noArgs() async {
-    var unitResult = await resolveTestCodeWithDiagnostics('''
-class A {
-  const A();
-}
-const a = A();
-''');
-    var result = _topLevelVar(unitResult, 'a');
-    assertDartObjectText(result, r'''
-A
-  constructorInvocation
-    constructor: <testLibrary>::@class::A::@constructor::new
-  variable: <testLibrary>::@topLevelVariable::a
-''');
-  }
-
-  test_visitInstanceCreationExpression_noConstConstructor() async {
-    await resolveTestCodeWithDiagnostics(r'''
-class A {}
-const a = A();
-//        ^^^
-// [diag.constWithNonConst] The constructor being called isn't a const constructor.
-// [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
-''');
-  }
-
-  test_visitInstanceCreationExpression_simpleArgs() async {
-    var unitResult = await resolveTestCodeWithDiagnostics('''
-class A {
-  const A(int x);
-}
-const a = A(1);
-''');
-    var result = _topLevelVar(unitResult, 'a');
-    assertDartObjectText(result, r'''
-A
-  constructorInvocation
-    constructor: <testLibrary>::@class::A::@constructor::new
-    positionalArguments
-      0: int 1
-  variable: <testLibrary>::@topLevelVariable::a
-''');
-  }
-
-  test_visitInstanceCreationExpression_unknown() async {
-    // TODO(kallentu): This should not be reported.
-    // https://github.com/dart-lang/sdk/issues/50441
-    await resolveTestCodeWithDiagnostics(r'''
+  test_visitImplicitFunctionInstantiation_constructor() async {
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
 class C<T> {
-  const C.named();
+  C(T value);
 }
+const C<int> Function(int) c = C.new;
+const same = identical(c, C<int>.new);
+''');
+    assertDartObjectText(_topLevelVar(unitResult, 'c'), r'''
+C<int> Function(int)
+  element: <testLibrary>::@class::C::@constructor::new
+  typeArguments
+    int
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+    assertDartObjectText(_topLevelVar(unitResult, 'same'), r'''
+bool true
+  variable: <testLibrary>::@topLevelVariable::same
+''');
+  }
 
-const x = C<int>.();
-//        ^^^^^^^^
-// [diag.classInstantiationAccessToUnknownMember] The class 'C' doesn't have a constructor named '('.
-// [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
-//               ^
-// [diag.missingIdentifier] Expected an identifier.
+  test_visitImplicitFunctionInstantiation_constructor_typeAlias() async {
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
+class C<T, U> {
+  C(T value);
+}
+typedef A<T> = C<T, String>;
+const C<int, String> Function(int) c = A.new;
+''');
+    assertDartObjectText(_topLevelVar(unitResult, 'c'), r'''
+C<int, String> Function(int)
+  element: <testLibrary>::@class::C::@constructor::new
+  typeArguments
+    int
+  variable: <testLibrary>::@topLevelVariable::c
 ''');
   }
 
@@ -3128,7 +3393,7 @@ void main() {
 class RequiresNonEmptyList {
   const RequiresNonEmptyList(List<int> numbers) : assert(numbers.length > 0);
 //                                                       ^^^^^^^^^^^^^^
-// [context 1] The error is in the assert initializer of 'RequiresNonEmptyList', and occurs here.
+// [context 1] The error is in the assert initializer of 'RequiresNonEmptyList.new', and occurs here.
 }
 ''');
   }
@@ -3224,6 +3489,23 @@ double -42.3
 ''');
   }
 
+  test_visitPrefixExpression_negated_double_largeHex() async {
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+const double c = -0x8000000000000000;
+''');
+    var result = _topLevelVar(unitResult, 'c')!;
+    expect(result.toDoubleValue(), -9223372036854775808.0);
+  }
+
+  test_visitPrefixExpression_negated_double_zero() async {
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+const double c = -0;
+''');
+    var result = _topLevelVar(unitResult, 'c')!.toDoubleValue()!;
+    expect(result, 0.0);
+    expect(result.isNegative, isTrue);
+  }
+
   test_visitPrefixExpression_negated_int() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = -42;
@@ -3231,6 +3513,17 @@ const c = -42;
     var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 int -42
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
+  test_visitPrefixExpression_negated_int_minValue() async {
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+const c = -9223372036854775808;
+''');
+    var result = _topLevelVar(unitResult, 'c');
+    assertDartObjectText(result, r'''
+int -9223372036854775808
   variable: <testLibrary>::@topLevelVariable::c
 ''');
   }
@@ -3724,6 +4017,19 @@ Type
   toTypeValue: C
   toTypeValueNotExtensionTypeErased: C
   variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
+  test_visitSimpleIdentifier_extensionName() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+extension E on int {}
+const foo = E;
+//          ^
+// [diag.extensionAsExpression] Extension 'E' can't be used as an expression.
+// [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
+''');
+    assertDartObjectText(_topLevelVar(result, 'foo'), r'''
+<null>
 ''');
   }
 
@@ -5101,6 +5407,22 @@ double 3.0
 ''');
   }
 
+  test_visitIntegerLiteral_doubleType_largeDecimal() async {
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+const double c = 1267650600228229401496703205376;
+''');
+    var result = _topLevelVar(unitResult, 'c')!;
+    expect(result.toDoubleValue(), 1.2676506002282294e30);
+  }
+
+  test_visitIntegerLiteral_doubleType_largeHex() async {
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+const double c = 0x8000000000000000;
+''');
+    var result = _topLevelVar(unitResult, 'c')!;
+    expect(result.toDoubleValue(), 9223372036854775808.0);
+  }
+
   test_visitIntegerLiteral_integer() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = 3;
@@ -5289,7 +5611,7 @@ class B {
   final l;
   const B(Object o) : l = o.length;
 //                        ^^^^^^^^
-// [context 1] The error is in the field initializer of 'B', and occurs here.
+// [context 1] The error is in the field initializer of 'B.new', and occurs here.
 }
 
 const b = B('');
@@ -5335,7 +5657,7 @@ class B {
   final l;
   const B(String o) : l = o.length;
 //                        ^^^^^^^^
-// [context 1] The error is in the field initializer of 'B', and occurs here.
+// [context 1] The error is in the field initializer of 'B.new', and occurs here.
 }
 
 const y = B(x);
@@ -5473,7 +5795,7 @@ class ConstantVisitorTestSupport extends PubPackageResolutionTest {
 }
 
 @reflectiveTest
-class InstanceCreationEvaluatorTest extends ConstantVisitorTestSupport {
+class ConstructorInvocationEvaluatorTest extends ConstantVisitorTestSupport {
   test_assertInitializer_assertIsNot_false() async {
     await resolveTestCodeWithDiagnostics('''
 class A {
@@ -5641,7 +5963,7 @@ class A {
 class B extends A {
   const B(int i) : super(i);
 //      ^
-// [context 1] The evaluated constructor 'A' is called by 'B' and 'B' is defined here.
+// [context 1] The evaluated constructor 'A.new' is called by 'B.new' and 'B.new' is defined here.
 }
 main() {
   print(const B(2)); // (1)
@@ -5743,7 +6065,7 @@ class A {
 class B extends A {
   const B() : super();
 //      ^
-// [context 1] The evaluated constructor 'A' is called by 'B' and 'B' is defined here.
+// [context 1] The evaluated constructor 'A.new' is called by 'B.new' and 'B.new' is defined here.
 }
 const b = const B();
 //        ^^^^^^^^^
@@ -7523,6 +7845,26 @@ A<int>
 ''');
   }
 
+  test_fieldInitializer_typeParameter_beforeConstructorTearoffs() async {
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+// %before-language-feature: constructor-tearoffs
+class A<T> {
+  final Object f;
+  const A(): f = T;
+//               ^
+// [context 1] The error is in the field initializer of 'A.new', and occurs here.
+// [diag.invalidConstant] Invalid constant value.
+}
+const a = const A<int>();
+//        ^^^^^^^^^^^^^^
+// [diag.constTypeParameter][context 1] Type parameters can't be used in a constant expression.
+''');
+    var result = _topLevelVar(unitResult, 'a');
+    assertDartObjectText(result, r'''
+<null>
+''');
+  }
+
   test_fieldInitializer_typeParameter_implicitTypeArgs() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 class A<T> {
@@ -7568,26 +7910,6 @@ A<int, String>
       baseElement: <testLibrary>::@class::A::@constructor::new
       substitution: {T: int, U: String}
   variable: <testLibrary>::@topLevelVariable::a
-''');
-  }
-
-  test_fieldInitializer_typeParameter_withoutConstructorTearoffs() async {
-    var unitResult = await resolveTestCodeWithDiagnostics('''
-// @dart=2.12
-class A<T> {
-  final Object f;
-  const A(): f = T;
-//               ^
-// [context 1] The error is in the field initializer of 'A', and occurs here.
-// [diag.invalidConstant] Invalid constant value.
-}
-const a = const A<int>();
-//        ^^^^^^^^^^^^^^
-// [diag.constTypeParameter][context 1] Type parameters can't be used in a constant expression.
-''');
-    var result = _topLevelVar(unitResult, 'a');
-    assertDartObjectText(result, r'''
-<null>
 ''');
   }
 
@@ -7669,8 +7991,6 @@ void main() {
   }
 
   test_issue49389() async {
-    // TODO(kallentu): Fix [InvalidConstant.genericError] to handle
-    // NamedExpressions.
     await resolveTestCodeWithDiagnostics(r'''
 class Foo {
   const Foo({required this.bar});
@@ -7681,7 +8001,7 @@ void main() {
   final data = <String, String>{};
   const Foo(bar: data);
 //               ^^^^
-// [diag.invalidConstant] Invalid constant value.
+// [diag.constWithNonConstantArgument] Arguments of a constant creation must be constant expressions.
 }
 ''');
   }
@@ -8147,14 +8467,14 @@ class C {
 class D extends C {
   const D(d) : super(d);
 //      ^
-// [context 1] The evaluated constructor 'C' is called by 'D' and 'D' is defined here.
+// [context 1] The evaluated constructor 'C.new' is called by 'D.new' and 'D.new' is defined here.
 //                   ^
 // [context 3] The exception is 'A value of type 'String' can't be assigned to a parameter of type 'double' in a const constructor.' and occurs here.
 }
 class E extends D {
   const E(e) : super(e);
 //      ^
-// [context 2] The evaluated constructor 'D' is called by 'E' and 'E' is defined here.
+// [context 2] The evaluated constructor 'D.new' is called by 'E.new' and 'E.new' is defined here.
 }
 const f = const E('0.0');
 //        ^^^^^^^^^^^^^^

@@ -21,7 +21,10 @@ class StrictRawTypeTest extends PubPackageResolutionTest {
   void setUp() {
     super.setUp();
     writeTestPackageAnalysisOptionsFile(
-      analysisOptionsContent(experiments: experiments, strictRawTypes: true),
+      analysisOptionsContent(
+        experimentalFeatures: experimentalFeatures,
+        strictRawTypes: true,
+      ),
     );
   }
 

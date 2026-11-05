@@ -82,6 +82,61 @@ class C {
 ''');
   }
 
+  test_constructor_superFormalParameters_normalParameterOptional() async {
+    await assertDiagnosticsFromMarkup(r'''
+class A {
+  A({required int a, int? b});
+}
+class B extends A {
+  B({required super.a, int? c, required int [!d!]});
+}
+''');
+  }
+
+  test_constructor_superFormalParameters_orderMatchingSuper() async {
+    await assertNoDiagnostics(r'''
+class A {
+  A({required int a, int? b});
+}
+class B extends A {
+  B({required super.a, super.b, required int c});
+}
+''');
+  }
+
+  test_constructor_superFormalParameters_orderMatchingSuper_normalParameterFirst() async {
+    await assertNoDiagnostics(r'''
+class A {
+  A({required int a, int? b});
+}
+class B extends A {
+  B({required int c, required super.a, super.b});
+}
+''');
+  }
+
+  test_constructor_superFormalParameters_orderMatchingSuper_normalParameterInterleaved() async {
+    await assertNoDiagnostics(r'''
+class A {
+  A({required int a, int? b});
+}
+class B extends A {
+  B({required super.a, required int c, super.b});
+}
+''');
+  }
+
+  test_constructor_superFormalParameters_orderNotMatchingSuper() async {
+    await assertDiagnosticsFromMarkup(r'''
+class A {
+  A({required int a, int? b});
+}
+class B extends A {
+  B({super.b, required super.[!a!]});
+}
+''');
+  }
+
   test_primaryConstructor_requiredAfterOptional() async {
     await assertDiagnosticsFromMarkup(r'''
 class C({int? a, required int? [!b!]});

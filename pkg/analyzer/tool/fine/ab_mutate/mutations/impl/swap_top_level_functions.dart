@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 
 import '../../models.dart';
 import '../api.dart';
@@ -18,13 +19,13 @@ class SwapTopLevelFunctionsMutation extends Mutation {
 
   @override
   MutationResult apply(CompilationUnit unit, String content) {
-    var functions = unit.declarations.whereType<FunctionDeclaration>().toList();
+    var functions = _functions(unit);
     if (functions.length < 2) {
       throw StateError('Expected at least two functions to swap.');
     }
 
-    var a = functions.first;
-    var b = functions.last;
+    var (a, aName) = functions.first;
+    var (b, bName) = functions.last;
 
     var aStart = a.offset;
     var aEnd = a.endToken.end;
@@ -52,8 +53,8 @@ class SwapTopLevelFunctionsMutation extends Mutation {
     }
 
     return MutationResult(MutationEdit(0, content.length, newContent), {
-      'a': a.name.lexeme,
-      'b': b.name.lexeme,
+      'a': aName.lexeme,
+      'b': bName.lexeme,
     });
   }
 
@@ -64,10 +65,21 @@ class SwapTopLevelFunctionsMutation extends Mutation {
 
   static List<Mutation> discover(String filePath, CompilationUnit unit) {
     var mutations = <Mutation>[];
-    var functions = unit.declarations.whereType<FunctionDeclaration>().toList();
+    var functions = _functions(unit);
     if (functions.length >= 2) {
       mutations.add(SwapTopLevelFunctionsMutation(path: filePath));
     }
     return mutations;
+  }
+
+  /// The top-level functions and getters of [unit], with their names.
+  static List<(AnnotatedNode, Token)> _functions(CompilationUnit unit) {
+    return [
+      for (var declaration in unit.declarations2)
+        if (declaration
+            case FunctionDeclaration(:var name) ||
+                TopLevelGetterDeclaration(:var name))
+          (declaration, name),
+    ];
   }
 }

@@ -6,6 +6,8 @@
 //
 // VMOptions=--experimental-shared-data
 
+import 'dart:_internal' show IsolateGroup; // ignore: import_internal_library
+import 'dart:_vm' show IsolateExperimental; // ignore: import_internal_library
 import 'dart:async';
 import 'dart:concurrent';
 import 'dart:ffi';
@@ -13,10 +15,8 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
 
-import 'package:dart_internal/isolate_group.dart' show IsolateGroup;
 import "package:expect/async_helper.dart";
 import 'package:expect/expect.dart';
-import 'package:ffi/ffi.dart';
 
 import 'threading_utils.dart';
 
@@ -35,7 +35,7 @@ int threadMain(Pointer<Void> data) {
   final self = pthreadSelf();
   final i = data.cast<Uint64>()[0];
   // print('threadMain started with $data i:$i pthreadid $self');
-  final new_isolate = Isolate.create(debugName: "helper");
+  final new_isolate = IsolateExperimental.create(debugName: "helper");
   Expect.isNotNull(new_isolate);
   final SendPort sp = new_isolate.runSync(() {
     late RawReceivePort rp;

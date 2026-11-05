@@ -58,7 +58,10 @@ class RecordTypeMask extends TypeMask {
     // If any field is empty then this record is not instantiable and we
     // simplify to an empty mask.
     if (types.any((e) => e.isEmpty)) {
-      return domain.emptyType;
+      return FlatTypeMask._emptyOrSpecial(
+        domain,
+        _specialValueDomain.restrict(powerset),
+      );
     }
     return RecordTypeMask._(types, shape, powerset);
   }
@@ -128,9 +131,8 @@ class RecordTypeMask extends TypeMask {
       } else {
         // If the two records have different shapes use the union of their flat
         // mask representations.
-        return toFlatTypeMask(
-          domain,
-        ).union(other.toFlatTypeMask(domain), domain);
+        return toFlatTypeMask(domain)
+            .union(other.toFlatTypeMask(domain), domain);
       }
     }
     if (other is FlatTypeMask) {
@@ -147,7 +149,7 @@ class RecordTypeMask extends TypeMask {
           // Other is the same shape (though possibly a specialization) with
           // dynamic fields so just use the flat mask of this shape. This treats
           // all the fields as dynamic.
-          return toFlatTypeMask(domain);
+          return toFlatTypeMask(domain).withPowerset(powerset, domain);
         } else if (domain.closedWorld.classHierarchy.isSubtypeOf(
           recordClass,
           otherBase,
@@ -384,17 +386,18 @@ class RecordTypeMask extends TypeMask {
               hasLateSentinel: hasLateSentinel,
             );
     } else {
-      return isNullable
-          ? FlatTypeMask.exact(
-              recordClass,
-              domain,
-              hasLateSentinel: hasLateSentinel,
-            )
-          : FlatTypeMask.nonNullExact(
-              recordClass,
-              domain,
-              hasLateSentinel: hasLateSentinel,
-            );
+      return (isNullable
+              ? TypeMask.exactOrEmpty(
+                  recordClass,
+                  domain,
+                  hasLateSentinel: hasLateSentinel,
+                )
+              : TypeMask.nonNullExactOrEmpty(
+                  recordClass,
+                  domain,
+                  hasLateSentinel: hasLateSentinel,
+                ))
+          as FlatTypeMask;
     }
   }
 

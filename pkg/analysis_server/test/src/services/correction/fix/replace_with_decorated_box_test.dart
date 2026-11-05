@@ -20,13 +20,10 @@ void main() {
 @reflectiveTest
 class ReplaceWithDecoratedBoxBulkTest extends BulkFixProcessorTest {
   @override
-  String get lintCode => LintNames.use_decorated_box;
+  bool get addFlutterPackageDep => true;
 
   @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(flutter: true);
-  }
+  String get lintCode => LintNames.use_decorated_box;
 
   Future<void> test_singleFile() async {
     await resolveTestCode('''
@@ -61,11 +58,10 @@ void f(Color color) {
 @reflectiveTest
 class ReplaceWithDecoratedBoxInFileTest extends FixInFileProcessorTest {
   @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(flutter: true);
-    createAnalysisOptionsFile(lints: [LintNames.use_decorated_box]);
-  }
+  bool get addFlutterPackageDep => true;
+
+  @override
+  List<String> get lintCodes => [LintNames.use_decorated_box];
 
   Future<void> test_functionExpression() async {
     await resolveTestCode(r'''
@@ -248,16 +244,13 @@ void f(Color color) {
 @reflectiveTest
 class ReplaceWithDecoratedBoxTest extends FixProcessorLintTest {
   @override
+  bool get addFlutterPackageDep => true;
+
+  @override
   FixKind get kind => DartFixKind.replaceWithDecoratedBox;
 
   @override
   String get lintCode => LintNames.use_decorated_box;
-
-  @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(flutter: true);
-  }
 
   Future<void> test_canBeConst() async {
     await resolveTestCode('''

@@ -65,6 +65,9 @@ class PluginIsolateTest with ResourceProviderMixin, _ContextRoot {
     pluginIsolate.addContextRoot(contextRoot);
     expect(pluginIsolate.contextRoots, [contextRoot]);
     var sentRequests = channel.sentRequests;
+    // Two requests: `analysis.setContextRoots` and
+    // `analysis.setAnalysisRoots`; adding the same context root again is a
+    // no-op.
     expect(sentRequests, hasLength(2));
     expect(sentRequests[0].method, 'analysis.setContextRoots');
     var roots1 = sentRequests[0].params['roots'] as List<Map>;
@@ -94,6 +97,134 @@ class PluginIsolateTest with ResourceProviderMixin, _ContextRoot {
     expect(pluginIsolate.contextRoots, unorderedEquals([contextRoot2]));
     pluginIsolate.removeContextRoot(contextRoot2);
     expect(pluginIsolate.contextRoots, isEmpty);
+  }
+
+  void test_setAnalysisRoots_beforeAddContextRoot() {
+    var session = PluginSession(pluginIsolate);
+    var channel = TestServerCommunicationChannel(session);
+    pluginIsolate.currentSession = session;
+
+    // Client sets analysis roots before the plugin has any context roots.
+    pluginIsolate.setAnalysisRoots(
+      AnalysisSetAnalysisRootsParams([convertPath('/workspace')], []),
+    );
+
+    // No request should be sent when there are no context roots yet.
+    expect(channel.sentRequests, isEmpty);
+
+    // Adding a context root now should compute the narrowed analysis roots.
+    var contextRoot = _newContextRoot('/workspace/pkg1');
+    pluginIsolate.addContextRoot(contextRoot);
+
+    var sentRequests = channel.sentRequests;
+    // Two requests: `analysis.setContextRoots` and
+    // `analysis.setAnalysisRoots` (setting analysis roots earlier sent no
+    // requests because context roots were empty).
+    expect(sentRequests, hasLength(2));
+    expect(sentRequests[0].method, 'analysis.setContextRoots');
+    expect(sentRequests[1].method, 'analysis.setAnalysisRoots');
+    var roots = sentRequests[1].params['included'] as List<String>;
+    expect(roots, [contextRoot.root.path]);
+  }
+
+  void test_setAnalysisRoots_excluded() {
+    var contextRoot = _newContextRoot('/workspace/pkg1');
+    var session = PluginSession(pluginIsolate);
+    var channel = TestServerCommunicationChannel(session);
+    pluginIsolate.currentSession = session;
+    pluginIsolate.addContextRoot(contextRoot);
+
+    var excludedPath = convertPath('/workspace/pkg1/test');
+    pluginIsolate.setAnalysisRoots(
+      AnalysisSetAnalysisRootsParams(
+        [convertPath('/workspace')],
+        [excludedPath],
+      ),
+    );
+
+    var sentRequests = channel.sentRequests;
+    // Four requests:
+    // 0: 'analysis.setContextRoots'
+    // 1: 'analysis.setAnalysisRoots'
+    // 2: 'analysis.setContextRoots'
+    // 3: 'analysis.setAnalysisRoots'
+    expect(sentRequests, hasLength(4));
+    var roots = sentRequests[3].params['included'] as List<String>;
+    expect(roots, [contextRoot.root.path]);
+    var excluded = sentRequests[3].params['excluded'] as List<String>;
+    expect(excluded, [excludedPath]);
+  }
+
+  void test_setAnalysisRoots_narrowedToContextRoot() {
+    var contextRoot = _newContextRoot('/workspace/pkg1');
+    var session = PluginSession(pluginIsolate);
+    var channel = TestServerCommunicationChannel(session);
+    pluginIsolate.currentSession = session;
+    pluginIsolate.addContextRoot(contextRoot);
+
+    // Client sets analysis roots to workspace root '/workspace'.
+    pluginIsolate.setAnalysisRoots(
+      AnalysisSetAnalysisRootsParams([convertPath('/workspace')], []),
+    );
+
+    var sentRequests = channel.sentRequests;
+    // Four requests:
+    // 0: 'analysis.setContextRoots'
+    // 1: 'analysis.setAnalysisRoots'
+    // 2: 'analysis.setContextRoots'
+    // 3: 'analysis.setAnalysisRoots'
+    expect(sentRequests, hasLength(4));
+    expect(sentRequests[3].method, 'analysis.setAnalysisRoots');
+    var roots = sentRequests[3].params['included'] as List<String>;
+    // The included root sent to the plugin should be narrowed to the context
+    // root, not the client workspace root.
+    expect(roots, [contextRoot.root.path]);
+  }
+
+  void test_setAnalysisRoots_subpath() {
+    var contextRoot = _newContextRoot('/workspace/pkg1');
+    var session = PluginSession(pluginIsolate);
+    var channel = TestServerCommunicationChannel(session);
+    pluginIsolate.currentSession = session;
+    pluginIsolate.addContextRoot(contextRoot);
+
+    var subpath = convertPath('/workspace/pkg1/lib');
+    pluginIsolate.setAnalysisRoots(
+      AnalysisSetAnalysisRootsParams([subpath], []),
+    );
+
+    var sentRequests = channel.sentRequests;
+    // Four requests:
+    // 0: 'analysis.setContextRoots'
+    // 1: 'analysis.setAnalysisRoots'
+    // 2: 'analysis.setContextRoots'
+    // 3: 'analysis.setAnalysisRoots'
+    expect(sentRequests, hasLength(4));
+    var roots = sentRequests[3].params['included'] as List<String>;
+    expect(roots, [subpath]);
+  }
+
+  void test_setAnalysisRoots_unrelatedWorkspaceFolder() {
+    var contextRoot = _newContextRoot('/workspace1/pkg1');
+    var session = PluginSession(pluginIsolate);
+    var channel = TestServerCommunicationChannel(session);
+    pluginIsolate.currentSession = session;
+    pluginIsolate.addContextRoot(contextRoot);
+
+    // Client sets analysis roots to a different workspace folder.
+    pluginIsolate.setAnalysisRoots(
+      AnalysisSetAnalysisRootsParams([convertPath('/workspace2')], []),
+    );
+
+    var sentRequests = channel.sentRequests;
+    // Four requests:
+    // 0: 'analysis.setContextRoots'
+    // 1: 'analysis.setAnalysisRoots'
+    // 2: 'analysis.setContextRoots'
+    // 3: 'analysis.setAnalysisRoots'
+    expect(sentRequests, hasLength(4));
+    var roots = sentRequests[3].params['included'] as List<String>;
+    expect(roots, isEmpty);
   }
 
   @failingTest

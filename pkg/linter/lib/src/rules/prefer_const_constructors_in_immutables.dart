@@ -38,11 +38,7 @@ class PreferConstConstructorsInImmutables extends AnalysisRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final AnalysisRule rule;
-
-  new(this.rule);
-
+class _Visitor(final AnalysisRule rule) extends SimpleAstVisitor<void> {
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     var element = node.declaredFragment?.element;
@@ -56,7 +52,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     if (element case ConstructorElement(
       isFactory: true,
-      redirectedConstructor: ConstructorElement redirectedConstructor,
+      :ConstructorElement redirectedConstructor,
     )) {
       if (redirectedConstructor.isConst) {
         rule.reportAtToken(node.firstTokenAfterCommentAndMetadata);
@@ -90,7 +86,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     if (element case ConstructorElement(
       isFactory: true,
-      redirectedConstructor: ConstructorElement redirectedConstructor,
+      :ConstructorElement redirectedConstructor,
     )) {
       if (redirectedConstructor.isConst) {
         rule.reportAtSourceRange(node.errorRange);

@@ -290,11 +290,6 @@ char* Dart::DartInit(const Dart_InitializeParams* params) {
   if (!Flags::Initialized()) {
     return Utils::StrDup("VM initialization failed-VM Flags not initialized.");
   }
-  if (((FLAG_target_address_sanitizer ? 1 : 0) +
-       (FLAG_target_memory_sanitizer ? 1 : 0) +
-       (FLAG_target_thread_sanitizer ? 1 : 0)) > 1) {
-    return Utils::StrDup("Can only target one sanitizer at a time");
-  }
 
   FrameLayout::Init();
 
@@ -970,6 +965,8 @@ char* Dart::FeaturesString(IsolateGroup* isolate_group, Snapshot::Kind kind) {
     buffer.AddString(" x64");
 #elif defined(TARGET_ARCH_ARM)
     buffer.AddString(" arm");
+#elif defined(TARGET_ARCH_ARM64E)
+    buffer.AddString(" arm64e");
 #elif defined(TARGET_ARCH_ARM64)
     buffer.AddString(" arm64");
 #elif defined(TARGET_ARCH_RISCV32)

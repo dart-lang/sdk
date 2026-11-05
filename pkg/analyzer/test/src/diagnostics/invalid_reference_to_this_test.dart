@@ -5,10 +5,12 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InvalidReferenceToThisTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -58,7 +60,6 @@ class A {
 class A {
   void foo([Object p = this]) {}
 //                     ^^^^
-// [diag.nonConstantDefaultValue] The default value of an optional parameter must be constant.
 // [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 }
 ''');
@@ -99,7 +100,6 @@ class A(num a) {
     await resolveTestCodeWithDiagnostics(r'''
 class A([int p = this]) {}
 //               ^^^^
-// [diag.nonConstantDefaultValue] The default value of an optional parameter must be constant.
 // [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 ''');
   }
@@ -141,7 +141,6 @@ class A {
 class A {
   factory A([Object p = this]) => throw 0;
 //                      ^^^^
-// [diag.nonConstantDefaultValue] The default value of an optional parameter must be constant.
 // [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 }
 ''');
@@ -174,7 +173,6 @@ class A {
 class A {
   A([Object p = this]);
 //              ^^^^
-// [diag.nonConstantDefaultValue] The default value of an optional parameter must be constant.
 // [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 }
 ''');
@@ -265,7 +263,6 @@ class A {
 class A {
   static void foo([Object p = this]) {}
 //                            ^^^^
-// [diag.nonConstantDefaultValue] The default value of an optional parameter must be constant.
 // [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 }
 ''');
@@ -334,7 +331,6 @@ enum E {
   v;
   void foo([Object p = this]) {}
 //                     ^^^^
-// [diag.nonConstantDefaultValue] The default value of an optional parameter must be constant.
 // [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 }
 ''');
@@ -356,10 +352,10 @@ enum E {
 enum E() {
   v;
   this : assert(this.hashCode == 0);
-//              ^^^^^^^^^^^^^
-// [diag.invalidConstant] Invalid constant value.
 //              ^^^^
 // [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
+//              ^^^^^^^^^^^^^
+// [diag.invalidConstant] Invalid constant value.
 }
 ''');
   }
@@ -383,7 +379,6 @@ enum E([int p = this]) {
 //          ^
 // [diag.unusedElementParameter] A value for optional parameter 'p' isn't ever given.
 //              ^^^^
-// [diag.nonConstantDefaultValue] The default value of an optional parameter must be constant.
 // [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
   v;
 }
@@ -397,8 +392,8 @@ enum E() {
   final Object f;
   this : f = this;
 //           ^^^^
-// [diag.invalidConstant] Invalid constant value.
 // [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
+// [diag.invalidConstant] Invalid constant value.
 }
 ''');
   }
@@ -422,7 +417,6 @@ enum E {
   v;
   factory E.named([Object p = this]) => throw 0;
 //                            ^^^^
-// [diag.nonConstantDefaultValue] The default value of an optional parameter must be constant.
 // [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 }
 ''');
@@ -433,10 +427,10 @@ enum E {
 enum E {
   v.named();
   const E.named() : assert(this.hashCode == 0);
-//                         ^^^^^^^^^^^^^
-// [diag.invalidConstant] Invalid constant value.
 //                         ^^^^
 // [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
+//                         ^^^^^^^^^^^^^
+// [diag.invalidConstant] Invalid constant value.
 }
 ''');
   }
@@ -462,7 +456,6 @@ enum E {
 //                      ^
 // [diag.unusedElementParameter] A value for optional parameter 'p' isn't ever given.
 //                          ^^^^
-// [diag.nonConstantDefaultValue] The default value of an optional parameter must be constant.
 // [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 }
 ''');
@@ -475,8 +468,8 @@ enum E {
   final Object f;
   const E() : f = this;
 //                ^^^^
-// [diag.invalidConstant] Invalid constant value.
 // [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
+// [diag.invalidConstant] Invalid constant value.
 }
 ''');
   }
@@ -487,8 +480,8 @@ enum E {
   v.named();
   const E.named() : this(this);
 //                       ^^^^
-// [diag.invalidConstant] Invalid constant value.
 // [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
+// [diag.invalidConstant] Invalid constant value.
   const E(Object o);
 }
 ''');
@@ -549,7 +542,6 @@ enum E {
   v;
   static void foo([Object p = this]) {}
 //                            ^^^^
-// [diag.nonConstantDefaultValue] The default value of an optional parameter must be constant.
 // [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 }
 ''');
@@ -594,7 +586,6 @@ extension E on int {
 extension E on int {
   void foo([Object p = this]) {}
 //                     ^^^^
-// [diag.nonConstantDefaultValue] The default value of an optional parameter must be constant.
 // [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 }
 ''');
@@ -660,7 +651,6 @@ extension E on int {
 extension E on int {
   static void foo([Object p = this]) {}
 //                            ^^^^
-// [diag.nonConstantDefaultValue] The default value of an optional parameter must be constant.
 // [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 }
 ''');
@@ -704,8 +694,6 @@ extension type E(int it) {
 extension type E(int it) {
   void foo([Object p = this]) {}
 //                     ^^^^
-// [diag.nonConstantDefaultValue] The default value of an optional parameter must be constant.
-// [diag.invalidAssignment] A value of type 'E' can't be assigned to a variable of type 'Object'.
 // [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 }
 ''');
@@ -745,7 +733,6 @@ extension type E(int it) {
     await resolveTestCodeWithDiagnostics(r'''
 extension type E([int it = this]) {}
 //                         ^^^^
-// [diag.nonConstantDefaultValue] The default value of an optional parameter must be constant.
 // [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 ''');
   }
@@ -779,8 +766,6 @@ extension type E(int it) {
 extension type E(int it) {
   factory E.named([Object p = this]) => throw 0;
 //                            ^^^^
-// [diag.nonConstantDefaultValue] The default value of an optional parameter must be constant.
-// [diag.invalidAssignment] A value of type 'E' can't be assigned to a variable of type 'Object'.
 // [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 }
 ''');
@@ -811,8 +796,6 @@ extension type E(int it) {
 extension type E(int it) {
   E.named([Object p = this]) : it = 0;
 //                    ^^^^
-// [diag.nonConstantDefaultValue] The default value of an optional parameter must be constant.
-// [diag.invalidAssignment] A value of type 'E' can't be assigned to a variable of type 'Object'.
 // [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 }
 ''');
@@ -888,8 +871,6 @@ extension type E(int it) {
 extension type E(int it) {
   static void foo([Object p = this]) {}
 //                            ^^^^
-// [diag.nonConstantDefaultValue] The default value of an optional parameter must be constant.
-// [diag.invalidAssignment] A value of type 'E' can't be assigned to a variable of type 'Object'.
 // [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 }
 ''');
@@ -951,7 +932,6 @@ mixin M {
 mixin M {
   void foo([Object p = this]) {}
 //                     ^^^^
-// [diag.nonConstantDefaultValue] The default value of an optional parameter must be constant.
 // [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 }
 ''');
@@ -1017,7 +997,6 @@ mixin M {
 mixin M {
   static void foo([Object p = this]) {}
 //                            ^^^^
-// [diag.nonConstantDefaultValue] The default value of an optional parameter must be constant.
 // [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 }
 ''');
@@ -1036,12 +1015,19 @@ mixin M {
   }
 
   test_topLevelFunction__body() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f() {
   this;
 //^^^^
 // [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 }
+''');
+
+    var node = result.findNode.singleThisExpression;
+    assertResolvedNodeText(node, r'''
+ThisExpression
+  thisKeyword: this
+  staticType: InvalidType
 ''');
   }
 
@@ -1049,7 +1035,6 @@ void f() {
     await resolveTestCodeWithDiagnostics('''
 void f([Object p = this]) {}
 //                 ^^^^
-// [diag.nonConstantDefaultValue] The default value of an optional parameter must be constant.
 // [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 ''');
   }

@@ -507,6 +507,7 @@ FunctionTypePtr BytecodeReaderHelper::ReadFunctionSignature(
       }
     }
   }
+  signature.FinalizeNameArray();
 
   type ^= ReadObject();
   signature.set_result_type(type);
@@ -581,7 +582,7 @@ intptr_t BytecodeReaderHelper::ReadConstantPool(const Function& function,
     kInstantiatedInterfaceCall,
     kDynamicCall,
     kExternalCall,
-    kFfiCall,
+    kNativeFunction,
     kDeferredLibraryPrefix,
     kAllocateClosure,
   };
@@ -753,8 +754,8 @@ intptr_t BytecodeReaderHelper::ReadConstantPool(const Function& function,
         pool.SetRawValueAt(i, 0);
         continue;
       }
-      case ConstantPoolTag::kFfiCall: {
-        // FfiCall constant has 1 raw value entry.
+      case ConstantPoolTag::kNativeFunction: {
+        // NativeFunction constant has 1 raw value entry.
         pool.SetTypeAt(i, ObjectPool::EntryType::kNativeFunction,
                        ObjectPool::Patchability::kNotPatchable,
                        ObjectPool::SnapshotBehavior::kNotSnapshotable);
@@ -1136,6 +1137,13 @@ ObjectPtr BytecodeReaderHelper::ReadObjectContents(uint32_t header) {
       break;
     case kLibrary: {
       String& uri = String::CheckedHandle(Z, ReadObject());
+      if (uri.ptr() == Symbols::DartConcurrent().ptr() &&
+          !FLAG_experimental_shared_data) {
+        // Keep in sync with KernelLoader::LoadLibraryImportsAndExports.
+        FATAL(
+            "Encountered dart:concurrent when functionality is disabled. "
+            "Pass --experimental-shared-data");
+      }
       LibraryPtr library = Library::LookupLibrary(thread_, uri);
       if (library == Library::null()) {
         // Expression evaluation libraries are not registered with the VM:
@@ -1901,6 +1909,14 @@ void BytecodeReaderHelper::ReadFieldDeclarations(const Class& cls,
       end_position = reader_.ReadPosition();
     }
 
+    if (is_shared && !FLAG_experimental_shared_data &&
+        !Library::Handle(Z, cls.library()).is_dart_scheme()) {
+      // Keep synced with error in KernelLoader::ReadVMAnnotations.
+      FATAL(
+          "Encountered vm:shared when functionality is disabled. "
+          "Pass --experimental-shared-data");
+    }
+
     field = Field::New(name, is_static, is_final, is_const,
                        (flags & kIsReflectableFlag) != 0, is_late, script_class,
                        type, position, end_position);
@@ -2283,6 +2299,7 @@ void BytecodeReaderHelper::ReadFunctionDeclarations(const Class& cls) {
         }
       }
     }
+    signature.FinalizeNameArray();
 
     type ^= ReadObject();
     signature.set_result_type(type);
@@ -2463,6 +2480,17 @@ void BytecodeReaderHelper::ReadClassDeclaration(const Class& cls) {
   ASSERT(loader != nullptr);
   loader->SetOffset(cls,
                     members_offset + bytecode_component_->GetMembersOffset());
+
+  if (has_pragma) {
+    // Check for the same pragmas that the KernelLoader does before finalizing
+    // the types in the class.
+    // vm:deeply-immutable is already handled as a declaration flag.
+    if (Library::FindPragma(thread_, /*only_core=*/false, cls,
+                            Symbols::vm_isolate_unsendable(),
+                            /*multiple=*/false)) {
+      cls.set_is_isolate_unsendable_due_to_pragma(true);
+    }
+  }
 
   if (!cls.is_type_finalized()) {
     ClassFinalizer::FinalizeTypesInClass(cls);
@@ -3084,7 +3112,7 @@ LocalVarDescriptorsPtr BytecodeReader::ComputeLocalVarDescriptors(
 
   LocalVarDescriptorsBuilder vars;
 
-  if (function.IsLocalFunction()) {
+  if (function.IsLocalFunction() && function.token_pos().IsReal()) {
     const auto& parent = Function::Handle(zone, function.parent_function());
     ASSERT(parent.is_declared_in_bytecode() && parent.HasBytecode());
     const auto& parent_bytecode = Bytecode::Handle(zone, parent.GetBytecode());
@@ -3104,7 +3132,9 @@ LocalVarDescriptorsPtr BytecodeReader::ComputeLocalVarDescriptors(
            (function.token_pos() <= var_info.begin_pos &&
             var_info.begin_pos <= function.end_token_pos()))) {
         vars.Add(LocalVarDescriptorsBuilder::VarDesc{
-            &String::Handle(zone, parent_vars.GetName(i)), var_info});
+            &String::Handle(zone, parent_vars.GetName(i)),
+            &AbstractType::Handle(zone, parent_vars.GetStaticType(i)),
+            var_info});
       }
     }
   }

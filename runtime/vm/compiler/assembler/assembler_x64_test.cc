@@ -26,7 +26,7 @@ namespace compiler {
 #define EXPECT_DISASSEMBLY_NOT_WINDOWS_ENDS_WITH(expected)
 #else
 #define EXPECT_DISASSEMBLY(expected)                                           \
-  EXPECT_STREQ(expected, test->RelativeDisassembly())
+  EXPECT_STREQ_NO_PREFIX_SUFFIX(expected, test->RelativeDisassembly())
 #define EXPECT_DISASSEMBLY_ENDS_WITH(expected_arg)                             \
   char* disassembly = test->RelativeDisassembly();                             \
   const char* expected = expected_arg;                                         \
@@ -4291,6 +4291,68 @@ ASSEMBLER_TEST_RUN(PackedLogicalAnd, test) {
       "ret\n");
 }
 
+ASSEMBLER_TEST_GENERATE(PackedShiftLeft, assembler) {
+  static const struct ALIGN16 {
+    uint32_t a;
+    uint32_t b;
+    uint32_t c;
+    uint32_t d;
+  } constant1 = {1, 2, 3, 0x20000000};
+  __ movq(RAX, CallingConventions::kArg1Reg);
+  __ movq(RDX, Immediate(reinterpret_cast<intptr_t>(&constant1)));
+  __ movups(XMM0, Address(RDX, 0));
+  __ movl(RDX, Immediate(2));
+  __ movd(XMM1, RDX);
+  __ pslld(XMM0, XMM1);
+  __ movups(Address(RAX, 0), XMM0);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(PackedShiftLeft, test) {
+  typedef void (*PackedShiftLeftCode)(uint32_t* result);
+  uint32_t result[4] = {0, 0, 0, 0};
+  reinterpret_cast<PackedShiftLeftCode>(test->entry())(result);
+  EXPECT_EQ(1u << 2, result[0]);
+  EXPECT_EQ(2u << 2, result[1]);
+  EXPECT_EQ(3u << 2, result[2]);
+  EXPECT_EQ(0x20000000u << 2, result[3]);
+  EXPECT_DISASSEMBLY_ENDS_WITH(
+      "pslld xmm0,xmm1\n"
+      "movups [rax],xmm0\n"
+      "ret\n");
+}
+
+ASSEMBLER_TEST_GENERATE(PackedShiftRightArithmetic, assembler) {
+  static const struct ALIGN16 {
+    uint32_t a;
+    uint32_t b;
+    uint32_t c;
+    uint32_t d;
+  } constant1 = {0xFFFFFFF8, 8, 0x80000000, 0x7FFFFFFF};
+  __ movq(RAX, CallingConventions::kArg1Reg);
+  __ movq(RDX, Immediate(reinterpret_cast<intptr_t>(&constant1)));
+  __ movups(XMM0, Address(RDX, 0));
+  __ movl(RDX, Immediate(1));
+  __ movd(XMM1, RDX);
+  __ psrad(XMM0, XMM1);
+  __ movups(Address(RAX, 0), XMM0);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(PackedShiftRightArithmetic, test) {
+  typedef void (*PackedShiftRightArithmeticCode)(uint32_t* result);
+  uint32_t result[4] = {0, 0, 0, 0};
+  reinterpret_cast<PackedShiftRightArithmeticCode>(test->entry())(result);
+  EXPECT_EQ(0xFFFFFFFCu, result[0]);
+  EXPECT_EQ(4u, result[1]);
+  EXPECT_EQ(0xC0000000u, result[2]);
+  EXPECT_EQ(0x3FFFFFFFu, result[3]);
+  EXPECT_DISASSEMBLY_ENDS_WITH(
+      "psrad xmm0,xmm1\n"
+      "movups [rax],xmm0\n"
+      "ret\n");
+}
+
 ASSEMBLER_TEST_GENERATE(PackedLogicalNot, assembler) {
   static const struct ALIGN16 {
     uint32_t a;
@@ -5311,6 +5373,80 @@ ASSEMBLER_TEST_RUN(Pxor, test) {
   EXPECT_FLOAT_EQ(0.0, res, 0.0);
   EXPECT_DISASSEMBLY(
       "pxor xmm0,xmm0\n"
+      "ret\n");
+}
+
+ASSEMBLER_TEST_GENERATE(Pcmpeqd, assembler) {
+  // Comparing a register with itself: every lane is equal -> all ones.
+  __ pcmpeqd(XMM0, XMM0);
+  // Collect the four lane sign bits; all set -> 0xF.
+  __ movmskps(RAX, XMM0);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Pcmpeqd, test) {
+  typedef intptr_t (*PcmpeqdCode)();
+  intptr_t res = reinterpret_cast<PcmpeqdCode>(test->entry())();
+  EXPECT_EQ(0xF, res);
+  EXPECT_DISASSEMBLY(
+      "pcmpeqd xmm0,xmm0\n"
+      "movmskps rax,xmm0\n"
+      "ret\n");
+}
+
+ASSEMBLER_TEST_GENERATE(Ptest, assembler) {
+  // Zero vector: ptest sets ZF=1, so setcc(EQUAL) yields 1.
+  __ xorps(XMM0, XMM0);
+  __ ptest(XMM0, XMM0);
+  __ setcc(EQUAL, ByteRegisterOf(RAX));
+  __ movzxb(RAX, RAX);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Ptest, test) {
+  typedef intptr_t (*PtestCode)();
+  intptr_t res = reinterpret_cast<PtestCode>(test->entry())();
+  EXPECT_EQ(1, res);
+  EXPECT_DISASSEMBLY(
+      "xorps xmm0,xmm0\n"
+      "ptest xmm0,xmm0\n"
+      "setz al\n"
+      "movzxbq rax,rax\n"
+      "ret\n");
+}
+
+ASSEMBLER_TEST_GENERATE(Pshufd, assembler) {
+  static const struct ALIGN16 {
+    uint32_t a;
+    uint32_t b;
+    uint32_t c;
+    uint32_t d;
+  } constant1 = {0x01234567, 0x89ABCDEF, 0x76543210, 0xFEDCBA98};
+  __ movq(RAX, CallingConventions::kArg1Reg);
+  __ movq(RDX, Immediate(reinterpret_cast<intptr_t>(&constant1)));
+  __ movups(XMM0, Address(RDX, 0));
+  __ pshufd(XMM1, XMM0, Immediate(0x9C));
+  __ movups(Address(RAX, 0), XMM1);
+  __ movups(Address(RAX, 16), XMM0);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Pshufd, test) {
+  typedef void (*PshufdCode)(uint32_t* result);
+  uint32_t result[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+  reinterpret_cast<PshufdCode>(test->entry())(result);
+  EXPECT_EQ(0x01234567u, result[0]);
+  EXPECT_EQ(0xFEDCBA98u, result[1]);
+  EXPECT_EQ(0x89ABCDEFu, result[2]);
+  EXPECT_EQ(0x76543210u, result[3]);
+  EXPECT_EQ(0x01234567u, result[4]);
+  EXPECT_EQ(0x89ABCDEFu, result[5]);
+  EXPECT_EQ(0x76543210u, result[6]);
+  EXPECT_EQ(0xFEDCBA98u, result[7]);
+  EXPECT_DISASSEMBLY_ENDS_WITH(
+      "pshufd xmm1,xmm0 [9c]\n"
+      "movups [rax],xmm1\n"
+      "movups [rax+0x10],xmm0\n"
       "ret\n");
 }
 
@@ -6585,6 +6721,44 @@ intptr_t RegRegImmTests::Asr(intptr_t value, intptr_t shift, OperandSize sz) {
   // For non-word sizes, the result is always zero extended to reduce
   // instruction count.
   return ZeroExtendValue(SignExtendValue(value, sz) >> shift, sz);
+}
+
+ASSEMBLER_TEST_GENERATE(TestEndbr, assembler) {
+  __ endbr64();
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(TestEndbr, test) {
+  typedef int (*TestNop)();
+  reinterpret_cast<TestNop>(test->payload_start())();
+  EXPECT_DISASSEMBLY(
+      "endbr64\n"
+      "ret\n");
+}
+
+static constexpr intptr_t kTestNotrackOffset = 4;
+
+ASSEMBLER_TEST_GENERATE(TestNotrack, assembler) {
+  // notrack prefix makes the indirect call valid even though the target doesn't
+  // have an endbr.
+  __ notrack();
+  __ jmp(CallingConventions::kArg1Reg);
+  __ int3();
+
+  ASSERT_EQUAL(__ CodeSize(), kTestNotrackOffset);
+  __ LoadImmediate(RAX, 42);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(TestNotrack, test) {
+  typedef intptr_t (*TestNotrack)(intptr_t);
+  EXPECT_EQ(42, reinterpret_cast<TestNotrack>(test->payload_start())(
+                    test->payload_start() + kTestNotrackOffset));
+  EXPECT_DISASSEMBLY_NOT_WINDOWS(
+      "notrack jmp rdi\n"
+      "int3\n"
+      "movl rax,0x2a\n"
+      "ret\n");
 }
 
 }  // namespace compiler

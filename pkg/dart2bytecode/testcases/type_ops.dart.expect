@@ -617,28 +617,29 @@ L1:
   Drop1
   Push                 FP[-7]
   Push                 FP[-6]
-  PushConstant         CP#3
-  PushNull
-  PushNull
   PushConstant         CP#6
-  AssertAssignable     1, CP#7
+  PushNull
+  PushNull
+  PushConstant         CP#7
+  AssertAssignable     1, CP#8
   Push                 FP[-5]
-  UncheckedDirectCall  CP#8, 3
+  UncheckedDirectCall  CP#9, 3
   ReturnTOS
 }
 Parameter flags: [1, 2]
-Forwarding stub target: CP#10
+Forwarding stub target: CP#11
 ConstantPool {
   [0] = Type dart:core::String
   [1] = ObjectRef 'c'
   [2] = SubtypeTestCache
-  [3] = Type dart:core::int
+  [3] = Type dart:core::num
   [4] = ObjectRef 'b'
   [5] = SubtypeTestCache
-  [6] = ObjectRef ' in type cast'
-  [7] = SubtypeTestCache
-  [8] = DirectCall 'DART_SDK/pkg/dart2bytecode/testcases/type_ops.dart::G::foo7', ArgDesc num-args 3, num-type-args 0, names []
-  [9] = Reserved
-  [10] = ObjectRef DART_SDK/pkg/dart2bytecode/testcases/type_ops.dart::G::foo7
+  [6] = Type dart:core::int
+  [7] = ObjectRef ' in type cast'
+  [8] = SubtypeTestCache
+  [9] = DirectCall 'DART_SDK/pkg/dart2bytecode/testcases/type_ops.dart::G::foo7', ArgDesc num-args 3, num-type-args 0, names []
+  [10] = Reserved
+  [11] = ObjectRef DART_SDK/pkg/dart2bytecode/testcases/type_ops.dart::G::foo7
 }
 

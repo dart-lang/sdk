@@ -340,12 +340,10 @@ class CommonMasks with AbstractValueDomain {
       );
     }
 
+    final isBound = type is TypeVariableType;
     bool isPrecise = true;
     while (type is TypeVariableType) {
-      TypeVariableType typeVariable = type;
-      type = closedWorld.elementEnvironment.getTypeVariableBound(
-        typeVariable.element,
-      );
+      type = closedWorld.elementEnvironment.getTypeVariableBound(type.element);
       isPrecise = false;
       if (type is NullableType) {
         // <A extends B?, B extends num>  ...  null is A --> can be `true`.
@@ -401,7 +399,24 @@ class CommonMasks with AbstractValueDomain {
       final shape = type.shape;
       final fields = type.fields;
       for (final field in fields) {
-        final fieldType = createFromStaticType(field);
+        final AbstractValueWithPrecision fieldType;
+        // When the current record type is a type bound and a field type of the
+        // record contains a type variable, there _might_ be recursion. Avoid
+        // the recursion by approximating the field type with 'top'. Interface
+        // types are approximated to the class and don't cause recursion (see
+        // above), and likewise, function types are approximated by
+        // `Function`. See http://dartbug.com/63920 for an example.
+        //
+        // TODO(sra): Track types instantiated in recursion to handle
+        // non-recursive types like `<X extends int, Y extends (X, String)>`.
+        if (isBound &&
+            field.withoutNullability is! InterfaceType &&
+            field.withoutNullability is! FunctionType &&
+            field.containsFreeTypeVariables) {
+          fieldType = AbstractValueWithPrecision(dynamicType, false);
+        } else {
+          fieldType = createFromStaticType(field);
+        }
         types.add(fieldType.abstractValue as TypeMask);
         isPrecise &= fieldType.isPrecise;
       }

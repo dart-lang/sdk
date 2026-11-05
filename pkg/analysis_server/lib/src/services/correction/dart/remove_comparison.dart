@@ -233,12 +233,41 @@ class RemoveComparison extends ResolvedCorrectionProducer {
     ChangeBuilder builder,
     BinaryExpression binary,
   ) async {
+    var operatorType = binary.operator.type;
+
+    // Find the full chain using the same logical operator.
+    var logicalExpression = binary;
+    while (true) {
+      var parent = logicalExpression.parent;
+      if (parent is! BinaryExpression || parent.operator.type != operatorType) {
+        break;
+      }
+      logicalExpression = parent;
+    }
+
+    // Flatten the chain into its individual operands.
+    var operands = <Expression>[];
+    void addOperands(Expression expression) {
+      if (expression is BinaryExpression &&
+          expression.operator.type == operatorType) {
+        addOperands(expression.leftOperand);
+        addOperands(expression.rightOperand);
+      } else {
+        operands.add(expression);
+      }
+    }
+
+    addOperands(logicalExpression);
+
+    // Each operand owns the following separator, except for the last operand.
     SourceRange operatorAndOperand;
-    if (binary.leftOperand == node) {
-      operatorAndOperand = range.startStart(node, binary.rightOperand);
+    var operandIndex = operands.indexOf(node as Expression);
+    if (operandIndex >= 0 && operandIndex < operands.length - 1) {
+      operatorAndOperand = range.startStart(node, operands[operandIndex + 1]);
     } else {
       operatorAndOperand = range.endEnd(binary.leftOperand, node);
     }
+
     await builder.addDartFileEdit(file, (builder) {
       builder.addDeletion(operatorAndOperand);
     });

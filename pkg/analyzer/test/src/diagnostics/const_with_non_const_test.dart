@@ -14,6 +14,30 @@ main() {
 
 @reflectiveTest
 class ConstWithNonConstTest extends PubPackageResolutionTest {
+  test_annotation_named() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A.named();
+}
+
+@A.named()
+// [diag.constWithNonConst][column 2][length 9] The constructor being called isn't a const constructor.
+void f() {}
+''');
+  }
+
+  test_annotation_unnamed() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A();
+}
+
+@A()
+// [diag.constWithNonConst][column 2][length 3] The constructor being called isn't a const constructor.
+void f() {}
+''');
+  }
+
   test_inConstContext() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {
@@ -94,9 +118,26 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.singleInstanceCreationExpression;
+    var node = result.findNode.singleConstructorInvocation;
     assertResolvedNodeText(node, r'''
-InstanceCreationExpression
+ConstructorInvocation
+  keyword: const
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
+      name: A
+      element: <testLibrary>::@class::A
+      type: A
+    element: <testLibrary>::@class::A::@constructor::new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+        staticType: int
+    rightParenthesis: )
+  staticType: A
+V1: InstanceCreationExpression
   keyword: const
   constructorName: ConstructorName
     type: NamedType
@@ -129,9 +170,26 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.singleInstanceCreationExpression;
+    var node = result.findNode.singleConstructorInvocation;
     assertResolvedNodeText(node, r'''
-InstanceCreationExpression
+ConstructorInvocation
+  keyword: const
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
+      name: A
+      element: <testLibrary>::@class::A
+      type: A
+    element: <testLibrary>::@class::A::@constructor::new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+        staticType: int
+    rightParenthesis: )
+  staticType: A
+V1: InstanceCreationExpression
   keyword: const
   constructorName: ConstructorName
     type: NamedType

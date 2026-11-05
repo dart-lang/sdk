@@ -39,7 +39,11 @@ FieldDeclaration
       VariableDeclaration
         name: f
         equals: =
-        initializer: SuperExpression
+        initializer2: InvalidSuperExpression
+          superReference: SuperReference
+            superKeyword: super
+          staticType: InvalidType
+        initializer(v1): SuperExpression
           superKeyword: super
           staticType: A
         declaredFragment: <testLibraryFragment> f@24
@@ -68,7 +72,7 @@ FieldDeclaration
       VariableDeclaration
         name: f
         equals: =
-        initializer: ThisExpression
+        initializer2: ThisExpression
           thisKeyword: this
           staticType: A
         declaredFragment: <testLibraryFragment> f@24
@@ -100,7 +104,14 @@ FieldDeclaration
       VariableDeclaration
         name: b
         equals: =
-        initializer: SimpleIdentifier
+        initializer2: UnqualifiedNameExpression
+          name: a
+          resolution: GetterInvocationResolution
+            element: <testLibrary>::@class::A::@getter::a
+            invokeType: int Function()
+            type: int
+          staticType: int
+        initializer(v1): SimpleIdentifier
           token: a
           element: <testLibrary>::@class::A::@getter::a
           staticType: int
@@ -133,7 +144,14 @@ FieldDeclaration
       VariableDeclaration
         name: b
         equals: =
-        initializer: SimpleIdentifier
+        initializer2: UnqualifiedNameExpression
+          name: a
+          resolution: GetterInvocationResolution
+            element: <testLibrary>::@class::A::@getter::a
+            invokeType: int Function()
+            type: int
+          staticType: int
+        initializer(v1): SimpleIdentifier
           token: a
           element: <testLibrary>::@class::A::@getter::a
           staticType: int
@@ -166,7 +184,17 @@ FieldDeclaration
       VariableDeclaration
         name: b
         equals: =
-        initializer: MethodInvocation
+        initializer2: UnqualifiedFunctionInvocation
+          name: a
+          argumentList: ArgumentList
+            leftParenthesis: (
+            rightParenthesis: )
+          resolution: ExecutableInvocationResolution
+            element: <testLibrary>::@class::A::@method::a
+            invokeType: int Function()
+            type: int
+          staticType: int
+        initializer(v1): MethodInvocation
           methodName: SimpleIdentifier
             token: a
             element: <testLibrary>::@class::A::@method::a
@@ -200,9 +228,9 @@ FieldDeclaration
       VariableDeclaration
         name: a
         equals: =
-        initializer: ThisExpression
+        initializer2: ThisExpression
           thisKeyword: this
-          staticType: A
+          staticType: InvalidType
         declaredFragment: <testLibraryFragment> a@18
   semicolon: ;
   declaredFragment: <null>
@@ -274,7 +302,7 @@ FieldDeclaration
       VariableDeclaration
         name: f
         equals: =
-        initializer: ListLiteral
+        initializer2: ListLiteral
           typeArguments: TypeArgumentList
             leftBracket: <
             arguments

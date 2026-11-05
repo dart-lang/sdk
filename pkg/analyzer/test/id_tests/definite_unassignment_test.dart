@@ -4,11 +4,13 @@
 
 import 'dart:io';
 
-import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
+import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualDataMap, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
@@ -30,9 +32,19 @@ main(List<String> args) {
     onFailure: onFailure,
     runTest: runTestFor(const _DefiniteAssignmentDataComputer(), [
       analyzerDefaultConfig,
+      TestConfig(
+        analyzerInferenceUpdate4Marker,
+        'analyzer with inference-update-4',
+        featureSet: FeatureSet.fromEnableFlags2(
+          sdkLanguageVersion: ExperimentStatus.currentVersion,
+          flags: ['inference-update-4'],
+        ),
+      ),
     ]),
   );
 }
+
+const String analyzerInferenceUpdate4Marker = 'analyzer:inference-update-4';
 
 class _DefiniteAssignmentDataComputer extends DataComputer<String> {
   const _DefiniteAssignmentDataComputer();
@@ -61,7 +73,7 @@ class _DefiniteAssignmentDataComputer extends DataComputer<String> {
   void computeUnitData(
     TestingData testingData,
     CompilationUnit unit,
-    Map<Id, ActualData<String>> actualMap,
+    ActualDataMap<String> actualMap,
   ) {
     var unitUri = unit.declaredFragment!.source.uri;
     var flowResult = testingData.uriToFlowAnalysisData[unitUri]!;
@@ -84,14 +96,26 @@ class _DefiniteUnassignmentDataExtractor extends AstDataExtractor<String> {
 
   @override
   String? computeNodeValue(Id id, AstNode node) {
-    if (node is SimpleIdentifier && node.inGetterContext()) {
-      var element = node.element;
-      if (element is LocalVariableElement ||
-          element is FormalParameterElement) {
-        if (_flowResult.definitelyUnassigned.contains(node)) {
-          return 'unassigned';
+    Element? element;
+    var flowNode = node;
+    if (node case UnqualifiedNameExpression(
+      resolution: VariableReadResolution(element: var readElement),
+    )) {
+      element = readElement;
+    } else if (node is IfNullAssignment || node is CompoundAssignment) {
+      var target = (node as AssignmentExpression2).target;
+      if (target is UnqualifiedNameAssignmentTarget) {
+        var readResolution = target.read;
+        if (readResolution is VariableReadResolution) {
+          element = readResolution.element;
+          flowNode = target;
         }
       }
+    }
+    if ((element is LocalVariableElement ||
+            element is FormalParameterElement) &&
+        _flowResult.definitelyUnassigned.contains(flowNode)) {
+      return 'unassigned';
     }
     return null;
   }

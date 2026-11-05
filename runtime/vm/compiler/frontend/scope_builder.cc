@@ -723,7 +723,8 @@ void ScopeBuilder::VisitExpression() {
       intptr_t variable_kernel_offset =
           helper_.ReadUInt();  // read kernel position.
       helper_.ReadUInt();      // read relative variable index.
-      LookupVariable(variable_kernel_offset);
+      LocalVariable* variable = LookupVariable(variable_kernel_offset);
+      variable->set_is_effectively_final(false);
       VisitExpression();  // read expression.
       return;
     }
@@ -731,7 +732,8 @@ void ScopeBuilder::VisitExpression() {
       helper_.ReadPosition();  // read position.
       intptr_t variable_kernel_offset =
           helper_.ReadUInt();  // read kernel position.
-      LookupVariable(variable_kernel_offset);
+      LocalVariable* variable = LookupVariable(variable_kernel_offset);
+      variable->set_is_effectively_final(false);
       VisitExpression();  // read expression.
       return;
     }
@@ -1306,11 +1308,15 @@ void ScopeBuilder::VisitStatement() {
         VisitDartType();          // Read the guard.
         tag = helper_.ReadTag();  // read first part of exception.
         if (tag == kSomething) {
-          VisitVariable();  // read exception.
+          LocalVariable* v = VisitVariable();  // read exception.
+          ASSERT(v->is_final() && !v->is_late());
+          v->set_is_effectively_final();
         }
         tag = helper_.ReadTag();  // read first part of stack trace.
         if (tag == kSomething) {
-          VisitVariable();  // read stack trace.
+          LocalVariable* v = VisitVariable();  // read stack trace.
+          ASSERT(v->is_final() && !v->is_late());
+          v->set_is_effectively_final();
         }
         VisitStatement();  // read body.
 
@@ -1358,7 +1364,9 @@ void ScopeBuilder::VisitStatement() {
     case kFunctionDeclaration: {
       intptr_t offset = helper_.ReaderOffset() - 1;  // -1 to include tag byte.
       helper_.ReadPosition();                        // read position.
-      VisitVariable();              // read variable declaration.
+      LocalVariable* v = VisitVariable();  // read variable declaration.
+      ASSERT(v->is_final() && !v->is_late());
+      v->set_is_effectively_final();
       helper_.ReadUInt();           // read id.
       HandleLocalFunction(offset);  // read function node.
       return;
@@ -1411,7 +1419,7 @@ void ScopeBuilder::VisitVariableDeclaration() {
   VisitVariable();  // read variable.
 }
 
-void ScopeBuilder::VisitVariable() {
+LocalVariable* ScopeBuilder::VisitVariable() {
   PositionScope scope(&helper_.reader_);
 
   const intptr_t kernel_offset =
@@ -1448,6 +1456,11 @@ void ScopeBuilder::VisitVariable() {
   if (helper.IsFinal()) {
     variable->set_is_final();
   }
+  // Non-late variables with an initializer are initialized as effectively
+  // final. If there is ever a write to the variable, we reset it to false.
+  if (!helper.IsLate() && tag == kSomething) {
+    variable->set_is_effectively_final();
+  }
   if (helper.IsLate()) {
     variable->set_is_late();
     variable->set_late_init_offset(initializer_offset);
@@ -1458,6 +1471,7 @@ void ScopeBuilder::VisitVariable() {
 
   scope_->AddVariable(variable);
   result_->locals.Insert(kernel_offset, variable);
+  return variable;
 }
 
 AbstractType& ScopeBuilder::BuildAndVisitVariableType() {
@@ -1747,6 +1761,11 @@ void ScopeBuilder::AddParameter(intptr_t pos,
   if (helper.IsFinal()) {
     variable->set_is_final();
   }
+  // Parameters are initialized as effectively final. If there is ever a write
+  // to the parameter, we reset it to false.
+  if (!helper.IsLate()) {
+    variable->set_is_effectively_final();
+  }
   if (helper.IsCovariant()) {
     variable->set_is_explicit_covariant_parameter();
   }
@@ -1843,9 +1862,14 @@ LocalVariable* ScopeBuilder::MakeVariable(
       inferred_arg_value = &inferred_arg_type_md->constant_value;
     }
   }
-  return new (Z) LocalVariable(declaration_pos, token_pos, name, static_type,
-                               kernel_offset, inferred_type, inferred_arg_type,
-                               inferred_arg_value);
+  LocalVariable* variable = new (Z) LocalVariable(
+      declaration_pos, token_pos, name, static_type, kernel_offset,
+      inferred_type, inferred_arg_type, inferred_arg_value);
+  if (name.ptr() == Symbols::This().ptr()) {
+    variable->set_is_final();
+    variable->set_is_effectively_final();
+  }
+  return variable;
 }
 
 void ScopeBuilder::AddExceptionVariable(

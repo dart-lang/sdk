@@ -5,7 +5,7 @@
 import 'common.dart';
 
 /// The hardware architectures the Dart VM runs on.
-enum _Architecture { arm, arm64, ia32, x64, riscv32, riscv64 }
+enum _Architecture { arm, arm64, arm64e, ia32, x64, riscv32, riscv64 }
 
 extension on _Architecture {
   /// The size of integer registers and memory addresses in bytes.
@@ -16,6 +16,7 @@ extension on _Architecture {
       case _Architecture.riscv32:
         return 4;
       case _Architecture.arm64:
+      case _Architecture.arm64e:
       case _Architecture.x64:
       case _Architecture.riscv64:
         return 8;
@@ -67,6 +68,9 @@ class Abi {
   /// The application binary interface for iOS on the Arm64 architecture.
   static const iosArm64 = _iosArm64;
 
+  /// The application binary interface for iOS on the Arm64 architecture with pointer authentication.
+  static const iosArm64e = _iosArm64e;
+
   /// The application binary interface for iOS on the X64 architecture.
   static const iosX64 = _iosX64;
 
@@ -93,6 +97,9 @@ class Abi {
 
   /// The application binary interface for MacOS on the Arm64 architecture.
   static const macosArm64 = _macosArm64;
+
+  /// The application binary interface for MacOS on the Arm64 architecture with pointer authentication.
+  static const macosArm64e = _macosArm64e;
 
   /// The application binary interface for MacOS on the X64 architecture.
   static const macosX64 = _macosX64;
@@ -125,6 +132,7 @@ class Abi {
     fuchsiaRiscv64,
     iosArm,
     iosArm64,
+    iosArm64e,
     iosX64,
     linuxArm,
     linuxArm64,
@@ -133,6 +141,7 @@ class Abi {
     linuxRiscv32,
     linuxRiscv64,
     macosArm64,
+    macosArm64e,
     macosX64,
     windowsArm64,
     windowsIA32,
@@ -169,6 +178,7 @@ class Abi {
   static const _fuchsiaRiscv64 = Abi._(_Architecture.riscv64, _OS.fuchsia);
   static const _iosArm = Abi._(_Architecture.arm, _OS.ios);
   static const _iosArm64 = Abi._(_Architecture.arm64, _OS.ios);
+  static const _iosArm64e = Abi._(_Architecture.arm64e, _OS.ios);
   static const _iosX64 = Abi._(_Architecture.x64, _OS.ios);
   static const _linuxArm = Abi._(_Architecture.arm, _OS.linux);
   static const _linuxArm64 = Abi._(_Architecture.arm64, _OS.linux);
@@ -177,6 +187,7 @@ class Abi {
   static const _linuxRiscv32 = Abi._(_Architecture.riscv32, _OS.linux);
   static const _linuxRiscv64 = Abi._(_Architecture.riscv64, _OS.linux);
   static const _macosArm64 = Abi._(_Architecture.arm64, _OS.macos);
+  static const _macosArm64e = Abi._(_Architecture.arm64e, _OS.macos);
   static const _macosX64 = Abi._(_Architecture.x64, _OS.macos);
   static const _windowsArm64 = Abi._(_Architecture.arm64, _OS.windows);
   static const _windowsIA32 = Abi._(_Architecture.ia32, _OS.windows);
@@ -195,6 +206,7 @@ const Map<Abi, String> abiNames = {
   Abi.fuchsiaRiscv64: 'fuchsiaRiscv64',
   Abi.iosArm: 'iosArm',
   Abi.iosArm64: 'iosArm64',
+  Abi.iosArm64e: 'iosArm64e',
   Abi.iosX64: 'iosX64',
   Abi.linuxArm: 'linuxArm',
   Abi.linuxArm64: 'linuxArm64',
@@ -203,6 +215,7 @@ const Map<Abi, String> abiNames = {
   Abi.linuxRiscv32: 'linuxRiscv32',
   Abi.linuxRiscv64: 'linuxRiscv64',
   Abi.macosArm64: 'macosArm64',
+  Abi.macosArm64e: 'macosArm64e',
   Abi.macosX64: 'macosX64',
   Abi.windowsArm64: 'windowsArm64',
   Abi.windowsIA32: 'windowsIA32',
@@ -238,11 +251,13 @@ const Map<Abi, Map<NativeType, int>> nonSizeAlignment = {
   Abi.fuchsiaX64: _wordSize64,
   Abi.fuchsiaRiscv64: _wordSize64,
   Abi.iosArm64: _wordSize64,
+  Abi.iosArm64e: _wordSize64,
   Abi.iosX64: _wordSize64,
   Abi.linuxArm64: _wordSize64,
   Abi.linuxX64: _wordSize64,
   Abi.linuxRiscv64: _wordSize64,
   Abi.macosArm64: _wordSize64,
+  Abi.macosArm64e: _wordSize64,
   Abi.macosX64: _wordSize64,
   Abi.windowsArm64: _wordSize64,
   Abi.windowsX64: _wordSize64,

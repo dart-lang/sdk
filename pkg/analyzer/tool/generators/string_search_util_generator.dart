@@ -81,7 +81,10 @@ class StringSearchUtilGenerator {
 
   List<MethodDeclarationImpl> _findMethods(ResolvedUnitResult resolvedUnit) {
     List<MethodDeclarationImpl> result = [];
-    for (var nodeImpl in resolvedUnit.unit.declarations) {
+    var declarations = resolvedUnit
+        .unit
+        .declarations; // ignore: analyzer_to_be_deprecated_use, unnecessary_ignore
+    for (var nodeImpl in declarations) {
       if (nodeImpl is ClassDeclarationImpl) {
         for (var member in nodeImpl.body.members) {
           if (member is! MethodDeclarationImpl) continue;

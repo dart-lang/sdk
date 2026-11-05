@@ -143,7 +143,7 @@ class GenericInferrer {
           preliminary: true,
           inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
           dataForTesting: null,
-          treeNodeForTesting: null,
+          astNodeForTesting: null,
         )
         .cast<TypeImpl>();
 
@@ -311,7 +311,7 @@ class GenericInferrer {
           preliminary: false,
           inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
           dataForTesting: null,
-          treeNodeForTesting: null,
+          astNodeForTesting: null,
         )
         .cast<TypeImpl>();
     // Check the inferred types against all of the constraints.
@@ -367,7 +367,7 @@ class GenericInferrer {
                 typeParameterName: name,
                 detailText: _formatError(parameter, inferred, constraints),
               )
-              .at(errorEntity!),
+              .at(_diagnosticEntity(errorEntity!)),
         );
 
         // Heuristic: even if we failed, keep the erroneous type.
@@ -402,7 +402,7 @@ class GenericInferrer {
                     ' [$typeParametersStr], but a function with'
                     ' type parameters cannot be used as a type argument.',
               )
-              .at(errorEntity!),
+              .at(_diagnosticEntity(errorEntity!)),
         );
       }
 
@@ -458,7 +458,7 @@ class GenericInferrer {
                     "\nConsider passing explicit type argument(s) "
                     "to the generic.\n\n'",
               )
-              .at(errorEntity!),
+              .at(_diagnosticEntity(errorEntity!)),
         );
       }
     }
@@ -512,7 +512,7 @@ class GenericInferrer {
                     ", instantiated from '${_typeStr(rawBound)}'"
                     " using type arguments ${typeArguments.map(_typeStr).toList()}.",
               )
-              .at(errorEntity!),
+              .at(_diagnosticEntity(errorEntity!)),
         );
       }
     }
@@ -523,6 +523,13 @@ class GenericInferrer {
       types[i] = _typeSystem.demoteType(types[i]);
     }
   }
+
+  /// Named invocations supply semantic context for inference, but diagnostics
+  /// are anchored on the written name, as for the legacy identifier child.
+  SyntacticEntity _diagnosticEntity(SyntacticEntity entity) => switch (entity) {
+    NamedFunctionInvocation(:var name) => name,
+    _ => entity,
+  };
 
   String _elementStr(ElementImpl element) {
     return element.displayString();
@@ -577,6 +584,24 @@ class GenericInferrer {
         'Consider passing explicit type argument(s) to the generic.\n\n';
   }
 
+  bool _hasOptionalTypeArgs(Element element) {
+    if (element is VariableElement) {
+      // For variable elements, check the declaration of their type or its
+      // alias in addition to the variable itself.
+      var type = element.type;
+      var typeElement = type is InterfaceType ? type.element : null;
+      if (typeElement != null && typeElement.metadata.hasOptionalTypeArgs) {
+        return true;
+      }
+      var typeAliasElement = type.alias?.element;
+      if (typeAliasElement != null &&
+          typeAliasElement.metadata.hasOptionalTypeArgs) {
+        return true;
+      }
+    }
+    return element.metadata.hasOptionalTypeArgs;
+  }
+
   /// Reports an inference failure on [errorEntity] according to its type.
   void _reportInferenceFailure({
     DiagnosticReporter? diagnosticReporter,
@@ -587,66 +612,60 @@ class GenericInferrer {
       return;
     }
     if (errorEntity is AstNode &&
-        errorEntity.parent is InvocationExpression &&
-        errorEntity.parent?.parent is AsExpression) {
+        errorEntity.parent2 is InvocationExpression &&
+        errorEntity.parent2?.parent2 is AsExpression) {
       // Casts via `as` do not play a part in downward inference. We allow an
       // exception when inference has "failed" but the return value is
       // immediately cast with `as`.
       return;
     }
-    if (errorEntity is ConstructorName &&
-        !(errorEntity.type.type as InterfaceType)
-            .element
-            .metadata
-            .hasOptionalTypeArgs) {
-      String constructorName = errorEntity.name == null
-          ? errorEntity.type.qualifiedName
-          : '${errorEntity.type}.${errorEntity.name}';
-      diagnosticReporter.report(
-        diag.inferenceFailureOnInstanceCreation
-            .withArguments(function: constructorName)
-            .at(errorEntity),
+    if (errorEntity is NamedFunctionInvocation) {
+      if (errorEntity.parent2 is AsExpression) {
+        return;
+      }
+      _reportNamedInferenceFailure(
+        diagnosticReporter: diagnosticReporter,
+        errorEntity: errorEntity.name,
+        element: switch (errorEntity.resolution) {
+          ExecutableInvocationResolution(:var element) => element,
+          InvalidInvocationResolution(:var candidates)
+              when candidates.isNotEmpty =>
+            candidates.first,
+          InvalidInvocationResolution(
+            recovery: ExecutableInvocationResolution(:var element),
+          ) =>
+            element,
+          _ => null,
+        },
+        name: errorEntity.name.lexeme,
       );
-    } else if (errorEntity is Annotation) {
-      if (genericMetadataIsEnabled) {
-        // Only report an error if generic metadata is valid syntax.
-        var element = errorEntity.name.element;
-        if (element != null && !element.metadata.hasOptionalTypeArgs) {
-          String constructorName = errorEntity.constructorName == null
-              ? errorEntity.name.name
-              : '${errorEntity.name.name}.${errorEntity.constructorName}';
-          diagnosticReporter.report(
-            diag.inferenceFailureOnInstanceCreation
-                .withArguments(function: constructorName)
-                .at(errorEntity),
-          );
-        }
+      return;
+    }
+    if (errorEntity is ConstructorReference2Impl) {
+      var type = errorEntity.typeReference.type;
+      if (type is InterfaceTypeImpl &&
+          !type.element.metadata.hasOptionalTypeArgs) {
+        var typeReference = errorEntity.typeReference;
+        var constructorName = [
+          if (typeReference.importPrefix case var importPrefix?)
+            '${importPrefix.name.lexeme}.',
+          typeReference.name.lexeme,
+          if (errorEntity.selector case var selector?)
+            '.${selector.name2.lexeme}',
+        ].join();
+        diagnosticReporter.report(
+          diag.inferenceFailureOnInstanceCreation
+              .withArguments(function: constructorName)
+              .at(errorEntity),
+        );
       }
-    } else if (errorEntity is SimpleIdentifier) {
-      var element = errorEntity.element;
-      if (element != null) {
-        if (element is VariableElement) {
-          // For variable elements, we check their type and possible alias type.
-          var type = element.type;
-          var typeElement = type is InterfaceType ? type.element : null;
-          if (typeElement != null && typeElement.metadata.hasOptionalTypeArgs) {
-            return;
-          }
-          var typeAliasElement = type.alias?.element;
-          if (typeAliasElement != null &&
-              typeAliasElement.metadata.hasOptionalTypeArgs) {
-            return;
-          }
-        }
-        if (!element.metadata.hasOptionalTypeArgs) {
-          diagnosticReporter.report(
-            diag.inferenceFailureOnFunctionInvocation
-                .withArguments(function: errorEntity.name)
-                .at(errorEntity),
-          );
-          return;
-        }
-      }
+    } else if (errorEntity is NameExpression) {
+      _reportNamedInferenceFailure(
+        diagnosticReporter: diagnosticReporter,
+        errorEntity: errorEntity,
+        element: errorEntity.resolution?.elementOrRecovery,
+        name: errorEntity.name.lexeme,
+      );
     } else if (errorEntity is Expression) {
       var type = errorEntity.staticType;
       if (type != null) {
@@ -658,6 +677,21 @@ class GenericInferrer {
         );
         return;
       }
+    }
+  }
+
+  void _reportNamedInferenceFailure({
+    required DiagnosticReporter diagnosticReporter,
+    required SyntacticEntity errorEntity,
+    required Element? element,
+    required String name,
+  }) {
+    if (element != null && !_hasOptionalTypeArgs(element)) {
+      diagnosticReporter.report(
+        diag.inferenceFailureOnFunctionInvocation
+            .withArguments(function: name)
+            .at(errorEntity),
+      );
     }
   }
 

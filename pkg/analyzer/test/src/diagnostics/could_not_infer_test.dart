@@ -146,6 +146,21 @@ void main() {
 ''');
   }
 
+  test_functionType_beforeGenericMetadata() async {
+    newFile('$testPackageLibPath/a.dart', '''
+void f<X>() {}
+''');
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: generic-metadata
+import 'a.dart';
+main() {
+  [f];
+//^^^
+// [diag.couldNotInfer] Couldn't infer type parameter 'E'. Inferred candidate type void Function<X>() has type parameters [X], but a function with type parameters cannot be used as a type argument.
+}
+''');
+  }
+
   test_functionType_instantiatedToBounds() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A<X extends A<X>> {}
@@ -156,21 +171,6 @@ void f() {
   foo();
 //^^^
 // [diag.couldNotInfer] Couldn't infer type parameter 'Y'.\n'A<Object?>' doesn't conform to the bound 'A<A<Object?>>', instantiated from 'A<X>' using type arguments [A<Object?>, A<Object?>].
-}
-''');
-  }
-
-  test_functionType_optOutOfGenericMetadata() async {
-    newFile('$testPackageLibPath/a.dart', '''
-void f<X>() {}
-''');
-    await resolveTestCodeWithDiagnostics(r'''
-// @dart=2.12
-import 'a.dart';
-main() {
-  [f];
-//^^^
-// [diag.couldNotInfer] Couldn't infer type parameter 'E'. Inferred candidate type void Function<X>() has type parameters [X], but a function with type parameters cannot be used as a type argument.
 }
 ''');
   }

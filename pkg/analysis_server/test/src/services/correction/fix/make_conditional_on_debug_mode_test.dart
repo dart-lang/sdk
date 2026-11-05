@@ -18,16 +18,13 @@ void main() {
 @reflectiveTest
 class MakeConditionalOnDebugModeTest extends FixProcessorLintTest {
   @override
+  bool get addFlutterPackageDep => true;
+
+  @override
   FixKind get kind => DartFixKind.makeConditionalOnDebugMode;
 
   @override
   String get lintCode => LintNames.avoid_print;
-
-  @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(flutter: true);
-  }
 
   Future<void> test_nested() async {
     await resolveTestCode('''

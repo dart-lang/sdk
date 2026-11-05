@@ -120,7 +120,6 @@ class UseFunctionTypeSyntaxForParametersTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.use_function_type_syntax_for_parameters;
 
-  @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/3212')
   Future<void> test_functionTypedParameter_fieldFormal() async {
     await resolveTestCode('''
 class C {
@@ -179,7 +178,6 @@ g(String Function(int x) f) {}
 ''');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/3212')
   Future<void> test_functionTypedParameter_superParameter() async {
     await resolveTestCode('''
 class C {

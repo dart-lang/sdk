@@ -25,12 +25,12 @@ class MyFuture<T extends core::Object? = dynamic> extends core::Object implement
 }
 static method test(asy::Future<core::bool> f) → void {
   asy::Future<core::int> t1 = f.{asy::Future::then}<core::int>((core::bool x) → asy::Future<core::int> async /* emittedValueType= core::int */ => x ?{core::int} 2 : await new self::MyFuture::value<core::int>(3)){((core::bool) → FutureOr<core::int>, {onError: core::Function?}) → asy::Future<core::int>};
-  asy::Future<core::int> t2 = f.{asy::Future::then}<core::int>((core::bool x) → asy::Future<core::int> async /* emittedValueType= core::int */ {
-    return await x /* runtimeCheckType= asy::Future<core::bool> */ ?{FutureOr<core::int>} 2 : new self::MyFuture::value<core::int>(3);
+  asy::Future<core::int> t2 = f.{asy::Future::then}<core::int>((core::bool x##1) → asy::Future<core::int> async /* emittedValueType= core::int */ {
+    return await x##1 /* runtimeCheckType= asy::Future<core::bool> */ ?{FutureOr<core::int>} 2 : new self::MyFuture::value<core::int>(3);
   }){((core::bool) → FutureOr<core::int>, {onError: core::Function?}) → asy::Future<core::int>};
-  asy::Future<core::int> t5 = f.{asy::Future::then}<core::int>((core::bool x) → FutureOr<core::int> => x ?{FutureOr<core::int>} 2 : new self::MyFuture::value<core::int>(3)){((core::bool) → FutureOr<core::int>, {onError: core::Function?}) → asy::Future<core::int>};
-  asy::Future<core::int> t6 = f.{asy::Future::then}<core::int>((core::bool x) → FutureOr<core::int> {
-    return x ?{FutureOr<core::int>} 2 : new self::MyFuture::value<core::int>(3);
+  asy::Future<core::int> t5 = f.{asy::Future::then}<core::int>((core::bool x##2) → FutureOr<core::int> => x##2 ?{FutureOr<core::int>} 2 : new self::MyFuture::value<core::int>(3)){((core::bool) → FutureOr<core::int>, {onError: core::Function?}) → asy::Future<core::int>};
+  asy::Future<core::int> t6 = f.{asy::Future::then}<core::int>((core::bool x##3) → FutureOr<core::int> {
+    return x##3 ?{FutureOr<core::int>} 2 : new self::MyFuture::value<core::int>(3);
   }){((core::bool) → FutureOr<core::int>, {onError: core::Function?}) → asy::Future<core::int>};
 }
 static method main() → dynamic {}

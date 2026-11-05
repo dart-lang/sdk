@@ -478,6 +478,9 @@ class ForwardingNode {
     function.registerFunctionBody(
       extern.createReturnStatement(superCall, fileOffset: procedure.fileOffset),
     );
+    // TODO(cstefantsova): Verify that null should be passed for
+    //  scopeProviderInfo in the call below.
+    function.registerScopeProviderInfo(null);
     procedure.containsSuperCalls = true;
     procedure.stubKind = isForwardingStub
         ? ProcedureStubKind.ConcreteForwardingStub
@@ -611,6 +614,9 @@ class ForwardingNode {
     procedure.function.registerFunctionBody(
       extern.createReturnStatement(result, fileOffset: procedure.fileOffset),
     );
+    // TODO(cstefantsova): Verify that null should be passed for
+    //  scopeProviderInfo in the call below.
+    procedure.function.registerScopeProviderInfo(null);
 
     procedure.isAbstract = false;
     procedure.stubKind = ProcedureStubKind.NoSuchMethodForwarder;

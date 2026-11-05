@@ -44,4 +44,14 @@ f({x = a.V + 1}) {}
 // [diag.nonConstantDefaultValueFromDeferredLibrary] Constant values from a deferred library can't be used as a default parameter value.
 ''');
   }
+
+  test_notDeferred() async {
+    newFile('$testPackageLibPath/lib1.dart', '''
+const V = 1;
+''');
+    await resolveTestCode('''
+import 'lib1.dart' as a;
+void f({int x = a.V}) {}
+''');
+  }
 }

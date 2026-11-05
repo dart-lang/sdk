@@ -3,15 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
-import 'package:expect/async_helper.dart';
+
 import 'package:compiler/src/closure.dart';
-import 'package:compiler/src/common.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/js_backend/inferred_data.dart';
 import 'package:compiler/src/js_model/element_map.dart';
 import 'package:compiler/src/js_model/js_world.dart';
+import 'package:expect/async_helper.dart';
 import 'package:kernel/ast.dart' as ir;
+
 import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
 
@@ -40,7 +41,7 @@ class SideEffectsDataComputer extends DataComputer<String> {
   void computeMemberData(
     Compiler compiler,
     MemberEntity member,
-    Map<Id, ActualData<String>> actualMap, {
+    ActualDataMap<String> actualMap, {
     bool verbose = false,
   }) {
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
@@ -64,11 +65,11 @@ class SideEffectsIrComputer extends IrDataExtractor<String> {
   final InferredData inferredData;
 
   SideEffectsIrComputer(
-    DiagnosticReporter reporter,
-    Map<Id, ActualData<String>> actualMap,
+    super.reporter,
+    super.actualMap,
     this.closedWorld,
     this.inferredData,
-  ) : super(reporter, actualMap);
+  );
 
   JsToElementMap get _elementMap => closedWorld.elementMap;
   ClosureData get _closureDataLookup => closedWorld.closureDataLookup;

@@ -25,7 +25,7 @@ class C { @ @annotation var f; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -37,10 +37,14 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
+                expression: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 name: SimpleIdentifier
                   token: <empty> <synthetic>
               Annotation
                 atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -63,7 +67,7 @@ class C { @ }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -83,7 +87,7 @@ class C { @ var f; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -95,6 +99,8 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
+                expression: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 name: SimpleIdentifier
                   token: <empty> <synthetic>
             fields: VariableDeclarationList
@@ -116,7 +122,7 @@ class C { @ const f = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -128,6 +134,8 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
+                expression: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 name: SimpleIdentifier
                   token: <empty> <synthetic>
             fields: VariableDeclarationList
@@ -136,7 +144,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -152,7 +160,7 @@ class C { @ final f = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -164,6 +172,8 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
+                expression: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 name: SimpleIdentifier
                   token: <empty> <synthetic>
             fields: VariableDeclarationList
@@ -172,7 +182,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -186,7 +196,7 @@ class C { @ int get a => 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -198,13 +208,15 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
+                expression: ParsedUnqualifiedName
+                  name: int
                 name: SimpleIdentifier
                   token: int
             propertyKeyword: get
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -218,7 +230,7 @@ class C { @ int a(b) => 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -230,17 +242,25 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
+                expression: ParsedUnqualifiedName
+                  name: int
                 name: SimpleIdentifier
                   token: int
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -256,7 +276,7 @@ class C { @ void a(b) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -268,12 +288,20 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
+                expression: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 name: SimpleIdentifier
                   token: <empty> <synthetic>
             returnType: NamedType
               name: void
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -293,7 +321,7 @@ class C { @ set a(b) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -305,10 +333,18 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
+                expression: ParsedUnqualifiedName
+                  name: set
                 name: SimpleIdentifier
                   token: set
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -331,7 +367,7 @@ class C { @a( @annotation var f; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -343,6 +379,19 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
+                expression: ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
+                      name: a
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    arguments2
+                      ParsedUnqualifiedName
+                        name: <empty> <synthetic>
+                    arguments(v1)
+                      SimpleIdentifier
+                        token: <empty> <synthetic>
+                    rightParenthesis: ) <synthetic>
                 name: SimpleIdentifier
                   token: a
                 arguments: ArgumentList
@@ -353,6 +402,8 @@ CompilationUnit
                   rightParenthesis: ) <synthetic>
               Annotation
                 atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -375,7 +426,7 @@ class C { @a( }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -397,7 +448,7 @@ class C { @a( var f; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -409,6 +460,19 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
+                expression: ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
+                      name: a
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    arguments2
+                      ParsedUnqualifiedName
+                        name: <empty> <synthetic>
+                    arguments(v1)
+                      SimpleIdentifier
+                        token: <empty> <synthetic>
+                    rightParenthesis: ) <synthetic>
                 name: SimpleIdentifier
                   token: a
                 arguments: ArgumentList
@@ -441,7 +505,7 @@ class C { @a( const f = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -463,7 +527,7 @@ class C { @a( final f = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -475,6 +539,19 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
+                expression: ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
+                      name: a
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    arguments2
+                      ParsedUnqualifiedName
+                        name: <empty> <synthetic>
+                    arguments(v1)
+                      SimpleIdentifier
+                        token: <empty> <synthetic>
+                    rightParenthesis: ) <synthetic>
                 name: SimpleIdentifier
                   token: a
                 arguments: ArgumentList
@@ -489,7 +566,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -512,7 +589,7 @@ class C { @a( int get a => 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -524,6 +601,27 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
+                expression: ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
+                      name: a
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    arguments2
+                      ParsedUnqualifiedName
+                        name: int
+                      ParsedUnqualifiedName
+                        name: get
+                      ParsedUnqualifiedName
+                        name: a
+                    arguments(v1)
+                      SimpleIdentifier
+                        token: int
+                      SimpleIdentifier
+                        token: get
+                      SimpleIdentifier
+                        token: a
+                    rightParenthesis: ) <synthetic>
                 name: SimpleIdentifier
                   token: a
                 arguments: ArgumentList
@@ -542,7 +640,7 @@ CompilationUnit
               rightParenthesis: ) <synthetic>
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -561,7 +659,7 @@ class C { @a( int a(b) => 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -584,7 +682,7 @@ class C { @a( void a(b) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -608,7 +706,7 @@ class C { @a( set a(b) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -630,7 +728,7 @@ f() { @ assert (true); }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -646,6 +744,8 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
+                      expression: ParsedUnqualifiedName
+                        name: <empty> <synthetic>
                       name: SimpleIdentifier
                         token: <empty> <synthetic>
                   variables
@@ -655,7 +755,7 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: BooleanLiteral
+                condition2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -674,7 +774,7 @@ f() { @ {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -690,6 +790,8 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
+                      expression: ParsedUnqualifiedName
+                        name: <empty> <synthetic>
                       name: SimpleIdentifier
                         token: <empty> <synthetic>
                   variables
@@ -715,7 +817,7 @@ f() { @ break; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -731,6 +833,8 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
+                      expression: ParsedUnqualifiedName
+                        name: <empty> <synthetic>
                       name: SimpleIdentifier
                         token: <empty> <synthetic>
                   variables
@@ -756,7 +860,7 @@ f() { @ continue; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -772,6 +876,8 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
+                      expression: ParsedUnqualifiedName
+                        name: <empty> <synthetic>
                       name: SimpleIdentifier
                         token: <empty> <synthetic>
                   variables
@@ -796,7 +902,7 @@ f() { @ do {} while (true); }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -812,6 +918,8 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
+                      expression: ParsedUnqualifiedName
+                        name: <empty> <synthetic>
                       name: SimpleIdentifier
                         token: <empty> <synthetic>
                   variables
@@ -825,7 +933,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition: BooleanLiteral
+                condition2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -844,7 +952,7 @@ f() { @ }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -860,6 +968,8 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
+                      expression: ParsedUnqualifiedName
+                        name: <empty> <synthetic>
                       name: SimpleIdentifier
                         token: <empty> <synthetic>
                   variables
@@ -881,7 +991,7 @@ f() { @ for (var x in y) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -897,6 +1007,8 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
+                      expression: ParsedUnqualifiedName
+                        name: <empty> <synthetic>
                       name: SimpleIdentifier
                         token: <empty> <synthetic>
                   variables
@@ -911,7 +1023,9 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable: SimpleIdentifier
+                  iterable2: ParsedUnqualifiedName
+                    name: y
+                  iterable(v1): SimpleIdentifier
                     token: y
                 rightParenthesis: )
                 body: Block
@@ -932,7 +1046,7 @@ f() { @ if (true) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -948,6 +1062,8 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
+                      expression: ParsedUnqualifiedName
+                        name: <empty> <synthetic>
                       name: SimpleIdentifier
                         token: <empty> <synthetic>
                   variables
@@ -957,7 +1073,7 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression: BooleanLiteral
+                expression2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 thenStatement: Block
@@ -977,7 +1093,7 @@ f() { @ l: {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -993,6 +1109,8 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
+                      expression: ParsedUnqualifiedName
+                        name: l
                       name: SimpleIdentifier
                         token: l
                   variables
@@ -1013,7 +1131,7 @@ f() { @ int f() {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1029,6 +1147,8 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
+                      expression: ParsedUnqualifiedName
+                        name: int
                       name: SimpleIdentifier
                         token: int
                   name: f
@@ -1053,7 +1173,7 @@ f() { @ void f() {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1069,6 +1189,8 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
+                      expression: ParsedUnqualifiedName
+                        name: <empty> <synthetic>
                       name: SimpleIdentifier
                         token: <empty> <synthetic>
                   returnType: NamedType
@@ -1095,7 +1217,7 @@ f() { @ var x; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1111,6 +1233,8 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
+                      expression: ParsedUnqualifiedName
+                        name: <empty> <synthetic>
                       name: SimpleIdentifier
                         token: <empty> <synthetic>
                   keyword: var
@@ -1133,7 +1257,7 @@ f() { @ return; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1149,6 +1273,8 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
+                      expression: ParsedUnqualifiedName
+                        name: <empty> <synthetic>
                       name: SimpleIdentifier
                         token: <empty> <synthetic>
                   variables
@@ -1173,7 +1299,7 @@ f() { @ switch (x) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1189,6 +1315,8 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
+                      expression: ParsedUnqualifiedName
+                        name: <empty> <synthetic>
                       name: SimpleIdentifier
                         token: <empty> <synthetic>
                   variables
@@ -1198,7 +1326,9 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression: SimpleIdentifier
+                expression2: ParsedUnqualifiedName
+                  name: x
+                expression(v1): SimpleIdentifier
                   token: x
                 rightParenthesis: )
                 leftBracket: {
@@ -1218,7 +1348,7 @@ f() { @ try {} finally {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1234,6 +1364,8 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
+                      expression: ParsedUnqualifiedName
+                        name: <empty> <synthetic>
                       name: SimpleIdentifier
                         token: <empty> <synthetic>
                   variables
@@ -1264,7 +1396,7 @@ f() { @ while (true) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1280,6 +1412,8 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
+                      expression: ParsedUnqualifiedName
+                        name: <empty> <synthetic>
                       name: SimpleIdentifier
                         token: <empty> <synthetic>
                   variables
@@ -1289,7 +1423,7 @@ CompilationUnit
               WhileStatement
                 whileKeyword: while
                 leftParenthesis: (
-                condition: BooleanLiteral
+                condition2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 body: Block
@@ -1309,7 +1443,7 @@ f() { @a( assert (true); }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1325,6 +1459,33 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
+                      expression: ConstructorInvocation
+                        constructorReference: ConstructorReference2
+                          typeReference: ConstructorTypeReference
+                            name: a
+                        argumentList: ArgumentList
+                          leftParenthesis: (
+                          arguments2
+                            CallInvocation
+                              receiver: ParsedUnqualifiedName
+                                name: assert
+                              argumentList: ArgumentList
+                                leftParenthesis: (
+                                arguments2
+                                  BooleanLiteral
+                                    literal: true
+                                rightParenthesis: )
+                          arguments(v1)
+                            FunctionExpressionInvocation
+                              function: SimpleIdentifier
+                                token: assert
+                              argumentList: ArgumentList
+                                leftParenthesis: (
+                                arguments
+                                  BooleanLiteral
+                                    literal: true
+                                rightParenthesis: )
+                          rightParenthesis: ) <synthetic>
                       name: SimpleIdentifier
                         token: a
                       arguments: ArgumentList
@@ -1360,7 +1521,7 @@ f() { @a( {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1376,6 +1537,18 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
+                      expression: ConstructorInvocation
+                        constructorReference: ConstructorReference2
+                          typeReference: ConstructorTypeReference
+                            name: a
+                        argumentList: ArgumentList
+                          leftParenthesis: (
+                          arguments2
+                            SetOrMapLiteral
+                              leftBracket: {
+                              rightBracket: }
+                              isMap: false
+                          rightParenthesis: ) <synthetic>
                       name: SimpleIdentifier
                         token: a
                       arguments: ArgumentList
@@ -1408,7 +1581,7 @@ f() { @a( break; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1424,6 +1597,19 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
+                      expression: ConstructorInvocation
+                        constructorReference: ConstructorReference2
+                          typeReference: ConstructorTypeReference
+                            name: a
+                        argumentList: ArgumentList
+                          leftParenthesis: (
+                          arguments2
+                            ParsedUnqualifiedName
+                              name: <empty> <synthetic>
+                          arguments(v1)
+                            SimpleIdentifier
+                              token: <empty> <synthetic>
+                          rightParenthesis: ) <synthetic>
                       name: SimpleIdentifier
                         token: a
                       arguments: ArgumentList
@@ -1457,7 +1643,7 @@ f() { @a( continue; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1473,6 +1659,19 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
+                      expression: ConstructorInvocation
+                        constructorReference: ConstructorReference2
+                          typeReference: ConstructorTypeReference
+                            name: a
+                        argumentList: ArgumentList
+                          leftParenthesis: (
+                          arguments2
+                            ParsedUnqualifiedName
+                              name: <empty> <synthetic>
+                          arguments(v1)
+                            SimpleIdentifier
+                              token: <empty> <synthetic>
+                          rightParenthesis: ) <synthetic>
                       name: SimpleIdentifier
                         token: a
                       arguments: ArgumentList
@@ -1505,7 +1704,7 @@ f() { @a( do {} while (true); }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1521,6 +1720,19 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
+                      expression: ConstructorInvocation
+                        constructorReference: ConstructorReference2
+                          typeReference: ConstructorTypeReference
+                            name: a
+                        argumentList: ArgumentList
+                          leftParenthesis: (
+                          arguments2
+                            ParsedUnqualifiedName
+                              name: <empty> <synthetic>
+                          arguments(v1)
+                            SimpleIdentifier
+                              token: <empty> <synthetic>
+                          rightParenthesis: ) <synthetic>
                       name: SimpleIdentifier
                         token: a
                       arguments: ArgumentList
@@ -1540,7 +1752,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition: BooleanLiteral
+                condition2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -1560,7 +1772,7 @@ f() { @a( }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1576,6 +1788,13 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
+                      expression: ConstructorInvocation
+                        constructorReference: ConstructorReference2
+                          typeReference: ConstructorTypeReference
+                            name: a
+                        argumentList: ArgumentList
+                          leftParenthesis: (
+                          rightParenthesis: ) <synthetic>
                       name: SimpleIdentifier
                         token: a
                       arguments: ArgumentList
@@ -1602,7 +1821,7 @@ f() { @a( for (var x in y) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1618,6 +1837,19 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
+                      expression: ConstructorInvocation
+                        constructorReference: ConstructorReference2
+                          typeReference: ConstructorTypeReference
+                            name: a
+                        argumentList: ArgumentList
+                          leftParenthesis: (
+                          arguments2
+                            ParsedUnqualifiedName
+                              name: <empty> <synthetic>
+                          arguments(v1)
+                            SimpleIdentifier
+                              token: <empty> <synthetic>
+                          rightParenthesis: ) <synthetic>
                       name: SimpleIdentifier
                         token: a
                       arguments: ArgumentList
@@ -1638,7 +1870,9 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable: SimpleIdentifier
+                  iterable2: ParsedUnqualifiedName
+                    name: y
+                  iterable(v1): SimpleIdentifier
                     token: y
                 rightParenthesis: )
                 body: Block
@@ -1661,7 +1895,7 @@ f() { @a( if (true) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1677,6 +1911,19 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
+                      expression: ConstructorInvocation
+                        constructorReference: ConstructorReference2
+                          typeReference: ConstructorTypeReference
+                            name: a
+                        argumentList: ArgumentList
+                          leftParenthesis: (
+                          arguments2
+                            ParsedUnqualifiedName
+                              name: <empty> <synthetic>
+                          arguments(v1)
+                            SimpleIdentifier
+                              token: <empty> <synthetic>
+                          rightParenthesis: ) <synthetic>
                       name: SimpleIdentifier
                         token: a
                       arguments: ArgumentList
@@ -1692,7 +1939,7 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression: BooleanLiteral
+                expression2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 thenStatement: Block
@@ -1714,7 +1961,7 @@ f() { @a( l: {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1730,6 +1977,21 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
+                      expression: ConstructorInvocation
+                        constructorReference: ConstructorReference2
+                          typeReference: ConstructorTypeReference
+                            name: a
+                        argumentList: ArgumentList
+                          leftParenthesis: (
+                          arguments2
+                            NamedArgument
+                              name: l
+                              colon: :
+                              argumentExpression2: SetOrMapLiteral
+                                leftBracket: {
+                                rightBracket: }
+                                isMap: false
+                          rightParenthesis: ) <synthetic>
                       name: SimpleIdentifier
                         token: a
                       arguments: ArgumentList
@@ -1765,7 +2027,7 @@ f() { @a( int f() {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1781,6 +2043,22 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
+                      expression: ConstructorInvocation
+                        constructorReference: ConstructorReference2
+                          typeReference: ConstructorTypeReference
+                            name: a
+                        argumentList: ArgumentList
+                          leftParenthesis: (
+                          arguments2
+                            FunctionExpression
+                              parameters: FormalParameterList
+                                leftParenthesis: (
+                                rightParenthesis: )
+                              body: BlockFunctionBody
+                                block: Block
+                                  leftBracket: {
+                                  rightBracket: }
+                          rightParenthesis: ) <synthetic>
                       name: SimpleIdentifier
                         token: a
                       arguments: ArgumentList
@@ -1817,7 +2095,7 @@ f() { @a( void f() {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1833,6 +2111,22 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
+                      expression: ConstructorInvocation
+                        constructorReference: ConstructorReference2
+                          typeReference: ConstructorTypeReference
+                            name: a
+                        argumentList: ArgumentList
+                          leftParenthesis: (
+                          arguments2
+                            FunctionExpression
+                              parameters: FormalParameterList
+                                leftParenthesis: (
+                                rightParenthesis: )
+                              body: BlockFunctionBody
+                                block: Block
+                                  leftBracket: {
+                                  rightBracket: }
+                          rightParenthesis: ) <synthetic>
                       name: SimpleIdentifier
                         token: a
                       arguments: ArgumentList
@@ -1866,7 +2160,7 @@ f() { @a( var x; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1882,6 +2176,19 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
+                      expression: ConstructorInvocation
+                        constructorReference: ConstructorReference2
+                          typeReference: ConstructorTypeReference
+                            name: a
+                        argumentList: ArgumentList
+                          leftParenthesis: (
+                          arguments2
+                            ParsedUnqualifiedName
+                              name: <empty> <synthetic>
+                          arguments(v1)
+                            SimpleIdentifier
+                              token: <empty> <synthetic>
+                          rightParenthesis: ) <synthetic>
                       name: SimpleIdentifier
                         token: a
                       arguments: ArgumentList
@@ -1911,7 +2218,7 @@ f() { @a( return; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1927,6 +2234,19 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
+                      expression: ConstructorInvocation
+                        constructorReference: ConstructorReference2
+                          typeReference: ConstructorTypeReference
+                            name: a
+                        argumentList: ArgumentList
+                          leftParenthesis: (
+                          arguments2
+                            ParsedUnqualifiedName
+                              name: <empty> <synthetic>
+                          arguments(v1)
+                            SimpleIdentifier
+                              token: <empty> <synthetic>
+                          rightParenthesis: ) <synthetic>
                       name: SimpleIdentifier
                         token: a
                       arguments: ArgumentList
@@ -1955,7 +2275,7 @@ f() { @a( switch (x) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1971,6 +2291,24 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
+                      expression: ConstructorInvocation
+                        constructorReference: ConstructorReference2
+                          typeReference: ConstructorTypeReference
+                            name: a
+                        argumentList: ArgumentList
+                          leftParenthesis: (
+                          arguments2
+                            SwitchExpression
+                              switchKeyword: switch
+                              leftParenthesis: (
+                              expression2: ParsedUnqualifiedName
+                                name: x
+                              expression(v1): SimpleIdentifier
+                                token: x
+                              rightParenthesis: )
+                              leftBracket: {
+                              rightBracket: }
+                          rightParenthesis: ) <synthetic>
                       name: SimpleIdentifier
                         token: a
                       arguments: ArgumentList
@@ -2006,7 +2344,7 @@ f() { @a( try {} finally {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2022,6 +2360,19 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
+                      expression: ConstructorInvocation
+                        constructorReference: ConstructorReference2
+                          typeReference: ConstructorTypeReference
+                            name: a
+                        argumentList: ArgumentList
+                          leftParenthesis: (
+                          arguments2
+                            ParsedUnqualifiedName
+                              name: <empty> <synthetic>
+                          arguments(v1)
+                            SimpleIdentifier
+                              token: <empty> <synthetic>
+                          rightParenthesis: ) <synthetic>
                       name: SimpleIdentifier
                         token: a
                       arguments: ArgumentList
@@ -2060,7 +2411,7 @@ f() { @a( while (true) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2076,6 +2427,19 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
+                      expression: ConstructorInvocation
+                        constructorReference: ConstructorReference2
+                          typeReference: ConstructorTypeReference
+                            name: a
+                        argumentList: ArgumentList
+                          leftParenthesis: (
+                          arguments2
+                            ParsedUnqualifiedName
+                              name: <empty> <synthetic>
+                          arguments(v1)
+                            SimpleIdentifier
+                              token: <empty> <synthetic>
+                          rightParenthesis: ) <synthetic>
                       name: SimpleIdentifier
                         token: a
                       arguments: ArgumentList
@@ -2091,7 +2455,7 @@ CompilationUnit
               WhileStatement
                 whileKeyword: while
                 leftParenthesis: (
-                condition: BooleanLiteral
+                condition2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 body: Block
@@ -2110,11 +2474,13 @@ CompilationUnit
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       metadata
         Annotation
           atSign: @
+          expression: ParsedUnqualifiedName
+            name: <empty> <synthetic>
           name: SimpleIdentifier
             token: <empty> <synthetic>
       classKeyword: class
@@ -2135,11 +2501,13 @@ CompilationUnit
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       metadata
         Annotation
           atSign: @
+          expression: ParsedUnqualifiedName
+            name: <empty> <synthetic>
           name: SimpleIdentifier
             token: <empty> <synthetic>
       variables: VariableDeclarationList
@@ -2148,7 +2516,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -2163,11 +2531,13 @@ CompilationUnit
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       metadata
         Annotation
           atSign: @
+          expression: ParsedUnqualifiedName
+            name: <empty> <synthetic>
           name: SimpleIdentifier
             token: <empty> <synthetic>
       enumKeyword: enum
@@ -2203,11 +2573,13 @@ CompilationUnit
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       metadata
         Annotation
           atSign: @
+          expression: ParsedUnqualifiedName
+            name: <empty> <synthetic>
           name: SimpleIdentifier
             token: <empty> <synthetic>
       variables: VariableDeclarationList
@@ -2216,7 +2588,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -2229,11 +2601,13 @@ CompilationUnit
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       metadata
         Annotation
           atSign: @
+          expression: ParsedUnqualifiedName
+            name: int
           name: SimpleIdentifier
             token: int
       name: f
@@ -2257,11 +2631,13 @@ CompilationUnit
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       metadata
         Annotation
           atSign: @
+          expression: ParsedUnqualifiedName
+            name: <empty> <synthetic>
           name: SimpleIdentifier
             token: <empty> <synthetic>
       returnType: NamedType
@@ -2285,7 +2661,23 @@ CompilationUnit
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
+    TopLevelGetterDeclaration
+      metadata
+        Annotation
+          atSign: @
+          expression: ParsedUnqualifiedName
+            name: int
+          name: SimpleIdentifier
+            token: int
+      getKeyword: get
+      name: a
+      body: ExpressionFunctionBody
+        functionDefinition: =>
+        expression2: IntegerLiteral
+          literal: 0
+        semicolon: ;
+  declarations(v1)
     FunctionDeclaration
       metadata
         Annotation
@@ -2312,11 +2704,13 @@ CompilationUnit
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       metadata
         Annotation
           atSign: @
+          expression: ParsedUnqualifiedName
+            name: mixin
           name: SimpleIdentifier
             token: mixin
       name: M
@@ -2338,16 +2732,24 @@ CompilationUnit
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       metadata
         Annotation
           atSign: @
+          expression: ParsedUnqualifiedName
+            name: set
           name: SimpleIdentifier
             token: set
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              name: b
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -2370,11 +2772,13 @@ CompilationUnit
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       metadata
         Annotation
           atSign: @
+          expression: ParsedUnqualifiedName
+            name: typedef
           name: SimpleIdentifier
             token: typedef
       variables: VariableDeclarationList
@@ -2382,13 +2786,23 @@ CompilationUnit
           VariableDeclaration
             name: A
             equals: =
-            initializer: SimpleIdentifier
+            initializer2: ParsedUnqualifiedName
+              name: B
+            initializer(v1): SimpleIdentifier
               token: B
       semicolon: ; <synthetic>
     FunctionDeclaration
       name: Function
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              name: C
+            RegularFormalParameter
+              name: D
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: C
@@ -2409,11 +2823,13 @@ CompilationUnit
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       metadata
         Annotation
           atSign: @
+          expression: ParsedUnqualifiedName
+            name: <empty> <synthetic>
           name: SimpleIdentifier
             token: <empty> <synthetic>
       variables: VariableDeclarationList
@@ -2504,11 +2920,24 @@ CompilationUnit
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       metadata
         Annotation
           atSign: @
+          expression: ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                name: a
+            argumentList: ArgumentList
+              leftParenthesis: (
+              arguments2
+                ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+              arguments(v1)
+                SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
           name: SimpleIdentifier
             token: a
           arguments: ArgumentList
@@ -2523,7 +2952,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -2642,11 +3071,24 @@ CompilationUnit
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       metadata
         Annotation
           atSign: @
+          expression: ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                name: a
+            argumentList: ArgumentList
+              leftParenthesis: (
+              arguments2
+                ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+              arguments(v1)
+                SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
           name: SimpleIdentifier
             token: a
           arguments: ArgumentList

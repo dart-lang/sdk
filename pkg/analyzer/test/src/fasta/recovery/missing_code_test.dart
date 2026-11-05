@@ -30,7 +30,7 @@ f() => [a, , b];
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -39,9 +39,16 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: ListLiteral
+          expression2: ListLiteral
             leftBracket: [
-            elements
+            elements2
+              ParsedUnqualifiedName
+                name: a
+              ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              ParsedUnqualifiedName
+                name: b
+            elements(v1)
               SimpleIdentifier
                 token: a
               SimpleIdentifier
@@ -62,7 +69,7 @@ f() => [a, b c];
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -71,9 +78,16 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: ListLiteral
+          expression2: ListLiteral
             leftBracket: [
-            elements
+            elements2
+              ParsedUnqualifiedName
+                name: a
+              ParsedUnqualifiedName
+                name: b
+              ParsedUnqualifiedName
+                name: c
+            elements(v1)
               SimpleIdentifier
                 token: a
               SimpleIdentifier
@@ -94,7 +108,7 @@ f() => [a, if (x) b c];
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -103,9 +117,26 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: ListLiteral
+          expression2: ListLiteral
             leftBracket: [
-            elements
+            elements2
+              ParsedUnqualifiedName
+                name: a
+              IfElement
+                ifKeyword: if
+                leftParenthesis: (
+                expression2: ParsedUnqualifiedName
+                  name: x
+                expression(v1): SimpleIdentifier
+                  token: x
+                rightParenthesis: )
+                thenElement2: ParsedUnqualifiedName
+                  name: b
+                thenElement(v1): SimpleIdentifier
+                  token: b
+              ParsedUnqualifiedName
+                name: c
+            elements(v1)
               SimpleIdentifier
                 token: a
               IfElement
@@ -132,7 +163,7 @@ f() => [a, if (x) b else y c];
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -141,9 +172,31 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: ListLiteral
+          expression2: ListLiteral
             leftBracket: [
-            elements
+            elements2
+              ParsedUnqualifiedName
+                name: a
+              IfElement
+                ifKeyword: if
+                leftParenthesis: (
+                expression2: ParsedUnqualifiedName
+                  name: x
+                expression(v1): SimpleIdentifier
+                  token: x
+                rightParenthesis: )
+                thenElement2: ParsedUnqualifiedName
+                  name: b
+                thenElement(v1): SimpleIdentifier
+                  token: b
+                elseKeyword: else
+                elseElement2: ParsedUnqualifiedName
+                  name: y
+                elseElement(v1): SimpleIdentifier
+                  token: y
+              ParsedUnqualifiedName
+                name: c
+            elements(v1)
               SimpleIdentifier
                 token: a
               IfElement
@@ -177,7 +230,7 @@ f() => {a: b, c: d e: f};
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -186,26 +239,38 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: SetOrMapLiteral
+          expression2: SetOrMapLiteral
             leftBracket: {
-            elements
+            elements2
               MapLiteralEntry
-                key: SimpleIdentifier
+                key2: ParsedUnqualifiedName
+                  name: a
+                key(v1): SimpleIdentifier
                   token: a
                 separator: :
-                value: SimpleIdentifier
+                value2: ParsedUnqualifiedName
+                  name: b
+                value(v1): SimpleIdentifier
                   token: b
               MapLiteralEntry
-                key: SimpleIdentifier
+                key2: ParsedUnqualifiedName
+                  name: c
+                key(v1): SimpleIdentifier
                   token: c
                 separator: :
-                value: SimpleIdentifier
+                value2: ParsedUnqualifiedName
+                  name: d
+                value(v1): SimpleIdentifier
                   token: d
               MapLiteralEntry
-                key: SimpleIdentifier
+                key2: ParsedUnqualifiedName
+                  name: e
+                key(v1): SimpleIdentifier
                   token: e
                 separator: :
-                value: SimpleIdentifier
+                value2: ParsedUnqualifiedName
+                  name: f
+                value(v1): SimpleIdentifier
                   token: f
             rightBracket: }
             isMap: false
@@ -222,7 +287,7 @@ f() => {a: b, if (x) c: d e: f};
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -231,32 +296,46 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: SetOrMapLiteral
+          expression2: SetOrMapLiteral
             leftBracket: {
-            elements
+            elements2
               MapLiteralEntry
-                key: SimpleIdentifier
+                key2: ParsedUnqualifiedName
+                  name: a
+                key(v1): SimpleIdentifier
                   token: a
                 separator: :
-                value: SimpleIdentifier
+                value2: ParsedUnqualifiedName
+                  name: b
+                value(v1): SimpleIdentifier
                   token: b
               IfElement
                 ifKeyword: if
                 leftParenthesis: (
-                expression: SimpleIdentifier
+                expression2: ParsedUnqualifiedName
+                  name: x
+                expression(v1): SimpleIdentifier
                   token: x
                 rightParenthesis: )
-                thenElement: MapLiteralEntry
-                  key: SimpleIdentifier
+                thenElement2: MapLiteralEntry
+                  key2: ParsedUnqualifiedName
+                    name: c
+                  key(v1): SimpleIdentifier
                     token: c
                   separator: :
-                  value: SimpleIdentifier
+                  value2: ParsedUnqualifiedName
+                    name: d
+                  value(v1): SimpleIdentifier
                     token: d
               MapLiteralEntry
-                key: SimpleIdentifier
+                key2: ParsedUnqualifiedName
+                  name: e
+                key(v1): SimpleIdentifier
                   token: e
                 separator: :
-                value: SimpleIdentifier
+                value2: ParsedUnqualifiedName
+                  name: f
+                value(v1): SimpleIdentifier
                   token: f
             rightBracket: }
             isMap: false
@@ -273,7 +352,7 @@ f() => {a: b, if (x) c: d else y: z e: f};
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -282,39 +361,57 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: SetOrMapLiteral
+          expression2: SetOrMapLiteral
             leftBracket: {
-            elements
+            elements2
               MapLiteralEntry
-                key: SimpleIdentifier
+                key2: ParsedUnqualifiedName
+                  name: a
+                key(v1): SimpleIdentifier
                   token: a
                 separator: :
-                value: SimpleIdentifier
+                value2: ParsedUnqualifiedName
+                  name: b
+                value(v1): SimpleIdentifier
                   token: b
               IfElement
                 ifKeyword: if
                 leftParenthesis: (
-                expression: SimpleIdentifier
+                expression2: ParsedUnqualifiedName
+                  name: x
+                expression(v1): SimpleIdentifier
                   token: x
                 rightParenthesis: )
-                thenElement: MapLiteralEntry
-                  key: SimpleIdentifier
+                thenElement2: MapLiteralEntry
+                  key2: ParsedUnqualifiedName
+                    name: c
+                  key(v1): SimpleIdentifier
                     token: c
                   separator: :
-                  value: SimpleIdentifier
+                  value2: ParsedUnqualifiedName
+                    name: d
+                  value(v1): SimpleIdentifier
                     token: d
                 elseKeyword: else
-                elseElement: MapLiteralEntry
-                  key: SimpleIdentifier
+                elseElement2: MapLiteralEntry
+                  key2: ParsedUnqualifiedName
+                    name: y
+                  key(v1): SimpleIdentifier
                     token: y
                   separator: :
-                  value: SimpleIdentifier
+                  value2: ParsedUnqualifiedName
+                    name: z
+                  value(v1): SimpleIdentifier
                     token: z
               MapLiteralEntry
-                key: SimpleIdentifier
+                key2: ParsedUnqualifiedName
+                  name: e
+                key(v1): SimpleIdentifier
                   token: e
                 separator: :
-                value: SimpleIdentifier
+                value2: ParsedUnqualifiedName
+                  name: f
+                value(v1): SimpleIdentifier
                   token: f
             rightBracket: }
             isMap: false
@@ -331,7 +428,7 @@ f() => {: b};
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -340,14 +437,18 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: SetOrMapLiteral
+          expression2: SetOrMapLiteral
             leftBracket: {
-            elements
+            elements2
               MapLiteralEntry
-                key: SimpleIdentifier
+                key2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                key(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 separator: :
-                value: SimpleIdentifier
+                value2: ParsedUnqualifiedName
+                  name: b
+                value(v1): SimpleIdentifier
                   token: b
             rightBracket: }
             isMap: false
@@ -364,7 +465,7 @@ f() => {a: };
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -373,14 +474,18 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: SetOrMapLiteral
+          expression2: SetOrMapLiteral
             leftBracket: {
-            elements
+            elements2
               MapLiteralEntry
-                key: SimpleIdentifier
+                key2: ParsedUnqualifiedName
+                  name: a
+                key(v1): SimpleIdentifier
                   token: a
                 separator: :
-                value: SimpleIdentifier
+                value2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                value(v1): SimpleIdentifier
                   token: <empty> <synthetic>
             rightBracket: }
             isMap: false
@@ -397,7 +502,7 @@ f() => {a: , b: c};
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -406,20 +511,28 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: SetOrMapLiteral
+          expression2: SetOrMapLiteral
             leftBracket: {
-            elements
+            elements2
               MapLiteralEntry
-                key: SimpleIdentifier
+                key2: ParsedUnqualifiedName
+                  name: a
+                key(v1): SimpleIdentifier
                   token: a
                 separator: :
-                value: SimpleIdentifier
+                value2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                value(v1): SimpleIdentifier
                   token: <empty> <synthetic>
               MapLiteralEntry
-                key: SimpleIdentifier
+                key2: ParsedUnqualifiedName
+                  name: b
+                key(v1): SimpleIdentifier
                   token: b
                 separator: :
-                value: SimpleIdentifier
+                value2: ParsedUnqualifiedName
+                  name: c
+                value(v1): SimpleIdentifier
                   token: c
             rightBracket: }
             isMap: false
@@ -442,7 +555,7 @@ f() => x &
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -451,7 +564,14 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: BinaryExpression
+          expression2: BinaryOperatorInvocation
+            leftOperand: ParsedUnqualifiedName
+              name: x
+            operator: &
+            rightOperand: ParsedUnqualifiedName
+              name: <empty> <synthetic>
+            binaryOperator: bitwiseAnd
+          expression(v1): BinaryExpression
             leftOperand: SimpleIdentifier
               token: x
             operator: &
@@ -473,7 +593,7 @@ class C {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -488,12 +608,25 @@ CompilationUnit
             name: &
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: x
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: x
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: BinaryExpression
+              expression2: BinaryOperatorInvocation
+                leftOperand: SuperReference
+                  superKeyword: super
+                operator: &
+                rightOperand: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                binaryOperator: bitwiseAnd
+              expression(v1): BinaryExpression
                 leftOperand: SuperExpression
                   superKeyword: super
                 operator: &
@@ -515,18 +648,26 @@ convert(x) => as T;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: convert
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              name: x
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: x
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: SimpleIdentifier
+          expression2: ParsedUnqualifiedName
+            name: as
+          expression(v1): SimpleIdentifier
             token: as
           semicolon: ; <synthetic>
     TopLevelVariableDeclaration
@@ -547,19 +688,27 @@ convert(x) => x as ;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: convert
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              name: x
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: x
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: AsExpression
-            expression: SimpleIdentifier
+          expression2: AsExpression
+            expression2: ParsedUnqualifiedName
+              name: x
+            expression(v1): SimpleIdentifier
               token: x
             asOperator: as
             type: NamedType
@@ -581,7 +730,7 @@ f() {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -600,7 +749,13 @@ CompilationUnit
                       name: x
                 semicolon: ;
               ExpressionStatement
-                expression: AssignmentExpression
+                expression2: DirectAssignment
+                  target: ParsedUnqualifiedNameAssignmentTarget
+                    name: x
+                  operator: =
+                  value: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                expression(v1): AssignmentExpression
                   leftHandSide: SimpleIdentifier
                     token: x
                   operator: =
@@ -622,7 +777,7 @@ f() => x |
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -631,7 +786,14 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: BinaryExpression
+          expression2: BinaryOperatorInvocation
+            leftOperand: ParsedUnqualifiedName
+              name: x
+            operator: |
+            rightOperand: ParsedUnqualifiedName
+              name: <empty> <synthetic>
+            binaryOperator: bitwiseOr
+          expression(v1): BinaryExpression
             leftOperand: SimpleIdentifier
               token: x
             operator: |
@@ -653,7 +815,7 @@ class C {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -668,12 +830,25 @@ CompilationUnit
             name: |
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: x
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: x
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: BinaryExpression
+              expression2: BinaryOperatorInvocation
+                leftOperand: SuperReference
+                  superKeyword: super
+                operator: |
+                rightOperand: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                binaryOperator: bitwiseOr
+              expression(v1): BinaryExpression
                 leftOperand: SuperExpression
                   superKeyword: super
                 operator: |
@@ -696,11 +871,17 @@ f(x) {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              name: x
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: x
@@ -710,9 +891,16 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression: CascadeExpression
-                  target: SimpleIdentifier
+                expression2: CascadeExpression
+                  target2: ParsedUnqualifiedName
+                    name: x
+                  target(v1): SimpleIdentifier
                     token: x
+                  sections
+                    CascadeSection
+                      operator: ..
+                      body: ParsedCascadeName
+                        name: <empty> <synthetic>
                   cascadeSections
                     PropertyAccess
                       operator: ..
@@ -732,7 +920,7 @@ class {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -771,11 +959,23 @@ f(int a int b) { }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              type: NamedType
+                name: int
+              name: a
+            RegularFormalParameter
+              type: NamedType
+                name: int
+              name: b
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
@@ -804,7 +1004,7 @@ f() => x ? y :
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -813,14 +1013,20 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: ConditionalExpression
-            condition: SimpleIdentifier
+          expression2: ConditionalExpression
+            condition2: ParsedUnqualifiedName
+              name: x
+            condition(v1): SimpleIdentifier
               token: x
             question: ?
-            thenExpression: SimpleIdentifier
+            thenExpression2: ParsedUnqualifiedName
+              name: y
+            thenExpression(v1): SimpleIdentifier
               token: y
             colon: :
-            elseExpression: SimpleIdentifier
+            elseExpression2: ParsedUnqualifiedName
+              name: <empty> <synthetic>
+            elseExpression(v1): SimpleIdentifier
               token: <empty> <synthetic>
           semicolon: ; <synthetic>
 ''');
@@ -837,7 +1043,7 @@ f() => x ? : z
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -846,14 +1052,20 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: ConditionalExpression
-            condition: SimpleIdentifier
+          expression2: ConditionalExpression
+            condition2: ParsedUnqualifiedName
+              name: x
+            condition(v1): SimpleIdentifier
               token: x
             question: ?
-            thenExpression: SimpleIdentifier
+            thenExpression2: ParsedUnqualifiedName
+              name: <empty> <synthetic>
+            thenExpression(v1): SimpleIdentifier
               token: <empty> <synthetic>
             colon: :
-            elseExpression: SimpleIdentifier
+            elseExpression2: ParsedUnqualifiedName
+              name: z
+            elseExpression(v1): SimpleIdentifier
               token: z
           semicolon: ; <synthetic>
 ''');
@@ -870,7 +1082,7 @@ f() => x ==
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -879,7 +1091,14 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: BinaryExpression
+          expression2: BinaryOperatorInvocation
+            leftOperand: ParsedUnqualifiedName
+              name: x
+            operator: ==
+            rightOperand: ParsedUnqualifiedName
+              name: <empty> <synthetic>
+            binaryOperator: equal
+          expression(v1): BinaryExpression
             leftOperand: SimpleIdentifier
               token: x
             operator: ==
@@ -901,7 +1120,7 @@ class C {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -916,12 +1135,25 @@ CompilationUnit
             name: ==
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: x
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: x
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: BinaryExpression
+              expression2: BinaryOperatorInvocation
+                leftOperand: SuperReference
+                  superKeyword: super
+                operator: ==
+                rightOperand: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                binaryOperator: equal
+              expression(v1): BinaryExpression
                 leftOperand: SuperExpression
                   superKeyword: super
                 operator: ==
@@ -941,18 +1173,26 @@ f(x) = x;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              name: x
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: x
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: => <synthetic>
-          expression: SimpleIdentifier
+          expression2: ParsedUnqualifiedName
+            name: x
+          expression(v1): SimpleIdentifier
             token: x
           semicolon: ;
 ''');
@@ -967,18 +1207,26 @@ f(x) return x;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              name: x
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: x
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: => <synthetic>
-          expression: SimpleIdentifier
+          expression2: ParsedUnqualifiedName
+            name: x
+          expression(v1): SimpleIdentifier
             token: x
           semicolon: ;
 ''');
@@ -995,7 +1243,7 @@ f() => x >
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1004,7 +1252,14 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: BinaryExpression
+          expression2: BinaryOperatorInvocation
+            leftOperand: ParsedUnqualifiedName
+              name: x
+            operator: >
+            rightOperand: ParsedUnqualifiedName
+              name: <empty> <synthetic>
+            binaryOperator: greaterThan
+          expression(v1): BinaryExpression
             leftOperand: SimpleIdentifier
               token: x
             operator: >
@@ -1026,7 +1281,7 @@ class C {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -1041,12 +1296,25 @@ CompilationUnit
             name: >
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: x
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: x
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: BinaryExpression
+              expression2: BinaryOperatorInvocation
+                leftOperand: SuperReference
+                  superKeyword: super
+                operator: >
+                rightOperand: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                binaryOperator: greaterThan
+              expression(v1): BinaryExpression
                 leftOperand: SuperExpression
                   superKeyword: super
                 operator: >
@@ -1068,7 +1336,7 @@ f() => x >>
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1077,7 +1345,14 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: BinaryExpression
+          expression2: BinaryOperatorInvocation
+            leftOperand: ParsedUnqualifiedName
+              name: x
+            operator: >>
+            rightOperand: ParsedUnqualifiedName
+              name: <empty> <synthetic>
+            binaryOperator: shiftRight
+          expression(v1): BinaryExpression
             leftOperand: SimpleIdentifier
               token: x
             operator: >>
@@ -1099,7 +1374,7 @@ class C {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -1114,12 +1389,25 @@ CompilationUnit
             name: >>
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: x
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: x
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: BinaryExpression
+              expression2: BinaryOperatorInvocation
+                leftOperand: SuperReference
+                  superKeyword: super
+                operator: >>
+                rightOperand: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                binaryOperator: shiftRight
+              expression(v1): BinaryExpression
                 leftOperand: SuperExpression
                   superKeyword: super
                 operator: >>
@@ -1141,7 +1429,7 @@ f() => x >=
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1150,7 +1438,14 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: BinaryExpression
+          expression2: BinaryOperatorInvocation
+            leftOperand: ParsedUnqualifiedName
+              name: x
+            operator: >=
+            rightOperand: ParsedUnqualifiedName
+              name: <empty> <synthetic>
+            binaryOperator: greaterThanOrEqual
+          expression(v1): BinaryExpression
             leftOperand: SimpleIdentifier
               token: x
             operator: >=
@@ -1172,7 +1467,7 @@ class C {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -1187,12 +1482,25 @@ CompilationUnit
             name: >=
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: x
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: x
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: BinaryExpression
+              expression2: BinaryOperatorInvocation
+                leftOperand: SuperReference
+                  superKeyword: super
+                operator: >=
+                rightOperand: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                binaryOperator: greaterThanOrEqual
+              expression(v1): BinaryExpression
                 leftOperand: SuperExpression
                   superKeyword: super
                 operator: >=
@@ -1214,7 +1522,7 @@ f() => x ^
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1223,7 +1531,14 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: BinaryExpression
+          expression2: BinaryOperatorInvocation
+            leftOperand: ParsedUnqualifiedName
+              name: x
+            operator: ^
+            rightOperand: ParsedUnqualifiedName
+              name: <empty> <synthetic>
+            binaryOperator: bitwiseXor
+          expression(v1): BinaryExpression
             leftOperand: SimpleIdentifier
               token: x
             operator: ^
@@ -1245,7 +1560,7 @@ class C {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -1260,12 +1575,25 @@ CompilationUnit
             name: ^
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: x
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: x
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: BinaryExpression
+              expression2: BinaryOperatorInvocation
+                leftOperand: SuperReference
+                  superKeyword: super
+                operator: ^
+                rightOperand: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                binaryOperator: bitwiseXor
+              expression(v1): BinaryExpression
                 leftOperand: SuperExpression
                   superKeyword: super
                 operator: ^
@@ -1289,7 +1617,7 @@ class Test {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -1298,7 +1626,8 @@ CompilationUnit
         leftBracket: {
         members
           ConstructorDeclaration
-            typeName: SimpleIdentifier
+            typeName2: Test
+            typeName(v1): SimpleIdentifier
               token: Test
             parameters: FormalParameterList
               leftParenthesis: (
@@ -1308,13 +1637,13 @@ CompilationUnit
               AssertInitializer
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: BooleanLiteral
+                condition2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
               AssertInitializer
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: BooleanLiteral
+                condition2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
             body: EmptyFunctionBody
@@ -1336,7 +1665,7 @@ class Test {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -1345,7 +1674,8 @@ CompilationUnit
         leftBracket: {
         members
           ConstructorDeclaration
-            typeName: SimpleIdentifier
+            typeName2: Test
+            typeName(v1): SimpleIdentifier
               token: Test
             parameters: FormalParameterList
               leftParenthesis: (
@@ -1355,14 +1685,15 @@ CompilationUnit
               AssertInitializer
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: BooleanLiteral
+                condition2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: x
+                fieldName(v1): SimpleIdentifier
                   token: x
                 equals: =
-                expression: IntegerLiteral
+                expression2: IntegerLiteral
                   literal: 2
             body: EmptyFunctionBody
               semicolon: ;
@@ -1383,7 +1714,7 @@ class Test {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -1392,7 +1723,8 @@ CompilationUnit
         leftBracket: {
         members
           ConstructorDeclaration
-            typeName: SimpleIdentifier
+            typeName2: Test
+            typeName(v1): SimpleIdentifier
               token: Test
             parameters: FormalParameterList
               leftParenthesis: (
@@ -1402,16 +1734,17 @@ CompilationUnit
               AssertInitializer
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: BooleanLiteral
+                condition2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
               ConstructorFieldInitializer
                 thisKeyword: this
                 period: .
-                fieldName: SimpleIdentifier
+                fieldName2: x
+                fieldName(v1): SimpleIdentifier
                   token: x
                 equals: =
-                expression: IntegerLiteral
+                expression2: IntegerLiteral
                   literal: 2
             body: EmptyFunctionBody
               semicolon: ;
@@ -1431,7 +1764,7 @@ f() {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1445,8 +1778,10 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression: IsExpression
-                  expression: SimpleIdentifier
+                expression2: IsExpression
+                  expression2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                  expression(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   isOperator: is
                   type: NamedType
@@ -1470,11 +1805,17 @@ f(x) {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              name: x
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: x
@@ -1486,8 +1827,10 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression: IsExpression
-                  expression: SimpleIdentifier
+                expression2: IsExpression
+                  expression2: ParsedUnqualifiedName
+                    name: x
+                  expression(v1): SimpleIdentifier
                     token: x
                   isOperator: is
                   type: NamedType
@@ -1511,7 +1854,7 @@ f() => x <
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1520,7 +1863,14 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: BinaryExpression
+          expression2: BinaryOperatorInvocation
+            leftOperand: ParsedUnqualifiedName
+              name: x
+            operator: <
+            rightOperand: ParsedUnqualifiedName
+              name: <empty> <synthetic>
+            binaryOperator: lessThan
+          expression(v1): BinaryExpression
             leftOperand: SimpleIdentifier
               token: x
             operator: <
@@ -1542,7 +1892,7 @@ class C {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -1557,12 +1907,25 @@ CompilationUnit
             name: <
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: x
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: x
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: BinaryExpression
+              expression2: BinaryOperatorInvocation
+                leftOperand: SuperReference
+                  superKeyword: super
+                operator: <
+                rightOperand: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                binaryOperator: lessThan
+              expression(v1): BinaryExpression
                 leftOperand: SuperExpression
                   superKeyword: super
                 operator: <
@@ -1584,7 +1947,7 @@ f() => x <<
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1593,7 +1956,14 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: BinaryExpression
+          expression2: BinaryOperatorInvocation
+            leftOperand: ParsedUnqualifiedName
+              name: x
+            operator: <<
+            rightOperand: ParsedUnqualifiedName
+              name: <empty> <synthetic>
+            binaryOperator: shiftLeft
+          expression(v1): BinaryExpression
             leftOperand: SimpleIdentifier
               token: x
             operator: <<
@@ -1615,7 +1985,7 @@ class C {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -1630,12 +2000,25 @@ CompilationUnit
             name: <<
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: x
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: x
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: BinaryExpression
+              expression2: BinaryOperatorInvocation
+                leftOperand: SuperReference
+                  superKeyword: super
+                operator: <<
+                rightOperand: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                binaryOperator: shiftLeft
+              expression(v1): BinaryExpression
                 leftOperand: SuperExpression
                   superKeyword: super
                 operator: <<
@@ -1657,7 +2040,7 @@ f() => x <=
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1666,7 +2049,14 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: BinaryExpression
+          expression2: BinaryOperatorInvocation
+            leftOperand: ParsedUnqualifiedName
+              name: x
+            operator: <=
+            rightOperand: ParsedUnqualifiedName
+              name: <empty> <synthetic>
+            binaryOperator: lessThanOrEqual
+          expression(v1): BinaryExpression
             leftOperand: SimpleIdentifier
               token: x
             operator: <=
@@ -1688,7 +2078,7 @@ class C {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -1703,12 +2093,25 @@ CompilationUnit
             name: <=
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: x
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: x
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: BinaryExpression
+              expression2: BinaryOperatorInvocation
+                leftOperand: SuperReference
+                  superKeyword: super
+                operator: <=
+                rightOperand: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                binaryOperator: lessThanOrEqual
+              expression(v1): BinaryExpression
                 leftOperand: SuperExpression
                   superKeyword: super
                 operator: <=
@@ -1730,7 +2133,7 @@ f() => x -
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1739,7 +2142,14 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: BinaryExpression
+          expression2: BinaryOperatorInvocation
+            leftOperand: ParsedUnqualifiedName
+              name: x
+            operator: -
+            rightOperand: ParsedUnqualifiedName
+              name: <empty> <synthetic>
+            binaryOperator: subtract
+          expression(v1): BinaryExpression
             leftOperand: SimpleIdentifier
               token: x
             operator: -
@@ -1761,7 +2171,7 @@ class C {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -1776,12 +2186,25 @@ CompilationUnit
             name: -
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: x
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: x
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: BinaryExpression
+              expression2: BinaryOperatorInvocation
+                leftOperand: SuperReference
+                  superKeyword: super
+                operator: -
+                rightOperand: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                binaryOperator: subtract
+              expression(v1): BinaryExpression
                 leftOperand: SuperExpression
                   superKeyword: super
                 operator: -
@@ -1803,7 +2226,7 @@ class Bar {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -1820,7 +2243,7 @@ CompilationUnit
               rightParenthesis: ) <synthetic>
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -1845,7 +2268,7 @@ int f int x, int y) {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         type: NamedType
@@ -1887,18 +2310,30 @@ f(x) => x ?? throw 0;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              name: x
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: x
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: BinaryExpression
+          expression2: IfNull
+            leftOperand: ParsedUnqualifiedName
+              name: x
+            operator: ??
+            rightOperand: ParsedUnqualifiedName
+              name: throw
+          expression(v1): BinaryExpression
             leftOperand: SimpleIdentifier
               token: x
             operator: ??
@@ -1919,7 +2354,7 @@ f() => x %
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1928,7 +2363,14 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: BinaryExpression
+          expression2: BinaryOperatorInvocation
+            leftOperand: ParsedUnqualifiedName
+              name: x
+            operator: %
+            rightOperand: ParsedUnqualifiedName
+              name: <empty> <synthetic>
+            binaryOperator: modulo
+          expression(v1): BinaryExpression
             leftOperand: SimpleIdentifier
               token: x
             operator: %
@@ -1950,7 +2392,7 @@ class C {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -1965,12 +2407,25 @@ CompilationUnit
             name: %
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: x
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: x
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: BinaryExpression
+              expression2: BinaryOperatorInvocation
+                leftOperand: SuperReference
+                  superKeyword: super
+                operator: %
+                rightOperand: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                binaryOperator: modulo
+              expression(v1): BinaryExpression
                 leftOperand: SuperExpression
                   superKeyword: super
                 operator: %
@@ -1978,6 +2433,333 @@ CompilationUnit
                   token: <empty> <synthetic>
               semicolon: ; <synthetic>
         rightBracket: }
+''');
+  }
+
+  void test_period_missingName_cascade_parenthesized() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+var x = a..b.(0);
+//           ^
+// [diag.missingIdentifier] Expected an identifier.
+''');
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    assertParsedNodeText(node, r'''
+CascadeExpression
+  target2: ParsedUnqualifiedName
+    name: a
+  target(v1): SimpleIdentifier
+    token: a
+  sections
+    CascadeSection
+      operator: ..
+      body: ParsedValueArguments
+        operand: ParsedNameAccess
+          operand: ParsedCascadeName
+            name: b
+          operator: .
+          name: <empty> <synthetic>
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments2
+            IntegerLiteral
+              literal: 0
+          rightParenthesis: )
+  cascadeSections
+    MethodInvocation
+      target: PropertyAccess
+        operator: ..
+        propertyName: SimpleIdentifier
+          token: b
+      operator: .
+      methodName: SimpleIdentifier
+        token: <empty> <synthetic>
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
+          IntegerLiteral
+            literal: 0
+        rightParenthesis: )
+''');
+  }
+
+  void test_period_missingName_listLiteral() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+var x = a.[0];
+//        ^
+// [diag.missingIdentifier] Expected an identifier.
+''');
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    assertParsedNodeText(node, r'''
+ParsedNameAccess
+  operand: ParsedUnqualifiedName
+    name: a
+  operator: .
+  name: <empty> <synthetic>
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: a
+  period: .
+  identifier: SimpleIdentifier
+    token: <empty> <synthetic>
+''');
+  }
+
+  void test_period_missingName_listLiteral_typed() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+var x = a.<int>[];
+//        ^
+// [diag.missingIdentifier] Expected an identifier.
+''');
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    assertParsedNodeText(node, r'''
+ParsedNameAccess
+  operand: ParsedUnqualifiedName
+    name: a
+  operator: .
+  name: <empty> <synthetic>
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: a
+  period: .
+  identifier: SimpleIdentifier
+    token: <empty> <synthetic>
+''');
+  }
+
+  void test_period_missingName_parenthesized() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+var x = a.(0);
+//        ^
+// [diag.missingIdentifier] Expected an identifier.
+''');
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    assertParsedNodeText(node, r'''
+ParsedValueArguments
+  operand: ParsedNameAccess
+    operand: ParsedUnqualifiedName
+      name: a
+    operator: .
+    name: <empty> <synthetic>
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+    rightParenthesis: )
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: a
+  operator: .
+  methodName: SimpleIdentifier
+    token: <empty> <synthetic>
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+    rightParenthesis: )
+''');
+  }
+
+  void test_period_missingName_parenthesized_empty() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+var x = a.();
+//        ^
+// [diag.missingIdentifier] Expected an identifier.
+''');
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    assertParsedNodeText(node, r'''
+ParsedValueArguments
+  operand: ParsedNameAccess
+    operand: ParsedUnqualifiedName
+      name: a
+    operator: .
+    name: <empty> <synthetic>
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: a
+  operator: .
+  methodName: SimpleIdentifier
+    token: <empty> <synthetic>
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+''');
+  }
+
+  void test_period_missingName_parenthesized_named() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+var x = a.(0, b: 1);
+//        ^
+// [diag.missingIdentifier] Expected an identifier.
+''');
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    assertParsedNodeText(node, r'''
+ParsedValueArguments
+  operand: ParsedNameAccess
+    operand: ParsedUnqualifiedName
+      name: a
+    operator: .
+    name: <empty> <synthetic>
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+      NamedArgument
+        name: b
+        colon: :
+        argumentExpression2: IntegerLiteral
+          literal: 1
+    rightParenthesis: )
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: a
+  operator: .
+  methodName: SimpleIdentifier
+    token: <empty> <synthetic>
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+      NamedArgument
+        name: b
+        colon: :
+        argumentExpression: IntegerLiteral
+          literal: 1
+    rightParenthesis: )
+''');
+  }
+
+  void test_period_missingName_parenthesized_nullAware() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+var x = a?.(0);
+//         ^
+// [diag.missingIdentifier] Expected an identifier.
+''');
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    assertParsedNodeText(node, r'''
+ParsedValueArguments
+  operand: ParsedNameAccess
+    operand: ParsedUnqualifiedName
+      name: a
+    operator: ?.
+    name: <empty> <synthetic>
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+    rightParenthesis: )
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: a
+  operator: ?.
+  methodName: SimpleIdentifier
+    token: <empty> <synthetic>
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+    rightParenthesis: )
+''');
+  }
+
+  void test_period_missingName_parenthesized_selector() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+var x = a.b.(0).c;
+//          ^
+// [diag.missingIdentifier] Expected an identifier.
+''');
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    assertParsedNodeText(node, r'''
+ParsedNameAccess
+  operand: ParsedValueArguments
+    operand: ParsedNameAccess
+      operand: ParsedNameAccess
+        operand: ParsedUnqualifiedName
+          name: a
+        operator: .
+        name: b
+      operator: .
+      name: <empty> <synthetic>
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        IntegerLiteral
+          literal: 0
+      rightParenthesis: )
+  operator: .
+  name: c
+V1: PropertyAccess
+  target: MethodInvocation
+    target: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: a
+      period: .
+      identifier: SimpleIdentifier
+        token: b
+    operator: .
+    methodName: SimpleIdentifier
+      token: <empty> <synthetic>
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        IntegerLiteral
+          literal: 0
+      rightParenthesis: )
+  operator: .
+  propertyName: SimpleIdentifier
+    token: c
+''');
+  }
+
+  void test_period_missingName_setOrMapLiteral() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+var x = a.{};
+//        ^
+// [diag.missingIdentifier] Expected an identifier.
+''');
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    assertParsedNodeText(node, r'''
+ParsedNameAccess
+  operand: ParsedUnqualifiedName
+    name: a
+  operator: .
+  name: <empty> <synthetic>
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: a
+  period: .
+  identifier: SimpleIdentifier
+    token: <empty> <synthetic>
+''');
+  }
+
+  void test_period_missingName_stringLiteral() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+var x = a."s";
+//        ^^^
+// [diag.missingIdentifier] Expected an identifier.
+''');
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    assertParsedNodeText(node, r'''
+ParsedNameAccess
+  operand: ParsedUnqualifiedName
+    name: a
+  operator: .
+  name: <empty> <synthetic>
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: a
+  period: .
+  identifier: SimpleIdentifier
+    token: <empty> <synthetic>
 ''');
   }
 
@@ -1992,7 +2774,7 @@ f() => x +
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2001,7 +2783,14 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: BinaryExpression
+          expression2: BinaryOperatorInvocation
+            leftOperand: ParsedUnqualifiedName
+              name: x
+            operator: +
+            rightOperand: ParsedUnqualifiedName
+              name: <empty> <synthetic>
+            binaryOperator: add
+          expression(v1): BinaryExpression
             leftOperand: SimpleIdentifier
               token: x
             operator: +
@@ -2023,7 +2812,7 @@ class C {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -2038,12 +2827,25 @@ CompilationUnit
             name: +
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: x
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: x
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: BinaryExpression
+              expression2: BinaryOperatorInvocation
+                leftOperand: SuperReference
+                  superKeyword: super
+                operator: +
+                rightOperand: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                binaryOperator: add
+              expression(v1): BinaryExpression
                 leftOperand: SuperExpression
                   superKeyword: super
                 operator: +
@@ -2067,7 +2869,7 @@ f() {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2085,11 +2887,16 @@ CompilationUnit
                     VariableDeclaration
                       name: v
                       equals: =
-                      initializer: SimpleStringLiteral
+                      initializer2: SimpleStringLiteral
                         literal: 'String'
                 semicolon: ;
               ExpressionStatement
-                expression: PrefixedIdentifier
+                expression2: ParsedNameAccess
+                  operand: ParsedUnqualifiedName
+                    name: v
+                  operator: .
+                  name: <empty> <synthetic>
+                expression(v1): PrefixedIdentifier
                   prefix: SimpleIdentifier
                     token: v
                   period: .
@@ -2111,7 +2918,7 @@ f() => x /
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2120,7 +2927,14 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: BinaryExpression
+          expression2: BinaryOperatorInvocation
+            leftOperand: ParsedUnqualifiedName
+              name: x
+            operator: /
+            rightOperand: ParsedUnqualifiedName
+              name: <empty> <synthetic>
+            binaryOperator: divide
+          expression(v1): BinaryExpression
             leftOperand: SimpleIdentifier
               token: x
             operator: /
@@ -2142,7 +2956,7 @@ class C {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -2157,12 +2971,25 @@ CompilationUnit
             name: /
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: x
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: x
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: BinaryExpression
+              expression2: BinaryOperatorInvocation
+                leftOperand: SuperReference
+                  superKeyword: super
+                operator: /
+                rightOperand: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                binaryOperator: divide
+              expression(v1): BinaryExpression
                 leftOperand: SuperExpression
                   superKeyword: super
                 operator: /
@@ -2184,7 +3011,7 @@ f() => x *
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2193,7 +3020,14 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: BinaryExpression
+          expression2: BinaryOperatorInvocation
+            leftOperand: ParsedUnqualifiedName
+              name: x
+            operator: *
+            rightOperand: ParsedUnqualifiedName
+              name: <empty> <synthetic>
+            binaryOperator: multiply
+          expression(v1): BinaryExpression
             leftOperand: SimpleIdentifier
               token: x
             operator: *
@@ -2215,7 +3049,7 @@ class C {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -2230,12 +3064,25 @@ CompilationUnit
             name: *
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: x
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: x
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: BinaryExpression
+              expression2: BinaryOperatorInvocation
+                leftOperand: SuperReference
+                  superKeyword: super
+                operator: *
+                rightOperand: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                binaryOperator: multiply
+              expression(v1): BinaryExpression
                 leftOperand: SuperExpression
                   superKeyword: super
                 operator: *
@@ -2263,7 +3110,7 @@ f() {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2275,7 +3122,26 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression: MethodInvocation
+                expression2: ParsedValueArguments
+                  operand: ParsedUnqualifiedName
+                    name: print
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    arguments2
+                      StringInterpolation
+                        elements
+                          InterpolationString
+                            contents: "
+                          InterpolationExpression
+                            leftBracket: ${
+                            expression2: IntegerLiteral
+                              literal: 42
+                            rightBracket: }
+                          InterpolationString
+                            contents: " <synthetic>
+                        stringValue: null
+                    rightParenthesis: ) <synthetic>
+                expression(v1): MethodInvocation
                   methodName: SimpleIdentifier
                     token: print
                   argumentList: ArgumentList
@@ -2310,7 +3176,7 @@ f() => x ~/
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2319,7 +3185,14 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: BinaryExpression
+          expression2: BinaryOperatorInvocation
+            leftOperand: ParsedUnqualifiedName
+              name: x
+            operator: ~/
+            rightOperand: ParsedUnqualifiedName
+              name: <empty> <synthetic>
+            binaryOperator: truncatingDivide
+          expression(v1): BinaryExpression
             leftOperand: SimpleIdentifier
               token: x
             operator: ~/
@@ -2341,7 +3214,7 @@ class C {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -2356,12 +3229,25 @@ CompilationUnit
             name: ~/
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: x
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: x
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: BinaryExpression
+              expression2: BinaryOperatorInvocation
+                leftOperand: SuperReference
+                  superKeyword: super
+                operator: ~/
+                rightOperand: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                binaryOperator: truncatingDivide
+              expression(v1): BinaryExpression
                 leftOperand: SuperExpression
                   superKeyword: super
                 operator: ~/
@@ -2385,11 +3271,20 @@ f({a, }) {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          delimitedFormalParameters: DelimitedFormalParameters
+            leftDelimiter: {
+            formalParameters
+              RegularFormalParameter
+                name: a
+            rightDelimiter: }
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           leftDelimiter: {
           parameter: RegularFormalParameter
@@ -2413,11 +3308,24 @@ f({a, , b}) {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          delimitedFormalParameters: DelimitedFormalParameters
+            leftDelimiter: {
+            formalParameters
+              RegularFormalParameter
+                name: a
+              RegularFormalParameter
+                name: <empty> <synthetic>
+              RegularFormalParameter
+                name: b
+            rightDelimiter: }
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           leftDelimiter: {
           parameter: RegularFormalParameter
@@ -2443,11 +3351,20 @@ f([a, ]) {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          delimitedFormalParameters: DelimitedFormalParameters
+            leftDelimiter: [
+            formalParameters
+              RegularFormalParameter
+                name: a
+            rightDelimiter: ]
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           leftDelimiter: [
           parameter: RegularFormalParameter
@@ -2471,11 +3388,24 @@ f([a, , b]) {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          delimitedFormalParameters: DelimitedFormalParameters
+            leftDelimiter: [
+            formalParameters
+              RegularFormalParameter
+                name: a
+              RegularFormalParameter
+                name: <empty> <synthetic>
+              RegularFormalParameter
+                name: b
+            rightDelimiter: ]
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           leftDelimiter: [
           parameter: RegularFormalParameter
@@ -2501,11 +3431,17 @@ f(a, ) {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              name: a
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: a
@@ -2527,11 +3463,21 @@ f(a, , b) {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              name: a
+            RegularFormalParameter
+              name: <empty> <synthetic>
+            RegularFormalParameter
+              name: b
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: a
@@ -2560,7 +3506,7 @@ class C {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -2577,9 +3523,16 @@ CompilationUnit
                   name: f
             semicolon: ;
           ConstructorDeclaration
-            typeName: SimpleIdentifier
+            typeName2: C
+            typeName(v1): SimpleIdentifier
               token: C
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: this
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: this
@@ -2603,7 +3556,7 @@ class C {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -2620,9 +3573,18 @@ CompilationUnit
                   name: f
             semicolon: ;
           ConstructorDeclaration
-            typeName: SimpleIdentifier
+            typeName2: C
+            typeName(v1): SimpleIdentifier
               token: C
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: this
+                RegularFormalParameter
+                  name: p
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: this
@@ -2648,7 +3610,7 @@ class C {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -2665,9 +3627,18 @@ CompilationUnit
                   name: f
             semicolon: ;
           ConstructorDeclaration
-            typeName: SimpleIdentifier
+            typeName2: C
+            typeName(v1): SimpleIdentifier
               token: C
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                FieldFormalParameter
+                  thisKeyword: this
+                  period: .
+                  name: <empty> <synthetic>
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: FieldFormalParameter
                 thisKeyword: this
@@ -2693,7 +3664,7 @@ class C {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -2710,9 +3681,20 @@ CompilationUnit
                   name: f
             semicolon: ;
           ConstructorDeclaration
-            typeName: SimpleIdentifier
+            typeName2: C
+            typeName(v1): SimpleIdentifier
               token: C
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                FieldFormalParameter
+                  thisKeyword: this
+                  period: .
+                  name: <empty> <synthetic>
+                RegularFormalParameter
+                  name: p
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: FieldFormalParameter
                 thisKeyword: this
@@ -2737,11 +3719,24 @@ f({a: 0) {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          delimitedFormalParameters: DelimitedFormalParameters
+            leftDelimiter: {
+            formalParameters
+              RegularFormalParameter
+                name: a
+                defaultClause: FormalParameterDefaultClause
+                  separator: :
+                  value2: IntegerLiteral
+                    literal: 0
+            rightDelimiter: } <synthetic>
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           leftDelimiter: {
           parameter: RegularFormalParameter
@@ -2771,11 +3766,24 @@ f({a: 0]) {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          delimitedFormalParameters: DelimitedFormalParameters
+            leftDelimiter: {
+            formalParameters
+              RegularFormalParameter
+                name: a
+                defaultClause: FormalParameterDefaultClause
+                  separator: :
+                  value2: IntegerLiteral
+                    literal: 0
+            rightDelimiter: } <synthetic>
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           leftDelimiter: {
           parameter: RegularFormalParameter
@@ -2803,11 +3811,17 @@ f(a}) {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              name: a
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: a
@@ -2829,11 +3843,17 @@ f(a]) {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              name: a
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: a
@@ -2857,11 +3877,24 @@ f([a = 0}) {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          delimitedFormalParameters: DelimitedFormalParameters
+            leftDelimiter: [
+            formalParameters
+              RegularFormalParameter
+                name: a
+                defaultClause: FormalParameterDefaultClause
+                  separator: =
+                  value2: IntegerLiteral
+                    literal: 0
+            rightDelimiter: ] <synthetic>
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           leftDelimiter: [
           parameter: RegularFormalParameter
@@ -2890,11 +3923,24 @@ f([a = 0) {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          delimitedFormalParameters: DelimitedFormalParameters
+            leftDelimiter: [
+            formalParameters
+              RegularFormalParameter
+                name: a
+                defaultClause: FormalParameterDefaultClause
+                  separator: =
+                  value2: IntegerLiteral
+                    literal: 0
+            rightDelimiter: ] <synthetic>
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           leftDelimiter: [
           parameter: RegularFormalParameter
@@ -2926,11 +3972,21 @@ h(v1, v2, v) {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: g
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              name: a
+            RegularFormalParameter
+              name: b
+            RegularFormalParameter
+              name: c
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: a
@@ -2948,6 +4004,16 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              name: v1
+            RegularFormalParameter
+              name: v2
+            RegularFormalParameter
+              name: v
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
+          leftParenthesis: (
           parameter: RegularFormalParameter
             name: v1
           parameter: RegularFormalParameter
@@ -2960,7 +4026,53 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression: MethodInvocation
+                expression2: ParsedValueArguments
+                  operand: ParsedUnqualifiedName
+                    name: g
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    arguments2
+                      LogicalOr
+                        leftOperand: BinaryOperatorInvocation
+                          leftOperand: ParsedUnqualifiedName
+                            name: v1
+                          operator: ==
+                          rightOperand: ParsedUnqualifiedName
+                            name: v2
+                          binaryOperator: equal
+                        operator: ||
+                        rightOperand: BinaryOperatorInvocation
+                          leftOperand: ParsedUnqualifiedName
+                            name: v1
+                          operator: ==
+                          rightOperand: ParsedUnqualifiedName
+                            name: v
+                          binaryOperator: equal
+                      IntegerLiteral
+                        literal: 3
+                      BooleanLiteral
+                        literal: true
+                    arguments(v1)
+                      BinaryExpression
+                        leftOperand: BinaryExpression
+                          leftOperand: SimpleIdentifier
+                            token: v1
+                          operator: ==
+                          rightOperand: SimpleIdentifier
+                            token: v2
+                        operator: ||
+                        rightOperand: BinaryExpression
+                          leftOperand: SimpleIdentifier
+                            token: v1
+                          operator: ==
+                          rightOperand: SimpleIdentifier
+                            token: v
+                      IntegerLiteral
+                        literal: 3
+                      BooleanLiteral
+                        literal: true
+                    rightParenthesis: )
+                expression(v1): MethodInvocation
                   methodName: SimpleIdentifier
                     token: g
                   argumentList: ArgumentList
@@ -3000,11 +4112,26 @@ f({a: }) {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          delimitedFormalParameters: DelimitedFormalParameters
+            leftDelimiter: {
+            formalParameters
+              RegularFormalParameter
+                name: a
+                defaultClause: FormalParameterDefaultClause
+                  separator: :
+                  value2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                  value(v1): SimpleIdentifier
+                    token: <empty> <synthetic>
+            rightDelimiter: }
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           leftDelimiter: {
           parameter: RegularFormalParameter
@@ -3032,11 +4159,28 @@ f({a: , b}) {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          delimitedFormalParameters: DelimitedFormalParameters
+            leftDelimiter: {
+            formalParameters
+              RegularFormalParameter
+                name: a
+                defaultClause: FormalParameterDefaultClause
+                  separator: :
+                  value2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                  value(v1): SimpleIdentifier
+                    token: <empty> <synthetic>
+              RegularFormalParameter
+                name: b
+            rightDelimiter: }
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           leftDelimiter: {
           parameter: RegularFormalParameter
@@ -3066,11 +4210,26 @@ f([a = ]) {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          delimitedFormalParameters: DelimitedFormalParameters
+            leftDelimiter: [
+            formalParameters
+              RegularFormalParameter
+                name: a
+                defaultClause: FormalParameterDefaultClause
+                  separator: =
+                  value2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                  value(v1): SimpleIdentifier
+                    token: <empty> <synthetic>
+            rightDelimiter: ]
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           leftDelimiter: [
           parameter: RegularFormalParameter
@@ -3098,11 +4257,28 @@ f([a = , b]) {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          delimitedFormalParameters: DelimitedFormalParameters
+            leftDelimiter: [
+            formalParameters
+              RegularFormalParameter
+                name: a
+                defaultClause: FormalParameterDefaultClause
+                  separator: =
+                  value2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                  value(v1): SimpleIdentifier
+                    token: <empty> <synthetic>
+              RegularFormalParameter
+                name: b
+            rightDelimiter: ]
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           leftDelimiter: [
           parameter: RegularFormalParameter
@@ -3133,11 +4309,24 @@ f([a = 0], {b: 1}) {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          delimitedFormalParameters: DelimitedFormalParameters
+            leftDelimiter: [
+            formalParameters
+              RegularFormalParameter
+                name: a
+                defaultClause: FormalParameterDefaultClause
+                  separator: =
+                  value2: IntegerLiteral
+                    literal: 0
+            rightDelimiter: ]
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           leftDelimiter: [
           parameter: RegularFormalParameter
@@ -3166,11 +4355,24 @@ f([a = 0], {b: 1}, [c = 2]) {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          delimitedFormalParameters: DelimitedFormalParameters
+            leftDelimiter: [
+            formalParameters
+              RegularFormalParameter
+                name: a
+                defaultClause: FormalParameterDefaultClause
+                  separator: =
+                  value2: IntegerLiteral
+                    literal: 0
+            rightDelimiter: ]
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           leftDelimiter: [
           parameter: RegularFormalParameter
@@ -3198,11 +4400,24 @@ f({a: 0}, {b: 1}) {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          delimitedFormalParameters: DelimitedFormalParameters
+            leftDelimiter: {
+            formalParameters
+              RegularFormalParameter
+                name: a
+                defaultClause: FormalParameterDefaultClause
+                  separator: :
+                  value2: IntegerLiteral
+                    literal: 0
+            rightDelimiter: }
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           leftDelimiter: {
           parameter: RegularFormalParameter
@@ -3230,11 +4445,24 @@ f([a = 0], [b = 1]) {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          delimitedFormalParameters: DelimitedFormalParameters
+            leftDelimiter: [
+            formalParameters
+              RegularFormalParameter
+                name: a
+                defaultClause: FormalParameterDefaultClause
+                  separator: =
+                  value2: IntegerLiteral
+                    literal: 0
+            rightDelimiter: ]
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           leftDelimiter: [
           parameter: RegularFormalParameter
@@ -3262,11 +4490,21 @@ f(a: 0) {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              name: a
+              defaultClause: FormalParameterDefaultClause
+                separator: :
+                value2: IntegerLiteral
+                  literal: 0
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: a
@@ -3292,11 +4530,21 @@ f(a = 0) {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              name: a
+              defaultClause: FormalParameterDefaultClause
+                separator: =
+                value2: IntegerLiteral
+                  literal: 0
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: a
@@ -3326,7 +4574,7 @@ typedef Predicate = bool <E>(E element);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     GenericTypeAlias
       typedefKeyword: typedef
       name: Predicate
@@ -3342,6 +4590,14 @@ CompilationUnit
             rightBracket: >
         functionKeyword: Function <synthetic>
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              type: NamedType
+                name: E
+              name: element
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType

@@ -56,7 +56,7 @@ library;
 //     main_lib.dart => dart:ui
 //     main_lib3.dart => dart:ui
 //
-// Detailed import paths for (some of) the these imports:
+// Detailed import paths for (some of) these imports:
 //
 //     main.no_link.dart => main_lib.dart => package:flutter_package/export_flutter_lib.dart => dart:ui
 //     main.no_link.dart => main_lib.dart => package:flutter_package/import_flutter_lib.dart => dart:ui
@@ -80,7 +80,7 @@ library;
 //     main_lib.dart => dart:cli
 //     main_lib3.dart => dart:cli
 //
-// Detailed import paths for (some of) the these imports:
+// Detailed import paths for (some of) these imports:
 //
 //     main.no_link.dart => main_lib.dart => package:vm_package/export_vm_lib.dart => dart:cli
 //     main.no_link.dart => main_lib.dart => package:vm_package/import_vm_lib.dart => dart:cli

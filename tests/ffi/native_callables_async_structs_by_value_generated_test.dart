@@ -501,6 +501,88 @@ final testCases = [
     passInt64x7Struct12BytesHomogeneousInt32AfterCallback,
   ),
   AsyncCallbackTest(
+    "UncategorizedFloatx9Int32",
+    NativeCallable<UncategorizedFloatx9Int32Type>.listener(
+      uncategorizedFloatx9Int32,
+    ),
+    uncategorizedFloatx9Int32AfterCallback,
+  ),
+  AsyncCallbackTest(
+    "UncategorizedFloatx10",
+    NativeCallable<UncategorizedFloatx10Type>.listener(uncategorizedFloatx10),
+    uncategorizedFloatx10AfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassFloatx9Struct4BytesInt1Field",
+    NativeCallable<PassFloatx9Struct4BytesInt1FieldType>.listener(
+      passFloatx9Struct4BytesInt1Field,
+    ),
+    passFloatx9Struct4BytesInt1FieldAfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassFloatx9Struct4BytesHomogeneousUint84Bytes",
+    NativeCallable<PassFloatx9Struct4BytesHomogeneousUint84BytesType>.listener(
+      passFloatx9Struct4BytesHomogeneousUint84Bytes,
+    ),
+    passFloatx9Struct4BytesHomogeneousUint84BytesAfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassFloatx9Struct8BytesHomogeneousInt322Fields",
+    NativeCallable<PassFloatx9Struct8BytesHomogeneousInt322FieldsType>.listener(
+      passFloatx9Struct8BytesHomogeneousInt322Fields,
+    ),
+    passFloatx9Struct8BytesHomogeneousInt322FieldsAfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassFloatx9Struct12BytesHomogeneousInt32",
+    NativeCallable<PassFloatx9Struct12BytesHomogeneousInt32Type>.listener(
+      passFloatx9Struct12BytesHomogeneousInt32,
+    ),
+    passFloatx9Struct12BytesHomogeneousInt32AfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassFloatx9Struct16BytesHomogeneousInt324Fields",
+    NativeCallable<
+      PassFloatx9Struct16BytesHomogeneousInt324FieldsType
+    >.listener(passFloatx9Struct16BytesHomogeneousInt324Fields),
+    passFloatx9Struct16BytesHomogeneousInt324FieldsAfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassFloatx9Struct4BytesFloat",
+    NativeCallable<PassFloatx9Struct4BytesFloatType>.listener(
+      passFloatx9Struct4BytesFloat,
+    ),
+    passFloatx9Struct4BytesFloatAfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassFloatx9Struct8BytesHomogeneousFloat",
+    NativeCallable<PassFloatx9Struct8BytesHomogeneousFloatType>.listener(
+      passFloatx9Struct8BytesHomogeneousFloat,
+    ),
+    passFloatx9Struct8BytesHomogeneousFloatAfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassFloatx9Struct12BytesHomogeneousFloat",
+    NativeCallable<PassFloatx9Struct12BytesHomogeneousFloatType>.listener(
+      passFloatx9Struct12BytesHomogeneousFloat,
+    ),
+    passFloatx9Struct12BytesHomogeneousFloatAfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassFloatx9Struct16BytesHomogeneousFloat",
+    NativeCallable<PassFloatx9Struct16BytesHomogeneousFloatType>.listener(
+      passFloatx9Struct16BytesHomogeneousFloat,
+    ),
+    passFloatx9Struct16BytesHomogeneousFloatAfterCallback,
+  ),
+  AsyncCallbackTest(
+    "PassFloatx9Struct8BytesMixedInt32Float",
+    NativeCallable<PassFloatx9Struct8BytesMixedInt32FloatType>.listener(
+      passFloatx9Struct8BytesMixedInt32Float,
+    ),
+    passFloatx9Struct8BytesMixedInt32FloatAfterCallback,
+  ),
+  AsyncCallbackTest(
     "ReturnStruct1ByteInt",
     NativeCallable<ReturnStruct1ByteIntType>.listener(returnStruct1ByteInt),
     returnStruct1ByteIntAfterCallback,
@@ -5578,6 +5660,714 @@ Future<void> passInt64x7Struct12BytesHomogeneousInt32AfterCallback() async {
   final result = await PassInt64x7Struct12BytesHomogeneousInt32Result.future;
   print("after callback result = $result");
   Expect.approxEquals(5, result);
+}
+
+typedef UncategorizedFloatx9Int32Type =
+    Void Function(
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Int32,
+    );
+
+// Global variable that stores the result.
+final UncategorizedFloatx9Int32Result = Completer<double>();
+
+/// Exhaust FP registers with 9 floats, then pass $t by value.
+void uncategorizedFloatx9Int32(
+  double a0,
+  double a1,
+  double a2,
+  double a3,
+  double a4,
+  double a5,
+  double a6,
+  double a7,
+  double a8,
+  int a9,
+) {
+  print(
+    "uncategorizedFloatx9Int32(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})",
+  );
+
+  double result = 0;
+
+  result += a0;
+  result += a1;
+  result += a2;
+  result += a3;
+  result += a4;
+  result += a5;
+  result += a6;
+  result += a7;
+  result += a8;
+  result += a9;
+
+  print("result = $result");
+  UncategorizedFloatx9Int32Result.complete(result);
+}
+
+Future<void> uncategorizedFloatx9Int32AfterCallback() async {
+  final result = await UncategorizedFloatx9Int32Result.future;
+  print("after callback result = $result");
+  Expect.approxEquals(5, result);
+}
+
+typedef UncategorizedFloatx10Type =
+    Void Function(
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+    );
+
+// Global variable that stores the result.
+final UncategorizedFloatx10Result = Completer<double>();
+
+/// Exhaust FP registers with 9 floats, then pass $t by value.
+void uncategorizedFloatx10(
+  double a0,
+  double a1,
+  double a2,
+  double a3,
+  double a4,
+  double a5,
+  double a6,
+  double a7,
+  double a8,
+  double a9,
+) {
+  print(
+    "uncategorizedFloatx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})",
+  );
+
+  double result = 0;
+
+  result += a0;
+  result += a1;
+  result += a2;
+  result += a3;
+  result += a4;
+  result += a5;
+  result += a6;
+  result += a7;
+  result += a8;
+  result += a9;
+
+  print("result = $result");
+  UncategorizedFloatx10Result.complete(result);
+}
+
+Future<void> uncategorizedFloatx10AfterCallback() async {
+  final result = await UncategorizedFloatx10Result.future;
+  print("after callback result = $result");
+  Expect.approxEquals(5, result);
+}
+
+typedef PassFloatx9Struct4BytesInt1FieldType =
+    Void Function(
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Struct4BytesInt1Field,
+    );
+
+// Global variable that stores the result.
+final PassFloatx9Struct4BytesInt1FieldResult = Completer<double>();
+
+/// Exhaust FP registers with 9 floats, then pass $t by value.
+void passFloatx9Struct4BytesInt1Field(
+  double a0,
+  double a1,
+  double a2,
+  double a3,
+  double a4,
+  double a5,
+  double a6,
+  double a7,
+  double a8,
+  Struct4BytesInt1Field a9,
+) {
+  print(
+    "passFloatx9Struct4BytesInt1Field(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})",
+  );
+
+  double result = 0;
+
+  result += a0;
+  result += a1;
+  result += a2;
+  result += a3;
+  result += a4;
+  result += a5;
+  result += a6;
+  result += a7;
+  result += a8;
+  result += a9.a0;
+
+  print("result = $result");
+  PassFloatx9Struct4BytesInt1FieldResult.complete(result);
+}
+
+Future<void> passFloatx9Struct4BytesInt1FieldAfterCallback() async {
+  final result = await PassFloatx9Struct4BytesInt1FieldResult.future;
+  print("after callback result = $result");
+  Expect.approxEquals(5, result);
+}
+
+typedef PassFloatx9Struct4BytesHomogeneousUint84BytesType =
+    Void Function(
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Struct4BytesHomogeneousUint84Bytes,
+    );
+
+// Global variable that stores the result.
+final PassFloatx9Struct4BytesHomogeneousUint84BytesResult = Completer<double>();
+
+/// Exhaust FP registers with 9 floats, then pass $t by value.
+void passFloatx9Struct4BytesHomogeneousUint84Bytes(
+  double a0,
+  double a1,
+  double a2,
+  double a3,
+  double a4,
+  double a5,
+  double a6,
+  double a7,
+  double a8,
+  Struct4BytesHomogeneousUint84Bytes a9,
+) {
+  print(
+    "passFloatx9Struct4BytesHomogeneousUint84Bytes(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})",
+  );
+
+  double result = 0;
+
+  result += a0;
+  result += a1;
+  result += a2;
+  result += a3;
+  result += a4;
+  result += a5;
+  result += a6;
+  result += a7;
+  result += a8;
+  result += a9.a0;
+  result += a9.a1;
+  result += a9.a2;
+  result += a9.a3;
+
+  print("result = $result");
+  PassFloatx9Struct4BytesHomogeneousUint84BytesResult.complete(result);
+}
+
+Future<void>
+passFloatx9Struct4BytesHomogeneousUint84BytesAfterCallback() async {
+  final result =
+      await PassFloatx9Struct4BytesHomogeneousUint84BytesResult.future;
+  print("after callback result = $result");
+  Expect.approxEquals(41, result);
+}
+
+typedef PassFloatx9Struct8BytesHomogeneousInt322FieldsType =
+    Void Function(
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Struct8BytesHomogeneousInt322Fields,
+    );
+
+// Global variable that stores the result.
+final PassFloatx9Struct8BytesHomogeneousInt322FieldsResult =
+    Completer<double>();
+
+/// Exhaust FP registers with 9 floats, then pass $t by value.
+void passFloatx9Struct8BytesHomogeneousInt322Fields(
+  double a0,
+  double a1,
+  double a2,
+  double a3,
+  double a4,
+  double a5,
+  double a6,
+  double a7,
+  double a8,
+  Struct8BytesHomogeneousInt322Fields a9,
+) {
+  print(
+    "passFloatx9Struct8BytesHomogeneousInt322Fields(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})",
+  );
+
+  double result = 0;
+
+  result += a0;
+  result += a1;
+  result += a2;
+  result += a3;
+  result += a4;
+  result += a5;
+  result += a6;
+  result += a7;
+  result += a8;
+  result += a9.a0;
+  result += a9.a1;
+
+  print("result = $result");
+  PassFloatx9Struct8BytesHomogeneousInt322FieldsResult.complete(result);
+}
+
+Future<void>
+passFloatx9Struct8BytesHomogeneousInt322FieldsAfterCallback() async {
+  final result =
+      await PassFloatx9Struct8BytesHomogeneousInt322FieldsResult.future;
+  print("after callback result = $result");
+  Expect.approxEquals(-6, result);
+}
+
+typedef PassFloatx9Struct12BytesHomogeneousInt32Type =
+    Void Function(
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Struct12BytesHomogeneousInt32,
+    );
+
+// Global variable that stores the result.
+final PassFloatx9Struct12BytesHomogeneousInt32Result = Completer<double>();
+
+/// Exhaust FP registers with 9 floats, then pass $t by value.
+void passFloatx9Struct12BytesHomogeneousInt32(
+  double a0,
+  double a1,
+  double a2,
+  double a3,
+  double a4,
+  double a5,
+  double a6,
+  double a7,
+  double a8,
+  Struct12BytesHomogeneousInt32 a9,
+) {
+  print(
+    "passFloatx9Struct12BytesHomogeneousInt32(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})",
+  );
+
+  double result = 0;
+
+  result += a0;
+  result += a1;
+  result += a2;
+  result += a3;
+  result += a4;
+  result += a5;
+  result += a6;
+  result += a7;
+  result += a8;
+  result += a9.a0;
+  result += a9.a1;
+  result += a9.a2;
+
+  print("result = $result");
+  PassFloatx9Struct12BytesHomogeneousInt32Result.complete(result);
+}
+
+Future<void> passFloatx9Struct12BytesHomogeneousInt32AfterCallback() async {
+  final result = await PassFloatx9Struct12BytesHomogeneousInt32Result.future;
+  print("after callback result = $result");
+  Expect.approxEquals(6, result);
+}
+
+typedef PassFloatx9Struct16BytesHomogeneousInt324FieldsType =
+    Void Function(
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Struct16BytesHomogeneousInt324Fields,
+    );
+
+// Global variable that stores the result.
+final PassFloatx9Struct16BytesHomogeneousInt324FieldsResult =
+    Completer<double>();
+
+/// Exhaust FP registers with 9 floats, then pass $t by value.
+void passFloatx9Struct16BytesHomogeneousInt324Fields(
+  double a0,
+  double a1,
+  double a2,
+  double a3,
+  double a4,
+  double a5,
+  double a6,
+  double a7,
+  double a8,
+  Struct16BytesHomogeneousInt324Fields a9,
+) {
+  print(
+    "passFloatx9Struct16BytesHomogeneousInt324Fields(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})",
+  );
+
+  double result = 0;
+
+  result += a0;
+  result += a1;
+  result += a2;
+  result += a3;
+  result += a4;
+  result += a5;
+  result += a6;
+  result += a7;
+  result += a8;
+  result += a9.a0;
+  result += a9.a1;
+  result += a9.a2;
+  result += a9.a3;
+
+  print("result = $result");
+  PassFloatx9Struct16BytesHomogeneousInt324FieldsResult.complete(result);
+}
+
+Future<void>
+passFloatx9Struct16BytesHomogeneousInt324FieldsAfterCallback() async {
+  final result =
+      await PassFloatx9Struct16BytesHomogeneousInt324FieldsResult.future;
+  print("after callback result = $result");
+  Expect.approxEquals(-7, result);
+}
+
+typedef PassFloatx9Struct4BytesFloatType =
+    Void Function(
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Struct4BytesFloat,
+    );
+
+// Global variable that stores the result.
+final PassFloatx9Struct4BytesFloatResult = Completer<double>();
+
+/// Exhaust FP registers with 9 floats, then pass $t by value.
+void passFloatx9Struct4BytesFloat(
+  double a0,
+  double a1,
+  double a2,
+  double a3,
+  double a4,
+  double a5,
+  double a6,
+  double a7,
+  double a8,
+  Struct4BytesFloat a9,
+) {
+  print(
+    "passFloatx9Struct4BytesFloat(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})",
+  );
+
+  double result = 0;
+
+  result += a0;
+  result += a1;
+  result += a2;
+  result += a3;
+  result += a4;
+  result += a5;
+  result += a6;
+  result += a7;
+  result += a8;
+  result += a9.a0;
+
+  print("result = $result");
+  PassFloatx9Struct4BytesFloatResult.complete(result);
+}
+
+Future<void> passFloatx9Struct4BytesFloatAfterCallback() async {
+  final result = await PassFloatx9Struct4BytesFloatResult.future;
+  print("after callback result = $result");
+  Expect.approxEquals(5, result);
+}
+
+typedef PassFloatx9Struct8BytesHomogeneousFloatType =
+    Void Function(
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Struct8BytesHomogeneousFloat,
+    );
+
+// Global variable that stores the result.
+final PassFloatx9Struct8BytesHomogeneousFloatResult = Completer<double>();
+
+/// Exhaust FP registers with 9 floats, then pass $t by value.
+void passFloatx9Struct8BytesHomogeneousFloat(
+  double a0,
+  double a1,
+  double a2,
+  double a3,
+  double a4,
+  double a5,
+  double a6,
+  double a7,
+  double a8,
+  Struct8BytesHomogeneousFloat a9,
+) {
+  print(
+    "passFloatx9Struct8BytesHomogeneousFloat(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})",
+  );
+
+  double result = 0;
+
+  result += a0;
+  result += a1;
+  result += a2;
+  result += a3;
+  result += a4;
+  result += a5;
+  result += a6;
+  result += a7;
+  result += a8;
+  result += a9.a0;
+  result += a9.a1;
+
+  print("result = $result");
+  PassFloatx9Struct8BytesHomogeneousFloatResult.complete(result);
+}
+
+Future<void> passFloatx9Struct8BytesHomogeneousFloatAfterCallback() async {
+  final result = await PassFloatx9Struct8BytesHomogeneousFloatResult.future;
+  print("after callback result = $result");
+  Expect.approxEquals(-6, result);
+}
+
+typedef PassFloatx9Struct12BytesHomogeneousFloatType =
+    Void Function(
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Struct12BytesHomogeneousFloat,
+    );
+
+// Global variable that stores the result.
+final PassFloatx9Struct12BytesHomogeneousFloatResult = Completer<double>();
+
+/// Exhaust FP registers with 9 floats, then pass $t by value.
+void passFloatx9Struct12BytesHomogeneousFloat(
+  double a0,
+  double a1,
+  double a2,
+  double a3,
+  double a4,
+  double a5,
+  double a6,
+  double a7,
+  double a8,
+  Struct12BytesHomogeneousFloat a9,
+) {
+  print(
+    "passFloatx9Struct12BytesHomogeneousFloat(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})",
+  );
+
+  double result = 0;
+
+  result += a0;
+  result += a1;
+  result += a2;
+  result += a3;
+  result += a4;
+  result += a5;
+  result += a6;
+  result += a7;
+  result += a8;
+  result += a9.a0;
+  result += a9.a1;
+  result += a9.a2;
+
+  print("result = $result");
+  PassFloatx9Struct12BytesHomogeneousFloatResult.complete(result);
+}
+
+Future<void> passFloatx9Struct12BytesHomogeneousFloatAfterCallback() async {
+  final result = await PassFloatx9Struct12BytesHomogeneousFloatResult.future;
+  print("after callback result = $result");
+  Expect.approxEquals(6, result);
+}
+
+typedef PassFloatx9Struct16BytesHomogeneousFloatType =
+    Void Function(
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Struct16BytesHomogeneousFloat,
+    );
+
+// Global variable that stores the result.
+final PassFloatx9Struct16BytesHomogeneousFloatResult = Completer<double>();
+
+/// Exhaust FP registers with 9 floats, then pass $t by value.
+void passFloatx9Struct16BytesHomogeneousFloat(
+  double a0,
+  double a1,
+  double a2,
+  double a3,
+  double a4,
+  double a5,
+  double a6,
+  double a7,
+  double a8,
+  Struct16BytesHomogeneousFloat a9,
+) {
+  print(
+    "passFloatx9Struct16BytesHomogeneousFloat(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})",
+  );
+
+  double result = 0;
+
+  result += a0;
+  result += a1;
+  result += a2;
+  result += a3;
+  result += a4;
+  result += a5;
+  result += a6;
+  result += a7;
+  result += a8;
+  result += a9.a0;
+  result += a9.a1;
+  result += a9.a2;
+  result += a9.a3;
+
+  print("result = $result");
+  PassFloatx9Struct16BytesHomogeneousFloatResult.complete(result);
+}
+
+Future<void> passFloatx9Struct16BytesHomogeneousFloatAfterCallback() async {
+  final result = await PassFloatx9Struct16BytesHomogeneousFloatResult.future;
+  print("after callback result = $result");
+  Expect.approxEquals(-7, result);
+}
+
+typedef PassFloatx9Struct8BytesMixedInt32FloatType =
+    Void Function(
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Float,
+      Struct8BytesMixedInt32Float,
+    );
+
+// Global variable that stores the result.
+final PassFloatx9Struct8BytesMixedInt32FloatResult = Completer<double>();
+
+/// Exhaust FP registers with 9 floats, then pass $t by value.
+void passFloatx9Struct8BytesMixedInt32Float(
+  double a0,
+  double a1,
+  double a2,
+  double a3,
+  double a4,
+  double a5,
+  double a6,
+  double a7,
+  double a8,
+  Struct8BytesMixedInt32Float a9,
+) {
+  print(
+    "passFloatx9Struct8BytesMixedInt32Float(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})",
+  );
+
+  double result = 0;
+
+  result += a0;
+  result += a1;
+  result += a2;
+  result += a3;
+  result += a4;
+  result += a5;
+  result += a6;
+  result += a7;
+  result += a8;
+  result += a9.a0;
+  result += a9.a1;
+
+  print("result = $result");
+  PassFloatx9Struct8BytesMixedInt32FloatResult.complete(result);
+}
+
+Future<void> passFloatx9Struct8BytesMixedInt32FloatAfterCallback() async {
+  final result = await PassFloatx9Struct8BytesMixedInt32FloatResult.future;
+  print("after callback result = $result");
+  Expect.approxEquals(-6, result);
 }
 
 typedef ReturnStruct1ByteIntType = Void Function(Int8);

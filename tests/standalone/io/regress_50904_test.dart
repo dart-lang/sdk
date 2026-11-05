@@ -58,12 +58,12 @@ void main(List<String> arguments) async {
   }
 
   for (var mul in [1, 2, 4, 8]) {
-    runTest(1437 * mul);
+    await runTest(1437 * mul);
   }
 
   // kBufferSize in runtime/bin/eventhandler_win.cc
   const overlappedIoBufferSize = 64 * 1024;
-  runTest(overlappedIoBufferSize);
-  runTest(overlappedIoBufferSize - 1);
-  runTest(overlappedIoBufferSize + 1);
+  await runTest(overlappedIoBufferSize);
+  await runTest(overlappedIoBufferSize - 1);
+  await runTest(overlappedIoBufferSize + 1);
 }

@@ -40,19 +40,17 @@ Future<void> main(List<String> args) async {
     print(options.usage);
     return;
   }
-  final runner =
-      switch (options.runtime) {
-            RuntimePlatforms.chrome =>
-              options.useFeServer
-                  ? ChromeSuiteRunner(options)
-                  : ChromeStandaloneSuiteRunner(options),
-            RuntimePlatforms.d8 =>
-              options.useFeServer
-                  ? D8SuiteRunner(options)
-                  : D8StandaloneSuiteRunner(options),
-            RuntimePlatforms.vm => VMSuiteRunner(options),
-          }
-          as HotReloadSuiteRunner;
+  final runner = switch (options.runtime) {
+    RuntimePlatforms.chrome =>
+      options.useFeServer
+          ? ChromeSuiteRunner(options)
+          : ChromeStandaloneSuiteRunner(options),
+    RuntimePlatforms.d8 =>
+      options.useFeServer
+          ? D8SuiteRunner(options)
+          : D8StandaloneSuiteRunner(options),
+    RuntimePlatforms.vm => VMSuiteRunner(options),
+  } as HotReloadSuiteRunner;
   await runner.runSuite();
 }
 
@@ -1561,14 +1559,14 @@ mixin ChromeTestRunner<T> on HotReloadSuiteRunner<T> {
     // Only allow Chrome when debugging a single test.
     // TODO(markzipan): Add support for full Chrome testing.
     if (options.runtime == RuntimePlatforms.chrome) {
-      var matchingTests = Directory.fromUri(allTestsUri).listSync().where((
-        testDir,
-      ) {
-        if (testDir is! Directory) return false;
-        final testDirParts = testDir.uri.pathSegments;
-        final testName = testDirParts[testDirParts.length - 2];
-        return options.testNameFilter.hasMatch(testName);
-      });
+      var matchingTests = Directory.fromUri(allTestsUri)
+          .listSync()
+          .where((testDir) {
+            if (testDir is! Directory) return false;
+            final testDirParts = testDir.uri.pathSegments;
+            final testName = testDirParts[testDirParts.length - 2];
+            return options.testNameFilter.hasMatch(testName);
+          });
 
       if (matchingTests.length > 1) {
         throw Exception(

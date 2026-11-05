@@ -21,7 +21,6 @@ class C extends core::Object implements self::A<core::int>, self::B {
     ;
 }
 static method test(dynamic o) → dynamic {
-  #L1:
   {
     final synthesized dynamic #0#0 = o;
     synthesized core::bool #0#4;

@@ -28,9 +28,9 @@ class C extends Object with B {}
 ''');
   }
 
-  test_class_class_extends_language219() async {
+  test_class_class_extends_beforeClassModifiers() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart=2.19
+// %before-language-feature: class-modifiers
 class A {}
 class B extends A {}
 class C extends Object with B {}
@@ -47,9 +47,9 @@ class C extends Object with B {}
 ''');
   }
 
-  test_class_class_extends_Object_language219() async {
+  test_class_class_extends_Object_beforeClassModifiers() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart=2.19
+// %before-language-feature: class-modifiers
 class A {}
 class B extends Object {}
 class C extends Object with B {}
@@ -68,9 +68,9 @@ class C extends Object with B {}
 ''');
   }
 
-  test_class_class_with_language219() async {
+  test_class_class_with_beforeClassModifiers() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart=2.19
+// %before-language-feature: class-modifiers
 class A {}
 class B extends Object with A {}
 class C extends Object with B {}
@@ -100,9 +100,9 @@ class D extends Object with C {}
 ''');
   }
 
-  test_class_classTypeAlias_with2_language219() async {
+  test_class_classTypeAlias_with2_beforeClassModifiers() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart=2.19
+// %before-language-feature: class-modifiers
 class A {}
 class B {}
 class C = Object with A, B;
@@ -112,9 +112,9 @@ class D extends Object with C {}
 ''');
   }
 
-  test_class_classTypeAlias_with_language219() async {
+  test_class_classTypeAlias_with_beforeClassModifiers() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart=2.19
+// %before-language-feature: class-modifiers
 class A {}
 class B = Object with A;
 class C extends Object with B {}
@@ -141,9 +141,9 @@ class C = Object with B;
 ''');
   }
 
-  test_classTypeAlias_class_extends_language219() async {
+  test_classTypeAlias_class_extends_beforeClassModifiers() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart=2.19
+// %before-language-feature: class-modifiers
 class A {}
 class B extends A {}
 class C = Object with B;
@@ -164,9 +164,9 @@ class C = Object with B;
 ''');
   }
 
-  test_classTypeAlias_class_with_language219() async {
+  test_classTypeAlias_class_with_beforeClassModifiers() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart=2.19
+// %before-language-feature: class-modifiers
 class A {}
 class B extends Object with A {}
 class C = Object with B;
@@ -196,9 +196,9 @@ class D = Object with C;
 ''');
   }
 
-  test_classTypeAlias_classAlias_with2_language219() async {
+  test_classTypeAlias_classAlias_with2_beforeClassModifiers() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart=2.19
+// %before-language-feature: class-modifiers
 class A {}
 class B {}
 class C = Object with A, B;
@@ -208,9 +208,9 @@ class D = Object with C;
 ''');
   }
 
-  test_classTypeAlias_classAlias_with_language219() async {
+  test_classTypeAlias_classAlias_with_beforeClassModifiers() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart=2.19
+// %before-language-feature: class-modifiers
 class A {}
 class B = Object with A;
 class C = Object with B;
@@ -239,9 +239,9 @@ enum E with B {
 ''');
   }
 
-  test_enum_class_extends_language219() async {
+  test_enum_class_extends_beforeClassModifiers() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart=2.19
+// %before-language-feature: class-modifiers
 class A {}
 class B extends A {}
 enum E with B {
@@ -262,9 +262,9 @@ enum E with B {
 ''');
   }
 
-  test_enum_class_extends_Object_language219() async {
+  test_enum_class_extends_Object_beforeClassModifiers() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart=2.19
+// %before-language-feature: class-modifiers
 class A {}
 class B extends Object {}
 enum E with B {
@@ -287,9 +287,9 @@ enum E with B {
 ''');
   }
 
-  test_enum_class_with_language219() async {
+  test_enum_class_with_beforeClassModifiers() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart=2.19
+// %before-language-feature: class-modifiers
 class A {}
 class B extends Object with A {}
 enum E with B {
@@ -323,9 +323,9 @@ enum E with C {
 ''');
   }
 
-  test_enum_classTypeAlias_with2_language219() async {
+  test_enum_classTypeAlias_with2_beforeClassModifiers() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart=2.19
+// %before-language-feature: class-modifiers
 class A {}
 class B {}
 class C = Object with A, B;
@@ -337,9 +337,9 @@ enum E with C {
 ''');
   }
 
-  test_enum_classTypeAlias_with_language219() async {
+  test_enum_classTypeAlias_with_beforeClassModifiers() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart=2.19
+// %before-language-feature: class-modifiers
 class A {}
 class B = Object with A;
 enum E with B {

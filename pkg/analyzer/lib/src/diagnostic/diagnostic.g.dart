@@ -250,6 +250,58 @@ addressReceiver = DiagnosticWithoutArgumentsImpl(
   expectedTypes: [],
 );
 
+/// Reported for a name in a comment reference that is imported, or
+/// doc-imported, from more than one library.
+///
+/// Parameters:
+/// String name: the ambiguous name
+/// String libraries: the names of the libraries containing the conflicting
+///                   declarations
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required String name,
+    required String libraries,
+  })
+>
+ambiguousCommentReferenceName = DiagnosticWithArguments(
+  name: 'ambiguous_comment_reference',
+  problemMessage:
+      "The name '{0}' is ambiguous because it is defined in the libraries {1}.",
+  correctionMessage:
+      "Try using a prefix for one of the import directives, or hiding the "
+      "name from all but one of the imports.",
+  type: DiagnosticType.STATIC_WARNING,
+  uniqueName: 'ambiguous_comment_reference_name',
+  withArguments: _withArgumentsAmbiguousCommentReferenceName,
+  expectedTypes: [ExpectedType.string, ExpectedType.string],
+);
+
+/// Reported for a comment reference that consists of only an import prefix,
+/// such as `[p]`, which references the library imported with this prefix,
+/// when more than one library is imported with this prefix.
+///
+/// Parameters:
+/// String prefix: the prefix used alone in the comment reference
+/// String libraries: the names of the libraries imported with the prefix
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required String prefix,
+    required String libraries,
+  })
+>
+ambiguousCommentReferencePrefix = DiagnosticWithArguments(
+  name: 'ambiguous_comment_reference',
+  problemMessage:
+      "The prefix '{0}' can't be used to reference a library, because it's used "
+      "to import more than one library: {1}.",
+  correctionMessage:
+      "Try using a prefix that is used to import only one library.",
+  type: DiagnosticType.STATIC_WARNING,
+  uniqueName: 'ambiguous_comment_reference_prefix',
+  withArguments: _withArgumentsAmbiguousCommentReferencePrefix,
+  expectedTypes: [ExpectedType.string, ExpectedType.string],
+);
+
 /// Parameters:
 /// String name: the name of the ambiguous element
 /// Uri firstUri: the name of the first library in which the type is found
@@ -328,17 +380,21 @@ ambiguousExtensionMemberAccessTwo = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String name: the name of the ambiguous type
-/// String libraries: the names of the libraries that the type is found
+/// String kind: the kind of conflicting declarations, or 'name' for other
+///              conflicts
+/// String name: the ambiguous name
+/// String libraries: the names of the libraries containing the conflicting
+///                   declarations
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
+    required String kind,
     required String name,
     required String libraries,
   })
 >
 ambiguousImport = DiagnosticWithArguments(
   name: 'ambiguous_import',
-  problemMessage: "The name '{0}' is defined in the libraries {1}.",
+  problemMessage: "The {0} '{1}' is defined in the libraries {2}.",
   correctionMessage:
       "Try using 'as prefix' for one of the import directives, or hiding the "
       "name from all but one of the imports.",
@@ -346,7 +402,11 @@ ambiguousImport = DiagnosticWithArguments(
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'ambiguous_import',
   withArguments: _withArgumentsAmbiguousImport,
-  expectedTypes: [ExpectedType.string, ExpectedType.string],
+  expectedTypes: [
+    ExpectedType.string,
+    ExpectedType.string,
+    ExpectedType.string,
+  ],
 );
 
 /// No parameters.
@@ -1262,6 +1322,28 @@ const DiagnosticWithoutArguments augmentationTypeParameterName =
       uniqueName: 'augmentation_type_parameter_name',
       expectedTypes: [],
     );
+
+/// Parameters:
+/// Type getterType: the return type of the getter being augmented
+/// Type setterType: the parameter type of the setter being augmented
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required DartType getterType,
+    required DartType setterType,
+  })
+>
+augmentationVariableDifferentGetterSetterTypes = DiagnosticWithArguments(
+  name: 'augmentation_variable_different_getter_setter_types',
+  problemMessage:
+      "The getter and setter augmented by this variable have different types: "
+      "'{0}' and '{1}'.",
+  correctionMessage:
+      "Try changing the getter and setter to have the same type.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'augmentation_variable_different_getter_setter_types',
+  withArguments: _withArgumentsAugmentationVariableDifferentGetterSetterTypes,
+  expectedTypes: [ExpectedType.type, ExpectedType.type],
+);
 
 /// No parameters.
 const DiagnosticWithoutArguments augmentationWithoutDeclaration =
@@ -3868,6 +3950,86 @@ deprecatedMemberUse = DiagnosticWithArguments(
 );
 
 /// Parameters:
+/// String name: the name of the implicitly invoked super constructor
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name})
+>
+deprecatedMemberUseImplicitSuperConstructorInvocation = DiagnosticWithArguments(
+  name: 'deprecated_member_use',
+  problemMessage:
+      "The implicitly invoked super constructor '{0}' is deprecated and "
+      "shouldn't be used.",
+  correctionMessage: "Try explicitly invoking a replacement super constructor.",
+  hasPublishedDocs: true,
+  type: DiagnosticType.HINT,
+  uniqueName: 'deprecated_member_use_implicit_super_constructor_invocation',
+  withArguments:
+      _withArgumentsDeprecatedMemberUseImplicitSuperConstructorInvocation,
+  expectedTypes: [ExpectedType.string],
+);
+
+/// Parameters:
+/// String name: the name of the implicitly invoked super constructor
+/// String details: message details
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name, required String details})
+>
+deprecatedMemberUseImplicitSuperConstructorInvocationWithMessage =
+    DiagnosticWithArguments(
+      name: 'deprecated_member_use',
+      problemMessage:
+          "The implicitly invoked super constructor '{0}' is deprecated and "
+          "shouldn't be used. {1}",
+      correctionMessage:
+          "Try explicitly invoking a replacement super constructor.",
+      hasPublishedDocs: true,
+      type: DiagnosticType.HINT,
+      uniqueName:
+          'deprecated_member_use_implicit_super_constructor_invocation_with_message',
+      withArguments:
+          _withArgumentsDeprecatedMemberUseImplicitSuperConstructorInvocationWithMessage,
+      expectedTypes: [ExpectedType.string, ExpectedType.string],
+    );
+
+/// Parameters:
+/// String name: the name of the implicitly referenced type
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name})
+>
+deprecatedMemberUseImplicitType = DiagnosticWithArguments(
+  name: 'deprecated_member_use',
+  problemMessage:
+      "The implicitly referenced type '{0}' is deprecated and shouldn't be used.",
+  correctionMessage:
+      "Try replacing the use of the deprecated type with the replacement.",
+  hasPublishedDocs: true,
+  type: DiagnosticType.HINT,
+  uniqueName: 'deprecated_member_use_implicit_type',
+  withArguments: _withArgumentsDeprecatedMemberUseImplicitType,
+  expectedTypes: [ExpectedType.string],
+);
+
+/// Parameters:
+/// String name: the name of the implicitly referenced type
+/// String details: message details
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name, required String details})
+>
+deprecatedMemberUseImplicitTypeWithMessage = DiagnosticWithArguments(
+  name: 'deprecated_member_use',
+  problemMessage:
+      "The implicitly referenced type '{0}' is deprecated and shouldn't be used. "
+      "{1}",
+  correctionMessage:
+      "Try replacing the use of the deprecated type with the replacement.",
+  hasPublishedDocs: true,
+  type: DiagnosticType.HINT,
+  uniqueName: 'deprecated_member_use_implicit_type_with_message',
+  withArguments: _withArgumentsDeprecatedMemberUseImplicitTypeWithMessage,
+  expectedTypes: [ExpectedType.string, ExpectedType.string],
+);
+
+/// Parameters:
 /// String name: the name of the member
 /// String details: message details
 const DiagnosticWithArguments<
@@ -3913,19 +4075,6 @@ const DiagnosticWithoutArguments deprecatedMixinFunction =
       expectedTypes: [],
     );
 
-/// No parameters.
-const DiagnosticWithoutArguments deprecatedNewInCommentReference =
-    DiagnosticWithoutArgumentsImpl(
-      name: 'deprecated_new_in_comment_reference',
-      problemMessage:
-          "Using the 'new' keyword in a comment reference is deprecated.",
-      correctionMessage: "Try referring to a constructor by its name.",
-      hasPublishedDocs: true,
-      type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'deprecated_new_in_comment_reference',
-      expectedTypes: [],
-    );
-
 /// Parameters:
 /// String parameterName: the name of the parameter
 const DiagnosticWithArguments<
@@ -3958,6 +4107,34 @@ deprecatedSubclass = DiagnosticWithArguments(
   uniqueName: 'deprecated_subclass',
   withArguments: _withArgumentsDeprecatedSubclass,
   expectedTypes: [ExpectedType.string],
+);
+
+/// Parameters:
+/// String fieldName: the name of the field whose type can't be inferred
+/// String getterType: the return type of the combined getter signature
+/// String setterType: the parameter type of the combined setter signature
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required String fieldName,
+    required String getterType,
+    required String setterType,
+  })
+>
+differentInheritedGetterAndSetterTypes = DiagnosticWithArguments(
+  name: 'different_inherited_getter_and_setter_types',
+  problemMessage:
+      "Can't infer a type for '{0}' because the combined member signature of the "
+      "getter has return type '{1}', which is not the same as the parameter "
+      "type '{2}' of the combined member signature of the setter.",
+  correctionMessage: "Try adding an explicit type.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'different_inherited_getter_and_setter_types',
+  withArguments: _withArgumentsDifferentInheritedGetterAndSetterTypes,
+  expectedTypes: [
+    ExpectedType.string,
+    ExpectedType.string,
+    ExpectedType.string,
+  ],
 );
 
 /// No parameters.
@@ -4194,18 +4371,6 @@ const DiagnosticWithoutArguments docImportCannotBeDeferred =
     );
 
 /// No parameters.
-const DiagnosticWithoutArguments docImportCannotHaveCombinators =
-    DiagnosticWithoutArgumentsImpl(
-      name: 'doc_import_cannot_have_combinators',
-      problemMessage: "Doc imports can't have show or hide combinators.",
-      correctionMessage: "Try removing the combinator.",
-      hasPublishedDocs: true,
-      type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'doc_import_cannot_have_combinators',
-      expectedTypes: [],
-    );
-
-/// No parameters.
 const DiagnosticWithoutArguments docImportCannotHaveConfigurations =
     DiagnosticWithoutArgumentsImpl(
       name: 'doc_import_cannot_have_configurations',
@@ -4217,17 +4382,21 @@ const DiagnosticWithoutArguments docImportCannotHaveConfigurations =
       expectedTypes: [],
     );
 
+/// Reported for a doc import on a `part of` directive when the
+/// 'enhanced-parts' language feature is not enabled. Such doc imports are
+/// not used to resolve documentation comments.
+///
 /// No parameters.
-const DiagnosticWithoutArguments docImportCannotHavePrefix =
-    DiagnosticWithoutArgumentsImpl(
-      name: 'doc_import_cannot_have_prefix',
-      problemMessage: "Doc imports can't have prefixes.",
-      correctionMessage: "Try removing the prefix.",
-      hasPublishedDocs: true,
-      type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'doc_import_cannot_have_prefix',
-      expectedTypes: [],
-    );
+const DiagnosticWithoutArguments
+docImportInPartFile = DiagnosticWithoutArgumentsImpl(
+  name: 'doc_import_in_part_file',
+  problemMessage:
+      "Doc imports in part files require the 'enhanced-parts' language feature.",
+  correctionMessage: "Try moving the doc import to the library file.",
+  type: DiagnosticType.STATIC_WARNING,
+  uniqueName: 'doc_import_in_part_file',
+  expectedTypes: [],
+);
 
 /// No parameters.
 const DiagnosticWithoutArguments dotShorthandMissingContext =
@@ -4878,6 +5047,24 @@ const DiagnosticWithoutArguments equalKeysInMapPattern =
       expectedTypes: [],
     );
 
+/// A warning code indicating that an exclude glob pattern is invalid.
+///
+/// Parameters:
+/// String pattern: the glob pattern
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String pattern})
+>
+excludeInvalidGlob = DiagnosticWithArguments(
+  name: 'exclude_invalid_glob',
+  problemMessage:
+      "The exclude glob pattern '{0}' shouldn't start with a forward slash.",
+  correctionMessage: "Remove the leading forward slash.",
+  type: DiagnosticType.STATIC_WARNING,
+  uniqueName: 'exclude_invalid_glob',
+  withArguments: _withArgumentsExcludeInvalidGlob,
+  expectedTypes: [ExpectedType.string],
+);
+
 /// No parameters.
 const DiagnosticWithoutArguments expectedCaseOrDefault =
     DiagnosticWithoutArgumentsImpl(
@@ -5457,6 +5644,19 @@ const DiagnosticWithoutArguments extensionAugmentationHasOnClause =
       correctionMessage: "Try removing the 'on' clause.",
       type: DiagnosticType.SYNTACTIC_ERROR,
       uniqueName: 'extension_augmentation_has_on_clause',
+      expectedTypes: [],
+    );
+
+/// No parameters.
+///
+/// No parameters.
+const DiagnosticWithoutArguments extensionAugmentationWithoutName =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'extension_augmentation_without_name',
+      problemMessage: "An extension augmentation must have a name.",
+      correctionMessage: "Try adding the name of the extension to augment.",
+      type: DiagnosticType.SYNTACTIC_ERROR,
+      uniqueName: 'extension_augmentation_without_name',
       expectedTypes: [],
     );
 
@@ -7655,6 +7855,31 @@ incompatibleLintIncluded = DiagnosticWithArguments(
   ],
 );
 
+/// An error code indicating that a plugin has been specified with different
+/// sources in different analysis options files.
+///
+/// Parameters:
+/// String pluginName: the name of the plugin
+/// String otherOptionsPath: the path to the other analysis options file
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required String pluginName,
+    required String otherOptionsPath,
+  })
+>
+incompatiblePluginSource = DiagnosticWithArguments(
+  name: 'incompatible_plugin_source',
+  problemMessage:
+      "The plugin '{0}' is specified with a different source in '{1}'.",
+  correctionMessage:
+      "Ensure that all specifications of the same plugin use an identical "
+      "source.",
+  type: DiagnosticType.STATIC_WARNING,
+  uniqueName: 'incompatible_plugin_source',
+  withArguments: _withArgumentsIncompatiblePluginSource,
+  expectedTypes: [ExpectedType.string, ExpectedType.string],
+);
+
 /// Parameters:
 /// String name: the name of the instance member with inconsistent
 ///              inheritance.
@@ -7894,7 +8119,6 @@ inferenceFailureOnGenericInvocation = DiagnosticWithArguments(
       "The type argument(s) of the generic function type '{0}' can't be "
       "inferred.",
   correctionMessage: "Use explicit type argument(s) for '{0}'.",
-  hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'inference_failure_on_generic_invocation',
   withArguments: _withArgumentsInferenceFailureOnGenericInvocation,
@@ -7915,7 +8139,6 @@ inferenceFailureOnInstanceCreation = DiagnosticWithArguments(
   problemMessage:
       "The type argument(s) of the constructor '{0}' can't be inferred.",
   correctionMessage: "Use explicit type argument(s) for '{0}'.",
-  hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'inference_failure_on_instance_creation',
   withArguments: _withArgumentsInferenceFailureOnInstanceCreation,
@@ -8381,8 +8604,8 @@ const DiagnosticWithoutArguments
 invalidCommentReference = DiagnosticWithoutArgumentsImpl(
   name: 'invalid_comment_reference',
   problemMessage:
-      "Comment references should contain a possibly prefixed identifier and can "
-      "start with 'new', but shouldn't contain anything else.",
+      "Comment references should contain a possibly prefixed identifier, but "
+      "shouldn't contain anything else.",
   type: DiagnosticType.SYNTACTIC_ERROR,
   uniqueName: 'invalid_comment_reference',
   expectedTypes: [],
@@ -9957,6 +10180,23 @@ invocationOfNonFunctionExpression = DiagnosticWithoutArgumentsImpl(
   expectedTypes: [],
 );
 
+/// No parameters.
+const DiagnosticWithoutArguments
+jsInteropExtensionConstructorJsAnnotationHasNoEffect =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'js_interop_extension_constructor_js_annotation_has_no_effect',
+      problemMessage:
+          "The '@JS' annotation on an extension type constructor has no effect and "
+          "is disallowed.",
+      correctionMessage:
+          "Try removing the '@JS' annotation from the constructor, and putting "
+          "it on the extension type to rename non-object literal constructors.",
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName:
+          'js_interop_extension_constructor_js_annotation_has_no_effect',
+      expectedTypes: [],
+    );
+
 /// Parameters:
 /// String name: the name of the unresolvable label
 const DiagnosticWithArguments<
@@ -11144,6 +11384,17 @@ mixinApplicationNotImplementedInterface = DiagnosticWithArguments(
   expectedTypes: [ExpectedType.type, ExpectedType.type, ExpectedType.type],
 );
 
+/// No parameters.
+const DiagnosticWithoutArguments mixinAugmentationHasOnClause =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'mixin_augmentation_has_on_clause',
+      problemMessage: "Mixin augmentations can't have 'on' clauses.",
+      correctionMessage: "Try removing the 'on' clause.",
+      type: DiagnosticType.SYNTACTIC_ERROR,
+      uniqueName: 'mixin_augmentation_has_on_clause',
+      expectedTypes: [],
+    );
+
 /// Parameters:
 /// String name: the name of the mixin class that is invalid
 const DiagnosticWithArguments<
@@ -11523,8 +11774,23 @@ multipleClauses = DiagnosticWithArguments(
 );
 
 /// No parameters.
+const DiagnosticWithoutArguments multipleCombinators =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'multiple_combinators',
+      problemMessage:
+          "At most one 'show' or 'hide' combinator can be used on an import or "
+          "export directive.",
+      correctionMessage:
+          "Try combining all of the combinators into a single combinator.",
+      hasPublishedDocs: true,
+      type: DiagnosticType.SYNTACTIC_ERROR,
+      uniqueName: 'multiple_combinators',
+      expectedTypes: [],
+    );
+
+/// No parameters.
 const DiagnosticWithoutArguments
-multipleCombinators = DiagnosticWithoutArgumentsImpl(
+multipleCombinatorsDeprecated = DiagnosticWithoutArgumentsImpl(
   name: 'multiple_combinators',
   problemMessage:
       "Using multiple 'hide' or 'show' combinators is never necessary and often "
@@ -11532,7 +11798,7 @@ multipleCombinators = DiagnosticWithoutArgumentsImpl(
   correctionMessage: "Try using a single combinator.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'multiple_combinators',
+  uniqueName: 'multiple_combinators_deprecated',
   expectedTypes: [],
 );
 
@@ -12381,17 +12647,6 @@ nonBoolOperand = DiagnosticWithArguments(
 );
 
 /// No parameters.
-const DiagnosticWithoutArguments nonConstantAnnotationConstructor =
-    DiagnosticWithoutArgumentsImpl(
-      name: 'non_constant_annotation_constructor',
-      problemMessage: "Annotation creation can only call a const constructor.",
-      hasPublishedDocs: true,
-      type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'non_constant_annotation_constructor',
-      expectedTypes: [],
-    );
-
-/// No parameters.
 const DiagnosticWithoutArguments nonConstantCaseExpression =
     DiagnosticWithoutArgumentsImpl(
       name: 'non_constant_case_expression',
@@ -12656,8 +12911,8 @@ const DiagnosticWithArguments<
 nonConstCallToLiteralConstructor = DiagnosticWithArguments(
   name: 'non_const_call_to_literal_constructor',
   problemMessage:
-      "This instance creation must be 'const', because the {0} constructor is "
-      "marked as '@literal'.",
+      "This instance creation must be 'const', because '{0}' is marked as "
+      "'@literal'.",
   correctionMessage: "Try adding a 'const' keyword.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
@@ -12677,8 +12932,8 @@ const DiagnosticWithArguments<
 nonConstCallToLiteralConstructorUsingNew = DiagnosticWithArguments(
   name: 'non_const_call_to_literal_constructor',
   problemMessage:
-      "This instance creation must be 'const', because the {0} constructor is "
-      "marked as '@literal'.",
+      "This instance creation must be 'const', because '{0}' is marked as "
+      "'@literal'.",
   correctionMessage: "Try replacing the 'new' keyword with 'const'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
@@ -13986,28 +14241,6 @@ const DiagnosticWithoutArguments platformValueDisallowed =
       uniqueName: 'platform_value_disallowed',
       expectedTypes: [],
     );
-
-/// An error code indicating plugins have been specified in an "inner"
-/// analysis options file.
-///
-/// Parameters:
-/// String contextRoot: the root of the analysis context
-const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String contextRoot})
->
-pluginsInInnerOptions = DiagnosticWithArguments(
-  name: 'plugins_in_inner_options',
-  problemMessage:
-      "Plugins can only be specified in the root of a pub workspace or the root "
-      "of a package that isn't in a workspace.",
-  correctionMessage:
-      "Try specifying plugins in an analysis options file at '{0}'.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'plugins_in_inner_options',
-  withArguments: _withArgumentsPluginsInInnerOptions,
-  expectedTypes: [ExpectedType.string],
-);
 
 /// No parameters.
 const DiagnosticWithoutArguments positionalAfterNamedArgument =
@@ -16407,24 +16640,6 @@ const DiagnosticWithoutArguments uncheckedUseOfNullableValueInYieldEach =
     );
 
 /// Parameters:
-/// String name: the name of the annotation
-const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String name})
->
-undefinedAnnotation = DiagnosticWithArguments(
-  name: 'undefined_annotation',
-  problemMessage: "Undefined name '{0}' used as an annotation.",
-  correctionMessage:
-      "Try defining the name or importing it from another library.",
-  hasPublishedDocs: true,
-  isUnresolvedIdentifier: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'undefined_annotation',
-  withArguments: _withArgumentsUndefinedAnnotation,
-  expectedTypes: [ExpectedType.string],
-);
-
-/// Parameters:
 /// String name: the name of the undefined class
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String name})
@@ -16783,12 +16998,11 @@ undefinedLint = DiagnosticWithArguments(
 
 /// Parameters:
 /// String methodName: the name of the method that is undefined
-/// String typeName: the resolved type name that the method lookup is
-///                  happening on
+/// Type type: the type where the method is being looked for
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
     required String methodName,
-    required String typeName,
+    required DartType type,
   })
 >
 undefinedMethod = DiagnosticWithArguments(
@@ -16801,7 +17015,7 @@ undefinedMethod = DiagnosticWithArguments(
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'undefined_method',
   withArguments: _withArgumentsUndefinedMethod,
-  expectedTypes: [ExpectedType.string, ExpectedType.string],
+  expectedTypes: [ExpectedType.string, ExpectedType.type],
 );
 
 /// Parameters:
@@ -16823,6 +17037,29 @@ undefinedMethodOnFunctionType = DiagnosticWithArguments(
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'undefined_method_on_function_type',
   withArguments: _withArgumentsUndefinedMethodOnFunctionType,
+  expectedTypes: [ExpectedType.string, ExpectedType.string],
+);
+
+/// Parameters:
+/// String methodName: the name of the method that is undefined
+/// String typeName: the name of the type literal where the method is being
+///                  looked for
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required String methodName,
+    required String typeName,
+  })
+>
+undefinedMethodOnTypeLiteral = DiagnosticWithArguments(
+  name: 'undefined_method',
+  problemMessage: "The method '{0}' isn't defined for the type '{1}'.",
+  correctionMessage:
+      "Try correcting the name to the name of an existing method, or "
+      "defining a method named '{0}'.",
+  hasPublishedDocs: true,
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_method_on_type_literal',
+  withArguments: _withArgumentsUndefinedMethodOnTypeLiteral,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
 
@@ -18678,6 +18915,26 @@ LocatableDiagnostic _withArgumentsAbstractSuperMemberReference({
   ]);
 }
 
+LocatableDiagnostic _withArgumentsAmbiguousCommentReferenceName({
+  required String name,
+  required String libraries,
+}) {
+  return LocatableDiagnosticImpl(diag.ambiguousCommentReferenceName, [
+    name,
+    libraries,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsAmbiguousCommentReferencePrefix({
+  required String prefix,
+  required String libraries,
+}) {
+  return LocatableDiagnosticImpl(diag.ambiguousCommentReferencePrefix, [
+    prefix,
+    libraries,
+  ]);
+}
+
 LocatableDiagnostic _withArgumentsAmbiguousExport({
   required String name,
   required Uri firstUri,
@@ -18713,10 +18970,11 @@ LocatableDiagnostic _withArgumentsAmbiguousExtensionMemberAccessTwo({
 }
 
 LocatableDiagnostic _withArgumentsAmbiguousImport({
+  required String kind,
   required String name,
   required String libraries,
 }) {
-  return LocatableDiagnosticImpl(diag.ambiguousImport, [name, libraries]);
+  return LocatableDiagnosticImpl(diag.ambiguousImport, [kind, name, libraries]);
 }
 
 LocatableDiagnostic _withArgumentsAnalysisOptionDeprecated({
@@ -18927,6 +19185,17 @@ LocatableDiagnostic _withArgumentsAugmentationReturnTypeMismatch({
     expectedType,
     actualType,
   ]);
+}
+
+LocatableDiagnostic
+_withArgumentsAugmentationVariableDifferentGetterSetterTypes({
+  required DartType getterType,
+  required DartType setterType,
+}) {
+  return LocatableDiagnosticImpl(
+    diag.augmentationVariableDifferentGetterSetterTypes,
+    [getterType, setterType],
+  );
 }
 
 LocatableDiagnostic _withArgumentsAugmentationWithoutGetterDeclaration({
@@ -19534,6 +19803,43 @@ LocatableDiagnostic _withArgumentsDeprecatedMemberUse({required String name}) {
   return LocatableDiagnosticImpl(diag.deprecatedMemberUse, [name]);
 }
 
+LocatableDiagnostic
+_withArgumentsDeprecatedMemberUseImplicitSuperConstructorInvocation({
+  required String name,
+}) {
+  return LocatableDiagnosticImpl(
+    diag.deprecatedMemberUseImplicitSuperConstructorInvocation,
+    [name],
+  );
+}
+
+LocatableDiagnostic
+_withArgumentsDeprecatedMemberUseImplicitSuperConstructorInvocationWithMessage({
+  required String name,
+  required String details,
+}) {
+  return LocatableDiagnosticImpl(
+    diag.deprecatedMemberUseImplicitSuperConstructorInvocationWithMessage,
+    [name, details],
+  );
+}
+
+LocatableDiagnostic _withArgumentsDeprecatedMemberUseImplicitType({
+  required String name,
+}) {
+  return LocatableDiagnosticImpl(diag.deprecatedMemberUseImplicitType, [name]);
+}
+
+LocatableDiagnostic _withArgumentsDeprecatedMemberUseImplicitTypeWithMessage({
+  required String name,
+  required String details,
+}) {
+  return LocatableDiagnosticImpl(
+    diag.deprecatedMemberUseImplicitTypeWithMessage,
+    [name, details],
+  );
+}
+
 LocatableDiagnostic _withArgumentsDeprecatedMemberUseWithMessage({
   required String name,
   required String details,
@@ -19558,6 +19864,18 @@ LocatableDiagnostic _withArgumentsDeprecatedSubclass({
   required String typeName,
 }) {
   return LocatableDiagnosticImpl(diag.deprecatedSubclass, [typeName]);
+}
+
+LocatableDiagnostic _withArgumentsDifferentInheritedGetterAndSetterTypes({
+  required String fieldName,
+  required String getterType,
+  required String setterType,
+}) {
+  return LocatableDiagnosticImpl(diag.differentInheritedGetterAndSetterTypes, [
+    fieldName,
+    getterType,
+    setterType,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsDocDirectiveArgumentWrongFormat({
@@ -19742,6 +20060,12 @@ LocatableDiagnostic _withArgumentsEnumWithAbstractMember({
     methodName,
     enclosingClass,
   ]);
+}
+
+LocatableDiagnostic _withArgumentsExcludeInvalidGlob({
+  required String pattern,
+}) {
+  return LocatableDiagnosticImpl(diag.excludeInvalidGlob, [pattern]);
 }
 
 LocatableDiagnostic _withArgumentsExpectedInstead({required String expected}) {
@@ -20268,6 +20592,16 @@ LocatableDiagnostic _withArgumentsIncompatibleLintIncluded({
     incompatibleRules,
     numIncludingFiles,
     pluralSuffix,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsIncompatiblePluginSource({
+  required String pluginName,
+  required String otherOptionsPath,
+}) {
+  return LocatableDiagnosticImpl(diag.incompatiblePluginSource, [
+    pluginName,
+    otherOptionsPath,
   ]);
 }
 
@@ -21554,12 +21888,6 @@ LocatableDiagnostic _withArgumentsPermissionImpliesUnsupportedHardware({
   ]);
 }
 
-LocatableDiagnostic _withArgumentsPluginsInInnerOptions({
-  required String contextRoot,
-}) {
-  return LocatableDiagnosticImpl(diag.pluginsInInnerOptions, [contextRoot]);
-}
-
 LocatableDiagnostic _withArgumentsPrefixCollidesWithTopLevelMember({
   required String name,
 }) {
@@ -22096,10 +22424,6 @@ LocatableDiagnostic _withArgumentsUncheckedPropertyAccessOfNullableValue({
   ]);
 }
 
-LocatableDiagnostic _withArgumentsUndefinedAnnotation({required String name}) {
-  return LocatableDiagnosticImpl(diag.undefinedAnnotation, [name]);
-}
-
 LocatableDiagnostic _withArgumentsUndefinedClass({required String name}) {
   return LocatableDiagnosticImpl(diag.undefinedClass, [name]);
 }
@@ -22223,9 +22547,9 @@ LocatableDiagnostic _withArgumentsUndefinedLint({required String ruleName}) {
 
 LocatableDiagnostic _withArgumentsUndefinedMethod({
   required String methodName,
-  required String typeName,
+  required DartType type,
 }) {
-  return LocatableDiagnosticImpl(diag.undefinedMethod, [methodName, typeName]);
+  return LocatableDiagnosticImpl(diag.undefinedMethod, [methodName, type]);
 }
 
 LocatableDiagnostic _withArgumentsUndefinedMethodOnFunctionType({
@@ -22235,6 +22559,16 @@ LocatableDiagnostic _withArgumentsUndefinedMethodOnFunctionType({
   return LocatableDiagnosticImpl(diag.undefinedMethodOnFunctionType, [
     methodName,
     functionTypeAliasName,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedMethodOnTypeLiteral({
+  required String methodName,
+  required String typeName,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedMethodOnTypeLiteral, [
+    methodName,
+    typeName,
   ]);
 }
 

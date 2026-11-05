@@ -4,8 +4,8 @@ import "dart:core" as core;
 
 static method main() → void {
   let core::int p = 1 in 1;
-  let core::int p = 1 in p;
-  let core::int p = 1 in p.{core::int::isEven}{core::bool};
+  let core::int p##1 = 1 in p##1;
+  let core::int p##2 = 1 in p##2.{core::int::isEven}{core::bool};
 }
 
 

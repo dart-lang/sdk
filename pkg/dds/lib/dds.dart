@@ -63,6 +63,7 @@ abstract class DartDevelopmentService {
     DevToolsConfiguration? devToolsConfiguration,
     bool logRequests = false,
     UriConverter? uriConverter,
+    bool disableServiceOriginCheck = false,
   }) async {
     if (!remoteVmServiceUri.isScheme('http')) {
       throw ArgumentError(
@@ -104,6 +105,7 @@ abstract class DartDevelopmentService {
       enableServicePortFallback,
       uriConverter,
       appName,
+      disableServiceOriginCheck,
     );
     await service.startService();
     return service;
@@ -238,9 +240,11 @@ class DartDevelopmentServiceException implements Exception {
 
   /// Thrown when the connection to the remote VM service terminates unexpectedly
   /// during Dart Development Service startup.
-  factory DartDevelopmentServiceException.failedToStart() {
-    return DartDevelopmentServiceException._(
-        failedToStartError, 'Failed to start Dart Development Service');
+  factory DartDevelopmentServiceException.failedToStart([String? details]) {
+    final message = details != null
+        ? 'Failed to start Dart Development Service: $details'
+        : 'Failed to start Dart Development Service';
+    return DartDevelopmentServiceException._(failedToStartError, message);
   }
 
   /// Thrown when a connection error has occurred after startup.

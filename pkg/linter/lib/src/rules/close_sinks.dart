@@ -33,13 +33,11 @@ class CloseSinks extends AnalysisRule {
   }
 }
 
-class _Visitor extends LeakDetectorProcessors {
+class _Visitor(super.rule) extends LeakDetectorProcessors {
   static final Map<DartTypePredicate, String> _predicates = {
     _isSink: 'close',
     _isSocket: 'destroy',
   };
-
-  new(super.rule);
 
   @override
   Map<DartTypePredicate, String> get predicates => _predicates;

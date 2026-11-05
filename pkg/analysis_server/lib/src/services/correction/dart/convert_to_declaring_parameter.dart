@@ -258,7 +258,10 @@ class ConvertToDeclaringParameter extends ResolvedCorrectionProducer {
               constructorBody.body is EmptyFunctionBody;
           if (deletingEntireConstructor) {
             builder.addDeletion(
-              utils.getLinesRange(range.startEnd(fieldNode, constructorNode)),
+              utils.getLinesRange(
+                range.startEnd(fieldNode, constructorNode),
+                skipLeadingEmptyLines: true,
+              ),
             );
             fieldDeletionRange = null;
             initializerDeletionRange = null;

@@ -16,9 +16,6 @@ final class AssetServerClient {
   /// Whether the server has Flutter assets and packages available
   final bool hasFlutter;
 
-  /// Asset URL
-  Uri get assetUrl => baseUrl.resolve('asset/');
-
   final Completer<void> _closed;
 
   bool get isClosed => _closed.isCompleted;

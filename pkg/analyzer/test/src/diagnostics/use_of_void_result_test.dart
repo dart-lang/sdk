@@ -359,7 +359,7 @@ void f(List<void> values) {
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): review this
+  @FailingTest() // TODO(scheglov): review this
   test_forIn_loopVariable_typeVoid_error() async {
     await resolveTestCodeWithDiagnostics('''
 void f(void x) {
@@ -509,11 +509,47 @@ void f(void x) {
 ''');
   }
 
+  test_mapLiteralEntry_keyAndValue_toDynamic_error() async {
+    await resolveTestCodeWithDiagnostics('''
+void f(void v) {
+  <dynamic, dynamic>{v: v};
+//                   ^
+// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
+//                      ^
+// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
+}
+''');
+  }
+
   test_mapLiteralEntry_keyQuestion_keyTypeVoid_error() async {
     await resolveTestCodeWithDiagnostics('''
 void f(void key) {
   <void, int>{?key: 0};
 //             ^^^
+// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
+}
+''');
+  }
+
+  test_mapLiteralEntry_keyQuestion_keyTypeVoid_valueNotAssignable() async {
+    await resolveTestCodeWithDiagnostics('''
+void f(void v) {
+  <void, int>{?v: ''};
+//             ^
+// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
+//                ^^
+// [diag.mapValueTypeNotAssignable] The element type 'String' can't be assigned to the map value type 'int'.
+}
+''');
+  }
+
+  test_mapLiteralEntry_keyQuestion_valueQuestion_bothTypeVoid_error() async {
+    await resolveTestCodeWithDiagnostics('''
+void f(void v) {
+  <void, void>{?v: ?v};
+//              ^
+// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
+//                  ^
 // [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
 }
 ''');
@@ -545,6 +581,30 @@ void f(void value) {
 ''');
   }
 
+  test_mapLiteralEntry_valueQuestion_valueTypeVoid_keyNotAssignable() async {
+    await resolveTestCodeWithDiagnostics('''
+void f(void v) {
+  <int, void>{'': ?v};
+//            ^^
+// [diag.mapKeyTypeNotAssignable] The element type 'String' can't be assigned to the map key type 'int'.
+//                 ^
+// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
+}
+''');
+  }
+
+  test_nullAssertionExpression_operand_error() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+f(void x) {
+  x!;
+//^^
+// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
+}
+''');
+
+    assertType(result.findNode.nullAssertion('x!'), 'void');
+  }
+
   test_nullAwareElement_list_error() async {
     await resolveTestCodeWithDiagnostics('''
 void f(void value) {
@@ -563,18 +623,6 @@ void f(void value) {
 // [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
 }
 ''');
-  }
-
-  test_postfixExpression_bang_operand_error() async {
-    var result = await resolveTestCodeWithDiagnostics(r'''
-f(void x) {
-  x!;
-//^^
-// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
-}
-''');
-
-    assertType(result.findNode.postfix('x!'), 'void');
   }
 
   test_prefixExpression_bang_operand_error() async {
@@ -651,7 +699,7 @@ void f(void x) {
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): review this
+  @FailingTest() // TODO(scheglov): review this
   test_returnStatement_nonVoidFunction_error() async {
     // TODO(mfairhurst): Get this test to pass once codebase is compliant.
     await resolveTestCodeWithDiagnostics('''

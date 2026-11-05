@@ -9,25 +9,30 @@ import 'package:analyzer/src/dart/ast/token.dart';
 
 const _notSerializableName = '_notSerializableExpression';
 
-bool isNotSerializableMarker(SimpleIdentifier node) {
-  return node.name == _notSerializableName;
+bool isNotSerializableMarker(UnqualifiedNameExpression node) {
+  return node.name.lexeme == _notSerializableName;
 }
 
 /// If [node] is fully serializable, returns it.
 /// Otherwise returns a marker node.
 ExpressionImpl replaceNotSerializableExpression(ExpressionImpl node) {
   var visitor = _IsSerializableNodeVisitor();
-  node.accept(visitor);
+  node.accept2(visitor);
   if (visitor.result) {
     return node;
   }
-  return SimpleIdentifierImpl(
-    token: StringToken(TokenType.STRING, _notSerializableName, -1),
+  return UnqualifiedNameExpressionImpl(
+    name: StringToken(TokenType.STRING, _notSerializableName, -1),
   );
 }
 
-class _IsSerializableNodeVisitor extends RecursiveAstVisitor<void> {
+class _IsSerializableNodeVisitor extends RecursiveAstVisitor2<void> {
   bool result = true;
+
+  @override
+  void visitAnonymousMethodInvocation(AnonymousMethodInvocation node) {
+    result = false;
+  }
 
   @override
   void visitForElement(ForElement node) {

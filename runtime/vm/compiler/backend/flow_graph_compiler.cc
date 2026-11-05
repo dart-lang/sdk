@@ -524,6 +524,9 @@ void FlowGraphCompiler::EmitInstructionEpilogue(Instruction* instr) {
         case kUnboxedFloat64x2:
           stub = &StubCode::BoxFloat64x2();
           break;
+        case kUnboxedInt32x4:
+          stub = &StubCode::BoxInt32x4();
+          break;
         default:
           UNREACHABLE();
           break;
@@ -1336,7 +1339,8 @@ void FlowGraphCompiler::FinalizeVarDescriptors(const Code& code) {
     info.end_pos = TokenPosition::kMinSource;
     info.set_index(compiler::target::frame_layout.FrameSlotForVariable(
         parsed_function().current_context_var()));
-    var_descs.SetVar(0, Symbols::CurrentContextVar(), &info);
+    var_descs.SetVar(0, Symbols::CurrentContextVar(), Object::dynamic_type(),
+                     &info);
   }
   code.set_var_descriptors(var_descs);
 #endif
@@ -1774,6 +1778,7 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
           break;
         case kUnboxedFloat32x4:
         case kUnboxedFloat64x2:
+        case kUnboxedInt32x4:
           ASSERT(fpu_reg != kNoFpuRegister);
           assembler()->LoadUnboxedSimd128(
               fpu_reg, reg,
@@ -3030,7 +3035,7 @@ void FlowGraphCompiler::FrameStatePush(Definition* defn) {
   Representation rep = defn->representation();
   ASSERT(!is_optimizing());
   if ((rep == kUnboxedDouble || rep == kUnboxedFloat32x4 ||
-       rep == kUnboxedFloat64x2) &&
+       rep == kUnboxedFloat64x2 || rep == kUnboxedInt32x4) &&
       defn->locs()->out(0).IsFpuRegister()) {
     // Output value is boxed in the instruction epilogue.
     rep = kTagged;

@@ -41,9 +41,9 @@ extension type inout(int it) {}
 ''');
   }
 
-  test_inout_language310() async {
+  test_inout_beforePrimaryConstructors() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type inout(int it) {}
 ''');
   }
@@ -56,9 +56,9 @@ extension type out(int it) {}
 ''');
   }
 
-  test_out_language310() async {
+  test_out_beforePrimaryConstructors() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type out(int it) {}
 ''');
   }

@@ -95,10 +95,12 @@ void testStackTrace(void testCase(dynamic condition), List<int> lineNumbers) {
           e.toString());
     }
 
-    final String st = stacktrace.toString();
-    for (int lineNum in lineNumbers) {
-      String item = '.dart:$lineNum';
-      Expect.isTrue(st.contains(item), "Stack trace doesn't contain $item");
+    if (symbolicUnminifiedStackTraces) {
+      final String st = stacktrace.toString();
+      for (int lineNum in lineNumbers) {
+        String item = '.dart:$lineNum';
+        Expect.isTrue(st.contains(item), "Stack trace doesn't contain $item");
+      }
     }
     print('OK');
   }

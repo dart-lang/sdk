@@ -200,12 +200,12 @@ class GreatestLowerBoundHelper {
     }
 
     // DOWN(T1, T2) = T1 if T1 <: T2
-    if (_typeSystem.isSubtypeOf(T1, T2)) {
+    if (_isSubtypeOf(T1, T2)) {
       return T1;
     }
 
     // DOWN(T1, T2) = T2 if T2 <: T1
-    if (_typeSystem.isSubtypeOf(T2, T1)) {
+    if (_isSubtypeOf(T2, T1)) {
       return T2;
     }
 
@@ -367,6 +367,16 @@ class GreatestLowerBoundHelper {
       returnType: returnType,
       nullabilitySuffix: NullabilitySuffix.none,
     );
+  }
+
+  /// For `DOWN` on type schemas, subtype comparisons use the greatest
+  /// closures of both operands.
+  ///
+  /// https://github.com/dart-lang/language/blob/main/resources/type-system/inference.md#upper-bound
+  bool _isSubtypeOf(TypeImpl T1, TypeImpl T2) {
+    var S1 = _typeSystem.greatestClosureOfSchema(T1);
+    var S2 = _typeSystem.greatestClosureOfSchema(T2);
+    return _typeSystem.isSubtypeOf(S1, S2);
   }
 
   TypeImpl _recordType(RecordTypeImpl T1, RecordTypeImpl T2) {

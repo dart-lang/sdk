@@ -32,7 +32,7 @@ class InsertUnitHeaderCommentMutation extends Mutation {
 
   static List<Mutation> discover(String filePath, CompilationUnit unit) {
     var mutations = <Mutation>[];
-    if (unit.declarations.isNotEmpty) {
+    if (unit.declarations2.isNotEmpty) {
       mutations.add(InsertUnitHeaderCommentMutation(path: filePath));
     }
     return mutations;

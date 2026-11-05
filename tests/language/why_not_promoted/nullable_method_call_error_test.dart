@@ -9,17 +9,17 @@
 class C {
   int? i;
   //   ^
-  // [context 3] 'i' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
-  // [context 4] 'i' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
-  // [context 5] 'i' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
-  // [context 6] 'i' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 3] 'i' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
+  // [context 4] 'i' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
+  // [context 5] 'i' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
+  // [context 6] 'i' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
   // [context 10] 'i' refers to a public property so it couldn't be promoted.
   // [context 11] 'i' refers to a public property so it couldn't be promoted.
   // [context 12] 'i' refers to a public property so it couldn't be promoted.
   // [context 13] 'i' refers to a public property so it couldn't be promoted.
   void Function()? f;
   //               ^
-  // [context 7] 'f' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 7] 'f' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
   // [context 14] 'f' refers to a public property so it couldn't be promoted.
 }
 
@@ -37,7 +37,7 @@ property_get_of_variable(int? i, int? j) {
   if (i == null) return;
   i = j;
   // [error column 3, length 5]
-  // [context 1] Variable 'i' could not be promoted due to an assignment.  See http://dart.dev/go/non-promo-write
+  // [context 1] Variable 'i' could not be promoted due to an assignment.  See https://dart.dev/go/non-promo-write
   // [context 8] Variable 'i' could not be promoted due to an assignment.
   i.isEven;
   //^^^^^^
@@ -49,7 +49,7 @@ extension_property_get_of_variable(int? i, int? j) {
   if (i == null) return;
   i = j;
   // [error column 3, length 5]
-  // [context 2] Variable 'i' could not be promoted due to an assignment.  See http://dart.dev/go/non-promo-write
+  // [context 2] Variable 'i' could not be promoted due to an assignment.  See https://dart.dev/go/non-promo-write
   // [context 9] Variable 'i' could not be promoted due to an assignment.
   i.propertyOnNullableInt;
   i.propertyOnNonNullInt;

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -13,8 +14,14 @@ class UseResultVerifier {
 
   UseResultVerifier(this._diagnosticReporter);
 
-  void checkFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    var element = node.element;
+  void checkCallInvocation(CallInvocation node) {
+    if (node.resolution case ExecutableInvocationResolution(:var element)) {
+      _check(node, element);
+    }
+  }
+
+  void checkConstructorInvocation(ConstructorInvocation node) {
+    var element = node.constructorReference.element;
     if (element == null) {
       return;
     }
@@ -22,60 +29,29 @@ class UseResultVerifier {
     _check(node, element);
   }
 
-  void checkInstanceCreationExpression(InstanceCreationExpression node) {
-    var element = node.constructorName.element;
-    if (element == null) {
-      return;
+  void checkNamedFunctionInvocation(NamedFunctionInvocation node) {
+    if (node.resolution case ExecutableInvocationResolution(:var element)) {
+      _check(node, element, nameToken: node.name);
     }
-
-    _check(node, element);
   }
 
-  void checkMethodInvocation(MethodInvocation node) {
-    var element = node.methodName.element;
-    if (element == null) {
+  void checkNameExpression(Expression node, NamedReadResolution? resolution) {
+    if (node.parent2 is CallInvocation) {
       return;
     }
-
-    _check(node, element);
+    if (resolution?.element case var element?) {
+      _check(node, element);
+    }
   }
 
-  void checkPropertyAccess(PropertyAccess node) {
-    var element = node.propertyName.element;
-    if (element == null) {
-      return;
+  void checkPropertyExtraction(PropertyExtraction node) {
+    if (node.resolution?.element case var element?) {
+      _check(node, element, nameToken: node.name);
     }
-
-    _check(node, element);
   }
 
-  void checkSimpleIdentifier(SimpleIdentifier node) {
-    if (node.inDeclarationContext()) {
-      return;
-    }
-
-    var parent = node.parent;
-    // Covered by checkPropertyAccess, checkMethodInvocation
-    // and checkFunctionExpressionInvocation respectively.
-    if (parent is PropertyAccess ||
-        parent is MethodInvocation ||
-        parent is FunctionExpressionInvocation) {
-      return;
-    }
-
-    var element = node.element;
-    if (element == null) {
-      return;
-    }
-
-    _check(node, element);
-  }
-
-  void _check(AstNode node, Element element) {
-    var parent = node.parent;
-    if (parent is PrefixedIdentifier) {
-      parent = parent.parent;
-    }
+  void _check(AstNode node, Element element, {Token? nameToken}) {
+    var parent = node.parent2;
     if (parent is CommentReference) {
       // Don't flag references in comments.
       return;
@@ -97,10 +73,12 @@ class UseResultVerifier {
       return;
     }
 
-    var toAnnotate = node.nodeToAnnotate;
-    var displayName = toAnnotate is SimpleIdentifier
-        ? toAnnotate.name
-        : element.displayName;
+    var toAnnotate = nameToken ?? node.nodeToAnnotate;
+    var displayName = switch (toAnnotate) {
+      Token(:var lexeme) => lexeme,
+      UnqualifiedNameExpression(:var name) => name.lexeme,
+      _ => element.displayName,
+    };
 
     var message = annotation.useResultMessage;
     if (message == null || message.isEmpty) {
@@ -117,16 +95,18 @@ class UseResultVerifier {
   }
 
   bool _passesUsingParam(AstNode node, ElementAnnotation annotation) {
-    if (node is! MethodInvocation) {
-      return false;
-    }
+    var argumentList = switch (node) {
+      FunctionInvocation(:var argumentList) => argumentList,
+      InvocationExpression(:var argumentList) => argumentList,
+      _ => null,
+    };
+    if (argumentList is! ArgumentListImpl) return false;
 
     var unlessParam = annotation.useResultUnlessParameter;
     if (unlessParam == null) {
       return false;
     }
 
-    var argumentList = node.argumentList as ArgumentListImpl;
     var parameters = argumentList.correspondingStaticParameters;
     if (parameters == null) {
       return false;
@@ -157,26 +137,18 @@ class UseResultVerifier {
   }
 
   static bool _isUsed(AstNode node) {
-    var parent = node.parent;
+    var parent = node.parent2;
     if (parent == null) {
       return false;
     }
 
     if (parent is CascadeExpression) {
-      return parent.target == node;
+      return parent.target2 == node;
     }
 
-    if (parent is PrefixedIdentifier) {
-      if (parent.prefix == node) {
-        return true;
-      } else {
-        return _isUsed(parent);
-      }
-    }
-
-    if (parent is PostfixExpression) {
-      // Null-checking a result is not a "use." Other uses, like `++`, do count.
-      return parent.operator.type == TokenType.BANG && _isUsed(parent);
+    // Null-checking a result is not a "use".
+    if (parent is NullAssertionExpression) {
+      return _isUsed(parent);
     }
 
     if (parent is AsExpression ||
@@ -184,16 +156,19 @@ class UseResultVerifier {
         parent is ConditionalExpression ||
         parent is ForElement ||
         parent is IfElement ||
+        parent is LogicalNot ||
         parent is ParenthesizedExpression ||
-        parent is PrefixExpression ||
-        parent is SpreadElement) {
+        (parent is IncrementOrDecrementExpression &&
+            parent.position == IncrementOrDecrementPosition.prefix) ||
+        parent is SpreadElement ||
+        parent is UnaryOperatorInvocation) {
       return _isUsed(parent);
     }
 
     if (parent is ForParts) {
       // If [node] is the condition of a for-loop, it is used; if it is one of
       // the updaters, it is not.
-      return parent.condition == node;
+      return parent.condition2 == node;
     }
 
     return parent is ArgumentList ||
@@ -201,26 +176,29 @@ class UseResultVerifier {
         parent is AssertStatement ||
         // Node should always be RHS so no need to check for a property
         // assignment.
-        parent is AssignmentExpression ||
-        parent is BinaryExpression ||
+        parent is DirectAssignment ||
+        parent is IfNullAssignment ||
+        parent is BinaryOperatorInvocation ||
+        parent is IfNull ||
         parent is ConstructorFieldInitializer ||
         parent is DoStatement ||
         parent is ExpressionFunctionBody ||
         parent is ForEachParts ||
         parent is ForLoopParts ||
-        parent is FunctionExpressionInvocation ||
+        parent is CallInvocation ||
         parent is IfStatement ||
-        parent is IndexExpression ||
+        parent is IndexAssignmentTarget ||
+        parent is IndexExpression2 ||
         parent is InterpolationExpression ||
         parent is ListLiteral ||
         parent is MapLiteralEntry ||
-        parent is MethodInvocation ||
         parent is NamedArgument ||
         parent is PatternAssignment ||
         parent is PatternVariableDeclaration ||
-        parent is PropertyAccess ||
+        parent is PropertyExtraction ||
         parent is RecordLiteral ||
         parent is RecordLiteralNamedField ||
+        parent is ReceiverMethodInvocation ||
         parent is ReturnStatement ||
         parent is SetOrMapLiteral ||
         parent is SwitchExpression ||
@@ -250,10 +228,10 @@ extension on ElementAnnotation {
 }
 
 extension on AstNode {
-  AstNode get nodeToAnnotate => switch (this) {
-    MethodInvocation node => node.methodName,
-    PropertyAccess node => node.propertyName,
-    FunctionExpressionInvocation node => node.function.nodeToAnnotate,
+  SyntacticEntity get nodeToAnnotate => switch (this) {
+    ReceiverMethodInvocation node => node.name,
+    CallInvocation(receiver: ReceiverPropertyExtraction(:var name)) => name,
+    CallInvocation node => node.receiver.nodeToAnnotate,
     _ => this,
   };
 }

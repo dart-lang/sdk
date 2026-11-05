@@ -7,7 +7,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
 
-import 'package:cli_util/cli_logging.dart';
 import 'package:dartdev/dartdev.dart';
 import 'package:dartdev/src/core.dart';
 import 'package:file/memory.dart';
@@ -34,10 +33,6 @@ const residentFrontendCompilerPrefix =
 /// Return the root URI of the SDK by walking up from the pkg/dartdev folder.
 final sdkRootUri = resolveDartDevUri('../../');
 
-void initGlobalState() {
-  log = Logger.standard();
-}
-
 /// Creates a test-project in a temp-dir that will [dispose] itself at the end
 /// of the test.
 TestProject project({
@@ -45,6 +40,7 @@ TestProject project({
   String? analysisOptions,
   String name = TestProject._defaultProjectName,
   VersionConstraint? sdkConstraint,
+  String? languageVersion,
   Map<String, dynamic>? pubspecExtras,
 }) {
   var testProject = TestProject(
@@ -52,6 +48,7 @@ TestProject project({
     name: name,
     analysisOptions: analysisOptions,
     sdkConstraint: sdkConstraint,
+    languageVersion: languageVersion,
     pubspecExtras: pubspecExtras,
   );
   addTearDown(() => testProject.dispose());
@@ -73,6 +70,8 @@ class TestProject {
 
   String get mainPath => path.join(dirPath, relativeFilePath);
 
+  Uri get mainUri => Uri.file(mainPath);
+
   String get analysisOptionsPath => path.join(dirPath, 'analysis_options.yaml');
 
   String get packageConfigPath =>
@@ -80,7 +79,7 @@ class TestProject {
 
   final String name;
 
-  String get relativeFilePath => 'lib/main.dart';
+  String get relativeFilePath => path.join('lib', 'main.dart');
 
   Process? _process;
 
@@ -89,10 +88,12 @@ class TestProject {
     String? analysisOptions,
     this.name = _defaultProjectName,
     VersionConstraint? sdkConstraint,
+    String? languageVersion,
     Map<String, dynamic>? pubspecExtras,
   }) {
-    initGlobalState();
-    root = Directory.systemTemp.createTempSync('dartdev');
+    root = Directory.systemTemp
+        .createTempSync('dartdev')
+        .withUppercaseDriveLetter;
     file(
       'pubspec.yaml',
       JsonEncoder.withIndent('  ').convert({
@@ -111,7 +112,7 @@ class TestProject {
             'name': name,
             'rootUri': '../',
             'packageUri': 'lib/',
-            'languageVersion': '3.2',
+            'languageVersion': languageVersion ?? '3.2',
           },
         ],
       }),
@@ -142,7 +143,7 @@ class TestProject {
   void file(String name, String contents) {
     var file = File(path.join(dir.path, name));
     file.parent.createSync(recursive: true);
-    file.writeAsStringSync(contents);
+    file.writeAsStringSync(contents, flush: true);
   }
 
   void deleteFile(String name) {
@@ -175,6 +176,13 @@ class TestProject {
     String? workingDir,
   }) async {
     return run(['fix', '--suppress-analytics', ...arguments]);
+  }
+
+  Future<ProcessResult> runMigrate(
+    List<String> arguments, {
+    String? workingDir,
+  }) async {
+    return run(['migrate', '--suppress-analytics', ...arguments]);
   }
 
   Future<ProcessResult> run(
@@ -350,10 +358,20 @@ The `pkg/dartdev` tests must be run with the `dart` executable in the `bin` fold
 /// be different but is not important to the test (for example where a drive
 /// letter might have different casing).
 String replacePathsWithMatchingCase(String input, {required String filePath}) {
-  return input.replaceAll(
+  var output = input.replaceAll(
     RegExp(RegExp.escape(filePath), caseSensitive: false),
     filePath,
   );
+  try {
+    final canonicalPath = Directory(filePath).resolveSymbolicLinksSync();
+    if (canonicalPath != filePath) {
+      output = output.replaceAll(
+        RegExp(RegExp.escape(canonicalPath), caseSensitive: false),
+        filePath,
+      );
+    }
+  } catch (_) {}
+  return output;
 }
 
 /// Resolves a relative URI from the pkg/dartdev folder.
@@ -362,4 +380,16 @@ Uri resolveDartDevUri(String path) {
     Uri.parse('package:dartdev/'),
   );
   return dartDevLibUri!.resolve('../$path');
+}
+
+extension on Directory {
+  /// Returns the directory with an uppercase drive letter on Windows.
+  ///
+  /// This avoids some mismatches on machines where the temp folder has a
+  /// lowercase drive letter and get back uppercase from the server.
+  Directory get withUppercaseDriveLetter {
+    return Platform.isWindows
+        ? Directory(this.path[0].toUpperCase() + this.path.substring(1))
+        : this;
+  }
 }

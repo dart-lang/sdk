@@ -32,19 +32,22 @@ class B extends A {
     assertResolvedNodeText(node, r'''
 SuperConstructorInvocation
   superKeyword: super
-  period: .
-  constructorName: SimpleIdentifier
-    token: named
-    element: <testLibrary>::@class::A::@constructor::named
-    staticType: null
+  constructorSelector: ConstructorSelector
+    period: .
+    name2: named
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 0
         correspondingParameter: <testLibrary>::@class::A::@constructor::named::@formalParameter::a
         staticType: int
     rightParenthesis: )
+  period: .
+  constructorName: SimpleIdentifier
+    token: named
+    element: <testLibrary>::@class::A::@constructor::named
+    staticType: null
   element: <testLibrary>::@class::A::@constructor::named
 ''');
   }
@@ -66,19 +69,22 @@ class B extends A {
     assertResolvedNodeText(node, r'''
 SuperConstructorInvocation
   superKeyword: super
-  period: .
-  constructorName: SimpleIdentifier
-    token: named
-    element: <null>
-    staticType: null
+  constructorSelector: ConstructorSelector
+    period: .
+    name2: named
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 0
         correspondingParameter: <null>
         staticType: int
     rightParenthesis: )
+  period: .
+  constructorName: SimpleIdentifier
+    token: named
+    element: <null>
+    staticType: null
   element: <null>
 ''');
   }
@@ -100,19 +106,22 @@ class B extends A {
     assertResolvedNodeText(node, r'''
 SuperConstructorInvocation
   superKeyword: super
-  period: .
-  constructorName: SimpleIdentifier
-    token: named
-    element: <null>
-    staticType: null
+  constructorSelector: ConstructorSelector
+    period: .
+    name2: named
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 0
         correspondingParameter: <null>
         staticType: int
     rightParenthesis: )
+  period: .
+  constructorName: SimpleIdentifier
+    token: named
+    element: <null>
+    staticType: null
   element: <null>
 ''');
   }
@@ -137,7 +146,7 @@ SuperConstructorInvocation
   superKeyword: super
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 5
         correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
@@ -164,7 +173,7 @@ SuperConstructorInvocation
   superKeyword: super
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 0
         correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
@@ -193,7 +202,7 @@ SuperConstructorInvocation
   superKeyword: super
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 0
         correspondingParameter: <null>

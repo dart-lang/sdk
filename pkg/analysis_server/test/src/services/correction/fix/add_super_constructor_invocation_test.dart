@@ -215,7 +215,7 @@ class AddSuperConstructorInvocationTest_language215 extends FixProcessorTest
   @override
   void setUp() {
     super.setUp();
-    writeTestPackageConfig(languageVersion: '2.15');
+    writeTestPackageConfig2(languageVersion: '2.15');
   }
 }
 

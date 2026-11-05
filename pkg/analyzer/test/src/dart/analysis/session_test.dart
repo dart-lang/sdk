@@ -301,7 +301,7 @@ class B {}
       expect(parsedUnit.session, session);
       expect(parsedUnit.path, test.path);
       expect(parsedUnit.uri, Uri.parse('package:test/a.dart'));
-      expect(parsedUnit.unit.declarations, hasLength(2));
+      expect(parsedUnit.unit.declarations2, hasLength(2));
     }
   }
 
@@ -347,7 +347,7 @@ class B {
       element.firstFragment,
     )!;
     var node = declaration.node as ConstructorDeclaration;
-    expect(node.typeName, isNull);
+    expect(node.typeName2, isNull);
     expect(node.factoryKeyword, isNotNull);
     expect(node.newKeyword, isNull);
     expect(node.offset, 23);
@@ -373,7 +373,7 @@ class B {
       element.firstFragment,
     )!;
     var node = declaration.node as ConstructorDeclaration;
-    expect(node.typeName, isNull);
+    expect(node.typeName2, isNull);
     expect(node.factoryKeyword, isNull);
     expect(node.newKeyword, isNotNull);
     expect(node.offset, 23);
@@ -422,7 +422,7 @@ class B {
       element.firstFragment,
     )!;
     var node = declaration.node as ConstructorDeclaration;
-    expect(node.typeName!.token.lexeme, 'B');
+    expect(node.typeName2!.lexeme, 'B');
     expect(node.offset, 23);
     expect(node.length, 4);
   }
@@ -551,21 +551,21 @@ class C3 {}
       var aUnit = parsedLibrary.units[0];
       expect(aUnit.path, a.path);
       expect(aUnit.uri, Uri.parse('package:test/a.dart'));
-      expect(aUnit.unit.declarations, hasLength(1));
+      expect(aUnit.unit.declarations2, hasLength(1));
     }
 
     {
       var bUnit = parsedLibrary.units[1];
       expect(bUnit.path, b.path);
       expect(bUnit.uri, Uri.parse('package:test/b.dart'));
-      expect(bUnit.unit.declarations, hasLength(2));
+      expect(bUnit.unit.declarations2, hasLength(2));
     }
 
     {
       var cUnit = parsedLibrary.units[2];
       expect(cUnit.path, c.path);
       expect(cUnit.uri, Uri.parse('package:test/c.dart'));
-      expect(cUnit.unit.declarations, hasLength(3));
+      expect(cUnit.unit.declarations2, hasLength(3));
     }
   }
 
@@ -617,7 +617,7 @@ class B {}
     expect(unitResult.session, session);
     expect(unitResult.path, testFile.path);
     expect(unitResult.uri, Uri.parse('package:test/test.dart'));
-    expect(unitResult.unit.declarations, hasLength(2));
+    expect(unitResult.unit.declarations2, hasLength(2));
   }
 
   test_getParsedUnit_inconsistent() async {
@@ -671,7 +671,7 @@ class B2 extends X {}
     expect(aUnitResult.content, aContent);
     expect(aUnitResult.unit, isNotNull);
     expect(aUnitResult.unit.directives, hasLength(1));
-    expect(aUnitResult.unit.declarations, hasLength(1));
+    expect(aUnitResult.unit.declarations2, hasLength(1));
     expect(aUnitResult.diagnostics, isEmpty);
 
     var bUnitResult = resolvedLibrary.units[1];
@@ -680,7 +680,7 @@ class B2 extends X {}
     expect(bUnitResult.content, bContent);
     expect(bUnitResult.unit, isNotNull);
     expect(bUnitResult.unit.directives, hasLength(1));
-    expect(bUnitResult.unit.declarations, hasLength(2));
+    expect(bUnitResult.unit.declarations2, hasLength(2));
     expect(bUnitResult.diagnostics, isNotEmpty);
 
     var aDeclaration = resolvedLibrary.getFragmentDeclaration(
@@ -879,7 +879,7 @@ class B {}
     expect(unitResult.session, session);
     expect(unitResult.path, test.path);
     expect(unitResult.uri, Uri.parse('package:test/test.dart'));
-    expect(unitResult.unit.declarations, hasLength(2));
+    expect(unitResult.unit.declarations2, hasLength(2));
     expect(unitResult.typeProvider, isNotNull);
     expect(unitResult.libraryElement, isNotNull);
   }

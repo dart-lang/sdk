@@ -27,9 +27,9 @@ final class C extends Double {}
 ''');
   }
 
-  test_Double_language219() async {
+  test_Double_beforeClassModifiers() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart=2.19
+// %before-language-feature: class-modifiers
 import 'dart:ffi';
 class C extends Double {}
 //              ^^^^^^
@@ -177,9 +177,9 @@ class C implements Double {}
 ''');
   }
 
-  test_Double_language219() async {
+  test_Double_beforeClassModifiers() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart=2.19
+// %before-language-feature: class-modifiers
 import 'dart:ffi';
 class C implements Double {}
 //                 ^^^^^^
@@ -334,9 +334,9 @@ class C with Double {}
 ''');
   }
 
-  test_Double_language219() async {
+  test_Double_beforeClassModifiers() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart=2.19
+// %before-language-feature: class-modifiers
 import 'dart:ffi';
 class C with Double {}
 //           ^^^^^^

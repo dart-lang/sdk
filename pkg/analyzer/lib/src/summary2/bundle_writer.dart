@@ -19,6 +19,7 @@ import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/error/inference_error.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary2/ast_binary_tag.dart';
 import 'package:analyzer/src/summary2/ast_binary_writer.dart';
 import 'package:analyzer/src/summary2/export.dart';
@@ -170,6 +171,7 @@ class BundleWriter {
 
   void _writeClassFragment(ClassFragmentImpl fragment) {
     _writeTemplateFragment(fragment, () {
+      _sink.writeUint30(fragment.withClauseMixinStartIndex);
       _resolutionSink.withTypeParameters(fragment.element.typeParameters, () {
         _sink.writeList(fragment.typeParameters, _writeTypeParameterFragment);
         _resolutionSink._writeMetadata(fragment.metadata);
@@ -292,6 +294,7 @@ class BundleWriter {
 
   void _writeEnumFragment(EnumFragmentImpl fragment) {
     _writeTemplateFragment(fragment, () {
+      _sink.writeUint30(fragment.withClauseMixinStartIndex);
       _resolutionSink.withTypeParameters(fragment.element.typeParameters, () {
         _sink.writeList(fragment.typeParameters, _writeTypeParameterFragment);
         _resolutionSink._writeMetadata(fragment.metadata);
@@ -435,7 +438,7 @@ class BundleWriter {
   void _writeFieldFragment(FieldFragmentImpl fragment) {
     _writeTemplateFragment(fragment, () {
       _resolutionSink._writeMetadata(fragment.metadata);
-      _resolutionSink._writeOptionalNode(fragment.constantInitializer);
+      _resolutionSink._writeOptionalNode(fragment.constantInitializer2);
     });
   }
 
@@ -512,7 +515,7 @@ class BundleWriter {
     fragment.writeFlags(_sink);
 
     _resolutionSink._writeMetadata(fragment.metadata);
-    _resolutionSink._writeOptionalNode(fragment.constantInitializer);
+    _resolutionSink._writeOptionalNode(fragment.constantInitializer2);
   }
 
   void _writeFragmentId(FragmentImpl fragment) {
@@ -705,12 +708,12 @@ class BundleWriter {
   void _writeNamespaceCombinator(NamespaceCombinator combinator) {
     switch (combinator) {
       case HideElementCombinator():
-        _sink.writeByte(Tag.HideCombinator);
+        _sink.writeEnum(NamespaceCombinatorTag.hide);
         _sink.writeList<String>(combinator.hiddenNames, (name) {
           _sink.writeStringReference(name);
         });
       case ShowElementCombinator():
-        _sink.writeByte(Tag.ShowCombinator);
+        _sink.writeEnum(NamespaceCombinatorTag.show);
         _sink.writeList<String>(combinator.shownNames, (name) {
           _sink.writeStringReference(name);
         });
@@ -835,7 +838,7 @@ class BundleWriter {
   void _writeTopLevelVariableFragment(TopLevelVariableFragmentImpl fragment) {
     _writeTemplateFragment(fragment, () {
       _resolutionSink._writeMetadata(fragment.metadata);
-      _resolutionSink._writeOptionalNode(fragment.constantInitializer);
+      _resolutionSink._writeOptionalNode(fragment.constantInitializer2);
     });
   }
 
@@ -1088,7 +1091,7 @@ class ResolutionSink extends BinaryWriter {
 
   void _writeNode(AstNode node) {
     var astWriter = AstBinaryWriter(sink: this);
-    node.accept(astWriter);
+    node.accept2(astWriter);
   }
 
   void _writeNullabilitySuffix(NullabilitySuffix suffix) {
@@ -1229,31 +1232,23 @@ extension on Map<FragmentImpl, int> {
 
 extension _BinaryWriterExtension on BinaryWriter {
   void _writeFormalParameterElementKind(InternalFormalParameterElement p) {
-    if (p.isRequiredPositional) {
-      writeByte(Tag.ParameterKindRequiredPositional);
-    } else if (p.isOptionalPositional) {
-      writeByte(Tag.ParameterKindOptionalPositional);
-    } else if (p.isRequiredNamed) {
-      writeByte(Tag.ParameterKindRequiredNamed);
-    } else if (p.isOptionalNamed) {
-      writeByte(Tag.ParameterKindOptionalNamed);
-    } else {
-      throw StateError('Unexpected parameter kind: $p');
-    }
+    writeEnum(switch (p.parameterKind) {
+      ParameterKind.REQUIRED => FormalParameterKindTag.requiredPositional,
+      ParameterKind.POSITIONAL => FormalParameterKindTag.optionalPositional,
+      ParameterKind.NAMED_REQUIRED => FormalParameterKindTag.requiredNamed,
+      ParameterKind.NAMED => FormalParameterKindTag.optionalNamed,
+      _ => throw StateError('Unexpected parameter kind: $p'),
+    });
   }
 
   void _writeFormalParameterFragmentKind(FormalParameterFragmentImpl p) {
-    if (p.isRequiredPositional) {
-      writeByte(Tag.ParameterKindRequiredPositional);
-    } else if (p.isOptionalPositional) {
-      writeByte(Tag.ParameterKindOptionalPositional);
-    } else if (p.isRequiredNamed) {
-      writeByte(Tag.ParameterKindRequiredNamed);
-    } else if (p.isOptionalNamed) {
-      writeByte(Tag.ParameterKindOptionalNamed);
-    } else {
-      throw StateError('Unexpected parameter kind: $p');
-    }
+    writeEnum(switch (p.parameterKind) {
+      ParameterKind.REQUIRED => FormalParameterKindTag.requiredPositional,
+      ParameterKind.POSITIONAL => FormalParameterKindTag.optionalPositional,
+      ParameterKind.NAMED_REQUIRED => FormalParameterKindTag.requiredNamed,
+      ParameterKind.NAMED => FormalParameterKindTag.optionalNamed,
+      _ => throw StateError('Unexpected parameter kind: $p'),
+    });
   }
 
   void _writeTopLevelInferenceError(TopLevelInferenceError? error) {

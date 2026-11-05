@@ -1,0 +1,17 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object /*hasConstConstructor*/  {
+  static const field self::C member = const self::C::•();
+  const constructor •() → self::C
+    : super core::Object::•()
+    ;
+}
+static method test(dynamic d) → void
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///equality_dynamic_error.dart:6:25 -> InstanceConstant(const C{})
+Extra constant evaluation: evaluated: 1, effectively constant: 1

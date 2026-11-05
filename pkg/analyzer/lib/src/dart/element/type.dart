@@ -793,6 +793,23 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     return element.name == "Type" && element.library.isDartCore;
   }
 
+  /// Return `true` if this type can be used as an interface or a mixin.
+  bool get isValidSuperinterface {
+    if (element is EnumElement) {
+      return false;
+    }
+    if (element is ExtensionTypeElement) {
+      return false;
+    }
+    if (isDartCoreFunction || isDartCoreNull) {
+      return false;
+    }
+    if (nullabilitySuffix == NullabilitySuffix.question) {
+      return false;
+    }
+    return true;
+  }
+
   @override
   List<InternalMethodElement> get methods {
     element.methods; // record requirements
@@ -1556,11 +1573,13 @@ abstract class TypeImpl implements DartType, SharedType {
     @Deprecated('Only non-nullable by default mode is supported')
     bool withNullability = true,
     bool preferTypeAlias = false,
+    bool includePositionalParameterNames = false,
   }) {
     var builder = ElementDisplayStringBuilder(
       // ignore:deprecated_member_use_from_same_package
       withNullability: withNullability,
       preferTypeAlias: preferTypeAlias,
+      includePositionalParameterNames: includePositionalParameterNames,
     );
     appendTo(builder);
     return builder.toString();

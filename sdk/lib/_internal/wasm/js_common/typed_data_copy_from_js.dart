@@ -9,7 +9,7 @@ import 'dart:_js_helper';
 @patch
 bool tryCopyExternalIntTypedData(
   Iterable<int> from,
-  _IntListMixin to,
+  TypedDataList<int> to,
   int start,
   int skipCount,
   int count,
@@ -20,7 +20,7 @@ bool tryCopyExternalIntTypedData(
     final fromTypedData = unsafeCast<JSIntegerArrayBase>(from);
 
     final fromElementSize = fromTypedData.elementSizeInBytes;
-    if (fromElementSize == 1 && to is WasmI8ArrayBase) {
+    if (fromElementSize == 1 && to is WasmI8ArrayBase && to is! U8ClampedList) {
       final destTypedData = unsafeCast<WasmI8ArrayBase>(to);
       copyToWasmI8Array(
         fromTypedData.toJSArrayExternRef()!,
@@ -64,7 +64,7 @@ bool tryCopyExternalIntTypedData(
 @patch
 bool tryCopyExternalFloatTypedData(
   Iterable<double> from,
-  _DoubleListMixin to,
+  TypedDataList<double> to,
   int start,
   int skipCount,
   int count,

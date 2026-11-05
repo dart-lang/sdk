@@ -33,10 +33,21 @@ main() {
 }
     ''');
 
-    var node = result.findNode.methodInvocation('inferContraContra(');
+    var node = result.findNode.unqualifiedFunctionInvocation(
+      'inferContraContra(',
+    );
     nodeTextConfiguration.skipArgumentList = true;
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: inferContraContra
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@function::inferContraContra
+    invokeType: Exactly<Middle> Function(Contravariant<Middle>, Contravariant<Middle>)
+    type: Exactly<Middle>
+  staticType: Exactly<Middle>
+  typeArgumentTypes
+    Middle
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: inferContraContra
     element: <testLibrary>::@function::inferContraContra
@@ -62,10 +73,20 @@ main() {
 }
 ''');
 
-    var node = result.findNode.instanceCreation('B(<num>');
+    var node = result.findNode.constructorInvocation('B(<num>');
     nodeTextConfiguration.skipArgumentList = true;
     assertResolvedNodeText(node, r'''
-InstanceCreationExpression
+ConstructorInvocation
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
+      name: B
+      element: <testLibrary>::@class::B
+      type: B<num>
+    element: SubstitutedConstructorElementImpl
+      baseElement: <testLibrary>::@class::B::@constructor::new
+      substitution: {T: num}
+  staticType: B<num>
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: B
@@ -97,10 +118,19 @@ main() {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('inferInvInv(');
+    var node = result.findNode.unqualifiedFunctionInvocation('inferInvInv(');
     nodeTextConfiguration.skipArgumentList = true;
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: inferInvInv
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@function::inferInvInv
+    invokeType: Exactly<Object> Function(Invariant<Object>, Invariant<Object>)
+    type: Exactly<Object>
+  staticType: Exactly<Object>
+  typeArgumentTypes
+    Object
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: inferInvInv
     element: <testLibrary>::@function::inferInvInv
@@ -128,10 +158,19 @@ main() {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('inferCovCov(');
+    var node = result.findNode.unqualifiedFunctionInvocation('inferCovCov(');
     nodeTextConfiguration.skipArgumentList = true;
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: inferCovCov
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@function::inferCovCov
+    invokeType: Exactly<Upper> Function(Covariant<Upper>, Covariant<Upper>)
+    type: Exactly<Upper>
+  staticType: Exactly<Upper>
+  typeArgumentTypes
+    Upper
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: inferCovCov
     element: <testLibrary>::@function::inferCovCov

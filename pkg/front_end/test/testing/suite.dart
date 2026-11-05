@@ -345,6 +345,8 @@ class FastaContext extends ChainContext with MatchContext {
         steps.add(const EnsureNoErrors());
         steps.add(new WriteDill(skipVm: skipVm));
         if (semiFuzz) {
+          // Semi-fuzz failures don't end the test, so the generated code is
+          // still run below.
           steps.add(const FuzzCompiles());
         }
 
@@ -912,8 +914,24 @@ class FuzzCompiles
     return "semifuzz";
   }
 
+  /// Semi-fuzz failures shouldn't prevent the generated code from being run.
+  @override
+  bool get continueOnFailure => true;
+
   @override
   Future<Result<ComponentResult>> run(
+    ComponentResult result,
+    FastaContext context,
+  ) async {
+    Result<ComponentResult> fuzzResult = await _fuzz(result, context);
+    if (fuzzResult.output == null) {
+      // Ensure that the test can continue with the next step.
+      fuzzResult = fuzzResult.copyWithOutput(result);
+    }
+    return fuzzResult;
+  }
+
+  Future<Result<ComponentResult>> _fuzz(
     ComponentResult result,
     FastaContext context,
   ) async {
@@ -2798,10 +2816,7 @@ class _LibraryFinder extends RecursiveVisitor {
       // This call sometimes fail:
       // node.enclosingLibrary;
       // TODO(jensj): Figure out why it fails.
-      // It happens - currently - on these tests:
-      // strong/macros/augment_concrete
-      // strong/macros/extend_augmented
-      // strong/macros/multiple_augment_class
+      // It happened on some macro tests and might no longer fail.
       TreeNode? parent = node.parent;
       while (parent != null && parent is! Library) {
         parent = parent.parent;

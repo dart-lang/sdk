@@ -54,13 +54,11 @@ void matchIL$addElement(FlowGraph graph) {
             slot: 'GrowableObjectArray.length',
           ),
           // No bounds check here.
-          'list.data_v2' <<
-              match.LoadField(
-                'list',
-                slot: 'GrowableObjectArray.data',
-                skipUntilMatched: false,
-              ),
-          'value_boxed' << match.BoxInt64('value', skipUntilMatched: false),
+          match.tight([
+            'list.data_v2' <<
+                match.LoadField('list', slot: 'GrowableObjectArray.data'),
+            'value_boxed' << match.BoxInt64('value'),
+          ]),
           match.StoreIndexed('list.data_v2', 'length_unboxed', 'value_boxed'),
           match.DartReturn('c_null'),
         ]),

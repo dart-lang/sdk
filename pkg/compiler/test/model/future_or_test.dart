@@ -6,6 +6,7 @@ import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/types.dart';
 import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
+
 import '../helpers/type_test_helper.dart';
 
 main() {
@@ -116,9 +117,10 @@ main() {
       'futureFutureNum',
       'Future<Future<num>>',
     );
-    final futureOrFutureOrNum =
-        getReturnType('futureOrFutureOrNum', 'FutureOr<FutureOr<num>>')
-            as FutureOrType;
+    final futureOrFutureOrNum = getReturnType(
+      'futureOrFutureOrNum',
+      'FutureOr<FutureOr<num>>',
+    ) as FutureOrType;
 
     DartType futureNull = getReturnType('futureNull', 'Future<Null>');
     final futureOrNull =

@@ -283,7 +283,7 @@ class DartUnitOccurrencesComputerVisitor extends GeneralizingAstVisitor<void> {
       return;
     }
 
-    var element = node.writeOrReadElement;
+    var element = node.writeOrReadElement?.baseElement;
     if (element != null) {
       _addOccurrence(element, node.token);
     }

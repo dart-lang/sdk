@@ -20,11 +20,11 @@ static method main() → void {
   } =>#t1;
   let final core::int? #t3 = self::i in #t3 == null ?{core::int?} null : block {
     {
-      core::int p = #t3{core::int} as core::int;
+      core::int p##1 = #t3{core::int} as core::int;
       Null #t4;
       #L2:
       {
-        p;
+        p##1;
         {
           #t4 = null;
           break #L2;
@@ -34,11 +34,11 @@ static method main() → void {
   } =>#t3;
   let final core::int? #t5 = self::i in #t5 == null ?{core::int?} null : block {
     {
-      core::int p = #t5{core::int} as core::int;
+      core::int p##2 = #t5{core::int} as core::int;
       Null #t6;
       #L3:
       {
-        p.{core::int::isEven}{core::bool};
+        p##2.{core::int::isEven}{core::bool};
         {
           #t6 = null;
           break #L3;
@@ -48,7 +48,7 @@ static method main() → void {
   } =>#t5;
   let final core::int? #t7 = self::i in #t7 == null ?{core::int?} null : block {
     {
-      core::int p = #t7{core::int} as core::int;
+      core::int p##3 = #t7{core::int} as core::int;
       core::int #t8;
       #L4:
       {
@@ -61,12 +61,12 @@ static method main() → void {
   } =>#t7;
   let final core::int? #t9 = self::i in #t9 == null ?{core::int?} null : block {
     {
-      core::int p = #t9{core::int} as core::int;
+      core::int p##4 = #t9{core::int} as core::int;
       core::int #t10;
       #L5:
       {
         {
-          #t10 = p;
+          #t10 = p##4;
           break #L5;
         }
       }
@@ -74,12 +74,12 @@ static method main() → void {
   } =>#t9;
   let final core::int? #t11 = self::i in #t11 == null ?{core::int?} null : block {
     {
-      core::int p = #t11{core::int} as core::int;
+      core::int p##5 = #t11{core::int} as core::int;
       core::bool #t12;
       #L6:
       {
         {
-          #t12 = p.{core::int::isEven}{core::bool};
+          #t12 = p##5.{core::int::isEven}{core::bool};
           break #L6;
         }
       }

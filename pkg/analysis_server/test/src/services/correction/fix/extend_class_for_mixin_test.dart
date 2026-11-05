@@ -19,6 +19,19 @@ class ExtendClassForMixinTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.extendClassForMixin;
 
+  Future<void> test_genericConstraint() async {
+    await resolveTestCode('''
+class A<T> {}
+mixin M on A<int> {}
+class C with M {}
+''');
+    await assertHasFix('''
+class A<T> {}
+mixin M on A<int> {}
+class C extends A<int> with M {}
+''');
+  }
+
   Future<void> test_missingClass_withExtends() async {
     await resolveTestCode('''
 class A {}
@@ -67,7 +80,6 @@ class C extends A with N {}
     await assertNoFix();
   }
 
-  @failingTest
   Future<void> test_missingMixin_withoutExtends() async {
     await resolveTestCode('''
 mixin M {}

@@ -71,8 +71,6 @@ class Linker {
   final Map<ast.FormalParameterImpl, DeclaringFormalParameterInfo>
   declaringFormalParameters = Map.identity();
 
-  late InheritanceManager3 inheritance; // TODO(scheglov): cache it
-
   Map<Uri, LibraryManifest> newLibraryManifests = {};
   late Uint8List resolutionBytes;
 
@@ -84,6 +82,10 @@ class Linker {
 
   DeclaredVariables get declaredVariables {
     return analysisContext.declaredVariables;
+  }
+
+  InheritanceManager3 get inheritance {
+    return elementFactory.analysisSession.inheritanceManager;
   }
 
   RootReference get rootReference => elementFactory.rootReference;
@@ -259,6 +261,7 @@ class Linker {
     _performTopLevelInference();
     buildExtensionTypes(this);
     _resolveConstructors();
+    _computeRedirectingConstructorCycles();
     _resolveConstantInitializers();
     _resolveDefaultValues();
     _resolveMetadata();
@@ -337,13 +340,51 @@ class Linker {
     _buildExportScopes();
   }
 
+  void _computeRedirectingConstructorCycles() {
+    var visited = Set<ConstructorElementImpl>.identity();
+
+    for (var builder in builders.values) {
+      for (var element in builder.element.children) {
+        if (element is InterfaceElementImpl) {
+          for (var constructor in element.constructors) {
+            if (visited.contains(constructor)) {
+              continue;
+            }
+
+            if (constructor.redirectedConstructor == null) {
+              visited.add(constructor);
+              continue;
+            }
+
+            var path = <ConstructorElementImpl>[];
+            ConstructorElementImpl? current = constructor;
+            while (current != null && visited.add(current)) {
+              path.add(current);
+              current = current.redirectedConstructor?.baseElement;
+            }
+
+            if (current != null) {
+              var isInCycle = false;
+              for (var element in path) {
+                if (identical(element, current)) {
+                  isInCycle = true;
+                }
+                if (isInCycle) {
+                  element.isInRedirectingConstructorCycle = true;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
   void _createTypeSystem() {
     elementFactory.createTypeProviders(
       elementFactory.dartCoreElement,
       elementFactory.dartAsyncElement,
     );
-
-    inheritance = InheritanceManager3();
   }
 
   /// To resolve macro annotations we need to access exported namespaces of

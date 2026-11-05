@@ -1,7 +1,3 @@
-analyzer:
-  exclude:
-    - test/fixtures/**
-
 linter:
   rules:
     - unnecessary_type_name_in_constructor

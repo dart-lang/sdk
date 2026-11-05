@@ -600,10 +600,12 @@ class CommandExecutorImpl implements CommandExecutor {
       return _getBatchRunner(name).runCommand(command, timeout);
     } else if (command is AnalysisCommand && globalConfiguration.batch) {
       return _getBatchRunner(command.displayName).runCommand(command, timeout);
+    } else if (command is DevCompilerCompilationCommand &&
+        command.enableHostAsserts &&
+        globalConfiguration.batch) {
+      return _getBatchRunner(command.displayName).runCommand(command, timeout);
     } else if (command is CompilationCommand &&
-        (command.displayName == 'dart2js' ||
-            command.displayName == 'ddc' ||
-            command.displayName == 'fasta') &&
+        (command.displayName == 'dart2js' || command.displayName == 'fasta') &&
         globalConfiguration.batch) {
       return _getBatchRunner(command.displayName).runCommand(command, timeout);
     } else if (command is ScriptCommand) {
@@ -1281,7 +1283,7 @@ class BatchRunnerProcess {
       ...?_processEnvironmentOverrides,
     };
     try {
-      _process = await io.Process.start(
+      _process = await startProcess(
         executable,
         arguments,
         environment: environment,

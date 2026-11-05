@@ -614,9 +614,8 @@ class ClassHierarchyImpl implements ClassHierarchy {
     } else {
       sb.write("Instantiated classes in the closed world:\n");
     }
-    getClassHierarchyNode(
-      _commonElements.objectClass,
-    ).printOn(sb, ' ', instantiatedOnly: cls == null, withRespectTo: cls);
+    getClassHierarchyNode(_commonElements.objectClass)
+        .printOn(sb, ' ', instantiatedOnly: cls == null, withRespectTo: cls);
     return sb.toString();
   }
 }

@@ -6,6 +6,10 @@
 [ $compiler != dart2analyzer && $runtime == dart_precompiled ]
 mixin/mixin2_test: Skip
 
+[ $mode == product && $runtime == dart_precompiled ]
+stack_trace/rethrow_error_test: SkipByDesign # instruction deduplication causes names of frames to be mangled (expected)
+stack_trace/rethrow_nonerror_test: SkipByDesign # instruction deduplication causes names of frames to be mangled (expected)
+
 [ $runtime == dart_precompiled && $minified ]
 enum/duplicate_test/*: Skip # Uses Enum.toString()
 enum/enum_test: Skip # Uses Enum.toString()
@@ -18,11 +22,4 @@ mixin/mixin_bound2_test: Skip
 mixin/mixin_type_arguments_test: Skip
 mixin/super_2_test: Skip
 no_such_method/dispatcher_test: Skip # Uses new Symbol()
-stack_trace/full1_test: Skip
-stack_trace/full2_test: Skip
-stack_trace/full3_test: Skip
 unsorted/cyclic_type_test/*: Skip
-
-[ $runtime == dart_precompiled && ($mode == product || $minified) ]
-stack_trace/rethrow_error_test: SkipByDesign # obfuscation/minification and instruction deduplication cause names of frames to be mangled (expected)
-stack_trace/rethrow_nonerror_test: SkipByDesign # obfuscation/minification and instruction deduplication cause names of frames to be mangled (expected)

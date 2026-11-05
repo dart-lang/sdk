@@ -57,30 +57,32 @@ class _DumpCommand extends DartdevCommand {
   FutureOr<int> run() async {
     final elideFilePaths = argResults!.flag(removeFilePathsFlag);
 
-    print('');
-    print(_message);
+    log.stdout('');
+    log.stdout(_message);
 
-    print('');
-    print('#### General info');
-    print('');
-    print('- Dart ${Platform.version}');
-    print(
+    log.stdout('');
+    log.stdout('#### General info');
+    log.stdout('');
+    log.stdout('- Dart ${Platform.version}');
+    log.stdout(
       '- on ${Platform.operatingSystem} / '
       '${Platform.operatingSystemVersion}',
     );
-    print('- locale is ${Platform.localeName}');
+    log.stdout('- locale is ${Platform.localeName}');
 
     // project information
     var projectInfo = getProjectInfo(project, onlySimpleDeps: elideFilePaths);
     if (projectInfo != null) {
-      print('');
-      print('#### Project info');
-      print('');
-      print("- sdk constraint: '${projectInfo.sdkDependency ?? ''}'");
-      print('- dependencies: ${projectInfo.dependencies.join(', ')}');
-      print('- dev_dependencies: ${projectInfo.devDependencies.join(', ')}');
+      log.stdout('');
+      log.stdout('#### Project info');
+      log.stdout('');
+      log.stdout("- sdk constraint: '${projectInfo.sdkDependency ?? ''}'");
+      log.stdout('- dependencies: ${projectInfo.dependencies.join(', ')}');
+      log.stdout(
+        '- dev_dependencies: ${projectInfo.devDependencies.join(', ')}',
+      );
       if (projectInfo.elidedDependencies > 0) {
-        print('- elided dependencies: ${projectInfo.elidedDependencies}');
+        log.stdout('- elided dependencies: ${projectInfo.elidedDependencies}');
       }
     }
 
@@ -89,12 +91,12 @@ class _DumpCommand extends DartdevCommand {
       elideFilePaths: elideFilePaths,
     );
     if (processInfo != null) {
-      print('');
-      print('#### Process info');
-      print('');
+      log.stdout('');
+      log.stdout('#### Process info');
+      log.stdout('');
 
       if (processInfo.isEmpty) {
-        print('No Dart processes found.');
+        log.stdout('No Dart processes found.');
       } else {
         var table = MarkdownTable();
         table.startRow()
@@ -116,7 +118,7 @@ class _DumpCommand extends DartdevCommand {
           row.cell(process.commandLine);
         }
 
-        print(table.finish().trimRight());
+        log.stdout(table.finish().trimRight());
       }
     }
 

@@ -59,7 +59,6 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Thread* thread() const { return flow_graph_builder_->thread_; }
 
   void ParseKernelASTFunction();
-  void ReadForwardingStubTarget(const Function& function);
   void SetupDefaultParameterValues();
 
   FlowGraph* BuildGraphOfFieldInitializer();

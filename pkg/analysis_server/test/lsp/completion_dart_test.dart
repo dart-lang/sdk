@@ -109,7 +109,7 @@ class CompletionDataMergeTest extends AbstractCompletionTest {
   Future<void> initializeServer() async {
     await initialize();
     await openFile(mainFileUri, code.code);
-    await initialAnalysis;
+    await workspaceAnalysisComplete();
   }
 
   Future<void> test_supported() async {
@@ -183,7 +183,7 @@ class CompletionDocumentationResolutionTest extends AbstractCompletionTest {
   Future<void> initializeServer() async {
     await initialize();
     await openFile(mainFileUri, code.code);
-    await initialAnalysis;
+    await workspaceAnalysisComplete();
   }
 
   Future<void> test_abstract_class() async {
@@ -1079,6 +1079,40 @@ String m3() {
     );
   }
 
+  Future<void> test_functionType_parameterName() async {
+    content = '''
+void f(void Function(int i) x) {
+  x^
+}
+''';
+
+    await expectLabel(
+      content,
+      label: 'x',
+      labelDetail: ' void Function(int i)',
+      labelDescription: null,
+      filterText: null,
+      detail: 'void Function(int i)',
+    );
+  }
+
+  Future<void> test_functionType_parameterName_returnType() async {
+    content = '''
+void f(void Function(int i) Function() x) {
+  x^
+}
+''';
+
+    await expectLabel(
+      content,
+      label: 'x',
+      labelDetail: ' void Function(int i) Function()',
+      labelDescription: null,
+      filterText: null,
+      detail: 'void Function(int i) Function()',
+    );
+  }
+
   Future<void> test_imported_function_returnType_args() async {
     newFile(fileAPath, '''
 String a(String a, {String b}) {}
@@ -1540,6 +1574,9 @@ void f(int variable) {
 
 @reflectiveTest
 class CompletionTest extends AbstractCompletionTest {
+  @override
+  bool get addFlutterPackageDep => true;
+
   /// Checks whether the correct types of documentation are returned for
   /// completions based on [preference].
   Future<void> assertDocumentation(
@@ -1559,7 +1596,7 @@ A^
     await provideConfig(initialize, {'documentation': ?preference});
 
     await openFile(mainFileUri, code.code);
-    await initialAnalysis;
+    await workspaceAnalysisComplete();
     var res = await getCompletion(mainFileUri, code.position.position);
     var completion = res.singleWhere((c) => c.label == 'A');
     var resolved = await resolveCompletion(completion); // Resolve for docs
@@ -1600,7 +1637,7 @@ void f() {
     await provideConfig(initialize, {'documentation': ?preference});
 
     await openFile(mainFileUri, code.code);
-    await initialAnalysis;
+    await workspaceAnalysisComplete();
     var res = await getCompletion(mainFileUri, code.position.position);
     var completion = res.singleWhere((c) => c.label == 'InOtherFile');
 
@@ -1627,11 +1664,19 @@ void f() {
     String completion, {
     required String? editText,
     InsertTextFormat? insertTextFormat,
+    Map<String, Object?>? config,
+    bool supportSnippets = true,
   }) async {
     this.content = content;
 
-    setCompletionItemSnippetSupport();
-    await provideConfig(initialize, {'completeFunctionCalls': true});
+    if (supportSnippets) {
+      setCompletionItemSnippetSupport();
+    }
+    if (config != null) {
+      await provideConfig(initialize, config);
+    } else {
+      await initialize();
+    }
 
     await openFile(mainFileUri, code.code);
     var res = await getCompletion(mainFileUri, code.position.position);
@@ -1694,12 +1739,6 @@ void f() {
     expect(item.textEdit, isNull);
   }
 
-  @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(flutter: true);
-  }
-
   Future<void> test_alreadyImported_noImportUris() async {
     newFile(join(projectFolderPath, 'lib', 'my_class.dart'), '''
 class MyClass {}
@@ -1716,7 +1755,7 @@ void f() {
     await initialize();
 
     await openFile(mainFileUri, code.code);
-    await initialAnalysis;
+    await workspaceAnalysisComplete();
     var res = await getCompletion(mainFileUri, code.position.position);
 
     var completion = res.where((c) => c.label == 'MyClass').single;
@@ -1953,6 +1992,41 @@ void f(int aaa) {
     );
   }
 
+  Future<void> test_completeFunctionCalls_disabled_byConfig() async {
+    content = '''
+void myFunction() {}
+
+void f() {
+  [!myFu^!]
+}
+''';
+
+    await checkCompleteFunctionCallInsertText(
+      config: {'completeFunctionCalls': false},
+      content,
+      'myFunction()',
+      editText: 'myFunction',
+    );
+  }
+
+  Future<void>
+  test_completeFunctionCalls_disabled_byLackOfSnippetSupport() async {
+    content = '''
+void myFunction() {}
+
+void f() {
+  [!myFu^!]
+}
+''';
+
+    await checkCompleteFunctionCallInsertText(
+      supportSnippets: false,
+      content,
+      'myFunction()',
+      editText: 'myFunction',
+    );
+  }
+
   Future<void> test_completeFunctionCalls_escapesDollarArgs() async {
     await checkCompleteFunctionCallInsertText(
       r'''
@@ -2116,7 +2190,7 @@ class _MyWidgetState extends State<MyWidget> {
 ''';
 
     setCompletionItemSnippetSupport();
-    await provideConfig(initialize, {'completeFunctionCalls': true});
+    await initialize();
 
     await openFile(mainFileUri, code.code);
     var res = await getCompletion(mainFileUri, code.position.position);
@@ -2196,7 +2270,7 @@ void f() {
 ''';
 
     setCompletionItemSnippetSupport();
-    await provideConfig(initialize, {'completeFunctionCalls': true});
+    await initialize();
 
     await openFile(mainFileUri, code.code);
     var res = await getCompletion(mainFileUri, code.position.position);
@@ -2223,10 +2297,10 @@ void f() {
 ''';
 
     setCompletionItemSnippetSupport();
-    await provideConfig(initialize, {'completeFunctionCalls': true});
+    await initialize();
 
     await openFile(mainFileUri, code.code);
-    await initialAnalysis;
+    await workspaceAnalysisComplete();
     var res = await getCompletion(mainFileUri, code.position.position);
     var item = res.singleWhere((c) => c.label == 'myFunction(…)');
     // Ensure the snippet comes through in the expected format with the expected
@@ -2272,10 +2346,10 @@ final a = Stri^
     }
 
     setCompletionItemSnippetSupport();
-    await provideConfig(initialize, {'completeFunctionCalls': true});
+    await initialize();
 
     await openFile(mainFileUri, code.code);
-    await initialAnalysis;
+    await workspaceAnalysisComplete();
     var res = await getCompletion(mainFileUri, code.position.position);
 
     var completion = res.singleWhere(
@@ -2293,7 +2367,7 @@ import 'dart:math' show mi^
 ''';
 
     setCompletionItemSnippetSupport();
-    await provideConfig(initialize, {'completeFunctionCalls': true});
+    await initialize();
 
     await openFile(mainFileUri, code.code);
     var res = await getCompletion(mainFileUri, code.position.position);
@@ -2585,7 +2659,7 @@ var a = 1 /^
       // after the expectations are set up above, because otherwise if the
       // exceptions occur too quickly, they will be unhandled (whereas the
       // expectations attach error handlers to them).
-      await pumpEventQueue(times: 50000);
+      await pumpEventQueue(times: 5000);
       completer.complete();
       await Future.wait(expectationFutures);
     } finally {
@@ -3150,7 +3224,7 @@ void f() {
 
     await initialize();
     await openFile(mainFileUri, code.code);
-    await initialAnalysis;
+    await workspaceAnalysisComplete();
     var res = await getCompletionList(mainFileUri, code.position.position);
 
     // Expect everything (hashCode etc. will take it over 500).
@@ -3180,7 +3254,7 @@ void f() {
 
     await provideConfig(initialize, {'maxCompletionItems': 200});
     await openFile(mainFileUri, code.code);
-    await initialAnalysis;
+    await workspaceAnalysisComplete();
     var res = await getCompletionList(mainFileUri, code.position.position);
 
     // Should be capped at 200 and marked as incomplete.
@@ -3318,7 +3392,7 @@ void f() {
 
     await provideConfig(initialize, {'maxCompletionItems': 10});
     await openFile(mainFileUri, code.code);
-    await initialAnalysis;
+    await workspaceAnalysisComplete();
     var res = await getCompletionList(mainFileUri, code.position.position);
 
     expect(res.items, hasLength(10));
@@ -3352,7 +3426,7 @@ void f() {
     setCompletionItemSnippetSupport();
     await provideConfig(initialize, {'maxCompletionItems': 10});
     await openFile(mainFileUri, code.code);
-    await initialAnalysis;
+    await workspaceAnalysisComplete();
     var res = await getCompletionList(mainFileUri, code.position.position);
 
     // Should be capped at 10 and marked as incomplete.
@@ -3707,7 +3781,7 @@ void f() {
     await initialize();
 
     await openFile(mainFileUri, code.code);
-    await initialAnalysis;
+    await workspaceAnalysisComplete();
     var res = await getCompletion(mainFileUri, code.position.position);
 
     var completion = res.singleWhere((c) => c.label.startsWith('foo'));
@@ -3763,6 +3837,56 @@ class Derived extends Base {
     var completionLabel = 'override name => …';
 
     await _checkCompletionEdits(mainFileUri, completionLabel, expectedContent);
+  }
+
+  /// The suggestion label, kind, and textEdit for a `this.`-prefixed instance
+  /// member all go through LSP-specific conversion, unlike the raw
+  /// suggestions checked in `CompletionScopeTest`.
+  Future<void> test_parameter_instanceMethod() async {
+    content = '''
+class C {
+  void foo() {}
+  void bar(int foo) {
+    ^
+  }
+}
+''';
+    await initialize();
+    await openFile(mainFileUri, code.code);
+    var res = await getCompletion(mainFileUri, code.position.position);
+
+    var fooParameter = res.singleWhere((c) => c.label == 'foo');
+    var thisMethodFoo = res.singleWhere((c) => c.label.startsWith('this.foo'));
+
+    expect(fooParameter.kind, equals(CompletionItemKind.Variable));
+    expect(thisMethodFoo.kind, equals(CompletionItemKind.Method));
+    var newText = toTextEdit(thisMethodFoo.textEdit!).newText;
+    expect(newText, equals('this.foo'));
+  }
+
+  /// The suggestion label, kind, and textEdit for a `this.`-prefixed instance
+  /// member all go through LSP-specific conversion, unlike the raw
+  /// suggestions checked in `CompletionScopeTest`.
+  Future<void> test_parameter_staticField() async {
+    content = '''
+class C {
+  static int foo = 0;
+  void bar(int foo) {
+    ^
+  }
+}
+''';
+    await initialize();
+    await openFile(mainFileUri, code.code);
+    var res = await getCompletion(mainFileUri, code.position.position);
+
+    var fooParameter = res.singleWhere((c) => c.label == 'foo');
+    var staticFooField = res.singleWhere((c) => c.label.startsWith('C.foo'));
+
+    expect(fooParameter.kind, equals(CompletionItemKind.Variable));
+    expect(staticFooField.kind, equals(CompletionItemKind.Field));
+    var newText = toTextEdit(staticFooField.textEdit!).newText;
+    expect(newText, equals('C.foo'));
   }
 
   Future<void> test_plainText() async {
@@ -3971,7 +4095,7 @@ void f() {
     await initialize();
 
     await openFile(mainFileUri, code.code);
-    await initialAnalysis;
+    await workspaceAnalysisComplete();
     var res = await getCompletion(mainFileUri, code.position.position);
 
     // Find the completion for the class in the other file.
@@ -4086,7 +4210,7 @@ void f() {
     await initialize();
 
     await openFile(mainFileUri, code.code);
-    await initialAnalysis;
+    await workspaceAnalysisComplete();
     var res = await getCompletion(mainFileUri, code.position.position);
     var completions = res.where((c) => c.label == 'MyExportedClass').toList();
     expect(completions, hasLength(1));
@@ -4117,7 +4241,7 @@ void f() {
     await initialize();
 
     await openFile(mainFileUri, code.code);
-    await initialAnalysis;
+    await workspaceAnalysisComplete();
     var res = await getCompletion(mainFileUri, code.position.position);
 
     var completions = res.where((c) => c.label == 'MyExportedClass').toList();
@@ -4148,7 +4272,7 @@ void f() {
     await initialize();
 
     await openFile(mainFileUri, code.code);
-    await initialAnalysis;
+    await workspaceAnalysisComplete();
     var res = await getCompletion(mainFileUri, code.position.position);
 
     var completions = res.where((c) => c.label == 'MyDuplicatedClass').toList();
@@ -4187,7 +4311,7 @@ void f() {
     await initialize();
 
     await openFile(mainFileUri, code.code);
-    await initialAnalysis;
+    await workspaceAnalysisComplete();
     var res = await getCompletion(mainFileUri, code.position.position);
 
     var enumCompletions = res
@@ -4268,7 +4392,7 @@ void f() {
     await initialize();
 
     await openFile(mainFileUri, code.code);
-    await initialAnalysis;
+    await workspaceAnalysisComplete();
     var res = await getCompletion(mainFileUri, code.position.position);
 
     var completions = res
@@ -4305,7 +4429,7 @@ void f(String a) {
     await initialize();
 
     await openFile(mainFileUri, code.code);
-    await initialAnalysis;
+    await workspaceAnalysisComplete();
     var res = await getCompletion(mainFileUri, code.position.position);
 
     // Expect only a single entry for the 'empty' extension member.
@@ -4360,7 +4484,7 @@ void f() {
     await initialize();
 
     await openFile(mainFileUri, code.code);
-    await initialAnalysis;
+    await workspaceAnalysisComplete();
     var res = await getCompletion(mainFileUri, code.position.position);
 
     var completions = res.where((c) => c.label == 'MyExportedClass').toList();
@@ -4442,7 +4566,7 @@ void f() {
     await initialize();
 
     await openFile(mainFileUri, code.code);
-    await initialAnalysis;
+    await workspaceAnalysisComplete();
     var res = await getCompletion(mainFileUri, code.position.position);
 
     var completions = res.where((c) => c.label == 'MyExportedClass').toList();
@@ -4475,7 +4599,7 @@ void f() {
     await initialize();
 
     await openFile(mainFileUri, code.code);
-    await initialAnalysis;
+    await workspaceAnalysisComplete();
     var res = await getCompletion(mainFileUri, code.position.position);
 
     // Find the completion for the class in the other file.
@@ -4573,7 +4697,7 @@ void f() {
     await initialize();
 
     await openFile(mainFileUri, code.code);
-    await initialAnalysis;
+    await workspaceAnalysisComplete();
     var res = await getCompletion(mainFileUri, code.position.position);
 
     var completion = res.singleWhere((c) => c.label == 'InOtherFile');
@@ -4629,7 +4753,7 @@ void f() {
       },
     );
     await openFile(mainFileUri, code.code);
-    await initialAnalysis;
+    await workspaceAnalysisComplete();
     var res = await getCompletionList(mainFileUri, code.position.position);
 
     // Ensure we flagged that we returned everything.
@@ -4656,7 +4780,7 @@ void f() {
       },
     );
     await openFile(mainFileUri, code.code);
-    await initialAnalysis;
+    await workspaceAnalysisComplete();
     var res = await getCompletionList(mainFileUri, code.position.position);
 
     // Ensure we flagged that we did not return everything.
@@ -4781,7 +4905,7 @@ void f() {
     content = 'MyOtherClass^';
     await initialize();
     await openFile(mainFileUri, code.code);
-    await initialAnalysis;
+    await workspaceAnalysisComplete();
 
     // Start with a blank file.
     newFile(otherFilePath, '');
@@ -4816,7 +4940,7 @@ void f() {
     await initialize();
 
     await openFile(mainFileUri, code.code);
-    await initialAnalysis;
+    await workspaceAnalysisComplete();
     var res = await getCompletion(mainFileUri, code.position.position);
 
     // Find the completion for the class in the other file.
@@ -4890,7 +5014,7 @@ class BaseImpl extends Base {
     await initialize();
 
     await openFile(mainFileUri, code.code);
-    await initialAnalysis;
+    await workspaceAnalysisComplete();
     var res = await getCompletion(mainFileUri, code.position.position);
 
     var completion = res.singleWhere(
@@ -5031,7 +5155,7 @@ void f() {
     );
 
     await openFile(mainFileUri, code.code);
-    await initialAnalysis;
+    await workspaceAnalysisComplete();
     var res = await getCompletion(mainFileUri, code.position.position);
 
     // Ensure the item doesn't appear in the results (because we might not
@@ -5056,7 +5180,7 @@ void f() {
     await initialize();
 
     await openFile(mainFileUri, code.code);
-    await initialAnalysis;
+    await workspaceAnalysisComplete();
     var res = await getCompletion(mainFileUri, code.position.position);
 
     // Ensure the item doesn't appear in the results (because we might not
@@ -5106,7 +5230,7 @@ void f() {
   ) async {
     await initialize();
     await openFile(fileUri, code.code);
-    await initialAnalysis;
+    await workspaceAnalysisComplete();
     var res = await getCompletion(fileUri, code.position.position);
 
     var completion = res.singleWhere((c) => c.label == completionLabel);
@@ -5222,7 +5346,7 @@ void f() {
 
     await initialize();
     await openFile(mainFileUri, code.code);
-    await initialAnalysis;
+    await workspaceAnalysisComplete();
 
     // Use a Completer to control when the completion handler starts computing.
     var completer = Completer<void>();
@@ -5645,18 +5769,15 @@ void f() {
 
 @reflectiveTest
 class FlutterSnippetCompletionTest extends SnippetCompletionTest {
+  @override
+  bool get addFlutterPackageDep => true;
+
   /// Standard import statements expected for basic Widgets.
   String get expectedImports => '''
 import 'package:flutter/widgets.dart';''';
 
   /// Constructor params expected on Widget classes.
   String get expectedWidgetConstructorParams => '({super.key})';
-
-  @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(flutter: true);
-  }
 
   Future<void> test_snippets_flutterStateful() async {
     content = '''
@@ -5927,7 +6048,7 @@ abstract class SnippetCompletionTest extends AbstractLspAnalysisServerTest
     required String prefix,
     required String label,
   }) async {
-    var (snippet: snippet, defaults: defaults) = await expectSnippet(
+    var (:snippet, :defaults) = await expectSnippet(
       code,
       prefix: prefix,
       label: label,

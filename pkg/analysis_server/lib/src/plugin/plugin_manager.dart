@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// @docImport 'package:analysis_server_plugin/src/plugin_server.dart';
 /// @docImport 'package:analysis_server/src/plugin/plugin_watcher.dart';
+/// @docImport 'package:analysis_server_plugin/src/plugin_server.dart';
 library;
 
 import 'dart:async';
@@ -130,7 +130,12 @@ class PluginManager {
   /// has determined no plugins are configured to be run, or (b) when the
   /// plugins are configured and the first status notification is received by
   /// the analysis server.
-  Completer<void> initializedCompleter = Completer();
+  ///
+  /// It is important that this completer always eventually completes and is not
+  /// left dangling (for example if plugins are invalid, fail to load, etc)
+  /// because tools like 'dart analyze' may wait on it via the
+  /// 'dart/workspace/analysis/complete' request.
+  final Completer<void> initializedCompleter = Completer();
 
   final ProcessRunner _processRunner;
 
@@ -212,6 +217,7 @@ class PluginManager {
     );
     try {
       instrumentationService.logInfo('Starting plugin "$pluginIsolate"');
+      sessionLogger.logInfo('Starting plugin "$pluginIsolate"');
       var session = await pluginIsolate.start(_byteStorePath, _sdkPath);
       unawaited(
         session?.onDone.then((_) {
@@ -232,13 +238,15 @@ class PluginManager {
 
     _notifyPluginsChanged();
 
+    if (!isLegacyPlugin && _analysisSetAnalysisRootsParams != null) {
+      pluginIsolate.setAnalysisRoots(_analysisSetAnalysisRootsParams!);
+    }
     pluginIsolate.addContextRoot(contextRoot);
     if (startedSuccessfully) {
       // Send these cached requests to the restarted plugin in order to catch it
       // back up to the working state.
       var cachedRequests = [
         ?_analysisSetSubscriptionsParams,
-        ?_analysisSetAnalysisRootsParams,
         if (_overlayState.isNotEmpty)
           AnalysisUpdateContentParams(_overlayState),
         ?_analysisSetPriorityFilesParams,
@@ -414,10 +422,14 @@ class PluginManager {
         _notifyPluginsChanged();
         try {
           plugin.stop();
-        } catch (e, st) {
-          instrumentationService.logException(
-            SilentException('Issue stopping a plugin', e, st),
+        } catch (exception, stackTrace) {
+          var silentException = SilentException(
+            'Issue stopping a plugin',
+            exception,
+            stackTrace,
           );
+          instrumentationService.logException(silentException);
+          sessionLogger.logException(exception: silentException);
         }
       }
     }
@@ -551,8 +563,12 @@ class PluginManager {
       _pluginMap.values.map((pluginIsolate) async {
         try {
           await pluginIsolate.stop();
-        } catch (e, st) {
-          instrumentationService.logException(e, st);
+        } catch (exception, stackTrace) {
+          instrumentationService.logException(exception, stackTrace);
+          sessionLogger.logException(
+            exception: exception,
+            stackTrace: stackTrace,
+          );
         }
       }),
     );
@@ -564,6 +580,7 @@ class PluginManager {
     instrumentationService.logInfo(
       'Running "dart compile aot-snapshot $entrypoint".',
     );
+    sessionLogger.logInfo('Running "dart compile aot-snapshot $entrypoint".');
 
     var stopwatch = Stopwatch()..start();
     var depfile = entrypoint.parent.getFile('depfile.txt');
@@ -579,6 +596,10 @@ class PluginManager {
           'Could not delete existing AOT plugin entrypoint at '
           '"$aotSnapshotFile": $e.',
         );
+        sessionLogger.logInfo(
+          'Could not delete existing AOT plugin entrypoint at '
+          '"$aotSnapshotFile": $e.',
+        );
       }
     }
     var result = _processRunner.runSync(
@@ -590,6 +611,9 @@ class PluginManager {
     stopwatch.stop();
 
     instrumentationService.logInfo(
+      'Running "dart compile aot-snapshot" took ${stopwatch.elapsed}.',
+    );
+    sessionLogger.logInfo(
       'Running "dart compile aot-snapshot" took ${stopwatch.elapsed}.',
     );
 
@@ -611,13 +635,18 @@ class PluginManager {
           'Using existing plugin AOT snapshot at '
           "'${aotSnapshotFile.path}'",
         );
+        sessionLogger.logInfo(
+          'Using existing plugin AOT snapshot at '
+          "'${aotSnapshotFile.path}'",
+        );
         return aotSnapshotFile;
       }
     } catch (error, stackTrace) {
-      instrumentationService.logException(
-        'Exception while checking an existing plugin AOT snapshot: '
-        '"$error"\n$stackTrace',
-      );
+      var exception =
+          'Exception while checking an existing plugin AOT snapshot: '
+          '"$error"\n$stackTrace';
+      instrumentationService.logException(exception);
+      sessionLogger.logException(exception: exception);
     }
 
     // When the Dart Analysis Server is built as AOT, then all spawned
@@ -641,6 +670,7 @@ class PluginManager {
       buffer.writeln('  stderr = $stderr');
       var exceptionReason = buffer.toString();
       instrumentationService.logError(exceptionReason);
+      sessionLogger.logException(exception: exceptionReason);
       throw PluginException(exceptionReason);
     }
 
@@ -879,6 +909,9 @@ class PluginManager {
     instrumentationService.logInfo(
       'Running "pub $pubCommand" in "${workingDirectory.path}".',
     );
+    sessionLogger.logInfo(
+      'Running "pub $pubCommand" in "${workingDirectory.path}".',
+    );
 
     var stopwatch = Stopwatch()..start();
     var result = _processRunner.runSync(
@@ -892,6 +925,9 @@ class PluginManager {
     stopwatch.stop();
 
     instrumentationService.logInfo(
+      'Running "pub $pubCommand" took ${stopwatch.elapsed}.',
+    );
+    sessionLogger.logInfo(
       'Running "pub $pubCommand" took ${stopwatch.elapsed}.',
     );
 

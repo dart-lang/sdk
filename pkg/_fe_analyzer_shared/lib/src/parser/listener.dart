@@ -108,6 +108,14 @@ abstract class Listener implements UnescapeErrorListener {
     logEvent("Cascade");
   }
 
+  /// Called after the last section of a cascade expression.
+  ///
+  /// Each section is reported by a [beginCascade] and [endCascade] pair, and
+  /// [sectionCount] is the number of these pairs for the cascade expression.
+  /// So a listener can build the cascade expression once, instead of after
+  /// each section.
+  void handleCascadeExpressionEnd(int sectionCount) {}
+
   void beginCaseExpression(Token caseKeyword) {}
 
   void endCaseExpression(Token caseKeyword, Token? when, Token colon) {
@@ -366,7 +374,7 @@ abstract class Listener implements UnescapeErrorListener {
     Token? constKeyword,
   ) {}
 
-  void beginPrimaryConstructorBody(Token token) {}
+  void beginPrimaryConstructorBody(Token token, Token? augmentToken) {}
 
   // Handles the `this` body block for a primary constructor. Substructures:
   /// - metadata
@@ -375,6 +383,7 @@ abstract class Listener implements UnescapeErrorListener {
   /// - body
   void endPrimaryConstructorBody(
     Token beginToken,
+    Token thisToken,
     Token? beginInitializers,
     Token endToken,
   ) {
@@ -389,9 +398,6 @@ abstract class Listener implements UnescapeErrorListener {
 
   void beginCompilationUnit(Token token) {}
 
-  /// This method exists for analyzer compatibility only
-  /// and will be removed once analyzer/cfe integration is complete.
-  ///
   /// This is called when [Parser.parseDirectives] has parsed all directives
   /// and is skipping the remainder of the file.  Substructures:
   /// - metadata
@@ -1352,6 +1358,27 @@ abstract class Listener implements UnescapeErrorListener {
 
   void handleSend(Token beginToken, Token endToken) {
     logEvent("Send");
+  }
+
+  /// Handle a send for which neither type arguments nor an argument list were
+  /// parsed.
+  ///
+  /// The parser does not emit [handleNoTypeArguments] or [handleNoArguments]
+  /// for this send.
+  void handleSendWithoutArguments(
+    Token beginToken,
+    Token endToken,
+    Token nextToken,
+  ) {
+    logEvent("SendWithoutArguments");
+  }
+
+  /// Handle an invocation with an argument list but without type arguments.
+  ///
+  /// The parser emits the argument-list events, but does not emit
+  /// [handleNoTypeArguments].
+  void handleInvocationWithoutTypeArguments(Token beginToken, Token endToken) {
+    logEvent("InvocationWithoutTypeArguments");
   }
 
   void beginShow(Token showKeyword) {}

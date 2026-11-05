@@ -760,7 +760,7 @@ String dart2wasmHtml(
     };
     const appInstance = await compiledApp.instantiate({}, {
       loadDeferredModules: (modules, handleWasmBytes) =>
-        Promise.all(modules.map((m) => fetch(m).then((b) => handleWasmBytes(m, b)))),
+        Promise.all(modules.map((m) => handleWasmBytes(m, fetch(m)))),
     });
     dartMainRunner(() => {
       appInstance.invokeMain();

@@ -62,6 +62,22 @@ import 'dart:core' as core;
 core.int i = 1;
 ''');
   }
+
+  Future<void> test_importPrefix_withPart() async {
+    var otherPath = join(testPackageLibPath, 'other.dart');
+    newFile(otherPath, '''
+part of 'test.dart';
+_core.int i = 2;
+''');
+    await resolveTestCode('''
+import 'dart:core' as _core;
+part 'other.dart';
+''');
+    await assertHasFixForTarget('''
+part of 'test.dart';
+core.int i = 2;
+''', target: otherPath);
+  }
 }
 
 @reflectiveTest
@@ -128,15 +144,7 @@ class A {
   }
 }
 ''');
-    await assertHasFix('''
-class A {
-  void m({int? foo}) {
-    var foo0 = 1;
-    print(foo);
-    print(foo0);
-  }
-}
-''');
+    await assertNoFix();
   }
 
   Future<void> test_localVariable_conflictWithVariable() async {
@@ -148,35 +156,24 @@ void f() {
   print(foo);
 }
 ''');
-    await assertHasFix('''
-void f() {
-  var foo0 = 1;
-  var foo = true;
-  print(foo0);
-  print(foo);
-}
-''');
+    await assertNoFix();
   }
 
-  Future<void> test_localVariable_conflictWithVariable_existing() async {
+  Future<void> test_notShadow_innerLocal() async {
     await resolveTestCode('''
-void f() {
-  var _foo = 1;
-  var foo = true;
-  var foo0 = true;
+void f(int _foo) {
+  for (var foo in []) {
+    print(foo);
+  }
   print(_foo);
-  print(foo);
-  print(foo0);
 }
 ''');
     await assertHasFix('''
-void f() {
-  var foo1 = 1;
-  var foo = true;
-  var foo0 = true;
-  print(foo1);
+void f(int foo) {
+  for (var foo in []) {
+    print(foo);
+  }
   print(foo);
-  print(foo0);
 }
 ''');
   }
@@ -320,5 +317,42 @@ f() {
   print('$a$b');
 }
 ''');
+  }
+
+  Future<void> test_shadow_innerLocal() async {
+    await resolveTestCode('''
+void f(int _foo) {
+  for (var foo in []) {
+    _foo++;
+    print(foo);
+  }
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_shadow_member() async {
+    await resolveTestCode('''
+class A {
+  int foo = 0;
+
+  void bar(int _foo) {
+    foo + _foo;
+  }
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_shadow_parameter() async {
+    await resolveTestCode('''
+void f(int foo) {
+  for (var _foo in []) {
+    print(_foo++);
+    print(foo);
+  }
+}
+''');
+    await assertNoFix();
   }
 }

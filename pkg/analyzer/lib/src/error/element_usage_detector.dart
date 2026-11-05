@@ -8,12 +8,15 @@ library;
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/workspace/workspace.dart';
 import 'package:collection/collection.dart';
 
 /// Algorithm for detecting usages of a set of elements.
+@ToBeDeprecated('Use ElementUsageDetectorV2 instead')
 class ElementUsageDetector<TagInfo extends Object> {
   /// Description of the current workspace.
   ///
@@ -50,13 +53,21 @@ class ElementUsageDetector<TagInfo extends Object> {
   }
 
   void assignmentExpression(AssignmentExpression node) {
-    checkUsage(node.readElement, node.leftHandSide);
-    checkUsage(node.writeElement, node.leftHandSide);
+    checkUsage(node.readElement, node.leftHandSide2);
+    checkUsage(node.writeElement, node.leftHandSide2);
     checkUsage(node.element, node);
   }
 
   void binaryExpression(BinaryExpression node) {
     checkUsage(node.element, node);
+  }
+
+  void binaryOperatorInvocation(BinaryOperatorInvocation node) {
+    checkUsage(node.element, node);
+  }
+
+  void cascadePropertyExtraction(CascadePropertyExtraction node) {
+    checkUsage(node.resolution?.element, node);
   }
 
   /// Reports the usage of [element] at [node] if [element] is in
@@ -108,7 +119,7 @@ class ElementUsageDetector<TagInfo extends Object> {
 
     SyntacticEntity errorEntity = node;
     var parent = node.parent;
-    if (parent is AssignmentExpression && parent.leftHandSide == node) {
+    if (parent is AssignmentExpression && parent.leftHandSide2 == node) {
       if (node is SimpleIdentifier) {
         errorEntity = node;
       } else if (node is PrefixedIdentifier) {
@@ -116,9 +127,22 @@ class ElementUsageDetector<TagInfo extends Object> {
       } else if (node is PropertyAccess) {
         errorEntity = node.propertyName;
       }
+    } else if (node is NamedAssignmentTarget) {
+      errorEntity = node.name;
+    } else if (node is PropertyExtraction) {
+      errorEntity = node.name;
     } else if (node is ExtensionOverride) {
       errorEntity = node.name;
+    } else if (node is ExtensionOverride2) {
+      errorEntity = node.name;
     } else if (node is NamedType) {
+      errorEntity = node.name;
+    } else if (node is ConstructorTypeReference) {
+      errorEntity = node.name;
+    } else if (node is DotShorthandConstructorInvocation2 &&
+        element is ConstructorElement) {
+      errorEntity = node.name;
+    } else if (node is NamedFunctionInvocation) {
       errorEntity = node.name;
     } else if (node is NamedArgument) {
       errorEntity = node.name;
@@ -138,14 +162,7 @@ class ElementUsageDetector<TagInfo extends Object> {
     }
 
     String displayName = element.displayName;
-    if (element is ConstructorElement) {
-      // TODO(jwren): We should modify ConstructorElement.displayName,
-      // or have the logic centralized elsewhere, instead of doing this logic
-      // here.
-      displayName = element.name == null
-          ? '${element.displayName}.new'
-          : element.displayName;
-    } else if (element is LibraryElement) {
+    if (element is LibraryElement) {
       displayName = element.uri.toString();
     } else if (node is MethodInvocation &&
         displayName == MethodElement.CALL_METHOD_NAME) {
@@ -160,7 +177,7 @@ class ElementUsageDetector<TagInfo extends Object> {
 
     for (var reportThis in givesNonNullResults) {
       reportThis.elementUsageReporter.report(
-        errorEntity,
+        errorEntity.sourceRange,
         displayName,
         // Getting it again might not be ideal...
         reportThis.elementUsageSet.getTagInfo(element, elementMetadata)!,
@@ -190,6 +207,11 @@ class ElementUsageDetector<TagInfo extends Object> {
     checkUsage(node.element, node);
   }
 
+  void constructorTearOff(ConstructorTearOff node) {
+    checkUsage(node.typeReference.element, node.typeReference);
+    checkUsage(node.element, node);
+  }
+
   void dotShorthandConstructorInvocation(
     DotShorthandConstructorInvocation node,
   ) {
@@ -199,6 +221,17 @@ class ElementUsageDetector<TagInfo extends Object> {
       checkUsage(interfaceElement, node);
     }
     _invocationArguments(node.constructorName.element, node.argumentList);
+  }
+
+  void dotShorthandConstructorInvocation2(
+    DotShorthandConstructorInvocation2 node,
+  ) {
+    var element = node.element;
+    if (element?.enclosingElement case var interfaceElement?) {
+      checkUsage(interfaceElement, node);
+    }
+    checkUsage(element, node);
+    _invocationArguments(element, node.argumentList);
   }
 
   void dotShorthandInvocation(DotShorthandInvocation node) {
@@ -227,10 +260,13 @@ class ElementUsageDetector<TagInfo extends Object> {
     checkUsage(node.element, node);
   }
 
+  void extensionOverride2(ExtensionOverride2 node) {
+    checkUsage(node.element, node);
+  }
+
   void formalParameter(FormalParameter node) {
-    var parent = node.parent;
-    if (parent is! FormalParameterList) return;
-    if (parent.parent case ConstructorDeclaration constructor) {
+    var parameterList = node.parentFormalParameterList2;
+    if (parameterList.parent case ConstructorDeclaration constructor) {
       if (constructor.redirectedConstructor?.element
           case var redirectedConstructor?) {
         if (node.isNamed) {
@@ -241,7 +277,7 @@ class ElementUsageDetector<TagInfo extends Object> {
           checkUsage(redirectedParameter, node);
         } else {
           // Positional.
-          var position = parent.parameters.indexOf(node);
+          var position = parameterList.parameters.indexOf(node);
           if (position < 0) return;
           if (position >= redirectedConstructor.formalParameters.length) {
             return;
@@ -267,8 +303,19 @@ class ElementUsageDetector<TagInfo extends Object> {
     checkUsage(node.libraryImport?.importedLibrary, node);
   }
 
+  void incrementOrDecrement(IncrementOrDecrementExpressionImpl node) {
+    var target = node.target;
+    checkUsage(target.read?.element, target);
+    checkUsage(target.write?.element, target);
+    checkUsage(node.element, node);
+  }
+
   void indexExpression(IndexExpression node) {
     checkUsage(node.element, node);
+  }
+
+  void indexExpression2(IndexExpression2 node) {
+    checkUsage(node.resolution?.elementOrRecovery, node);
   }
 
   void instanceCreationExpression(InstanceCreationExpression node) {
@@ -354,12 +401,16 @@ class ElementUsageDetector<TagInfo extends Object> {
     }
   }
 
+  void unaryOperatorInvocation(UnaryOperatorInvocation node) {
+    checkUsage(node.element, node);
+  }
+
   void _invocationArguments(Element? element, ArgumentList arguments) {
     element = element?.baseElement;
     if (element is ExecutableElement) {
       _visitParametersAndArguments(
         element.formalParameters,
-        arguments.arguments,
+        arguments.arguments2,
       );
     }
   }
@@ -443,36 +494,545 @@ class ElementUsageDetector<TagInfo extends Object> {
   }
 }
 
-/// Strategy class that specifies what [ElementUsageDetector] should do when it
+/// Algorithm for detecting usages of a set of elements.
+class ElementUsageDetectorV2<TagInfo extends Object> {
+  /// Description of the current workspace.
+  ///
+  /// This is used to compute the value of the `isInSamePackage` parameter of
+  /// [ElementUsageReporter.report].
+  ///
+  /// If not supplied, then `false` will be passed for the `isInSamePackage`
+  /// parameter of [ElementUsageReporter.report].
+  final WorkspacePackage? _workspacePackage;
+
+  final List<UsageSetAndReporter> usagesArbitrary = [];
+  final List<UsageSetAndReporter> usagesMetadataOnly = [];
+
+  ElementUsageDetectorV2({
+    required WorkspacePackage? workspacePackage,
+    required List<UsageSetAndReporter> usagesAndReporters,
+  }) : _workspacePackage = workspacePackage {
+    for (var usageSetAndReporter in usagesAndReporters) {
+      if (usageSetAndReporter.elementUsageSet.reliesOnlyOnElementMetadata) {
+        usagesMetadataOnly.add(usageSetAndReporter);
+      } else {
+        usagesArbitrary.add(usageSetAndReporter);
+      }
+    }
+  }
+
+  void binaryOperatorInvocation(BinaryOperatorInvocation node) {
+    checkUsage(node.element, node, usageRange: node.operator.sourceRange);
+  }
+
+  void callInvocation(CallInvocation node) {
+    var callElement = switch (node.resolution) {
+      ExecutableInvocationResolution(:var element) => element,
+      _ => null,
+    };
+    if (callElement is MethodElement &&
+        callElement.name == MethodElement.CALL_METHOD_NAME) {
+      checkUsage(callElement, node, usageRange: node.sourceRange);
+    }
+  }
+
+  /// Reports the usage of [element] at [node] if [element] is in
+  /// any of [usagesMetadataOnly] or [usagesArbitrary].
+  ///
+  /// [usageRange] specifies the source to highlight; [node] provides the
+  /// context needed to determine whether the usage should be reported.
+  ///
+  /// [usageKind] describes how [node] uses [element], so reporters can explain
+  /// implicit usages.
+  void checkUsage(
+    Element? element,
+    AstNode node, {
+    required SourceRange usageRange,
+    ElementUsageKind usageKind = ElementUsageKind.explicit,
+  }) {
+    if (element == null) {
+      return;
+    }
+    // Implicit getters/setters.
+    if (element is PropertyAccessorElement && element.isOriginVariable) {
+      element = element.variable;
+    }
+
+    if (element is FormalParameterElement && element.isRequired) {
+      return;
+    }
+
+    List<UsageSetAndReporter>? givesNonNullResults;
+    var elementMetadata = element.metadata;
+    if (elementMetadata.annotations.isNotEmpty) {
+      for (int i = 0; i < usagesMetadataOnly.length; i++) {
+        if (!shouldCheckMetadataOnlyForIndex(i)) continue;
+        var usagesAndReporter = usagesMetadataOnly[i];
+        var tagInfo = usagesAndReporter.elementUsageSet.getTagInfo(
+          element,
+          elementMetadata,
+        );
+        if (tagInfo != null) {
+          (givesNonNullResults ??= []).add(usagesAndReporter);
+        }
+      }
+    }
+    for (int i = 0; i < usagesArbitrary.length; i++) {
+      if (!shouldCheckArbitraryForIndex(i)) continue;
+      var usagesAndReporter = usagesArbitrary[i];
+      var tagInfo = usagesAndReporter.elementUsageSet.getTagInfo(
+        element,
+        elementMetadata,
+      );
+      if (tagInfo != null) {
+        (givesNonNullResults ??= []).add(usagesAndReporter);
+      }
+    }
+    if (givesNonNullResults == null) return;
+
+    if (_isLocalParameter(element, node)) {
+      return;
+    }
+
+    String displayName = element.displayName;
+    if (element is LibraryElement) {
+      displayName = element.uri.toString();
+    }
+
+    for (var reportThis in givesNonNullResults) {
+      reportThis.elementUsageReporter.report(
+        usageRange,
+        displayName,
+        // Getting it again might not be ideal...
+        reportThis.elementUsageSet.getTagInfo(element, elementMetadata)!,
+        usageKind: usageKind,
+        isInSamePackage: _isLibraryInWorkspacePackage(element.library),
+      );
+    }
+  }
+
+  void combinatorName(CombinatorName node) {
+    if (node.parent2 is HideCombinator) {
+      return;
+    }
+
+    var element = node.element ?? node.setterElement;
+    if (element is PropertyAccessorElement) {
+      element = element.variable;
+    }
+    checkUsage(element, node, usageRange: node.sourceRange);
+  }
+
+  void compoundAssignment(CompoundAssignment node) {
+    _checkAssignmentTarget(node.target);
+    checkUsage(node.element, node, usageRange: node.operator.sourceRange);
+  }
+
+  void constructorDeclaration(ConstructorDeclaration node) {
+    // Check usage of any implicit super-constructor call.
+    // There is only an implicit super-constructor if:
+    // * this is not a factory constructor,
+    // * there is no redirecting constructor invocation, and
+    // * there is no explicit super constructor invocation.
+    if (node.factoryKeyword != null) return;
+    var hasConstructorInvocation = node.initializers.any(
+      (i) =>
+          i is SuperConstructorInvocation ||
+          i is RedirectingConstructorInvocation,
+    );
+    if (hasConstructorInvocation) return;
+
+    checkUsage(
+      node.declaredFragment!.element.superConstructor,
+      node,
+      usageRange: node.errorRange,
+      usageKind: ElementUsageKind.implicitSuperConstructorInvocation,
+    );
+  }
+
+  void constructorInvocation(ConstructorInvocation node) {
+    _invocationArguments(node.constructorReference.element, node.argumentList);
+  }
+
+  void constructorReference2(ConstructorReference2 node) {
+    checkUsage(
+      node.typeReference.element,
+      node.typeReference,
+      usageRange: node.typeReference.name.sourceRange,
+    );
+    checkUsage(node.element, node, usageRange: node.sourceRange);
+  }
+
+  void constructorTearOff(ConstructorTearOff node) {
+    checkUsage(
+      node.typeReference.element,
+      node.typeReference,
+      usageRange: node.typeReference.name.sourceRange,
+    );
+    checkUsage(node.element, node, usageRange: node.sourceRange);
+  }
+
+  void directAssignment(DirectAssignment node) {
+    var target = node.target;
+    checkUsage(
+      target.write?.element,
+      target,
+      usageRange: _assignmentTargetRange(target),
+    );
+  }
+
+  void dotShorthandConstructorInvocation2(
+    DotShorthandConstructorInvocation2 node,
+  ) {
+    var element = node.element;
+    if (element?.enclosingElement case var interfaceElement?) {
+      checkUsage(
+        interfaceElement,
+        node,
+        usageRange: _rangeBetween(node.period, node.name),
+        usageKind: ElementUsageKind.implicitTypeReference,
+      );
+    }
+    checkUsage(element, node, usageRange: node.name.sourceRange);
+    _invocationArguments(element, node.argumentList);
+  }
+
+  void dotShorthandMethodInvocation(DotShorthandMethodInvocation node) {
+    var element = switch (node.resolution) {
+      ExecutableInvocationResolution(:var element) => element,
+      InvalidInvocationResolution(
+        recovery: ExecutableInvocationResolution(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
+    if (element?.enclosingElement case var interfaceElement?) {
+      // A dot-shorthand method invocation contains an implicit reference to
+      // the interface on which the static method was declared.
+      checkUsage(
+        interfaceElement,
+        node,
+        usageRange: _rangeBetween(node.period, node.name),
+        usageKind: ElementUsageKind.implicitTypeReference,
+      );
+    }
+    namedFunctionInvocation(node);
+  }
+
+  void exportDirective(ExportDirective node) {
+    checkUsage(
+      node.libraryExport?.exportedLibrary,
+      node,
+      usageRange: node.sourceRange,
+    );
+  }
+
+  void extensionOverride2(ExtensionOverride2 node) {
+    checkUsage(node.element, node, usageRange: node.name.sourceRange);
+  }
+
+  void forEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
+    var element = node.write?.elementOrRecovery;
+    checkUsage(element, node, usageRange: node.sourceRange);
+  }
+
+  void formalParameter(FormalParameter node) {
+    var parameterList = node.parentFormalParameterList2;
+    if (parameterList.parent2 case ConstructorDeclaration constructor) {
+      if (constructor.factoryRedirectionTarget?.element
+          case var redirectedConstructor?) {
+        if (node.isNamed) {
+          var redirectedParameter = redirectedConstructor.formalParameters
+              .firstWhereOrNull(
+                (p) => p.isNamed && p.name == node.name?.lexeme,
+              );
+          checkUsage(redirectedParameter, node, usageRange: node.sourceRange);
+        } else {
+          // Positional.
+          var position = parameterList.allFormalParameters.indexOf(node);
+          if (position < 0) return;
+          if (position >= redirectedConstructor.formalParameters.length) {
+            return;
+          }
+          var redirectedParameter =
+              redirectedConstructor.formalParameters[position];
+          if (!redirectedParameter.isPositional) return;
+          checkUsage(redirectedParameter, node, usageRange: node.sourceRange);
+        }
+      }
+    }
+  }
+
+  void ifNullAssignment(IfNullAssignment node) {
+    _checkAssignmentTarget(node.target);
+  }
+
+  void importDirective(ImportDirective node) {
+    checkUsage(
+      node.libraryImport?.importedLibrary,
+      node,
+      usageRange: node.sourceRange,
+    );
+  }
+
+  void incrementOrDecrement(IncrementOrDecrementExpressionImpl node) {
+    _checkAssignmentTarget(node.target);
+    checkUsage(node.element, node, usageRange: node.operator.sourceRange);
+  }
+
+  void indexExpression2(IndexExpression2 node) {
+    checkUsage(
+      node.resolution?.elementOrRecovery,
+      node,
+      usageRange: node.sourceRange,
+    );
+  }
+
+  void namedFunctionInvocation(NamedFunctionInvocation node) {
+    var element = switch (node.resolution) {
+      ExecutableInvocationResolution(:var element) => element,
+      _ => null,
+    };
+    checkUsage(element?.baseElement, node, usageRange: node.name.sourceRange);
+    _invocationArguments(element, node.argumentList);
+  }
+
+  void namedType(NamedType node) {
+    checkUsage(node.element, node, usageRange: node.name.sourceRange);
+  }
+
+  void nameExpression(NameExpression node) {
+    var element = node.resolution?.elementOrRecovery;
+
+    // The omitted qualifier also refers to the enclosing declaration.
+    if (node is DotShorthandNameExpression) {
+      checkUsage(
+        element?.enclosingElement,
+        node,
+        usageRange: _rangeBetween(node.period, node.name),
+        usageKind: ElementUsageKind.implicitTypeReference,
+      );
+    }
+
+    checkUsage(element, node, usageRange: node.name.sourceRange);
+  }
+
+  void patternField(PatternField node) {
+    node as PatternFieldImpl;
+    checkUsage(node.element, node, usageRange: node.errorEntity.sourceRange);
+  }
+
+  void redirectingConstructorInvocation(RedirectingConstructorInvocation node) {
+    checkUsage(
+      node.element,
+      node,
+      usageRange: _rangeBetween(
+        node.thisKeyword,
+        node.constructorSelector?.name2 ?? node.thisKeyword,
+      ),
+    );
+    _invocationArguments(node.element, node.argumentList);
+  }
+
+  /// If false [checkUsage] may skip the call to `getTagInfo` on the [i]th
+  /// entry of [usagesArbitrary].
+  bool shouldCheckArbitraryForIndex(int i) {
+    return true;
+  }
+
+  /// If false [checkUsage] may skip the call to `getTagInfo` on the [i]th
+  /// entry of [usagesMetadataOnly].
+  bool shouldCheckMetadataOnlyForIndex(int i) {
+    return true;
+  }
+
+  void staticQualifier(StaticQualifier node) {
+    checkUsage(node.element, node, usageRange: node.name.sourceRange);
+  }
+
+  void superConstructorInvocation(SuperConstructorInvocation node) {
+    checkUsage(
+      node.element,
+      node,
+      usageRange: _rangeBetween(
+        node.superKeyword,
+        node.constructorSelector?.name2 ?? node.superKeyword,
+      ),
+    );
+    _invocationArguments(node.element, node.argumentList);
+  }
+
+  void superFormalParameter(SuperFormalParameter node) {
+    var element = node.declaredFragment?.element;
+    if (element is SuperFormalParameterElement) {
+      checkUsage(
+        element.superConstructorParameter,
+        node,
+        usageRange: node.sourceRange,
+      );
+    }
+  }
+
+  void unaryOperatorInvocation(UnaryOperatorInvocation node) {
+    checkUsage(node.element, node, usageRange: node.operator.sourceRange);
+  }
+
+  void _checkAssignmentTarget(AssignmentTarget target) {
+    checkUsage(
+      target.read?.element,
+      target,
+      usageRange: _assignmentTargetRange(target),
+    );
+    checkUsage(
+      target.write?.element,
+      target,
+      usageRange: _assignmentTargetRange(target),
+    );
+  }
+
+  void _invocationArguments(Element? element, ArgumentList arguments) {
+    element = element?.baseElement;
+    if (element is ExecutableElement) {
+      _visitParametersAndArguments(
+        element.formalParameters,
+        arguments.arguments2,
+      );
+    }
+  }
+
+  bool _isLibraryInWorkspacePackage(LibraryElement? library) {
+    // Better to not make a big claim that they _are_ in the same package,
+    // if we were unable to determine what package [_currentLibrary] is in.
+    if (_workspacePackage == null || library == null) {
+      return false;
+    }
+    library as LibraryElementImpl;
+    return _workspacePackage.contains(library.internal.firstFragment.source);
+  }
+
+  void _visitParametersAndArguments(
+    List<FormalParameterElement> parameters,
+    List<Argument> arguments,
+  ) {
+    Map<String, FormalParameterElement>? namedParameters;
+
+    var positionalIndex = 0;
+    for (var argument in arguments) {
+      if (argument is NamedArgument) {
+        if (namedParameters == null) {
+          namedParameters = {};
+          for (var parameter in parameters) {
+            if (parameter.isNamed) {
+              if (parameter.name case var name?) {
+                namedParameters[name] = parameter;
+              }
+            }
+          }
+        }
+        var name = argument.name.lexeme;
+        var parameter = namedParameters[name];
+        if (parameter != null) {
+          checkUsage(
+            parameter,
+            argument,
+            usageRange: argument.name.sourceRange,
+          );
+        }
+      } else {
+        if (positionalIndex < parameters.length) {
+          var parameter = parameters[positionalIndex++];
+          if (parameter.isPositional) {
+            checkUsage(parameter, argument, usageRange: argument.sourceRange);
+          }
+        }
+      }
+    }
+  }
+
+  static SourceRange _assignmentTargetRange(AstNode target) => switch (target) {
+    NamedAssignmentTarget(:var name) => name.sourceRange,
+    _ => target.sourceRange,
+  };
+
+  /// Returns whether [element] is a [FormalParameterElement] declared in
+  /// [node].
+  static bool _isLocalParameter(Element? element, AstNode? node) {
+    if (element is FormalParameterElement) {
+      var definingFunction = element.enclosingElement;
+
+      for (; node != null; node = node.parent2) {
+        if (node is ConstructorDeclaration) {
+          if (node.declaredFragment?.element == definingFunction) {
+            return true;
+          }
+        } else if (node is FunctionExpression) {
+          if (node.declaredFragment?.element == definingFunction) {
+            return true;
+          }
+        } else if (node is MethodDeclaration) {
+          if (node.declaredFragment?.element == definingFunction) {
+            return true;
+          }
+        } else if (node is PrimaryConstructorBody) {
+          if (node.declaration?.declaredFragment?.element == definingFunction) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  static SourceRange _rangeBetween(SyntacticEntity start, SyntacticEntity end) {
+    return SourceRange(start.offset, end.end - start.offset);
+  }
+}
+
+/// The context of an element usage that may need specialized diagnostic wording.
+enum ElementUsageKind {
+  explicit,
+
+  /// A constructor declaration implicitly invokes a super constructor.
+  implicitSuperConstructorInvocation,
+
+  /// An expression refers to a type without explicitly naming it, such as the
+  /// type supplying a dot-shorthand member.
+  implicitTypeReference,
+}
+
+/// Strategy class that specifies what [ElementUsageDetectorV2] should do when it
 /// detects the use of a tagged element.
 ///
 /// For example, [DeprecatedElementUsageReporter] can be used to specify that
-/// [ElementUsageDetector] should report "use of deprecated member" warnings.
+/// [ElementUsageDetectorV2] should report "use of deprecated member" warnings.
 ///
 /// [TagInfo] is the type of auxiliary information that can be associated with
 /// an element (for example, deprecated elements can be associated with a text
 /// string). It should match the [TagInfo] parameter to [ElementUsageSet].
 abstract class ElementUsageReporter<TagInfo extends Object> {
-  /// Reports an element usage detected by [ElementUsageDetector].
+  /// Reports an element usage detected by [ElementUsageDetectorV2].
   ///
-  /// [usageSite] is the source code location where the usage is located.
+  /// [usageRange] is the source range to highlight for this usage.
   /// [displayName] is the name of the element that was used. [tagInfo] is the
   /// tag information returned by [ElementUsageSet.getTagInfo].
+  /// [usageKind] describes how the element is used, so the diagnostic can
+  /// explain implicit usages.
   /// [isInSamePackage] indicates whether the element and its usage are in
   /// the same package.
   void report(
-    SyntacticEntity usageSite,
+    SourceRange usageRange,
     String displayName,
     TagInfo tagInfo, {
     required bool isInSamePackage,
+    ElementUsageKind usageKind = ElementUsageKind.explicit,
   });
 }
 
 /// Strategy class that specifies the set of elements that
-/// [ElementUsageDetector] should detect usages of.
+/// [ElementUsageDetectorV2] should detect usages of.
 ///
 /// For example, [DeprecatedElementUsageSet] can be used to specify that
-/// [ElementUsageDetector] should detect usages of deprecated elements.
+/// [ElementUsageDetectorV2] should detect usages of deprecated elements.
 ///
 /// [TagInfo] is the type of auxiliary information associated with an element in
 /// the set (for example, deprecated elements can be associated with a text
@@ -485,7 +1045,7 @@ abstract class ElementUsageSet<TagInfo extends Object> {
   /// Used to skip calls to [getTagInfo] is there is no metadata.
   bool get reliesOnlyOnElementMetadata;
 
-  /// If [element] is in the set of elements that [ElementUsageDetector] should
+  /// If [element] is in the set of elements that [ElementUsageDetectorV2] should
   /// detect usages of, returns auxiliary information associated with [element].
   ///
   /// [elementMetadata] is the result of [element].metadata, but should be used

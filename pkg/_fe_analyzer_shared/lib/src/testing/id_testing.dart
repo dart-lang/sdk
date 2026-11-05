@@ -699,7 +699,7 @@ Future<TestResult<T>> checkCode<T>(
   return new TestResult<T>(dataInterpreter, compiledData, hasFailure);
 }
 
-typedef Future<Map<String, TestResult<T>>> RunTestFunction<T>(
+typedef RunTestFunction<T> = Future<Map<String, TestResult<T>>> Function(
   MarkerOptions markerOptions,
   TestData testData, {
   required bool testAfterFailures,

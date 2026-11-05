@@ -27,7 +27,7 @@ void f(x) {
 ParenthesizedPattern
   leftParenthesis: (
   pattern: ConstantPattern
-    expression: IntegerLiteral
+    expression2: IntegerLiteral
       literal: 0
       staticType: int
     matchedValueType: dynamic
@@ -50,7 +50,7 @@ void f(x) {
 ParenthesizedPattern
   leftParenthesis: (
   pattern: ConstantPattern
-    expression: IntegerLiteral
+    expression2: IntegerLiteral
       literal: 0
       staticType: int
     matchedValueType: dynamic

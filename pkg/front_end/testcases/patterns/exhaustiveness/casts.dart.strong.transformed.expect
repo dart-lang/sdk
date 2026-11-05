@@ -60,11 +60,11 @@ static method exhaustiveDynamicAsStringOrInt(dynamic o) → dynamic
         }
       }
       {
-        final hoisted core::int value;
+        final hoisted core::int value##1;
         if(true) {
           #0#0 as core::int;
-          value = #0#0 as core::int;
-          #t1 = "${value}";
+          value##1 = #0#0 as core::int;
+          #t1 = "${value##1}";
           break #L1;
         }
       }
@@ -85,13 +85,13 @@ static method exhaustiveDynamicAsStringOrIntAnd(dynamic o) → dynamic
         }
       }
       {
-        final hoisted core::int value;
+        final hoisted core::int value##1;
         final hoisted core::int value2;
         if(true) {
           #0#0 as core::int;
-          value = #0#0 as core::int;
+          value##1 = #0#0 as core::int;
           value2 = #0#0 as core::int;
-          #t2 = "${value}${value2}";
+          #t2 = "${value##1}${value2}";
           break #L2;
         }
       }
@@ -112,9 +112,9 @@ static method exhaustiveDynamicAsStringOrNum(dynamic o) → dynamic
         }
       }
       {
-        final hoisted core::num value;
-        if(let final dynamic #t4 = #0#0 as core::int in (#0#0 as core::int) is core::num && (let final dynamic #t5 = value = #0#0 as core::int in true)) {
-          #t3 = "${value}";
+        final hoisted core::num value##1;
+        if(let final dynamic #t4 = #0#0 as core::int in (#0#0 as core::int) is core::num && (let final dynamic #t5 = value##1 = #0#0 as core::int in true)) {
+          #t3 = "${value##1}";
           break #L3;
         }
       }
@@ -135,9 +135,9 @@ static method nonExhaustiveDynamicAsStringOrDouble(dynamic o) → dynamic
         }
       }
       {
-        final hoisted core::double value;
-        if(let final dynamic #t7 = #0#0 as core::num in (#0#0 as core::num) is core::double && (let final dynamic #t8 = value = (#0#0 as core::num) as{Unchecked} core::double in true)) {
-          #t6 = "${value}";
+        final hoisted core::double value##1;
+        if(let final dynamic #t7 = #0#0 as core::num in (#0#0 as core::num) is core::double && (let final dynamic #t8 = value##1 = (#0#0 as core::num) as{Unchecked} core::double in true)) {
+          #t6 = "${value##1}";
           break #L4;
         }
       }

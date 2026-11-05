@@ -295,6 +295,24 @@ Set f() {
 ''');
   }
 
+  Future<void>
+  test_generic_instanceCreation_cascade_dotShorthandTarget() async {
+    await resolveTestCode('''
+C<int> f() {
+  C<int> c = .new()..toString();
+  return c;
+}
+class C<T> {}
+''');
+    await assertHasFix('''
+C<int> f() {
+  var c = C<int>.new()..toString();
+  return c;
+}
+class C<T> {}
+''');
+  }
+
   Future<void> test_generic_instanceCreation_withArguments() async {
     await resolveTestCode('''
 C<int> f() {
@@ -463,6 +481,16 @@ Set f() {
     await assertNoFix();
   }
 
+  Future<void> test_generic_setLiteral_ambiguous_cascade() async {
+    await resolveTestCode('''
+Set f() {
+  Set s = {}..addAll([]);
+  return s;
+}
+''');
+    await assertNoFix();
+  }
+
   Future<void> test_generic_setLiteral_cascade() async {
     await resolveTestCode('''
 Set f() {
@@ -545,6 +573,52 @@ String f() {
 }
 ''');
     await assertNoFix();
+  }
+
+  Future<void> test_simple_dotShorthand_chain_method() async {
+    await resolveTestCode('''
+class A {
+  A.named();
+  A method() => this;
+}
+void f() {
+  A a = .named().method();
+  print(a);
+}
+''');
+    await assertHasFix('''
+class A {
+  A.named();
+  A method() => this;
+}
+void f() {
+  var a = A.named().method();
+  print(a);
+}
+''');
+  }
+
+  Future<void> test_simple_dotShorthand_chain_property() async {
+    await resolveTestCode('''
+class A {
+  static A get value => A();
+  A get self => this;
+}
+void f() {
+  A a = .value.self;
+  print(a);
+}
+''');
+    await assertHasFix('''
+class A {
+  static A get value => A();
+  A get self => this;
+}
+void f() {
+  var a = A.value.self;
+  print(a);
+}
+''');
   }
 
   Future<void> test_simple_dotShorthand_constructorInvocation() async {

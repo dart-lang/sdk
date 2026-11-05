@@ -24,6 +24,7 @@ library;
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/ast.dart' show ToBeDeprecated;
 import 'package:meta/meta.dart';
 
 part 'visitor.g.dart';
@@ -51,6 +52,7 @@ part 'visitor.g.dart';
 ///     visitor.visitAllNodes(rootNode);
 ///
 /// Clients may extend this class.
+@ToBeDeprecated('There is no V2 replacement.')
 class BreadthFirstVisitor<R> extends GeneralizingAstVisitor<R> {
   /// A queue holding the nodes that have not yet been visited in the order in
   /// which they ought to be visited.
@@ -97,6 +99,7 @@ class BreadthFirstVisitor<R> extends GeneralizingAstVisitor<R> {
 /// 6. V2.visitIntegerLiteral
 ///
 /// Clients may not extend, implement or mix-in this class.
+@ToBeDeprecated('Use DelegatingAstVisitor2 instead')
 class DelegatingAstVisitor<T> extends UnifyingAstVisitor<T> {
   /// The delegates whose visit methods will be invoked.
   final Iterable<AstVisitor<T>> delegates;
@@ -113,8 +116,43 @@ class DelegatingAstVisitor<T> extends UnifyingAstVisitor<T> {
   }
 }
 
+/// An AST visitor that will recursively visit all of the nodes in an AST
+/// structure. For each node that is visited, the corresponding visit method on
+/// one or more other visitors (the 'delegates') will be invoked.
+///
+/// For example, if an instance of this class is created with two delegates V1
+/// and V2, and that instance is used to visit the expression 'x + 1', then the
+/// following visit methods will be invoked:
+/// 1. V1.visitBinaryOperatorInvocation
+/// 2. V2.visitBinaryOperatorInvocation
+/// 3. V1.visitSimpleIdentifier
+/// 4. V2.visitSimpleIdentifier
+/// 5. V1.visitIntegerLiteral
+/// 6. V2.visitIntegerLiteral
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+class DelegatingAstVisitor2<T> extends UnifyingAstVisitor2<T> {
+  /// The delegates whose visit methods will be invoked.
+  final Iterable<AstVisitor2<T>> delegates;
+
+  /// Initialize a newly created visitor to use each of the given delegate
+  /// visitors to visit the nodes of an AST structure.
+  const DelegatingAstVisitor2(this.delegates);
+
+  @override
+  T? visitNode(AstNode node) {
+    delegates.forEach(node.accept2);
+    node.visitChildren2(this);
+    return null;
+  }
+}
+
 /// A helper class used to implement the correct order of visits for a
 /// [BreadthFirstVisitor].
+@ToBeDeprecated(
+  'Used only by BreadthFirstVisitor, which has no V2 replacement.',
+)
 class _BreadthFirstChildVisitor extends UnifyingAstVisitor<void> {
   /// The [BreadthFirstVisitor] being helped by this visitor.
   final BreadthFirstVisitor outerVisitor;

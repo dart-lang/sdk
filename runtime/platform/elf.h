@@ -44,6 +44,7 @@ enum class ProgramHeaderType : uint32_t {
   PT_NOTE = 4,
   PT_PHDR = 6,
   PT_GNU_STACK = 0x6474e551,
+  PT_GNU_PROPERTY = 0x6474e553,
 };
 
 struct ProgramHeader {
@@ -145,6 +146,7 @@ struct DynamicEntry {
 
 enum class NoteType : uint32_t {
   NT_GNU_BUILD_ID = 3,
+  NT_GNU_PROPERTY_TYPE_0 = 5,
 };
 
 struct Note {
@@ -202,6 +204,15 @@ static constexpr intptr_t STT_FUNC = 2;
 static constexpr intptr_t STT_SECTION = 3;
 
 static constexpr const char ELF_NOTE_GNU[] = "GNU";
+
+#define GNU_PROPERTY_X86_FEATURE_1_AND 0xc0000002
+#define GNU_PROPERTY_X86_FEATURE_1_IBT (1U << 0)
+#define GNU_PROPERTY_X86_FEATURE_1_SHSTK (1U << 1)
+
+#define GNU_PROPERTY_AARCH64_FEATURE_1_AND 0xc0000000
+#define GNU_PROPERTY_AARCH64_FEATURE_1_BTI (1U << 0)
+#define GNU_PROPERTY_AARCH64_FEATURE_1_PAC (1U << 1)
+#define GNU_PROPERTY_AARCH64_FEATURE_1_GCS (1U << 2)
 
 // Creates symbol info from the given STB and STT values.
 constexpr decltype(Symbol::info) SymbolInfo(intptr_t binding, intptr_t type) {

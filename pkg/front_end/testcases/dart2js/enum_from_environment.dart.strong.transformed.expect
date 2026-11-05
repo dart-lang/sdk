@@ -24,14 +24,13 @@ class B extends core::Object /*hasConstConstructor*/  {
     return new self::B::•(value);
 }
 static method method(self::A a) → core::String {
-  #L1:
   switch(a) /* isExplicitlyExhaustive, self::A */ {
-    #L2:
+    #L1:
     case #C5:
       {
         return "a";
       }
-    #L3:
+    #L2:
     case #C10:
       {
         return "b";

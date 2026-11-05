@@ -2,10 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@TestOn('vm')
-@Timeout(Duration(minutes: 2))
-library;
-
 import 'dart:async';
 
 import 'package:dwds/src/debugging/debugger.dart';
@@ -14,14 +10,12 @@ import 'package:dwds/src/debugging/skip_list.dart';
 import 'package:dwds/src/services/batched_expression_evaluator.dart';
 import 'package:dwds/src/services/expression_evaluator.dart';
 import 'package:dwds/src/utilities/shared.dart';
-
+import 'package:dwds_test_common/fixtures/context.dart';
+import 'package:dwds_test_common/fixtures/fakes.dart';
+import 'package:dwds_test_common/fixtures/utilities.dart';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart' hide LogRecord;
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
-
-import 'fixtures/context.dart';
-import 'fixtures/fakes.dart';
-import 'fixtures/utilities.dart';
 
 late ExpressionEvaluator? _evaluator;
 late ExpressionEvaluator? _batchedEvaluator;

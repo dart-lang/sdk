@@ -28,6 +28,7 @@ void main() {
       'dart',
       [script],
       environment: {'PATH': path.dirname(Platform.resolvedExecutable)},
+      runInShell: true,
     );
 
     final completer = Completer<void>();

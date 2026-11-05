@@ -19,10 +19,7 @@ void main() {
 @reflectiveTest
 class RemovePrintMultiTest extends FixInFileProcessorTest {
   @override
-  void setUp() {
-    super.setUp();
-    createAnalysisOptionsFile(lints: [LintNames.avoid_print]);
-  }
+  List<String> get lintCodes => [LintNames.avoid_print];
 
   Future<void> test_multi_prints() async {
     await resolveTestCode('''
@@ -86,7 +83,7 @@ class RemovePrintTest extends FixProcessorLintTest {
   @override
   void setUp() {
     super.setUp();
-    writeTestPackageConfig();
+    writeTestPackageConfig2();
   }
 
   Future<void> test_multi_statement() async {

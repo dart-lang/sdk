@@ -87,7 +87,31 @@
   ARRAY_SIZEOF(WeakArray, InstanceSize, element_offset)                        \
   CONSTANT(Array, kMaxElements)                                                \
   CONSTANT(Array, kMaxNewSpaceElements)                                        \
+  CONSTANT(CallbackContext, kNumIntegerArguments)                              \
+  CONSTANT(CallbackContext, kNumDoubleArguments)                               \
+  CONSTANT(CallbackMetadata, kCall)                                            \
+  CONSTANT(CallbackMetadata, kTailCall)                                        \
+  CONSTANT(CallbackMetadata, kCallRet4)                                        \
   CONSTANT(Context, kMaxElements)                                              \
+  CONSTANT(Class, kNoTypeArguments)                                            \
+  CONSTANT(Function, kKindBitsPos)                                             \
+  CONSTANT(Function, kKindBitsSize)                                            \
+  CONSTANT(Function, kRecognizedBitsPos)                                       \
+  CONSTANT(Function, kRecognizedBitsSize)                                      \
+  CONSTANT(Function, kModifierBitsPos)                                         \
+  CONSTANT(Function, kModifierBitsSize)                                        \
+  CONSTANT(Function, kStaticBitPos)                                            \
+  CONSTANT(Function, kConstBitPos)                                             \
+  CONSTANT(Function, kAbstractBitPos)                                          \
+  CONSTANT(Function, kReflectableBitPos)                                       \
+  CONSTANT(Function, kVisibleBitPos)                                           \
+  CONSTANT(Function, kDebuggableBitPos)                                        \
+  CONSTANT(Function, kNativeBitPos)                                            \
+  CONSTANT(Function, kExternalBitPos)                                          \
+  CONSTANT(Function, kHasPragmaBitPos)                                         \
+  CONSTANT(Function, kIsSyntheticBitPos)                                       \
+  CONSTANT(Function, kIsExtensionMemberBitPos)                                 \
+  CONSTANT(Function, kIsExtensionTypeMemberBitPos)                             \
   CONSTANT(Heap, kNewAllocatableSize)                                          \
   CONSTANT(Instructions, kMonomorphicEntryOffsetJIT)                           \
   CONSTANT(Instructions, kPolymorphicEntryOffsetJIT)                           \
@@ -95,7 +119,11 @@
   CONSTANT(Instructions, kPolymorphicEntryOffsetAOT)                           \
   CONSTANT(Instructions, kBarePayloadAlignment)                                \
   CONSTANT(Instructions, kNonBarePayloadAlignment)                             \
+  CONSTANT(NativeArguments, kArgcBitsPos)                                      \
+  CONSTANT(NativeArguments, kArgcBitsSize)                                     \
+  CONSTANT(NativeArguments, kGenericFunctionBitPos)                            \
   CONSTANT(NativeEntry, kNumCallWrapperArguments)                              \
+  CONSTANT(Object, kHashBits)                                                  \
   CONSTANT(Page, kBytesPerCardLog2)                                            \
   CONSTANT(Page, kPageMask)                                                    \
   CONSTANT(Record, kMaxElements)                                               \
@@ -105,6 +133,7 @@
   CONSTANT(RecordShape, kMaxNumFields)                                         \
   CONSTANT(RecordShape, kNumFieldsMask)                                        \
   CONSTANT(String, kMaxElements)                                               \
+  CONSTANT(Symbols, kNumberOfOneCharCodeSymbols)                               \
   CONSTANT(OneByteString, kMaxNewSpaceElements)                                \
   CONSTANT(TwoByteString, kMaxNewSpaceElements)                                \
   CONSTANT(SubtypeTestCache, kFunctionTypeArguments)                           \
@@ -116,8 +145,13 @@
   CONSTANT(SubtypeTestCache, kInstantiatorTypeArguments)                       \
   CONSTANT(SubtypeTestCache, kTestEntryLength)                                 \
   CONSTANT(SubtypeTestCache, kMaxInputs)                                       \
+  CONSTANT(SubtypeTestCache, kMaxLinearCacheSize)                              \
   CONSTANT(SubtypeTestCache, kTestResult)                                      \
+  CONSTANT(TypeArguments, kAllDynamicHash)                                     \
   CONSTANT(TypeArguments, kMaxElements)                                        \
+  CONSTANT(UntaggedClosure, kDelayedTypeArgumentsIndex)                        \
+  CONSTANT(UntaggedClosure, kInstantiatorTypeArgumentsIndexBitsPos)            \
+  CONSTANT(UntaggedClosure, kInstantiatorTypeArgumentsIndexBitsSize)           \
   CONSTANT(UntaggedClosure, kHasDelayedTypeArgumentsBit)                       \
   CONSTANT(UntaggedClosure, kHasInstantiatorTypeArgumentsBit)                  \
   CONSTANT(UntaggedClosure, kHasFunctionTypeArgumentsBit)                      \
@@ -148,6 +182,9 @@
   CONSTANT(UntaggedPcDescriptors, kTryIndexBitsSize)                           \
   CONSTANT(UntaggedPcDescriptors, kYieldIndexBitsPos)                          \
   CONSTANT(UntaggedPcDescriptors, kYieldIndexBitsSize)                         \
+  CONSTANT(VMTag, kDartTagId)                                                  \
+  CONSTANT(VMTag, kRuntimeTagId)                                               \
+  CONSTANT(VMTag, kNativeTagId)                                                \
   FIELD(AbstractType, flags_offset)                                            \
   FIELD(AbstractType, hash_offset)                                             \
   FIELD(AbstractType, type_test_stub_entry_point_offset)                       \
@@ -163,6 +200,17 @@
   FIELD(Array, length_offset)                                                  \
   FIELD(Array, tags_offset)                                                    \
   FIELD(Array, type_arguments_offset)                                          \
+  FIELD(CallbackContext, integer_arguments_offset)                             \
+  FIELD(CallbackContext, double_arguments_offset)                              \
+  FIELD(CallbackContext, return_struct_pointer_offset)                         \
+  FIELD(CallbackContext, sp_offset)                                            \
+  FIELD(CallbackMetadata, entry_point_offset)                                  \
+  FIELD(CallbackMetadata, type_offset)                                         \
+  FIELD(CallbackMetadata, epilogue_offset)                                     \
+  FIELD(CallbackMetadata, caller_isolate_offset)                               \
+  FIELD(CallbackMetadata, caller_isolate_group_offset)                         \
+  FIELD(CallbackMetadata, function_handle_offset)                              \
+  FIELD(CallbackMetadata, interpreted_runtime_entry_offset)                    \
   FIELD(Class, declaration_type_offset)                                        \
   FIELD(Class, num_type_arguments_offset)                                      \
   FIELD(Class, super_type_offset)                                              \
@@ -457,6 +505,8 @@
   SIZEOF(Array, header_size, UntaggedArray)                                    \
   SIZEOF(Bool, InstanceSize, UntaggedBool)                                     \
   SIZEOF(Bytecode, InstanceSize, UntaggedBytecode)                             \
+  SIZEOF(CallbackContext, InstanceSize, CallbackContext)                       \
+  SIZEOF(CallbackMetadata, InstanceSize, CallbackMetadata)                     \
   SIZEOF(Capability, InstanceSize, UntaggedCapability)                         \
   SIZEOF(Class, InstanceSize, UntaggedClass)                                   \
   SIZEOF(ClosureData, InstanceSize, UntaggedClosureData)                       \
@@ -538,11 +588,12 @@
   PAYLOAD_SIZEOF(PcDescriptors, InstanceSize, HeaderSize)                      \
   PAYLOAD_SIZEOF(SuspendState, InstanceSize, HeaderSize)                       \
   PAYLOAD_SIZEOF(TypedData, InstanceSize, HeaderSize)                          \
-  ENUM(StubCode, StubCode::StubNames)                                          \
-  ENUM(RuntimeEntry, RuntimeEntry::RuntimeEntryNames)                          \
-  ENUM(LeafRuntimeEntry, RuntimeEntry::LeafRuntimeEntryNames)                  \
   ENUM(ClassId, kClassIdNames)                                                 \
-  ENUM(PcDescriptorKind, UntaggedPcDescriptors::kKindNames)
+  ENUM(FunctionKind, UntaggedFunction::kKindNames)                             \
+  ENUM(LeafRuntimeEntry, RuntimeEntry::LeafRuntimeEntryNames)                  \
+  ENUM(PcDescriptorKind, UntaggedPcDescriptors::kKindNames)                    \
+  ENUM(RuntimeEntry, RuntimeEntry::RuntimeEntryNames)                          \
+  ENUM(StubCode, StubCode::StubNames)
 
 #define JIT_OFFSETS_LIST(FIELD, ARRAY, SIZEOF, ARRAY_SIZEOF, PAYLOAD_SIZEOF,   \
                          RANGE, CONSTANT, ENUM)                                \

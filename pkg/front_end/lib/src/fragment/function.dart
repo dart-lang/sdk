@@ -25,6 +25,13 @@ abstract class FunctionBodyBuildingContext {
   /// bodies have been parsed.
   bool get shouldFinishFunction;
 
+  /// Whether the function body being built is the function implementation.
+  ///
+  /// For augmentations, only one of the function declarations is considered
+  /// as the implementation. Other declarations can only provide annotations
+  /// for the generated AST node.
+  bool get isImplementation;
+
   BodyBuilderContext createBodyBuilderContext();
 
   ExtensionScope get extensionScope;

@@ -67,6 +67,19 @@ void main() {
         JSDataViewImpl.fromRef(JS<WasmExternRef?>('() => new ArrayBuffer(10)')),
   );
   Expect.throws<ArgumentError>(
+    () => JSDataViewImpl.fromRefNullable(
+      JS<WasmExternRef?>('() => new ArrayBuffer(10)'),
+    ),
+  );
+  Expect.isNotNull(
+    JSDataViewImpl.fromRefNullable(
+      JS<WasmExternRef?>('() => new DataView(new ArrayBuffer(10))'),
+    ),
+  );
+  Expect.isNull(
+    JSDataViewImpl.fromRefNullable(JS<WasmExternRef?>('() => null')),
+  );
+  Expect.throws<ArgumentError>(
     () => JSStringImpl.fromRef(JS<WasmExternRef?>('() => new ArrayBuffer(10)')),
   );
   Expect.throws<ArgumentError>(

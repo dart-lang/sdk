@@ -252,7 +252,200 @@ linter:
     await _test_analysisOptions_links(content, expectedLinks);
   }
 
-  Future<void> test_exampleLink() async {
+  Future<void> test_exampleDirective_mustExist() async {
+    var code = TestCode.parse('''
+/// <callout-box>
+///
+/// This example shows ...
+///
+/// {@example examples/api/foo.dart }
+///
+/// </callout-box>
+class A {}
+''');
+
+    newFile(mainFilePath, code.code);
+
+    await initialize();
+    var links = await getDocumentLinks(mainFileUri);
+    expect(links, isEmpty); // Target doesn't exist, so no links.
+  }
+
+  Future<void> test_exampleDirective_packageRelative() async {
+    var exampleFolderPath = join(projectFolderPath, 'examples', 'api');
+    var exampleFilePath = join(exampleFolderPath, 'foo.dart');
+    var exampleFileUri = toUri(exampleFilePath);
+    newFile(exampleFilePath, ''); // Target must exist to get links.
+
+    var code = TestCode.parse('''
+/// <callout-box>
+///
+/// This example shows ...
+///
+/// {@example [!/examples/api/foo.dart!] }
+///
+/// </callout-box>
+class A {}
+''');
+
+    newFile(mainFilePath, code.code);
+
+    await initialize();
+    var links = await getDocumentLinks(mainFileUri);
+
+    var link = links!.single;
+    expect(link.range, code.range.range);
+    expect(link.target, exampleFileUri);
+  }
+
+  /// The new example format rules state:
+  ///
+  /// `..` segments stop at the package root and never escape it"
+  ///
+  /// https://github.com/dart-lang/dartdoc/blob/main/doc/directives.md#example
+  Future<void>
+  test_exampleDirective_packageRelative_cannotEscapePackage() async {
+    var exampleFolderPath = normalize(
+      join(projectFolderPath, '..', 'examples', 'api'),
+    );
+    var exampleFilePath = join(exampleFolderPath, 'foo.dart');
+    newFile(exampleFilePath, ''); // Target must exist to get links.
+
+    var code = TestCode.parse('''
+/// <callout-box>
+///
+/// This example shows ...
+///
+/// {@example /../examples/api/foo.dart }
+///
+/// </callout-box>
+class A {}
+''');
+
+    newFile(mainFilePath, code.code);
+
+    await initialize();
+    var links = await getDocumentLinks(mainFileUri);
+    expect(links, isEmpty);
+  }
+
+  /// Example directives can have regions on the end of the URI but
+  /// they should not form part of the target URI.
+  ///
+  /// DocumentLinks do not support target ranges/positions.
+  Future<void> test_exampleDirective_region() async {
+    var exampleFolderPath = join(projectFolderPath, 'examples', 'api');
+    var exampleFilePath = join(exampleFolderPath, 'foo.dart');
+    var exampleFileUri = toUri(exampleFilePath);
+    newFile(exampleFilePath, ''); // Target must exist to get links.
+
+    var code = TestCode.parse('''
+/// <callout-box>
+///
+/// This example shows ...
+///
+/// {@example [!../examples/api/foo.dart#region!] }
+///
+/// </callout-box>
+class A {}
+''');
+
+    newFile(mainFilePath, code.code);
+
+    await initialize();
+    var links = await getDocumentLinks(mainFileUri);
+
+    var link = links!.single;
+    expect(link.range, code.range.range);
+    expect(link.target, exampleFileUri);
+  }
+
+  Future<void> test_exampleDirective_relative() async {
+    var exampleFolderPath = join(projectFolderPath, 'examples', 'api');
+    var exampleFilePath = join(exampleFolderPath, 'foo.dart');
+    var exampleFileUri = toUri(exampleFilePath);
+    newFile(exampleFilePath, ''); // Target must exist to get links.
+
+    var code = TestCode.parse('''
+/// <callout-box>
+///
+/// This example shows ...
+///
+/// {@example [!../examples/api/foo.dart!] }
+///
+/// </callout-box>
+class A {}
+''');
+
+    newFile(mainFilePath, code.code);
+
+    await initialize();
+    var links = await getDocumentLinks(mainFileUri);
+
+    var link = links!.single;
+    expect(link.range, code.range.range);
+    expect(link.target, exampleFileUri);
+  }
+
+  /// The new example format rules state:
+  ///
+  /// `..` segments stop at the package root and never escape it"
+  ///
+  /// https://github.com/dart-lang/dartdoc/blob/main/doc/directives.md#example
+  Future<void> test_exampleDirective_relative_cannotEscapePackage() async {
+    var exampleFolderPath = normalize(
+      join(projectFolderPath, '..', 'examples', 'api'),
+    );
+    var exampleFilePath = join(exampleFolderPath, 'foo.dart');
+    newFile(exampleFilePath, ''); // Target must exist to get links.
+
+    var code = TestCode.parse('''
+/// <callout-box>
+///
+/// This example shows ...
+///
+/// {@example ../../examples/api/foo.dart }
+///
+/// </callout-box>
+class A {}
+''');
+
+    newFile(mainFilePath, code.code);
+
+    await initialize();
+    var links = await getDocumentLinks(mainFileUri);
+    expect(links, isEmpty);
+  }
+
+  /// The paths are URIs, and can be escaped as such
+  Future<void> test_exampleDirective_urlEncoding() async {
+    var exampleFolderPath = join(projectFolderPath, 'examples examples', 'api');
+    var exampleFilePath = join(exampleFolderPath, 'foo.dart');
+    var exampleFileUri = toUri(exampleFilePath);
+    newFile(exampleFilePath, ''); // Target must exist to get links.
+
+    var code = TestCode.parse('''
+/// <callout-box>
+///
+/// This example shows ...
+///
+/// {@example [!../examples%20examples/api/foo.dart!] }
+///
+/// </callout-box>
+class A {}
+''');
+
+    newFile(mainFilePath, code.code);
+
+    await initialize();
+    var links = await getDocumentLinks(mainFileUri);
+
+    var link = links!.single;
+    expect(link.range, code.range.range);
+    expect(link.target, exampleFileUri);
+  }
+
+  Future<void> test_exampleLink_legacy() async {
     var exampleFolderPath = join(projectFolderPath, 'examples', 'api');
     var exampleFileUri = toUri(join(exampleFolderPath, 'foo.dart'));
 

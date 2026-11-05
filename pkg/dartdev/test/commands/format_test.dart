@@ -61,7 +61,9 @@ void format() {
     expect(result.stderr, isEmpty);
     expect(
       result.stdout,
-      startsWith('Formatted lib/main.dart\nFormatted 1 file (1 changed) in '),
+      startsWith(
+        'Formatted ${p.relativeFilePath}\nFormatted 1 file (1 changed) in ',
+      ),
     );
   });
 
@@ -76,7 +78,9 @@ void format() {
     expect(result.stderr, isEmpty);
     expect(
       result.stdout,
-      startsWith('Formatted lib/main.dart\nFormatted 1 file (1 changed) in '),
+      startsWith(
+        'Formatted ${p.relativeFilePath}\nFormatted 1 file (1 changed) in ',
+      ),
     );
   });
 

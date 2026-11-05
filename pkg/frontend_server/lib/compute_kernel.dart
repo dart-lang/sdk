@@ -112,6 +112,15 @@ final ArgParser summaryArgsParser = new ArgParser()
     ],
   )
   ..addFlag('include-unsupported-platform-library-stubs', defaultsTo: false)
+  ..addFlag(
+    'deprecated-js-interop',
+    defaultsTo: true,
+    help:
+        'Allow the deprecated JS interop libraries (e.g. dart:html, dart:js).\n'
+        'When disabled, conditional imports on these libraries resolve to '
+        'false and importing them is an error. Only affects the dart2js, '
+        'dart2js_summary and ddc targets.',
+  )
   ..addMultiOption(
     'enable-experiment',
     help: 'Enable a language experiment when invoking the CFE.',
@@ -216,6 +225,7 @@ Future<ComputeKernelResult> computeKernel(
   bool trackCreationLocations = parsedArgs['track-creation-locations'] as bool;
   bool includeUnsupportedPlatformLibraryStubs =
       parsedArgs['include-unsupported-platform-library-stubs'] as bool;
+  bool deprecatedJsInterop = parsedArgs['deprecated-js-interop'] as bool;
 
   // TODO(sigmund,jakemac): make target mandatory. We allow null to be backwards
   // compatible while we migrate existing clients of this tool.
@@ -252,7 +262,11 @@ Future<ComputeKernelResult> computeKernel(
       }
       break;
     case 'dart2js':
-      target = new Dart2jsTarget('dart2js', targetFlags);
+      target = new Dart2jsTarget(
+        'dart2js',
+        targetFlags,
+        deprecatedJsInterop: deprecatedJsInterop,
+      );
       if (summaryOnly) {
         out.writeln(
           'error: --summary-only not supported for the dart2js target',
@@ -265,6 +279,7 @@ Future<ComputeKernelResult> computeKernel(
         sources,
         excludeNonSources,
         targetFlags,
+        deprecatedJsInterop: deprecatedJsInterop,
       );
       if (!summaryOnly) {
         out.writeln(
@@ -280,6 +295,7 @@ Future<ComputeKernelResult> computeKernel(
         sources,
         excludeNonSources,
         targetFlags,
+        deprecatedJsInterop: deprecatedJsInterop,
       );
       if (!summaryOnly) {
         out.writeln(
@@ -405,6 +421,8 @@ Future<ComputeKernelResult> computeKernel(
         // includeUnsupportedPlatformLibraryStubs is in TargetFlags.
         "includeUnsupportedPlatformLibraryStubs="
             "$includeUnsupportedPlatformLibraryStubs",
+        // deprecatedJsInterop is a property of the dart2js and ddc targets.
+        "deprecatedJsInterop=$deprecatedJsInterop",
         "multiRootScheme=${mrfs.markerScheme}",
         "multiRootRoots=${mrfs.roots}",
       },
@@ -621,13 +639,18 @@ class DevCompilerSummaryTarget extends DevCompilerTarget with SummaryMixin {
   @override
   final bool excludeNonSources;
 
-  new(this.sources, this.excludeNonSources, TargetFlags targetFlags)
-    : super(targetFlags);
+  new(
+    this.sources,
+    this.excludeNonSources,
+    TargetFlags targetFlags, {
+    bool deprecatedJsInterop = true,
+  }) : super(targetFlags, deprecatedJsInterop: deprecatedJsInterop);
 
   @override
   bool isModularlyCompatibleWith(Target other) {
     if (other is! DevCompilerSummaryTarget) return false;
     if (excludeNonSources != other.excludeNonSources) return false;
+    if (deprecatedJsInterop != other.deprecatedJsInterop) return false;
     return true;
   }
 

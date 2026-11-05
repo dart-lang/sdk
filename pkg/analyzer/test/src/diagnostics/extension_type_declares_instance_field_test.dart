@@ -24,14 +24,6 @@ extension type E(int it) {
 ''');
   }
 
-  Future<void> test_instance_field_external() async {
-    await resolveTestCodeWithDiagnostics(r'''
-extension type E(int it) {
-  external int foo;
-}
-''');
-  }
-
   Future<void> test_instance_getter() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension type E(int it) {

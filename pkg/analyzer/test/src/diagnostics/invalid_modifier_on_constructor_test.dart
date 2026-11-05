@@ -34,6 +34,43 @@ class A {
 ''');
   }
 
+  test_factory_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class C {
+  factory C() async {
+//            ^^^^^
+// [diag.nonSyncFactory] Factory bodies can't use 'async', 'async*', or 'sync*'.
+    return C.named();
+  }
+  C.named();
+}
+''');
+  }
+
+  test_factory_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class C {
+  factory C() async* {
+//            ^^^^^
+// [diag.nonSyncFactory] Factory bodies can't use 'async', 'async*', or 'sync*'.
+  }
+  C.named();
+}
+''');
+  }
+
+  test_factory_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class C {
+  factory C() sync* {
+//            ^^^^
+// [diag.nonSyncFactory] Factory bodies can't use 'async', 'async*', or 'sync*'.
+  }
+  C.named();
+}
+''');
+  }
+
   test_syncStar() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {

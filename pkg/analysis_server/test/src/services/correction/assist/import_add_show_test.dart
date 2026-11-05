@@ -15,7 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class ImportAddShowTest extends AssistProcessorTest {
+class ImportAddShowTest extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.importAddShow;
 

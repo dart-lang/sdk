@@ -52,9 +52,10 @@ runTest() async {
     bool expectTryInline = false,
   }) {
     LibraryEntity mainApp = closedWorld.elementEnvironment.mainLibrary!;
-    final method =
-        closedWorld.elementEnvironment.lookupLibraryMember(mainApp, name)
-            as FunctionEntity;
+    final method = closedWorld.elementEnvironment.lookupLibraryMember(
+      mainApp,
+      name,
+    ) as FunctionEntity;
     Expect.isNotNull(method, "Cannot find method '$name'");
     Expect.equals(
       expectNoInline,

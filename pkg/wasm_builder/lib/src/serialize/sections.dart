@@ -4,6 +4,7 @@
 
 import 'dart:typed_data';
 
+import '../../debug_info.dart';
 import '../ir/ir.dart' as ir;
 import 'deserializer.dart';
 import 'printer.dart' show IndentPrinter;
@@ -23,17 +24,13 @@ abstract class Section implements Serializable {
   Section(this.watchPoints);
 
   @override
-  void serialize(Serializer s) {
+  void serialize(Serializer s, [DebugInfoSerializer? debugInfoSerializer]) {
     final contents = Serializer();
     serializeContents(contents);
     final data = contents.data;
     if (data.isNotEmpty) {
       s.writeByte(id);
       s.writeUnsigned(data.length);
-      s.sourceMapSerializer.copyMappings(
-        contents.sourceMapSerializer,
-        s.offset,
-      );
       s.writeData(contents, watchPoints);
     }
   }
@@ -689,9 +686,29 @@ class CodeSection extends Section {
   int get id => sectionId;
 
   @override
-  void serializeContents(Serializer s) {
+  void serializeContents(
+    Serializer s, [
+    DebugInfoSerializer? debugInfoSerializer,
+  ]) {
     if (functions.isNotEmpty) {
-      s.writeList(functions);
+      s.writeUnsigned(functions.length);
+      for (int i = 0; i < functions.length; i++) {
+        functions[i].serialize(s, debugInfoSerializer);
+      }
+    }
+  }
+
+  @override
+  void serialize(Serializer s, [DebugInfoSerializer? debugInfoSerializer]) {
+    final contents = Serializer();
+    serializeContents(contents, debugInfoSerializer);
+    final data = contents.data;
+    if (data.isNotEmpty) {
+      s.writeByte(id);
+      s.writeUnsigned(data.length);
+      final fileOffset = s.offset;
+      s.writeData(contents, watchPoints);
+      debugInfoSerializer?.setCodeSectionFileOffset(fileOffset);
     }
   }
 
@@ -705,11 +722,14 @@ class CodeSection extends Section {
     ir.Memories memories,
     ir.Tags tags,
     ir.Globals globals,
-    ir.DataSegments dataSegments,
-  ) {
+    ir.DataSegments dataSegments, {
+    int? sectionFileOffset,
+    DebugInfoDeserializer? debugInfoDeserializer,
+  }) {
     if (d == null) {
       return;
     }
+    assert(debugInfoDeserializer == null || sectionFileOffset != null);
 
     final count = d.readUnsigned();
     if (count != functions.defined.length) {
@@ -727,6 +747,7 @@ class CodeSection extends Section {
       final instructions = <ir.Instruction>[];
 
       final bodySize = d.readUnsigned();
+      final bodyOffset = d.offset;
       final bodyDeserializer = Deserializer(d.readBytes(bodySize));
 
       final localDeclCount = bodyDeserializer.readUnsigned();
@@ -737,7 +758,24 @@ class CodeSection extends Section {
           locals.add(ir.Local(locals.length, type));
         }
       }
+
+      if (debugInfoDeserializer != null) {
+        final functionCodeOffset = bodyOffset + bodyDeserializer.offset;
+        debugInfoDeserializer.startFunction(
+          sectionFileOffset! + functionCodeOffset,
+        );
+      }
+
+      int instructionIdx = 0;
       while (!bodyDeserializer.isAtEnd) {
+        if (debugInfoDeserializer != null) {
+          final instructionFileOffset =
+              sectionFileOffset! + bodyOffset + bodyDeserializer.offset;
+          debugInfoDeserializer.onInstruction(
+            instructionIdx,
+            instructionFileOffset,
+          );
+        }
         final instruction = ir.Instruction.deserialize(
           bodyDeserializer,
           types,
@@ -749,9 +787,21 @@ class CodeSection extends Section {
           functions,
         );
         instructions.add(instruction);
+        instructionIdx++;
       }
 
-      function.body = ir.Instructions(locals, {}, instructions, null, [], []);
+      final debugInfo = debugInfoDeserializer?.endFunction(
+        sectionFileOffset! + bodyOffset + bodyDeserializer.offset,
+      );
+
+      function.body = ir.Instructions(
+        locals,
+        {},
+        instructions,
+        null,
+        [],
+        debugInfo,
+      );
     }
   }
 }

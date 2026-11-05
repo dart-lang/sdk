@@ -8,6 +8,163 @@ part of '../../ast.dart';
 //                             CONSTANTS
 // ------------------------------------------------------------------------
 
+/// A fixed-length list of [Constant]s.
+extension type const ConstantList._(List<Constant> _list)
+    implements List<Constant> {
+  static const ConstantList empty = ConstantList._(const <Constant>[]);
+
+  /// Creates a fixed-length list of 1–4 elements without allocating a
+  /// temporary growable list from a literal.
+  @pragma('vm:prefer-inline')
+  factory(Constant c1, [Constant? c2, Constant? c3, Constant? c4]) {
+    if (c2 == null) {
+      assert(c3 == null && c4 == null);
+      return ConstantList._1(c1);
+    }
+    if (c3 == null) {
+      assert(c4 == null);
+      return ConstantList._2(c1, c2);
+    }
+    if (c4 == null) {
+      return ConstantList._3(c1, c2, c3);
+    }
+    return ConstantList._4(c1, c2, c3, c4);
+  }
+
+  factory _1(Constant c1) => ConstantList._(List<Constant>.filled(1, c1));
+
+  factory _2(Constant c1, Constant c2) =>
+      ConstantList._(List<Constant>.filled(2, c1)..[1] = c2);
+
+  factory _3(Constant c1, Constant c2, Constant c3) => ConstantList._(
+    List<Constant>.filled(3, c1)
+      ..[1] = c2
+      ..[2] = c3,
+  );
+
+  factory _4(Constant c1, Constant c2, Constant c3, Constant c4) =>
+      ConstantList._(
+        List<Constant>.filled(4, c1)
+          ..[1] = c2
+          ..[2] = c3
+          ..[3] = c4,
+      );
+
+  factory filled(int length, Constant fill) =>
+      length == 0 ? empty : ConstantList._(List.filled(length, fill));
+
+  @pragma('vm:prefer-inline')
+  factory generate(int length, Constant Function(int index) generator) {
+    if (length == 0) return empty;
+    return ConstantList._(List.generate(length, generator, growable: false));
+  }
+
+  @pragma('vm:prefer-inline')
+  static ConstantList mapped<T>(List<T> list, Constant Function(T) func) {
+    if (list.isEmpty) return empty;
+    return ConstantList._(
+      List<Constant>.generate(
+        list.length,
+        (i) => func(list[i]),
+        growable: false,
+      ),
+    );
+  }
+
+  factory from(List<Constant> constants) {
+    if (constants.isEmpty) return empty;
+    return ConstantList._(
+      List.generate(constants.length, (i) => constants[i], growable: false),
+    );
+  }
+}
+
+/// A fixed-length list of [ConstantMapEntry]s.
+extension type const ConstantMapEntryList._(List<ConstantMapEntry> _list)
+    implements List<ConstantMapEntry> {
+  static const ConstantMapEntryList empty = ConstantMapEntryList._(
+    const <ConstantMapEntry>[],
+  );
+
+  /// Creates a fixed-length list of 1–4 elements without allocating a
+  /// temporary growable list from a literal.
+  @pragma('vm:prefer-inline')
+  factory(
+    ConstantMapEntry e1, [
+    ConstantMapEntry? e2,
+    ConstantMapEntry? e3,
+    ConstantMapEntry? e4,
+  ]) {
+    if (e2 == null) {
+      assert(e3 == null && e4 == null);
+      return ConstantMapEntryList._1(e1);
+    }
+    if (e3 == null) {
+      assert(e4 == null);
+      return ConstantMapEntryList._2(e1, e2);
+    }
+    if (e4 == null) {
+      return ConstantMapEntryList._3(e1, e2, e3);
+    }
+    return ConstantMapEntryList._4(e1, e2, e3, e4);
+  }
+
+  factory _1(ConstantMapEntry e1) =>
+      ConstantMapEntryList._(List<ConstantMapEntry>.filled(1, e1));
+
+  factory _2(ConstantMapEntry e1, ConstantMapEntry e2) =>
+      ConstantMapEntryList._(List<ConstantMapEntry>.filled(2, e1)..[1] = e2);
+
+  factory _3(ConstantMapEntry e1, ConstantMapEntry e2, ConstantMapEntry e3) =>
+      ConstantMapEntryList._(
+        List<ConstantMapEntry>.filled(3, e1)
+          ..[1] = e2
+          ..[2] = e3,
+      );
+
+  factory _4(
+    ConstantMapEntry e1,
+    ConstantMapEntry e2,
+    ConstantMapEntry e3,
+    ConstantMapEntry e4,
+  ) => ConstantMapEntryList._(
+    List<ConstantMapEntry>.filled(4, e1)
+      ..[1] = e2
+      ..[2] = e3
+      ..[3] = e4,
+  );
+
+  @pragma('vm:prefer-inline')
+  factory generate(int length, ConstantMapEntry Function(int index) generator) {
+    if (length == 0) return empty;
+    return ConstantMapEntryList._(
+      List.generate(length, generator, growable: false),
+    );
+  }
+
+  @pragma('vm:prefer-inline')
+  static ConstantMapEntryList mapped<T>(
+    List<T> list,
+    ConstantMapEntry Function(T) func,
+  ) {
+    if (list.isEmpty) return empty;
+    return ConstantMapEntryList._(
+      List<ConstantMapEntry>.generate(
+        list.length,
+        (i) => func(list[i]),
+        growable: false,
+      ),
+    );
+  }
+
+  factory from(List<ConstantMapEntry> entries) {
+    if (entries.isEmpty) return empty;
+    return ConstantMapEntryList._(
+      List.generate(entries.length, (i) => entries[i], growable: false),
+    );
+  }
+}
+
 sealed class Constant extends Node {
   /// Calls the `visit*ConstantReference()` method on visitor [v] for all
   /// constants referenced in this constant.
@@ -310,7 +467,7 @@ class SymbolConstant extends Constant {
 class MapConstant extends Constant {
   final DartType keyType;
   final DartType valueType;
-  final List<ConstantMapEntry> entries;
+  final ConstantMapEntryList entries;
 
   new(this.keyType, this.valueType, this.entries);
 
@@ -410,7 +567,7 @@ class ConstantMapEntry {
 
 class ListConstant extends Constant {
   final DartType typeArgument;
-  final List<Constant> entries;
+  final ConstantList entries;
 
   new(this.typeArgument, this.entries);
 
@@ -474,7 +631,7 @@ class ListConstant extends Constant {
 
 class SetConstant extends Constant {
   final DartType typeArgument;
-  final List<Constant> entries;
+  final ConstantList entries;
 
   new(this.typeArgument, this.entries);
 
@@ -538,7 +695,7 @@ class SetConstant extends Constant {
 
 class RecordConstant extends Constant {
   /// Positional field values.
-  final List<Constant> positional;
+  final ConstantList positional;
 
   /// Named field values, sorted by name.
   final Map<String, Constant> named;
@@ -590,16 +747,27 @@ class RecordConstant extends Constant {
     this.named,
     StaticTypeContext staticTypeContext,
   ) : recordType = new RecordType(
-        [
-          for (Constant constant in positional)
-            constant.getType(staticTypeContext),
-        ],
-        [
-          for (var MapEntry(key: name, value: constant) in named.entries)
-            new NamedType(name, constant.getType(staticTypeContext)),
-        ],
+        DartTypeList.generate(
+          positional.length,
+          (i) => positional[i].getType(staticTypeContext),
+        ),
+        _computeNamedTypes(named, staticTypeContext),
         staticTypeContext.nonNullable,
       );
+
+  static NamedDartTypeList _computeNamedTypes(
+    Map<String, Constant> named,
+    StaticTypeContext staticTypeContext,
+  ) {
+    if (named.isEmpty) return NamedDartTypeList.empty;
+    final Iterator<MapEntry<String, Constant>> iterator =
+        named.entries.iterator;
+    return NamedDartTypeList.generate(named.length, (_) {
+      iterator.moveNext();
+      final MapEntry<String, Constant> entry = iterator.current;
+      return new NamedType(entry.key, entry.value.getType(staticTypeContext));
+    });
+  }
 
   @override
   void visitChildren(Visitor v) {
@@ -674,7 +842,7 @@ class RecordConstant extends Constant {
 
 class InstanceConstant extends Constant {
   final Reference classReference;
-  final List<DartType> typeArguments;
+  final DartTypeList typeArguments;
   final Map<Reference, Constant> fieldValues;
 
   new(this.classReference, this.typeArguments, this.fieldValues);
@@ -751,7 +919,7 @@ class InstanceConstant extends Constant {
 
 class InstantiationConstant extends Constant {
   final Constant tearOffConstant;
-  final List<DartType> types;
+  final DartTypeList types;
 
   new(this.tearOffConstant, this.types);
 
@@ -999,9 +1167,9 @@ class RedirectingFactoryTearOffConstant extends Constant
 }
 
 class TypedefTearOffConstant extends Constant {
-  final List<StructuralParameter> parameters;
+  final StructuralParameterList parameters;
   final TearOffConstant tearOffConstant;
-  final List<DartType> types;
+  final DartTypeList types;
 
   @override
   late final int hashCode = _computeHashCode();

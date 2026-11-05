@@ -30,7 +30,18 @@ void f(x) {
     var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
-  expression: PrefixedIdentifier
+  expression2: ReceiverPropertyExtraction
+    receiver: StaticQualifier
+      name: A
+      element: <testLibrary>::@class::A
+    operator: .
+    name: foo
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@class::A::@getter::foo
+      invokeType: int Function()
+      type: int
+    staticType: int
+  expression(v1): PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
       element: <testLibrary>::@class::A
@@ -46,7 +57,7 @@ ConstantPattern
 ''');
   }
 
-  test_expression_instanceCreation() async {
+  test_expression_constructorInvocation() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A();
@@ -61,7 +72,18 @@ void f(x) {
     assertResolvedNodeText(node, r'''
 ConstantPattern
   constKeyword: const
-  expression: InstanceCreationExpression
+  expression2: ConstructorInvocation
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: A
+        element: <testLibrary>::@class::A
+        type: A
+      element: <testLibrary>::@class::A::@constructor::new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: A
+  expression(v1): InstanceCreationExpression
     constructorName: ConstructorName
       type: NamedType
         name: A
@@ -85,7 +107,7 @@ void f(x) {
     var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
-  expression: IntegerLiteral
+  expression2: IntegerLiteral
     literal: 0
     staticType: int
   matchedValueType: dynamic
@@ -104,7 +126,7 @@ void f(double x) {
     var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
-  expression: IntegerLiteral
+  expression2: IntegerLiteral
     literal: 0
     staticType: double
   matchedValueType: double
@@ -121,9 +143,9 @@ void f(x) {
     assertResolvedNodeText(node, r'''
 ConstantPattern
   constKeyword: const
-  expression: ListLiteral
+  expression2: ListLiteral
     leftBracket: [
-    elements
+    elements2
       IntegerLiteral
         literal: 0
         staticType: int
@@ -143,15 +165,15 @@ void f(x) {
     assertResolvedNodeText(node, r'''
 ConstantPattern
   constKeyword: const
-  expression: SetOrMapLiteral
+  expression2: SetOrMapLiteral
     leftBracket: {
-    elements
+    elements2
       MapLiteralEntry
-        key: IntegerLiteral
+        key2: IntegerLiteral
           literal: 0
           staticType: int
         separator: :
-        value: IntegerLiteral
+        value2: IntegerLiteral
           literal: 1
           staticType: int
     rightBracket: }
@@ -179,7 +201,22 @@ void f(x) {
     var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
-  expression: PropertyAccess
+  expression2: ReceiverPropertyExtraction
+    receiver: StaticQualifier
+      importPrefix: ImportPrefixReference
+        name: prefix
+        period: .
+        element: <testLibraryFragment>::@prefix::prefix
+      name: A
+      element: package:test/a.dart::@class::A
+    operator: .
+    name: foo
+    resolution: GetterInvocationResolution
+      element: package:test/a.dart::@class::A::@getter::foo
+      invokeType: int Function()
+      type: int
+    staticType: int
+  expression(v1): PropertyAccess
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: prefix
@@ -218,7 +255,18 @@ void f(x) {
     var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
-  expression: PrefixedIdentifier
+  expression2: ImportPrefixedNameExpression
+    importPrefix: ImportPrefixReference
+      name: prefix
+      period: .
+      element: <testLibraryFragment>::@prefix::prefix
+    name: foo
+    resolution: GetterInvocationResolution
+      element: package:test/a.dart::@getter::foo
+      invokeType: int Function()
+      type: int
+    staticType: int
+  expression(v1): PrefixedIdentifier
     prefix: SimpleIdentifier
       token: prefix
       element: <testLibraryFragment>::@prefix::prefix
@@ -244,9 +292,9 @@ void f(x) {
     assertResolvedNodeText(node, r'''
 ConstantPattern
   constKeyword: const
-  expression: SetOrMapLiteral
+  expression2: SetOrMapLiteral
     leftBracket: {
-    elements
+    elements2
       IntegerLiteral
         literal: 0
         staticType: int
@@ -271,7 +319,14 @@ void f(x) {
     var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
-  expression: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: foo
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::foo
+      invokeType: int Function()
+      type: int
+    staticType: int
+  expression(v1): SimpleIdentifier
     token: foo
     element: <testLibrary>::@getter::foo
     staticType: int
@@ -288,7 +343,7 @@ void f(Object? x) {
     var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
-  expression: TypeLiteral
+  expression2: TypeLiteral
     type: NamedType
       name: dynamic
       element: dynamic
@@ -307,7 +362,7 @@ void f(Object? x) {
     var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
-  expression: TypeLiteral
+  expression2: TypeLiteral
     type: NamedType
       name: int
       element: dart:core::@class::int
@@ -329,12 +384,12 @@ ListPattern
   leftBracket: [
   elements
     ConstantPattern
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
         staticType: int
       matchedValueType: Object?
     ConstantPattern
-      expression: TypeLiteral
+      expression2: TypeLiteral
         type: NamedType
           name: int
           element: dart:core::@class::int
@@ -356,7 +411,7 @@ void f(Object? x) {
     var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
-  expression: TypeLiteral
+  expression2: TypeLiteral
     type: NamedType
       name: Never
       element: Never
@@ -377,7 +432,7 @@ void f(Object? x) {
     var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
-  expression: TypeLiteral
+  expression2: TypeLiteral
     type: NamedType
       name: A
       element: <testLibrary>::@typeAlias::A
@@ -399,7 +454,7 @@ void f<T>(Object? x) {
     var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
-  expression: TypeLiteral
+  expression2: TypeLiteral
     type: NamedType
       name: T
       element: #E0 T
@@ -420,7 +475,7 @@ void f(core.Object? x) {
     var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
-  expression: TypeLiteral
+  expression2: TypeLiteral
     type: NamedType
       importPrefix: ImportPrefixReference
         name: core
@@ -445,7 +500,7 @@ void f(core.Object? x) {
     var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
-  expression: TypeLiteral
+  expression2: TypeLiteral
     type: NamedType
       importPrefix: ImportPrefixReference
         name: core
@@ -470,7 +525,7 @@ void f(core.Object? x) {
     var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
-  expression: TypeLiteral
+  expression2: TypeLiteral
     type: NamedType
       importPrefix: ImportPrefixReference
         name: core
@@ -500,7 +555,7 @@ void f(Object? x) {
     var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
-  expression: TypeLiteral
+  expression2: TypeLiteral
     type: NamedType
       importPrefix: ImportPrefixReference
         name: prefix
@@ -524,7 +579,7 @@ void f(x) {
     var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
-  expression: IntegerLiteral
+  expression2: IntegerLiteral
     literal: 0
     staticType: int
   matchedValueType: dynamic
@@ -543,7 +598,7 @@ void f(x) {
     var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
-  expression: IntegerLiteral
+  expression2: IntegerLiteral
     literal: 0
     staticType: int
   matchedValueType: dynamic

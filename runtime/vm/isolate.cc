@@ -12,6 +12,7 @@
 #include "platform/atomic.h"
 #include "platform/growable_array.h"
 #include "platform/text_buffer.h"
+#include "vm/autorelease_pool_scope.h"
 #include "vm/canonical_tables.h"
 #include "vm/class_finalizer.h"
 #include "vm/code_observers.h"
@@ -1423,6 +1424,7 @@ bool Isolate::HasPendingMessages() {
 
 MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
     std::unique_ptr<Message> message) {
+  AutoreleasePoolScope autorelease_pool;
 #ifdef DEBUG
   CheckAccess();
 #endif
@@ -1862,9 +1864,6 @@ Isolate::~Isolate() {
 
   free(name_);
   delete field_table_;
-#if defined(DART_INCLUDE_SIMULATOR)
-  delete simulator_;
-#endif
   delete message_handler_;
   message_handler_ =
       nullptr;  // Fail fast if we send messages to a dead isolate.
@@ -2007,9 +2006,15 @@ ObjectPtr Isolate::CallDeferredLoadHandler(intptr_t id) {
 
 void IsolateGroup::SetupImagePage(const uint8_t* image_buffer,
                                   bool is_executable) {
-  Image image(image_buffer);
-  heap()->SetupImagePage(image.object_start(), image.object_size(),
-                         is_executable);
+  if (is_executable) {
+    TextImage image(image_buffer);
+    heap()->SetupImagePage(image.object_start(), image.object_size(),
+                           is_executable);
+  } else {
+    DataImage image(image_buffer);
+    heap()->SetupImagePage(image.object_start(), image.object_size(),
+                           is_executable);
+  }
 }
 
 void Isolate::ScheduleInterrupts(uword interrupt_bits) {

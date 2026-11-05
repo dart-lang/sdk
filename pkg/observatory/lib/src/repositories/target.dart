@@ -4,7 +4,7 @@
 
 part of repositories;
 
-typedef bool IsConnectedVMTargetDelegate(M.Target target);
+typedef IsConnectedVMTargetDelegate = bool Function(M.Target target);
 
 class TargetChangeEvent implements M.TargetChangeEvent {
   final TargetRepository repository;

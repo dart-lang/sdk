@@ -1,0 +1,29 @@
+#!/usr/bin/env dart
+
+@Foobarbaz.blabla1
+@Foobarbaz.blabla2({})
+@Foobarbaz.blabla3({})
+@Foobarbaz.blabla4
+List<String> foo() {
+long();
+method();
+body();
+goes();
+here();
+}
+
+
+#!/usr/bin/env dart[StringToken]
+
+@[SimpleToken]Foobarbaz[StringToken].[SimpleToken]blabla1[StringToken]
+@[SimpleToken]Foobarbaz[StringToken].[SimpleToken]blabla2[StringToken]([BeginToken]{[BeginToken]}[SimpleToken])[SimpleToken]
+@[SimpleToken]Foobarbaz[StringToken].[SimpleToken]blabla3[StringToken]([BeginToken]{[BeginToken]}[SimpleToken])[SimpleToken]
+@[SimpleToken]Foobarbaz[StringToken].[SimpleToken]blabla4[StringToken]
+List[StringToken]<[BeginToken]String[StringToken]>[SimpleToken] foo[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+long[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+method[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+body[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+goes[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+here[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

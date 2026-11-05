@@ -39,11 +39,7 @@ class AlwaysUsePackageImports extends AnalysisRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final AnalysisRule rule;
-
-  new(this.rule);
-
+class _Visitor(final AnalysisRule rule) extends SimpleAstVisitor<void> {
   bool isRelativeImport(ImportDirective node) {
     var uriContent = node.uri.stringValue;
     if (uriContent != null) {

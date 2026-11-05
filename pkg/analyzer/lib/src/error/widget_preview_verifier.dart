@@ -5,9 +5,11 @@
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/utilities/extensions/flutter.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 
 /// Helper for verifying the validity of @Preview(...) applications.
 ///
@@ -39,13 +41,14 @@ class WidgetPreviewVerifier {
   }
 
   void _checkWidgetPreview(Annotation node) {
-    if (node.arguments == null) {
+    var argumentList = node.argumentList;
+    if (argumentList == null) {
       // This is an invalid annotation application since there's no constructor
       // invocation.
       return;
     }
 
-    var parent = node.parent;
+    var parent = node.parent2;
     bool isValidApplication = switch (parent) {
       // First, check that the preview application is happening in a supported
       // context.
@@ -53,7 +56,7 @@ class WidgetPreviewVerifier {
       ConstructorDeclaration() => _isValidConstructorPreviewApplication(
         declaration: parent,
         name: parent.name?.lexeme,
-        parentDeclaration: parent.parent?.parent,
+        parentDeclaration: parent.parent2?.parent2,
         isExternal: parent.externalKeyword != null,
         isFactory: parent.factoryKeyword != null,
         parameters: parent.parameters,
@@ -68,7 +71,7 @@ class WidgetPreviewVerifier {
         _isValidConstructorPreviewApplication(
           declaration: parent,
           name: parent.declaration?.constructorName?.name.lexeme,
-          parentDeclaration: parent.parent?.parent,
+          parentDeclaration: parent.parent2?.parent2,
           isExternal: false,
           isFactory: false,
           parameters: declaration.formalParameters,
@@ -78,26 +81,26 @@ class WidgetPreviewVerifier {
 
     if (!isValidApplication) {
       _diagnosticReporter.report(
-        diag.invalidWidgetPreviewApplication.at(node.name),
+        diag.invalidWidgetPreviewApplication.at(node.nameEntity),
       );
     }
 
     var visitor = _InvalidWidgetPreviewArgumentDetectorVisitor(
       diagnosticReporter: _diagnosticReporter,
     );
-    node.arguments!.accept(visitor);
+    argumentList.accept2(visitor);
   }
 
-  bool _hasRequiredParameters(NodeList<FormalParameter> parameters) {
+  bool _hasRequiredParameters(List<FormalParameter> parameters) {
     return parameters.any((e) => e.isRequired);
   }
 
   /// Returns whether [name] is private or `node.parent` is a [ClassDeclaration]
   /// that has a private name.
   bool _isPrivateContext({required String? name, required AstNode node}) {
-    if (name != null && Identifier.isPrivateName(name)) return true;
+    if (name != null && name.isPrivateName) return true;
 
-    var parent = node.parent?.parent;
+    var parent = node.parent2?.parent2;
     if (parent == null) return false;
 
     var nameToken = switch (parent) {
@@ -110,7 +113,7 @@ class WidgetPreviewVerifier {
     };
     if (nameToken == null) return false;
 
-    return Identifier.isPrivateName(nameToken.lexeme);
+    return nameToken.lexeme.isPrivateName;
   }
 
   /// Returns true if `node.parent` is a supported context for defining widget
@@ -119,12 +122,12 @@ class WidgetPreviewVerifier {
   /// Currently, this only includes previews defined within classes and at the
   /// top level of a compilation unit.
   bool _isSupportedParent({required AstNode node}) {
-    if (node.parent is CompilationUnit) {
+    if (node.parent2 is CompilationUnit) {
       return true;
     }
 
-    if (node.parent case BlockClassBody body) {
-      if (body.parent is ClassDeclaration) {
+    if (node.parent2 case BlockClassBody body) {
+      if (body.parent2 is ClassDeclaration) {
         return true;
       }
     }
@@ -158,7 +161,7 @@ class WidgetPreviewVerifier {
     return !_isPrivateContext(name: name, node: declaration) &&
         element.isWidget &&
         !(element.isAbstract && !isFactory) &&
-        !_hasRequiredParameters(parameters.parameters);
+        !_hasRequiredParameters(parameters.allFormalParameters);
   }
 
   /// Returns true if `declaration` is a valid top-level function target for a
@@ -178,15 +181,15 @@ class WidgetPreviewVerifier {
       :var externalKeyword,
       :NamedType returnType,
       functionExpression: FunctionExpression(
-        parameters: FormalParameterList(:var parameters),
+        parameters: FormalParameterList(:var allFormalParameters),
       ),
     )) {
       return !_isPrivateContext(name: name.lexeme, node: declaration) &&
           // Check for nested function.
-          declaration.parent is! FunctionDeclarationStatement &&
+          declaration.parent2 is! FunctionDeclarationStatement &&
           externalKeyword == null &&
           returnType.isValidWidgetPreviewReturnType &&
-          !_hasRequiredParameters(parameters);
+          !_hasRequiredParameters(allFormalParameters);
     }
     return false;
   }
@@ -208,21 +211,22 @@ class WidgetPreviewVerifier {
       :var externalKeyword,
       :var name,
       :NamedType returnType,
-      parameters: FormalParameterList(:var parameters),
+      parameters: FormalParameterList(:var allFormalParameters),
     )) {
       return !_isPrivateContext(name: name.lexeme, node: declaration) &&
           isStatic &&
           // Check for nested function.
-          declaration.parent is! FunctionDeclarationStatement &&
+          declaration.parent2 is! FunctionDeclarationStatement &&
           externalKeyword == null &&
           returnType.isValidWidgetPreviewReturnType &&
-          !_hasRequiredParameters(parameters);
+          !_hasRequiredParameters(allFormalParameters);
     }
     return false;
   }
 }
 
-class _InvalidWidgetPreviewArgumentDetectorVisitor extends RecursiveAstVisitor {
+class _InvalidWidgetPreviewArgumentDetectorVisitor
+    extends RecursiveAstVisitor2 {
   final DiagnosticReporter diagnosticReporter;
 
   NamedArgument? rootArgument;
@@ -232,27 +236,36 @@ class _InvalidWidgetPreviewArgumentDetectorVisitor extends RecursiveAstVisitor {
 
   @override
   void visitArgumentList(ArgumentList node) {
-    for (var argument in node.arguments) {
+    for (var argument in node.arguments2) {
       if (argument is NamedArgument) {
         rootArgument = argument;
-        argument.argumentExpression.accept(this);
+        argument.argumentExpression2.accept2(this);
         rootArgument = null;
       }
     }
   }
 
   @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    if (Identifier.isPrivateName(node.name)) {
+  void visitImportPrefixedNameExpression(ImportPrefixedNameExpression node) {
+    _checkName(node.name.lexeme);
+    super.visitImportPrefixedNameExpression(node);
+  }
+
+  @override
+  void visitUnqualifiedNameExpression(UnqualifiedNameExpression node) {
+    _checkName(node.name.lexeme);
+  }
+
+  void _checkName(String name) {
+    if (name.isPrivateName) {
       diagnosticReporter.report(
         diag.invalidWidgetPreviewPrivateArgument
             .withArguments(
-              privateSymbolName: node.name,
-              suggestedName: node.name.replaceFirst(RegExp('_*'), ''),
+              privateSymbolName: name,
+              suggestedName: name.replaceFirst(RegExp('_*'), ''),
             )
             .at(rootArgument!),
       );
     }
-    super.visitSimpleIdentifier(node);
   }
 }

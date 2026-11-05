@@ -15,7 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class ConvertToSwitchExpressionTest extends AssistProcessorTest {
+class ConvertToSwitchExpressionTest extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.convertToSwitchExpression;
 

@@ -37,20 +37,20 @@ class C<X extends core::Object?, Y extends core::Object> extends core::Object {
     self::assertRightSubtype(q);
     self::assertLeftSubtype<core::Set<core::Object?>>(q);
     if(x is core::Object?) {
-      core::Set<core::Object?> v = block {
+      core::Set<core::Object?> v##1 = block {
         final core::Set<core::Object?> #t5 = col::LinkedHashSet::•<core::Object?>();
         #t5.{core::Set::add}{Invariant}(x){(core::Object?) → core::bool};
         #t5.{core::Set::add}{Invariant}(42){(core::Object?) → core::bool};
       } =>#t5;
-      core::Set<core::Object?> w = block {
+      core::Set<core::Object?> w##1 = block {
         final core::Set<core::Object?> #t6 = col::LinkedHashSet::•<core::Object?>();
         #t6.{core::Set::add}{Invariant}(42){(core::Object?) → core::bool};
         #t6.{core::Set::add}{Invariant}(x){(core::Object?) → core::bool};
       } =>#t6;
-      self::assertRightSubtype(v);
-      self::assertLeftSubtype<core::Set<core::Object?>>(v);
-      self::assertRightSubtype(w);
-      self::assertLeftSubtype<core::Set<core::Object?>>(w);
+      self::assertRightSubtype(v##1);
+      self::assertLeftSubtype<core::Set<core::Object?>>(v##1);
+      self::assertRightSubtype(w##1);
+      self::assertLeftSubtype<core::Set<core::Object?>>(w##1);
     }
   }
 }

@@ -25,7 +25,17 @@ class LocalVariable {
   /// Type of the variable.
   final CType type;
 
-  LocalVariable(this.name, this.declaration, this.index, this.type);
+  /// Whether the variable is a covariant parameter (by declaration
+  /// or by class).
+  final bool isCovariant;
+
+  LocalVariable(
+    this.name,
+    this.declaration,
+    this.index,
+    this.type,
+    this.isCovariant,
+  );
 
   bool get isExceptionVariable =>
       declaration == null && name == exceptionVariableName;

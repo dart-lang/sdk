@@ -5,371 +5,371 @@ library;
 // pkg/front_end/testcases/variance/method.dart:14:5: Error: Can't use 'in' type variable 'T' in an 'out' position in the return type.
 //   T method1() => throw "uncalled";
 //     ^
-// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable which is referenced from an invalid position.
 // class A<in T> {
 //            ^
 //
 // pkg/front_end/testcases/variance/method.dart:15:26: Error: Can't use 'in' type variable 'T' in an 'out' position.
 //   void method2(Contra<T> x) {}
 //                          ^
-// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable which is referenced from an invalid position.
 // class A<in T> {
 //            ^
 //
 // pkg/front_end/testcases/variance/method.dart:16:10: Error: Can't use 'in' type variable 'T' in an 'out' position in the return type.
 //   Cov<T> method3() {
 //          ^
-// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable which is referenced from an invalid position.
 // class A<in T> {
 //            ^
 //
 // pkg/front_end/testcases/variance/method.dart:19:31: Error: Can't use 'in' type variable 'T' in an 'out' position.
 //   void method4(Contra<Cov<T>> x) {}
 //                               ^
-// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable which is referenced from an invalid position.
 // class A<in T> {
 //            ^
 //
 // pkg/front_end/testcases/variance/method.dart:20:31: Error: Can't use 'in' type variable 'T' in an 'out' position.
 //   void method5(Cov<Contra<T>> x) {}
 //                               ^
-// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable which is referenced from an invalid position.
 // class A<in T> {
 //            ^
 //
 // pkg/front_end/testcases/variance/method.dart:21:21: Error: Can't use 'in' type variable 'T' in an 'out' position in the return type.
 //   Contra<Contra<T>> method6() => (Contra<T> x) {};
 //                     ^
-// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable which is referenced from an invalid position.
 // class A<in T> {
 //            ^
 //
 // pkg/front_end/testcases/variance/method.dart:22:15: Error: Can't use 'in' type variable 'T' in an 'out' position in the return type.
 //   Cov<Cov<T>> method7() {
 //               ^
-// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable which is referenced from an invalid position.
 // class A<in T> {
 //            ^
 //
 // pkg/front_end/testcases/variance/method.dart:27:10: Error: Can't use 'in' type variable 'T' in an 'inout' position in the return type.
 //   Inv<T> method8() => throw "uncalled";
 //          ^
-// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable which is referenced from an invalid position.
 // class A<in T> {
 //            ^
 //
 // pkg/front_end/testcases/variance/method.dart:28:23: Error: Can't use 'in' type variable 'T' in an 'inout' position.
 //   void method9(Inv<T> x) {}
 //                       ^
-// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable which is referenced from an invalid position.
 // class A<in T> {
 //            ^
 //
 // pkg/front_end/testcases/variance/method.dart:29:16: Error: Can't use 'in' type variable 'T' in an 'out' position in the return type.
 //   Covariant<T> method10() => throw "uncalled";
 //                ^
-// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable which is referenced from an invalid position.
 // class A<in T> {
 //            ^
 //
 // pkg/front_end/testcases/variance/method.dart:30:34: Error: Can't use 'in' type variable 'T' in an 'out' position.
 //   void method11(Contravariant<T> x) {}
 //                                  ^
-// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable which is referenced from an invalid position.
 // class A<in T> {
 //            ^
 //
 // pkg/front_end/testcases/variance/method.dart:31:16: Error: Can't use 'in' type variable 'T' in an 'inout' position in the return type.
 //   Invariant<T> method12() => throw "uncalled";
 //                ^
-// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable which is referenced from an invalid position.
 // class A<in T> {
 //            ^
 //
 // pkg/front_end/testcases/variance/method.dart:32:30: Error: Can't use 'in' type variable 'T' in an 'inout' position.
 //   void method13(Invariant<T> x) {}
 //                              ^
-// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable which is referenced from an invalid position.
 // class A<in T> {
 //            ^
 //
 // pkg/front_end/testcases/variance/method.dart:33:45: Error: Can't use 'in' type variable 'T' in an 'out' position.
 //   void method14(Contravariant<Covariant<T>> x) {}
 //                                             ^
-// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable which is referenced from an invalid position.
 // class A<in T> {
 //            ^
 //
 // pkg/front_end/testcases/variance/method.dart:34:45: Error: Can't use 'in' type variable 'T' in an 'out' position.
 //   void method15(Covariant<Contravariant<T>> x) {}
 //                                             ^
-// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable which is referenced from an invalid position.
 // class A<in T> {
 //            ^
 //
 // pkg/front_end/testcases/variance/method.dart:35:35: Error: Can't use 'in' type variable 'T' in an 'out' position in the return type.
 //   Contravariant<Contravariant<T>> method16() =>
 //                                   ^
-// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable which is referenced from an invalid position.
 // class A<in T> {
 //            ^
 //
 // pkg/front_end/testcases/variance/method.dart:37:27: Error: Can't use 'in' type variable 'T' in an 'out' position in the return type.
 //   Covariant<Covariant<T>> method17() => Covariant<Covariant<T>>();
 //                           ^
-// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable which is referenced from an invalid position.
 // class A<in T> {
 //            ^
 //
 // pkg/front_end/testcases/variance/method.dart:38:17: Error: Can't use 'in' type variable 'T' in an 'inout' position.
 //   void method18<X extends T>() {}
 //                 ^
-// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable which is referenced from an invalid position.
 // class A<in T> {
 //            ^
 //
 // pkg/front_end/testcases/variance/method.dart:39:17: Error: Can't use 'in' type variable 'T' in an 'inout' position.
 //   void method19<X extends Cov<T>>() {}
 //                 ^
-// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable which is referenced from an invalid position.
 // class A<in T> {
 //            ^
 //
 // pkg/front_end/testcases/variance/method.dart:40:17: Error: Can't use 'in' type variable 'T' in an 'inout' position.
 //   void method20<X extends Covariant<T>>() {}
 //                 ^
-// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable which is referenced from an invalid position.
 // class A<in T> {
 //            ^
 //
 // pkg/front_end/testcases/variance/method.dart:41:37: Error: Can't use 'in' type variable 'T' in an 'out' position.
 //   void method21({required Contra<T> x}) {}
 //                                     ^
-// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable which is referenced from an invalid position.
 // class A<in T> {
 //            ^
 //
 // pkg/front_end/testcases/variance/method.dart:42:44: Error: Can't use 'in' type variable 'T' in an 'out' position.
 //   void method22({required Contravariant<T> x}) {}
 //                                            ^
-// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable which is referenced from an invalid position.
 // class A<in T> {
 //            ^
 //
 // pkg/front_end/testcases/variance/method.dart:43:69: Error: Can't use 'in' type variable 'T' in an 'out' position.
 //   void method23({required Covariant<T> x, required Contravariant<T> y}) {}
 //                                                                     ^
-// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable which is referenced from an invalid position.
 // class A<in T> {
 //            ^
 //
 // pkg/front_end/testcases/variance/method.dart:44:17: Error: Can't use 'in' type variable 'T' in an 'inout' position.
 //   void method24<X extends Contra<T>>() {}
 //                 ^
-// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable which is referenced from an invalid position.
 // class A<in T> {
 //            ^
 //
 // pkg/front_end/testcases/variance/method.dart:45:17: Error: Can't use 'in' type variable 'T' in an 'inout' position.
 //   void method25<X extends Contravariant<T>>() {}
 //                 ^
-// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/variance/method.dart:13:12: Context: This is the type variable which is referenced from an invalid position.
 // class A<in T> {
 //            ^
 //
 // pkg/front_end/testcases/variance/method.dart:48:5: Error: Can't use 'in' type variable 'T' in an 'out' position in the return type.
 //   T method1() => throw "uncalled";
 //     ^
-// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable which is referenced from an invalid position.
 // mixin BMixin<in T> {
 //                 ^
 //
 // pkg/front_end/testcases/variance/method.dart:49:26: Error: Can't use 'in' type variable 'T' in an 'out' position.
 //   void method2(Contra<T> x) {}
 //                          ^
-// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable which is referenced from an invalid position.
 // mixin BMixin<in T> {
 //                 ^
 //
 // pkg/front_end/testcases/variance/method.dart:50:10: Error: Can't use 'in' type variable 'T' in an 'out' position in the return type.
 //   Cov<T> method3() {
 //          ^
-// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable which is referenced from an invalid position.
 // mixin BMixin<in T> {
 //                 ^
 //
 // pkg/front_end/testcases/variance/method.dart:53:31: Error: Can't use 'in' type variable 'T' in an 'out' position.
 //   void method4(Contra<Cov<T>> x) {}
 //                               ^
-// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable which is referenced from an invalid position.
 // mixin BMixin<in T> {
 //                 ^
 //
 // pkg/front_end/testcases/variance/method.dart:54:31: Error: Can't use 'in' type variable 'T' in an 'out' position.
 //   void method5(Cov<Contra<T>> x) {}
 //                               ^
-// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable which is referenced from an invalid position.
 // mixin BMixin<in T> {
 //                 ^
 //
 // pkg/front_end/testcases/variance/method.dart:55:21: Error: Can't use 'in' type variable 'T' in an 'out' position in the return type.
 //   Contra<Contra<T>> method6() => (Contra<T> x) {};
 //                     ^
-// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable which is referenced from an invalid position.
 // mixin BMixin<in T> {
 //                 ^
 //
 // pkg/front_end/testcases/variance/method.dart:56:15: Error: Can't use 'in' type variable 'T' in an 'out' position in the return type.
 //   Cov<Cov<T>> method7() {
 //               ^
-// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable which is referenced from an invalid position.
 // mixin BMixin<in T> {
 //                 ^
 //
 // pkg/front_end/testcases/variance/method.dart:61:10: Error: Can't use 'in' type variable 'T' in an 'inout' position in the return type.
 //   Inv<T> method8() => throw "uncalled";
 //          ^
-// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable which is referenced from an invalid position.
 // mixin BMixin<in T> {
 //                 ^
 //
 // pkg/front_end/testcases/variance/method.dart:62:23: Error: Can't use 'in' type variable 'T' in an 'inout' position.
 //   void method9(Inv<T> x) {}
 //                       ^
-// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable which is referenced from an invalid position.
 // mixin BMixin<in T> {
 //                 ^
 //
 // pkg/front_end/testcases/variance/method.dart:63:16: Error: Can't use 'in' type variable 'T' in an 'out' position in the return type.
 //   Covariant<T> method10() => throw "uncalled";
 //                ^
-// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable which is referenced from an invalid position.
 // mixin BMixin<in T> {
 //                 ^
 //
 // pkg/front_end/testcases/variance/method.dart:64:34: Error: Can't use 'in' type variable 'T' in an 'out' position.
 //   void method11(Contravariant<T> x) {}
 //                                  ^
-// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable which is referenced from an invalid position.
 // mixin BMixin<in T> {
 //                 ^
 //
 // pkg/front_end/testcases/variance/method.dart:65:16: Error: Can't use 'in' type variable 'T' in an 'inout' position in the return type.
 //   Invariant<T> method12() => throw "uncalled";
 //                ^
-// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable which is referenced from an invalid position.
 // mixin BMixin<in T> {
 //                 ^
 //
 // pkg/front_end/testcases/variance/method.dart:66:30: Error: Can't use 'in' type variable 'T' in an 'inout' position.
 //   void method13(Invariant<T> x) {}
 //                              ^
-// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable which is referenced from an invalid position.
 // mixin BMixin<in T> {
 //                 ^
 //
 // pkg/front_end/testcases/variance/method.dart:67:45: Error: Can't use 'in' type variable 'T' in an 'out' position.
 //   void method14(Contravariant<Covariant<T>> x) {}
 //                                             ^
-// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable which is referenced from an invalid position.
 // mixin BMixin<in T> {
 //                 ^
 //
 // pkg/front_end/testcases/variance/method.dart:68:45: Error: Can't use 'in' type variable 'T' in an 'out' position.
 //   void method15(Covariant<Contravariant<T>> x) {}
 //                                             ^
-// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable which is referenced from an invalid position.
 // mixin BMixin<in T> {
 //                 ^
 //
 // pkg/front_end/testcases/variance/method.dart:69:35: Error: Can't use 'in' type variable 'T' in an 'out' position in the return type.
 //   Contravariant<Contravariant<T>> method16() =>
 //                                   ^
-// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable which is referenced from an invalid position.
 // mixin BMixin<in T> {
 //                 ^
 //
 // pkg/front_end/testcases/variance/method.dart:71:27: Error: Can't use 'in' type variable 'T' in an 'out' position in the return type.
 //   Covariant<Covariant<T>> method17() => Covariant<Covariant<T>>();
 //                           ^
-// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable which is referenced from an invalid position.
 // mixin BMixin<in T> {
 //                 ^
 //
 // pkg/front_end/testcases/variance/method.dart:72:17: Error: Can't use 'in' type variable 'T' in an 'inout' position.
 //   void method18<X extends T>() {}
 //                 ^
-// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable which is referenced from an invalid position.
 // mixin BMixin<in T> {
 //                 ^
 //
 // pkg/front_end/testcases/variance/method.dart:73:17: Error: Can't use 'in' type variable 'T' in an 'inout' position.
 //   void method19<X extends Cov<T>>() {}
 //                 ^
-// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable which is referenced from an invalid position.
 // mixin BMixin<in T> {
 //                 ^
 //
 // pkg/front_end/testcases/variance/method.dart:74:17: Error: Can't use 'in' type variable 'T' in an 'inout' position.
 //   void method20<X extends Covariant<T>>() {}
 //                 ^
-// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable which is referenced from an invalid position.
 // mixin BMixin<in T> {
 //                 ^
 //
 // pkg/front_end/testcases/variance/method.dart:75:37: Error: Can't use 'in' type variable 'T' in an 'out' position.
 //   void method21({required Contra<T> x}) {}
 //                                     ^
-// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable which is referenced from an invalid position.
 // mixin BMixin<in T> {
 //                 ^
 //
 // pkg/front_end/testcases/variance/method.dart:76:44: Error: Can't use 'in' type variable 'T' in an 'out' position.
 //   void method22({required Contravariant<T> x}) {}
 //                                            ^
-// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable which is referenced from an invalid position.
 // mixin BMixin<in T> {
 //                 ^
 //
 // pkg/front_end/testcases/variance/method.dart:77:69: Error: Can't use 'in' type variable 'T' in an 'out' position.
 //   void method23({required Covariant<T> x, required Contravariant<T> y}) {}
 //                                                                     ^
-// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable which is referenced from an invalid position.
 // mixin BMixin<in T> {
 //                 ^
 //
 // pkg/front_end/testcases/variance/method.dart:78:17: Error: Can't use 'in' type variable 'T' in an 'inout' position.
 //   void method24<X extends Contra<T>>() {}
 //                 ^
-// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable which is referenced from an invalid position.
 // mixin BMixin<in T> {
 //                 ^
 //
 // pkg/front_end/testcases/variance/method.dart:79:17: Error: Can't use 'in' type variable 'T' in an 'inout' position.
 //   void method25<X extends Contravariant<T>>() {}
 //                 ^
-// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/variance/method.dart:47:17: Context: This is the type variable which is referenced from an invalid position.
 // mixin BMixin<in T> {
 //                 ^
 //
 // pkg/front_end/testcases/variance/method.dart:82:21: Error: Can't use 'in' type variable 'T' in an 'out' position.
 //   void method1(A<T> x) {}
 //                     ^
-// pkg/front_end/testcases/variance/method.dart:81:12: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/variance/method.dart:81:12: Context: This is the type variable which is referenced from an invalid position.
 // class B<in T> {
 //            ^
 //
 // pkg/front_end/testcases/variance/method.dart:83:16: Error: Can't use 'in' type variable 'T' in an 'out' position in the return type.
 //   Contra<A<T>> method2() {
 //                ^
-// pkg/front_end/testcases/variance/method.dart:81:12: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/variance/method.dart:81:12: Context: This is the type variable which is referenced from an invalid position.
 // class B<in T> {
 //            ^
 //
 // pkg/front_end/testcases/variance/method.dart:92:32: Error: Can't use 'in' type variable 'T' in an 'out' position.
 //   void method(void Function(T) x) {}
 //                                ^
-// pkg/front_end/testcases/variance/method.dart:90:12: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/variance/method.dart:90:12: Context: This is the type variable which is referenced from an invalid position.
 // class D<in T> extends C<void Function(T)> {
 //            ^
 //

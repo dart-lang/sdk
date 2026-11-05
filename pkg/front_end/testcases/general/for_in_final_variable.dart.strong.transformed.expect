@@ -38,9 +38,9 @@ static method f() → dynamic {
   }
   final dynamic j;
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal3<core::int>(1, 2, 3).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t2 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##1 = core::_GrowableList::_literal3<core::int>(1, 2, 3).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##1.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t2 = :sync-for-iterator##1.{core::Iterator::current}{core::int};
       {
         invalid-expression "pkg/front_end/testcases/general/for_in_final_variable.dart:12:8: Error: Can't assign to the final variable 'j'.
   for (j in [1, 2, 3]) {
@@ -51,9 +51,9 @@ static method f() → dynamic {
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal3<core::int>(1, 2, 3).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int k = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##2 = core::_GrowableList::_literal3<core::int>(1, 2, 3).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##2.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int k = :sync-for-iterator##2.{core::Iterator::current}{core::int};
       {
         final dynamic k2;
         k2 = 0;
@@ -79,9 +79,9 @@ static method g() → dynamic {
       }
     }
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal3<core::int>(1, 2, 3).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::int #t5 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      synthesized core::Iterator<core::int> :sync-for-iterator##1 = core::_GrowableList::_literal3<core::int>(1, 2, 3).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##1.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t5 = :sync-for-iterator##1.{core::Iterator::current}{core::int};
         {
           invalid-expression "pkg/front_end/testcases/general/for_in_final_variable.dart:27:10: Error: Can't assign to the final variable 'j'.
     for (j in [1, 2, 3]) 1,
@@ -91,9 +91,9 @@ static method g() → dynamic {
       }
     }
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal3<core::int>(1, 2, 3).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::int k = :sync-for-iterator.{core::Iterator::current}{core::int};
+      synthesized core::Iterator<core::int> :sync-for-iterator##2 = core::_GrowableList::_literal3<core::int>(1, 2, 3).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##2.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int k = :sync-for-iterator##2.{core::Iterator::current}{core::int};
         #t3.{core::List::add}{Invariant}(2){(core::int) → void};
       }
     }

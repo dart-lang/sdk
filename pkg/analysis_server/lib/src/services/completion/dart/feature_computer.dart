@@ -22,6 +22,7 @@ import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
+import 'package:analyzer/src/utilities/dot_shorthands.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -630,7 +631,7 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
           node.operator.type == TokenType.BANG_EQ ||
           node.operator.type == TokenType.QUESTION_QUESTION) {
         var rightOperand = node.rightOperand;
-        if (rightOperand is DotShorthandMixin && rightOperand.isDotShorthand) {
+        if (isDotShorthand(rightOperand)) {
           return node.leftOperand.staticType;
         }
       }
@@ -714,11 +715,13 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
   DartType? visitExpressionFunctionBody(ExpressionFunctionBody node) {
     if (range.endEnd(node.functionDefinition, node).contains(offset)) {
       var parent = node.parent;
-      if (parent is MethodDeclarationImpl) {
-        return parent.body.bodyContext?.contextType;
-      } else if (parent is FunctionExpressionImpl) {
+      if (parent is MethodDeclaration) {
+        var body = parent.body as FunctionBodyImpl;
+        return body.bodyContext?.contextType;
+      } else if (parent is FunctionExpression) {
         // If the surrounding function has a context type, use it.
-        var functionContextType = parent.body.bodyContext?.contextType;
+        var body = parent.body as FunctionBodyImpl;
+        var functionContextType = body.bodyContext?.contextType;
         if (functionContextType != null &&
             functionContextType is! InvalidType) {
           return functionContextType;

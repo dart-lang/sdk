@@ -15,11 +15,11 @@ void main() {
 }
 
 abstract class BaseExhaustiveCasesTest extends LintRuleTest {
-  final actualEnumSource = r'''
+  final _enumWithMissingCaseSource = r'''
 enum ActualEnum { e, f }
 
-void ae(ActualEnum e) {
-  switch (e) {
+void f(ActualEnum value) {
+  switch (value) {
     case ActualEnum.e:
   }
 }
@@ -28,31 +28,7 @@ void ae(ActualEnum e) {
   @override
   String get lintRule => LintNames.exhaustive_cases;
 
-  Future<void> test_enumLike() async {
-    await assertDiagnostics(
-      r'''
-class E {
-  final int i;
-  const E._(this.i);
-
-  static const e = E._(1);
-  static const f = E._(2);
-  static const g = E._(3);
-}
-
-void e(E e) {
-  switch (e) {
-    case E.e:
-      break;
-    case E.f:
-  }
-}
-''',
-      [lint(147, 10)],
-    );
-  }
-
-  Future<void> test_enumLike_default_ok() async {
+  Future<void> test_class_enumLike_allCases() async {
     await assertNoDiagnostics(r'''
 class E {
   final int i;
@@ -63,18 +39,20 @@ class E {
   static const g = E._(3);
 }
 
-void okDefault(E e) {
+void ok(E e) {
   switch (e) {
     case E.e:
       break;
-    default:
+    case E.f:
+      break;
+    case E.g:
       break;
   }
 }
 ''');
   }
 
-  Future<void> test_enumLike_deprecatedFields() async {
+  Future<void> test_class_enumLike_deprecatedAliases() async {
     await assertDiagnostics(
       r'''
 class DeprecatedFields {
@@ -119,55 +97,7 @@ void dep(DeprecatedFields e) {
     );
   }
 
-  Future<void> test_enumLike_ok() async {
-    await assertNoDiagnostics(r'''
-class E {
-  final int i;
-  const E._(this.i);
-
-  static const e = E._(1);
-  static const f = E._(2);
-  static const g = E._(3);
-}
-
-void ok(E e) {
-  switch (e) {
-    case E.e:
-      break;
-    case E.f:
-      break;
-    case E.g:
-      break;
-  }
-}
-''');
-  }
-
-  Future<void> test_enumLike_parenthesized_ok() async {
-    await assertNoDiagnostics(r'''
-class E {
-  final int i;
-  const E._(this.i);
-
-  static const e = E._(1);
-  static const f = E._(2);
-  static const g = E._(3);
-}
-
-void okParenthesized(E e) {
-  switch (e) {
-    case (E.e):
-      break;
-    case ((E.f)):
-      break;
-    case (E.g):
-      break;
-  }
-}
-''');
-  }
-
-  Future<void> test_enumLike_prefixed() async {
+  Future<void> test_class_enumLike_importPrefixed() async {
     newFile('$testPackageLibPath/e.dart', '''
 class E {
   final int i;
@@ -197,20 +127,78 @@ void e(prefixed.E e) {
     );
   }
 
-  Future<void> test_notEnumLike_ok() async {
-    await assertNoDiagnostics(r'''
-class TooFew {
-  const TooFew._();
+  Future<void> test_class_enumLike_missingCase() async {
+    await assertDiagnostics(
+      r'''
+class E {
+  final int i;
+  const E._(this.i);
 
-  static const e = TooFew._();
+  static const e = E._(1);
+  static const f = E._(2);
+  static const g = E._(3);
 }
 
-void t(TooFew e) {
+void e(E e) {
   switch (e) {
-    case TooFew.e:
+    case E.e:
+      break;
+    case E.f:
   }
 }
+''',
+      [lint(147, 10)],
+    );
+  }
 
+  Future<void> test_class_enumLike_parenthesizedCases() async {
+    await assertNoDiagnostics(r'''
+class E {
+  final int i;
+  const E._(this.i);
+
+  static const e = E._(1);
+  static const f = E._(2);
+  static const g = E._(3);
+}
+
+void okParenthesized(E e) {
+  switch (e) {
+    case (E.e):
+      break;
+    case ((E.f)):
+      break;
+    case (E.g):
+      break;
+  }
+}
+''');
+  }
+
+  Future<void> test_class_enumLike_withDefault() async {
+    await assertNoDiagnostics(r'''
+class E {
+  final int i;
+  const E._(this.i);
+
+  static const e = E._(1);
+  static const f = E._(2);
+  static const g = E._(3);
+}
+
+void okDefault(E e) {
+  switch (e) {
+    case E.e:
+      break;
+    default:
+      break;
+  }
+}
+''');
+  }
+
+  Future<void> test_class_notEnumLike_publicConstructor() async {
+    await assertNoDiagnostics(r'''
 class PublicCons {
   const PublicCons();
   static const e = PublicCons();
@@ -225,7 +213,23 @@ void p(PublicCons e) {
 ''');
   }
 
-  Future<void> test_notEnumLike_subclassed_ok() async {
+  Future<void> test_class_notEnumLike_singleConstant() async {
+    await assertNoDiagnostics(r'''
+class TooFew {
+  const TooFew._();
+
+  static const e = TooFew._();
+}
+
+void t(TooFew e) {
+  switch (e) {
+    case TooFew.e:
+  }
+}
+''');
+  }
+
+  Future<void> test_class_notEnumLike_subclassed() async {
     await assertNoDiagnostics(r'''
 class Subclassed {
   const Subclassed._();
@@ -250,7 +254,7 @@ void s(Subclassed e) {
 
 @reflectiveTest
 class ExhaustiveCasesTest extends BaseExhaustiveCasesTest {
-  Future<void> test_dotShorthands_enumLike() async {
+  Future<void> test_class_enumLike_dotShorthand_missingCase() async {
     await assertDiagnosticsFromMarkup(r'''
 class E {
   final int i;
@@ -271,7 +275,7 @@ void fn(E e) {
 ''');
   }
 
-  Future<void> test_dotShorthands_enumLike_default_ok() async {
+  Future<void> test_class_enumLike_dotShorthand_withDefault() async {
     await assertNoDiagnostics(r'''
 class E {
   final int i;
@@ -293,20 +297,8 @@ void fn(E e) {
 ''');
   }
 
-  Future<void> test_dotShorthands_notEnumLike_ok() async {
+  Future<void> test_class_notEnumLike_publicConstructor_dotShorthand() async {
     await assertNoDiagnostics(r'''
-class TooFew {
-  const TooFew._();
-
-  static const e = TooFew._();
-}
-
-void t(TooFew e) {
-  switch (e) {
-    case TooFew.e:
-  }
-}
-
 class PublicCons {
   const PublicCons();
   static const e = PublicCons();
@@ -321,7 +313,23 @@ void p(PublicCons e) {
 ''');
   }
 
-  Future<void> test_dotShorthands_notEnumLike_subclassed_ok() async {
+  Future<void> test_class_notEnumLike_singleConstant_dotShorthand() async {
+    await assertNoDiagnostics(r'''
+class TooFew {
+  const TooFew._();
+
+  static const e = TooFew._();
+}
+
+void t(TooFew e) {
+  switch (e) {
+    case .e:
+  }
+}
+''');
+  }
+
+  Future<void> test_class_notEnumLike_subclassed_dotShorthand() async {
     await assertNoDiagnostics(r'''
 class Subclassed {
   const Subclassed._();
@@ -343,19 +351,132 @@ void s(Subclassed e) {
 ''');
   }
 
-  test_enum_ok() async {
-    await assertDiagnostics(actualEnumSource, [
-      error(diag.nonExhaustiveSwitchStatement, 52, 6),
+  test_enum_missingCase() async {
+    await assertDiagnostics(_enumWithMissingCaseSource, [
+      error(diag.nonExhaustiveSwitchStatement, 55, 6),
     ]);
+  }
+
+  Future<void> test_extensionType_enumLike_allCases() async {
+    await assertNoDiagnostics(r'''
+extension type const E._(int i) {
+  static const E a = E._(1);
+  static const E b = E._(2);
+}
+
+void f(E e) {
+  switch (e) {
+    case E.a:
+      break;
+    case E.b:
+  }
+}
+''');
+  }
+
+  Future<void> test_extensionType_enumLike_deprecatedAlias() async {
+    await assertNoDiagnostics(r'''
+extension type const E._(int i) {
+  @deprecated
+  static const E oldA = a;
+  static const E a = E._(1);
+  static const E b = E._(2);
+}
+
+void f(E e) {
+  switch (e) {
+    case E.oldA:
+      break;
+    case E.b:
+  }
+}
+''');
+  }
+
+  Future<void> test_extensionType_enumLike_dotShorthand_missingCase() async {
+    await assertDiagnosticsFromMarkup(r'''
+extension type const E._(int i) {
+  static const E a = E._(1);
+  static const E b = E._(2);
+}
+
+void f(E e) {
+  [!switch (e)!] {
+    case .a:
+  }
+}
+''');
+  }
+
+  Future<void> test_extensionType_enumLike_missingCase() async {
+    await assertDiagnosticsFromMarkup(r'''
+extension type const E._(int i) {
+  static const E a = E._(1);
+  static const E b = E._(2);
+  static const E c = E._(3);
+}
+
+void f(E e) {
+  [!switch (e)!] {
+    case E.a:
+      break;
+    case E.b:
+  }
+}
+''');
+  }
+
+  Future<void> test_extensionType_enumLike_withDefault() async {
+    await assertNoDiagnostics(r'''
+extension type const E._(int i) {
+  static const E a = E._(1);
+  static const E b = E._(2);
+}
+
+void f(E e) {
+  switch (e) {
+    case E.a:
+      break;
+    default:
+  }
+}
+''');
+  }
+
+  Future<void> test_extensionType_notEnumLike_publicConstructor() async {
+    await assertNoDiagnostics(r'''
+extension type const E(int i) {
+  static const E a = E(1);
+  static const E b = E(2);
+}
+
+void f(E e) {
+  switch (e) {
+    case E.a:
+  }
+}
+''');
+  }
+
+  Future<void> test_extensionType_notEnumLike_singleConstant() async {
+    await assertNoDiagnostics(r'''
+extension type const E._(int i) {
+  static const E a = E._(1);
+}
+
+void f(E e) {
+  switch (e) {}
+}
+''');
   }
 }
 
 @reflectiveTest
 class ExhaustiveCasesTestLanguage219 extends BaseExhaustiveCasesTest
     with LanguageVersion219Mixin {
-  test_enum_ok() async {
-    await assertDiagnostics(actualEnumSource, [
-      error(diag.missingEnumConstantInSwitch, 52, 10),
+  test_enum_missingCase() async {
+    await assertDiagnostics(_enumWithMissingCaseSource, [
+      error(diag.missingEnumConstantInSwitch, 55, 14),
     ]);
   }
 }

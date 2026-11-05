@@ -14,6 +14,7 @@ import 'package:compiler/src/js_emitter/model.dart';
 import 'package:compiler/src/util/util.dart';
 import 'package:expect/expect.dart';
 import 'package:compiler/src/util/memory_compiler.dart';
+
 import '../helpers/program_lookup.dart';
 
 class OutputUnitDescriptor {

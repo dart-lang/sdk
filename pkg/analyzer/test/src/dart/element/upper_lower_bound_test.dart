@@ -1138,6 +1138,15 @@ class LowerBoundTest extends _BoundsTestBase {
     check(bound: 'num', T2: parseType('int'));
   }
 
+  void test_typeSchema_subtypeComparisonUsesGreatestClosure() {
+    _checkGreatestLowerBound(
+      parseType('List<UnknownInferredType>'),
+      parseType('List<int>'),
+      parseType('List<int>'),
+      checkSubtype: false,
+    );
+  }
+
   void _checkGreatestLowerBound(
     TypeImpl T1,
     TypeImpl T2,
@@ -2195,6 +2204,18 @@ class UpperBoundTest extends _BoundsTestBase {
     );
   }
 
+  test_futureOr_typeParameter_recursiveBound() {
+    withTypeParameterScope('X extends FutureOr<X>, Y extends FutureOr<Y>', (
+      scope,
+    ) {
+      _checkLeastUpperBound(
+        scope.parseType('X'),
+        scope.parseType('Y'),
+        parseType('FutureOr<Object?>'),
+      );
+    });
+  }
+
   test_identical() {
     void check(TypeImpl type) {
       _checkLeastUpperBound(type, type, type);
@@ -2629,6 +2650,18 @@ class UpperBoundTest extends _BoundsTestBase {
         scope.parseType('X & num'),
         parseType('Null'),
         parseType('num?'),
+      );
+    });
+  }
+
+  void test_typeParameter_mutuallyRecursiveBounds() {
+    buildTestLibrary(classes: [ClassSpec('class C<T>')]);
+
+    withTypeParameterScope('X extends C<Y>, Y extends C<X>', (scope) {
+      _checkLeastUpperBound(
+        scope.parseType('X'),
+        scope.parseType('Y'),
+        parseType('Object?'),
       );
     });
   }

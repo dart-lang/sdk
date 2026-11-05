@@ -9,13 +9,19 @@ resolution: workspace
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dependencies:
+  collection: any
   dds: any
   dds_service_extensions: any
+  devtools_shared: any
+  extension_discovery: any
   json_rpc_2: any
   logging: any
   meta: any
+  mime: any
+  path: any
   pool: any
   shelf: any
+  shelf_static: any
   shelf_web_socket: any
   sse: any
   stream_channel: any
@@ -25,6 +31,5 @@ dependencies:
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dev_dependencies:
   async: any
-  shelf_static: any
   test: any
   webdriver: any

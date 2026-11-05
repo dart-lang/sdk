@@ -88,9 +88,9 @@ abstract class ByteStreamServerChannel implements ServerCommunicationChannel {
   bool _closeRequested = false;
 
   @override
-  late final Stream<RequestOrResponse> requests = _lines.transform(
+  late final Stream<ClientMessage> requests = _lines.transform(
     StreamTransformer.fromHandlers(
-      handleData: _readRequest,
+      handleData: _readClientMessage,
       handleDone: (sink) {
         close();
         sink.close();
@@ -194,49 +194,52 @@ abstract class ByteStreamServerChannel implements ServerCommunicationChannel {
     );
   }
 
-  /// Read a request from the given [data] and use the given function to handle
-  /// the request.
-  void _readRequest(String data, Sink<RequestOrResponse> sink) {
-    // Ignore any further requests after the communication channel is closed.
-    if (_closed.isCompleted) {
-      return;
-    }
-    _instrumentationService.logRequest(data);
-    // Parse the string as a JSON descriptor and process the resulting
-    // structure as either a request or a response.
-    var requestOrResponse = _readRequestOrResponse(data);
-    if (requestOrResponse == null) {
-      // If the data isn't valid, then assume it was an invalid request so that
-      // clients won't be left waiting for a response.
-      sendResponse(Response.invalidRequestFormat());
-      return;
-    }
-    if (requestOrResponse is Request) {
-      _requestStatistics?.addRequest(requestOrResponse);
-    }
-    sink.add(requestOrResponse);
-  }
-
-  /// Returns a request or a response read from the given [data].
-  RequestOrResponse? _readRequestOrResponse(String data) {
+  /// Returns the message read from the given [data], which can be a request, a
+  /// response or a notification.
+  ClientMessage? _parseClientMessage(String data) {
     try {
       var result = json.decode(data);
       if (result is Map<String, Object?>) {
-        var requestOrResponse =
-            Request.fromJson(result) ?? Response.fromJson(result);
-        if (requestOrResponse != null) {
+        var message =
+            Request.fromJson(result) ??
+            Response.fromJson(result) ??
+            Notification.tryFromJson(result);
+        if (message != null) {
           _sessionLogger.logMessage(
             from: ProcessId.ide,
             to: ProcessId.server,
             message: result,
           );
-          return requestOrResponse;
+          return message;
         }
       }
     } catch (exception) {
       // Ignore exceptions and fall through to return `null`.
     }
     return null;
+  }
+
+  /// Read a message from the given [data] and use the given function to handle
+  /// the message.
+  void _readClientMessage(String data, Sink<ClientMessage> sink) {
+    // Ignore any further messages after the communication channel is closed.
+    if (_closed.isCompleted) {
+      return;
+    }
+    _instrumentationService.logRequest(data);
+    // Parse the string as a JSON descriptor and process the resulting
+    // structure as a request, a response or a notification.
+    var message = _parseClientMessage(data);
+    if (message == null) {
+      // If the data isn't valid, then assume it was an invalid request so that
+      // clients won't be left waiting for a response.
+      sendResponse(Response.invalidRequestFormat());
+      return;
+    }
+    if (message is Request) {
+      _requestStatistics?.addRequest(message);
+    }
+    sink.add(message);
   }
 }
 

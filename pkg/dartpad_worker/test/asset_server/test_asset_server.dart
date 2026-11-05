@@ -18,16 +18,16 @@ void main() {
   group('AssetServer', () {
     late AssetServer server;
     late Directory tempDir;
-    late Directory assetDir;
+    late Directory dartAssetDir;
 
     setUp(() async {
       tempDir = Directory.systemTemp.createTempSync('test_server_');
-      assetDir = Directory('${tempDir.path}/assets')..createSync();
-      File('${assetDir.path}/test.txt').writeAsStringSync('asset content');
+      dartAssetDir = Directory('${tempDir.path}/assets')..createSync();
+      File('${dartAssetDir.path}/test.txt').writeAsStringSync('asset content');
 
       server = await AssetServer.listen(
         printOnFailure: printOnFailure,
-        assetPath: assetDir.uri,
+        dartAssetPath: dartAssetDir.uri,
         flutterAssetPath: null,
       );
     });
@@ -37,8 +37,8 @@ void main() {
       tempDir.deleteSync(recursive: true);
     });
 
-    test('serves assets', () async {
-      final response = await http.get(server.baseUrl.resolve('asset/test.txt'));
+    test('serves dart assets', () async {
+      final response = await http.get(server.baseUrl.resolve('dart/test.txt'));
       expect(response.statusCode, 200);
       expect(response.body, 'asset content');
     });
@@ -150,5 +150,23 @@ void main() {
       final latest = body['latest'] as Map<String, Object?>;
       expect(latest['version'], '2.0.1-alpha');
     });
+
+    test(
+      'rejects requests with headers that would trigger a CORS preflight',
+      () async {
+        for (final headers in [
+          {'User-Agent': 'Dart pub 3.12.0'},
+          {'Accept': 'application/vnd.pub.v2+json'},
+          {'If-None-Match': '"abc123"'},
+        ]) {
+          final response = await http.get(
+            server.baseUrl.resolve('api/packages/foo'),
+            headers: headers,
+          );
+          expect(response.statusCode, 400);
+          expect(response.body, contains('CORS preflight'));
+        }
+      },
+    );
   });
 }

@@ -83,6 +83,23 @@ f(List c) {
 ''');
   }
 
+  Future<void> test_constantOnLeft_preservesCommentBeforeLength() async {
+    await resolveTestCode('''
+List getValues() => [];
+
+void f() {
+  if (0 == getValues() /* keep */ .length) {}
+}
+''');
+    await assertHasFix('''
+List getValues() => [];
+
+void f() {
+  if (getValues() /* keep */ .isEmpty) {}
+}
+''');
+  }
+
   Future<void> test_constantOnRight_equal() async {
     await resolveTestCode('''
 f(List c) {
@@ -118,6 +135,19 @@ f(List c) {
     await assertHasFix('''
 f(List c) {
   if (c.isEmpty) {}
+}
+''');
+  }
+
+  Future<void> test_constantOnRight_preservesCommentBeforeLength() async {
+    await resolveTestCode('''
+void f(List c) {
+  if (c /* keep */ .length == 0) {}
+}
+''');
+    await assertHasFix('''
+void f(List c) {
+  if (c /* keep */ .isEmpty) {}
 }
 ''');
   }

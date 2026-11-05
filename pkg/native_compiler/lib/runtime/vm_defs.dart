@@ -96,6 +96,11 @@ extension ComputedOffsets on VMOffsets {
       Thread_DeoptimizeCopyFrame_entry_point_offset +
       (entry.index - LeafRuntimeEntry.DeoptimizeCopyFrame.index) * wordSize;
 
+  /// Offset of 32-bit Object.hash field (part of Object.tags).
+  // ignore: non_constant_identifier_names
+  int get Object_hash_offset =>
+      Object_tags_offset + (UntaggedObject_kHashTagPos ~/ 8);
+
   /// Object tags for a freshly allocated object.
   int computeNewObjectTags(ClassId cid, int instanceSize, int log2wordSize) {
     final log2align = log2objectAlignment(log2wordSize);
@@ -147,6 +152,15 @@ extension ComputedOffsets on VMOffsets {
             : 0) |
         (numElements << UntaggedClosure_kLengthBitsPos);
   }
+
+  int getICDataEntryLength([int numArgs = 1, bool trackingExactness = false]) =>
+      numArgs +
+      1 /* count */ +
+      1 /* target function */ +
+      (trackingExactness ? 1 : 0) /* exactness state */;
+  int getICDataClassIdIndex([int argIndex = 0]) => argIndex;
+  int getICDataCountIndex([int numArgs = 1]) => numArgs;
+  int getICDataTargetIndex([int numArgs = 1]) => numArgs + 1;
 }
 
 // Symbol names used in Dart snapshots.

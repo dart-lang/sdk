@@ -27,9 +27,37 @@ T a<T>() => throw '';
 T b<T>() => throw '';
 ''');
 
-    var node = result.findNode.singleBinaryExpression;
+    var node = result.findNode.singleLogicalAnd;
     assertResolvedNodeText(node, r'''
-BinaryExpression
+LogicalAnd
+  leftOperand: UnqualifiedFunctionInvocation
+    name: a
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    resolution: ExecutableInvocationResolution
+      element: <testLibrary>::@function::a
+      invokeType: bool Function()
+      type: bool
+    staticType: bool
+    typeArgumentTypes
+      bool
+  operator: &&
+  rightOperand: CallInvocation
+    receiver: UnqualifiedNameExpression
+      name: b
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::b
+        type: dynamic
+      staticType: dynamic
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    resolution: DynamicInvocationResolution
+      type: dynamic
+    staticType: dynamic
+  staticType: bool
+V1: BinaryExpression
   leftOperand: MethodInvocation
     methodName: SimpleIdentifier
       token: a
@@ -68,9 +96,24 @@ void f(bool a, bool b) {
 }
 ''');
 
-    var node = result.findNode.singleBinaryExpression;
+    var node = result.findNode.singleLogicalAnd;
     assertResolvedNodeText(node, r'''
-BinaryExpression
+LogicalAnd
+  leftOperand: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: bool
+    staticType: bool
+  operator: &&
+  rightOperand: UnqualifiedNameExpression
+    name: b
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::b
+      type: bool
+    staticType: bool
+  staticType: bool
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
@@ -100,9 +143,37 @@ T a<T>() => throw '';
 T b<T>() => throw '';
 ''');
 
-    var node = result.findNode.singleBinaryExpression;
+    var node = result.findNode.singleLogicalOr;
     assertResolvedNodeText(node, r'''
-BinaryExpression
+LogicalOr
+  leftOperand: UnqualifiedFunctionInvocation
+    name: a
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    resolution: ExecutableInvocationResolution
+      element: <testLibrary>::@function::a
+      invokeType: bool Function()
+      type: bool
+    staticType: bool
+    typeArgumentTypes
+      bool
+  operator: ||
+  rightOperand: CallInvocation
+    receiver: UnqualifiedNameExpression
+      name: b
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::b
+        type: dynamic
+      staticType: dynamic
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    resolution: DynamicInvocationResolution
+      type: dynamic
+    staticType: dynamic
+  staticType: bool
+V1: BinaryExpression
   leftOperand: MethodInvocation
     methodName: SimpleIdentifier
       token: a
@@ -141,9 +212,24 @@ void f(bool a, bool b) {
 }
 ''');
 
-    var node = result.findNode.singleBinaryExpression;
+    var node = result.findNode.singleLogicalOr;
     assertResolvedNodeText(node, r'''
-BinaryExpression
+LogicalOr
+  leftOperand: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: bool
+    staticType: bool
+  operator: ||
+  rightOperand: UnqualifiedNameExpression
+    name: b
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::b
+      type: bool
+    staticType: bool
+  staticType: bool
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a

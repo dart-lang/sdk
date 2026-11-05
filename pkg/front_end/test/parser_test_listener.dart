@@ -217,6 +217,14 @@ class ParserTestListener implements Listener {
   }
 
   @override
+  void handleCascadeExpressionEnd(int sectionCount) {
+    doPrint(
+      'handleCascadeExpressionEnd('
+      '$sectionCount)',
+    );
+  }
+
+  @override
   void beginCaseExpression(Token caseKeyword) {
     seen(caseKeyword);
     doPrint(
@@ -615,11 +623,13 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void beginPrimaryConstructorBody(Token token) {
+  void beginPrimaryConstructorBody(Token token, Token? augmentToken) {
     seen(token);
+    seen(augmentToken);
     doPrint(
       'beginPrimaryConstructorBody('
-      '$token)',
+      '$token, '
+      '$augmentToken)',
     );
     indent++;
   }
@@ -627,16 +637,19 @@ class ParserTestListener implements Listener {
   @override
   void endPrimaryConstructorBody(
     Token beginToken,
+    Token thisToken,
     Token? beginInitializers,
     Token endToken,
   ) {
     indent--;
     seen(beginToken);
+    seen(thisToken);
     seen(beginInitializers);
     seen(endToken);
     doPrint(
       'endPrimaryConstructorBody('
       '$beginToken, '
+      '$thisToken, '
       '$beginInitializers, '
       '$endToken)',
     );
@@ -2499,6 +2512,34 @@ class ParserTestListener implements Listener {
     seen(endToken);
     doPrint(
       'handleSend('
+      '$beginToken, '
+      '$endToken)',
+    );
+  }
+
+  @override
+  void handleSendWithoutArguments(
+    Token beginToken,
+    Token endToken,
+    Token nextToken,
+  ) {
+    seen(beginToken);
+    seen(endToken);
+    seen(nextToken);
+    doPrint(
+      'handleSendWithoutArguments('
+      '$beginToken, '
+      '$endToken, '
+      '$nextToken)',
+    );
+  }
+
+  @override
+  void handleInvocationWithoutTypeArguments(Token beginToken, Token endToken) {
+    seen(beginToken);
+    seen(endToken);
+    doPrint(
+      'handleInvocationWithoutTypeArguments('
       '$beginToken, '
       '$endToken)',
     );

@@ -12,8 +12,17 @@ import 'package:_fe_analyzer_shared/src/parser/forwarding_listener.dart'
     show ForwardingListener;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show Parser, lengthForToken;
+import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
+    show ScannerConfiguration, LanguageVersionChanged;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
-    show ErrorToken, LanguageVersionToken, Scanner, ScannerResult, Token, scan;
+    show
+        ErrorToken,
+        LanguageVersionToken,
+        Scanner,
+        ScannerResult,
+        Token,
+        scan,
+        scanDirectives;
 import 'package:_fe_analyzer_shared/src/util/libraries_specification.dart'
     show Importability;
 import 'package:kernel/ast.dart';
@@ -26,6 +35,7 @@ import 'package:kernel/type_environment.dart';
 import 'package:kernel/util/graph.dart';
 import 'package:package_config/package_config.dart' as package_config;
 
+import '../api_prototype/deprecated_js_interop_libraries.dart';
 import '../api_prototype/experimental_flags.dart';
 import '../api_prototype/file_system.dart';
 import '../base/common.dart';
@@ -61,6 +71,7 @@ import '../kernel/hierarchy/delayed.dart';
 import '../kernel/hierarchy/hierarchy_builder.dart';
 import '../kernel/hierarchy/hierarchy_node.dart';
 import '../kernel/hierarchy/members_builder.dart';
+import '../kernel/internal_ast.dart';
 import '../kernel/kernel_helper.dart'
     show DelayedDefaultValueCloner, TypeDependency;
 import '../kernel/kernel_target.dart' show KernelTarget;
@@ -765,7 +776,11 @@ class SourceLoader extends Loader implements ProblemReportingHelper {
       isSupportedBySpec:
           (importability == Importability.always || importableWithFlag),
     )) {
-      diagnostic = diag.unavailableDartLibrary.withArguments(uri: importUri);
+      // Web compilers disallow the deprecated JS interop libraries by
+      // considering them unsupported. Explain how to migrate away from them.
+      diagnostic = deprecatedJsInteropLibraryNames.contains(importUri.path)
+          ? diag.deprecatedJsInteropLibraryImport.withArguments(uri: importUri)
+          : diag.unavailableDartLibrary.withArguments(uri: importUri);
     }
     // Coverage-ignore(suite): Not run.
     else if (importableWithFlag) {
@@ -1049,9 +1064,9 @@ severity: $severity
 
   void addNativeAnnotation(Annotatable annotatable, String nativeMethodName) {
     MemberBuilder constructor = getNativeAnnotation();
-    Arguments arguments = new Arguments(<Expression>[
-      new StringLiteral(nativeMethodName),
-    ]);
+    Arguments arguments = new Arguments(
+      new ExpressionList(new StringLiteral(nativeMethodName)),
+    );
     Expression annotation;
     if (constructor is ConstructorBuilder) {
       annotation = new ConstructorInvocation(
@@ -1110,6 +1125,7 @@ severity: $severity
     SourceCompilationUnit compilationUnit, {
     bool suppressLexicalErrors = false,
     bool allowLazyStrings = true,
+    bool onlyScanDirectives = false,
   }) async {
     target.benchmarker
     // Coverage-ignore(suite): Not run.
@@ -1171,30 +1187,44 @@ severity: $severity
       byteCount += rawBytes.length;
     }
 
-    ScannerResult result = scan(
-      bytes,
-      includeComments: includeComments,
-      configuration: new LibraryExperimentalFeatures(
-        new LibraryFeatures(
-          target.globalFeatures,
-          compilationUnit.importUri,
-          compilationUnit.packageLanguageVersion.version,
-        ),
-      ).buildScannerConfiguration(),
-      languageVersionChanged: (Scanner scanner, LanguageVersionToken version) {
-        if (!suppressLexicalErrors) {
-          compilationUnit.registerExplicitLanguageVersion(
-            new Version(version.major, version.minor),
-            offset: version.offset,
-            length: version.length,
-          );
-        }
-        scanner.configuration = new LibraryExperimentalFeatures(
-          compilationUnit.libraryFeatures,
-        ).buildScannerConfiguration();
-      },
-      allowLazyStrings: allowLazyStrings,
-    );
+    ScannerConfiguration configuration = new LibraryExperimentalFeatures(
+      new LibraryFeatures(
+        target.globalFeatures,
+        compilationUnit.importUri,
+        compilationUnit.packageLanguageVersion.version,
+      ),
+    ).buildScannerConfiguration();
+    LanguageVersionChanged languageVersionChanged =
+        (Scanner scanner, LanguageVersionToken version) {
+          if (!suppressLexicalErrors) {
+            compilationUnit.registerExplicitLanguageVersion(
+              new Version(version.major, version.minor),
+              offset: version.offset,
+              length: version.length,
+            );
+          }
+          scanner.configuration = new LibraryExperimentalFeatures(
+            compilationUnit.libraryFeatures,
+          ).buildScannerConfiguration();
+        };
+
+    ScannerResult result;
+    if (onlyScanDirectives) {
+      // Coverage-ignore-block(suite): Not run.
+      result = scanDirectives(
+        bytes,
+        configuration: configuration,
+        languageVersionChanged: languageVersionChanged,
+      );
+    } else {
+      result = scan(
+        bytes,
+        includeComments: includeComments,
+        configuration: configuration,
+        languageVersionChanged: languageVersionChanged,
+        allowLazyStrings: allowLazyStrings,
+      );
+    }
     Token token = result.tokens;
     if (!suppressLexicalErrors) {
       /// We use the [importUri] of the created [Library] and not the
@@ -1281,7 +1311,7 @@ severity: $severity
   }
 
   /// Runs the [OutlineBuilder] on the source of all [_unparsedLibraries].
-  Future<void> buildOutlines() async {
+  Future<void> buildOutlines({bool onlyDirectives = false}) async {
     _ensureCoreLibrary();
     while (_unparsedLibraries.isNotEmpty) {
       SourceCompilationUnit compilationUnit = _unparsedLibraries.removeFirst();
@@ -1289,7 +1319,7 @@ severity: $severity
         compilationUnit.importUri,
         TreeNode.noOffset,
       );
-      await buildOutline(compilationUnit);
+      await buildOutline(compilationUnit, onlyDirectives: onlyDirectives);
     }
     currentUriForCrashReporting = null;
     logSummary(outlineSummaryTemplate);
@@ -1390,9 +1420,15 @@ severity: $severity
     }
   }
 
-  Future<Null> buildOutline(SourceCompilationUnit compilationUnit) async {
-    Token tokens = await tokenize(compilationUnit);
-    compilationUnit.buildOutline(tokens);
+  Future<Null> buildOutline(
+    SourceCompilationUnit compilationUnit, {
+    bool onlyDirectives = false,
+  }) async {
+    Token tokens = await tokenize(
+      compilationUnit,
+      onlyScanDirectives: onlyDirectives,
+    );
+    compilationUnit.buildOutline(tokens, onlyDirectives: onlyDirectives);
   }
 
   /// Builds all the method bodies found in the given [libraryBuilder].
@@ -2683,7 +2719,14 @@ severity: $severity
     );
     ClassBuilder classBuilder =
         coreLibrary.lookupRequiredLocalMember(name) as ClassBuilder;
-    return new InterfaceType(classBuilder.cls, nullability, typeArguments);
+    DartTypeList finalTypeArguments;
+    if (typeArguments != null) {
+      // Coverage-ignore-block(suite): Not run.
+      finalTypeArguments = new DartTypeList.from(typeArguments);
+    } else {
+      finalTypeArguments = DartTypeList.empty;
+    }
+    return new InterfaceType(classBuilder.cls, nullability, finalTypeArguments);
   }
 
   void computeCoreTypes(Component component) {
@@ -2697,17 +2740,17 @@ severity: $severity
     _futureOfBottom = new InterfaceType(
       coreTypes.futureClass,
       Nullability.nonNullable,
-      <DartType>[const NeverType.nonNullable()],
+      DartTypeList.never1,
     );
     _iterableOfBottom = new InterfaceType(
       coreTypes.iterableClass,
       Nullability.nonNullable,
-      <DartType>[const NeverType.nonNullable()],
+      DartTypeList.never1,
     );
     _streamOfBottom = new InterfaceType(
       coreTypes.streamClass,
       Nullability.nonNullable,
-      <DartType>[const NeverType.nonNullable()],
+      DartTypeList.never1,
     );
 
     ticker.logMs("Computed core types");
@@ -3200,7 +3243,7 @@ severity: $severity
     DartType listOfString = new InterfaceType(
       coreTypes.listClass,
       Nullability.nonNullable,
-      [coreTypes.stringNonNullableRawType],
+      new DartTypeList(coreTypes.stringNonNullableRawType),
     );
 
     for (SourceLibraryBuilder libraryBuilder in sourceLibraryBuilders) {
@@ -3516,18 +3559,17 @@ class Endian {
 
 // Coverage-ignore(suite): Not run.
 class SourceLoaderDataForTesting {
-  final Map<TreeNode, TreeNode> _aliasMap = {};
+  final Map<TreeNode, InternalNode> _externalToInternalMap = {};
 
-  /// Registers that [original] has been replaced by [alias] in the generated
-  /// AST.
-  void registerAlias(TreeNode original, TreeNode alias) {
-    _aliasMap[alias] = original;
+  /// Registers that [internalNode] has been emitted as [externalNode] in the
+  /// generated AST.
+  void registerExternalNode(InternalNode internalNode, TreeNode externalNode) {
+    _externalToInternalMap[externalNode] = internalNode;
   }
 
-  /// Returns the original node for [alias] or [alias] if it was not registered
-  /// as an alias.
-  TreeNode toOriginal(TreeNode alias) {
-    return _aliasMap[alias] ?? alias;
+  /// Returns the internal node for which [externalNode] was created.
+  InternalNode? toInternalNode(TreeNode externalNode) {
+    return _externalToInternalMap[externalNode];
   }
 
   final ExhaustivenessDataForTesting exhaustivenessData =

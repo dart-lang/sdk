@@ -4,11 +4,11 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart'
     show DiagnosticMessage, DiagnosticMessageImpl;
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
@@ -37,71 +37,65 @@ class BaseOrFinalTypeVerifier {
   /// See [diag.subtypeOfBaseIsNotBaseFinalOrSealed],
   /// [diag.subtypeOfFinalIsNotBaseFinalOrSealed],
   /// [diag.baseClassImplementedOutsideOfLibrary].
-  void checkElement(
-    InterfaceElementImpl element,
-    ImplementsClause? implementsClause,
-  ) {
-    var supertype = element.supertype;
-    if (supertype != null && _checkSupertypes([supertype], element)) {
+  void checkElement({
+    required InterfaceElementImpl element,
+    required Token nameToken,
+    required NamedType? superclass,
+    required WithClause? withClause,
+    required ImplementsClause? implementsClause,
+    required MixinOnClause? onClause,
+  }) {
+    if (superclass != null &&
+        _checkNamedSupertypes([superclass], element, nameToken)) {
       return;
     }
     if (implementsClause != null &&
-        _checkInterfaceSupertypes(
+        _checkNamedSupertypes(
           implementsClause.interfaces,
           element,
+          nameToken,
           areImplementedInterfaces: true,
         )) {
       return;
     }
-    if (_checkSupertypes(element.mixins, element)) {
+    if (withClause != null &&
+        _checkNamedSupertypes(withClause.mixinTypes, element, nameToken)) {
       return;
     }
     if (element is MixinElementImpl &&
-        _checkSupertypes(element.superclassConstraints, element)) {
+        onClause != null &&
+        _checkNamedSupertypes(
+          onClause.superclassConstraints,
+          element,
+          nameToken,
+        )) {
       return;
     }
-  }
-
-  /// Returns true if a 'base' or 'final' subtype modifier error is reported for
-  /// an interface in [interfaces].
-  bool _checkInterfaceSupertypes(
-    List<NamedType> interfaces,
-    InterfaceElementImpl subElement, {
-    bool areImplementedInterfaces = false,
-  }) {
-    for (NamedType interface in interfaces) {
-      var interfaceType = interface.type;
-      if (interfaceType is InterfaceType) {
-        var interfaceElement = interfaceType.element;
-        if (interfaceElement is InterfaceElementImpl) {
-          // Return early if an error has been reported to prevent reporting
-          // multiple errors on one element.
-          if (_reportRestrictionError(
-            subElement,
-            interfaceElement,
-            implementsNamedType: interface,
-          )) {
-            return true;
-          }
-        }
-      }
-    }
-    return false;
   }
 
   /// Returns true if a 'base' or 'final' subtype modifier error is reported for
   /// a supertype in [supertypes].
-  bool _checkSupertypes(
-    List<InterfaceType> supertypes,
+  bool _checkNamedSupertypes(
+    List<NamedType> supertypes,
     InterfaceElementImpl subElement,
-  ) {
+    Token nameToken, {
+    bool areImplementedInterfaces = false,
+  }) {
     for (var supertype in supertypes) {
-      var supertypeElement = supertype.element;
-      if (supertypeElement is InterfaceElementImpl) {
-        // Return early if an error has been reported to prevent reporting
-        // multiple errors on one element.
-        if (_reportRestrictionError(subElement, supertypeElement)) {
-          return true;
+      var supertypeType = supertype.type;
+      if (supertypeType is InterfaceType) {
+        var supertypeElement = supertypeType.element;
+        if (supertypeElement is InterfaceElementImpl) {
+          // Return early if an error has been reported to prevent reporting
+          // multiple errors on one element.
+          if (_reportRestrictionError(
+            subElement,
+            supertypeElement,
+            nameToken,
+            implementsNamedType: areImplementedInterfaces ? supertype : null,
+          )) {
+            return true;
+          }
         }
       }
     }
@@ -183,7 +177,8 @@ class BaseOrFinalTypeVerifier {
   /// Reports an error based on the modifier of the [superElement].
   bool _reportRestrictionError(
     InterfaceElementImpl element,
-    InterfaceElementImpl superElement, {
+    InterfaceElementImpl superElement,
+    Token nameToken, {
     NamedType? implementsNamedType,
   }) {
     // Only report errors on elements within the current library.
@@ -294,7 +289,7 @@ class BaseOrFinalTypeVerifier {
               .withContextMessages(
                 superElement.isSealed ? contextMessages : const [],
               )
-              .atSourceRange(element.diagnosticRange(diagnosticSource)),
+              .at(nameToken),
         );
         return true;
       } else if (baseOrFinalSuperElement.isBase) {
@@ -310,7 +305,7 @@ class BaseOrFinalTypeVerifier {
               .withContextMessages(
                 superElement.isSealed ? contextMessages : const [],
               )
-              .atSourceRange(element.diagnosticRange(diagnosticSource)),
+              .at(nameToken),
         );
         return true;
       }

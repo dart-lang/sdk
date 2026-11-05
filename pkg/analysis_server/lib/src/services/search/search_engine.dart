@@ -47,6 +47,9 @@ enum MatchKind {
   /// A tear-off reference to a constructor.
   REFERENCE_BY_CONSTRUCTOR_TEAR_OFF(isReference: true),
 
+  /// A documentation comment reference to a constructor.
+  REFERENCE_BY_CONSTRUCTOR_COMMENT_REFERENCE(isReference: true),
+
   /// A named argument that refers to a formal parameter.
   REFERENCE_BY_NAMED_ARGUMENT(isReference: true),
 
@@ -111,14 +114,6 @@ abstract class SearchEngine {
   ///
   /// [name] - the name being referenced by the found matches.
   Future<List<SearchMatch>> searchMemberReferences(String name);
-
-  /// Return the prefixes used to reference the [element] in any of the
-  /// compilation units in the [library]. The returned set will include an empty
-  /// string if the element is referenced without a prefix.
-  Future<Set<String>> searchPrefixesUsedInLibrary(
-    LibraryElement library,
-    Element element,
-  );
 
   /// Returns references to the given [element].
   Future<List<SearchMatch>> searchReferences(Element element);

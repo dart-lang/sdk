@@ -30,7 +30,7 @@ static extension-type-member synthetic method MyStream|constructor#_#new#tearOff
 static method method1(self::MyList<core::int> /* erasure=core::List<core::int> */ list, self::MyStream<core::int> /* erasure=asy::Stream<core::int> */ stream) → dynamic async /* emittedValueType= dynamic */ {
   for (core::int a in list) {
   }
-  await for (core::int a in stream) {
+  await for (core::int a##1 in stream) {
   }
 }
 static method method2(self::MyList<(core::int, core::String)> /* erasure=core::List<(core::int, core::String)> */ list, self::MyStream<(core::int, core::String)> /* erasure=asy::Stream<(core::int, core::String)> */ stream) → dynamic async /* emittedValueType= dynamic */ {
@@ -44,12 +44,12 @@ static method method2(self::MyList<(core::int, core::String)> /* erasure=core::L
     }
   }
   await for (final(core::int, core::String) #t2 in stream) {
-    hoisted core::int a;
-    hoisted core::String b;
+    hoisted core::int a##1;
+    hoisted core::String b##1;
     {
       final synthesized(core::int, core::String) #1#0 = #t2;
-      a = #1#0.$1{core::int};
-      b = #1#0.$2{core::String};
+      a##1 = #1#0.$1{core::int};
+      b##1 = #1#0.$2{core::String};
     }
   }
 }

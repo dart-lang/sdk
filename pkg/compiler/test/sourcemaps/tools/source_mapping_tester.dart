@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:io';
+
 import 'package:_fe_analyzer_shared/src/util/filenames.dart';
 import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
@@ -11,6 +12,7 @@ import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/io/source_information.dart';
 import 'package:compiler/src/js/js_debug.dart';
 import 'package:js_ast/js_ast.dart';
+
 import '../helpers/sourcemap_helper.dart';
 
 typedef CodePointWhiteListFunction WhiteListFunction(
@@ -104,7 +106,7 @@ bool parseArguments(
     tests.addAll(TEST_FILES);
   }
   if (arguments.contains('--exclude')) {
-    List<String> filesToRemove = List<String>.from(tests.keys);
+    List<String> filesToRemove = List<String>.of(tests.keys);
     tests.clear();
     tests.addAll(TEST_FILES);
     filesToRemove.forEach(tests.remove);

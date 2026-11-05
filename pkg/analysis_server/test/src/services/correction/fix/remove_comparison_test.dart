@@ -677,7 +677,6 @@ class Person2 {
 ''');
   }
 
-  @FailingTest(reason: 'Only the first comparison is removed')
   Future<void> test_singleFile_overlapping() async {
     await resolveTestCode('''
 class Person {

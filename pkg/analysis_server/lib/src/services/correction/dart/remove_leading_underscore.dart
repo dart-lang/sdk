@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -16,8 +17,7 @@ class RemoveLeadingUnderscore extends ResolvedCorrectionProducer {
   new({required super.context});
 
   @override
-  CorrectionApplicability get applicability =>
-      CorrectionApplicability.automatically;
+  CorrectionApplicability get applicability => .automatically;
 
   @override
   FixKind get fixKind => DartFixKind.removeLeadingUnderscore;
@@ -61,7 +61,7 @@ class RemoveLeadingUnderscore extends ResolvedCorrectionProducer {
     var newName = oldName.substring(1);
 
     // Find references to the identifier.
-    List<AstNode>? references;
+    Map<String, List<SyntacticEntity>>? references;
     if (element is FormalParameterElement) {
       if (!element.isNamed) {
         var root = node.thisOrAncestorMatching(
@@ -71,53 +71,42 @@ class RemoveLeadingUnderscore extends ResolvedCorrectionProducer {
               node is ConstructorDeclaration,
         );
         if (root != null) {
-          references = findLocalElementReferences(root, element);
+          references = {file: findLocalElementReferences(root, element)};
         } else {
           var declaration = node
               .thisOrAncestorOfType<PrimaryConstructorDeclaration>();
           if (declaration != null) {
-            var body = declaration.body;
-            if (body != null) {
-              references = findLocalElementReferences(body, element);
+            if (declaration.body case var body?) {
+              references = {file: findLocalElementReferences(body, element)};
             }
           }
         }
       }
     } else if (element is LocalElement) {
-      var block = node.thisOrAncestorOfType<Block>();
-      if (block != null) {
-        references = findLocalElementReferences(block, element);
-
-        var declaration =
-            block.thisOrAncestorOfType<MethodDeclaration>() ??
-            block.thisOrAncestorOfType<FunctionDeclaration>();
-
-        if (declaration != null) {
-          if (isDeclaredIn(declaration, newName)) {
-            var suffix = -1;
-            do {
-              suffix++;
-            } while (isDeclaredIn(declaration, '$newName$suffix'));
-            newName = '$newName$suffix';
-          }
-        }
+      if (node.thisOrAncestorOfType<Block>() case var block?) {
+        references = {file: findLocalElementReferences(block, element)};
       }
     } else if (element is PrefixElement) {
-      var root = node.thisOrAncestorOfType<CompilationUnit>();
-      if (root != null) {
-        references = findImportPrefixElementReferences(root, element);
-      }
+      references = {
+        for (var unit in libraryResult.units)
+          unit.path: findImportPrefixElementReferences(unit.unit, element),
+      };
     }
     if (references == null) {
       return;
     }
 
     // Compute the change.
-    var sourceRanges = {range.token(nameToken), ...references.map(range.node)};
-    await builder.addDartFileEdit(file, (builder) {
-      for (var sourceRange in sourceRanges) {
-        builder.addSimpleReplacement(sourceRange, newName);
-      }
-    });
+    for (var MapEntry(key: file, value: references) in references.entries) {
+      var sourceRanges = {
+        if (file == this.file) range.token(nameToken),
+        ...references.map(range.entity),
+      };
+      await builder.addDartFileEdit(file, (builder) {
+        for (var sourceRange in sourceRanges) {
+          builder.addSimpleReplacement(sourceRange, newName);
+        }
+      });
+    }
   }
 }

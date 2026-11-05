@@ -233,23 +233,6 @@ var x = () /*[0*/{
     expectRangesContain({0: noFoldingKind});
   }
 
-  Future<void> test_headersImportsComments() async {
-    var content = '''
-// Copyright some year by some people/*[0*/
-// See LICENCE etc./*0]*/
-
-import/*[1*/ 'dart:io';
-import 'dart:async';/*1]*/
-
-/// This is not the file header/*[2*/
-/// It's just a comment/*2]*/
-void f() {}
-''';
-
-    await computeRanges(content);
-    expectRanges({0: .Comment, 1: .Imports, 2: .Comment});
-  }
-
   Future<void> test_ifElseElseIf() async {
     var content = '''
 f(int i) {
@@ -268,6 +251,37 @@ f(int i) {
 
     await computeRanges(content);
     expectRangesContain({0: noFoldingKind, 1: noFoldingKind, 2: noFoldingKind});
+  }
+
+  Future<void> test_imports_inPart() async {
+    var content = '''
+part of/*[0*/ 'a.dart';
+
+import 'dart:io';
+import 'dart:async';/*0]*/
+
+void f() {}
+''';
+
+    await computeRanges(content);
+    expectRanges({0: .Imports});
+  }
+
+  Future<void> test_importsAndComments() async {
+    var content = '''
+// Copyright some year by some people/*[0*/
+// See LICENCE etc./*0]*/
+
+import/*[1*/ 'dart:io';
+import 'dart:async';/*1]*/
+
+/// This is not the file header/*[2*/
+/// It's just a comment/*2]*/
+void f() {}
+''';
+
+    await computeRanges(content);
+    expectRanges({0: .Comment, 1: .Imports, 2: .Comment});
   }
 
   Future<void> test_multilineStrings() async {

@@ -9,6 +9,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/fine/requirements.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 
 /// The scope defined by a block.
 class BlockScope {
@@ -173,7 +174,7 @@ class NamespaceBuilder {
   /// publicly visible name.
   void _addIfPublic(Map<String, Element> definedNames, Element element) {
     var name = element.name;
-    if (name != null && name.isNotEmpty && !Identifier.isPrivateName(name)) {
+    if (name != null && name.isNotEmpty && !name.isPrivateName) {
       definedNames[name] = element;
     }
   }

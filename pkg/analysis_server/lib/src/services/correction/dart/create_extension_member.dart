@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server/src/utilities/extensions/object.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -35,7 +36,8 @@ class CreateExtensionGetter extends _CreateExtensionMember {
   Future<void> compute(ChangeBuilder builder) async {
     var addStaticKeyword = inStaticContext;
     var nameNode = node;
-    if (nameNode is! SimpleIdentifier) {
+    if (nameNode is! SimpleIdentifier ||
+        nameNode.annotationContainingName != null) {
       return;
     }
     if (!nameNode.inGetterContext()) {
@@ -76,12 +78,17 @@ class CreateExtensionGetter extends _CreateExtensionMember {
       addStaticKeyword = true;
     }
 
-    // TODO(FMorschel): We should take into account if the target type contains
-    // a setter for the same name and stop the fix from being applied.
     // We need the type for the extension.
     if (targetType == null ||
         targetType is DynamicType ||
         targetType is InvalidType) {
+      return;
+    }
+
+    // Extensions aren't considered when the interface already defines a
+    // member with the same basename.
+    if (targetType is InterfaceType &&
+        targetType.lookUpSetter(_getterName, libraryElement2) != null) {
       return;
     }
 
@@ -548,12 +555,17 @@ class CreateExtensionSetter extends _CreateExtensionMember {
       addStaticKeyword = true;
     }
 
-    // TODO(FMorschel): We should take into account if the target type contains
-    // a setter for the same name and stop the fix from being applied.
     // We need the type for the extension.
     if (targetType == null ||
         targetType is DynamicType ||
         targetType is InvalidType) {
+      return;
+    }
+
+    // Extensions aren't considered when the interface already defines a
+    // member with the same basename.
+    if (targetType is InterfaceType &&
+        targetType.lookUpGetter(_setterName, libraryElement2) != null) {
       return;
     }
 

@@ -63,9 +63,6 @@ typed_data_with_limited_ints_test: SkipByDesign # Requires fixed-size int64 supp
 [ $runtime == safari && ($compiler == dart2js || $compiler == ddc) ]
 regexp/group_modifier_test: RuntimeError # Safari lacks support for new regexp modifiers
 
-[ $builder_tag == dwarf || $builder_tag == obfuscated ]
-error_stack_trace1_test: SkipByDesign # Relies on symbol names in stack traces.
-
 [ $runtime == dart_precompiled || $runtime == vm ]
 regexp/global_test: Skip # Issue 21709
 regexp/pcre_test: Slow, Pass

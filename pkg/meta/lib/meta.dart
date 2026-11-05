@@ -284,11 +284,10 @@ const Object literal = _Literal();
 /// Annotation on a parameter whose arguments must be constants.
 ///
 /// The Dart type system does not allow distinguishing values of constant
-/// expressions from other values of the same type, so a function cannot
-/// ask to have only constant values as arguments.
-/// This annotation marks a parameter as requiring a constant expression as
-/// argument. The analyzer can warn, or err if so configured, if a non-constant
-/// expression is used as argument.
+/// expressions from other values of the same type, so a function cannot ask to
+/// have only constant values as arguments. This annotation marks a parameter as
+/// requiring a constant expression as argument. The analyzer can warn, or err
+/// if so configured, if a non-constant expression is used as argument.
 ///
 /// The annotation can be applied to any parameter, but if it is applied to a
 /// parameter of an instance member, subclasses overriding the member will not
@@ -301,8 +300,8 @@ const Object literal = _Literal();
 /// any warnings.
 ///
 /// An example use could be the arguments to functions annotated with
-/// [RecordUse], as only constant arguments can be made available
-/// to the post-compile steps.
+/// [RecordUse], as only constant arguments can be made available to the
+/// post-compile steps.
 ///
 /// ```dart
 /// import 'package:meta/meta.dart' show mustBeConst;
@@ -328,7 +327,12 @@ const Object literal = _Literal();
 ///   }
 /// }
 /// ```
-@experimental
+///
+/// The analyzer might not recognize all constant expressions as such in a
+/// non-constant context. Only obvious constant expressions such as `const`
+/// object creation expressions, constant variable references, and simple
+/// literals (like string literals without interpolations) are guaranteed to be
+/// recognized as constants.
 const Object mustBeConst = _MustBeConst();
 
 /// Annotation on instance members that must be overridden by subclasses.
@@ -650,27 +654,44 @@ class Immutable {
   const Immutable([this.reason = '']);
 }
 
-/// Annotation on static method or class whose accesses will be recorded.
+/// Annotation on a statically resolved member or class whose usages will be
+/// recorded.
 ///
-/// Applies to static functions, top-level functions, extension methods, or
-/// classes with constant constructors.
+/// During compilation, usages of annotated declarations in reachable code are
+/// recorded, and information about these usages is made available to
+/// post-compile steps (such as link hooks). Usages in unreachable code are not
+/// recorded.
 ///
-/// During compilation, all statically resolved calls to an annotated function
-/// or accesses to constant instances of an annotated class in reachable code
-/// are recorded. Information about these usages is then made available to
-/// post-compile steps.
+/// * If placed on a statically resolved function or member (such as a top-level
+///   function, static method, non-redirecting factory constructor, getter,
+///   setter, operator, extension method, or extension type method), all calls
+///   to or tear-offs of that member in reachable code will be recorded, along
+///   with arguments passed to the call as far as they can be evaluated as
+///   constant expressions at compile time. Generative constructors and
+///   redirecting factory constructors cannot be annotated directly.
+/// * If placed on a class, any constant instance of the class (including
+///   instances created via `const` redirecting factory constructors), any
+///   non-const generative constructor invocation, and any generative
+///   constructor tear-off in reachable code will be recorded. Calls to
+///   non-const factory constructors are not recorded directly by annotating the
+///   class; rather, any generative constructor invocation within the factory
+///   body will be recorded.
 ///
-/// Only usages in reachable code (executable code) are tracked.
-/// Usages appearing within metadata (annotations) are ignored.
+/// Only usages in executable code are recorded. Usages appearing within
+/// metadata (annotations) are ignored.
+///
+/// The [RecordUse] annotation is only allowed on declarations within a
+/// package's `lib/` directory.
+///
+/// For more information see https://pub.dev/packages/record_use.
 // TODO(srawlins): Enforce with `TargetKind.method` or `TargetKind.classType`.
-@experimental
 @pragma('vm:entry-point')
 @pragma('wasm:entry-point')
 class RecordUse {
   /// Creates a [RecordUse] instance.
   ///
-  /// This annotation can be placed as an annotation on functions or classes
-  /// whose usages in reachable code should be registered.
+  /// This annotation can be placed on statically resolved members or classes
+  /// whose usages in reachable code should be recorded.
   const RecordUse();
 }
 

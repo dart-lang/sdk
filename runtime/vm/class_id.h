@@ -47,6 +47,7 @@ static constexpr intptr_t kClassIdTagMax = (1 << 20) - 1;
   V(CodeSourceMap)                                                             \
   V(CompressedStackMaps)                                                       \
   V(LocalVarDescriptors)                                                       \
+  V(LocalVarDescriptor)                                                        \
   V(ExceptionHandlers)                                                         \
   V(Context)                                                                   \
   V(ContextScope)                                                              \
@@ -234,6 +235,7 @@ static constexpr intptr_t kClassIdTagMax = (1 << 20) - 1;
   V(CodeSourceMap)                                                             \
   V(CompressedStackMaps)                                                       \
   V(LocalVarDescriptors)                                                       \
+  V(LocalVarDescriptor)                                                        \
   V(ExceptionHandlers)                                                         \
   V(Context)                                                                   \
   V(ContextScope)                                                              \

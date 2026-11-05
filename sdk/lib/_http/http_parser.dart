@@ -281,10 +281,10 @@ class _HttpParser extends Stream<_HttpIncoming> {
   int _messageType = _MessageType.UNDETERMINED;
   int _statusCode = 0;
   int _statusCodeLength = 0;
-  final List<int> _method = [];
-  final List<int> _uriOrReasonPhrase = [];
-  final List<int> _headerField = [];
-  final List<int> _headerValue = [];
+  final _Bytes _method = _Bytes();
+  final _Bytes _uriOrReasonPhrase = _Bytes();
+  final _Bytes _headerField = _Bytes();
+  final _Bytes _headerValue = _Bytes();
   static const _headerTotalSizeLimit = 1024 * 1024;
   int _headersReceivedSize = 0;
 
@@ -433,11 +433,11 @@ class _HttpParser extends Stream<_HttpIncoming> {
     }
     var incoming = _createIncoming(_transferLength);
     if (_requestParser) {
-      incoming.method = String.fromCharCodes(_method);
-      incoming.uri = Uri.parse(String.fromCharCodes(_uriOrReasonPhrase));
+      incoming.method = _method.bytesToString();
+      incoming.uri = Uri.parse(_uriOrReasonPhrase.bytesToString());
     } else {
       incoming.statusCode = _statusCode;
-      incoming.reasonPhrase = String.fromCharCodes(_uriOrReasonPhrase);
+      incoming.reasonPhrase = _uriOrReasonPhrase.bytesToString();
     }
     _method.clear();
     _uriOrReasonPhrase.clear();
@@ -756,11 +756,11 @@ class _HttpParser extends Stream<_HttpIncoming> {
             _addToHeaderValueWithValidation(_headerValue, _CharCode.SP);
             _state = _State.HEADER_VALUE_START; // Strips leading whitespace.
           } else {
-            String headerField = String.fromCharCodes(_headerField);
+            String headerField = _headerField.bytesToString();
             // The field value does not include any leading or trailing whitespace.
             // See https://www.rfc-editor.org/rfc/rfc7230#section-3.2.4
             _removeTrailingSpaces(_headerValue);
-            String headerValue = String.fromCharCodes(_headerValue);
+            String headerValue = _headerValue.bytesToString();
 
             // RFC-7230 3.3.3 says:
             // If a message is received with both a Transfer-Encoding and a
@@ -1100,7 +1100,7 @@ class _HttpParser extends Stream<_HttpIncoming> {
     return (byte > 31 && byte < 128) || (byte == _CharCode.HT);
   }
 
-  static void _removeTrailingSpaces(List<int> value) {
+  static void _removeTrailingSpaces(_Bytes value) {
     var length = value.length;
     while (length > 0 &&
         (value[length - 1] == _CharCode.SP ||
@@ -1177,7 +1177,7 @@ class _HttpParser extends Stream<_HttpIncoming> {
     }
   }
 
-  void _addToHeaderValueWithValidation(List<int> list, int byte) {
+  void _addToHeaderValueWithValidation(_Bytes list, int byte) {
     // From RFC-9110:
     // Field values containing CR, LF, or NUL characters are invalid and
     // dangerous.
@@ -1187,7 +1187,7 @@ class _HttpParser extends Stream<_HttpIncoming> {
     _addWithValidation(list, byte);
   }
 
-  void _addWithValidation(List<int> list, int byte) {
+  void _addWithValidation(_Bytes list, int byte) {
     _headersReceivedSize++;
     if (_headersReceivedSize < _headerTotalSizeLimit) {
       list.add(byte);
@@ -1312,4 +1312,33 @@ class _HttpParser extends Stream<_HttpIncoming> {
     // In case of drain(), error event will close the stream.
     _bodyController?.close();
   }
+}
+
+/// Growable byte accumulator backed by a [Uint8List].
+// TODO(64470): Use BytesBuilder once it is efficient.
+class _Bytes {
+  Uint8List _data = Uint8List(64);
+  int length = 0;
+
+  bool get isEmpty => length == 0;
+
+  int operator [](int i) => _data[i];
+
+  @pragma('vm:prefer-inline')
+  void add(int byte) {
+    if (length == _data.length) _grow(length + 1);
+    _data[length++] = byte;
+  }
+
+  void _grow(int minLength) {
+    var capacity = _data.length * 2;
+    while (capacity < minLength) {
+      capacity *= 2;
+    }
+    _data = Uint8List(capacity)..setRange(0, length, _data);
+  }
+
+  void clear() => length = 0;
+
+  String bytesToString() => String.fromCharCodes(_data, 0, length);
 }

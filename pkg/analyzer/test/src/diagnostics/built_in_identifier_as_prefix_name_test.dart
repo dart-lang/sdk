@@ -46,9 +46,9 @@ import 'dart:async' as inout;
 ''');
   }
 
-  test_inout_language310() async {
+  test_inout_beforePrimaryConstructors() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 import 'dart:async' as inout;
 //     ^^^^^^^^^^^^
 // [diag.unusedImport] Unused import: 'dart:async'.
@@ -65,9 +65,9 @@ import 'dart:async' as out;
 ''');
   }
 
-  test_out_language310() async {
+  test_out_beforePrimaryConstructors() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 import 'dart:async' as out;
 //     ^^^^^^^^^^^^
 // [diag.unusedImport] Unused import: 'dart:async'.

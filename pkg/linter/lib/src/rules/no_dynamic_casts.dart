@@ -10,6 +10,8 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
+// ignore: implementation_imports
+import 'package:analyzer/src/dart/element/extensions.dart';
 
 import '../analyzer.dart';
 import '../diagnostic.dart' as diag;
@@ -43,11 +45,13 @@ class NoDynamicCasts extends AnalysisRule {
       ..addForEachPartsWithDeclaration(this, visitor)
       ..addForEachPartsWithIdentifier(this, visitor)
       ..addForEachPartsWithPattern(this, visitor)
+      ..addForElement(this, visitor)
       ..addForStatement(this, visitor)
       ..addIfElement(this, visitor)
       ..addIfStatement(this, visitor)
       ..addListLiteral(this, visitor)
       ..addPrefixExpression(this, visitor)
+      ..addRecordLiteral(this, visitor)
       ..addReturnStatement(this, visitor)
       ..addSetOrMapLiteral(this, visitor)
       ..addVariableDeclaration(this, visitor)
@@ -57,12 +61,8 @@ class NoDynamicCasts extends AnalysisRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final AnalysisRule _rule;
-  final RuleContext _context;
-
-  new(this._rule, this._context);
-
+class _Visitor(final AnalysisRule _rule, final RuleContext _context)
+    extends SimpleAstVisitor<void> {
   @override
   void visitArgumentList(ArgumentList node) {
     for (var argument in node.arguments) {
@@ -119,6 +119,16 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   @override
+  void visitForElement(ForElement node) {
+    if (node.forLoopParts case ForParts parts) {
+      var condition = parts.condition;
+      if (condition != null) {
+        _check(condition, _context.typeProvider.boolType);
+      }
+    }
+  }
+
+  @override
   void visitForStatement(ForStatement node) {
     if (node.forLoopParts case ForParts parts) {
       var condition = parts.condition;
@@ -130,11 +140,17 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitIfElement(IfElement node) {
+    // Check if the expression is implicitly cast to bool, _only_ if this is not
+    // an if-case.
+    if (node.caseClause != null) return;
     _check(node.expression, _context.typeProvider.boolType);
   }
 
   @override
   void visitIfStatement(IfStatement node) {
+    // Check if the expression is implicitly cast to bool, _only_ if this is not
+    // an if-case.
+    if (node.caseClause != null) return;
     _check(node.expression, _context.typeProvider.boolType);
   }
 
@@ -152,6 +168,21 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitPrefixExpression(PrefixExpression node) {
     if (node.operator.type == TokenType.BANG) {
       _check(node.operand, _context.typeProvider.boolType);
+    }
+  }
+
+  @override
+  void visitRecordLiteral(RecordLiteral node) {
+    var type = node.staticType;
+    if (type is! RecordType) return;
+    var positionalIndex = 0;
+    for (var field in node.fields) {
+      var fieldType = switch (field) {
+        RecordLiteralNamedField(:var name) =>
+          type.namedField(name.lexeme)?.type,
+        _ => type.positionalFields.elementAtOrNull(positionalIndex++)?.type,
+      };
+      _check(field.fieldExpression, fieldType);
     }
   }
 
@@ -284,9 +315,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   /// Checks [node] for `dynamic`-typed sub-expressions.
   void _checkForEachParts(ForEachParts node) {
-    var forStatement = node.parent;
-    if (forStatement is! ForStatement) return;
-    var isAsync = forStatement.awaitKeyword != null;
+    var isAsync = node.parent.awaitKeyword != null;
     var targetType = isAsync
         ? _context.typeProvider.streamType(_context.typeProvider.dynamicType)
         : _context.typeProvider.iterableType(_context.typeProvider.dynamicType);

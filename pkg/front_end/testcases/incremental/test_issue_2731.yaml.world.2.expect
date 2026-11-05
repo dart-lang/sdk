@@ -1,0 +1,19 @@
+main = main::main;
+library from "org-dartlang-test:///main.dart" as main {
+//
+// Problems in library:
+//
+// org-dartlang-test:///main.dart:1:6: Error: Using 'org-dartlang-test:///part.dart' as part of 'org-dartlang-test:///main.dart' but its 'part of' declaration says 'org-dartlang-test:///nonexisting.dart'.
+// part "part.dart";
+//      ^
+//
+// org-dartlang-test:///main.dart:4:3: Error: Method not found: 'fromPart'.
+//   fromPart();
+//   ^^^^^^^^
+//
+
+  part part.dart;
+  static method main() → dynamic {
+    invalid-expression "org-dartlang-test:///main.dart:4:3: Error: Method not found: 'fromPart'.\n  fromPart();\n  ^^^^^^^^";
+  }
+}

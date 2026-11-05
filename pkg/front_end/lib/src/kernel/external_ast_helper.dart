@@ -8,7 +8,30 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/names.dart';
 
+import '../source/check_helper.dart';
 import 'internal_ast.dart';
+
+/// Returns a clone of [node].
+///
+/// This assumes that `isPureExpression(node)` is `true`.
+Expression clonePureExpression(Expression node) {
+  if (node is ThisExpression) {
+    return createThisExpression(fileOffset: node.fileOffset);
+  } else if (node is VariableGet) {
+    assert(
+      node.variable.isFinal && !node.variable.isLate,
+      "Trying to clone VariableGet of non-final variable"
+      " ${node.variable}.",
+    );
+    return createVariableGet(
+      node.variable,
+      promotedType: node.promotedType,
+      fileOffset: node.fileOffset,
+    );
+  }
+  // Coverage-ignore-block(suite): Not run.
+  throw new UnsupportedError("Clone not supported for ${node.runtimeType}.");
+}
 
 /// Returns a block like this:
 ///
@@ -63,8 +86,11 @@ Arguments createArguments(
   List<NamedExpression>? named,
   required int fileOffset,
 }) {
-  return new Arguments(positional, types: types, named: named)
-    ..fileOffset = fileOffset;
+  return new Arguments(
+    new ExpressionList.from(positional),
+    types: types == null ? null : new DartTypeList.from(types),
+    named: named == null ? null : new NamedExpressionList.from(named),
+  )..fileOffset = fileOffset;
 }
 
 Arguments createArgumentsForwarded(
@@ -115,19 +141,22 @@ AssertStatement createAssertStatement(
 }
 
 AssignedVariablePattern createAssignedVariablePattern({
-  required Variable variable,
-  required Variable? setter,
+  required String variableName,
+  required DartType variableType,
+  required Variable writeVariable,
   required DartType matchedValueType,
   required bool needsCast,
   required bool hasObservableEffect,
   required int fileOffset,
 }) {
-  return new AssignedVariablePattern(variable)
-    ..setter = setter
-    ..matchedValueType = matchedValueType
-    ..needsCast = needsCast
-    ..hasObservableEffect = hasObservableEffect
-    ..fileOffset = fileOffset;
+  return new AssignedVariablePattern(
+    variableName: variableName,
+    variableType: variableType,
+    writeVariable: writeVariable,
+    matchedValueType: matchedValueType,
+    needsCast: needsCast,
+    hasObservableEffect: hasObservableEffect,
+  )..fileOffset = fileOffset;
 }
 
 Expression createAwaitExpression(
@@ -250,11 +279,12 @@ ConstantPattern createConstantPattern({
   required FunctionType equalsType,
   required int fileOffset,
 }) {
-  return new ConstantPattern(expression)
-    ..expressionType = expressionType
-    ..equalsTarget = equalsTarget
-    ..equalsType = equalsType
-    ..fileOffset = fileOffset;
+  return new ConstantPattern(
+    expression: expression,
+    expressionType: expressionType,
+    equalsTarget: equalsTarget,
+    equalsType: equalsType,
+  )..fileOffset = fileOffset;
 }
 
 Constructor createConstructor(
@@ -298,6 +328,28 @@ ConstructorTearOff createConstructorTearOff(
   return new ConstructorTearOff(target)..fileOffset = fileOffset;
 }
 
+ConstVariable createConstVariable({
+  required String name,
+  required DartType? type,
+  bool isFinal = false,
+  bool isWildcard = false,
+  required int fileOffset,
+  bool hasDeclaredInitializer = false,
+  int fileEqualsOffset = TreeNode.noOffset,
+  Expression? value,
+}) {
+  return new ConstVariable(
+      name: name,
+      type: type,
+      isFinal: isFinal,
+      isWildcard: isWildcard,
+      hasDeclaredInitializer: hasDeclaredInitializer,
+      value: value,
+    )
+    ..fileOffset = fileOffset
+    ..fileEqualsOffset = fileEqualsOffset;
+}
+
 ContinueSwitchStatement createContinueSwitchStatement({
   required int fileOffset,
 }) {
@@ -309,8 +361,8 @@ AsExpression createCovarianceCheckedInstanceGet(
   Expression receiver,
   Name name, {
   required Member interfaceTarget,
-  required DartType checkType,
-  required DartType objectNullableType,
+  required DartType checkedType,
+  required DartType operandStaticType,
   required int fileOffset,
 }) {
   return new AsExpression(
@@ -319,9 +371,9 @@ AsExpression createCovarianceCheckedInstanceGet(
         receiver,
         name,
         interfaceTarget: interfaceTarget,
-        resultType: objectNullableType,
+        resultType: operandStaticType,
       )..fileOffset = fileOffset,
-      checkType,
+      checkedType,
     )
     ..isTypeError = true
     ..isCovarianceCheck = true
@@ -335,8 +387,8 @@ AsExpression createCovarianceCheckedInstanceInvocation(
   Arguments arguments, {
   required Procedure interfaceTarget,
   required FunctionType functionType,
-  required DartType checkType,
-  required DartType objectNullableType,
+  required DartType checkedType,
+  required DartType operandStaticType,
   required int fileOffset,
 }) {
   return new AsExpression(
@@ -347,9 +399,9 @@ AsExpression createCovarianceCheckedInstanceInvocation(
         arguments,
         interfaceTarget: interfaceTarget,
         functionType: functionType,
-        resultType: objectNullableType,
+        resultType: operandStaticType,
       )..fileOffset = fileOffset,
-      checkType,
+      checkedType,
     )
     ..isTypeError = true
     ..isCovarianceCheck = true
@@ -361,8 +413,8 @@ AsExpression createCovarianceCheckedInstanceTearOff(
   Expression receiver,
   Name name, {
   required Procedure interfaceTarget,
-  required DartType checkType,
-  required DartType objectNullableType,
+  required DartType checkedType,
+  required DartType operandStaticType,
   required int fileOffset,
 }) {
   return new AsExpression(
@@ -371,9 +423,9 @@ AsExpression createCovarianceCheckedInstanceTearOff(
         receiver,
         name,
         interfaceTarget: interfaceTarget,
-        resultType: objectNullableType,
+        resultType: operandStaticType,
       )..fileOffset = fileOffset,
-      checkType,
+      checkedType,
     )
     ..isTypeError = true
     ..isCovarianceCheck = true
@@ -492,7 +544,7 @@ FileUriExpression createFileUriExpression({
 ForStatement createForStatement({
   required List<VariableDeclaration> variables,
   required Expression? condition,
-  required List<Expression> updates,
+  required ExpressionList updates,
   required Statement body,
   required Scope? scope,
   required int fileOffset,
@@ -534,9 +586,15 @@ FunctionNode createFunctionNode(
 }) {
   return new FunctionNode(
       body,
-      typeParameters: typeParameters,
-      positionalParameters: positionalParameters,
-      namedParameters: namedParameters,
+      typeParameters: typeParameters != null
+          ? new TypeParameterList.from(typeParameters)
+          : null,
+      positionalParameters: positionalParameters != null
+          ? new PositionalParameterList.from(positionalParameters)
+          : null,
+      namedParameters: namedParameters != null
+          ? new NamedParameterList.from(namedParameters)
+          : null,
       returnType: returnType,
       requiredParameterCount: requiredParameterCount,
       asyncMarker: asyncMarker,
@@ -549,6 +607,24 @@ FunctionNode createFunctionNode(
     ..fileEndOffset = fileEndOffset ?? fileOffset;
 }
 
+CachedExpression createCachedExpression({
+  required Expression expression,
+  required DartType type,
+  String? cosmeticName,
+  bool isFinal = true,
+  int? fileOffset,
+}) {
+  return new CachedExpression(
+    variable: createUninitializedVariable(
+      type: type,
+      name: cosmeticName,
+      isFinal: isFinal,
+      fileOffset: fileOffset ?? expression.fileOffset,
+    ),
+    value: expression,
+  );
+}
+
 IfCaseStatement createIfCaseStatement({
   required Expression expression,
   required PatternGuard patternGuard,
@@ -557,9 +633,13 @@ IfCaseStatement createIfCaseStatement({
   required DartType matchedValueType,
   required int fileOffset,
 }) {
-  return new IfCaseStatement(expression, patternGuard, then, otherwise)
-    ..matchedValueType = matchedValueType
-    ..fileOffset = fileOffset;
+  return new IfCaseStatement(
+    expression: expression,
+    patternGuard: patternGuard,
+    then: then,
+    otherwise: otherwise,
+    matchedValueType: matchedValueType,
+  )..fileOffset = fileOffset;
 }
 
 /// Creates an if statement with the [condition], [then] branch and [otherwise]
@@ -580,6 +660,7 @@ Field createImmutableField(
   bool isFinal = false,
   bool isConst = false,
   bool isStatic = false,
+  bool isCovariantByDeclaration = false,
   required Uri fileUri,
   Reference? fieldReference,
   Reference? getterReference,
@@ -594,6 +675,7 @@ Field createImmutableField(
       isFinal: isFinal,
       isConst: isConst,
       isStatic: isStatic,
+      isCovariantByDeclaration: isCovariantByDeclaration,
       fileUri: fileUri,
       fieldReference: fieldReference,
       getterReference: getterReference,
@@ -696,7 +778,8 @@ Instantiation createInstantiation(
   List<DartType> typeArguments, {
   required int fileOffset,
 }) {
-  return new Instantiation(expression, typeArguments)..fileOffset = fileOffset;
+  return new Instantiation(expression, new DartTypeList.from(typeArguments))
+    ..fileOffset = fileOffset;
 }
 
 /// Creates an integer literal of [value].
@@ -717,7 +800,7 @@ Expression createIntLiteral(
       InstanceAccessKind.Instance,
       new IntLiteral(-value)..fileOffset = fileOffset,
       unaryMinusName,
-      new Arguments([])..fileOffset = fileOffset,
+      new Arguments.empty()..fileOffset = fileOffset,
       interfaceTarget: coreTypes.intUnaryMinus,
       functionType: coreTypes.intUnaryMinus.getterType as FunctionType,
     )..fileOffset = fileOffset;
@@ -734,6 +817,14 @@ InvalidExpression createInvalidExpression(
   return new InvalidExpression(message, expression)..fileOffset = fileOffset;
 }
 
+InvalidExpression createInvalidExpressionFromErrorText(
+  ErrorText errorText, {
+  Expression? expression,
+}) {
+  return new InvalidExpression(errorText.message, expression)
+    ..fileOffset = errorText.fileOffset;
+}
+
 InvalidInitializer createInvalidInitializer(
   InvalidExpression expression, {
   bool isSuperInitializer = false,
@@ -741,6 +832,17 @@ InvalidInitializer createInvalidInitializer(
 }) {
   return new InvalidInitializer(expression.message)
     ..fileOffset = expression.fileOffset
+    ..isSuperInitializer = isSuperInitializer
+    ..isRedirectingInitializer = isRedirectingInitializer;
+}
+
+InvalidInitializer createInvalidInitializerFromErrorText(
+  ErrorText errorText, {
+  bool isSuperInitializer = false,
+  bool isRedirectingInitializer = false,
+}) {
+  return new InvalidInitializer(errorText.message)
+    ..fileOffset = errorText.fileOffset
     ..isSuperInitializer = isSuperInitializer
     ..isRedirectingInitializer = isRedirectingInitializer;
 }
@@ -759,13 +861,13 @@ InvalidInitializer createInvalidInitializerFromMessage(
 
 InvalidPattern createInvalidPattern({
   required Expression error,
-  required List<InternalDeclaredVariable> declaredVariables,
+  required List<InternalPatternVariable> patternVariables,
   int? fileOffset,
 }) {
   return new InvalidPattern(
     error,
-    declaredVariables: declaredVariables
-        .map((InternalDeclaredVariable variable) => variable.astVariable)
+    declaredVariables: patternVariables
+        .map((InternalPatternVariable variable) => variable.astVariable)
         .toList(),
   )..fileOffset = fileOffset ?? error.fileOffset;
 }
@@ -785,26 +887,6 @@ LabeledStatement createLabeledStatement(
   required int fileOffset,
 }) {
   return new LabeledStatement(statement)..fileOffset = fileOffset;
-}
-
-ConstVariable createConstVariable({
-  required String name,
-  required DartType? type,
-  bool isFinal = false,
-  bool isWildcard = false,
-  required int fileOffset,
-  bool hasDeclaredInitializer = false,
-  int fileEqualsOffset = TreeNode.noOffset,
-}) {
-  return new ConstVariable(
-      name: name,
-      type: type,
-      isFinal: isFinal,
-      isWildcard: isWildcard,
-      hasDeclaredInitializer: hasDeclaredInitializer,
-    )
-    ..fileOffset = fileOffset
-    ..fileEqualsOffset = fileEqualsOffset;
 }
 
 LateVariable createLateVariable({
@@ -830,24 +912,26 @@ LateVariable createLateVariable({
 /// Creates a [Let] of [variable] with the given [body] using
 /// `variable.fileOffset` as the file offset for the let.
 Let createLet({
-  required SyntheticVariable variable,
-  Expression? value,
+  required CachedExpression cache,
   required Expression body,
   int? fileOffset,
 }) {
-  if (value != null) {
-    variable.initializer = value..parent = variable;
-  }
-  return new Let(variable, body)
-    ..fileOffset = fileOffset ?? variable.fileOffset;
+  return new Let(variable: cache.variable, value: cache.value, body: body)
+    ..fileOffset = fileOffset ?? cache.fileOffset;
 }
 
 /// Creates a [Let] with the [effect] as the variable initializer and the
 /// [result] as the body of the [Let] expression and using
 /// `effect.fileOffset` as the file offset for the let.
 Let createLetEffect({required Expression effect, required Expression result}) {
-  return new Let(createVariableCache(effect, const DynamicType()), result)
-    ..fileOffset = effect.fileOffset;
+  return createLet(
+    cache: createCachedExpression(
+      expression: effect,
+      type: const DynamicType(),
+    ),
+    body: result,
+    fileOffset: effect.fileOffset,
+  );
 }
 
 ListPattern createListPattern({
@@ -870,23 +954,25 @@ ListPattern createListPattern({
   required FunctionType indexGetType,
   required int fileOffset,
 }) {
-  return new ListPattern(typeArgument, patterns)
-    ..requiredType = requiredType
-    ..matchedValueType = matchedValueType
-    ..needsCheck = needsCheck
-    ..lookupType = lookupType
-    ..hasRestPattern = hasRestPattern
-    ..lengthTarget = lengthTarget
-    ..lengthType = lengthType
-    ..lengthCheckTarget = lengthCheckTarget
-    ..lengthCheckType = lengthCheckType
-    ..sublistTarget = sublistTarget
-    ..sublistType = sublistType
-    ..minusTarget = minusTarget
-    ..minusType = minusType
-    ..indexGetTarget = indexGetTarget
-    ..indexGetType = indexGetType
-    ..fileOffset = fileOffset;
+  return new ListPattern(
+    typeArgument: typeArgument,
+    patterns: patterns,
+    requiredType: requiredType,
+    matchedValueType: matchedValueType,
+    needsCheck: needsCheck,
+    lookupType: lookupType,
+    hasRestPattern: hasRestPattern,
+    lengthTarget: lengthTarget,
+    lengthType: lengthType,
+    lengthCheckTarget: lengthCheckTarget,
+    lengthCheckType: lengthCheckType,
+    sublistTarget: sublistTarget,
+    sublistType: sublistType,
+    minusTarget: minusTarget,
+    minusType: minusType,
+    indexGetTarget: indexGetTarget,
+    indexGetType: indexGetType,
+  )..fileOffset = fileOffset;
 }
 
 LoadLibrary createLoadLibrary(
@@ -930,6 +1016,11 @@ LocalFunctionVariable createLocalFunctionVariable({
     ..fileEqualsOffset = fileEqualsOffset;
 }
 
+LocalInitializer createLocalInitializer(CachedExpression cache) {
+  return new LocalInitializer(cache.variable, cache.value)
+    ..fileOffset = cache.fileOffset;
+}
+
 LocalVariable createLocalVariable({
   required String name,
   required DartType? type,
@@ -959,7 +1050,6 @@ Expression createLogicalExpression({
   return new LogicalExpression(left, operator, right)..fileOffset = fileOffset;
 }
 
-// Coverage-ignore(suite): Not run.
 MapLiteralEntry createMapLiteralEntry(
   Expression key,
   Expression value, {
@@ -982,16 +1072,19 @@ MapPattern createMapPattern({
   required FunctionType indexGetType,
   required int fileOffset,
 }) {
-  return new MapPattern(keyType, valueType, entries)
-    ..requiredType = requiredType
-    ..matchedValueType = matchedValueType
-    ..needsCheck = needsCheck
-    ..lookupType = lookupType
-    ..containsKeyTarget = containsKeyTarget
-    ..containsKeyType = containsKeyType
-    ..indexGetTarget = indexGetTarget
-    ..indexGetType = indexGetType
-    ..fileOffset = fileOffset;
+  return new MapPattern(
+    keyType: keyType,
+    valueType: valueType,
+    entries: entries,
+    requiredType: requiredType,
+    matchedValueType: matchedValueType,
+    needsCheck: needsCheck,
+    lookupType: lookupType,
+    containsKeyTarget: containsKeyTarget,
+    containsKeyType: containsKeyType,
+    indexGetTarget: indexGetTarget,
+    indexGetType: indexGetType,
+  )..fileOffset = fileOffset;
 }
 
 MapPatternEntry createMapPatternEntry({
@@ -1015,6 +1108,8 @@ Field createMutableField(
   bool isLate = false,
   bool isFinal = false,
   bool isStatic = false,
+  bool isCovariantByDeclaration = false,
+  bool isCovariantByClass = false,
   required Uri fileUri,
   Reference? fieldReference,
   Reference? getterReference,
@@ -1029,6 +1124,8 @@ Field createMutableField(
       isLate: isLate,
       isFinal: isFinal,
       isStatic: isStatic,
+      isCovariantByDeclaration: isCovariantByDeclaration,
+      isCovariantByClass: isCovariantByClass,
       fileUri: fileUri,
       fieldReference: fieldReference,
       getterReference: getterReference,
@@ -1131,14 +1228,14 @@ ObjectPattern createObjectPattern({
   required List<NamedPattern> fields,
   required DartType matchedValueType,
   required bool needsCheck,
-  required DartType lookupType,
   required int fileOffset,
 }) {
-  return new ObjectPattern(requiredType, fields)
-    ..matchedValueType = matchedValueType
-    ..needsCheck = needsCheck
-    ..lookupType = lookupType
-    ..fileOffset = fileOffset;
+  return new ObjectPattern(
+    requiredType: requiredType,
+    fields: fields,
+    matchedValueType: matchedValueType,
+    needsCheck: needsCheck,
+  )..fileOffset = fileOffset;
 }
 
 /// Creates a logical or expression of [left] and [right].
@@ -1170,9 +1267,11 @@ PatternAssignment createPatternAssignment({
   required DartType matchedValueType,
   required int fileOffset,
 }) {
-  return new PatternAssignment(pattern, expression)
-    ..matchedValueType = matchedValueType
-    ..fileOffset = fileOffset;
+  return new PatternAssignment(
+    pattern: pattern,
+    expression: expression,
+    matchedValueType: matchedValueType,
+  )..fileOffset = fileOffset;
 }
 
 PatternGuard createPatternGuard({
@@ -1189,8 +1288,9 @@ PatternSwitchCase createPatternSwitchCase({
   required Statement body,
   required bool isDefault,
   required bool hasLabel,
-  required List<DeclaredVariable> jointVariables,
+  required List<VariableDeclaration> jointVariableDeclarations,
   required List<int>? jointVariableFirstUseOffsets,
+  required Scope? jointVariableScope,
   required int fileOffset,
 }) {
   return new PatternSwitchCase(
@@ -1199,8 +1299,9 @@ PatternSwitchCase createPatternSwitchCase({
     body,
     isDefault: isDefault,
     hasLabel: hasLabel,
-    jointVariables: jointVariables,
+    jointVariableDeclarations: jointVariableDeclarations,
     jointVariableFirstUseOffsets: jointVariableFirstUseOffsets,
+    jointVariableScope: jointVariableScope,
   )..fileOffset = fileOffset;
 }
 
@@ -1224,13 +1325,16 @@ PatternVariableDeclaration createPatternVariableDeclaration({
   required DartType matchedValueType,
   required int fileOffset,
 }) {
-  return new PatternVariableDeclaration(pattern, initializer, isFinal: isFinal)
-    ..matchedValueType = matchedValueType
-    ..fileOffset = fileOffset;
+  return new PatternVariableDeclaration(
+    pattern,
+    initializer,
+    isFinal: isFinal,
+    matchedValueType: matchedValueType,
+  )..fileOffset = fileOffset;
 }
 
 PositionalParameter createPositionalParameter({
-  String? cosmeticName,
+  required String parameterName,
   required DartType type,
   Expression? defaultValue,
   bool isCovariantByDeclaration = false,
@@ -1246,7 +1350,7 @@ PositionalParameter createPositionalParameter({
   required int fileOffset,
 }) {
   return new PositionalParameter(
-    cosmeticName: cosmeticName,
+    parameterName: parameterName,
     type: type,
     defaultValue: defaultValue,
     isCovariantByDeclaration: isCovariantByDeclaration,
@@ -1308,15 +1412,23 @@ RecordPattern createRecordPattern({
   required DartType matchedValueType,
   required bool needsCheck,
   required RecordType lookupType,
-
   required int fileOffset,
 }) {
-  return new RecordPattern(patterns)
-    ..requiredType = requiredType
-    ..matchedValueType = matchedValueType
-    ..needsCheck = needsCheck
-    ..lookupType = lookupType
-    ..fileOffset = fileOffset;
+  return new RecordPattern(
+    patterns: patterns,
+    requiredType: requiredType,
+    matchedValueType: matchedValueType,
+    needsCheck: needsCheck,
+    lookupType: lookupType,
+  )..fileOffset = fileOffset;
+}
+
+RedirectingFactoryTearOff createRedirectingFactoryTearOff(
+  Procedure procedure, {
+  required int fileOffset,
+}) {
+  assert(procedure.isRedirectingFactory);
+  return new RedirectingFactoryTearOff(procedure)..fileOffset = fileOffset;
 }
 
 RelationalPattern createRelationalPattern({
@@ -1331,15 +1443,19 @@ RelationalPattern createRelationalPattern({
   required FunctionType? functionType,
   required int fileOffset,
 }) {
-  return new RelationalPattern(kind, expression)
-    ..expressionType = expressionType
-    ..matchedValueType = matchedValueType
-    ..accessKind = accessKind
-    ..name = name
-    ..target = target
-    ..typeArguments = typeArguments
-    ..functionType = functionType
-    ..fileOffset = fileOffset;
+  return new RelationalPattern(
+    kind: kind,
+    expression: expression,
+    expressionType: expressionType,
+    matchedValueType: matchedValueType,
+    accessKind: accessKind,
+    name: name,
+    target: target,
+    typeArguments: typeArguments == null
+        ? null
+        : new DartTypeList.from(typeArguments),
+    functionType: functionType,
+  )..fileOffset = fileOffset;
 }
 
 RestPattern createRestPattern({
@@ -1389,7 +1505,7 @@ StaticTearOff createStaticTearOff(Procedure target, {required int fileOffset}) {
 }
 
 Expression createStringConcatenation(
-  List<Expression> expressions, {
+  ExpressionList expressions, {
   required int fileOffset,
 }) {
   return new StringConcatenation(expressions)..fileOffset = fileOffset;
@@ -1435,7 +1551,7 @@ SuperPropertySet createSuperPropertySet(
 /// Creates a switch case for the case [expressions] and their corresponding
 /// file offsets in [expressionOffsets] with the given [body].
 SwitchCase createSwitchCase({
-  required List<Expression> expressions,
+  required ExpressionList expressions,
   required List<int> expressionOffsets,
   required Statement body,
   required bool isDefault,
@@ -1521,8 +1637,11 @@ TypedefTearOff createTypedefTearOff({
   required List<DartType> typeArguments,
   required int fileOffset,
 }) {
-  return new TypedefTearOff(structuralParameters, expression, typeArguments)
-    ..fileOffset = fileOffset;
+  return new TypedefTearOff(
+    new StructuralParameterList.from(structuralParameters),
+    expression,
+    new DartTypeList.from(typeArguments),
+  )..fileOffset = fileOffset;
 }
 
 TypeLiteral createTypeLiteral(DartType type, {required int fileOffset}) {
@@ -1642,9 +1761,11 @@ VariablePattern createVariablePattern({
   required DartType matchedValueType,
   required int fileOffset,
 }) {
-  return new VariablePattern(type, variable)
-    ..matchedValueType = matchedValueType
-    ..fileOffset = fileOffset;
+  return new VariablePattern(
+    type: type,
+    variable: variable,
+    matchedValueType: matchedValueType,
+  )..fileOffset = fileOffset;
 }
 
 /// Creates a [VariableSet] of [variable] with the [value].
@@ -1661,10 +1782,10 @@ Expression createVariableSet(
       fileOffset: fileOffset,
     );
   } else {
-    assert(
+    /*assert(
       allowFinalAssignment || variable.isAssignable,
       "Cannot assign to variable $variable",
-    );
+    );*/
     return new VariableSet(variable, value)..fileOffset = fileOffset;
   }
 }
@@ -1702,4 +1823,17 @@ YieldStatement createYieldStatement(
 }) {
   return new YieldStatement(expression, isYieldStar: isYieldStar)
     ..fileOffset = fileOffset;
+}
+
+/// Returns `true` if [node] is a pure expression.
+///
+/// A pure expression is an expression that is deterministic and side effect
+/// free, such as `this` or a variable get of a final variable.
+bool isPureExpression(Expression node) {
+  if (node is ThisExpression) {
+    return true;
+  } else if (node is VariableGet) {
+    return node.variable.isFinal && !node.variable.isLate;
+  }
+  return false;
 }

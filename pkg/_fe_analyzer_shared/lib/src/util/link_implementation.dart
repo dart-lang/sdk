@@ -29,7 +29,7 @@ class LinkIterator<T> implements Iterator<T> {
   }
 }
 
-typedef T Transformation<S, T>(S input);
+typedef Transformation<S, T> = T Function(S input);
 
 class MappedLinkIterator<S, T> implements Iterator<T> {
   Transformation<S, T> _transformation;

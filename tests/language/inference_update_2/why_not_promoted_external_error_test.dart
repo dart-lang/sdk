@@ -11,7 +11,7 @@
 class C {
   external final int? _i;
   //                  ^^
-  // [context 1] '_i' refers to an external field so it couldn't be promoted.  See http://dart.dev/go/non-promo-external-field
+  // [context 1] '_i' refers to an external field so it couldn't be promoted.  See https://dart.dev/go/non-promo-external-field
   // [context 2] '_i' refers to an external field so it couldn't be promoted.
   // [web] Only JS interop members may be 'external'.
 }

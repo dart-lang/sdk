@@ -6,7 +6,7 @@
 // TODO(joshualitt): Make all of the ir types full immutable.
 library;
 
-export 'data_segment.dart' show BaseDataSegment, DataSegment;
+export 'data_segment.dart' show DataSegment;
 export 'data_segments.dart' show DataSegments;
 export 'element.dart'
     show

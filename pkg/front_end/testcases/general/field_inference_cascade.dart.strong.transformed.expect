@@ -1,0 +1,24 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  late static final field self::B b = let final self::B #t1 = new self::B::•() in block {
+    #t1.{self::B::c} = self::c;
+  } =>#t1;
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+}
+class B extends core::Object {
+  late field self::C c;
+  synthetic constructor •() → self::B
+    : super core::Object::•()
+    ;
+}
+class C extends core::Object {
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+}
+late static final field self::C c = new self::C::•();

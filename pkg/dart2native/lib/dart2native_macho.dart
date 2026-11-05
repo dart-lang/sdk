@@ -5,7 +5,7 @@
 import 'dart:io';
 import 'dart:math' as math;
 
-import './macho.dart';
+import 'macho.dart';
 import 'src/generate_utils.dart';
 
 /// Pipe from one file stream into another.

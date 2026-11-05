@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'dart:io' as io;
 
 import 'package:dartdev/dartdev.dart';
+import 'package:dartdev/src/unified_analytics.dart';
 import 'package:file/memory.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
@@ -76,7 +77,10 @@ void main() {
       final p = project();
       final analytics = await p.runLocalWithFakeAnalytics(['help']);
       expect(analytics.sentEvents, [
-        Event.dartCliCommandExecuted(name: 'help', enabledExperiments: ''),
+        Event.dartCliCommandExecuted(
+          name: 'help',
+          enabledExperiments: '',
+        ),
       ]);
     });
 
@@ -89,7 +93,12 @@ void main() {
         path.join(io.Directory.systemTemp.createTempSync().path, 'name'),
       ]);
       expect(analytics.sentEvents, [
-        Event.dartCliCommandExecuted(name: 'create', enabledExperiments: ''),
+        Event.dartCliCommandExecuted(
+          name: 'create',
+          enabledExperiments: '',
+          pubspecHasFlutterSdk: false,
+          pubspecEnvironmentSdk: '^3.0.0',
+        ),
       ]);
     });
 
@@ -110,6 +119,9 @@ void main() {
             Event.dartCliCommandExecuted(
               name: 'pub/get',
               enabledExperiments: '',
+              pubspecHasFlutterSdk: false,
+              pubspecDependencies: const {'lints'},
+              pubspecEnvironmentSdk: '^3.0.0',
             ),
           ]);
         },
@@ -127,7 +139,21 @@ void main() {
         '.',
       ]);
       expect(analytics.sentEvents, [
-        Event.dartCliCommandExecuted(name: 'format', enabledExperiments: ''),
+        Event.dartCliCommandExecuted(
+          name: 'format',
+          enabledExperiments: '',
+        ),
+      ]);
+    });
+
+    test('info', () async {
+      final p = project();
+      final analytics = await p.runLocalWithFakeAnalytics(['info']);
+      expect(analytics.sentEvents, [
+        Event.dartCliCommandExecuted(
+          name: 'info/dump',
+          enabledExperiments: '',
+        ),
       ]);
     });
 
@@ -142,7 +168,12 @@ void main() {
           '--argument',
         ]);
         expect(analytics.sentEvents, [
-          Event.dartCliCommandExecuted(name: 'run', enabledExperiments: ''),
+          Event.dartCliCommandExecuted(
+            name: 'run',
+            enabledExperiments: '',
+            pubspecHasFlutterSdk: false,
+            pubspecEnvironmentSdk: '^3.0.0',
+          ),
         ]);
       });
     });
@@ -150,9 +181,9 @@ void main() {
     group('run --enable-experiments', () {
       for (final experiment in experiments) {
         test(experiment.name, () async {
-          final p = project(mainSrc: experiment.validation);
           {
             for (final no in ['', 'no-']) {
+              final p = project(mainSrc: experiment.validation);
               await pub.withHttpClient(client: http.Client(), () async {
                 final analytics = await p.runLocalWithFakeAnalytics([
                   'run',
@@ -163,6 +194,8 @@ void main() {
                   Event.dartCliCommandExecuted(
                     name: 'run',
                     enabledExperiments: '$no${experiment.name}',
+                    pubspecHasFlutterSdk: false,
+                    pubspecEnvironmentSdk: '^3.0.0',
                   ),
                 ]);
               });
@@ -187,6 +220,8 @@ void main() {
         Event.dartCliCommandExecuted(
           name: 'compile/kernel',
           enabledExperiments: '',
+          pubspecHasFlutterSdk: false,
+          pubspecEnvironmentSdk: '^3.0.0',
         ),
       ]);
     });
@@ -219,6 +254,32 @@ void main() {
       // than 1 second.
       // If it hung, it would take much longer or never finish.
       expect(stopwatch.elapsedMilliseconds, lessThan(1000));
+    });
+  });
+
+  group('unified analytics helpers:', () {
+    test('sanitizeStacktrace strips file paths and compresses whitespace', () {
+      const rawStack =
+          '#0  main (file:///Users/username/project/bin/main.dart:10:5)\n'
+          '#1  helper   (file:///home/user/app/lib/helper.dart:2:1)';
+      final sanitized = sanitizeStacktrace(rawStack, shorten: true);
+      expect(sanitized, isNot(contains('/Users/username/project/bin/')));
+      expect(sanitized, contains('main.dart'));
+      expect(sanitized, contains('helper.dart'));
+    });
+
+    test('getDartStorageDirectory resolves user .dart directory', () {
+      final dir = getDartStorageDirectory();
+      expect(dir, isNotNull);
+      expect(dir!.path, path.join(homeDir!.path, '.dart'));
+      expect(path.basename(dir.path), '.dart');
+    });
+  });
+
+  group('isBot environment detection:', () {
+    test('isBot function executes without error', () {
+      // isBot should execute synchronously without throwing
+      expect(() => isBot(), returnsNormally);
     });
   });
 }

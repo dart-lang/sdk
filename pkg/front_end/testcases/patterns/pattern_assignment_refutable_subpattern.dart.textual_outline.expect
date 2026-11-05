@@ -1,0 +1,3 @@
+orPattern(List<Object?> list) {}
+
+nullCheckPattern(List<Object?> list) {}

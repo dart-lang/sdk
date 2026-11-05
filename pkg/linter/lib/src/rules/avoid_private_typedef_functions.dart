@@ -49,13 +49,8 @@ class _CountVisitor extends RecursiveAstVisitor<void> {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final AnalysisRule rule;
-
-  final RuleContext context;
-
-  new(this.rule, this.context);
-
+class _Visitor(final AnalysisRule rule, final RuleContext context)
+    extends SimpleAstVisitor<void> {
   @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
     _countAndReport(node.name);
@@ -72,7 +67,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   void _countAndReport(Token identifier) {
     var name = identifier.lexeme;
-    if (!Identifier.isPrivateName(name)) return;
+    if (!name.isPrivateName) return;
 
     var visitor = _CountVisitor(name);
     for (var unit in context.allUnits) {

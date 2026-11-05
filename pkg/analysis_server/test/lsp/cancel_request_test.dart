@@ -28,7 +28,7 @@ void f() {
 
     await initialize();
     await openFile(mainFileUri, code.code);
-    await initialAnalysis;
+    await workspaceAnalysisComplete();
 
     // Create a completion request that we'll cancel.
     var completionRequest = makeRequest(

@@ -294,7 +294,9 @@ class Timeline : public AllStatic {
 #endif
 
 #define TIMELINE_STREAM_ACCESSOR(name, ...)                                    \
-  static TimelineStream* Get##name##Stream() { return &stream_##name##_; }
+  static TimelineStream* Get##name##Stream() {                                 \
+    return &stream_##name##_;                                                  \
+  }
   TIMELINE_STREAM_LIST(TIMELINE_STREAM_ACCESSOR)
 #undef TIMELINE_STREAM_ACCESSOR
 

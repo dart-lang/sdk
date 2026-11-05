@@ -369,8 +369,8 @@ class MoveFileRefactoringImpl extends RefactoringImpl
   /// Checks if the given [filePath] represents a relative URI.
   ///
   /// The following URI's are not relative:
-  ///    `/absolute/path/file.dart`
-  ///    `dart:math`
+  /// * `/absolute/path/file.dart`
+  /// * `dart:math`
   bool _isRelativeUri(String? filePath) {
     if (filePath == null) {
       return false;

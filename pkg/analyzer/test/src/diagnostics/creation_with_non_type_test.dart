@@ -284,13 +284,26 @@ f() {
 ''');
   }
 
+  test_constructorWithTypeArguments_errorRange() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class Foo<T> {
+  Foo.bar();
+}
+void f() {
+  new Foo.bar<int>.baz();
+//    ^^^^^^^
+// [diag.newWithNonType] The name 'bar' isn't a class.
+}
+''');
+  }
+
   test_implicit_nonPrefix_generic() async {
     await resolveTestCodeWithDiagnostics(r'''
 void nonPrefix() {}
 f() {
   nonPrefix.Class<int>();
 //          ^^^^^
-// [diag.undefinedMethod] The method 'Class' isn't defined for the type 'Function'.
+// [diag.undefinedMethod] The method 'Class' isn't defined for the type 'void Function()'.
 }
 ''');
   }
@@ -323,7 +336,7 @@ void nonPrefix() {}
 f() {
   nonPrefix.Class();
 //          ^^^^^
-// [diag.undefinedMethod] The method 'Class' isn't defined for the type 'Function'.
+// [diag.undefinedMethod] The method 'Class' isn't defined for the type 'void Function()'.
 }
 ''');
   }
@@ -343,7 +356,7 @@ void NonType<T>() {}
 f() {
   NonType<int>.named();
 //             ^^^^^
-// [diag.undefinedMethod] The method 'named' isn't defined for the type 'Function'.
+// [diag.undefinedMethod] The method 'named' isn't defined for the type 'void Function()'.
 }
 ''');
   }
@@ -354,7 +367,7 @@ void NonType() {}
 f() {
   NonType.named();
 //        ^^^^^
-// [diag.undefinedMethod] The method 'named' isn't defined for the type 'Function'.
+// [diag.undefinedMethod] The method 'named' isn't defined for the type 'void Function()'.
 }
 ''');
   }
@@ -389,7 +402,7 @@ void NonType<T>() {}
 f() {
   prefix.NonType<int>.named();
 //                    ^^^^^
-// [diag.undefinedMethod] The method 'named' isn't defined for the type 'Function'.
+// [diag.undefinedMethod] The method 'named' isn't defined for the type 'void Function()'.
 }
 ''');
   }
@@ -402,7 +415,7 @@ void NonType() {}
 f() {
   prefix.NonType.named();
 //               ^^^^^
-// [diag.undefinedMethod] The method 'named' isn't defined for the type 'Function'.
+// [diag.undefinedMethod] The method 'named' isn't defined for the type 'void Function()'.
 }
 ''');
   }

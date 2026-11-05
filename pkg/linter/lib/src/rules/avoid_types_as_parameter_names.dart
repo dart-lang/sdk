@@ -41,12 +41,8 @@ class AvoidTypesAsParameterNames extends MultiAnalysisRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final MultiAnalysisRule rule;
-  final RuleContext context;
-
-  new(this.rule, this.context);
-
+class _Visitor(final MultiAnalysisRule rule, final RuleContext context)
+    extends SimpleAstVisitor<void> {
   @override
   void visitCatchClause(CatchClause node) {
     var parameter = node.exceptionParameter;

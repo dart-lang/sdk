@@ -48,12 +48,17 @@ class InstanceExtensionMembersOperation extends NotImportedOperation {
   /// Whether to include suggestions for setters.
   final bool _includeSetters;
 
+  /// The prefix with which members that are shadowed at the completion
+  /// location can still be suggested, or [ThisPrefix.none] if they can't be.
+  final ThisPrefix _thisPrefixAllowed;
+
   new({
     required this._declarationHelper,
     required this._type,
     required this._excludedGetters,
     required this._includeMethods,
     required this._includeSetters,
+    this._thisPrefixAllowed = .none,
   });
 
   /// Compute any candidate suggestions for elements in the [library].
@@ -64,6 +69,7 @@ class InstanceExtensionMembersOperation extends NotImportedOperation {
       excludedGetters: _excludedGetters,
       includeMethods: _includeMethods,
       includeSetters: _includeSetters,
+      thisPrefixAllowed: _thisPrefixAllowed,
     );
   }
 }
@@ -98,11 +104,14 @@ class NotImportedCompletionPass {
     var analysisDriver = request.analysisContext.driver;
 
     var fsState = analysisDriver.fsState;
-    var filter = FileStateFilter(fsState.getFileForPath(request.path));
+    var targetFile = fsState.getFileForPath(request.path);
+    var filter = FileStateFilter(targetFile);
 
     try {
-      performance.run('discoverAvailableFiles', (_) {
-        analysisDriver.discoverAvailableFiles();
+      await performance.runAsync('discoverAvailableFilesFor', (_) async {
+        await analysisDriver
+            .discoverAvailableFilesFor(targetFile)
+            .timeout(budget.left);
       });
     } on TimeoutException {
       _collector.isIncomplete = true;

@@ -940,7 +940,7 @@ const myConst = E.one;
     if (open) {
       await openFile(testFileUri, code.code);
     }
-    await currentAnalysis;
+    await workspaceAnalysisComplete();
     var verifier = await executeForEdits(
       () => editArgument(testFileUri, code.position.position, edit),
     );
@@ -976,7 +976,7 @@ class MyWidget extends StatelessWidget {
     code = TestCode.parse(content);
     createFile(testFilePath, code.code);
     await initializeServer();
-    await currentAnalysis;
+    await workspaceAnalysisComplete();
 
     await expectLater(
       editArgument(testFileUri, code.position.position, edit),

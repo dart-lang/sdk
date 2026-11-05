@@ -10,6 +10,7 @@ import 'package:compiler/src/common/codegen.dart'
     show ModularName, ModularNameKind;
 import 'package:compiler/src/js/js.dart';
 import 'package:compiler/src/js/size_estimator.dart';
+
 import 'debug_size_estimator.dart';
 
 const String expressionsKey = 'expressions';

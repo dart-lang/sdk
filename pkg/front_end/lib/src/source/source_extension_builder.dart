@@ -9,12 +9,14 @@ import '../base/modifiers.dart';
 import '../base/name_space.dart';
 import '../base/problems.dart';
 import '../base/scope.dart';
+import '../base/uri_offset.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
-import '../builder/metadata_builder.dart';
+import '../builder/property_builder.dart';
 import '../builder/type_builder.dart';
-import '../fragment/fragment.dart';
+import '../codes/diagnostic.dart' as diag;
+import '../fragment/extension/declaration.dart';
 import '../kernel/body_builder_context.dart';
 import '../kernel/kernel_helper.dart';
 import 'name_scheme.dart';
@@ -22,6 +24,8 @@ import 'name_space_builder.dart';
 import 'source_builder_mixins.dart';
 import 'source_library_builder.dart';
 import 'source_member_builder.dart';
+import 'source_method_builder.dart';
+import 'source_property_builder.dart';
 import 'source_type_parameter_builder.dart';
 
 class SourceExtensionBuilder extends ExtensionBuilderImpl
@@ -56,9 +60,9 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
 
   /// The `extension` declaration that introduces this extension. Subsequent
   /// extensions of the same name must be augmentations.
-  final ExtensionFragment _introductory;
+  final ExtensionDeclaration _introductory;
 
-  final List<ExtensionFragment> _augmentations;
+  final List<ExtensionDeclaration> _augmentations;
 
   new({
     required SourceLibraryBuilder enclosingLibraryBuilder,
@@ -66,27 +70,21 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
     required int startOffset,
     required int nameOffset,
     required int endOffset,
+    required Modifiers modifiers,
+    required this.extensionName,
+    required this.typeParameters,
     required DeclarationNameSpaceBuilder nameSpaceBuilder,
-    required ExtensionFragment introductory,
-    required List<ExtensionFragment> augmentations,
+    required ExtensionDeclaration introductory,
+    required List<ExtensionDeclaration> augmentations,
     required Reference? reference,
+    required this.onType,
   }) : _introductory = introductory,
        _augmentations = augmentations,
        _reference = reference ?? new Reference(),
        _nameOffset = nameOffset,
        libraryBuilder = enclosingLibraryBuilder,
-       _modifiers = introductory.modifiers,
-       extensionName = introductory.extensionName,
-       typeParameters = introductory.typeParameters?.builders,
-       onType = introductory.onType,
+       _modifiers = modifiers,
        _nameSpaceBuilder = nameSpaceBuilder {
-    _introductory.builder = this;
-    _introductory.bodyScope.declarationBuilder = this;
-    for (ExtensionFragment augmentation in _augmentations) {
-      augmentation.builder = this;
-      augmentation.bodyScope.declarationBuilder = this;
-    }
-
     // TODO(johnniwinther): Move this to the [build] once augmentations are
     // handled through fragments.
     _extension =
@@ -160,6 +158,31 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
       memberBuilders: _memberBuilders,
       typeParameterFactory: libraryBuilder.typeParameterFactory,
     );
+    for (SourceMemberBuilder memberBuilder in _memberBuilders) {
+      if (memberBuilder is SourceMethodBuilder) {
+        if (memberBuilder.isAbstract) {
+          libraryBuilder.addProblem(
+            diag.extensionDeclaresAbstractMember,
+            memberBuilder.fileOffset,
+            memberBuilder.name.length,
+            memberBuilder.fileUri,
+          );
+        }
+      } else if (memberBuilder is SourcePropertyBuilder) {
+        if (memberBuilder.declaresAbstractGetter) {
+          libraryBuilder.addProblem2(
+            diag.extensionDeclaresAbstractMember,
+            memberBuilder.getterUriOffset!,
+          );
+        }
+        if (memberBuilder.declaresAbstractSetter) {
+          libraryBuilder.addProblem2(
+            diag.extensionDeclaresAbstractMember,
+            memberBuilder.setterUriOffset!,
+          );
+        }
+      }
+    }
   }
 
   @override
@@ -195,38 +218,23 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
     return _extension;
   }
 
-  void _buildOutlineExpressionsForFragment(
-    ExtensionFragment fragment,
-    ClassHierarchy classHierarchy,
-    BodyBuilderContext bodyBuilderContext,
-  ) {
-    MetadataBuilder.buildAnnotations(
-      annotatable: extension,
-      annotatableFileUri: extension.fileUri,
-      metadata: fragment.metadata,
-      annotationsFileUri: fragment.fileUri,
-      bodyBuilderContext: bodyBuilderContext,
-      libraryBuilder: libraryBuilder,
-      extensionScope: fragment.enclosingCompilationUnit.extensionScope,
-      scope: fragment.enclosingScope,
-    );
-  }
-
   void buildOutlineExpressions(
     ClassHierarchy classHierarchy,
     List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
   ) {
     BodyBuilderContext bodyBuilderContext = _createBodyBuilderContext();
-    _buildOutlineExpressionsForFragment(
-      _introductory,
-      classHierarchy,
-      bodyBuilderContext,
+    _introductory.buildOutlineExpressions(
+      libraryBuilder: libraryBuilder,
+      extension: extension,
+      classHierarchy: classHierarchy,
+      bodyBuilderContext: bodyBuilderContext,
     );
-    for (ExtensionFragment augmentation in _augmentations) {
-      _buildOutlineExpressionsForFragment(
-        augmentation,
-        classHierarchy,
-        bodyBuilderContext,
+    for (ExtensionDeclaration augmentation in _augmentations) {
+      augmentation.buildOutlineExpressions(
+        libraryBuilder: libraryBuilder,
+        extension: extension,
+        classHierarchy: classHierarchy,
+        bodyBuilderContext: bodyBuilderContext,
       );
     }
 

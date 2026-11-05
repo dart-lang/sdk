@@ -24,7 +24,7 @@ class C { const C(); }
 library root;
 import 'lib1.dart' deferred as a;
 @a.C() main () {}
-// [diag.invalidAnnotationFromDeferredLibrary][column 2][length 3] Constant values from a deferred library can't be used as annotations.
+// [diag.constDeferredClass][column 2][length 3] Deferred classes can't be created with 'const'.
 ''');
   }
 
@@ -65,6 +65,19 @@ class C { const C.name(); }
 library root;
 import 'lib1.dart' deferred as a;
 @a.C.name() main () {}
+// [diag.constDeferredClass][column 2][length 8] Deferred classes can't be created with 'const'.
+''');
+  }
+
+  test_staticField() async {
+    newFile('$testPackageLibPath/lib1.dart', '''
+class C {
+  static const f = 0;
+}
+''');
+    await resolveTestCodeWithDiagnostics(r'''
+import 'lib1.dart' deferred as a;
+@a.C.f main () {}
 // [diag.invalidAnnotationFromDeferredLibrary][column 2][length 3] Constant values from a deferred library can't be used as annotations.
 ''');
   }

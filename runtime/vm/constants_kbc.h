@@ -209,6 +209,8 @@ namespace dart {
   V(FfiCall_Wide,                          D, WIDE, lit, ___, ___)             \
   V(RecordCoverage,                      A_E, ORDN, num, num, ___)             \
   V(RecordCoverage_Wide,                 A_E, WIDE, num, num, ___)             \
+  V(ResolveNativeFunction,                 D, ORDN, lit, ___, ___)             \
+  V(ResolveNativeFunction_Wide,            D, WIDE, lit, ___, ___)             \
 
   // These bytecodes are only generated within the VM. Reassigning their
   // opcodes is not a breaking change.

@@ -528,6 +528,65 @@ class C(var int x) {
 ''');
   }
 
+  Future<void> test_requiredPositional_simple_nonFinal_sameLine() async {
+    await resolveTestCode('''
+// Header.
+
+class C(int x) { int x; this : x = x; }
+''');
+    await assertHasFix('''
+// Header.
+
+class C(var int x) { }
+''');
+  }
+
+  Future<void>
+  test_requiredPositional_simple_nonFinal_surroundedByMembers() async {
+    await resolveTestCode('''
+class C(int x) {
+  static int count = 0;
+
+  int x;
+
+  this : x = x;
+
+  void f() {}
+}
+''');
+    await assertHasFix('''
+class C(var int x) {
+  static int count = 0;
+
+  void f() {}
+}
+''');
+  }
+
+  Future<void>
+  test_requiredPositional_simple_nonFinal_surroundedByMembers_multipleBlankLines() async {
+    await resolveTestCode('''
+class C(int x) {
+  static int count = 0;
+
+
+
+  int x;
+
+  this : x = x;
+
+  void f() {}
+}
+''');
+    await assertHasFix('''
+class C(var int x) {
+  static int count = 0;
+
+  void f() {}
+}
+''');
+  }
+
   Future<void> test_type_imported() async {
     await resolveTestCode('''
 import 'dart:core' as core;
@@ -682,7 +741,6 @@ enum E({int x = 0}) {
     await assertHasFix('''
 enum E({final int x = 0}) {
   a(x: 0);
-
 }
 ''');
   }
@@ -702,7 +760,6 @@ enum E({int x = 0}) {
     await assertHasFix('''
 enum E({final int _x = 0}) {
   a(x: 0);
-
 
   int get y => _x + 1;
 }
@@ -735,11 +792,9 @@ enum E([int x = 0]) {
   this : x = x;
 }
 ''');
-    // TODO(brianwilkerson): It would be nice to remove the extra blank line.
     await assertHasFix('''
 enum E([final int x = 0]) {
   a(0);
-
 }
 ''');
   }
@@ -759,7 +814,6 @@ enum E(int x) {
     await assertHasFix('''
 enum E(final int _x) {
   a(0);
-
 
   int get y => _x + 1;
 }
@@ -795,7 +849,6 @@ enum E({required int x}) {
     await assertHasFix('''
 enum E({required final int x}) {
   a(x: 0);
-
 }
 ''');
   }
@@ -829,7 +882,6 @@ enum E(int x) {
     await assertHasFix('''
 enum E(final int x) {
   a(0);
-
 }
 ''');
   }
@@ -847,9 +899,13 @@ enum E(int x) {
     await assertHasFix('''
 enum E(final int x) {
   a(0);
-
 }
 ''');
+  }
+
+  Future<void> test_requiredPositional_simple_firstLine() async {
+    await resolveTestCode('enum E(int x) { a(0); final int x; this : x = x; }');
+    await assertHasFix('enum E(final int x) { a(0); }');
   }
 
   Future<void> test_withInitializer_simple() async {
@@ -865,7 +921,6 @@ enum E(int x) {
     await assertHasFix('''
 enum E(final int x) {
   a(0);
-
 }
 ''');
   }

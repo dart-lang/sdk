@@ -450,6 +450,11 @@ library
   metadata
     Annotation
       atSign: @ @0
+      expression: UnqualifiedNameExpression
+        name: foo @1
+        resolution: InvalidNamedReadResolution
+          recoveryElement: <null>
+        staticType: InvalidType
       name: SimpleIdentifier
         token: foo @1
         element: <null>
@@ -463,6 +468,11 @@ library
           metadata
             Annotation
               atSign: @ @0
+              expression: UnqualifiedNameExpression
+                name: foo @1
+                resolution: InvalidNamedReadResolution
+                  recoveryElement: <null>
+                staticType: InvalidType
               name: SimpleIdentifier
                 token: foo @1
                 element: <null>
@@ -1087,6 +1097,13 @@ library
   metadata
     Annotation
       atSign: @ @0
+      expression: UnqualifiedNameExpression
+        name: a @1
+        resolution: GetterInvocationResolution
+          element: <testLibrary>::@getter::a
+          invokeType: int Function()
+          type: int
+        staticType: int
       name: SimpleIdentifier
         token: a @1
         element: <testLibrary>::@getter::a
@@ -1100,6 +1117,13 @@ library
           metadata
             Annotation
               atSign: @ @0
+              expression: UnqualifiedNameExpression
+                name: a @1
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::a
+                  invokeType: int Function()
+                  type: int
+                staticType: int
               name: SimpleIdentifier
                 token: a @1
                 element: <testLibrary>::@getter::a
@@ -1148,6 +1172,13 @@ library
   metadata
     Annotation
       atSign: @ @0
+      expression: UnqualifiedNameExpression
+        name: a @1
+        resolution: GetterInvocationResolution
+          element: <testLibrary>::@getter::a
+          invokeType: int Function()
+          type: int
+        staticType: int
       name: SimpleIdentifier
         token: a @1
         element: <testLibrary>::@getter::a
@@ -1161,6 +1192,13 @@ library
           metadata
             Annotation
               atSign: @ @0
+              expression: UnqualifiedNameExpression
+                name: a @1
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::a
+                  invokeType: int Function()
+                  type: int
+                staticType: int
               name: SimpleIdentifier
                 token: a @1
                 element: <testLibrary>::@getter::a

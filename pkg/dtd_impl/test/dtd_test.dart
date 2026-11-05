@@ -74,6 +74,54 @@ void main() {
     });
   });
 
+  group('Host and Origin security', () {
+    test('forbids connections with invalid Host header', () async {
+      dtd = await DartToolingDaemon.startService([]);
+      expect(
+        () async => await WebSocket.connect(
+          dtd!.uri!.toString(),
+          headers: {HttpHeaders.hostHeader: 'evil.example.com'},
+        ),
+        throwsA(
+          isA<WebSocketException>().having(
+            (e) => e.message,
+            'message',
+            contains('was not upgraded to websocket'),
+          ),
+        ),
+      );
+    });
+
+    test('forbids connections with invalid Origin header', () async {
+      dtd = await DartToolingDaemon.startService([]);
+      expect(
+        () async => await WebSocket.connect(
+          dtd!.uri!.toString(),
+          headers: {'Origin': 'http://evil.example.com'},
+        ),
+        throwsA(
+          isA<WebSocketException>().having(
+            (e) => e.message,
+            'message',
+            contains('was not upgraded to websocket'),
+          ),
+        ),
+      );
+    });
+
+    test(
+      'allows connections with legitimate Host and Origin headers',
+      () async {
+        dtd = await DartToolingDaemon.startService([]);
+        final ws = await WebSocket.connect(
+          dtd!.uri!.toString(),
+          headers: {'Origin': 'http://localhost'},
+        );
+        await ws.close();
+      },
+    );
+  });
+
   group('dtd', () {
     setUp(() async {
       dtd = await DartToolingDaemon.startService([]);

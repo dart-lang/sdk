@@ -12,6 +12,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/utilities/extensions/flutter.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -60,7 +61,7 @@ class FlutterConvertToStatelessWidget extends ResolvedCorrectionProducer {
     var stateClassElement = stateClass?.declaredFragment!.element;
     if (stateClass == null ||
         stateClassElement == null ||
-        !Identifier.isPrivateName(stateClass.namePart.typeName.lexeme) ||
+        !stateClass.namePart.typeName.lexeme.isPrivateName ||
         !_isSameTypeParameters(widgetClass, stateClass)) {
       return;
     }

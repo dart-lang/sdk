@@ -258,7 +258,7 @@ class InvocationVisitor extends RecursiveVisitor {
           arguments.positional[i],
           positionalParameters[i],
           node,
-          "/* ${positionalParameters[i].cosmeticName} = */",
+          "/* ${positionalParameters[i].parameterName} = */",
         );
       }
     }
@@ -396,6 +396,7 @@ class TestIncrementalCompiler extends IncrementalCompiler {
 
   @override
   IncrementalKernelTarget createIncrementalKernelTarget(
+    CompilerContext context,
     api.FileSystem fileSystem,
     bool includeComments,
     DillTarget dillTarget,
@@ -445,6 +446,7 @@ class TestSourceLoader extends SourceLoader {
     SourceCompilationUnit sourceCompilationUnit, {
     bool suppressLexicalErrors = false,
     bool allowLazyStrings = true,
+    bool onlyScanDirectives = false,
   }) async {
     Token result = await super.tokenize(
       sourceCompilationUnit,

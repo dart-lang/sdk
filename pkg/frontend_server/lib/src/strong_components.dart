@@ -8,6 +8,14 @@ import 'package:front_end/src/api_unstable/vm.dart' show FileSystem;
 import 'package:kernel/ast.dart';
 import 'package:kernel/util/graph.dart';
 
+/// Whether [library] has to be compiled to JavaScript.
+///
+/// Libraries in [loadedLibraries] were loaded from a dill file and are already
+/// compiled into an existing JavaScript library bundle, and libraries from the
+/// platform are provided by the Dart SDK JavaScript library bundle.
+bool shouldCompileToJavaScript(Library library, Set<Library> loadedLibraries) =>
+    !loadedLibraries.contains(library) && !library.importUri.isScheme('dart');
+
 /// Compute the strongly connected components for JavaScript compilation.
 ///
 /// Implements a Path-based strong component algorithm.
@@ -115,8 +123,10 @@ class _LibraryGraph implements Graph<Library> {
   Iterable<Library> neighborsOf(Library vertex) {
     return <Library>[
       for (LibraryDependency dependency in vertex.dependencies)
-        if (!loadedLibraries.contains(dependency.targetLibrary) &&
-            !dependency.targetLibrary.importUri.isScheme('dart'))
+        if (shouldCompileToJavaScript(
+          dependency.targetLibrary,
+          loadedLibraries,
+        ))
           _partialComponent == null
               ? dependency.targetLibrary
               : _partialComponent[dependency.targetLibrary.importUri] ??

@@ -5,7 +5,9 @@
 import 'package:cfg/ir/global_context.dart';
 import 'package:cfg/ir/instructions.dart';
 import 'package:cfg/ir/source_position.dart';
+import 'package:cfg/utils/bit_vector.dart';
 import 'package:kernel/ast.dart' as ast;
+import 'package:native_compiler/back_end/safepoint.dart';
 
 class ExceptionHandler._(
   final int index,
@@ -152,4 +154,86 @@ class CodeSourceMap {
       (sourcePositions.isEmpty &&
           other is CodeSourceMap &&
           other.sourcePositions.isEmpty);
+}
+
+class StackMap(
+  final int pcOffset,
+  // Number of slots at the beginning of the frame, described by this stack map.
+  final int prefixBits,
+  // Number of slots at the end of the frame, described by this stack map.
+  final int suffixBits,
+
+  // Bit vector of [prefixBits] + [suffixBits] length.
+  // Each set bit marks stack slot containing an object pointer.
+  // Slots are numbered in the direction of stack growth (down).
+  // Prefix bits correspond to the slots immediately following fixed frame.
+  // Suffix bits correspond to the slots at the end of the frame, up to the callee frame.
+  // All stack slots between prefix and suffix contain object pointers.
+  //
+  //  FP -> [fixed frame]
+  //        [slot for prefix bit 0]
+  //        ...
+  //        [slot for prefix bit (prefixBits-1)]
+  //        [object pointer]
+  //        ...
+  //        [object pointer]
+  //        [slot for suffix bit 0]
+  //        ...
+  //        [slot for suffix bit (suffixBits-1)]
+  //        [callee frame]
+  final BitVector bits,
+);
+
+/// Metadata describing stack maps at safepoints.
+class CompressedStackMaps {
+  final List<StackMap> stackMaps = [];
+
+  void add(int pcOffset, Safepoint safepoint, int frameSize) {
+    assert(stackMaps.isEmpty || stackMaps.last.pcOffset < pcOffset);
+
+    BitVector stackMap = safepoint.stackMap;
+    if (stackMap.capacity < frameSize) {
+      stackMap = stackMap.expand(frameSize);
+    }
+
+    // Find maximum span of 1 bits in the stack map to skip.
+    var gapPos = 0;
+    var gapLen = 0;
+    for (var i = 0; i < frameSize;) {
+      if (stackMap[i]) {
+        var len = 1;
+        while (i + len < frameSize && stackMap[i + len]) {
+          ++len;
+        }
+        if (len > gapLen) {
+          gapPos = i;
+          gapLen = len;
+        }
+        i += len;
+      } else {
+        ++i;
+      }
+    }
+    final prefixBits = gapPos;
+    final suffixBits = (frameSize - prefixBits - gapLen);
+    final bits = BitVector(prefixBits + suffixBits);
+    bits.setRange(0, prefixBits, stackMap, 0);
+    bits.setRange(
+      prefixBits,
+      prefixBits + suffixBits,
+      stackMap,
+      prefixBits + gapLen,
+    );
+    stackMaps.add(StackMap(pcOffset, prefixBits, suffixBits, bits));
+  }
+
+  @override
+  int get hashCode => stackMaps.isEmpty ? 37 : identityHashCode(this);
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (stackMaps.isEmpty &&
+          other is CompressedStackMaps &&
+          other.stackMaps.isEmpty);
 }

@@ -77,13 +77,21 @@ library;
 //   Map m1 = {...m1}; // Error
 //                ^
 //
+// pkg/front_end/testcases/coverage/from_co19/spread_StaticSemantic_A12_t05.dart:10:16: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+//   Map m1 = {...m1}; // Error
+//                ^
+//
 // pkg/front_end/testcases/coverage/from_co19/spread_StaticSemantic_A12_t05.dart:11:20: Error: Unexpected type 'invalid-type' of a map spread entry.  Expected 'dynamic' or a Map.
 //   Map m2 = {...{...m2}};  // Error
 //                    ^
 //
-// pkg/front_end/testcases/coverage/from_co19/spread_StaticSemantic_A12_t05.dart:12:12: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
+// pkg/front_end/testcases/coverage/from_co19/spread_StaticSemantic_A12_t05.dart:11:20: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+//   Map m2 = {...{...m2}};  // Error
+//                    ^
+//
+// pkg/front_end/testcases/coverage/from_co19/spread_StaticSemantic_A12_t05.dart:12:16: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
 //   Map m3 = {...{m3}}; // Error
-//            ^
+//                ^
 //
 // pkg/front_end/testcases/coverage/from_co19/spread_StaticSemantic_A12_t05.dart:13:17: Error: Unexpected type 'invalid-type' of a map spread entry.  Expected 'dynamic' or a Map.
 //   Map m4 = {...?m4}; // Error
@@ -93,35 +101,51 @@ library;
 //   Map m5 = {...{...?m5}}; // Error
 //                     ^
 //
-// pkg/front_end/testcases/coverage/from_co19/spread_StaticSemantic_A12_t05.dart:15:12: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
+// pkg/front_end/testcases/coverage/from_co19/spread_StaticSemantic_A12_t05.dart:15:16: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
 //   Map m6 = {...{?m6}}; // Error
-//            ^
+//                ^
 //
 import self as self;
 import "dart:core" as core;
 import "dart:collection" as col;
 
 static method foo() → void {
-  core::Map<dynamic, dynamic> m1 = <dynamic, dynamic>{invalid-expression "pkg/front_end/testcases/coverage/from_co19/spread_StaticSemantic_A12_t05.dart:10:16: Error: Unexpected type 'invalid-type' of a map spread entry.  Expected 'dynamic' or a Map.
+  core::Map<dynamic, dynamic> m1 = block {
+    final core::Map<dynamic, dynamic> #t1 = <dynamic, dynamic>{};
+    invalid-expression "pkg/front_end/testcases/coverage/from_co19/spread_StaticSemantic_A12_t05.dart:10:16: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
   Map m1 = {...m1}; // Error
-               ^": null};
-  core::Map<dynamic, dynamic> m2 = block {
-    final core::Map<dynamic, dynamic> #t1 = col::LinkedHashMap::of<dynamic, dynamic>(<dynamic, dynamic>{invalid-expression "pkg/front_end/testcases/coverage/from_co19/spread_StaticSemantic_A12_t05.dart:11:20: Error: Unexpected type 'invalid-type' of a map spread entry.  Expected 'dynamic' or a Map.
-  Map m2 = {...{...m2}};  // Error
-                   ^": null});
+               ^";
   } =>#t1;
-  core::Map<dynamic, dynamic> m3 = invalid-expression "pkg/front_end/testcases/coverage/from_co19/spread_StaticSemantic_A12_t05.dart:12:12: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
-  Map m3 = {...{m3}}; // Error
-           ^";
-  core::Map<dynamic, dynamic> m4 = <dynamic, dynamic>{invalid-expression "pkg/front_end/testcases/coverage/from_co19/spread_StaticSemantic_A12_t05.dart:13:17: Error: Unexpected type 'invalid-type' of a map spread entry.  Expected 'dynamic' or a Map.
-  Map m4 = {...?m4}; // Error
-                ^": null};
-  core::Map<dynamic, dynamic> m5 = block {
-    final core::Map<dynamic, dynamic> #t2 = col::LinkedHashMap::of<dynamic, dynamic>(<dynamic, dynamic>{invalid-expression "pkg/front_end/testcases/coverage/from_co19/spread_StaticSemantic_A12_t05.dart:14:21: Error: Unexpected type 'invalid-type' of a map spread entry.  Expected 'dynamic' or a Map.
-  Map m5 = {...{...?m5}}; // Error
-                    ^": null});
+  core::Map<dynamic, dynamic> m2 = block {
+    final core::Map<dynamic, dynamic> #t2 = col::LinkedHashMap::of<dynamic, dynamic>( block {
+      final core::Map<dynamic, dynamic> #t3 = <dynamic, dynamic>{};
+      invalid-expression "pkg/front_end/testcases/coverage/from_co19/spread_StaticSemantic_A12_t05.dart:11:20: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+  Map m2 = {...{...m2}};  // Error
+                   ^";
+    } =>#t3);
   } =>#t2;
-  core::Map<dynamic, dynamic> m6 = invalid-expression "pkg/front_end/testcases/coverage/from_co19/spread_StaticSemantic_A12_t05.dart:15:12: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
+  core::Map<dynamic, dynamic> m3 = block {
+    final core::Map<dynamic, dynamic> #t4 = col::LinkedHashMap::of<dynamic, dynamic>(invalid-expression "pkg/front_end/testcases/coverage/from_co19/spread_StaticSemantic_A12_t05.dart:12:16: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
+  Map m3 = {...{m3}}; // Error
+               ^");
+  } =>#t4;
+  core::Map<dynamic, dynamic> m4 = block {
+    final core::Map<dynamic, dynamic> #t5 = <dynamic, dynamic>{};
+    invalid-expression "pkg/front_end/testcases/coverage/from_co19/spread_StaticSemantic_A12_t05.dart:13:17: Error: Unexpected type 'invalid-type' of a map spread entry.  Expected 'dynamic' or a Map.
+  Map m4 = {...?m4}; // Error
+                ^";
+  } =>#t5;
+  core::Map<dynamic, dynamic> m5 = block {
+    final core::Map<dynamic, dynamic> #t6 = col::LinkedHashMap::of<dynamic, dynamic>( block {
+      final core::Map<dynamic, dynamic> #t7 = <dynamic, dynamic>{};
+      invalid-expression "pkg/front_end/testcases/coverage/from_co19/spread_StaticSemantic_A12_t05.dart:14:21: Error: Unexpected type 'invalid-type' of a map spread entry.  Expected 'dynamic' or a Map.
+  Map m5 = {...{...?m5}}; // Error
+                    ^";
+    } =>#t7);
+  } =>#t6;
+  core::Map<dynamic, dynamic> m6 = block {
+    final core::Map<dynamic, dynamic> #t8 = col::LinkedHashMap::of<dynamic, dynamic>(invalid-expression "pkg/front_end/testcases/coverage/from_co19/spread_StaticSemantic_A12_t05.dart:15:16: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
   Map m6 = {...{?m6}}; // Error
-           ^";
+               ^");
+  } =>#t8;
 }

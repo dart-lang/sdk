@@ -130,6 +130,7 @@ class IncrementalCompiler {
       classHierarchy: classHierarchy,
       coreTypes: coreTypes,
       neededDillLibraries: neededDillLibraries,
+      loadedComponents: _pendingDeltas.first.loadedComponents,
     );
     if (_pendingDeltas.length == 1) {
       // With only one delta to "merge" we can copy over the metadata.

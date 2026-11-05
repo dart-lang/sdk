@@ -762,6 +762,10 @@ void SemiSpace::WriteProtect(bool read_only) {
 }
 
 void SemiSpace::AddList(Page* head, Page* tail) {
+  for (Page* page = head; page != nullptr; page = page->next()) {
+    AddFree(page);
+  }
+
   if (head == nullptr) {
     return;
   }
@@ -772,6 +776,20 @@ void SemiSpace::AddList(Page* head, Page* tail) {
   }
   tail_->set_next(head);
   tail_ = tail;
+}
+
+// Avoid spending time looking through a list of small sizes.
+static constexpr intptr_t kMinTlabReuseSize = KB;
+
+void SemiSpace::AddFree(Page* page) {
+  ASSERT(page->free_next() == nullptr);
+  intptr_t available =
+      (page->end() - kAllocationRedZoneSize) - page->object_end();
+  if (available < kMinTlabReuseSize) {
+    return;
+  }
+  page->set_free_next(free_head_);
+  free_head_ = page;
 }
 
 // The initial estimate of how many words we can scavenge per microsecond (usage
@@ -1766,17 +1784,26 @@ void Scavenger::TryAllocateNewTLAB(Thread* thread,
   }
 
   MutexLocker ml(&space_lock_);
-  for (Page* page = to_->head(); page != nullptr; page = page->next()) {
-    if (page->owner() != nullptr) continue;
+  Page* prev = nullptr;
+  for (Page* page = to_->free_head(); page != nullptr;
+       page = page->free_next()) {
+    ASSERT(page->owner() == nullptr);
     intptr_t available =
         (page->end() - kAllocationRedZoneSize) - page->object_end();
     if (available >= min_size) {
+      if (prev == nullptr) {
+        to_->set_free_head(page->free_next());
+      } else {
+        prev->set_free_next(page->free_next());
+      }
+      page->set_free_next(nullptr);
       page->Acquire(thread);
 #if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
       thread->heap_sampler().HandleNewTLAB(remaining, /*is_first_tlab=*/false);
 #endif
       return;
     }
+    prev = page;
   }
 
   Page* page = to_->TryAllocatePageLocked(true);
@@ -1813,6 +1840,7 @@ intptr_t Scavenger::AbandonRemainingTLAB(Thread* thread) {
     }
     MutexLocker ml(&space_lock_);
     allocated = page->Release(thread);
+    to_->AddFree(page);
   }
   ASSERT(thread->top() == 0);
   return allocated;
@@ -1907,9 +1935,12 @@ void Scavenger::Scavenge(Thread* thread, GCType type, GCReason reason) {
     ReverseScavenge(&from);
     bytes_promoted = 0;
   } else {
-    if ((ThresholdInWords() - UsedInWords()) < 32 * KBInWords) {
-      // Don't scavenge again until the next old-space GC has occurred. Prevents
-      // performing one scavenge per allocation as the heap limit is approached.
+    if (failed_to_promote_ &&
+        ((ThresholdInWords() - UsedInWords()) < 32 * KBInWords)) {
+      // If we don't have much room in new-space, and this is because of
+      // promotion failure (not just a copy-everything scavenge), don't scavenge
+      // again until the next old-space GC has occurred. This avoids performing
+      // one scavenge per allocation as the heap limit is approached.
       heap_->assume_scavenge_will_fail_ = true;
     }
   }

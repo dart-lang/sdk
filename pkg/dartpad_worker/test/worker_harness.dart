@@ -10,10 +10,12 @@ import 'package:test/test.dart';
 
 import 'asset_server/asset_server_client.dart';
 
+export 'package:dartpad/src/worker_client.dart';
 export 'package:dartpad_worker/src/shared.dart';
 export 'package:test/test.dart' show fail, group, printOnFailure;
 
 export 'checks_ext.dart';
+export 'fake_sandboxed_iframe.dart';
 
 /// Function used by [testDartWorker] and [testDartWorkspace] to create a
 /// worker.
@@ -40,11 +42,12 @@ export 'checks_ext.dart';
 /// we also test with the DartPad worker running as a _Web Worker_ the
 /// `integration/test_worker_integration.dart` will override [createWorker] and
 /// run all the worker tests with the worker running in a _Web Worker_.
-Future<WorkerClient> Function(AssetServerClient server, Uri sdkLocation)
+Future<WorkerClient> Function(AssetServerClient server, String sdkPath)
 createWorker = (_, _) =>
     throw StateError('createWorker function must be defined!');
 
 AssetServerClient? _serverClient;
+AssetServerClient get serverClient => _serverClient!;
 
 /// Define a test that uses a [WorkerClient].
 void testDartWorker(
@@ -58,12 +61,12 @@ void testDartWorker(
       sc = _serverClient = await AssetServerClient.spawnHybrid(stayAlive: true);
     }
 
-    final worker = await createWorker(sc, Uri.parse('dart/'));
+    final worker = await createWorker(sc, 'dart');
 
     try {
       await body(worker);
     } finally {
-      await worker.dispose();
+      await worker.close();
     }
   });
 }
@@ -87,7 +90,7 @@ void testDartWorkspace(
     try {
       await body(ws);
     } finally {
-      await ws.dispose();
+      await ws.close();
     }
   });
 }
@@ -113,12 +116,12 @@ void testFlutterWorker(
       return;
     }
 
-    final worker = await createWorker(sc, Uri.parse('flutter/'));
+    final worker = await createWorker(sc, 'flutter');
 
     try {
       await body(worker);
     } finally {
-      await worker.dispose();
+      await worker.close();
     }
   });
 }
@@ -145,7 +148,7 @@ void testFlutterWorkspace(
     try {
       await body(ws);
     } finally {
-      await ws.dispose();
+      await ws.close();
     }
   });
 }

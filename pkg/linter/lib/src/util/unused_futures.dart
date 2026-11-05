@@ -1,10 +1,10 @@
 // Copyright (c) 2025, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 
 import '../extensions.dart';
@@ -12,6 +12,7 @@ import '../extensions.dart';
 /// A function that returns whether a given [Expression] is "interesting," and
 /// should be considered for a lint report.
 typedef IsInterestingFilter = bool Function(Expression node);
+typedef Reporter = void Function(AstNode node, DartType type);
 
 /// A shared visitor for the `discarded_futures` and `unawaited_futures` lint
 /// rules.
@@ -20,7 +21,7 @@ typedef IsInterestingFilter = bool Function(Expression node);
 /// predicates (`discarded_futures` is concerned with _synchronous_ functions;
 /// `unawaited_futures` is concerned with _asynchronous_ functions).
 class UnusedFuturesVisitor extends SimpleAstVisitor<void> {
-  final AnalysisRule _rule;
+  final Reporter _reportAt;
 
   /// Returns whether an [Expression] is "interesting," that is, whether we
   /// might report on it.
@@ -29,7 +30,7 @@ class UnusedFuturesVisitor extends SimpleAstVisitor<void> {
   final TypeProvider _typeProvider;
 
   new({
-    required this._rule,
+    required this._reportAt,
     required this._isInteresting,
     required this._typeProvider,
   });
@@ -48,6 +49,8 @@ class UnusedFuturesVisitor extends SimpleAstVisitor<void> {
     if (expr is AssignmentExpression) return;
     if (expr is AwaitExpression) return;
 
+    var type = expr.staticType;
+    if (type == null || !_relevantType(type)) return;
     if (!_isInteresting(expr)) return;
     if (expr.isAwaitNotRequired) return;
 
@@ -57,7 +60,7 @@ class UnusedFuturesVisitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    _reportOnExpression(expr);
+    _reportOnExpression(expr, type);
   }
 
   @override
@@ -82,15 +85,19 @@ class UnusedFuturesVisitor extends SimpleAstVisitor<void> {
       expr.methodName.name == 'putIfAbsent' &&
       _isMapClass(expr.methodName.element?.enclosingElement);
 
-  void _reportOnExpression(Expression expr) {
-    _rule.reportAtNode(switch (expr) {
+  bool _relevantType(DartType type) =>
+      type.asInstanceOf(_typeProvider.futureElement) != null ||
+      type.asInstanceOf(_typeProvider.futureOrElement) != null;
+
+  void _reportOnExpression(Expression expr, DartType type) {
+    _reportAt(switch (expr) {
       MethodInvocation(:var methodName) => methodName,
       InstanceCreationExpression(:var constructorName) => constructorName,
       FunctionExpressionInvocation(:var function) => function,
       PrefixedIdentifier(:var identifier) => identifier,
       PropertyAccess(:var propertyName) => propertyName,
       _ => expr,
-    });
+    }, type);
   }
 
   void _visit(Expression expr) {
@@ -100,11 +107,10 @@ class UnusedFuturesVisitor extends SimpleAstVisitor<void> {
 
     var type = expr.staticType;
     if (type != null &&
-        (type.asInstanceOf(_typeProvider.futureElement) != null ||
-            type.asInstanceOf(_typeProvider.futureOrElement) != null) &&
+        _relevantType(type) &&
         _isInteresting(expr) &&
         expr is! AssignmentExpression) {
-      _reportOnExpression(expr);
+      _reportOnExpression(expr, type);
     }
   }
 }

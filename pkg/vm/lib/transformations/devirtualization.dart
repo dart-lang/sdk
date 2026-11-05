@@ -40,11 +40,12 @@ abstract class Devirtualization extends RecursiveVisitor {
   /// Toggles tracing (useful for debugging).
   static const _trace = const bool.fromEnvironment('trace.devirtualization');
 
+  final CoreTypes coreTypes;
   final DirectCallMetadataRepository _metadata;
   final Set<Name> _objectMemberNames;
 
   Devirtualization(
-    CoreTypes coreTypes,
+    this.coreTypes,
     Component component,
     ClassHierarchy hierarchy,
   ) : _metadata = new DirectCallMetadataRepository(),
@@ -247,6 +248,8 @@ class CHADevirtualization extends Devirtualization {
     if (singleTarget == null) {
       return null;
     }
-    return DirectCallMetadata.targetMember(singleTarget, true);
+    final bool checkReceiverForNull =
+        singleTarget.enclosingClass != coreTypes.objectClass;
+    return DirectCallMetadata.targetMember(singleTarget, checkReceiverForNull);
   }
 }

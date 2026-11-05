@@ -16,7 +16,7 @@ test(
   int stderrBlockSize,
   int exitCode, [
   int? nonWindowsExitCode,
-]) {
+]) async {
   // Get the Dart script file that generates output.
   var scriptFile = new File(
     Platform.script.resolve("process_sync_script.dart").toFilePath(),
@@ -43,30 +43,29 @@ test(
       Expect.equals(nonWindowsExitCode, syncResult.exitCode);
     }
   }
-  Process.run(Platform.executable, args).then((asyncResult) {
-    Expect.equals(syncResult.stdout, asyncResult.stdout);
-    Expect.equals(syncResult.stderr, asyncResult.stderr);
-    Expect.equals(syncResult.exitCode, asyncResult.exitCode);
-  });
+  var asyncResult = await Process.run(Platform.executable, args);
+  Expect.equals(syncResult.stdout, asyncResult.stdout);
+  Expect.equals(syncResult.stderr, asyncResult.stderr);
+  Expect.equals(syncResult.exitCode, asyncResult.exitCode);
 }
 
-main() {
-  test(10, 10, 10, 0);
-  test(10, 100, 10, 0);
-  test(10, 10, 100, 0);
-  test(100, 1, 10, 0);
-  test(100, 10, 1, 0);
-  test(100, 1, 1, 0);
-  test(1, 100000, 100000, 0);
+main() async {
+  await test(10, 10, 10, 0);
+  await test(10, 100, 10, 0);
+  await test(10, 10, 100, 0);
+  await test(100, 1, 10, 0);
+  await test(100, 10, 1, 0);
+  await test(100, 1, 1, 0);
+  await test(1, 100000, 100000, 0);
 
   // The buffer size used in process.h.
   var kBufferSize = 16 * 1024;
-  test(1, kBufferSize, kBufferSize, 0);
-  test(1, kBufferSize - 1, kBufferSize - 1, 0);
-  test(1, kBufferSize + 1, kBufferSize + 1, 0);
+  await test(1, kBufferSize, kBufferSize, 0);
+  await test(1, kBufferSize - 1, kBufferSize - 1, 0);
+  await test(1, kBufferSize + 1, kBufferSize + 1, 0);
 
-  test(10, 10, 10, 1);
-  test(10, 10, 10, 255);
-  test(10, 10, 10, -1, 255);
-  test(10, 10, 10, -255, 1);
+  await test(10, 10, 10, 1);
+  await test(10, 10, 10, 255);
+  await test(10, 10, 10, -1, 255);
+  await test(10, 10, 10, -255, 1);
 }

@@ -17,13 +17,10 @@ void main() {
   // Web Worker. This is not as easy to debug as the default [createWorker]
   // implementation, but it ensures that we exercise all the worker tests with
   // the worker actually in a Web Worker.
-  createWorker = (server, sdkLocation) async {
+  createWorker = (server, sdkPath) async {
     printOnFailure('creating dartpad');
-    return await DartPad.create(
-      assetBaseUrl: server.assetUrl,
-      sdkLocation: sdkLocation,
-      pubHostedUrl: server.baseUrl,
-    );
+    final sdk = DartPadSdk(assetBaseUrl: server.baseUrl.resolve('$sdkPath/'));
+    return await sdk.dedicatedWorker(pubHostedUrl: server.baseUrl);
   };
 
   final testFiles = [

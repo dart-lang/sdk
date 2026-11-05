@@ -359,10 +359,6 @@ if (argsSplit != -1) {
   self.clearInterval = cancelTimer;
   self.queueMicrotask = addTask;
 
-  // Constructor function for JS `Response` objects, allows us to test for it
-  // via `instanceof`.
-  self.Response = function () { }
-
   self.location = {}
   if (args[wasmArg].startsWith('/')) {
     self.location.href = 'file://' + args[wasmArg];
@@ -408,11 +404,9 @@ const main = async () => {
   const wasmFilename = args[wasmArg];
   const wasmDirectory = wasmFilename.slice(0, wasmFilename.lastIndexOf('/'));
 
-  globalThis.loadDeferredModules = async (modules, handleWasmBytes) => {
-    return Promise.all(modules.map((m) =>
-      Promise.resolve(readBytes(`${wasmDirectory}/${m}`))
-        .then((b) => handleWasmBytes(m, b))));
-  };
+  globalThis.loadDeferredModules = (modules, handleWasmBytes) =>
+    Promise.all(modules.map((m) =>
+      handleWasmBytes(m, readBytes(`${wasmDirectory}/${m}`))));
 
   const compiledApp = await dart2wasm.compile(readBytes(wasmFilename));
   const appInstance = await compiledApp.instantiate(importObject, {

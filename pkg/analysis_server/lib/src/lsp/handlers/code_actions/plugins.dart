@@ -122,6 +122,8 @@ class PluginCodeActionsProducer extends AbstractCodeActionsProducer {
       fixes.error,
       supportedTags: callerSupportedDiagnosticTags,
       clientSupportsCodeDescription: callerSupportsCodeDescription,
+      // Only supported for publishDiagnostcs, not code actions.
+      clientSupportsDiagnosticData: false,
     );
     return fixes.fixes.map((fix) {
       var kind = toCodeActionKind(fix.change.id, CodeActionKind.QuickFix);

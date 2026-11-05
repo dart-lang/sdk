@@ -17,6 +17,9 @@ void main() {
 @reflectiveTest
 class AddRequiredKeywordTest extends FixProcessorTest {
   @override
+  bool get addMetaPackageDep => true;
+
+  @override
   FixKind get kind => DartFixKind.addRequired;
 
   Future<void> test_nonNullable() async {
@@ -85,8 +88,6 @@ class D extends C {
   }
 
   Future<void> test_withRequiredAnnotation() async {
-    writeTestPackageConfig(meta: true);
-
     await resolveTestCode('''
 import 'package:meta/meta.dart';
 
@@ -102,8 +103,6 @@ void function({required String param}) {}
   }
 
   Future<void> test_withRequiredAnnotation_constructor() async {
-    writeTestPackageConfig(meta: true);
-
     await resolveTestCode('''
 import 'package:meta/meta.dart';
 
@@ -125,8 +124,6 @@ class A {
   }
 
   Future<void> test_withRequiredAnnotation_functionParam() async {
-    writeTestPackageConfig(meta: true);
-
     await resolveTestCode('''
 import 'package:meta/meta.dart';
 
@@ -142,8 +139,6 @@ void f({required int g(String)}) { }
   }
 
   Future<void> test_withRequiredAnnotationInList_first() async {
-    writeTestPackageConfig(meta: true);
-
     await resolveTestCode('''
 import 'package:meta/meta.dart';
 
@@ -171,8 +166,6 @@ void function({@foo required String param}) {}
   }
 
   Future<void> test_withRequiredAnnotationInList_last() async {
-    writeTestPackageConfig(meta: true);
-
     await resolveTestCode('''
 import 'package:meta/meta.dart';
 
@@ -200,8 +193,6 @@ void function({@foo required String param}) {}
   }
 
   Future<void> test_withRequiredAnnotationWithReason() async {
-    writeTestPackageConfig(meta: true);
-
     await resolveTestCode('''
 import 'package:meta/meta.dart';
 

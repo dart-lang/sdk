@@ -49,7 +49,7 @@ class SuperConstructorResolver {
           invokesDefaultSuperConstructor = false;
         } else if (initializer is SuperConstructorInvocation) {
           invokesDefaultSuperConstructor = false;
-          var name = initializer.constructorName?.name ?? 'new';
+          var name = initializer.constructorSelector?.name2.lexeme ?? 'new';
           element.superConstructor = interfaceElement.supertype
               ?.getNamedConstructor(name);
         }

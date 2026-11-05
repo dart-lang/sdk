@@ -38,6 +38,7 @@ import '../../source/source_member_builder.dart';
 import '../../source/source_type_parameter_builder.dart';
 import '../../source/stack_listener_impl.dart' show AsyncModifier;
 import '../../source/type_parameter_factory.dart';
+import '../../type_inference/context_allocation_strategy.dart';
 import '../../type_inference/type_inferrer.dart';
 import '../../type_inference/type_schema.dart';
 
@@ -55,7 +56,7 @@ class FactoryEncoding implements InferredTypeListener {
 
   DelayedDefaultValueCloner? _delayedDefaultValueCloner;
 
-  List<DartType>? _redirectionTypeArguments;
+  DartTypeList? _redirectionTypeArguments;
 
   FreshTypeParameters? _tearOffTypeParameters;
 
@@ -79,12 +80,12 @@ class FactoryEncoding implements InferredTypeListener {
     _procedure.function.returnType = type;
   }
 
-  List<DartType>? get redirectionTypeArguments {
+  DartTypeList? get redirectionTypeArguments {
     assert(_redirectionTarget != null);
     return _redirectionTypeArguments;
   }
 
-  void set redirectionTypeArguments(List<DartType>? value) {
+  void set redirectionTypeArguments(DartTypeList? value) {
     assert(_redirectionTarget != null);
     _redirectionTypeArguments = value;
   }
@@ -140,6 +141,9 @@ class FactoryEncoding implements InferredTypeListener {
         !_fragment.modifiers.isAbstract &&
         !_fragment.modifiers.isExternal) {
       _procedure.function.registerFunctionBody(extern.createEmptyStatement());
+      // TODO(cstefantsova): Verify that null should be passed for
+      //  scopeProviderInfo in the call below.
+      _procedure.function.registerScopeProviderInfo(null);
     }
     buildTypeParametersAndFormals(
       libraryBuilder,
@@ -167,13 +171,12 @@ class FactoryEncoding implements InferredTypeListener {
 
     if (_redirectionTarget != null) {
       if (_redirectionTarget.typeArguments != null) {
-        redirectionTypeArguments = new List<DartType>.generate(
+        redirectionTypeArguments = new DartTypeList.generate(
           _redirectionTarget.typeArguments!.length,
           (int i) => _redirectionTarget.typeArguments![i].build(
             libraryBuilder,
             TypeUse.redirectionTypeArgument,
           ),
-          growable: false,
         );
       }
       if (_tearOff != null) {
@@ -236,7 +239,7 @@ class FactoryEncoding implements InferredTypeListener {
       // The error is reported elsewhere.
       return;
     }
-    List<DartType>? typeArguments = redirectingFactoryTarget.typeArguments;
+    DartTypeList? typeArguments = redirectingFactoryTarget.typeArguments;
     Member? target = redirectingFactoryTarget.target;
     if (typeArguments != null && typeArguments.any((t) => t is UnknownType)) {
       TypeInferrer inferrer = libraryBuilder.loader.typeInferenceEngine
@@ -290,10 +293,8 @@ class FactoryEncoding implements InferredTypeListener {
           ),
         );
         // Use 'dynamic' for recovery.
-        typeArguments = new List<DartType>.filled(
+        typeArguments = new DartTypeList.filledWithDynamic(
           declarationBuilder.typeParametersCount,
-          const DynamicType(),
-          growable: true,
         );
       }
 
@@ -304,10 +305,14 @@ class FactoryEncoding implements InferredTypeListener {
           _procedure.function,
         ),
       );
+      // TODO(cstefantsova): Verify that null should be passed for
+      //  scopeProviderInfo in the call below.
+      _procedure.function.registerScopeProviderInfo(null);
       _procedure.function.redirectingFactoryTarget =
           new RedirectingFactoryTarget(target, typeArguments);
     }
 
+    List<DartType>? tearOffTypeArguments = typeArguments;
     Set<Procedure> seenTargets = {};
     while (target is Procedure && target.isRedirectingFactory) {
       if (!seenTargets.add(target)) {
@@ -317,17 +322,17 @@ class FactoryEncoding implements InferredTypeListener {
       }
       RedirectingFactoryTarget redirectingFactoryTarget =
           target.function.redirectingFactoryTarget!;
-      if (typeArguments != null) {
+      if (tearOffTypeArguments != null) {
         Substitution substitution = Substitution.fromPairs(
           target.function.typeParameters,
-          typeArguments,
+          tearOffTypeArguments,
         );
-        typeArguments = redirectingFactoryTarget.typeArguments
+        tearOffTypeArguments = redirectingFactoryTarget.typeArguments
             ?.map(substitution.substituteType)
             .toList();
       } else {
         // Coverage-ignore-block(suite): Not run.
-        typeArguments = redirectingFactoryTarget.typeArguments;
+        tearOffTypeArguments = redirectingFactoryTarget.typeArguments;
       }
       target = redirectingFactoryTarget.target;
     }
@@ -336,13 +341,13 @@ class FactoryEncoding implements InferredTypeListener {
         target is Procedure &&
             (target.isFactory || target.isExtensionTypeMember)) {
       // Coverage-ignore(suite): Not run.
-      typeArguments ??= [];
+      tearOffTypeArguments ??= [];
       if (_tearOff != null) {
         delayedDefaultValueCloners.add(
           buildRedirectingFactoryTearOffBody(
             _tearOff,
             target!,
-            typeArguments,
+            tearOffTypeArguments,
             _tearOffTypeParameters!,
             libraryBuilder,
           ),
@@ -457,7 +462,7 @@ class FactoryEncoding implements InferredTypeListener {
         targetNode = null;
       }
       if (targetNode != null) {
-        List<DartType>? typeArguments = redirectionTypeArguments;
+        DartTypeList? typeArguments = redirectionTypeArguments;
         if (typeArguments == null) {
           int typeArgumentCount;
           if (targetBuilder!.isExtensionTypeMember) {
@@ -469,7 +474,7 @@ class FactoryEncoding implements InferredTypeListener {
             typeArgumentCount =
                 targetNode.enclosingClass!.typeParameters.length;
           }
-          typeArguments = new List<DartType>.filled(
+          typeArguments = new DartTypeList.filled(
             typeArgumentCount,
             const UnknownType(),
           );
@@ -486,7 +491,7 @@ class FactoryEncoding implements InferredTypeListener {
   void _setRedirectingFactoryBody({
     required SourceLibraryBuilder libraryBuilder,
     required Member target,
-    required List<DartType> typeArguments,
+    required DartTypeList typeArguments,
   }) {
     if (_procedure.function.body != null) {
       unexpected(
@@ -510,6 +515,9 @@ class FactoryEncoding implements InferredTypeListener {
     _procedure.function.registerFunctionBody(
       createRedirectingFactoryBody(target, typeArguments, _procedure.function),
     );
+    // TODO(cstefantsova): Verify that null should be passed for
+    //  scopeProviderInfo in the call below.
+    _procedure.function.registerScopeProviderInfo(null);
     _procedure.function.redirectingFactoryTarget = new RedirectingFactoryTarget(
       target,
       typeArguments,
@@ -536,13 +544,13 @@ class FactoryEncoding implements InferredTypeListener {
   void _setRedirectingFactoryError({required String message}) {
     assert(_redirectionTarget != null);
 
+    // TODO(cstefantsova): Verify that null should be passed for
+    //  scopeProviderInfo in the call below.
     registerFunctionBody(
       body: createRedirectingFactoryErrorBody(message),
-      // TODO(cstefantsova): Pass a scope here.
-      scope: null,
       asyncModifier: AsyncModifier.implicitSync,
       emittedValueType: null,
-      thisVariable: null,
+      scopeProviderInfo: null,
     );
     _procedure.function.redirectingFactoryTarget =
         new RedirectingFactoryTarget.error(message);
@@ -550,6 +558,9 @@ class FactoryEncoding implements InferredTypeListener {
       _tearOff.function.registerFunctionBody(
         createRedirectingFactoryErrorBody(message),
       );
+      // TODO(cstefantsova): Verify that null should be passed for
+      //  scopeProviderInfo in the call below.
+      _tearOff.function.registerScopeProviderInfo(null);
     }
   }
 
@@ -834,10 +845,9 @@ class FactoryEncoding implements InferredTypeListener {
 
   void registerFunctionBody({
     required Statement? body,
-    required Scope? scope,
     required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
-    required ThisVariable? thisVariable,
+    required ScopeProviderInfo? scopeProviderInfo,
   }) {
     assert(
       asyncModifier.kind == AsyncMarker.Sync,
@@ -854,10 +864,7 @@ class FactoryEncoding implements InferredTypeListener {
         emittedValueType: emittedValueType,
       );
     }
-    _procedure.function.scope = scope;
-    _procedure.function.thisVariable =
-        // Coverage-ignore(suite): Not run.
-        thisVariable?..parent = _procedure.function;
+    _procedure.function.registerScopeProviderInfo(scopeProviderInfo);
   }
 
   void becomeNative(SourceLoader loader) {

@@ -10,7 +10,6 @@ import self as self;
 import "dart:core" as core;
 
 static method test(dynamic o) → dynamic {
-  #L1:
   {
     final synthesized dynamic #0#0 = o;
     final const synthesized core::int #0#3 = #C1;

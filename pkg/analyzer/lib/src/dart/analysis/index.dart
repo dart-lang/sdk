@@ -40,16 +40,21 @@ Element? declaredNamedArgumentParameter(
     }).firstOrNull;
   }
 
-  var argumentList = namedArgument.parent;
+  var argumentList = namedArgument.parent2;
   if (argumentList is ArgumentList) {
-    var invocation = argumentList.parent;
-    if (invocation is InstanceCreationExpression) {
-      return namedParameterElement(invocation.constructorName.element);
-    } else if (invocation is MethodInvocation) {
-      var executable = invocation.methodName.element;
-      if (executable is ExecutableElement) {
-        return namedParameterElement(executable);
-      }
+    var invocation = argumentList.parent2;
+    if (invocation is ConstructorInvocation) {
+      return namedParameterElement(invocation.constructorReference.element);
+    } else if (invocation is NamedFunctionInvocation) {
+      var executable = switch (invocation.resolution) {
+        ExecutableInvocationResolution(:var element) => element,
+        InvalidInvocationResolution(
+          recovery: ExecutableInvocationResolution(:var element),
+        ) =>
+          element,
+        _ => null,
+      };
+      return namedParameterElement(executable);
     } else if (invocation is RedirectingConstructorInvocation) {
       return namedParameterElement(invocation.element);
     } else if (invocation is SuperConstructorInvocation) {
@@ -200,9 +205,6 @@ class _ElementInfo {
   /// The kind of the element.
   final IndexSyntheticElementKind kind;
 
-  /// The prefixes used to reference the element.
-  final Set<String> importPrefixes = {};
-
   /// The unique id of the element.  It is set after indexing of the whole
   /// package is done and we are assembling the full package index.
   late int id;
@@ -325,24 +327,6 @@ class _IndexAssembler {
     nameRelations.add(_NameRelationInfo(nameId, kind, offset, isQualified));
   }
 
-  /// Adds a prefix (or empty string for unprefixed) for an element.
-  void addPrefixForElement(Element element, {PrefixElement? prefix}) {
-    if (element is MultiplyDefinedElementImpl ||
-        // TODO(brianwilkerson): The last two conditions are here because the
-        //  elements for `dynamic` and `Never` are singletons and hence don't have
-        //  a parent element for which we can find an `_ElementInfo`. This means
-        //  that any reference to either type via a prefix can't be stored in the
-        //  index. The solution is to make those elements be normal (not unique)
-        //  elements.
-        element is DynamicElementImpl ||
-        element is NeverElementImpl) {
-      return;
-    }
-
-    _ElementInfo elementInfo = _getElementInfo(element);
-    elementInfo.importPrefixes.add(prefix?.name ?? '');
-  }
-
   void addSubtype(String name, List<String> members, List<String> supertypes) {
     for (var supertype in supertypes) {
       subtypes.add(
@@ -357,7 +341,7 @@ class _IndexAssembler {
 
   /// Index the [unit] and assemble a new [AnalysisDriverUnitIndexBuilder].
   AnalysisDriverUnitIndexBuilder assemble(CompilationUnit unit) {
-    unit.accept(_IndexContributor(this, unit));
+    unit.accept2(_IndexContributor(this, unit));
 
     // Sort strings and set IDs.
     List<_StringInfo> stringInfoList = stringMap.values.toList(growable: false);
@@ -411,9 +395,6 @@ class _IndexAssembler {
           .map((s) => s.id)
           .toList(growable: false),
       unitUnitPaths: unitUnitPaths.map((s) => s.id).toList(growable: false),
-      elementImportPrefixes: elementInfoList
-          .map((e) => e.importPrefixes.toList(growable: false).join(','))
-          .toList(growable: false),
       elementKinds: elementInfoList.map((e) => e.kind).toList(growable: false),
       elementUnits: elementInfoList
           .map((e) => e.unitId)
@@ -540,7 +521,7 @@ class _IndexAssembler {
 }
 
 /// Visits a resolved AST and adds relationships into the [assembler].
-class _IndexContributor extends GeneralizingAstVisitor {
+class _IndexContributor extends UnifyingAstVisitor2 {
   final _IndexAssembler assembler;
   final CompilationUnit unit;
 
@@ -551,15 +532,6 @@ class _IndexContributor extends GeneralizingAstVisitor {
       _findAnalyzerDiagnosticLibrary();
 
   _IndexContributor(this.assembler, this.unit);
-
-  /// Record that the name [node] has a relation of the given [kind].
-  void recordNameRelation(
-    SimpleIdentifier node,
-    IndexRelationKind kind,
-    bool isQualified,
-  ) {
-    assembler.addNameRelation(node.name, kind, node.offset, isQualified);
-  }
 
   /// Record reference to the given operator [Element].
   void recordOperatorReference(Token operator, Element? element) {
@@ -666,57 +638,6 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
-  void visitAnnotation(Annotation node) {
-    if (node.element case ConstructorElement element) {
-      var baseElement = _getActualConstructorElement(element.baseElement);
-      if (node.constructorName case var constructorName?) {
-        var offset = node.period!.offset;
-        recordRelationOffset(
-          baseElement,
-          IndexRelationKind.IS_INVOKED_BY,
-          offset,
-          constructorName.end - offset,
-          true,
-        );
-      } else if (node.name case PrefixedIdentifier(
-        :var period,
-        identifier: SimpleIdentifier(element: ConstructorElement()),
-      )) {
-        recordRelationOffset(
-          baseElement,
-          IndexRelationKind.IS_INVOKED_BY,
-          period.offset,
-          node.name.end - period.offset,
-          true,
-        );
-      } else {
-        var offset = node.typeArguments?.end ?? node.name.end;
-        recordRelationOffset(
-          baseElement,
-          IndexRelationKind.IS_INVOKED_BY,
-          offset,
-          0,
-          true,
-        );
-      }
-
-      if (node.name case PrefixedIdentifier(
-        prefix: var prefix,
-        identifier: SimpleIdentifier(element: ConstructorElement()),
-      )) {
-        prefix.accept(this);
-      } else {
-        node.name.accept(this);
-      }
-      node.typeArguments?.accept(this);
-      node.arguments?.accept(this);
-      return;
-    }
-
-    super.visitAnnotation(node);
-  }
-
-  @override
   void visitAssignedVariablePattern(AssignedVariablePattern node) {
     recordRelation(
       node.element,
@@ -728,15 +649,14 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
-  void visitAssignmentExpression(AssignmentExpression node) {
+  void visitBinaryOperatorInvocation(BinaryOperatorInvocation node) {
     recordOperatorReference(node.operator, node.element);
-    super.visitAssignmentExpression(node);
+    super.visitBinaryOperatorInvocation(node);
   }
 
   @override
-  void visitBinaryExpression(BinaryExpression node) {
-    recordOperatorReference(node.operator, node.element);
-    super.visitBinaryExpression(node);
+  void visitCascadeIndexExpression(CascadeIndexExpression node) {
+    _visitIndexExpression2(node);
   }
 
   @override
@@ -783,52 +703,87 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitCommentReference(CommentReference node) {
-    var expression = node.expression;
-    if (expression is Identifier) {
-      var element = expression.element;
-      if (element is ConstructorElement) {
-        if (expression is PrefixedIdentifier) {
-          var offset = expression.prefix.end;
-          var length = expression.end - offset;
-          recordRelationOffset(
-            element,
-            IndexRelationKind.IS_REFERENCED_BY,
-            offset,
-            length,
-            true,
-          );
-          return;
-        } else {
-          var offset = expression.end;
-          recordRelationOffset(
-            element,
-            IndexRelationKind.IS_REFERENCED_BY,
-            offset,
-            0,
-            true,
-          );
-          return;
-        }
-      }
-    } else if (expression is PropertyAccess) {
-      // Nothing to do?
-    } else {
-      throw UnimplementedError(
-        'Unhandled CommentReference expression type: '
-        '${expression.runtimeType}',
-      );
-    }
+  void visitCombinatorName(CombinatorName node) {
+    recordRelation(
+      node.element,
+      IndexRelationKind.IS_REFERENCED_BY,
+      node,
+      true,
+    );
+    recordRelation(
+      node.setterElement,
+      IndexRelationKind.IS_REFERENCED_BY,
+      node,
+      true,
+    );
+  }
 
-    return super.visitCommentReference(node);
+  @override
+  void visitCommentReferenceComponent(CommentReferenceComponent node) {
+    var isQualified = node.period != null;
+    switch (node.element) {
+      case null:
+        assembler.addNameRelation(
+          node.name.lexeme,
+          IndexRelationKind.IS_READ_BY,
+          node.name.offset,
+          isQualified,
+        );
+      case ConstructorElement element:
+        recordRelationToken(
+          element,
+          IndexRelationKind.IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE,
+          node.name,
+          isQualified: isQualified,
+        );
+      case var element:
+        recordRelationToken(
+          element,
+          IndexRelationKind.IS_REFERENCED_BY,
+          node.name,
+          isQualified: isQualified,
+        );
+    }
+  }
+
+  @override
+  void visitCompoundAssignment(CompoundAssignment node) {
+    recordOperatorReference(node.operator, node.element);
+    switch (node.target as AssignmentTargetImpl) {
+      case PropertyAssignmentTargetImpl target:
+        _recordNamedPropertyReadWriteTarget(target);
+      case IndexAssignmentTargetImpl target:
+        _recordIndexReadWriteTarget(target);
+      case ParsedAssignmentTargetImpl():
+        throw StateError('Parsed assignment target was not lowered');
+      case InvalidExtensionOverrideAssignmentTargetImpl():
+      case InvalidSuperAssignmentTargetImpl():
+      case InvalidExpressionAssignmentTargetImpl():
+      case ImportPrefixedAssignmentTargetImpl():
+        break;
+      case UnqualifiedNameAssignmentTargetImpl target:
+        _recordUnqualifiedNameReadWriteTarget(target);
+    }
+    super.visitCompoundAssignment(node);
   }
 
   @override
   visitConstructorDeclaration(covariant ConstructorDeclarationImpl node) {
+    // TODO(fshcheglov): Consider removing the index entry.
+    var element = node.declaredFragment!.element;
+    if (node.typeName2 case var typeName?
+        when typeName.lexeme == element.enclosingElement.name) {
+      recordRelation(
+        element.enclosingElement,
+        IndexRelationKind.IS_REFERENCED_BY,
+        typeName,
+        false,
+      );
+    }
+
     // If the constructor does not have an explicit `super` constructor
     // invocation, it implicitly invokes the unnamed constructor.
     if (node.initializers.none((e) => e is SuperConstructorInvocation)) {
-      var element = node.declaredFragment!.element;
       var superConstructor = element.superConstructor;
       if (superConstructor != null) {
         var range = node.errorRange;
@@ -847,76 +802,148 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
   @override
   void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
-    var fieldName = node.fieldName;
-    var element = fieldName.element;
-    recordRelation(element, IndexRelationKind.IS_WRITTEN_BY, fieldName, true);
-    node.expression.accept(this);
+    recordRelation(
+      node.fieldElement,
+      IndexRelationKind.IS_WRITTEN_BY,
+      node.fieldName2,
+      true,
+    );
+    node.expression2.accept2(this);
   }
 
   @override
-  void visitConstructorName(ConstructorName node) {
-    var element = node.element?.baseElement;
-    element = _getActualConstructorElement(element);
+  void visitConstructorReference2(ConstructorReference2 node) {
+    var element = node.element?.baseElement.actualConstructor;
 
-    IndexRelationKind kind;
-    if (node.parent is ConstructorReference) {
-      kind = IndexRelationKind.IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF;
-    } else if (node.parent is InstanceCreationExpression) {
-      kind = IndexRelationKind.IS_INVOKED_BY;
-    } else {
-      kind = IndexRelationKind.IS_REFERENCED_BY;
-    }
+    var kind = switch (node.parent2) {
+      ConstructorInvocation() => IndexRelationKind.IS_INVOKED_BY,
+      ConstructorDeclaration() => IndexRelationKind.IS_REFERENCED_BY,
+      _ => throw StateError('Unexpected ConstructorReference2 parent'),
+    };
 
     int offset;
     int length;
-    if (node.name != null) {
-      offset = node.period!.offset;
-      length = node.name!.end - offset;
+    if (node.selector case var selector?) {
+      offset = selector.period.offset;
+      length = selector.name2.end - offset;
     } else {
-      offset = node.type.end;
+      offset = node.typeReference.end;
       length = 0;
     }
 
     recordRelationOffset(element, kind, offset, length, true);
-
-    node.type.accept(this);
+    super.visitConstructorReference2(node);
   }
 
   @override
-  void visitDotShorthandConstructorInvocation(
-    DotShorthandConstructorInvocation node,
+  void visitConstructorTearOff(ConstructorTearOff node) {
+    var element = node.element?.baseElement.actualConstructor;
+    if (element != null) {
+      recordRelationOffset(
+        element,
+        IndexRelationKind.IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF,
+        node.selector.period.offset,
+        node.selector.end - node.selector.period.offset,
+        true,
+      );
+    }
+    node.visitChildren2(this);
+  }
+
+  @override
+  void visitConstructorTypeReference(ConstructorTypeReference node) {
+    _recordImportPrefixedElement(
+      importPrefix: node.importPrefix,
+      name: node.name,
+      element: node.element,
+    );
+    node.typeArguments?.accept2(this);
+  }
+
+  @override
+  void visitDirectAssignment(DirectAssignment node) {
+    switch (node.target as AssignmentTargetImpl) {
+      case PropertyAssignmentTargetImpl target:
+        switch (target.write) {
+          case SetterInvocationResolutionImpl(:var element):
+            recordRelation(
+              element,
+              IndexRelationKind.IS_INVOKED_BY,
+              target.name,
+              true,
+            );
+          case InvalidNamedWriteResolutionImpl(recoveryElement: var element?):
+            recordRelation(
+              element,
+              IndexRelationKind.IS_REFERENCED_BY,
+              target.name,
+              true,
+            );
+          default:
+            assembler.addNameRelation(
+              target.name.lexeme,
+              IndexRelationKind.IS_WRITTEN_BY,
+              target.name.offset,
+              true,
+            );
+        }
+      case IndexAssignmentTargetImpl target:
+        _recordIndexReadWriteTarget(target);
+      case ParsedAssignmentTargetImpl():
+        throw StateError('Parsed assignment target was not lowered');
+      case InvalidExtensionOverrideAssignmentTargetImpl():
+      case InvalidSuperAssignmentTargetImpl():
+      case InvalidExpressionAssignmentTargetImpl():
+      case ImportPrefixedAssignmentTargetImpl():
+        break;
+      case UnqualifiedNameAssignmentTargetImpl target:
+        switch (target.write) {
+          case VariableWriteResolutionImpl(:var element):
+            recordRelation(
+              element,
+              IndexRelationKind.IS_WRITTEN_BY,
+              target,
+              false,
+            );
+          case SetterInvocationResolutionImpl(:var element):
+            recordRelation(
+              element,
+              IndexRelationKind.IS_INVOKED_BY,
+              target,
+              false,
+            );
+          case InvalidNamedWriteResolutionImpl(recoveryElement: var element?):
+            recordRelation(
+              element,
+              IndexRelationKind.IS_REFERENCED_BY,
+              target,
+              false,
+            );
+          default:
+            assembler.addNameRelation(
+              target.name.lexeme,
+              IndexRelationKind.IS_WRITTEN_BY,
+              target.offset,
+              false,
+            );
+        }
+    }
+    super.visitDirectAssignment(node);
+  }
+
+  @override
+  void visitDotShorthandConstructorInvocation2(
+    DotShorthandConstructorInvocation2 node,
   ) {
-    var element = _getActualConstructorElement(node.element?.baseElement);
+    var element = node.element?.baseElement.actualConstructor;
     recordRelation(
       element,
       IndexRelationKind.IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR,
-      node.constructorName,
+      node.name,
       true,
     );
-    node.argumentList.accept(this);
-  }
-
-  @override
-  void visitDotShorthandInvocation(DotShorthandInvocation node) {
-    var name = node.memberName;
-    var element = name.element;
-    recordRelation(element, IndexRelationKind.IS_INVOKED_BY, name, true);
-    node.typeArguments?.accept(this);
-    node.argumentList.accept(this);
-  }
-
-  @override
-  void visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
-    IndexRelationKind kind;
-    var element = node.propertyName.element;
-    if (element is InternalConstructorElement) {
-      element = _getActualConstructorElement(element);
-      kind =
-          IndexRelationKind.IS_REFERENCED_BY_DOT_SHORTHAND_CONSTRUCTOR_TEAR_OFF;
-    } else {
-      kind = IndexRelationKind.IS_REFERENCED_BY;
-    }
-    recordRelation(element, kind, node.propertyName, true);
+    node.typeArguments?.accept2(this);
+    node.argumentList.accept2(this);
   }
 
   @override
@@ -928,7 +955,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
       var constructorSelector = node.arguments?.constructorSelector;
       if (constructorSelector != null) {
         offset = constructorSelector.period.offset;
-        length = constructorSelector.name.end - offset;
+        length = constructorSelector.name2.end - offset;
       } else {
         offset = node.name.end;
         length = 0;
@@ -977,19 +1004,19 @@ class _IndexContributor extends GeneralizingAstVisitor {
   @override
   void visitExtendsClause(ExtendsClause node) {
     recordSuperType(node.superclass, IndexRelationKind.IS_EXTENDED_BY);
-    node.superclass.accept(this);
+    node.superclass.accept2(this);
   }
 
   @override
-  visitExtensionOverride(ExtensionOverride node) {
+  visitExtensionOverride2(ExtensionOverride2 node) {
     _recordImportPrefixedElement(
       importPrefix: node.importPrefix,
       name: node.name,
       element: node.element,
     );
 
-    node.typeArguments?.accept(this);
-    node.argumentList.accept(this);
+    node.typeArguments?.accept2(this);
+    node.argumentList.accept2(this);
   }
 
   @override
@@ -1019,10 +1046,58 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
+    switch (node.write) {
+      case VariableWriteResolutionImpl(:var element):
+        recordRelation(
+          element,
+          IndexRelationKind.IS_WRITTEN_BY,
+          node.identifier2,
+          false,
+        );
+      case SetterInvocationResolutionImpl(:var element):
+        recordRelation(
+          element,
+          IndexRelationKind.IS_INVOKED_BY,
+          node.identifier2,
+          false,
+        );
+      default:
+        assembler.addNameRelation(
+          node.identifier2.lexeme,
+          IndexRelationKind.IS_WRITTEN_BY,
+          node.identifier2.offset,
+          false,
+        );
+    }
+    node.iterable2.accept2(this);
+  }
+
+  @override
+  void visitIfNullAssignment(IfNullAssignment node) {
+    switch (node.target as AssignmentTargetImpl) {
+      case PropertyAssignmentTargetImpl target:
+        _recordNamedPropertyReadWriteTarget(target);
+      case IndexAssignmentTargetImpl target:
+        _recordIndexReadWriteTarget(target);
+      case ParsedAssignmentTargetImpl():
+        throw StateError('Parsed assignment target was not lowered');
+      case InvalidExtensionOverrideAssignmentTargetImpl():
+      case InvalidSuperAssignmentTargetImpl():
+      case InvalidExpressionAssignmentTargetImpl():
+      case ImportPrefixedAssignmentTargetImpl():
+        break;
+      case UnqualifiedNameAssignmentTargetImpl target:
+        _recordUnqualifiedNameReadWriteTarget(target);
+    }
+    super.visitIfNullAssignment(node);
+  }
+
+  @override
   void visitImplementsClause(ImplementsClause node) {
     for (NamedType namedType in node.interfaces) {
       recordSuperType(namedType, IndexRelationKind.IS_IMPLEMENTED_BY);
-      namedType.accept(this);
+      namedType.accept2(this);
     }
   }
 
@@ -1042,38 +1117,64 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
-  void visitIndexExpression(IndexExpression node) {
-    var element = node.writeOrReadElement;
-    if (element is MethodElement) {
-      Token operator = node.leftBracket;
-      recordRelationToken(element, IndexRelationKind.IS_INVOKED_BY, operator);
+  void visitImportPrefixedAssignmentTarget(
+    covariant ImportPrefixedAssignmentTargetImpl node,
+  ) {
+    if (node.hasRead) {
+      _recordNamedPropertyReadWriteTarget(node);
+    } else {
+      switch (node.write) {
+        case SetterInvocationResolutionImpl(:var element):
+          recordRelationToken(
+            element,
+            IndexRelationKind.IS_INVOKED_BY,
+            node.name,
+          );
+        case InvalidNamedWriteResolutionImpl(recoveryElement: var element?):
+          recordRelationToken(
+            element,
+            IndexRelationKind.IS_REFERENCED_BY,
+            node.name,
+          );
+        default:
+          assembler.addNameRelation(
+            node.name.lexeme,
+            IndexRelationKind.IS_WRITTEN_BY,
+            node.name.offset,
+            true,
+          );
+      }
     }
-    super.visitIndexExpression(node);
+    node.visitChildren2(this);
+  }
+
+  @override
+  void visitIncrementOrDecrementExpression(
+    covariant IncrementOrDecrementExpressionImpl node,
+  ) {
+    recordOperatorReference(node.operator, node.element);
+    switch (node.target) {
+      case PropertyAssignmentTargetImpl target:
+        _recordNamedPropertyReadWriteTarget(target);
+      case IndexAssignmentTargetImpl target:
+        _recordIndexReadWriteTarget(target);
+      case ParsedAssignmentTargetImpl():
+        throw StateError('Parsed assignment target was not lowered');
+      case InvalidExtensionOverrideAssignmentTargetImpl():
+      case InvalidSuperAssignmentTargetImpl():
+      case InvalidExpressionAssignmentTargetImpl():
+      case ImportPrefixedAssignmentTargetImpl():
+        break;
+      case UnqualifiedNameAssignmentTargetImpl target:
+        _recordUnqualifiedNameReadWriteTarget(target);
+    }
+    node.visitChildren2(this);
   }
 
   @override
   void visitLabelReference(LabelReference node) {
     var element = node.element;
     recordRelation(element, IndexRelationKind.IS_REFERENCED_BY, node, false);
-  }
-
-  @override
-  void visitMethodInvocation(MethodInvocation node) {
-    SimpleIdentifier name = node.methodName;
-    var element = name.element;
-    // unresolved name invocation
-    bool isQualified = node.realTarget != null;
-    if (element == null) {
-      recordNameRelation(name, IndexRelationKind.IS_INVOKED_BY, isQualified);
-    }
-    // element invocation
-    IndexRelationKind kind = element is InterfaceElement
-        ? IndexRelationKind.IS_REFERENCED_BY
-        : IndexRelationKind.IS_INVOKED_BY;
-    recordRelation(element, kind, name, isQualified);
-    node.target?.accept(this);
-    node.typeArguments?.accept(this);
-    node.argumentList.accept(this);
   }
 
   @override
@@ -1086,7 +1187,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   void visitMixinOnClause(MixinOnClause node) {
     for (NamedType namedType in node.superclassConstraints) {
       recordSuperType(namedType, IndexRelationKind.CONSTRAINS);
-      namedType.accept(this);
+      namedType.accept2(this);
     }
   }
 
@@ -1115,7 +1216,20 @@ class _IndexContributor extends GeneralizingAstVisitor {
       element: node.element,
     );
 
-    node.typeArguments?.accept(this);
+    node.typeArguments?.accept2(this);
+  }
+
+  @override
+  void visitNode(AstNode node) {
+    switch (node) {
+      case NameExpressionImpl():
+        _recordNameExpression(node);
+        node.visitChildren2(this);
+      case NamedFunctionInvocation():
+        _visitNamedFunctionInvocation(node);
+      default:
+        node.visitChildren2(this);
+    }
   }
 
   @override
@@ -1159,25 +1273,8 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
-  void visitPostfixExpression(PostfixExpression node) {
-    recordOperatorReference(node.operator, node.element);
-    super.visitPostfixExpression(node);
-  }
-
-  @override
-  void visitPrefixedIdentifier(PrefixedIdentifier node) {
-    var element = node.element;
-    var prefixElement = node.prefix.element;
-    if (element != null && prefixElement is PrefixElement) {
-      assembler.addPrefixForElement(element, prefix: prefixElement);
-    }
-    super.visitPrefixedIdentifier(node);
-  }
-
-  @override
-  void visitPrefixExpression(PrefixExpression node) {
-    recordOperatorReference(node.operator, node.element);
-    super.visitPrefixExpression(node);
+  void visitReceiverIndexExpression(ReceiverIndexExpression node) {
+    _visitIndexExpression2(node);
   }
 
   @override
@@ -1185,9 +1282,9 @@ class _IndexContributor extends GeneralizingAstVisitor {
     RedirectingConstructorInvocation node,
   ) {
     var element = node.element;
-    if (node.constructorName != null) {
-      int offset = node.period!.offset;
-      int length = node.constructorName!.end - offset;
+    if (node.constructorSelector case var selector?) {
+      int offset = selector.period.offset;
+      int length = selector.name2.end - offset;
       recordRelationOffset(
         element,
         IndexRelationKind.IS_INVOKED_BY,
@@ -1205,64 +1302,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
         true,
       );
     }
-    node.argumentList.accept(this);
-  }
-
-  @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    // name in declaration
-    if (node.inDeclarationContext()) {
-      return;
-    }
-
-    var element = node.writeOrReadElement;
-
-    var parent = node.parent;
-    if (element != null &&
-        element.firstFragment.enclosingFragment is LibraryFragmentImpl &&
-        // We're only unprefixed when part of a PrefixedIdentifier if we're
-        // the left side.
-        (parent is! PrefixedIdentifier || parent.prefix == node)) {
-      assembler.addPrefixForElement(element);
-    }
-
-    // record unresolved name reference
-    bool isQualified = _isQualified(node);
-    if (element == null) {
-      bool inGetterContext = node.inGetterContext();
-      bool inSetterContext = node.inSetterContext();
-      IndexRelationKind kind;
-      if (inGetterContext && inSetterContext) {
-        kind = IndexRelationKind.IS_READ_WRITTEN_BY;
-      } else if (inGetterContext) {
-        kind = IndexRelationKind.IS_READ_BY;
-      } else {
-        kind = IndexRelationKind.IS_WRITTEN_BY;
-      }
-      recordNameRelation(node, kind, isQualified);
-    }
-    IndexRelationKind kind = IndexRelationKind.IS_REFERENCED_BY;
-    if (element is FormalParameterElement) {
-      var parent = node.parent;
-      var isGet = node.inGetterContext();
-      var isSet = node.inSetterContext();
-      if (parent is CommentReference) {
-        kind = IndexRelationKind.IS_REFERENCED_BY;
-      } else if (isGet && isSet) {
-        kind = IndexRelationKind.IS_READ_WRITTEN_BY;
-      } else if (isGet) {
-        if (parent is MethodInvocation && parent.methodName == node) {
-          kind = IndexRelationKind.IS_INVOKED_BY;
-        } else {
-          kind = IndexRelationKind.IS_READ_BY;
-        }
-      } else if (isSet) {
-        kind = IndexRelationKind.IS_WRITTEN_BY;
-      }
-    }
-
-    // record specific relations
-    recordRelation(element, kind, node, isQualified);
+    node.argumentList.accept2(this);
   }
 
   @override
@@ -1289,11 +1329,20 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitStaticQualifier(StaticQualifier node) {
+    _recordImportPrefixedElement(
+      importPrefix: node.importPrefix,
+      name: node.name,
+      element: node.element,
+    );
+  }
+
+  @override
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     var element = node.element;
-    if (node.constructorName != null) {
-      int offset = node.period!.offset;
-      int length = node.constructorName!.end - offset;
+    if (node.constructorSelector case var selector?) {
+      int offset = selector.period.offset;
+      int length = selector.name2.end - offset;
       recordRelationOffset(
         element,
         IndexRelationKind.IS_INVOKED_BY,
@@ -1311,7 +1360,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
         true,
       );
     }
-    node.argumentList.accept(this);
+    node.argumentList.accept2(this);
   }
 
   @override
@@ -1335,10 +1384,16 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitUnaryOperatorInvocation(UnaryOperatorInvocation node) {
+    recordOperatorReference(node.operator, node.element);
+    super.visitUnaryOperatorInvocation(node);
+  }
+
+  @override
   void visitWithClause(WithClause node) {
     for (NamedType namedType in node.mixinTypes) {
       recordSuperType(namedType, IndexRelationKind.IS_MIXED_IN_BY);
-      namedType.accept(this);
+      namedType.accept2(this);
     }
   }
 
@@ -1444,44 +1499,6 @@ class _IndexContributor extends GeneralizingAstVisitor {
     return null;
   }
 
-  /// If the given [constructor] is a synthetic constructor created for a
-  /// [ClassTypeAlias], return the actual constructor of a [ClassDeclaration]
-  /// which is invoked.  Return `null` if a redirection cycle is detected.
-  ConstructorElement? _getActualConstructorElement(
-    ConstructorElement? constructor,
-  ) {
-    var seenConstructors = <ConstructorElement?>{};
-    while (constructor is ConstructorElementImpl &&
-        constructor.isOriginMixinApplication) {
-      var enclosing = constructor.enclosingElement;
-      if (enclosing is ClassElementImpl && enclosing.isMixinApplication) {
-        var superInvocation = constructor.firstFragment.constantInitializers
-            .whereType<SuperConstructorInvocation>()
-            .singleOrNull;
-        if (superInvocation != null) {
-          constructor = superInvocation.element;
-        }
-      } else {
-        break;
-      }
-      // fail if a cycle is detected
-      if (!seenConstructors.add(constructor)) {
-        return null;
-      }
-    }
-    return constructor;
-  }
-
-  /// Return `true` if [node] has an explicit or implicit qualifier, so that it
-  /// cannot be shadowed by a local declaration.
-  bool _isQualified(SimpleIdentifier node) {
-    if (node.isQualified) {
-      return true;
-    }
-    AstNode parent = node.parent!;
-    return parent is Combinator || parent is Label;
-  }
-
   void _recordImportPrefixedElement({
     required ImportPrefixReference? importPrefix,
     required Token name,
@@ -1500,10 +1517,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
           importPrefix.name,
           isQualified: false,
         );
-        assembler.addPrefixForElement(element, prefix: prefixElement);
       }
-    } else {
-      assembler.addPrefixForElement(element);
     }
 
     recordRelationToken(
@@ -1512,6 +1526,187 @@ class _IndexContributor extends GeneralizingAstVisitor {
       name,
       isQualified: importPrefix != null,
     );
+  }
+
+  void _recordIndexReadWriteTarget(IndexAssignmentTargetImpl target) {
+    var read = target.read;
+    var write = target.write;
+    var leftBracket = target.leftBracket;
+    if (read case MethodIndexReadResolutionImpl(:var element)) {
+      recordRelationToken(
+        element,
+        IndexRelationKind.IS_INVOKED_BY,
+        leftBracket,
+      );
+    }
+    if (write case MethodIndexWriteResolutionImpl(:var element)) {
+      recordRelationToken(
+        element,
+        IndexRelationKind.IS_INVOKED_BY,
+        leftBracket,
+      );
+    }
+  }
+
+  void _recordNamedPropertyReadWriteTarget(NamedAssignmentTarget node) {
+    var name = node.name;
+    var hasRelation = false;
+    switch (node.read) {
+      case GetterInvocationResolutionImpl(:var element):
+        recordRelation(element, IndexRelationKind.IS_INVOKED_BY, name, true);
+        hasRelation = true;
+      case ExecutableTearOffResolutionImpl(:var element):
+        recordRelation(element, IndexRelationKind.IS_REFERENCED_BY, name, true);
+        hasRelation = true;
+      default:
+    }
+    if (node.write case SetterInvocationResolutionImpl(:var element)) {
+      recordRelation(element, IndexRelationKind.IS_INVOKED_BY, name, true);
+      hasRelation = true;
+    }
+    if (!hasRelation) {
+      assembler.addNameRelation(
+        name.lexeme,
+        IndexRelationKind.IS_READ_WRITTEN_BY,
+        name.offset,
+        true,
+      );
+    }
+  }
+
+  void _recordNameExpression(NameExpressionImpl node) {
+    var isQualified = node is! UnqualifiedNameExpressionImpl;
+
+    Element? element;
+    IndexRelationKind kind;
+    switch (node.resolution) {
+      case VariableReadResolutionImpl resolution:
+        element = resolution.element;
+        kind = IndexRelationKind.IS_READ_BY;
+      case GetterInvocationResolutionImpl resolution:
+        element = resolution.element;
+        kind = IndexRelationKind.IS_INVOKED_BY;
+      case ExecutableTearOffResolutionImpl resolution:
+        element = resolution.element;
+        kind = IndexRelationKind.IS_REFERENCED_BY;
+        if (node is DotShorthandNameExpressionImpl &&
+            element is InternalConstructorElement) {
+          element = element.actualConstructor;
+          kind = IndexRelationKind
+              .IS_REFERENCED_BY_DOT_SHORTHAND_CONSTRUCTOR_TEAR_OFF;
+        }
+      case InvalidNamedReadResolutionImpl(
+        recoveryElement: var recoveryElement?,
+      ):
+        element = recoveryElement;
+        kind = IndexRelationKind.IS_REFERENCED_BY;
+      case DynamicPropertyReadResolutionImpl():
+      case FunctionCallTearOffResolutionImpl():
+      case FunctionInterfaceCallTearOffResolutionImpl():
+      case InvalidNamedReadResolutionImpl():
+      case RecordFieldReadResolutionImpl():
+      case null:
+        element = null;
+        kind = IndexRelationKind.IS_READ_BY;
+    }
+
+    if (element != null) {
+      recordRelationToken(element, kind, node.name, isQualified: isQualified);
+    } else {
+      assembler.addNameRelation(
+        node.name.lexeme,
+        IndexRelationKind.IS_READ_BY,
+        node.name.offset,
+        isQualified,
+      );
+    }
+  }
+
+  void _recordUnqualifiedNameReadWriteTarget(
+    UnqualifiedNameAssignmentTargetImpl target,
+  ) {
+    if (target.read case VariableReadResolutionImpl(element: var readElement)) {
+      if (target.write case VariableWriteResolutionImpl(
+        element: var writeElement,
+      )) {
+        assert(identical(readElement, writeElement));
+        recordRelation(
+          readElement,
+          IndexRelationKind.IS_READ_WRITTEN_BY,
+          target,
+          false,
+        );
+        return;
+      }
+    }
+
+    var hasRelation = false;
+    switch (target.read) {
+      case GetterInvocationResolutionImpl(:var element):
+        recordRelation(element, IndexRelationKind.IS_INVOKED_BY, target, false);
+        hasRelation = true;
+      case ExecutableTearOffResolutionImpl(:var element):
+        recordRelation(
+          element,
+          IndexRelationKind.IS_REFERENCED_BY,
+          target,
+          false,
+        );
+        hasRelation = true;
+      default:
+    }
+    if (target.write case SetterInvocationResolutionImpl(:var element)) {
+      recordRelation(element, IndexRelationKind.IS_INVOKED_BY, target, false);
+      hasRelation = true;
+    }
+    if (!hasRelation) {
+      assembler.addNameRelation(
+        target.name.lexeme,
+        IndexRelationKind.IS_READ_WRITTEN_BY,
+        target.offset,
+        false,
+      );
+    }
+  }
+
+  void _visitIndexExpression2(IndexExpression2 node) {
+    var element = node.resolution?.elementOrRecovery;
+    if (element is MethodElement) {
+      recordRelationToken(
+        element,
+        IndexRelationKind.IS_INVOKED_BY,
+        node.leftBracket,
+      );
+    }
+    node.visitChildren2(this);
+  }
+
+  void _visitNamedFunctionInvocation(NamedFunctionInvocation node) {
+    var element = switch (node.resolution) {
+      ExecutableInvocationResolution(:var element) => element,
+      InvalidInvocationResolution(
+        recovery: ExecutableInvocationResolution(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
+    var isQualified = node is! UnqualifiedFunctionInvocation;
+    if (element == null) {
+      assembler.addNameRelation(
+        node.name.lexeme,
+        IndexRelationKind.IS_INVOKED_BY,
+        node.name.offset,
+        isQualified,
+      );
+    } else {
+      recordRelation(
+        element,
+        IndexRelationKind.IS_INVOKED_BY,
+        node.name,
+        isQualified,
+      );
+    }
+    node.visitChildren2(this);
   }
 }
 
@@ -1589,6 +1784,26 @@ extension AnalysisDriverUnitIndexExtension on AnalysisDriverUnitIndex {
     }
 
     return binarySearch(strings, str);
+  }
+}
+
+extension _ConstructorElementExtension on ConstructorElement {
+  /// Returns the source constructor forwarded to by a mixin-application
+  /// constructor, or this constructor otherwise.
+  ConstructorElement get actualConstructor {
+    var constructor = this;
+    // Inheritance cycles are broken before mixin-application constructors are
+    // synthesized, so their forwarding chains are acyclic.
+    while (constructor is ConstructorElementImpl &&
+        constructor.isOriginMixinApplication) {
+      var enclosing = constructor.enclosingElement;
+      assert(enclosing is ClassElementImpl && enclosing.isMixinApplication);
+      var superInvocation = constructor.firstFragment.constantInitializers
+          .whereType<SuperConstructorInvocation>()
+          .single;
+      constructor = superInvocation.element!;
+    }
+    return constructor;
   }
 }
 

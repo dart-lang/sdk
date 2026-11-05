@@ -1,0 +1,21 @@
+#!/usr/bin/env dart
+
+List<String> foo() {
+long();
+method();
+body();
+goes();
+here();
+}
+
+
+#!/usr/bin/env dart[StringToken]
+
+List[StringToken]<[BeginToken]String[StringToken]>[SimpleToken] foo[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+long[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+method[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+body[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+goes[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+here[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

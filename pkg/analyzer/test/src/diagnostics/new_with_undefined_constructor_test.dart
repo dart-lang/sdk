@@ -11,10 +11,56 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NewWithUndefinedConstructorTest);
     defineReflectiveTests(
-      NewWithUndefinedConstructorWithoutConstructorTearoffsTest,
+      NewWithUndefinedConstructorBeforeConstructorTearoffsTest,
     );
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
+}
+
+@reflectiveTest
+class NewWithUndefinedConstructorBeforeConstructorTearoffsTest
+    extends PubPackageResolutionTest
+    with BeforeConstructorTearoffsMixin {
+  test_defaultViaNew() async {
+    await resolveTestCodeWithDiagnostics('''
+class A {
+  A.new() {}
+//  ^^^
+// [diag.experimentNotEnabled] This requires the 'constructor-tearoffs' language feature to be enabled.
+}
+f() {
+  A();
+}
+''');
+  }
+
+  test_unnamedViaNew() async {
+    await resolveTestCodeWithDiagnostics('''
+class A {
+  A.named() {}
+}
+f() {
+  A.new();
+//  ^^^
+// [diag.experimentNotEnabled] This requires the 'constructor-tearoffs' language feature to be enabled.
+// [diag.newWithUndefinedConstructor] The class 'A' doesn't have a constructor named 'new'.
+}
+''');
+  }
+
+  test_unnamedViaNew_explicitNew() async {
+    await resolveTestCodeWithDiagnostics('''
+class A {
+  A.named() {}
+}
+f() {
+  new A.new();
+//      ^^^
+// [diag.experimentNotEnabled] This requires the 'constructor-tearoffs' language feature to be enabled.
+// [diag.newWithUndefinedConstructor] The class 'A' doesn't have a constructor named 'new'.
+}
+''');
+  }
 }
 
 @reflectiveTest
@@ -140,6 +186,61 @@ f() {
 ''');
   }
 
+  test_named_synthetic() async {
+    await resolveTestCodeWithDiagnostics('''
+class A {
+  A.named();
+}
+f() {
+  new A.();
+//      ^
+// [diag.missingIdentifier] Expected an identifier.
+}
+''');
+  }
+
+  test_named_synthetic_hasUnnamed() async {
+    await resolveTestCodeWithDiagnostics('''
+class A {
+  A();
+}
+f() {
+  new A.();
+//      ^
+// [diag.missingIdentifier] Expected an identifier.
+}
+''');
+  }
+
+  test_named_synthetic_noKeyword() async {
+    await resolveTestCodeWithDiagnostics('''
+class A {
+  A.named();
+}
+f() {
+  A.();
+//  ^
+// [diag.missingIdentifier] Expected an identifier.
+}
+''');
+  }
+
+  test_named_synthetic_noKeyword_prefixed() async {
+    newFile('$testPackageLibPath/lib1.dart', '''
+class A {
+  A.named();
+}
+''');
+    await resolveTestCodeWithDiagnostics('''
+import 'lib1.dart' as lib1;
+f() {
+  lib1.A.();
+//       ^
+// [diag.missingIdentifier] Expected an identifier.
+}
+''');
+  }
+
   test_private_named() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
@@ -184,37 +285,6 @@ void f() {
   new A<int>._named();
 //           ^^^^^^
 // [diag.newWithUndefinedConstructor] The class 'A' doesn't have a constructor named '_named'.
-}
-''');
-  }
-}
-
-@reflectiveTest
-class NewWithUndefinedConstructorWithoutConstructorTearoffsTest
-    extends PubPackageResolutionTest
-    with WithoutConstructorTearoffsMixin {
-  test_defaultViaNew() async {
-    await resolveTestCodeWithDiagnostics('''
-class A {
-  A.new() {}
-//  ^^^
-// [diag.experimentNotEnabled] This requires the 'constructor-tearoffs' language feature to be enabled.
-}
-f() {
-  A();
-}
-''');
-  }
-
-  test_unnamedViaNew() async {
-    await resolveTestCodeWithDiagnostics('''
-class A {
-  A.named() {}
-}
-f() {
-  A.new();
-//  ^^^
-// [diag.experimentNotEnabled] This requires the 'constructor-tearoffs' language feature to be enabled.
 }
 ''');
   }

@@ -238,14 +238,18 @@ class IsolateObjectStore {
   ~IsolateObjectStore() {}
 
 #define DECLARE_GETTER(Type, name)                                             \
-  Type##Ptr name() const { return name##_; }                                   \
+  Type##Ptr name() const {                                                     \
+    return name##_;                                                            \
+  }                                                                            \
   static intptr_t name##_offset() {                                            \
     return OFFSET_OF(IsolateObjectStore, name##_);                             \
   }
 
 #define DECLARE_GETTER_AND_SETTER(Type, name)                                  \
   DECLARE_GETTER(Type, name)                                                   \
-  void set_##name(const Type& value) { name##_ = value.ptr(); }
+  void set_##name(const Type& value) {                                         \
+    name##_ = value.ptr();                                                     \
+  }
   ISOLATE_OBJECT_STORE_FIELD_LIST(DECLARE_GETTER, DECLARE_GETTER_AND_SETTER)
 #undef DECLARE_GETTER
 #undef DECLARE_GETTER_AND_SETTER
@@ -297,13 +301,19 @@ class ObjectStore {
   ~ObjectStore();
 
 #define DECLARE_OFFSET(name)                                                   \
-  static intptr_t name##_offset() { return OFFSET_OF(ObjectStore, name##_); }
+  static intptr_t name##_offset() {                                            \
+    return OFFSET_OF(ObjectStore, name##_);                                    \
+  }
 #define DECLARE_GETTER(Type, name)                                             \
-  Type##Ptr name() const { return name##_; }                                   \
+  Type##Ptr name() const {                                                     \
+    return name##_;                                                            \
+  }                                                                            \
   DECLARE_OFFSET(name)
 #define DECLARE_GETTER_AND_SETTER(Type, name)                                  \
   DECLARE_GETTER(Type, name)                                                   \
-  void set_##name(const Type& value) { name##_ = value.ptr(); }
+  void set_##name(const Type& value) {                                         \
+    name##_ = value.ptr();                                                     \
+  }
 #define DECLARE_RELAXED_ATOMIC_GETTER_AND_SETTER(Type, name)                   \
   template <std::memory_order order = std::memory_order_relaxed>               \
   Type##Ptr name() const {                                                     \
@@ -315,8 +325,12 @@ class ObjectStore {
   }                                                                            \
   DECLARE_OFFSET(name)
 #define DECLARE_ACQREL_ATOMIC_GETTER_AND_SETTER(Type, name)                    \
-  Type##Ptr name() const { return name##_.load(); }                            \
-  void set_##name(const Type& value) { name##_.store(value.ptr()); }           \
+  Type##Ptr name() const {                                                     \
+    return name##_.load();                                                     \
+  }                                                                            \
+  void set_##name(const Type& value) {                                         \
+    name##_.store(value.ptr());                                                \
+  }                                                                            \
   DECLARE_OFFSET(name)
 #define DECLARE_LAZY_INIT_GETTER(Type, name, init)                             \
   Type##Ptr name() {                                                           \

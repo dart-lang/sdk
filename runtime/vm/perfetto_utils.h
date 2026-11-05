@@ -549,12 +549,16 @@ class InternedDataBuilder : public ValueObject {
   }
 
 #define DEFINE_GETTER(name, ignored)                                           \
-  perfetto_utils::StringInterner<Malloc>& name() { return name##_; }
+  perfetto_utils::StringInterner<Malloc>& name() {                             \
+    return name##_;                                                            \
+  }
   PERFETTO_INTERNED_STRINGS_FIELDS_LIST(DEFINE_GETTER)
 #undef DEFINE_GETTER
 
 #define DEFINE_GETTER(name, element_type)                                      \
-  perfetto_utils::Interner<element_type, Malloc>& name() { return name##_; }
+  perfetto_utils::Interner<element_type, Malloc>& name() {                     \
+    return name##_;                                                            \
+  }
   PERFETTO_INTERNED_FIELDS_LIST(DEFINE_GETTER)
 #undef DEFINE_GETTER
 

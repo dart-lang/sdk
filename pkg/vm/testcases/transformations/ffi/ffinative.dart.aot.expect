@@ -28,7 +28,7 @@ class NativeClassy extends nat::NativeFieldWrapperClass1 {
     return block {
       final nat::NativeFieldWrapperClass1 #t1 = this;
       final core::int #t2 = #C15;
-      final void #t3 = self::NativeClassy::_goodHasReceiverPointer$Method$FfiNative([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_fromAddress<ffi::Void>( block {
+      final void #t3 = self::NativeClassy::_goodHasReceiverPointer$Method$FfiNative([@vm.inferred-type.metadata=dart.ffi::Pointer<dart.ffi::NativeType> (inexact type args)] ffi::_fromAddress<ffi::Void>( block {
         synthesized core::int #pointerAddress = [@vm.inferred-type.metadata=int] nat::_getNativeField(#t1);
         if([@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] #pointerAddress.{core::Object::==}(#C16){(core::Object) → core::bool})
           core::StateError::_throwNew(#C17);
@@ -51,7 +51,7 @@ class NativeClassy extends nat::NativeFieldWrapperClass1 {
     return block {
       final self::NativeClassy #t4 = this;
       final nat::NativeFieldWrapperClass1 #t5 = v;
-      final void #t6 = self::NativeClassy::_goodHasReceiverHandleAndPtr$Method$FfiNative(#t4, [@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_fromAddress<ffi::Void>([@vm.inferred-type.metadata=int] nat::_getNativeField(#t5)));
+      final void #t6 = self::NativeClassy::_goodHasReceiverHandleAndPtr$Method$FfiNative(#t4, [@vm.inferred-type.metadata=dart.ffi::Pointer<dart.ffi::NativeType> (inexact type args)] ffi::_fromAddress<ffi::Void>([@vm.inferred-type.metadata=int] nat::_getNativeField(#t5)));
       _in::reachabilityFence(#t5);
     } =>#t6;
 
@@ -68,7 +68,7 @@ class NativeClassy extends nat::NativeFieldWrapperClass1 {
     return block {
       final nat::NativeFieldWrapperClass1 #t7 = this;
       final self::NativeClassy #t8 = v;
-      final void #t9 = self::NativeClassy::_goodHasReceiverPtrAndHandle$Method$FfiNative([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_fromAddress<ffi::Void>( block {
+      final void #t9 = self::NativeClassy::_goodHasReceiverPtrAndHandle$Method$FfiNative([@vm.inferred-type.metadata=dart.ffi::Pointer<dart.ffi::NativeType> (inexact type args)] ffi::_fromAddress<ffi::Void>( block {
         synthesized core::int #pointerAddress = [@vm.inferred-type.metadata=int] nat::_getNativeField(#t7);
         if([@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] #pointerAddress.{core::Object::==}(#C16){(core::Object) → core::bool})
           core::StateError::_throwNew(#C17);
@@ -85,7 +85,7 @@ class NativeClassy extends nat::NativeFieldWrapperClass1 {
     return block {
       final nat::NativeFieldWrapperClass1 #t10 = this;
       final core::bool #t11 = #C28;
-      final core::String? #t12 = _in::unsafeCast<core::String?>(self::NativeClassy::_meh$Method$FfiNative([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_fromAddress<ffi::Void>( block {
+      final core::String? #t12 = _in::unsafeCast<core::String?>(self::NativeClassy::_meh$Method$FfiNative([@vm.inferred-type.metadata=dart.ffi::Pointer<dart.ffi::NativeType> (inexact type args)] ffi::_fromAddress<ffi::Void>( block {
         synthesized core::int #pointerAddress = [@vm.inferred-type.metadata=int] nat::_getNativeField(#t10);
         if([@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] #pointerAddress.{core::Object::==}(#C16){(core::Object) → core::bool})
           core::StateError::_throwNew(#C17);
@@ -102,7 +102,7 @@ class NativeClassy extends nat::NativeFieldWrapperClass1 {
   method blah() → core::bool
     return block {
       final nat::NativeFieldWrapperClass1 #t13 = this;
-      final core::bool #t14 = [@vm.inferred-type.metadata=dart.core::bool] self::NativeClassy::_blah$Method$FfiNative([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_fromAddress<ffi::Void>( block {
+      final core::bool #t14 = [@vm.inferred-type.metadata=dart.core::bool] self::NativeClassy::_blah$Method$FfiNative([@vm.inferred-type.metadata=dart.ffi::Pointer<dart.ffi::NativeType> (inexact type args)] ffi::_fromAddress<ffi::Void>( block {
         synthesized core::int #pointerAddress = [@vm.inferred-type.metadata=int] nat::_getNativeField(#t13);
         if([@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] #pointerAddress.{core::Object::==}(#C16){(core::Object) → core::bool})
           core::StateError::_throwNew(#C17);
@@ -119,7 +119,7 @@ class NativeClassy extends nat::NativeFieldWrapperClass1 {
   get myField() → core::bool
     return block {
       final nat::NativeFieldWrapperClass1 #t15 = this;
-      final core::bool #t16 = [@vm.inferred-type.metadata=dart.core::bool] self::NativeClassy::_myField$Getter$FfiNative([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_fromAddress<ffi::Void>( block {
+      final core::bool #t16 = [@vm.inferred-type.metadata=dart.core::bool] self::NativeClassy::_myField$Getter$FfiNative([@vm.inferred-type.metadata=dart.ffi::Pointer<dart.ffi::NativeType> (inexact type args)] ffi::_fromAddress<ffi::Void>( block {
         synthesized core::int #pointerAddress = [@vm.inferred-type.metadata=int] nat::_getNativeField(#t15);
         if([@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] #pointerAddress.{core::Object::==}(#C16){(core::Object) → core::bool})
           core::StateError::_throwNew(#C17);
@@ -136,7 +136,7 @@ class NativeClassy extends nat::NativeFieldWrapperClass1 {
     return block {
       final nat::NativeFieldWrapperClass1 #t17 = this;
       final core::bool #t18 = value;
-      final void #t19 = self::NativeClassy::_myField$Setter$FfiNative([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_fromAddress<ffi::Void>( block {
+      final void #t19 = self::NativeClassy::_myField$Setter$FfiNative([@vm.inferred-type.metadata=dart.ffi::Pointer<dart.ffi::NativeType> (inexact type args)] ffi::_fromAddress<ffi::Void>( block {
         synthesized core::int #pointerAddress = [@vm.inferred-type.metadata=int] nat::_getNativeField(#t17);
         if([@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] #pointerAddress.{core::Object::==}(#C16){(core::Object) → core::bool})
           core::StateError::_throwNew(#C17);
@@ -148,29 +148,29 @@ class NativeClassy extends nat::NativeFieldWrapperClass1 {
 
   [@vm.unboxing-info.metadata=(b,i)->b]
   @#C35
-  external static method _goodHasReceiverPointer$Method$FfiNative([@vm.inferred-arg-type.metadata=dart.ffi::Pointer] ffi::Pointer<ffi::Void> #t0, [@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 175)] core::int #t1) → void;
+  external static method _goodHasReceiverPointer$Method$FfiNative([@vm.inferred-arg-type.metadata=dart.ffi::Pointer<dart.ffi::NativeType> (inexact type args)] ffi::Pointer<ffi::Void> #t0, [@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 175)] core::int #t1) → void;
 
   [@vm.unboxing-info.metadata=(b,i)->b]
   @#C36
   external static method _goodHasReceiverHandle$Method$FfiNative([@vm.inferred-arg-type.metadata=#lib::NativeClassy] self::NativeClassy #t0, [@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 175)] core::int #t1) → void;
   @#C37
-  external static method _goodHasReceiverHandleAndPtr$Method$FfiNative([@vm.inferred-arg-type.metadata=#lib::NativeClassy] self::NativeClassy #t0, [@vm.inferred-arg-type.metadata=dart.ffi::Pointer] ffi::Pointer<ffi::Void> #t1) → void;
+  external static method _goodHasReceiverHandleAndPtr$Method$FfiNative([@vm.inferred-arg-type.metadata=#lib::NativeClassy] self::NativeClassy #t0, [@vm.inferred-arg-type.metadata=dart.ffi::Pointer<dart.ffi::NativeType> (inexact type args)] ffi::Pointer<ffi::Void> #t1) → void;
   @#C38
   external static method _goodHasReceiverHandleAndHandle$Method$FfiNative([@vm.inferred-arg-type.metadata=#lib::NativeClassy] self::NativeClassy #t0, [@vm.inferred-arg-type.metadata=#lib::NativeClassy] self::NativeClassy #t1) → void;
   @#C39
-  external static method _goodHasReceiverPtrAndHandle$Method$FfiNative([@vm.inferred-arg-type.metadata=dart.ffi::Pointer] ffi::Pointer<ffi::Void> #t0, [@vm.inferred-arg-type.metadata=#lib::NativeClassy] self::NativeClassy #t1) → void;
+  external static method _goodHasReceiverPtrAndHandle$Method$FfiNative([@vm.inferred-arg-type.metadata=dart.ffi::Pointer<dart.ffi::NativeType> (inexact type args)] ffi::Pointer<ffi::Void> #t0, [@vm.inferred-arg-type.metadata=#lib::NativeClassy] self::NativeClassy #t1) → void;
   @#C40
-  external static method _meh$Method$FfiNative([@vm.inferred-arg-type.metadata=dart.ffi::Pointer] ffi::Pointer<ffi::Void> #t0, [@vm.inferred-arg-type.metadata=dart.core::bool (value: true)] core::bool #t1) → core::Object?;
+  external static method _meh$Method$FfiNative([@vm.inferred-arg-type.metadata=dart.ffi::Pointer<dart.ffi::NativeType> (inexact type args)] ffi::Pointer<ffi::Void> #t0, [@vm.inferred-arg-type.metadata=dart.core::bool (value: true)] core::bool #t1) → core::Object?;
 
   [@vm.inferred-return-type.metadata=dart.core::bool]
   @#C41
-  external static method _blah$Method$FfiNative([@vm.inferred-arg-type.metadata=dart.ffi::Pointer] ffi::Pointer<ffi::Void> #t0) → core::bool;
+  external static method _blah$Method$FfiNative([@vm.inferred-arg-type.metadata=dart.ffi::Pointer<dart.ffi::NativeType> (inexact type args)] ffi::Pointer<ffi::Void> #t0) → core::bool;
 
   [@vm.inferred-return-type.metadata=dart.core::bool]
   @#C42
-  external static method _myField$Getter$FfiNative([@vm.inferred-arg-type.metadata=dart.ffi::Pointer] ffi::Pointer<ffi::Void> #t0) → core::bool;
+  external static method _myField$Getter$FfiNative([@vm.inferred-arg-type.metadata=dart.ffi::Pointer<dart.ffi::NativeType> (inexact type args)] ffi::Pointer<ffi::Void> #t0) → core::bool;
   @#C43
-  external static method _myField$Setter$FfiNative([@vm.inferred-arg-type.metadata=dart.ffi::Pointer] ffi::Pointer<ffi::Void> #t0, [@vm.inferred-arg-type.metadata=dart.core::bool] core::bool #t1) → void;
+  external static method _myField$Setter$FfiNative([@vm.inferred-arg-type.metadata=dart.ffi::Pointer<dart.ffi::NativeType> (inexact type args)] ffi::Pointer<ffi::Void> #t0, [@vm.inferred-arg-type.metadata=dart.core::bool] core::bool #t1) → void;
 }
 
 [@vm.inferred-return-type.metadata=int]

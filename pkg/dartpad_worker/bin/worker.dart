@@ -4,112 +4,119 @@
 
 import 'dart:async';
 import 'dart:js_interop';
+import 'dart:typed_data';
 
-import 'package:dartpad/src/util/message_port_channel.dart';
+import 'package:dartpad_worker/src/util/environment.dart';
 import 'package:dartpad_worker/src/util/log.dart';
+import 'package:dartpad_worker/src/util/message_port.dart';
 import 'package:dartpad_worker/src/worker.dart';
-import 'package:http/http.dart' as http;
-import 'package:http/retry.dart' as http;
 import 'package:web/web.dart' as web;
 
-const _defaultSdkLocation = 'dart/';
+/// Options set by `worker.js`.
+///
+/// The public API for launching a worker lives in `worker.js`, the
+/// [_workerOptions] property is merely a communication bridge between
+/// `worker.js` and [main] in this wasm module.
+///
+/// The public API for launching a worker is specified in:
+/// `pkg/dartpad/doc/worker-protocol.md`.
+@JS()
+external DartPadOptions get _workerOptions;
+
+extension type DartPadOptions._(JSObject _) implements JSObject {
+  external String? get pubHostedUrl;
+  external JSPromise<web.Response> fetchSdkTar();
+
+  /// Callback when creating the worker is successful
+  external void resolve(JSFunction createSession);
+
+  /// Callback when creating the worker fails
+  external void reject(JSString message);
+}
 
 void main() async {
-  await runZonedGuarded(_startWorker, (e, st) {
-    logError('uncaught exception: $e\n$st');
-  });
-}
+  final options = _workerOptions;
 
-@JS('assetBaseUrl')
-external String? get assetBaseUrl;
-
-@JS('sdkLocation')
-external String? get sdkLocation;
-
-@JS('pubHostedUrl')
-external String? get pubHostedUrl;
-
-Future<void> _startWorker() async {
-  final workerFuture = _createWorker();
-
-  // Check if we are running in a SharedWorker environment
-  if (globalContext.isA<web.SharedWorkerGlobalScope>()) {
-    final scope = globalContext as web.SharedWorkerGlobalScope;
-
-    scope.onconnect = (web.MessageEvent event) {
-      final port = event.ports.toDart[0];
-      _handleConnect(port, workerFuture);
-    }.toJS;
-  } else {
-    // Running as a standard DedicatedWorker
-    final scope = globalContext as web.DedicatedWorkerGlobalScope;
-
-    scope.onmessage = (web.MessageEvent event) {
-      if (event.ports.toDart.isEmpty) {
-        logError('Message missing MessagePort');
-        return;
-      }
-      if (!event.data.isA<JSObject>()) {
-        logError('Message data is not a JS Object');
-        return;
-      }
-
-      final message = event.data as HandshakeMessage;
-
-      // Check for the explicit handshake action
-      if (message.action == 'connect') {
-        final port = event.ports.toDart[0];
-        _handleConnect(port, workerFuture);
-      } else {
-        logError('Unknown action "${message.action}"');
-      }
-    }.toJS;
-  }
-
-  try {
-    await workerFuture;
-  } catch (e, st) {
-    logError('startup failed: $e\n$st');
-  }
-}
-
-Future<void> _handleConnect(
-  web.MessagePort port,
-  Future<Worker> workerFuture,
-) async {
-  // TODO(jonasfj): Consider tracking and sending progress events
-  final worker = await workerFuture;
-  worker.connect(messagePortChannel(port).cast());
-}
-
-Future<Worker> _createWorker() async {
-  final assetBaseUrl_ = assetBaseUrl;
-  var assetBaseUri = assetBaseUrl_ != null
-      ? Uri.tryParse(assetBaseUrl_) ?? Uri.base
-      : Uri.base;
-
-  if (!assetBaseUri.path.endsWith('/')) {
-    assetBaseUri = assetBaseUri.replace(path: '${assetBaseUri.path}/');
-  }
-  var sdkLocation_ = assetBaseUri.resolve(sdkLocation ?? _defaultSdkLocation);
-  if (!sdkLocation_.path.endsWith('/')) {
-    sdkLocation_ = sdkLocation_.replace(path: '${sdkLocation_.path}/');
-  }
-
-  final c = http.RetryClient(http.Client());
-  try {
-    final sdkTar = sdkLocation_.resolve('sdk.tar');
-    final r = await c.send(http.Request('GET', sdkTar));
-    if (r.statusCode != 200) {
-      logError('Failed to fetch sdk.tar from: "$sdkTar"');
-      throw Exception('unable to fetch sdk.tar');
+  await runZonedGuarded(() async {
+    final Worker worker;
+    try {
+      worker = await _createWorker(options);
+    } catch (e) {
+      options.reject(e.toString().toJS);
+      return;
     }
-    return await Worker.create(r.stream, pubHostedUrl: pubHostedUrl);
+
+    options.resolve(
+      ((web.MessagePort port) => worker.session(
+        MessagePortExt.fromMessagePort(port).jsonRpcChannel(),
+      )).toJS,
+    );
+  }, (e, st) => logError('uncaught exception: $e\n$st'));
+}
+
+class _FetchException implements Exception {
+  final String message;
+  _FetchException(this.message);
+  @override
+  String toString() => message;
+}
+
+Stream<Uint8List> _readStream(web.ReadableStream stream) async* {
+  final reader = stream.getReader() as web.ReadableStreamDefaultReader;
+  try {
+    while (true) {
+      final web.ReadableStreamReadResult result;
+      try {
+        result = await reader.read().toDart;
+      } catch (e) {
+        throw _FetchException('Failed while reading sdk.tar stream: $e');
+      }
+      if (result.done) break;
+      final chunk = (result.value as JSUint8Array).toDart;
+      // Materialize JS typed-array views from Fetch into native Wasm Uint8Lists
+      // once per network chunk so TarReader doesn't slice across JS interop.
+      yield isDart2Wasm ? Uint8List.fromList(chunk) : chunk;
+    }
   } finally {
-    c.close();
+    try {
+      await reader.cancel().toDart;
+    } catch (e) {
+      throw _FetchException('Failed while cancelling sdk.tar stream: $e');
+    }
   }
 }
 
-extension type HandshakeMessage._(JSObject _) implements JSObject {
-  external String? get action;
+Future<Worker> _createWorker(DartPadOptions options) async {
+  const maxAttempts = 4;
+  for (var attempt = 0; ; attempt++) {
+    try {
+      final web.Response response;
+      try {
+        response = await options.fetchSdkTar().toDart;
+      } catch (e) {
+        throw _FetchException('Failed to fetch sdk.tar: $e');
+      }
+      if (response.status != 200) {
+        throw _FetchException('Failed to fetch sdk.tar (${response.status})');
+      }
+      final body = response.body;
+      if (body == null) {
+        throw _FetchException('Failed to fetch sdk.tar: response body is null');
+      }
+      return await Worker.create(
+        _readStream(body),
+        pubHostedUrl: options.pubHostedUrl,
+      );
+    } on _FetchException catch (e) {
+      if (attempt + 1 >= maxAttempts) {
+        logError('$e');
+        rethrow;
+      }
+      final delay = Duration(milliseconds: 100 * (1 << attempt));
+      web.console.log(
+        'worker.dart: $e, retrying in ${delay.inMilliseconds}ms...'.toJS,
+      );
+      await Future<void>.delayed(delay);
+    }
+  }
 }

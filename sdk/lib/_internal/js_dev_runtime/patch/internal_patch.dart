@@ -12,9 +12,6 @@ import 'dart:_foreign_helper' show JS;
 import 'dart:_runtime' as dart;
 import 'dart:typed_data' show Uint8List;
 
-@patch
-bool typeAcceptsNull<T>() => null is T;
-
 int? getHotRestartGeneration() => dart.hotRestartGeneration();
 
 /// Returns `true` when the provided [generation] matches the current hot
@@ -28,7 +25,7 @@ bool isCurrentHotRestartGeneration(int generation) =>
     generation == dart.hotRestartGeneration();
 
 @patch
-class Symbol implements core.Symbol {
+class Symbol {
   @patch
   const Symbol(String name) : this._name = name;
 
@@ -112,14 +109,6 @@ Future<Object?> loadDynamicModule({Uri? uri, Uint8List? bytes}) {
     completer.completeError(e, st);
   }
   return completer.future;
-}
-
-@patch
-@pragma("vm:entry-point")
-abstract interface class IsolateGroup {
-  @patch
-  static Object? _runSync(Object computation) =>
-      throw UnsupportedError("_runSync");
 }
 
 final List<Object> _toStringVisiting = [];

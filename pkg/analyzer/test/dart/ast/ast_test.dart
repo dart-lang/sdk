@@ -4,6 +4,9 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/src/dart/ast/ast.dart' show ToBeDeprecated;
+import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -12,21 +15,26 @@ import '../../src/diagnostics/parser_diagnostics.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(CascadeSectionTest);
     defineReflectiveTests(ConstructorDeclarationTest);
     defineReflectiveTests(FieldFormalParameterTest);
     defineReflectiveTests(FormalParameterIsExplicitlyTypedTest);
     defineReflectiveTests(HideClauseImplTest);
     defineReflectiveTests(ImplementsClauseImplTest);
+    // ignore: analyzer_to_be_deprecated_use
     defineReflectiveTests(IndexExpressionTest);
     defineReflectiveTests(InterpolationStringTest);
     defineReflectiveTests(MethodDeclarationTest);
+    // ignore: analyzer_to_be_deprecated_use
     defineReflectiveTests(MethodInvocationTest);
     defineReflectiveTests(NodeListTest);
     defineReflectiveTests(NormalFormalParameterTest);
     defineReflectiveTests(OnClauseImplTest);
     defineReflectiveTests(PreviousTokenTest);
+    // ignore: analyzer_to_be_deprecated_use
     defineReflectiveTests(PropertyAccessTest);
     defineReflectiveTests(ShowClauseImplTest);
+    // ignore: analyzer_to_be_deprecated_use
     defineReflectiveTests(SimpleIdentifierTest);
     defineReflectiveTests(SimpleStringLiteralTest);
     defineReflectiveTests(SpreadElementTest);
@@ -36,6 +44,29 @@ void main() {
     defineReflectiveTests(WithClauseImplTest);
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
+}
+
+@reflectiveTest
+class CascadeSectionTest extends ParserDiagnosticsTest {
+  void test_isNullAware_false() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+void f() {
+  a..foo();
+}
+''');
+    var section = parseResult.findNode.singleCascadeSection;
+    expect(section.isNullAware, isFalse);
+  }
+
+  void test_isNullAware_true() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+void f() {
+  a?..foo();
+}
+''');
+    var section = parseResult.findNode.singleCascadeSection;
+    expect(section.isNullAware, isTrue);
+  }
 }
 
 @reflectiveTest
@@ -529,10 +560,10 @@ class C extends B {
 
   void _checkExplicitlyTyped(String input, bool expected) {
     var parseResult = parseTestCodeWithDiagnostics(input);
-    var class_ = parseResult.unit.declarations[0] as ClassDeclaration;
+    var class_ = parseResult.unit.declarations2[0] as ClassDeclaration;
     var body = class_.body as BlockClassBody;
     var constructor = body.members[0] as ConstructorDeclaration;
-    var parameter = constructor.parameters.parameters[0];
+    var parameter = constructor.parameters.allFormalParameters[0];
     expect(parameter.isExplicitlyTyped, expected);
   }
 }
@@ -565,6 +596,7 @@ class C {}
 }
 
 @reflectiveTest
+@ToBeDeprecated('Tests V1 IndexExpression.')
 class IndexExpressionTest extends ParserDiagnosticsTest {
   void test_inGetterContext_assignment_compound_left() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
@@ -572,7 +604,17 @@ void f() {
   a[0] += 0;
 }
 ''');
-    var node = parseResult.findNode.singleIndexExpression;
+    var node = parseResult.findNodeV1.singleIndexExpression;
+    expect(node.inGetterContext(), isTrue);
+  }
+
+  void test_inGetterContext_assignment_ifNull_left() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+void f() {
+  a[0] ??= 0;
+}
+''');
+    var node = parseResult.findNodeV1.singleIndexExpression;
     expect(node.inGetterContext(), isTrue);
   }
 
@@ -582,7 +624,7 @@ void f() {
   a[0] = 0;
 }
 ''');
-    var node = parseResult.findNode.singleIndexExpression;
+    var node = parseResult.findNodeV1.singleIndexExpression;
     expect(node.inGetterContext(), isFalse);
   }
 
@@ -590,7 +632,7 @@ void f() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = a[b] + c;
 ''');
-    var node = parseResult.findNode.singleIndexExpression;
+    var node = parseResult.findNodeV1.singleIndexExpression;
     expect(node.inGetterContext(), isTrue);
   }
 
@@ -600,7 +642,7 @@ void f() {
   a[0] += 0;
 }
 ''');
-    var node = parseResult.findNode.singleIndexExpression;
+    var node = parseResult.findNodeV1.singleIndexExpression;
     expect(node.inSetterContext(), isTrue);
   }
 
@@ -610,8 +652,18 @@ void f() {
   b += a[0];
 }
 ''');
-    var node = parseResult.findNode.singleIndexExpression;
+    var node = parseResult.findNodeV1.singleIndexExpression;
     expect(node.inSetterContext(), isFalse);
+  }
+
+  void test_inSetterContext_assignment_ifNull_left() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+void f() {
+  a[0] ??= 0;
+}
+''');
+    var node = parseResult.findNodeV1.singleIndexExpression;
+    expect(node.inSetterContext(), isTrue);
   }
 
   void test_inSetterContext_assignment_simple_left() {
@@ -620,7 +672,7 @@ void f() {
   a[0] = 0;
 }
 ''');
-    var node = parseResult.findNode.singleIndexExpression;
+    var node = parseResult.findNodeV1.singleIndexExpression;
     expect(node.inSetterContext(), isTrue);
   }
 
@@ -630,7 +682,7 @@ void f() {
   b = a[0];
 }
 ''');
-    var node = parseResult.findNode.singleIndexExpression;
+    var node = parseResult.findNodeV1.singleIndexExpression;
     expect(node.inSetterContext(), isFalse);
   }
 
@@ -638,7 +690,7 @@ void f() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = a[b] + c;
 ''');
-    var node = parseResult.findNode.singleIndexExpression;
+    var node = parseResult.findNodeV1.singleIndexExpression;
     expect(node.inSetterContext(), isFalse);
   }
 
@@ -648,7 +700,7 @@ void f() {
   a[0]!;
 }
 ''');
-    var node = parseResult.findNode.singleIndexExpression;
+    var node = parseResult.findNodeV1.singleIndexExpression;
     expect(node.inSetterContext(), isFalse);
   }
 
@@ -658,7 +710,7 @@ void f() {
   a[0]++;
 }
 ''');
-    var node = parseResult.findNode.singleIndexExpression;
+    var node = parseResult.findNodeV1.singleIndexExpression;
     expect(node.inSetterContext(), isTrue);
   }
 
@@ -668,7 +720,7 @@ void f() {
   !a[0];
 }
 ''');
-    var node = parseResult.findNode.singleIndexExpression;
+    var node = parseResult.findNodeV1.singleIndexExpression;
     expect(node.inSetterContext(), isFalse);
   }
 
@@ -678,7 +730,7 @@ void f() {
   --a[0];
 }
 ''');
-    var node = parseResult.findNode.singleIndexExpression;
+    var node = parseResult.findNodeV1.singleIndexExpression;
     expect(node.inSetterContext(), isTrue);
   }
 
@@ -688,7 +740,7 @@ void f() {
   ++a[0];
 }
 ''');
-    var node = parseResult.findNode.singleIndexExpression;
+    var node = parseResult.findNodeV1.singleIndexExpression;
     expect(node.inSetterContext(), isTrue);
   }
 
@@ -698,7 +750,7 @@ void f() {
   a..[0];
 }
 ''');
-    var expression = parseResult.findNode.index('[0]');
+    var expression = parseResult.findNodeV1.index('[0]');
     expect(expression.isNullAware, isFalse);
   }
 
@@ -708,7 +760,7 @@ void f() {
   a?..[0];
 }
 ''');
-    var expression = parseResult.findNode.index('[0]');
+    var expression = parseResult.findNodeV1.index('[0]');
     expect(expression.isNullAware, isTrue);
   }
 
@@ -718,7 +770,7 @@ void f() {
   a[0];
 }
 ''');
-    var expression = parseResult.findNode.index('[0]');
+    var expression = parseResult.findNodeV1.index('[0]');
     expect(expression.isNullAware, isFalse);
   }
 
@@ -728,8 +780,8 @@ void f() {
   a?[0];
 }
 ''');
-    var expression = parseResult.findNode.index('[0]');
-    expect(expression.isNullAware, isTrue);
+    var expression = parseResult.findNode.receiverIndexExpression('[0]');
+    expect(expression.question, isNotNull);
   }
 }
 
@@ -989,6 +1041,7 @@ class A {
 }
 
 @reflectiveTest
+@ToBeDeprecated('Tests V1 MethodInvocation.')
 class MethodInvocationTest extends ParserDiagnosticsTest {
   void test_isNullAware_cascade() {
     var parseResult = parseTestCodeWithDiagnostics('''
@@ -996,8 +1049,9 @@ void f() {
   a..foo();
 }
 ''');
-    var invocation = parseResult.findNode.methodInvocation('foo');
+    var invocation = parseResult.findNodeV1.methodInvocation('foo');
     expect(invocation.isNullAware, isFalse);
+    expect(invocation.realTarget, same(parseResult.findNodeV1.simple('a..')));
   }
 
   void test_isNullAware_cascade_true() {
@@ -1006,8 +1060,9 @@ void f() {
   a?..foo();
 }
 ''');
-    var invocation = parseResult.findNode.methodInvocation('foo');
+    var invocation = parseResult.findNodeV1.methodInvocation('foo');
     expect(invocation.isNullAware, isTrue);
+    expect(invocation.realTarget, same(parseResult.findNodeV1.simple('a?..')));
   }
 
   void test_isNullAware_regularInvocation() {
@@ -1016,7 +1071,7 @@ void f() {
   a.foo();
 }
 ''');
-    var invocation = parseResult.findNode.methodInvocation('foo');
+    var invocation = parseResult.findNodeV1.methodInvocation('foo');
     expect(invocation.isNullAware, isFalse);
   }
 
@@ -1026,7 +1081,7 @@ void f() {
   a?.foo();
 }
 ''');
-    var invocation = parseResult.findNode.methodInvocation('foo');
+    var invocation = parseResult.findNodeV1.methodInvocation('foo');
     expect(invocation.isNullAware, isTrue);
   }
 }
@@ -1039,7 +1094,7 @@ final x = f();
 ''');
 
     var argumentList = parseResult.findNode.argumentList('()');
-    var nodeList = argumentList.arguments;
+    var nodeList = argumentList.arguments2;
     expect(nodeList.beginToken, isNull);
   }
 
@@ -1049,7 +1104,7 @@ final x = f(0, 1);
 ''');
 
     var argumentList = parseResult.findNode.argumentList('(0');
-    var nodeList = argumentList.arguments;
+    var nodeList = argumentList.arguments2;
     var first = nodeList[0];
     expect(nodeList.beginToken, same(first.beginToken));
   }
@@ -1060,7 +1115,7 @@ final x = f();
 ''');
 
     var argumentList = parseResult.findNode.argumentList('()');
-    var nodeList = argumentList.arguments;
+    var nodeList = argumentList.arguments2;
     expect(nodeList.endToken, isNull);
   }
 
@@ -1070,7 +1125,7 @@ final x = f(0, 1);
 ''');
 
     var argumentList = parseResult.findNode.argumentList('(0');
-    var nodeList = argumentList.arguments;
+    var nodeList = argumentList.arguments2;
     var last = nodeList[nodeList.length - 1];
     expect(nodeList.endToken, same(last.endToken));
   }
@@ -1082,7 +1137,7 @@ final y = 42;
 ''');
 
     var argumentList = parseResult.findNode.argumentList('(0');
-    var nodeList = argumentList.arguments;
+    var nodeList = argumentList.arguments2;
 
     var first = nodeList[0];
     var second = nodeList[1];
@@ -1104,7 +1159,7 @@ final y = 42;
 ''');
 
     var argumentList = parseResult.findNode.argumentList('(0');
-    var nodeList = argumentList.arguments;
+    var nodeList = argumentList.arguments2;
 
     try {
       nodeList[-1] = nodeList.first;
@@ -1121,7 +1176,7 @@ final y = 42;
 ''');
 
     var argumentList = parseResult.findNode.argumentList('(0');
-    var nodeList = argumentList.arguments;
+    var nodeList = argumentList.arguments2;
     try {
       nodeList[1] = nodeList.first;
       fail("Expected IndexOutOfBoundsException");
@@ -1137,9 +1192,9 @@ class NormalFormalParameterTest extends ParserDiagnosticsTest {
     var result = parseTestCodeWithDiagnostics('''
 void f(int i) {}
 ''');
-    var function = result.unit.declarations[0] as FunctionDeclaration;
+    var function = result.unit.declarations2[0] as FunctionDeclaration;
     var parameters = function.functionExpression.parameters;
-    var parameter = parameters?.parameters[0] as FormalParameter;
+    var parameter = parameters!.allFormalParameters[0];
     expect(parameter.sortedCommentAndAnnotations, isEmpty);
   }
 }
@@ -1188,19 +1243,19 @@ E f() => g;
   }
 
   void test_findPrevious_basic_class() {
-    var clazz = unit.declarations[0] as ClassDeclaration;
+    var clazz = unit.declarations2[0] as ClassDeclaration;
     expect(clazz.findPrevious(findToken('A'))!.lexeme, 'class');
   }
 
   void test_findPrevious_basic_method() {
-    var clazz = unit.declarations[0] as ClassDeclaration;
+    var clazz = unit.declarations2[0] as ClassDeclaration;
     var body = clazz.body as BlockClassBody;
     var method = body.members[0] as MethodDeclaration;
     expect(method.findPrevious(findToken('foo'))!.lexeme, 'B');
   }
 
   void test_findPrevious_basic_statement() {
-    var clazz = unit.declarations[0] as ClassDeclaration;
+    var clazz = unit.declarations2[0] as ClassDeclaration;
     var classBody = clazz.body as BlockClassBody;
     var method = classBody.members[0] as MethodDeclaration;
     var body = method.body as BlockFunctionBody;
@@ -1210,7 +1265,7 @@ E f() => g;
   }
 
   void test_findPrevious_missing() {
-    var clazz = unit.declarations[0] as ClassDeclaration;
+    var clazz = unit.declarations2[0] as ClassDeclaration;
     var classBody = clazz.body as BlockClassBody;
     var method = classBody.members[0] as MethodDeclaration;
     var body = method.body as BlockFunctionBody;
@@ -1224,15 +1279,25 @@ missing
     expect(statement.findPrevious(missing), null);
   }
 
+  void test_findPrevious_parent_expression() {
+    var clazz = unit.declarations2[0] as ClassDeclaration;
+    var classBody = clazz.body as BlockClassBody;
+    var method = classBody.members[0] as MethodDeclaration;
+    var body = method.body as BlockFunctionBody;
+    var statement = body.block.statements[0] as ReturnStatement;
+    var expression = statement.expression2!;
+    expect(expression.findPrevious(findToken('return'))!.lexeme, '{');
+  }
+
   void test_findPrevious_parent_method() {
-    var clazz = unit.declarations[0] as ClassDeclaration;
+    var clazz = unit.declarations2[0] as ClassDeclaration;
     var classBody = clazz.body as BlockClassBody;
     var method = classBody.members[0] as MethodDeclaration;
     expect(method.findPrevious(findToken('B'))!.lexeme, '{');
   }
 
   void test_findPrevious_parent_statement() {
-    var clazz = unit.declarations[0] as ClassDeclaration;
+    var clazz = unit.declarations2[0] as ClassDeclaration;
     var classBody = clazz.body as BlockClassBody;
     var method = classBody.members[0] as MethodDeclaration;
     var body = method.body as BlockFunctionBody;
@@ -1241,12 +1306,12 @@ missing
   }
 
   void test_findPrevious_sibling_class() {
-    CompilationUnitMember declaration = unit.declarations[1];
+    var declaration = unit.declarations2[1];
     expect(declaration.findPrevious(findToken('E'))!.lexeme, '}');
   }
 
   void test_findPrevious_sibling_method() {
-    var clazz = unit.declarations[0] as ClassDeclaration;
+    var clazz = unit.declarations2[0] as ClassDeclaration;
     var classBody = clazz.body as BlockClassBody;
     var method = classBody.members[1] as MethodDeclaration;
     expect(method.findPrevious(findToken('D'))!.lexeme, '}');
@@ -1254,6 +1319,7 @@ missing
 }
 
 @reflectiveTest
+@ToBeDeprecated('Tests V1 PropertyAccess.')
 class PropertyAccessTest extends ParserDiagnosticsTest {
   void test_isNullAware_cascade() {
     var parseResult = parseTestCodeWithDiagnostics('''
@@ -1261,7 +1327,7 @@ void f() {
   a..foo;
 }
 ''');
-    var invocation = parseResult.findNode.propertyAccess('foo');
+    var invocation = parseResult.findNodeV1.propertyAccess('foo');
     expect(invocation.isNullAware, isFalse);
   }
 
@@ -1271,17 +1337,17 @@ void f() {
   a?..foo;
 }
 ''');
-    var invocation = parseResult.findNode.propertyAccess('foo');
+    var invocation = parseResult.findNodeV1.propertyAccess('foo');
     expect(invocation.isNullAware, isTrue);
   }
 
   void test_isNullAware_regularPropertyAccess() {
     var parseResult = parseTestCodeWithDiagnostics('''
 void f() {
-  (a).foo;
+  (a).call;
 }
 ''');
-    var invocation = parseResult.findNode.propertyAccess('foo');
+    var invocation = parseResult.findNodeV1.propertyAccess('call');
     expect(invocation.isNullAware, isFalse);
   }
 
@@ -1291,7 +1357,7 @@ void f() {
   a?.foo;
 }
 ''');
-    var invocation = parseResult.findNode.propertyAccess('foo');
+    var invocation = parseResult.findNodeV1.propertyAccess('foo');
     expect(invocation.isNullAware, isTrue);
   }
 }
@@ -1310,6 +1376,7 @@ import 'dart:core' show int Function();
 }
 
 @reflectiveTest
+@ToBeDeprecated('Tests V1 SimpleIdentifier.')
 class SimpleIdentifierTest extends ParserDiagnosticsTest {
   void test_inGetterContext() {
     for (_WrapperKind wrapper in _WrapperKind.values) {
@@ -1347,7 +1414,8 @@ void f() {
   for (v in [0]) {}
 }
 ''');
-    var identifier = parseResult.findNode.simple('v in');
+    var parts = parseResult.findNode.singleForEachPartsWithIdentifier;
+    var identifier = parts.identifier;
     expect(identifier.inGetterContext(), isFalse);
   }
 
@@ -1380,7 +1448,8 @@ void f() {
   for (v in [0]) {}
 }
 ''');
-    var identifier = parseResult.findNode.simple('v in');
+    var parts = parseResult.findNode.singleForEachPartsWithIdentifier;
+    var identifier = parts.identifier;
     expect(identifier.inSetterContext(), isTrue);
   }
 
@@ -1388,9 +1457,42 @@ void f() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 final x = List<String>.foo();
 ''');
-    var constructor = parseResult.findNode.singleConstructorName;
+    var constructor = FindNode(
+      parseResult.content,
+      parseResult.unit,
+    ).singleConstructorName;
     var name = constructor.name!;
     expect(name.isQualified, isTrue);
+  }
+
+  void test_isQualified_inDotShorthandConstructorInvocation() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+void f() {
+  g(const .foo());
+}
+''');
+    var identifier = parseResult.findNodeV1.simple('foo');
+    expect(identifier.isQualified, isTrue);
+  }
+
+  void test_isQualified_inDotShorthandInvocation() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+void f() {
+  g(.foo());
+}
+''');
+    var identifier = parseResult.findNodeV1.simple('foo');
+    expect(identifier.isQualified, isTrue);
+  }
+
+  void test_isQualified_inDotShorthandPropertyAccess() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+void f() {
+  g(.foo);
+}
+''');
+    var identifier = parseResult.findNodeV1.simple('foo');
+    expect(identifier.isQualified, isTrue);
   }
 
   void test_isQualified_inMethodInvocation_noTarget() {
@@ -1399,7 +1501,7 @@ void f() {
   foo(0);
 }
 ''');
-    var invocation = parseResult.findNode.methodInvocation('foo');
+    var invocation = parseResult.findNodeV1.methodInvocation('foo');
     var identifier = invocation.methodName;
     expect(identifier.isQualified, isFalse);
   }
@@ -1410,7 +1512,7 @@ void f() {
   a.foo();
 }
 ''');
-    var invocation = parseResult.findNode.methodInvocation('foo');
+    var invocation = parseResult.findNodeV1.methodInvocation('foo');
     var identifier = invocation.methodName;
     expect(identifier.isQualified, isTrue);
   }
@@ -1421,7 +1523,7 @@ void f() {
   prefix.foo;
 }
 ''');
-    var identifier = parseResult.findNode.simple('foo');
+    var identifier = parseResult.findNodeV1.simple('foo');
     expect(identifier.isQualified, isTrue);
   }
 
@@ -1431,7 +1533,7 @@ void f() {
   prefix.foo;
 }
 ''');
-    var identifier = parseResult.findNode.simple('prefix');
+    var identifier = parseResult.findNodeV1.simple('prefix');
     expect(identifier.isQualified, isFalse);
   }
 
@@ -1441,7 +1543,7 @@ void f() {
   prefix?.foo;
 }
 ''');
-    var identifier = parseResult.findNode.simple('foo');
+    var identifier = parseResult.findNodeV1.simple('foo');
     expect(identifier.isQualified, isTrue);
   }
 
@@ -1451,8 +1553,20 @@ void f() {
   prefix?.foo;
 }
 ''');
-    var identifier = parseResult.findNode.simple('prefix');
+    var identifier = parseResult.findNodeV1.simple('prefix');
     expect(identifier.isQualified, isFalse);
+  }
+
+  void test_isQualified_inPropertyExtraction_name() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+class A {
+  void f() {
+    this.foo;
+  }
+}
+''');
+    var identifier = parseResult.findNodeV1.simple('foo');
+    expect(identifier.isQualified, isTrue);
   }
 
   void test_isQualified_inReturnStatement() {
@@ -1461,8 +1575,19 @@ void f() {
   return test;
 }
 ''');
-    var identifier = parseResult.findNode.simple('test');
+    var identifier = parseResult.findNodeV1.simple('test');
     expect(identifier.isQualified, isFalse);
+  }
+
+  void test_writeOrReadElement_inConstructorName_v1Projection() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+final x = List<String>.foo();
+''');
+    var constructor = FindNode(
+      parseResult.content,
+      parseResult.unit,
+    ).singleConstructorName;
+    expect(constructor.name!.writeOrReadElement, isNull);
   }
 
   SimpleIdentifier _createIdentifier(
@@ -1511,7 +1636,7 @@ void f() {
   $code;
 }
 ''');
-    return parseResult.findNode.simple('test');
+    return parseResult.findNodeV1.simple('test');
   }
 
   /// Return the top-most node in the AST structure containing the given
@@ -1521,10 +1646,10 @@ void f() {
   /// @return the root of the AST structure containing the identifier
   AstNode _topMostNode(SimpleIdentifier identifier) {
     AstNode child = identifier;
-    var parent = identifier.parent;
+    var parent = identifier.parent2;
     while (parent != null) {
       child = parent;
-      parent = parent.parent;
+      parent = parent.parent2;
     }
     return child;
   }
@@ -1824,13 +1949,15 @@ StringInterpolation
       contents: '
     InterpolationExpression
       leftBracket: $
-      expression: ThisExpression
+      expression2: ThisExpression
         thisKeyword: this
     InterpolationString
       contents: <empty> <synthetic>
     InterpolationExpression
       leftBracket: $
-      expression: SimpleIdentifier
+      expression2: ParsedUnqualifiedName
+        name: foo
+      expression(v1): SimpleIdentifier
         token: foo
     InterpolationString
       contents: '

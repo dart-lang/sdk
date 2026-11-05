@@ -19,8 +19,9 @@ import 'js_emitter.dart' show CodeEmitterTask;
 import 'sorter.dart';
 
 // Function signatures used in the generation of runtime type information.
-typedef FunctionTypeSignatureEmitter =
-    void Function(ClassFunctionType classFunctionType);
+typedef FunctionTypeSignatureEmitter = void Function(
+  ClassFunctionType classFunctionType,
+);
 
 class TypeTest {
   final js_ast.Name name;

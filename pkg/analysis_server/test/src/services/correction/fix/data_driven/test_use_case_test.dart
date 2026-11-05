@@ -25,7 +25,7 @@ export 'package:matcher/expect.dart' show expect;
 void expect(actual, matcher) {}
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(
           name: 'matcher',

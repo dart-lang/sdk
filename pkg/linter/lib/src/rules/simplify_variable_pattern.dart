@@ -35,13 +35,8 @@ class SimplifyVariablePattern extends AnalysisRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final AnalysisRule rule;
-
-  final RuleContext context;
-
-  new(this.rule, this.context);
-
+class _Visitor(final AnalysisRule rule, final RuleContext context)
+    extends SimpleAstVisitor<void> {
   @override
   void visitPatternField(PatternField node) {
     var pattern = node.pattern.unParenthesized;
@@ -97,13 +92,14 @@ class _Visitor extends SimpleAstVisitor<void> {
     required String accessor,
   }) {
     if (type is! DynamicType) {
-      if (type?.element case InstanceElement element) {
-        var methods = element.methods.map((e) => e.name).toList();
-        if (element.isDartCoreFunction) {
-          methods.add(MethodElement.CALL_METHOD_NAME);
-        }
-        if (!element.getters.map((e) => e.name).contains(lexeme) &&
-            !methods.contains(lexeme)) {
+      if (type is InterfaceType) {
+        var library = context.libraryElement ?? type.element.library;
+        var getter = type.lookUpGetter(lexeme, library);
+        var method = type.lookUpMethod(lexeme, library);
+        if (getter == null &&
+            method == null &&
+            !(type.element.isDartCoreFunction &&
+                lexeme == MethodElement.CALL_METHOD_NAME)) {
           return;
         }
       } else if (type case RecordType record) {

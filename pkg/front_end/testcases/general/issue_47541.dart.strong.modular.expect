@@ -92,7 +92,7 @@ static method b() → void {
   on self::Foo catch(no-exception-var) {
     ;
   }
-  function onX(dynamic e) → Null {
+  function onX(dynamic e##1) → Null {
     ;
   }
   onX(""){(dynamic) → Null};

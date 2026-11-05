@@ -5,10 +5,12 @@
 import 'dart:io';
 
 import 'package:code_assets/code_assets.dart';
+import 'package:dartdev/src/core.dart';
+import 'package:dartdev/src/kernel_assets.dart';
 import 'package:dartdev/src/native_assets_macos.dart';
+import 'package:dartdev/src/target.dart';
 import 'package:data_assets/data_assets.dart';
 import 'package:hooks/hooks.dart';
-import 'package:hooks_runner/hooks_runner.dart';
 
 final libOutputDirectoryUriFromBin = Uri.file(
   '../',
@@ -77,7 +79,7 @@ Future<void> _copyAssets(
 
   if (filesToCopy.isNotEmpty) {
     if (verbose) {
-      stdout.writeln(
+      log.stdout(
         'Copying ${filesToCopy.length} build assets:\n'
         '${filesToCopy.map((e) => e.id).join('\n')}',
       );
@@ -126,12 +128,16 @@ extension on CodeAsset {
       LookupInExecutable() => KernelAssetInExecutable(),
       LookupInProcess() => KernelAssetInProcess(),
       DynamicLoadingBundled() => () {
-        final relativeUri = libOutputDirectoryUriFromBin.resolve(
+        if (relocatable) {
+          final relativeUri = libOutputDirectoryUriFromBin.resolve(
+            file!.pathSegments.last,
+          );
+          return KernelAssetRelativePath(relativeUri);
+        }
+        final relativeUri = libOutputDirectoryUri.resolve(
           file!.pathSegments.last,
         );
-        return relocatable
-            ? KernelAssetRelativePath(relativeUri)
-            : KernelAssetAbsolutePath(outputUri.resolveUri(relativeUri));
+        return KernelAssetAbsolutePath(outputUri.resolveUri(relativeUri));
       }(),
       _ => throw UnsupportedError(
         'Unsupported NativeCodeAsset linkMode ${linkMode.runtimeType} in asset $this',

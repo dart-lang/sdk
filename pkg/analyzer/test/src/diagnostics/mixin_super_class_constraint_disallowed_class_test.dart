@@ -23,9 +23,9 @@ mixin M on Enum {}
 ''');
   }
 
-  test_dartCoreEnum_language216() async {
+  test_dartCoreEnum_beforeEnhancedEnums() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.16
+// %before-language-feature: enhanced-enums
 mixin M on Enum {}
 //         ^^^^
 // [diag.mixinSuperClassConstraintDisallowedClass] 'Enum' can't be used as a superclass constraint.
@@ -47,6 +47,8 @@ MixinOnClause
     await resolveTestCodeWithDiagnostics(r'''
 mixin A {}
 augment mixin A on int {}
+//              ^^
+// [diag.mixinAugmentationHasOnClause] Mixin augmentations can't have 'on' clauses.
 //                 ^^^
 // [diag.mixinSuperClassConstraintDisallowedClass] 'int' can't be used as a superclass constraint.
 ''');

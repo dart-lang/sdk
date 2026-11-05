@@ -100,7 +100,6 @@ class Class extends core::Object {
     return new self::Class::•();
 }
 static method argumentTypeNotAssignable(self::Class cls) → dynamic {
-  #L1:
   {
     final synthesized self::Class #0#0 = cls;
     {
@@ -116,7 +115,6 @@ static method argumentTypeNotAssignable(self::Class cls) → dynamic {
   }
 }
 static method relationalPatternOperatorReturnTypeNotAssignableToBool(self::Class cls) → dynamic {
-  #L2:
   {
     final synthesized self::Class #0#0 = cls;
     {
@@ -156,7 +154,6 @@ Try renaming the variable.
   }
 }
 static method duplicateRecordPatternField(dynamic o) → dynamic {
-  #L3:
   {
     final synthesized dynamic #0#0 = o;
     final const synthesized core::int #0#3 = #C2;
@@ -178,7 +175,6 @@ Try removing the duplicate field.
   }
 }
 static method duplicateRestPattern(dynamic o) → dynamic {
-  #L4:
   {
     final synthesized dynamic #0#0 = o;
     final const synthesized core::int #0#3 = #C2;
@@ -194,7 +190,6 @@ Try removing the duplicate rest element.
   }
 }
 static method emptyMapPattern(dynamic o) → dynamic {
-  #L5:
   {
     final synthesized dynamic #0#0 = o;
     {
@@ -207,7 +202,6 @@ Try replacing it with an object pattern 'Map()'.
   }
 }
 static method singleRestPatternInMap(dynamic o) → dynamic {
-  #L6:
   {
     final synthesized dynamic #0#0 = o;
     {

@@ -106,7 +106,7 @@ def Main():
 
         is64bit = 0
         if options.target_arch:
-            if options.target_arch in ["arm64", "x64", "riscv64"]:
+            if options.target_arch in ["arm64", "arm64e", "x64", "riscv64"]:
                 is64bit = 1
 
         if options.size_symbol_name:
@@ -134,6 +134,9 @@ def Main():
                     output_file.write(".quad %d\n" % size)
                 else:
                     output_file.write(".long %d\n" % size)
+
+        if options.target_os in ["win"]:
+            output_file.write("end\n")
 
         # For text symbols, with -g the assembler will generate the
         # DW_TAG_subprogram/label (gcc/clang) for us.
@@ -196,8 +199,35 @@ def Main():
             output_file.write(".uleb128 0 // end entries\n")
             output_file.write(".Ldebug_info_end:\n")
 
-        if options.target_os in ["win"]:
-            output_file.write("end\n")
+        # Resource blobs are vacuously compatible with all the CFI extensions.
+        if options.target_os in ["android", "linux", "fuchsia"]:
+            if options.target_arch == "x64":
+                output_file.write("// x86 feature: IBT, SHSTK, LAM_U48\n")
+                output_file.write(".section .note.gnu.property,\"a\"\n")
+                output_file.write(".align 8\n")
+                output_file.write(".long 4\n")
+                output_file.write(".long 16\n")
+                output_file.write(".long 5 // NT_GNU_PROPERTY_TYPE_0\n")
+                output_file.write(".string \"GNU\"\n")
+                output_file.write(".align 8\n")
+                output_file.write(
+                    ".long 0xC0000002 // GNU_PROPERTY_X86_FEATURE_1_AND\n")
+                output_file.write(".long 4\n")
+                output_file.write(".long 7 // IBT | SHSTK | LAM_U48\n")
+                output_file.write(".align 8\n")
+            elif options.target_arch == "arm64":
+                output_file.write("// AArch64 feature: BTI, PAC, GCS\n")
+                output_file.write(".section .note.gnu.property,\"a\"\n")
+                output_file.write(".align 3\n")
+                output_file.write(".word 4\n")
+                output_file.write(".word 16\n")
+                output_file.write(".word 5 // NT_GNU_PROPERTY_TYPE_0\n")
+                output_file.write(".string \"GNU\"\n")
+                output_file.write(
+                    ".word 0xC0000000 // GNU_PROPERTY_AARCH64_FEATURE_1_AND\n")
+                output_file.write(".word 4\n")
+                output_file.write(".word 7 // BTI | PAC | GCS\n")
+                output_file.write(".align 3\n")
 
     return 0
 

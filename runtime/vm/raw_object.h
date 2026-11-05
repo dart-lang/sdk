@@ -48,11 +48,14 @@ class StackFrame;
 
 namespace module_snapshot {
 class CatchEntryMovesDeserializationCluster;
+class ClosureDataDeserializationCluster;
 class CodeDeserializationCluster;
 class CodeSourceMapDeserializationCluster;
+class CompressedStackMapsDeserializationCluster;
 class Deserializer;
 class DoubleDeserializationCluster;
 class ExceptionHandlersDeserializationCluster;
+class FunctionDeserializationCluster;
 class FunctionTypeDeserializationCluster;
 class ICDataDeserializationCluster;
 class IntDeserializationCluster;
@@ -175,7 +178,7 @@ enum TypedDataElementType {
   friend class object##MessageDeserializationCluster;                          \
   friend class Serializer;                                                     \
   friend class Deserializer;                                                   \
-  template <typename Base>                                                     \
+  template <typename Base, bool>                                               \
   friend class ObjectCopy;                                                     \
   friend class Pass2Visitor;
 
@@ -1436,6 +1439,12 @@ class UntaggedFunction : public UntaggedObject {
   };
   static constexpr int kKindBitSize = Utils::BitLength(kRecordFieldGetter);
 
+  static constexpr const char* kKindNames[] = {
+#define NAME_DEF(name) #name,
+      FOR_EACH_RAW_FUNCTION_KIND(NAME_DEF)
+#undef NAME_DEF
+  };
+
   static const char* KindToCString(Kind k) {
     switch (k) {
 #define KIND_CASE(Name)                                                        \
@@ -1540,11 +1549,6 @@ class UntaggedFunction : public UntaggedObject {
   };
 
  private:
-  friend class Class;
-  friend class Interpreter;
-  friend class InterpreterHelpers;
-  friend class UnitDeserializationRoots;
-
   RAW_HEAP_OBJECT_IMPLEMENTATION(Function);
 
   uword entry_point_;            // Accessed from generated code.
@@ -1615,6 +1619,12 @@ class UntaggedFunction : public UntaggedObject {
 
   std::atomic<bool> is_optimizable_;
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
+  friend class Class;
+  friend class Interpreter;
+  friend class InterpreterHelpers;
+  friend class UnitDeserializationRoots;
+  friend class module_snapshot::FunctionDeserializationCluster;
 };
 
 enum class InstantiationMode : uint8_t {
@@ -1665,8 +1675,19 @@ class UntaggedClosureData : public UntaggedObject {
   using CapturesOnlySharedFields = BitField<decltype(packed_fields_),
                                             bool,
                                             PackedAwaiterLinkIndex::kNextBit>;
+  // Used by the interpreter to detect that a tearoff was affected by reload
+  // and so the tearoff function should be re-resolved.
+  //
+  // Unused in compiled code, since clearing the code of the tearoff forces
+  // re-resolution there.
+  using ReloadedImplicitClosure = BitField<decltype(packed_fields_),
+                                           bool,
+                                           CapturesOnlySharedFields::kNextBit>;
+
   friend class Function;
+  friend class Interpreter;
   friend class UnitDeserializationRoots;
+  friend class module_snapshot::ClosureDataDeserializationCluster;
 };
 
 class UntaggedFfiTrampolineData : public UntaggedObject {
@@ -1902,6 +1923,7 @@ class UntaggedLibrary : public UntaggedObject {
 
   friend class Class;
   friend class Isolate;
+  friend class module_snapshot::FunctionDeserializationCluster;
 };
 
 class UntaggedNamespace : public UntaggedObject {
@@ -2086,11 +2108,11 @@ class UntaggedCode : public UntaggedObject {
   // offsets.
   // Alive: If true, the embedded object pointers will be visited during GC.
   int32_t state_bits_;
+  // Stores the instructions length when not using RawInstructions objects.
+  uint32_t instructions_length_;
   // Caches the unchecked entry point offset for instructions_, in case we need
   // to reset the active_instructions_ to instructions_.
   NOT_IN_PRECOMPILED(uint32_t unchecked_offset_);
-  // Stores the instructions length when not using RawInstructions objects.
-  ONLY_IN_PRECOMPILED(uint32_t instructions_length_);
 
   // Variable length data follows here.
   int32_t* data() { OPEN_ARRAY_START(int32_t, int32_t); }
@@ -2474,6 +2496,7 @@ class UntaggedCompressedStackMaps : public UntaggedObject {
   friend class Object;
   friend class ImageWriter;
   friend class StackMapEntry;
+  friend class module_snapshot::CompressedStackMapsDeserializationCluster;
 };
 
 class UntaggedInstructionsTable : public UntaggedObject {
@@ -2511,6 +2534,18 @@ class UntaggedInstructionsTable : public UntaggedObject {
   uword end_pc_;
 
   friend class Deserializer;
+};
+
+class UntaggedLocalVarDescriptor : public UntaggedObject {
+ private:
+  RAW_HEAP_OBJECT_IMPLEMENTATION(LocalVarDescriptor);
+
+  COMPRESSED_POINTER_FIELD(StringPtr, name)
+  VISIT_FROM(name)
+  COMPRESSED_POINTER_FIELD(AbstractTypePtr, static_type)
+  VISIT_TO(static_type)
+  CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
+  friend class Object;
 };
 
 class UntaggedLocalVarDescriptors : public UntaggedObject {
@@ -2562,14 +2597,16 @@ class UntaggedLocalVarDescriptors : public UntaggedObject {
   // platforms.
   uword num_entries_;
 
-  VISIT_FROM_PAYLOAD_START(CompressedStringPtr)
-  COMPRESSED_VARIABLE_POINTER_FIELDS(StringPtr, name, names, num_entries)
-
-  CompressedStringPtr* nameAddrAt(intptr_t i) { return &(names()[i]); }
-
-  // Variable info with [num_entries_] entries.
+  VISIT_FROM_PAYLOAD_START(CompressedLocalVarDescriptorPtr)
+  COMPRESSED_VARIABLE_POINTER_FIELDS(LocalVarDescriptorPtr,
+                                     descriptor,
+                                     descriptors,
+                                     num_entries)
+  CompressedLocalVarDescriptorPtr* descriptorAddrAt(intptr_t i) {
+    return &(descriptors()[i]);
+  }
   VarInfo* data() {
-    return reinterpret_cast<VarInfo*>(nameAddrAt(num_entries_));
+    return reinterpret_cast<VarInfo*>(descriptorAddrAt(num_entries_));
   }
 
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind, intptr_t num_entries) {
@@ -2635,8 +2672,10 @@ class UntaggedContext : public UntaggedObject {
 
 #define CONTEXT_SCOPE_VARIABLE_DESC_FLAG_LIST(V)                               \
   V(Final)                                                                     \
+  V(EffectivelyFinal)                                                          \
   V(Late)                                                                      \
   V(Nullable)                                                                  \
+  V(ExactType)                                                                 \
   V(Invisible)                                                                 \
   V(AwaiterLink)                                                               \
   V(Shared)
@@ -3149,6 +3188,10 @@ class UntaggedClosure : public UntaggedInstance {
                uint8_t,
                HasDelayedTypeArgumentsBit::shift(),
                HasDelayedTypeArgumentsBit::bitsize()>;
+  static constexpr intptr_t kInstantiatorTypeArgumentsIndexBitsPos =
+      InstantiatorTypeArgumentsIndexBits::shift();
+  static constexpr intptr_t kInstantiatorTypeArgumentsIndexBitsSize =
+      InstantiatorTypeArgumentsIndexBits::bitsize();
 
   using FunctionTypeArgumentsIndexBits =
       BitField<intptr_t, uint8_t, HasFunctionTypeArgumentsBit::kNextBit, 2>;
@@ -3619,6 +3662,8 @@ class UntaggedInt32x4 : public UntaggedInstance {
 
   ALIGN8 int32_t value_[4];
 
+  friend class Class;
+  friend class Interpreter;
   friend class Simd128DeserializationCluster;
   friend class Simd128MessageDeserializationCluster;
   friend class Simd128MessageSerializationCluster;

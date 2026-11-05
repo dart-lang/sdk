@@ -59,7 +59,7 @@ class _ChildrenElementList extends ListBase<Element>
     }
   }
 
-  void sort([int compare(Element a, Element b)$NULLABLE]) {
+  void sort([int Function(Element a, Element b)$NULLABLE compare]) {
     throw new UnsupportedError('Cannot sort element lists');
   }
 
@@ -67,15 +67,15 @@ class _ChildrenElementList extends ListBase<Element>
     throw new UnsupportedError('Cannot shuffle element lists');
   }
 
-  void removeWhere(bool test(Element element)) {
+  void removeWhere(bool Function(Element element) test) {
     _filter(test, false);
   }
 
-  void retainWhere(bool test(Element element)) {
+  void retainWhere(bool Function(Element element) test) {
     _filter(test, true);
   }
 
-  void _filter(bool test(Element element), bool retainMatching) {
+  void _filter(bool Function(Element element) test, bool retainMatching) {
     Iterable<Element> removed;
     if (retainMatching) {
       removed = _element.children.where((e) => !test(e));

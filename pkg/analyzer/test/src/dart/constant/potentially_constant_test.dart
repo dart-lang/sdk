@@ -190,7 +190,7 @@ final a = 0;
 var x = a as int;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('a as')],
+      (result) => [result.findNode.unqualifiedNameExpression('a as')],
     );
   }
 
@@ -232,7 +232,7 @@ final b = false;
 var x = a & b;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('b;')],
+      (result) => [result.findNode.unqualifiedNameExpression('b;')],
     );
   }
 
@@ -244,7 +244,7 @@ const b = false;
 var x = a & b;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('a &')],
+      (result) => [result.findNode.unqualifiedNameExpression('a &')],
     );
   }
 
@@ -256,7 +256,10 @@ final b = false;
 var x = a & b;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('a &'), result.findNode.simple('b;')],
+      (result) => [
+        result.findNode.unqualifiedNameExpression('a &'),
+        result.findNode.unqualifiedNameExpression('b;'),
+      ],
     );
   }
 
@@ -276,7 +279,7 @@ final b = false;
 var x = a && b;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('b;')],
+      (result) => [result.findNode.unqualifiedNameExpression('b;')],
     );
   }
 
@@ -288,7 +291,7 @@ const b = false;
 var x = a && b;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('a &')],
+      (result) => [result.findNode.unqualifiedNameExpression('a &')],
     );
   }
 
@@ -300,7 +303,10 @@ final b = false;
 var x = a && b;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('a &'), result.findNode.simple('b;')],
+      (result) => [
+        result.findNode.unqualifiedNameExpression('a &'),
+        result.findNode.unqualifiedNameExpression('b;'),
+      ],
     );
   }
 
@@ -320,7 +326,7 @@ final b = 1;
 var x = a ?? b;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('b;')],
+      (result) => [result.findNode.unqualifiedNameExpression('b;')],
     );
   }
 
@@ -332,7 +338,7 @@ const b = 1;
 var x = a ?? b;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('a ??')],
+      (result) => [result.findNode.unqualifiedNameExpression('a ??')],
     );
   }
 
@@ -345,8 +351,8 @@ var x = a ?? b;
 ''',
       (result) => _xInitializer(result),
       (result) => [
-        result.findNode.simple('a ??'),
-        result.findNode.simple('b;'),
+        result.findNode.unqualifiedNameExpression('a ??'),
+        result.findNode.unqualifiedNameExpression('b;'),
       ],
     );
   }
@@ -367,7 +373,7 @@ final b = false;
 var x = a | b;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('b;')],
+      (result) => [result.findNode.unqualifiedNameExpression('b;')],
     );
   }
 
@@ -379,7 +385,7 @@ const b = false;
 var x = a | b;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('a |')],
+      (result) => [result.findNode.unqualifiedNameExpression('a |')],
     );
   }
 
@@ -391,7 +397,10 @@ final b = false;
 var x = a | b;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('a |'), result.findNode.simple('b;')],
+      (result) => [
+        result.findNode.unqualifiedNameExpression('a |'),
+        result.findNode.unqualifiedNameExpression('b;'),
+      ],
     );
   }
 
@@ -411,7 +420,7 @@ final b = false;
 var x = a || b;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('b;')],
+      (result) => [result.findNode.unqualifiedNameExpression('b;')],
     );
   }
 
@@ -423,7 +432,7 @@ const b = false;
 var x = a || b;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('a |')],
+      (result) => [result.findNode.unqualifiedNameExpression('a |')],
     );
   }
 
@@ -435,7 +444,10 @@ final b = false;
 var x = a || b;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('a |'), result.findNode.simple('b;')],
+      (result) => [
+        result.findNode.unqualifiedNameExpression('a |'),
+        result.findNode.unqualifiedNameExpression('b;'),
+      ],
     );
   }
 
@@ -458,14 +470,14 @@ var x = a ? b : c;
 ''',
       (result) => _xInitializer(result),
       (result) => [
-        result.findNode.simple('a ?'),
-        result.findNode.simple('b :'),
-        result.findNode.simple('c;'),
+        result.findNode.unqualifiedNameExpression('a ?'),
+        result.findNode.unqualifiedNameExpression('b :'),
+        result.findNode.unqualifiedNameExpression('c;'),
       ],
     );
   }
 
-  test_constructorReference_explicitTypeArguments() async {
+  test_constructorTearOff_explicitTypeArguments() async {
     await _assertConst('''
 class A {
   final B Function() x;
@@ -473,10 +485,10 @@ class A {
 }
 
 class B<T> {}
-''', (result) => result.findNode.constructorReference('B<int>.new'));
+''', (result) => result.findNode.constructorTearOff('B<int>.new'));
   }
 
-  test_constructorReference_explicitTypeArguments_nonConst() async {
+  test_constructorTearOff_explicitTypeArguments_nonConst() async {
     await _assertNotConst(
       '''
 import '' deferred as self;
@@ -487,12 +499,12 @@ class A {
 
 class B<T> {}
 ''',
-      (result) => result.findNode.constructorReference('B<self.A>.new'),
+      (result) => result.findNode.constructorTearOff('B<self.A>.new'),
       (result) => [result.findNode.typeAnnotation('self.A')],
     );
   }
 
-  test_constructorReference_noTypeArguments() async {
+  test_constructorTearOff_noTypeArguments() async {
     await _assertConst('''
 class A {
   final B Function() x;
@@ -500,7 +512,7 @@ class A {
 }
 
 class B {}
-''', (result) => result.findNode.constructorReference('B.new'));
+''', (result) => result.findNode.constructorTearOff('B.new'));
   }
 
   test_dotShorthandConstructorInvocation_const() async {
@@ -535,7 +547,7 @@ class A {
 }
 
 const A x = .a;
-''', (result) => result.findNode.dotShorthandPropertyAccess('.a'));
+''', (result) => result.findNode.dotShorthandNameExpression('.a'));
   }
 
   test_dotShorthandPropertyAccess_nonConst() async {
@@ -548,7 +560,7 @@ class A {
 A x = .a;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('a;')],
+      (result) => [result.findNode.dotShorthandNameExpression('.a;')],
     );
   }
 
@@ -560,7 +572,7 @@ class A {
 }
 
 X id<X>(X x) => x;
-''', (result) => result.findNode.functionReference('id<int>'));
+''', (result) => result.findNode.functionInstantiation('id<int>'));
   }
 
   test_functionReference_explicitTypeArguments_nonConst() async {
@@ -574,7 +586,7 @@ class A {
 
 X id<X>(X x) => x;
 ''',
-      (result) => result.findNode.functionReference('id<self.A>'),
+      (result) => result.findNode.functionInstantiation('id<self.A>'),
       (result) => [result.findNode.typeAnnotation('self.A')],
     );
   }
@@ -587,7 +599,7 @@ class A {
 }
 
 X id<X>(X x) => x;
-''', (result) => result.findNode.simple('id;'));
+''', (result) => result.findNode.unqualifiedNameExpression('id;'));
   }
 
   test_ifElement_then() async {
@@ -606,7 +618,10 @@ final b = 0;
 var x = const [if (a) b];
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('a)'), result.findNode.simple('b]')],
+      (result) => [
+        result.findNode.unqualifiedNameExpression('a)'),
+        result.findNode.unqualifiedNameExpression('b]'),
+      ],
     );
   }
 
@@ -629,7 +644,7 @@ class A {
 var x = new A(); // x
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.instanceCreation('A(); // x')],
+      (result) => [result.findNode.constructorInvocation('A(); // x')],
     );
   }
 
@@ -657,7 +672,7 @@ final a = 0;
 var x = a is int;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('a is')],
+      (result) => [result.findNode.unqualifiedNameExpression('a is')],
     );
   }
 
@@ -707,7 +722,10 @@ final b = 1;
 var x = const [a, b, 2];
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('a,'), result.findNode.simple('b,')],
+      (result) => [
+        result.findNode.unqualifiedNameExpression('a,'),
+        result.findNode.unqualifiedNameExpression('b,'),
+      ],
     );
   }
 
@@ -810,7 +828,10 @@ final b = 2;
 var x = const {0: 0, a: 1, b: 2};
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('a:'), result.findNode.simple('b:')],
+      (result) => [
+        result.findNode.unqualifiedNameExpression('a:'),
+        result.findNode.unqualifiedNameExpression('b:'),
+      ],
     );
   }
 
@@ -822,7 +843,10 @@ final b = 2;
 var x = const {0: 0, 1: a, 2: b};
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('a,'), result.findNode.simple('b}')],
+      (result) => [
+        result.findNode.unqualifiedNameExpression('a,'),
+        result.findNode.unqualifiedNameExpression('b}'),
+      ],
     );
   }
 
@@ -865,7 +889,10 @@ final b = 0;
 var x = identical(a, b);
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('a,'), result.findNode.simple('b)')],
+      (result) => [
+        result.findNode.unqualifiedNameExpression('a,'),
+        result.findNode.unqualifiedNameExpression('b)'),
+      ],
     );
   }
 
@@ -877,7 +904,7 @@ const b = 0;
 var x = foo(a, b);
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.methodInvocation('foo')],
+      (result) => [result.findNode.unqualifiedFunctionInvocation('foo')],
     );
   }
 
@@ -887,7 +914,7 @@ var x = foo(a, b);
 var x = a.foo();
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.methodInvocation('a.foo()')],
+      (result) => [result.findNode.receiverMethodInvocation('a.foo()')],
     );
   }
 
@@ -913,7 +940,7 @@ final a = 0;
 var x = (a);
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('a);')],
+      (result) => [result.findNode.unqualifiedNameExpression('a);')],
     );
   }
 
@@ -924,7 +951,7 @@ const a = 0;
 var x = a++;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.postfix('a++')],
+      (result) => [result.findNode.incrementOrDecrement('a++')],
     );
   }
 
@@ -938,7 +965,7 @@ import 'a.dart' deferred as p;
 var x = p.a + 1;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.prefixed('p.a')],
+      (result) => [result.findNode.importPrefixedNameExpression('p.a')],
     );
   }
 
@@ -976,7 +1003,7 @@ final a = 'abc';
 var x = a.length;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('a.')],
+      (result) => [result.findNode.unqualifiedNameExpression('a.')],
     );
   }
 
@@ -993,7 +1020,7 @@ const a = const A();
 var x = a.m;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.prefixed('a.m')],
+      (result) => [result.findNode.receiverPropertyExtraction('a.m')],
     );
   }
 
@@ -1020,7 +1047,7 @@ const a = const A();
 var x = a.m;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.prefixed('a.m')],
+      (result) => [result.findNode.receiverPropertyExtraction('a.m')],
     );
   }
 
@@ -1037,7 +1064,7 @@ const a = const A();
 var x = a.b + 1;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.prefixed('a.b + 1')],
+      (result) => [result.findNode.receiverPropertyExtraction('a.b + 1')],
     );
   }
 
@@ -1059,7 +1086,7 @@ class A {
 var x = A.a + 1;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.prefixed('A.a')],
+      (result) => [result.findNode.receiverPropertyExtraction('A.a')],
     );
   }
 
@@ -1094,7 +1121,25 @@ final a = 0;
 var x = -a;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('a;')],
+      (result) => [result.findNode.unqualifiedNameExpression('a;')],
+    );
+  }
+
+  test_prefixExpression_minus_super() async {
+    await _assertNotConst(
+      r'''
+class A {
+  int operator -() => 0;
+}
+
+class B extends A {
+  void f() {
+    var x = -super;
+  }
+}
+''',
+      (result) => _xInitializer(result),
+      (result) => [result.findNode.superReference('super;')],
     );
   }
 
@@ -1105,7 +1150,7 @@ const a = 0;
 var x = ++a;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.prefix('++a')],
+      (result) => [result.findNode.incrementOrDecrement('++a')],
     );
   }
 
@@ -1128,7 +1173,7 @@ import 'a.dart' as p;
 var x = p.A.m;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('m;')],
+      (result) => [result.findNode.receiverPropertyExtraction('m;')],
     );
   }
 
@@ -1139,7 +1184,7 @@ final a = 'abc';
 var x = (a).length;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('a).')],
+      (result) => [result.findNode.unqualifiedNameExpression('a).')],
     );
   }
 
@@ -1173,7 +1218,7 @@ import 'a.dart' deferred as p;
 var x = p.A.a + 1;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.propertyAccess('p.A.a')],
+      (result) => [result.findNode.receiverPropertyExtraction('p.A.a')],
     );
   }
 
@@ -1189,7 +1234,7 @@ import 'a.dart' as p;
 var x = p.A.a + 1;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('a + 1')],
+      (result) => [result.findNode.receiverPropertyExtraction('a + 1')],
     );
   }
 
@@ -1217,7 +1262,7 @@ import 'a.dart' deferred as p;
 var x = p.A.m;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.propertyAccess('p.A.m')],
+      (result) => [result.findNode.receiverPropertyExtraction('p.A.m')],
     );
   }
 
@@ -1231,7 +1276,7 @@ class A {
 var x = A().a + 1;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.propertyAccess('A().a')],
+      (result) => [result.findNode.receiverPropertyExtraction('A().a')],
     );
   }
 
@@ -1251,7 +1296,7 @@ import 'a.dart' as p;
 var x = p.a.b + 1;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.propertyAccess('p.a.b + 1')],
+      (result) => [result.findNode.receiverPropertyExtraction('p.a.b + 1')],
     );
   }
 
@@ -1283,7 +1328,7 @@ final a = 0;
 var x = const (f1: a);
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('a)')],
+      (result) => [result.findNode.unqualifiedNameExpression('a)')],
     );
   }
 
@@ -1301,7 +1346,10 @@ final b = 1;
 var x = const (a, b, 2);
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('a,'), result.findNode.simple('b,')],
+      (result) => [
+        result.findNode.unqualifiedNameExpression('a,'),
+        result.findNode.unqualifiedNameExpression('b,'),
+      ],
     );
   }
 
@@ -1329,7 +1377,10 @@ final b = 1;
 var x = const {a, b, 2};
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('a,'), result.findNode.simple('b,')],
+      (result) => [
+        result.findNode.unqualifiedNameExpression('a,'),
+        result.findNode.unqualifiedNameExpression('b,'),
+      ],
     );
   }
 
@@ -1386,7 +1437,7 @@ main() {
 }
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('a +')],
+      (result) => [result.findNode.unqualifiedNameExpression('a +')],
     );
   }
 
@@ -1399,7 +1450,7 @@ class A {
 
   const A() : f = m; // ref
 }
-''', (result) => result.findNode.simple('m; // ref'));
+''', (result) => result.findNode.unqualifiedNameExpression('m; // ref'));
   }
 
   test_simpleIdentifier_parameterOfConstPrimaryConstructor_inFieldInitializer_instance_late() async {
@@ -1409,8 +1460,8 @@ class const C(int a) {
   late final int f = a + 1;
 }
 ''',
-      (result) => result.findNode.variableDeclaration('f =').initializer!,
-      (result) => [result.findNode.simple('a +')],
+      (result) => result.findNode.variableDeclaration('f =').initializer2!,
+      (result) => [result.findNode.unqualifiedNameExpression('a +')],
     );
   }
 
@@ -1419,7 +1470,7 @@ class const C(int a) {
 class const C(int a) {
   final int f = a + 1;
 }
-''', (result) => result.findNode.variableDeclaration('f =').initializer!);
+''', (result) => result.findNode.variableDeclaration('f =').initializer2!);
   }
 
   test_simpleIdentifier_parameterOfConstPrimaryConstructor_inFieldInitializer_static() async {
@@ -1429,18 +1480,22 @@ class const C(int a) {
   static final int f = a + 1;
 }
 ''',
-      (result) => result.findNode.variableDeclaration('f =').initializer!,
-      (result) => [result.findNode.simple('a +')],
+      (result) => result.findNode.variableDeclaration('f =').initializer2!,
+      (result) => [result.findNode.unqualifiedNameExpression('a +')],
     );
   }
 
   test_simpleIdentifier_parameterOfConstPrimaryConstructor_inInitializer() async {
-    await _assertConst(r'''
+    await _assertConst(
+      r'''
 class const C(int a) {
   final int f;
   this : f = a + 1;
 }
-''', (result) => result.findNode.constructorFieldInitializer('f =').expression);
+''',
+      (result) =>
+          result.findNode.constructorFieldInitializer('f =').expression2,
+    );
   }
 
   test_simpleIdentifier_parameterOfConstSecondaryConstructor_inBody() async {
@@ -1453,17 +1508,21 @@ class C {
 }
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('a +')],
+      (result) => [result.findNode.unqualifiedNameExpression('a +')],
     );
   }
 
   test_simpleIdentifier_parameterOfConstSecondaryConstructor_inInitializer() async {
-    await _assertConst(r'''
+    await _assertConst(
+      r'''
 class C {
   final int f;
   const C(int a) : f = a + 1;
 }
-''', (result) => result.findNode.constructorFieldInitializer('f =').expression);
+''',
+      (result) =>
+          result.findNode.constructorFieldInitializer('f =').expression2,
+    );
   }
 
   test_simpleIdentifier_parameterOfNotConstPrimaryConstructor_inConstructorFieldInitializer() async {
@@ -1474,8 +1533,9 @@ class C(int a) {
   this : f = a + 1;
 }
 ''',
-      (result) => result.findNode.constructorFieldInitializer('f =').expression,
-      (result) => [result.findNode.simple('a +')],
+      (result) =>
+          result.findNode.constructorFieldInitializer('f =').expression2,
+      (result) => [result.findNode.unqualifiedNameExpression('a +')],
     );
   }
 
@@ -1486,8 +1546,8 @@ class C(int a) {
   final int f = a + 1;
 }
 ''',
-      (result) => result.findNode.variableDeclaration('f =').initializer!,
-      (result) => [result.findNode.simple('a +')],
+      (result) => result.findNode.variableDeclaration('f =').initializer2!,
+      (result) => [result.findNode.unqualifiedNameExpression('a +')],
     );
   }
 
@@ -1499,8 +1559,9 @@ class C {
   C(int a) : f = a + 1;
 }
 ''',
-      (result) => result.findNode.constructorFieldInitializer('f =').expression,
-      (result) => [result.findNode.simple('a +')],
+      (result) =>
+          result.findNode.constructorFieldInitializer('f =').expression2,
+      (result) => [result.findNode.unqualifiedNameExpression('a +')],
     );
   }
 
@@ -1518,7 +1579,7 @@ final a = 0;
 var x = a + 1;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('a +')],
+      (result) => [result.findNode.unqualifiedNameExpression('a +')],
     );
   }
 
@@ -1550,7 +1611,7 @@ final a = [0, 1, 2];
 var x = const [...a];
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('a];')],
+      (result) => [result.findNode.unqualifiedNameExpression('a];')],
     );
   }
 
@@ -1568,7 +1629,7 @@ final a = 0;
 var x = 'a $a b';
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('a b')],
+      (result) => [result.findNode.unqualifiedNameExpression('a b')],
     );
   }
 
@@ -1610,10 +1671,10 @@ class A<T> {
 ''', (result) => result.findNode.typeLiteral('T;'));
   }
 
-  test_typeLiteral_typeParameter_class_214() async {
+  test_typeLiteral_typeParameter_class_beforeConstructorTearoffs() async {
     await _assertNotConst(
       r'''
-// @dart = 2.14
+// %before-language-feature: constructor-tearoffs
 class A<T> {
   final Object f;
   A() : f = T;
@@ -1654,6 +1715,6 @@ class A<T> {
   }
 
   Expression _xInitializer(TestResolvedUnitResult result) {
-    return result.findNode.variableDeclaration('x = ').initializer!;
+    return result.findNode.variableDeclaration('x = ').initializer2!;
   }
 }

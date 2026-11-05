@@ -146,14 +146,14 @@ class Foo<U extends core::Object? = dynamic> extends core::Object {
     core::List<invalid-type> foo4Prime;
     function foo5(invalid-type y) → void
       return core::print(y);
-    function foo5Prime(core::List<invalid-type> y) → void
-      return core::print(y);
+    function foo5Prime(core::List<invalid-type> y##1) → void
+      return core::print(y##1);
     function foo6() → invalid-type
       return null;
     function foo6Prime() → core::List<invalid-type>
       return throw "";
-    (invalid-type) → void foo7 = (invalid-type y) → void => y;
-    (core::List<invalid-type>) → void foo7Prime = (core::List<invalid-type> y) → void => y;
+    (invalid-type) → void foo7 = (invalid-type y##2) → void => y##2;
+    (core::List<invalid-type>) → void foo7Prime = (core::List<invalid-type> y##3) → void => y##3;
   }
   static method foo8() → () → invalid-type {
     throw "";

@@ -24,6 +24,7 @@ class [!Sub!] extends Base {}
 ''';
     var code = TestCode.parse(content);
     newFile(testFilePath, code.code);
+    await initializeServer();
     var prepareResults = await prepareTypeHierarchy(
       testFileUri,
       code.position.position,
@@ -44,6 +45,7 @@ class Su^b extends Base {}
 ''';
     var code = TestCode.parse(content);
     newFile(testFilePath, code.code);
+    await initializeServer();
     var prepareResults = await prepareTypeHierarchy(
       testFileUri,
       code.position.position,
@@ -63,6 +65,7 @@ class A^ {}
 ''';
     var code = TestCode.parse(content);
     newFile(testFilePath, code.code);
+    await initializeServer();
     var results = await prepareTypeHierarchy(
       testFileUri,
       code.position.position,

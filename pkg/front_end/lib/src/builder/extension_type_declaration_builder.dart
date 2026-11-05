@@ -37,7 +37,7 @@ abstract class ExtensionTypeDeclarationBuilderImpl
   DartType buildAliasedTypeWithBuiltArguments(
     LibraryBuilder library,
     Nullability nullability,
-    List<DartType> arguments,
+    DartTypeList arguments,
     TypeUse typeUse,
     Uri fileUri,
     int charOffset, {

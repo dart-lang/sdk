@@ -4,9 +4,10 @@
 
 import 'dart:io' show Directory, Platform;
 
-import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
+import 'package:_fe_analyzer_shared/src/testing/id.dart' show Id, ActualDataMap;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart'
     show DataInterpreter, runTests;
+import 'package:front_end/src/kernel/internal_ast.dart';
 import 'package:front_end/src/source/source_loader.dart';
 import 'package:front_end/src/source/source_member_builder.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
@@ -49,7 +50,7 @@ class InferredVariableTypesDataComputer extends CfeDataComputer<DartType> {
   void computeMemberData(
     CfeTestResultData testResultData,
     Member member,
-    Map<Id, ActualData<DartType>> actualMap, {
+    ActualDataMap<DartType> actualMap, {
     bool? verbose,
   }) {
     SourceMemberBuilder memberBuilder = lookupMemberBuilder(
@@ -70,19 +71,17 @@ class InferredTypeArgumentDataExtractor extends CfeDataExtractor<DartType> {
   final SourceLoaderDataForTesting _sourceLoaderDataForTesting;
   final TypeInferenceResultForTesting typeInferenceResult;
 
-  new(
-    InternalCompilerResult compilerResult,
-    this.typeInferenceResult,
-    Map<Id, ActualData<DartType>> actualMap,
-  ) : _sourceLoaderDataForTesting =
-          compilerResult.kernelTargetForTesting!.loader.dataForTesting!,
-      super(compilerResult, actualMap);
+  new(super.compilerResult, this.typeInferenceResult, super.actualMap)
+    : _sourceLoaderDataForTesting =
+          compilerResult.kernelTargetForTesting!.loader.dataForTesting!;
 
   @override
   DartType? computeNodeValue(Id id, TreeNode node) {
     if (node is Variable || node is LocalFunction) {
-      TreeNode? alias = _sourceLoaderDataForTesting.toOriginal(node);
-      return typeInferenceResult.inferredVariableTypes[alias];
+      InternalNode? internalNode = _sourceLoaderDataForTesting.toInternalNode(
+        node,
+      );
+      return typeInferenceResult.inferredVariableTypes[internalNode];
     }
     return null;
   }

@@ -30,7 +30,7 @@ DefinedNames computeDefinedNames(CompilationUnitImpl unit) {
     PrimaryConstructorDeclarationImpl constructor, {
     bool isExtensionType = false,
   }) {
-    var parameters = constructor.formalParameters.parameters;
+    var parameters = constructor.formalParameters.allFormalParameters;
     for (var i = 0; i < parameters.length; i++) {
       var parameter = parameters[i];
       var isRepresentation =
@@ -41,7 +41,7 @@ DefinedNames computeDefinedNames(CompilationUnitImpl unit) {
     }
   }
 
-  void appendTopLevelName(CompilationUnitMemberImpl member) {
+  void appendTopLevelName(TopLevelDeclarationV1OrV2Impl member) {
     switch (member) {
       case ClassDeclarationImpl():
         appendName(names.topLevelNames, member.namePart.typeName);
@@ -82,12 +82,14 @@ DefinedNames computeDefinedNames(CompilationUnitImpl unit) {
         for (var variable in member.variables.variables) {
           appendName(names.topLevelNames, variable.name);
         }
+      case TopLevelGetterDeclarationImpl():
+        appendName(names.topLevelNames, member.name);
       case TypeAliasImpl():
         appendName(names.topLevelNames, member.name);
     }
   }
 
-  unit.declarations.forEach(appendTopLevelName);
+  unit.declarations2.forEach(appendTopLevelName);
   return names;
 }
 

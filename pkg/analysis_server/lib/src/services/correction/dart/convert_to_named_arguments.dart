@@ -57,13 +57,17 @@ class ConvertToNamedArguments extends ResolvedCorrectionProducer {
           numberOfPositionalParameters++;
         }
       }
-      if (argumentList.arguments.length <= numberOfPositionalParameters) {
+
+      var positionalArguments = argumentList.arguments.where(
+        (argument) => argument is! NamedArgument,
+      );
+      if (positionalArguments.length <= numberOfPositionalParameters) {
         return;
       }
 
       // Find named parameters for extra arguments.
       var argumentToParameter = <Argument, FormalParameterElement>{};
-      var extraArguments = argumentList.arguments.skip(
+      var extraArguments = positionalArguments.skip(
         numberOfPositionalParameters,
       );
       for (var argument in extraArguments) {
@@ -76,7 +80,10 @@ class ConvertToNamedArguments extends ResolvedCorrectionProducer {
                   namedParameter.type,
                 ) &&
                 namedParameterName != null &&
-                !_namedArgumentExists(extraArguments, namedParameterName)) {
+                !_namedArgumentExists(
+                  argumentList.arguments,
+                  namedParameterName,
+                )) {
               if (uniqueNamedParameter == null) {
                 uniqueNamedParameter = namedParameter;
               } else {

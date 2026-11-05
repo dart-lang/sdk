@@ -15,7 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class ConvertClassToEnumTest extends AssistProcessorTest {
+class ConvertClassToEnumTest extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.convertClassToEnum;
 

@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/binary/binary_reader.dart';
 import 'package:analyzer/src/binary/binary_writer.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -257,6 +258,8 @@ class InformativeDataApplier {
       fragment.nameEnd = info.nameEnd;
       fragment.nameOffset = info.nameOffset;
       fragment.thisKeywordOffset = info.thisKeywordOffset;
+      fragment.primaryHeaderCodeRange = info.primaryHeaderCodeRange;
+      fragment.primaryBodyCodeRange = info.primaryBodyCodeRange;
       fragment.documentationComment = info.documentationComment;
 
       DeferredResolutionReadingHelper.withoutLoadingResolution(() {
@@ -564,7 +567,7 @@ class InformativeDataApplier {
 
 class _InfoBuilder {
   _InfoUnit build(CompilationUnit unit) {
-    // Build all needed lists from `unit.declarations` with a single iteration
+    // Build all needed lists from `unit.declarations2` with a single iteration
     // the list.
     var classDeclarations = <_InfoClassDeclaration>[];
     var classTypeAliases = <_InfoClassTypeAlias>[];
@@ -577,7 +580,7 @@ class _InfoBuilder {
     var topLevelSetters = <_InfoExecutableDeclaration>[];
     var topLevelVariable = <_InfoTopLevelVariable>[];
     var typeAliases = <_InfoTypeAlias>[];
-    for (var declaration in unit.declarations) {
+    for (var declaration in unit.declarations2) {
       if (declaration is ClassDeclaration) {
         classDeclarations.add(_buildClass(declaration));
       } else if (declaration is ClassTypeAlias) {
@@ -590,6 +593,8 @@ class _InfoBuilder {
         extensionTypes.add(_buildExtensionType(declaration));
       } else if (declaration is MixinDeclarationImpl) {
         mixinDeclarations.add(_buildMixin(declaration));
+      } else if (declaration is TopLevelGetterDeclarationImpl) {
+        topLevelGetters.add(_buildTopLevelGetter(declaration));
       } else if (declaration is FunctionDeclaration) {
         if (declaration.isGetter) {
           topLevelGetters.add(_buildTopLevelFunction(declaration));
@@ -715,7 +720,7 @@ class _InfoBuilder {
     void addDirectives(Iterable<Directive>? directives) {
       if (directives != null) {
         for (var directive in directives) {
-          directive.metadata.accept(collector);
+          directive.metadata.accept2(collector);
         }
       }
     }
@@ -723,42 +728,42 @@ class _InfoBuilder {
     void addTypeParameters(TypeParameterList? typeParameters) {
       if (typeParameters != null) {
         for (var typeParameter in typeParameters.typeParameters) {
-          typeParameter.metadata.accept(collector);
+          typeParameter.metadata.accept2(collector);
         }
       }
     }
 
     void addFormalParameters(FormalParameterList? formalParameters) {
       if (formalParameters != null) {
-        for (var parameter in formalParameters.parameters) {
-          parameter.metadata.accept(collector);
+        for (var parameter in formalParameters.allFormalParameters) {
+          parameter.metadata.accept2(collector);
           addFormalParameters(parameter.functionTypedSuffix?.formalParameters);
           if (parameter.defaultClause case var defaultClause?) {
-            defaultClause.value.accept(collector);
+            defaultClause.value2.accept2(collector);
           }
         }
       }
     }
 
-    metadata?.accept(collector);
+    metadata?.accept2(collector);
     addDirectives(importDirectives);
     addDirectives(exportDirectives);
     addDirectives(partDirectives);
     addTypeParameters(typeParameters);
     addFormalParameters(formalParameters);
-    constantInitializer?.accept(collector);
-    constructorInitializers?.accept(collector);
+    constantInitializer?.accept2(collector);
+    constructorInitializers?.accept2(collector);
     if (enumConstants != null) {
       for (var enumConstant in enumConstants) {
-        enumConstant.metadata.accept(collector);
+        enumConstant.metadata.accept2(collector);
       }
     }
     if (aliasedType is GenericFunctionType) {
       addTypeParameters(aliasedType.typeParameters);
       addFormalParameters(aliasedType.parameters);
     }
-    enumConstantArguments?.typeArguments?.accept(collector);
-    enumConstantArguments?.argumentList.accept(collector);
+    enumConstantArguments?.typeArguments?.accept2(collector);
+    enumConstantArguments?.argumentList.accept2(collector);
     return collector.offsets.takeAndReset();
   }
 
@@ -778,10 +783,12 @@ class _InfoBuilder {
       ),
       newKeywordOffset: node.newKeyword?.offset,
       factoryKeywordOffset: node.factoryKeyword?.offset,
-      typeNameOffset: node.typeName?.offset,
+      typeNameOffset: node.typeName2?.offset,
       periodOffset: node.period?.offset,
-      nameEnd: (node.name ?? node.typeName)?.end,
+      nameEnd: (node.name ?? node.typeName2)?.end,
       thisKeywordOffset: null,
+      primaryHeaderCodeRange: null,
+      primaryBodyCodeRange: null,
     );
   }
 
@@ -853,7 +860,7 @@ class _InfoBuilder {
 
   _InfoFieldDeclaration _buildField(VariableDeclaration node) {
     var codeOffset = _codeOffsetForVariable(node);
-    var declaration = node.parent!.parent as FieldDeclaration;
+    var declaration = node.parent2!.parent2 as FieldDeclaration;
     return _InfoFieldDeclaration(
       firstTokenOffset: node.offset,
       codeOffset: codeOffset,
@@ -862,7 +869,7 @@ class _InfoBuilder {
       documentationComment: _getDocumentationComment(node),
       constantOffsets: _buildConstantOffsets(
         metadata: declaration.metadata,
-        constantInitializer: node.initializer,
+        constantInitializer: node.initializer2,
       ),
     );
   }
@@ -885,7 +892,7 @@ class _InfoBuilder {
     if (node == null) {
       return [];
     }
-    var parameters = node.parameters;
+    var parameters = node.allFormalParameters;
     return List.generate(
       parameters.length,
       (index) => _buildFormalParameter(parameters[index]),
@@ -927,7 +934,7 @@ class _InfoBuilder {
   _InfoImport _buildImport(ImportDirective node) {
     return _InfoImport(
       importKeywordOffset: node.importKeyword.offset,
-      prefixOffset: node.prefix?.token.offsetIfNotEmpty,
+      prefixOffset: node.prefixName?.offsetIfNotEmpty,
       combinators: _buildCombinators(node.combinators),
     );
   }
@@ -1074,6 +1081,7 @@ class _InfoBuilder {
     PrimaryConstructorDeclaration node, {
     required PrimaryConstructorBody? body,
   }) {
+    var headerOffset = (node.constructorName ?? node.formalParameters).offset;
     return _InfoConstructorDeclaration(
       firstTokenOffset: node.offset,
       codeOffset: node.offset,
@@ -1093,6 +1101,13 @@ class _InfoBuilder {
       periodOffset: node.constructorName?.period.offset,
       nameEnd: (node.constructorName?.name ?? node.typeName).end,
       thisKeywordOffset: body?.thisKeyword.offset,
+      primaryHeaderCodeRange: SourceRange(
+        headerOffset,
+        node.end - headerOffset,
+      ),
+      primaryBodyCodeRange: body != null
+          ? SourceRange(body.offset, body.length)
+          : null,
     );
   }
 
@@ -1115,9 +1130,28 @@ class _InfoBuilder {
     );
   }
 
+  _InfoExecutableDeclaration _buildTopLevelGetter(
+    TopLevelGetterDeclarationImpl node,
+  ) {
+    return _InfoExecutableDeclaration(
+      firstTokenOffset: node.offset,
+      codeOffset: node.offset,
+      codeLength: node.length,
+      nameOffset: node.name.offsetIfNotEmpty,
+      documentationComment: _getDocumentationComment(node),
+      typeParameters: _buildTypeParameters(node.recoveryTypeParameters),
+      parameters: _buildFormalParameters(node.recoveryFormalParameters),
+      constantOffsets: _buildConstantOffsets(
+        metadata: node.metadata,
+        typeParameters: node.recoveryTypeParameters,
+        formalParameters: node.recoveryFormalParameters,
+      ),
+    );
+  }
+
   _InfoTopLevelVariable _buildTopLevelVariable(VariableDeclaration node) {
     var codeOffset = _codeOffsetForVariable(node);
-    var declaration = node.parent!.parent as TopLevelVariableDeclaration;
+    var declaration = node.parent2!.parent2 as TopLevelVariableDeclaration;
     return _InfoTopLevelVariable(
       firstTokenOffset: node.offset,
       codeOffset: codeOffset,
@@ -1126,7 +1160,7 @@ class _InfoBuilder {
       documentationComment: _getDocumentationComment(node),
       constantOffsets: _buildConstantOffsets(
         metadata: declaration.metadata,
-        constantInitializer: node.initializer,
+        constantInitializer: node.initializer2,
       ),
     );
   }
@@ -1153,9 +1187,9 @@ class _InfoBuilder {
 
   int _codeOffsetForVariable(VariableDeclaration node) {
     var codeOffset = node.offset;
-    var variableList = node.parent as VariableDeclarationList;
+    var variableList = node.parent2 as VariableDeclarationList;
     if (variableList.variables[0] == node) {
-      codeOffset = variableList.parent!.offset;
+      codeOffset = variableList.parent2!.offset;
     }
     return codeOffset;
   }
@@ -1225,6 +1259,8 @@ class _InfoConstructorDeclaration extends _InfoExecutableDeclaration {
   final int? periodOffset;
   final int? nameEnd;
   final int? thisKeywordOffset;
+  final SourceRange? primaryHeaderCodeRange;
+  final SourceRange? primaryBodyCodeRange;
 
   _InfoConstructorDeclaration({
     required super.firstTokenOffset,
@@ -1241,6 +1277,8 @@ class _InfoConstructorDeclaration extends _InfoExecutableDeclaration {
     required this.periodOffset,
     required this.nameEnd,
     required this.thisKeywordOffset,
+    required this.primaryHeaderCodeRange,
+    required this.primaryBodyCodeRange,
   });
 
   _InfoConstructorDeclaration.read(super.reader)
@@ -1250,6 +1288,8 @@ class _InfoConstructorDeclaration extends _InfoExecutableDeclaration {
       periodOffset = reader.readOptionalUint30(),
       nameEnd = reader.readOptionalUint30(),
       thisKeywordOffset = reader.readOptionalUint30(),
+      primaryHeaderCodeRange = reader.readOptionalSourceRange(),
+      primaryBodyCodeRange = reader.readOptionalSourceRange(),
       super.read();
 
   @override
@@ -1260,6 +1300,8 @@ class _InfoConstructorDeclaration extends _InfoExecutableDeclaration {
     writer.writeOptionalUint30(periodOffset);
     writer.writeOptionalUint30(nameEnd);
     writer.writeOptionalUint30(thisKeywordOffset);
+    writer.writeOptionalSourceRange(primaryHeaderCodeRange);
+    writer.writeOptionalSourceRange(primaryBodyCodeRange);
     super.write(writer);
   }
 }
@@ -1736,13 +1778,13 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
     if (fragment is FieldFragmentImpl && fragment.isEnumConstant) {
       _applyToEnumConstantInitializer(fragment);
     } else if (fragment is VariableFragmentImpl) {
-      fragment.constantInitializer?.accept(this);
+      fragment.constantInitializer2?.accept2(this);
     }
   }
 
   void applyToConstructorInitializers(ConstructorFragmentImpl fragment) {
     for (var initializer in fragment.constantInitializers) {
-      initializer.accept(this);
+      initializer.accept2(this);
     }
   }
 
@@ -1776,7 +1818,7 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
   void applyToMetadata(MetadataImpl metadata) {
     for (var annotation in metadata.annotations) {
       var node = annotation.annotationAst;
-      node.accept(this);
+      node.accept2(this);
     }
   }
 
@@ -1825,30 +1867,31 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
   }
 
   @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
+  void visitUnqualifiedNameExpression(UnqualifiedNameExpression node) {
     if (isNotSerializableMarker(node)) {
       return;
     }
 
-    super.visitSimpleIdentifier(node);
+    super.visitUnqualifiedNameExpression(node);
   }
 
   void _applyToEnumConstantInitializer(FieldFragmentImpl fragment) {
-    var initializer = fragment.constantInitializer;
-    if (initializer is InstanceCreationExpressionImpl) {
-      initializer.constructorName.type.typeArguments?.accept(this);
-      initializer.argumentList.accept(this);
+    var initializer = fragment.constantInitializer2;
+    if (initializer is ConstructorInvocationImpl) {
+      initializer.constructorReference.typeReference.typeArguments?.accept2(
+        this,
+      );
+      initializer.argumentList.accept2(this);
     }
   }
 }
 
-abstract class _OffsetsAstVisitor extends RecursiveAstVisitor<void> {
+abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
   void handleToken(Token token);
 
   @override
   void visitAnnotation(Annotation node) {
     _tokenOrNull(node.atSign);
-    _tokenOrNull(node.period);
     super.visitAnnotation(node);
   }
 
@@ -1875,20 +1918,59 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitAssignmentExpression(AssignmentExpression node) {
+  void visitBinaryOperatorInvocation(BinaryOperatorInvocation node) {
     _tokenOrNull(node.operator);
-    super.visitAssignmentExpression(node);
-  }
-
-  @override
-  void visitBinaryExpression(BinaryExpression node) {
-    _tokenOrNull(node.operator);
-    super.visitBinaryExpression(node);
+    super.visitBinaryOperatorInvocation(node);
   }
 
   @override
   void visitBooleanLiteral(BooleanLiteral node) {
     _tokenOrNull(node.literal);
+  }
+
+  @override
+  void visitCascadeIndexAssignmentTarget(CascadeIndexAssignmentTarget node) {
+    _tokenOrNull(node.leftBracket);
+    _tokenOrNull(node.rightBracket);
+    super.visitCascadeIndexAssignmentTarget(node);
+  }
+
+  @override
+  void visitCascadeIndexExpression(CascadeIndexExpression node) {
+    _tokenOrNull(node.leftBracket);
+    _tokenOrNull(node.rightBracket);
+    super.visitCascadeIndexExpression(node);
+  }
+
+  @override
+  void visitCascadeMethodInvocation(CascadeMethodInvocation node) {
+    _tokenOrNull(node.name);
+    node.typeArguments?.accept2(this);
+    node.argumentList.accept2(this);
+  }
+
+  @override
+  void visitCascadePropertyAssignmentTarget(
+    CascadePropertyAssignmentTarget node,
+  ) {
+    _tokenOrNull(node.name);
+  }
+
+  @override
+  void visitCascadePropertyExtraction(CascadePropertyExtraction node) {
+    _tokenOrNull(node.name);
+  }
+
+  @override
+  void visitCascadeSection(CascadeSection node) {
+    _tokenOrNull(node.operator);
+    super.visitCascadeSection(node);
+  }
+
+  @override
+  void visitCompoundAssignment(CompoundAssignment node) {
+    _tokenOrNull(node.operator);
+    super.visitCompoundAssignment(node);
   }
 
   @override
@@ -1901,43 +1983,67 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
     _tokenOrNull(node.thisKeyword);
+    _tokenOrNull(node.fieldName2);
     _tokenOrNull(node.equals);
     super.visitConstructorFieldInitializer(node);
   }
 
   @override
-  void visitConstructorName(ConstructorName node) {
-    node.type.accept(this);
-    _tokenOrNull(node.period);
-    node.name?.accept(this);
+  void visitConstructorInvocation(ConstructorInvocation node) {
+    _tokenOrNull(node.keyword);
+    node.constructorReference.accept2(this);
+    node.argumentList.accept2(this);
   }
 
   @override
-  void visitDotShorthandConstructorInvocation(
-    DotShorthandConstructorInvocation node,
+  void visitConstructorSelector(ConstructorSelector node) {
+    _tokenOrNull(node.period);
+    _tokenOrNull(node.name2);
+  }
+
+  @override
+  void visitConstructorTypeReference(ConstructorTypeReference node) {
+    node.importPrefix?.accept2(this);
+    _tokenOrNull(node.name);
+    node.typeArguments?.accept2(this);
+  }
+
+  @override
+  void visitDelimitedFormalParameters(DelimitedFormalParameters node) {
+    _tokenOrNull(node.leftDelimiter);
+    _tokenOrNull(node.rightDelimiter);
+    node.formalParameters.accept2(this);
+  }
+
+  @override
+  void visitDirectAssignment(DirectAssignment node) {
+    _tokenOrNull(node.operator);
+    super.visitDirectAssignment(node);
+  }
+
+  @override
+  void visitDotShorthandConstructorInvocation2(
+    DotShorthandConstructorInvocation2 node,
   ) {
     _tokenOrNull(node.constKeyword);
     _tokenOrNull(node.period);
-    node.constructorName.accept(this);
-    node.argumentList.accept(this);
-  }
-
-  /// When we read from bytes, [DotShorthandInvocation]s are not rewritten to
-  /// [DotShorthandConstructorInvocation]s when they're resolved to be
-  /// constructor invocations. However, since the tokens happen to be the same
-  /// between the two in this case, we have the same offsets.
-  @override
-  void visitDotShorthandInvocation(DotShorthandInvocation node) {
-    _tokenOrNull(node.period);
-    node.memberName.accept(this);
-    node.typeArguments?.accept(this);
-    node.argumentList.accept(this);
+    _tokenOrNull(node.name);
+    node.typeArguments?.accept2(this);
+    node.argumentList.accept2(this);
   }
 
   @override
-  void visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
+  void visitDotShorthandMethodInvocation(DotShorthandMethodInvocation node) {
     _tokenOrNull(node.period);
-    node.propertyName.accept(this);
+    _tokenOrNull(node.name);
+    node.typeArguments?.accept2(this);
+    node.argumentList.accept2(this);
+  }
+
+  @override
+  void visitDotShorthandNameExpression(DotShorthandNameExpression node) {
+    _tokenOrNull(node.period);
+    _tokenOrNull(node.name);
   }
 
   @override
@@ -1946,10 +2052,14 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
+    _tokenOrNull(node.identifier2);
+    super.visitForEachPartsWithIdentifier(node);
+  }
+
+  @override
   void visitFormalParameterList(FormalParameterList node) {
     _tokenOrNull(node.leftParenthesis);
-    _tokenOrNull(node.leftDelimiter);
-    _tokenOrNull(node.rightDelimiter);
     _tokenOrNull(node.rightParenthesis);
     super.visitFormalParameterList(node);
   }
@@ -1970,23 +2080,53 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitIfNull(IfNull node) {
+    _tokenOrNull(node.operator);
+    super.visitIfNull(node);
+  }
+
+  @override
+  void visitIfNullAssignment(IfNullAssignment node) {
+    _tokenOrNull(node.operator);
+    super.visitIfNullAssignment(node);
+  }
+
+  @override
+  void visitImportPrefixedAssignmentTarget(
+    ImportPrefixedAssignmentTarget node,
+  ) {
+    node.importPrefix.accept2(this);
+    _tokenOrNull(node.name);
+  }
+
+  @override
+  void visitImportPrefixedFunctionInvocation(
+    ImportPrefixedFunctionInvocation node,
+  ) {
+    node.importPrefix.accept2(this);
+    _tokenOrNull(node.name);
+    node.typeArguments?.accept2(this);
+    node.argumentList.accept2(this);
+  }
+
+  @override
+  void visitImportPrefixedNameExpression(ImportPrefixedNameExpression node) {
+    node.importPrefix.accept2(this);
+    _tokenOrNull(node.name);
+  }
+
+  @override
   void visitImportPrefixReference(ImportPrefixReference node) {
     _tokenOrNull(node.name);
     _tokenOrNull(node.period);
   }
 
   @override
-  void visitIndexExpression(IndexExpression node) {
-    _tokenOrNull(node.leftBracket);
-    _tokenOrNull(node.rightBracket);
-    super.visitIndexExpression(node);
-  }
-
-  @override
-  void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    _tokenOrNull(node.keyword);
-    node.constructorName.accept(this);
-    node.argumentList.accept(this);
+  void visitIncrementOrDecrementExpression(
+    IncrementOrDecrementExpression node,
+  ) {
+    _tokenOrNull(node.operator);
+    super.visitIncrementOrDecrementExpression(node);
   }
 
   @override
@@ -2027,18 +2167,27 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitMapLiteralEntry(MapLiteralEntry node) {
-    _tokenOrNull(node.separator);
-    super.visitMapLiteralEntry(node);
+  void visitLogicalAnd(LogicalAnd node) {
+    _tokenOrNull(node.operator);
+    super.visitLogicalAnd(node);
   }
 
   @override
-  void visitMethodInvocation(MethodInvocation node) {
-    node.target?.accept(this);
+  void visitLogicalNot(LogicalNot node) {
     _tokenOrNull(node.operator);
-    node.methodName.accept(this);
-    node.typeArguments?.accept(this);
-    node.argumentList.accept(this);
+    super.visitLogicalNot(node);
+  }
+
+  @override
+  void visitLogicalOr(LogicalOr node) {
+    _tokenOrNull(node.operator);
+    super.visitLogicalOr(node);
+  }
+
+  @override
+  void visitMapLiteralEntry(MapLiteralEntry node) {
+    _tokenOrNull(node.separator);
+    super.visitMapLiteralEntry(node);
   }
 
   @override
@@ -2050,10 +2199,16 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitNamedType(NamedType node) {
-    node.importPrefix?.accept(this);
+    node.importPrefix?.accept2(this);
     _tokenOrNull(node.name);
-    node.typeArguments?.accept(this);
+    node.typeArguments?.accept2(this);
     _tokenOrNull(node.question);
+  }
+
+  @override
+  void visitNullAssertionExpression(NullAssertionExpression node) {
+    _tokenOrNull(node.operator);
+    super.visitNullAssertionExpression(node);
   }
 
   @override
@@ -2069,29 +2224,84 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitPostfixExpression(PostfixExpression node) {
-    _tokenOrNull(node.operator);
-    super.visitPostfixExpression(node);
+  void visitParsedCascadeName(ParsedCascadeName node) {
+    _tokenOrNull(node.name);
   }
 
   @override
-  void visitPrefixedIdentifier(PrefixedIdentifier node) {
-    node.prefix.accept(this);
+  void visitParsedDotShorthandName(ParsedDotShorthandName node) {
     _tokenOrNull(node.period);
-    node.identifier.accept(this);
+    _tokenOrNull(node.name);
   }
 
   @override
-  void visitPrefixExpression(PrefixExpression node) {
+  void visitParsedNameAccess(ParsedNameAccess node) {
+    node.operand.accept2(this);
     _tokenOrNull(node.operator);
-    super.visitPrefixExpression(node);
+    _tokenOrNull(node.name);
   }
 
   @override
-  void visitPropertyAccess(PropertyAccess node) {
-    node.target?.accept(this);
+  void visitParsedNameAccessAssignmentTarget(
+    ParsedNameAccessAssignmentTarget node,
+  ) {
+    node.operand.accept2(this);
     _tokenOrNull(node.operator);
-    node.propertyName.accept(this);
+    _tokenOrNull(node.name);
+  }
+
+  @override
+  void visitParsedUnqualifiedName(ParsedUnqualifiedName node) {
+    _tokenOrNull(node.name);
+  }
+
+  @override
+  void visitParsedUnqualifiedNameAssignmentTarget(
+    ParsedUnqualifiedNameAssignmentTarget node,
+  ) {
+    _tokenOrNull(node.name);
+  }
+
+  @override
+  void visitReceiverIndexAssignmentTarget(ReceiverIndexAssignmentTarget node) {
+    _tokenOrNull(node.leftBracket);
+    _tokenOrNull(node.rightBracket);
+    super.visitReceiverIndexAssignmentTarget(node);
+  }
+
+  @override
+  void visitReceiverIndexExpression(ReceiverIndexExpression node) {
+    _tokenOrNull(node.question);
+    _tokenOrNull(node.leftBracket);
+    _tokenOrNull(node.rightBracket);
+    super.visitReceiverIndexExpression(node);
+  }
+
+  @override
+  void visitReceiverMethodInvocation(ReceiverMethodInvocation node) {
+    node.receiver.accept2(this);
+    _tokenOrNull(node.operator);
+    _tokenOrNull(node.name);
+    node.typeArguments?.accept2(this);
+    node.argumentList.accept2(this);
+  }
+
+  @override
+  void visitReceiverPropertyAssignmentTarget(
+    ReceiverPropertyAssignmentTarget node,
+  ) {
+    _tokenOrNull(node.operator);
+    _tokenOrNull(node.name);
+    super.visitReceiverPropertyAssignmentTarget(node);
+  }
+
+  @override
+  void visitReceiverPropertyExtraction(ReceiverPropertyExtraction node) {
+    // Parsed chains and their lowered receivers must enumerate tokens in
+    // the same order when offsets are restored from informative data.
+    node.receiver.accept2(this);
+    _tokenOrNull(node.operator);
+    _tokenOrNull(node.name);
   }
 
   @override
@@ -2147,7 +2357,6 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor<void> {
     RedirectingConstructorInvocation node,
   ) {
     _tokenOrNull(node.thisKeyword);
-    _tokenOrNull(node.period);
     super.visitRedirectingConstructorInvocation(node);
   }
 
@@ -2167,11 +2376,6 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    _tokenOrNull(node.token);
-  }
-
-  @override
   void visitSimpleStringLiteral(SimpleStringLiteral node) {
     _tokenOrNull(node.literal);
   }
@@ -2183,14 +2387,19 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitStaticQualifier(StaticQualifier node) {
+    node.importPrefix?.accept2(this);
+    _tokenOrNull(node.name);
+  }
+
+  @override
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     _tokenOrNull(node.superKeyword);
-    _tokenOrNull(node.period);
     super.visitSuperConstructorInvocation(node);
   }
 
   @override
-  void visitSuperExpression(SuperExpression node) {
+  void visitSuperReference(SuperReference node) {
     _tokenOrNull(node.superKeyword);
   }
 
@@ -2216,6 +2425,31 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor<void> {
     _tokenOrNull(node.leftBracket);
     _tokenOrNull(node.rightBracket);
     super.visitTypeArgumentList(node);
+  }
+
+  @override
+  void visitUnaryOperatorInvocation(UnaryOperatorInvocation node) {
+    _tokenOrNull(node.operator);
+    super.visitUnaryOperatorInvocation(node);
+  }
+
+  @override
+  void visitUnqualifiedFunctionInvocation(UnqualifiedFunctionInvocation node) {
+    _tokenOrNull(node.name);
+    node.typeArguments?.accept2(this);
+    node.argumentList.accept2(this);
+  }
+
+  @override
+  void visitUnqualifiedNameAssignmentTarget(
+    UnqualifiedNameAssignmentTarget node,
+  ) {
+    _tokenOrNull(node.name);
+  }
+
+  @override
+  void visitUnqualifiedNameExpression(UnqualifiedNameExpression node) {
+    _tokenOrNull(node.name);
   }
 
   void _tokenOrNull(Token? token) {

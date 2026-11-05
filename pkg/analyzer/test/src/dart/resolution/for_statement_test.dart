@@ -48,7 +48,13 @@ ForStatement
         element: hasImplicitType isPublic
           type: int
     inKeyword: in
-    iterable: SimpleIdentifier
+    iterable2: UnqualifiedNameExpression
+      name: values
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::values
+        type: Stream<int>
+      staticType: Stream<int>
+    iterable(v1): SimpleIdentifier
       token: values
       element: <testLibrary>::@function::f::@formalParameter::values
       staticType: Stream<int>
@@ -57,7 +63,13 @@ ForStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: v
+          resolution: VariableReadResolution
+            element: v@52
+            type: int
+          staticType: int
+        expression(v1): SimpleIdentifier
           token: v
           element: v@52
           staticType: int
@@ -95,7 +107,13 @@ BlockFunctionBody
               element: hasImplicitType isPublic
                 type: int
           inKeyword: in
-          iterable: SimpleIdentifier
+          iterable2: UnqualifiedNameExpression
+            name: x
+            resolution: VariableReadResolution
+              element: <testLibrary>::@function::f::@formalParameter::x
+              type: Stream<int>
+            staticType: Stream<int>
+          iterable(v1): SimpleIdentifier
             token: x
             element: <testLibrary>::@function::f::@formalParameter::x
             staticType: Stream<int>
@@ -104,7 +122,13 @@ BlockFunctionBody
           leftBracket: {
           rightBracket: }
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: i
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::i
+            type: int
+          staticType: int
+        expression(v1): SimpleIdentifier
           token: i
           element: <testLibrary>::@function::f::@formalParameter::i
           staticType: int
@@ -136,7 +160,13 @@ ForStatement
         element: hasImplicitType isPublic
           type: int
     inKeyword: in
-    iterable: SimpleIdentifier
+    iterable2: UnqualifiedNameExpression
+      name: values
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::values
+        type: Stream<int>
+      staticType: Stream<int>
+    iterable(v1): SimpleIdentifier
       token: values
       element: <testLibrary>::@function::f::@formalParameter::values
       staticType: Stream<int>
@@ -145,7 +175,13 @@ ForStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: num
+          resolution: VariableReadResolution
+            element: num@52
+            type: int
+          staticType: int
+        expression(v1): SimpleIdentifier
           token: num
           element: num@52
           staticType: int
@@ -180,7 +216,19 @@ ForStatement
         element: isPublic
           type: int
     inKeyword: in
-    iterable: MethodInvocation
+    iterable2: UnqualifiedFunctionInvocation
+      name: g
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      resolution: ExecutableInvocationResolution
+        element: <testLibrary>::@function::g
+        invokeType: Iterable<int> Function()
+        type: Iterable<int>
+      staticType: Iterable<int>
+      typeArgumentTypes
+        Iterable<int>
+    iterable(v1): MethodInvocation
       methodName: SimpleIdentifier
         token: g
         element: <testLibrary>::@function::g
@@ -221,7 +269,13 @@ ForStatement
         element: hasImplicitType isPublic
           type: dynamic
     inKeyword: in
-    iterable: SimpleIdentifier
+    iterable2: UnqualifiedNameExpression
+      name: values
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::values
+        type: dynamic
+      staticType: dynamic
+    iterable(v1): SimpleIdentifier
       token: values
       element: <testLibrary>::@function::f::@formalParameter::values
       staticType: dynamic
@@ -256,7 +310,12 @@ ForStatement
         element: hasImplicitType isPublic
           type: InvalidType
     inKeyword: in
-    iterable: SimpleIdentifier
+    iterable2: UnqualifiedNameExpression
+      name: <empty> <synthetic>
+      resolution: InvalidNamedReadResolution
+        recoveryElement: <null>
+      staticType: InvalidType
+    iterable(v1): SimpleIdentifier
       token: <empty> <synthetic>
       element: <null>
       staticType: InvalidType
@@ -265,7 +324,13 @@ ForStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: v
+          resolution: VariableReadResolution
+            element: v@22
+            type: InvalidType
+          staticType: InvalidType
+        expression(v1): SimpleIdentifier
           token: v
           element: v@22
           staticType: InvalidType
@@ -298,7 +363,13 @@ ForStatement
         element: hasImplicitType isPublic
           type: int
     inKeyword: in
-    iterable: SimpleIdentifier
+    iterable2: UnqualifiedNameExpression
+      name: values
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::values
+        type: Iterable<int>?
+      staticType: Iterable<int>?
+    iterable(v1): SimpleIdentifier
       token: values
       element: <testLibrary>::@function::f::@formalParameter::values
       staticType: Iterable<int>?
@@ -307,7 +378,13 @@ ForStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: v
+          resolution: VariableReadResolution
+            element: v@43
+            type: int
+          staticType: int
+        expression(v1): SimpleIdentifier
           token: v
           element: v@43
           staticType: int
@@ -340,7 +417,13 @@ ForStatement
         element: hasImplicitType isPublic
           type: InvalidType
     inKeyword: in
-    iterable: SimpleIdentifier
+    iterable2: UnqualifiedNameExpression
+      name: values
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::values
+        type: Object
+      staticType: Object
+    iterable(v1): SimpleIdentifier
       token: values
       element: <testLibrary>::@function::f::@formalParameter::values
       staticType: Object
@@ -349,7 +432,13 @@ ForStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: v
+          resolution: VariableReadResolution
+            element: v@35
+            type: InvalidType
+          staticType: InvalidType
+        expression(v1): SimpleIdentifier
           token: v
           element: v@35
           staticType: InvalidType
@@ -382,9 +471,13 @@ ForStatement
       name: v
       declaredFragment: isPublic v@70
         element: hasImplicitType isPublic
-          type: int
+          type: InvalidType
     inKeyword: in
-    iterable: SuperExpression
+    iterable2: InvalidSuperExpression
+      superReference: SuperReference
+        superKeyword: super
+      staticType: InvalidType
+    iterable(v1): SuperExpression
       superKeyword: super
       staticType: A
   rightParenthesis: )
@@ -417,7 +510,13 @@ ForStatement
         element: isPublic
           type: dynamic
     inKeyword: in
-    iterable: SimpleIdentifier
+    iterable2: UnqualifiedNameExpression
+      name: values
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::values
+        type: List<int>
+      staticType: List<int>
+    iterable(v1): SimpleIdentifier
       token: values
       element: <testLibrary>::@function::f::@formalParameter::values
       staticType: List<int>
@@ -426,7 +525,13 @@ ForStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: v
+          resolution: VariableReadResolution
+            element: v@42
+            type: dynamic
+          staticType: dynamic
+        expression(v1): SimpleIdentifier
           token: v
           element: v@42
           staticType: dynamic
@@ -458,7 +563,19 @@ ForStatement
         element: hasImplicitType isPublic
           type: Object?
     inKeyword: in
-    iterable: MethodInvocation
+    iterable2: UnqualifiedFunctionInvocation
+      name: g
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      resolution: ExecutableInvocationResolution
+        element: <testLibrary>::@function::g
+        invokeType: Iterable<Object?> Function()
+        type: Iterable<Object?>
+      staticType: Iterable<Object?>
+      typeArgumentTypes
+        Iterable<Object?>
+    iterable(v1): MethodInvocation
       methodName: SimpleIdentifier
         token: g
         element: <testLibrary>::@function::g
@@ -498,7 +615,13 @@ ForStatement
         element: hasImplicitType isPublic
           type: int
     inKeyword: in
-    iterable: SimpleIdentifier
+    iterable2: UnqualifiedNameExpression
+      name: values
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::values
+        type: Iterable<int>
+      staticType: Iterable<int>
+    iterable(v1): SimpleIdentifier
       token: values
       element: <testLibrary>::@function::f::@formalParameter::values
       staticType: Iterable<int>
@@ -507,7 +630,13 @@ ForStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: v
+          resolution: VariableReadResolution
+            element: v@42
+            type: int
+          staticType: int
+        expression(v1): SimpleIdentifier
           token: v
           element: v@42
           staticType: int
@@ -537,7 +666,13 @@ ForStatement
         element: hasImplicitType isPublic
           type: int
     inKeyword: in
-    iterable: SimpleIdentifier
+    iterable2: UnqualifiedNameExpression
+      name: values
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::values
+        type: List<int>
+      staticType: List<int>
+    iterable(v1): SimpleIdentifier
       token: values
       element: <testLibrary>::@function::f::@formalParameter::values
       staticType: List<int>
@@ -546,7 +681,13 @@ ForStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: v
+          resolution: VariableReadResolution
+            element: v@38
+            type: int
+          staticType: int
+        expression(v1): SimpleIdentifier
           token: v
           element: v@38
           staticType: int
@@ -582,7 +723,13 @@ BlockFunctionBody
               element: hasImplicitType isPublic
                 type: int
           inKeyword: in
-          iterable: SimpleIdentifier
+          iterable2: UnqualifiedNameExpression
+            name: x
+            resolution: VariableReadResolution
+              element: <testLibrary>::@function::f::@formalParameter::x
+              type: List<int>
+            staticType: List<int>
+          iterable(v1): SimpleIdentifier
             token: x
             element: <testLibrary>::@function::f::@formalParameter::x
             staticType: List<int>
@@ -591,7 +738,13 @@ BlockFunctionBody
           leftBracket: {
           rightBracket: }
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: i
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::i
+            type: int
+          staticType: int
+        expression(v1): SimpleIdentifier
           token: i
           element: <testLibrary>::@function::f::@formalParameter::i
           staticType: int
@@ -625,7 +778,13 @@ ForStatement
         element: hasImplicitType isPublic
           type: int
     inKeyword: in
-    iterable: SimpleIdentifier
+    iterable2: UnqualifiedNameExpression
+      name: values
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::values
+        type: List<int>
+      staticType: List<int>
+    iterable(v1): SimpleIdentifier
       token: values
       element: <testLibrary>::@function::f::@formalParameter::values
       staticType: List<int>
@@ -640,14 +799,20 @@ ForStatement
             VariableDeclaration
               name: i
               equals: =
-              initializer: SimpleStringLiteral
+              initializer2: SimpleStringLiteral
                 literal: 'a'
               declaredFragment: isPublic i@61
                 element: hasImplicitType isPublic
                   type: String
         semicolon: ;
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: i
+          resolution: VariableReadResolution
+            element: i@61
+            type: String
+          staticType: String
+        expression(v1): SimpleIdentifier
           token: i
           element: i@61
           staticType: String
@@ -678,7 +843,13 @@ ForStatement
         element: hasImplicitType isPublic
           type: int
     inKeyword: in
-    iterable: SimpleIdentifier
+    iterable2: UnqualifiedNameExpression
+      name: i
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::i
+        type: List<int>
+      staticType: List<int>
+    iterable(v1): SimpleIdentifier
       token: i
       element: <testLibrary>::@function::f::@formalParameter::i
       staticType: List<int>
@@ -687,7 +858,13 @@ ForStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: i
+          resolution: VariableReadResolution
+            element: i@33
+            type: int
+          staticType: int
+        expression(v1): SimpleIdentifier
           token: i
           element: i@33
           staticType: int
@@ -718,7 +895,13 @@ ForStatement
         element: hasImplicitType isPublic
           type: int
     inKeyword: in
-    iterable: SimpleIdentifier
+    iterable2: UnqualifiedNameExpression
+      name: values
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::values
+        type: List<int>
+      staticType: List<int>
+    iterable(v1): SimpleIdentifier
       token: values
       element: <testLibrary>::@function::f::@formalParameter::values
       staticType: List<int>
@@ -727,7 +910,13 @@ ForStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: num
+          resolution: VariableReadResolution
+            element: num@38
+            type: int
+          staticType: int
+        expression(v1): SimpleIdentifier
           token: num
           element: num@38
           staticType: int
@@ -765,21 +954,37 @@ ForStatement
   forKeyword: for
   leftParenthesis: (
   forLoopParts: ForEachPartsWithIdentifier
-    identifier: SimpleIdentifier
+    identifier2: v
+    identifier(v1): SimpleIdentifier
       token: v
       element: <testLibrary>::@function::f::@formalParameter::v
       staticType: dynamic
     inKeyword: in
-    iterable: SimpleIdentifier
+    iterable2: UnqualifiedNameExpression
+      name: values
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::values
+        type: Stream<int>
+      staticType: Stream<int>
+    iterable(v1): SimpleIdentifier
       token: values
       element: <testLibrary>::@function::f::@formalParameter::values
       staticType: Stream<int>
+    write: VariableWriteResolution
+      element: <testLibrary>::@function::f::@formalParameter::v
+      acceptedType: dynamic
   rightParenthesis: )
   body: Block
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: v
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::v
+            type: dynamic
+          staticType: dynamic
+        expression(v1): SimpleIdentifier
           token: v
           element: <testLibrary>::@function::f::@formalParameter::v
           staticType: dynamic
@@ -807,12 +1012,25 @@ ForStatement
   forKeyword: for
   leftParenthesis: (
   forLoopParts: ForEachPartsWithIdentifier
-    identifier: SimpleIdentifier
+    identifier2: x
+    identifier(v1): SimpleIdentifier
       token: x
       element: <testLibrary>::@class::C::@setter::x
       staticType: int
     inKeyword: in
-    iterable: MethodInvocation
+    iterable2: UnqualifiedFunctionInvocation
+      name: g
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      resolution: ExecutableInvocationResolution
+        element: <testLibrary>::@function::g
+        invokeType: Iterable<int> Function()
+        type: Iterable<int>
+      staticType: Iterable<int>
+      typeArgumentTypes
+        Iterable<int>
+    iterable(v1): MethodInvocation
       methodName: SimpleIdentifier
         token: g
         element: <testLibrary>::@function::g
@@ -824,6 +1042,9 @@ ForStatement
       staticType: Iterable<int>
       typeArgumentTypes
         Iterable<int>
+    write: SetterInvocationResolution
+      element: <testLibrary>::@class::C::@setter::x
+      acceptedType: int
   rightParenthesis: )
   body: Block
     leftBracket: {
@@ -848,12 +1069,25 @@ ForStatement
   forKeyword: for
   leftParenthesis: (
   forLoopParts: ForEachPartsWithIdentifier
-    identifier: SimpleIdentifier
+    identifier2: x
+    identifier(v1): SimpleIdentifier
       token: x
       element: <testLibrary>::@setter::x
       staticType: int
     inKeyword: in
-    iterable: MethodInvocation
+    iterable2: UnqualifiedFunctionInvocation
+      name: g
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      resolution: ExecutableInvocationResolution
+        element: <testLibrary>::@function::g
+        invokeType: Iterable<int> Function()
+        type: Iterable<int>
+      staticType: Iterable<int>
+      typeArgumentTypes
+        Iterable<int>
+    iterable(v1): MethodInvocation
       methodName: SimpleIdentifier
         token: g
         element: <testLibrary>::@function::g
@@ -865,6 +1099,9 @@ ForStatement
       staticType: Iterable<int>
       typeArgumentTypes
         Iterable<int>
+    write: SetterInvocationResolution
+      element: <testLibrary>::@setter::x
+      acceptedType: int
   rightParenthesis: )
   body: Block
     leftBracket: {
@@ -886,21 +1123,37 @@ ForStatement
   forKeyword: for
   leftParenthesis: (
   forLoopParts: ForEachPartsWithIdentifier
-    identifier: SimpleIdentifier
+    identifier2: v
+    identifier(v1): SimpleIdentifier
       token: v
       element: <testLibrary>::@function::f::@formalParameter::v
       staticType: dynamic
     inKeyword: in
-    iterable: SimpleIdentifier
+    iterable2: UnqualifiedNameExpression
+      name: values
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::values
+        type: List<int>
+      staticType: List<int>
+    iterable(v1): SimpleIdentifier
       token: values
       element: <testLibrary>::@function::f::@formalParameter::values
       staticType: List<int>
+    write: VariableWriteResolution
+      element: <testLibrary>::@function::f::@formalParameter::v
+      acceptedType: dynamic
   rightParenthesis: )
   body: Block
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: v
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::v
+            type: dynamic
+          staticType: dynamic
+        expression(v1): SimpleIdentifier
           token: v
           element: <testLibrary>::@function::f::@formalParameter::v
           staticType: dynamic
@@ -925,14 +1178,22 @@ ForStatement
   forKeyword: for
   leftParenthesis: (
   forLoopParts: ForEachPartsWithIdentifier
-    identifier: SimpleIdentifier
+    identifier2: v
+    identifier(v1): SimpleIdentifier
       token: v
       element: <testLibrary>::@class::A::@method::f::@formalParameter::v
       staticType: dynamic
     inKeyword: in
-    iterable: SuperExpression
+    iterable2: InvalidSuperExpression
+      superReference: SuperReference
+        superKeyword: super
+      staticType: InvalidType
+    iterable(v1): SuperExpression
       superKeyword: super
       staticType: A
+    write: VariableWriteResolution
+      element: <testLibrary>::@class::A::@method::f::@formalParameter::v
+      acceptedType: dynamic
   rightParenthesis: )
   body: Block
     leftBracket: {
@@ -960,28 +1221,50 @@ BlockFunctionBody
         forKeyword: for
         leftParenthesis: (
         forLoopParts: ForEachPartsWithIdentifier
-          identifier: SimpleIdentifier
+          identifier2: v
+          identifier(v1): SimpleIdentifier
             token: v
             element: <testLibrary>::@function::f::@formalParameter::v
             staticType: dynamic
           inKeyword: in
-          iterable: SimpleIdentifier
+          iterable2: UnqualifiedNameExpression
+            name: values
+            resolution: VariableReadResolution
+              element: <testLibrary>::@function::f::@formalParameter::values
+              type: List<int>
+            staticType: List<int>
+          iterable(v1): SimpleIdentifier
             token: values
             element: <testLibrary>::@function::f::@formalParameter::values
             staticType: List<int>
+          write: VariableWriteResolution
+            element: <testLibrary>::@function::f::@formalParameter::v
+            acceptedType: dynamic
         rightParenthesis: )
         body: Block
           leftBracket: {
           statements
             ExpressionStatement
-              expression: SimpleIdentifier
+              expression2: UnqualifiedNameExpression
+                name: v
+                resolution: VariableReadResolution
+                  element: <testLibrary>::@function::f::@formalParameter::v
+                  type: dynamic
+                staticType: dynamic
+              expression(v1): SimpleIdentifier
                 token: v
                 element: <testLibrary>::@function::f::@formalParameter::v
                 staticType: dynamic
               semicolon: ;
           rightBracket: }
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: v
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::v
+            type: dynamic
+          staticType: dynamic
+        expression(v1): SimpleIdentifier
           token: v
           element: <testLibrary>::@function::f::@formalParameter::v
           staticType: dynamic
@@ -1006,15 +1289,25 @@ ForStatement
   forKeyword: for
   leftParenthesis: (
   forLoopParts: ForEachPartsWithIdentifier
-    identifier: SimpleIdentifier
+    identifier2: v
+    identifier(v1): SimpleIdentifier
       token: v
       element: <testLibrary>::@function::f::@formalParameter::v
       staticType: dynamic
     inKeyword: in
-    iterable: SimpleIdentifier
+    iterable2: UnqualifiedNameExpression
+      name: values
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::values
+        type: List<int>
+      staticType: List<int>
+    iterable(v1): SimpleIdentifier
       token: values
       element: <testLibrary>::@function::f::@formalParameter::values
       staticType: List<int>
+    write: VariableWriteResolution
+      element: <testLibrary>::@function::f::@formalParameter::v
+      acceptedType: dynamic
   rightParenthesis: )
   body: Block
     leftBracket: {
@@ -1026,7 +1319,7 @@ ForStatement
             VariableDeclaration
               name: v
               equals: =
-              initializer: IntegerLiteral
+              initializer2: IntegerLiteral
                 literal: 0
                 staticType: int
               declaredFragment: isPublic v@68
@@ -1034,7 +1327,13 @@ ForStatement
                   type: int
         semicolon: ;
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: v
+          resolution: VariableReadResolution
+            element: v@68
+            type: int
+          staticType: int
+        expression(v1): SimpleIdentifier
           token: v
           element: v@68
           staticType: int
@@ -1056,15 +1355,25 @@ ForStatement
   forKeyword: for
   leftParenthesis: (
   forLoopParts: ForEachPartsWithIdentifier
-    identifier: SimpleIdentifier
+    identifier2: v
+    identifier(v1): SimpleIdentifier
       token: v
       element: <testLibrary>::@function::f::@formalParameter::v
       staticType: dynamic
     inKeyword: in
-    iterable: SimpleIdentifier
+    iterable2: UnqualifiedNameExpression
+      name: v
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::v
+        type: dynamic
+      staticType: dynamic
+    iterable(v1): SimpleIdentifier
       token: v
       element: <testLibrary>::@function::f::@formalParameter::v
       staticType: dynamic
+    write: VariableWriteResolution
+      element: <testLibrary>::@function::f::@formalParameter::v
+      acceptedType: dynamic
   rightParenthesis: )
   body: Block
     leftBracket: {
@@ -1109,7 +1418,19 @@ ForStatement
       rightParenthesis: )
       matchedValueType: int
     inKeyword: in
-    iterable: MethodInvocation
+    iterable2: UnqualifiedFunctionInvocation
+      name: g
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      resolution: ExecutableInvocationResolution
+        element: <testLibrary>::@function::g
+        invokeType: Stream<int> Function()
+        type: Stream<int>
+      staticType: Stream<int>
+      typeArgumentTypes
+        Stream<int>
+    iterable(v1): MethodInvocation
       methodName: SimpleIdentifier
         token: g
         element: <testLibrary>::@function::g
@@ -1126,7 +1447,13 @@ ForStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: a@39
+            type: int
+          staticType: int
+        expression(v1): SimpleIdentifier
           token: a
           element: a@39
           staticType: int
@@ -1164,7 +1491,19 @@ ForStatement
       rightParenthesis: )
       matchedValueType: Object?
     inKeyword: in
-    iterable: MethodInvocation
+    iterable2: UnqualifiedFunctionInvocation
+      name: g
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      resolution: ExecutableInvocationResolution
+        element: <testLibrary>::@function::g
+        invokeType: Stream<Object?> Function()
+        type: Stream<Object?>
+      staticType: Stream<Object?>
+      typeArgumentTypes
+        Stream<Object?>
+    iterable(v1): MethodInvocation
       methodName: SimpleIdentifier
         token: g
         element: <testLibrary>::@function::g
@@ -1181,7 +1520,13 @@ ForStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: a@35
+            type: Object?
+          staticType: Object?
+        expression(v1): SimpleIdentifier
           token: a
           element: a@35
           staticType: Object?
@@ -1217,7 +1562,13 @@ ForStatement
       rightParenthesis: )
       matchedValueType: dynamic
     inKeyword: in
-    iterable: SimpleIdentifier
+    iterable2: UnqualifiedNameExpression
+      name: x
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::x
+        type: dynamic
+      staticType: dynamic
+    iterable(v1): SimpleIdentifier
       token: x
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: dynamic
@@ -1226,7 +1577,13 @@ ForStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: a@36
+            type: dynamic
+          staticType: dynamic
+        expression(v1): SimpleIdentifier
           token: a
           element: a@36
           staticType: dynamic
@@ -1264,7 +1621,13 @@ ForStatement
       rightParenthesis: )
       matchedValueType: InvalidType
     inKeyword: in
-    iterable: SimpleIdentifier
+    iterable2: UnqualifiedNameExpression
+      name: x
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::x
+        type: Object
+      staticType: Object
+    iterable(v1): SimpleIdentifier
       token: x
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: Object
@@ -1273,7 +1636,13 @@ ForStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: a@43
+            type: InvalidType
+          staticType: InvalidType
+        expression(v1): SimpleIdentifier
           token: a
           element: a@43
           staticType: InvalidType
@@ -1309,7 +1678,13 @@ ForStatement
       rightParenthesis: )
       matchedValueType: int
     inKeyword: in
-    iterable: SimpleIdentifier
+    iterable2: UnqualifiedNameExpression
+      name: x
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::x
+        type: Stream<int>
+      staticType: Stream<int>
+    iterable(v1): SimpleIdentifier
       token: x
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: Stream<int>
@@ -1318,7 +1693,13 @@ ForStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: a@48
+            type: int
+          staticType: int
+        expression(v1): SimpleIdentifier
           token: a
           element: a@48
           staticType: int
@@ -1349,7 +1730,13 @@ ForStatement
       rightParenthesis: )
       matchedValueType: int
     inKeyword: in
-    iterable: SimpleIdentifier
+    iterable2: UnqualifiedNameExpression
+      name: x
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::x
+        type: Stream<int>
+      staticType: Stream<int>
+    iterable(v1): SimpleIdentifier
       token: x
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: Stream<int>
@@ -1387,7 +1774,13 @@ ForStatement
       rightParenthesis: )
       matchedValueType: int
     inKeyword: in
-    iterable: SimpleIdentifier
+    iterable2: UnqualifiedNameExpression
+      name: x
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::x
+        type: Stream<int>
+      staticType: Stream<int>
+    iterable(v1): SimpleIdentifier
       token: x
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: Stream<int>
@@ -1396,7 +1789,13 @@ ForStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: a@50
+            type: int
+          staticType: int
+        expression(v1): SimpleIdentifier
           token: a
           element: a@50
           staticType: int
@@ -1436,7 +1835,13 @@ ForStatement
       rightParenthesis: )
       matchedValueType: int
     inKeyword: in
-    iterable: SimpleIdentifier
+    iterable2: UnqualifiedNameExpression
+      name: x
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::x
+        type: Stream<int>
+      staticType: Stream<int>
+    iterable(v1): SimpleIdentifier
       token: x
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: Stream<int>
@@ -1445,7 +1850,13 @@ ForStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: a@52
+            type: num
+          staticType: num
+        expression(v1): SimpleIdentifier
           token: a
           element: a@52
           staticType: num
@@ -1488,7 +1899,13 @@ BlockFunctionBody
             rightParenthesis: )
             matchedValueType: int
           inKeyword: in
-          iterable: SimpleIdentifier
+          iterable2: UnqualifiedNameExpression
+            name: x
+            resolution: VariableReadResolution
+              element: <testLibrary>::@function::f::@formalParameter::x
+              type: Stream<int>
+            staticType: Stream<int>
+          iterable(v1): SimpleIdentifier
             token: x
             element: <testLibrary>::@function::f::@formalParameter::x
             staticType: Stream<int>
@@ -1497,7 +1914,13 @@ BlockFunctionBody
           leftBracket: {
           rightBracket: }
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: int
+          staticType: int
+        expression(v1): SimpleIdentifier
           token: a
           element: <testLibrary>::@function::f::@formalParameter::a
           staticType: int
@@ -1537,7 +1960,13 @@ ForStatement
       rightParenthesis: )
       matchedValueType: int
     inKeyword: in
-    iterable: SimpleIdentifier
+    iterable2: UnqualifiedNameExpression
+      name: x
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::x
+        type: Stream<int>
+      staticType: Stream<int>
+    iterable(v1): SimpleIdentifier
       token: x
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: Stream<int>
@@ -1552,7 +1981,7 @@ ForStatement
             VariableDeclaration
               name: a
               equals: =
-              initializer: IntegerLiteral
+              initializer2: IntegerLiteral
                 literal: 1
                 staticType: int
               declaredFragment: isPublic a@67
@@ -1560,7 +1989,13 @@ ForStatement
                   type: int
         semicolon: ;
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: a@67
+            type: int
+          staticType: int
+        expression(v1): SimpleIdentifier
           token: a
           element: a@67
           staticType: int
@@ -1597,7 +2032,13 @@ ForStatement
       rightParenthesis: )
       matchedValueType: int
     inKeyword: in
-    iterable: SimpleIdentifier
+    iterable2: UnqualifiedNameExpression
+      name: x
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::x
+        type: Stream<int>
+      staticType: Stream<int>
+    iterable(v1): SimpleIdentifier
       token: x
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: Stream<int>
@@ -1606,7 +2047,13 @@ ForStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: x
+          resolution: VariableReadResolution
+            element: x@48
+            type: int
+          staticType: int
+        expression(v1): SimpleIdentifier
           token: x
           element: x@48
           staticType: int
@@ -1635,6 +2082,13 @@ ForStatement
     metadata
       Annotation
         atSign: @
+        expression: UnqualifiedNameExpression
+          name: foo
+          resolution: GetterInvocationResolution
+            element: <testLibrary>::@getter::foo
+            invokeType: int Function()
+            type: int
+          staticType: int
         name: SimpleIdentifier
           token: foo
           element: <testLibrary>::@getter::foo
@@ -1652,7 +2106,13 @@ ForStatement
       rightParenthesis: )
       matchedValueType: int
     inKeyword: in
-    iterable: SimpleIdentifier
+    iterable2: UnqualifiedNameExpression
+      name: x
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::x
+        type: List<int>
+      staticType: List<int>
+    iterable(v1): SimpleIdentifier
       token: x
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: List<int>
@@ -1661,7 +2121,13 @@ ForStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: a@39
+            type: int
+          staticType: int
+        expression(v1): SimpleIdentifier
           token: a
           element: a@39
           staticType: int
@@ -1691,6 +2157,12 @@ ForStatement
     metadata
       Annotation
         atSign: @
+        expression: UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: a@51
+            type: InvalidType
+          staticType: InvalidType
         name: SimpleIdentifier
           token: a
           element: a@51
@@ -1708,7 +2180,13 @@ ForStatement
       rightParenthesis: )
       matchedValueType: int
     inKeyword: in
-    iterable: SimpleIdentifier
+    iterable2: UnqualifiedNameExpression
+      name: x
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::x
+        type: List<int>
+      staticType: List<int>
+    iterable(v1): SimpleIdentifier
       token: x
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: List<int>
@@ -1717,7 +2195,13 @@ ForStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: a@51
+            type: int
+          staticType: int
+        expression(v1): SimpleIdentifier
           token: a
           element: a@51
           staticType: int
@@ -1758,7 +2242,19 @@ ForStatement
       rightParenthesis: )
       matchedValueType: int
     inKeyword: in
-    iterable: MethodInvocation
+    iterable2: UnqualifiedFunctionInvocation
+      name: g
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      resolution: ExecutableInvocationResolution
+        element: <testLibrary>::@function::g
+        invokeType: Iterable<int> Function()
+        type: Iterable<int>
+      staticType: Iterable<int>
+      typeArgumentTypes
+        Iterable<int>
+    iterable(v1): MethodInvocation
       methodName: SimpleIdentifier
         token: g
         element: <testLibrary>::@function::g
@@ -1805,7 +2301,19 @@ ForStatement
       rightParenthesis: )
       matchedValueType: Object?
     inKeyword: in
-    iterable: MethodInvocation
+    iterable2: UnqualifiedFunctionInvocation
+      name: g
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      resolution: ExecutableInvocationResolution
+        element: <testLibrary>::@function::g
+        invokeType: Iterable<Object?> Function()
+        type: Iterable<Object?>
+      staticType: Iterable<Object?>
+      typeArgumentTypes
+        Iterable<Object?>
+    iterable(v1): MethodInvocation
       methodName: SimpleIdentifier
         token: g
         element: <testLibrary>::@function::g
@@ -1850,7 +2358,13 @@ ForStatement
       rightParenthesis: )
       matchedValueType: dynamic
     inKeyword: in
-    iterable: SimpleIdentifier
+    iterable2: UnqualifiedNameExpression
+      name: x
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::x
+        type: dynamic
+      staticType: dynamic
+    iterable(v1): SimpleIdentifier
       token: x
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: dynamic
@@ -1859,7 +2373,13 @@ ForStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: a@24
+            type: dynamic
+          staticType: dynamic
+        expression(v1): SimpleIdentifier
           token: a
           element: a@24
           staticType: dynamic
@@ -1894,7 +2414,13 @@ ForStatement
       rightParenthesis: )
       matchedValueType: int
     inKeyword: in
-    iterable: SimpleIdentifier
+    iterable2: UnqualifiedNameExpression
+      name: x
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::x
+        type: List<int>
+      staticType: List<int>
+    iterable(v1): SimpleIdentifier
       token: x
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: List<int>
@@ -1903,7 +2429,13 @@ ForStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: a@34
+            type: int
+          staticType: int
+        expression(v1): SimpleIdentifier
           token: a
           element: a@34
           staticType: int
@@ -1933,7 +2465,13 @@ ForStatement
       rightParenthesis: )
       matchedValueType: int
     inKeyword: in
-    iterable: SimpleIdentifier
+    iterable2: UnqualifiedNameExpression
+      name: x
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::x
+        type: List<int>
+      staticType: List<int>
+    iterable(v1): SimpleIdentifier
       token: x
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: List<int>
@@ -1972,7 +2510,13 @@ ForStatement
       rightParenthesis: )
       matchedValueType: InvalidType
     inKeyword: in
-    iterable: SimpleIdentifier
+    iterable2: UnqualifiedNameExpression
+      name: x
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::x
+        type: Object
+      staticType: Object
+    iterable(v1): SimpleIdentifier
       token: x
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: Object
@@ -1981,7 +2525,13 @@ ForStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: a@31
+            type: InvalidType
+          staticType: InvalidType
+        expression(v1): SimpleIdentifier
           token: a
           element: a@31
           staticType: InvalidType
@@ -2015,12 +2565,16 @@ ForStatement
         name: a
         declaredFragment: isPublic a@71
           element: hasImplicitType isPublic
-            type: int
-        matchedValueType: int
+            type: InvalidType
+        matchedValueType: InvalidType
       rightParenthesis: )
-      matchedValueType: int
+      matchedValueType: InvalidType
     inKeyword: in
-    iterable: SuperExpression
+    iterable2: InvalidSuperExpression
+      superReference: SuperReference
+        superKeyword: super
+      staticType: InvalidType
+    iterable(v1): SuperExpression
       superKeyword: super
       staticType: A
   rightParenthesis: )
@@ -2056,7 +2610,13 @@ ForStatement
       rightParenthesis: )
       matchedValueType: int
     inKeyword: in
-    iterable: SimpleIdentifier
+    iterable2: UnqualifiedNameExpression
+      name: x
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::x
+        type: List<int>
+      staticType: List<int>
+    iterable(v1): SimpleIdentifier
       token: x
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: List<int>
@@ -2065,7 +2625,13 @@ ForStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: a@36
+            type: int
+          staticType: int
+        expression(v1): SimpleIdentifier
           token: a
           element: a@36
           staticType: int
@@ -2104,7 +2670,13 @@ ForStatement
       rightParenthesis: )
       matchedValueType: int
     inKeyword: in
-    iterable: SimpleIdentifier
+    iterable2: UnqualifiedNameExpression
+      name: x
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::x
+        type: List<int>
+      staticType: List<int>
+    iterable(v1): SimpleIdentifier
       token: x
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: List<int>
@@ -2113,7 +2685,13 @@ ForStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: a@38
+            type: num
+          staticType: num
+        expression(v1): SimpleIdentifier
           token: a
           element: a@38
           staticType: num
@@ -2154,7 +2732,13 @@ BlockFunctionBody
             rightParenthesis: )
             matchedValueType: int
           inKeyword: in
-          iterable: SimpleIdentifier
+          iterable2: UnqualifiedNameExpression
+            name: x
+            resolution: VariableReadResolution
+              element: <testLibrary>::@function::f::@formalParameter::x
+              type: List<int>
+            staticType: List<int>
+          iterable(v1): SimpleIdentifier
             token: x
             element: <testLibrary>::@function::f::@formalParameter::x
             staticType: List<int>
@@ -2163,7 +2747,13 @@ BlockFunctionBody
           leftBracket: {
           rightBracket: }
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: int
+          staticType: int
+        expression(v1): SimpleIdentifier
           token: a
           element: <testLibrary>::@function::f::@formalParameter::a
           staticType: int
@@ -2202,7 +2792,13 @@ ForStatement
       rightParenthesis: )
       matchedValueType: int
     inKeyword: in
-    iterable: SimpleIdentifier
+    iterable2: UnqualifiedNameExpression
+      name: x
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::x
+        type: List<int>
+      staticType: List<int>
+    iterable(v1): SimpleIdentifier
       token: x
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: List<int>
@@ -2217,7 +2813,7 @@ ForStatement
             VariableDeclaration
               name: a
               equals: =
-              initializer: IntegerLiteral
+              initializer2: IntegerLiteral
                 literal: 1
                 staticType: int
               declaredFragment: isPublic a@53
@@ -2225,7 +2821,13 @@ ForStatement
                   type: int
         semicolon: ;
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: a@53
+            type: int
+          staticType: int
+        expression(v1): SimpleIdentifier
           token: a
           element: a@53
           staticType: int
@@ -2261,7 +2863,13 @@ ForStatement
       rightParenthesis: )
       matchedValueType: int
     inKeyword: in
-    iterable: SimpleIdentifier
+    iterable2: UnqualifiedNameExpression
+      name: x
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::x
+        type: List<int>
+      staticType: List<int>
+    iterable(v1): SimpleIdentifier
       token: x
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: List<int>
@@ -2270,7 +2878,13 @@ ForStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: x
+          resolution: VariableReadResolution
+            element: x@34
+            type: int
+          staticType: int
+        expression(v1): SimpleIdentifier
           token: x
           element: x@34
           staticType: int
@@ -2307,14 +2921,29 @@ BlockFunctionBody
               VariableDeclaration
                 name: i
                 equals: =
-                initializer: IntegerLiteral
+                initializer2: IntegerLiteral
                   literal: 0
                   staticType: int
                 declaredFragment: isPublic i@27
                   element: hasImplicitType isPublic
                     type: int
           leftSeparator: ;
-          condition: BinaryExpression
+          condition2: BinaryOperatorInvocation
+            leftOperand: UnqualifiedNameExpression
+              name: i
+              resolution: VariableReadResolution
+                element: i@27
+                type: int
+              staticType: int
+            operator: <
+            rightOperand: IntegerLiteral
+              literal: 1
+              correspondingParameter: dart:core::@class::num::@method::<::@formalParameter::other
+              staticType: int
+            binaryOperator: lessThan
+            element: dart:core::@class::num::@method::<
+            staticType: bool
+          condition(v1): BinaryExpression
             leftOperand: SimpleIdentifier
               token: i
               element: i@27
@@ -2328,7 +2957,23 @@ BlockFunctionBody
             staticInvokeType: bool Function(num)
             staticType: bool
           rightSeparator: ;
-          updaters
+          updaters2
+            IncrementOrDecrementExpression
+              target: UnqualifiedNameAssignmentTarget
+                name: i
+                read: VariableReadResolution
+                  element: i@27
+                  type: int
+                write: VariableWriteResolution
+                  element: i@27
+                  acceptedType: int
+              operator: ++
+              operation: increment
+              position: postfix
+              element: dart:core::@class::num::@method::+
+              operatorResultType: int
+              staticType: int
+          updaters(v1)
             PostfixExpression
               operand: SimpleIdentifier
                 token: i
@@ -2346,7 +2991,13 @@ BlockFunctionBody
           leftBracket: {
           rightBracket: }
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: i
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::i
+            type: int
+          staticType: int
+        expression(v1): SimpleIdentifier
           token: i
           element: <testLibrary>::@function::f::@formalParameter::i
           staticType: int
@@ -2377,14 +3028,29 @@ ForStatement
         VariableDeclaration
           name: i
           equals: =
-          initializer: IntegerLiteral
+          initializer2: IntegerLiteral
             literal: 0
             staticType: int
           declaredFragment: isPublic i@33
             element: hasImplicitType isPublic
               type: int
     leftSeparator: ;
-    condition: BinaryExpression
+    condition2: BinaryOperatorInvocation
+      leftOperand: UnqualifiedNameExpression
+        name: i
+        resolution: VariableReadResolution
+          element: i@33
+          type: int
+        staticType: int
+      operator: <
+      rightOperand: IntegerLiteral
+        literal: 10
+        correspondingParameter: dart:core::@class::num::@method::<::@formalParameter::other
+        staticType: int
+      binaryOperator: lessThan
+      element: dart:core::@class::num::@method::<
+      staticType: bool
+    condition(v1): BinaryExpression
       leftOperand: SimpleIdentifier
         token: i
         element: i@33
@@ -2398,7 +3064,23 @@ ForStatement
       staticInvokeType: bool Function(num)
       staticType: bool
     rightSeparator: ;
-    updaters
+    updaters2
+      IncrementOrDecrementExpression
+        operator: ++
+        target: UnqualifiedNameAssignmentTarget
+          name: i
+          read: VariableReadResolution
+            element: i@33
+            type: int
+          write: VariableWriteResolution
+            element: i@33
+            acceptedType: int
+        operation: increment
+        position: prefix
+        element: dart:core::@class::num::@method::+
+        operatorResultType: int
+        staticType: int
+    updaters(v1)
       PrefixExpression
         operator: ++
         operand: SimpleIdentifier
@@ -2422,14 +3104,20 @@ ForStatement
             VariableDeclaration
               name: i
               equals: =
-              initializer: SimpleStringLiteral
+              initializer2: SimpleStringLiteral
                 literal: 'a'
               declaredFragment: isPublic i@63
                 element: hasImplicitType isPublic
                   type: String
         semicolon: ;
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: i
+          resolution: VariableReadResolution
+            element: i@63
+            type: String
+          staticType: String
+        expression(v1): SimpleIdentifier
           token: i
           element: i@63
           staticType: String
@@ -2459,14 +3147,29 @@ ForStatement
         VariableDeclaration
           name: i
           equals: =
-          initializer: IntegerLiteral
+          initializer2: IntegerLiteral
             literal: 0
             staticType: int
           declaredFragment: isPublic i@22
             element: hasImplicitType isPublic
               type: int
     leftSeparator: ;
-    condition: BinaryExpression
+    condition2: BinaryOperatorInvocation
+      leftOperand: UnqualifiedNameExpression
+        name: i
+        resolution: VariableReadResolution
+          element: i@22
+          type: int
+        staticType: int
+      operator: <
+      rightOperand: IntegerLiteral
+        literal: 10
+        correspondingParameter: dart:core::@class::num::@method::<::@formalParameter::other
+        staticType: int
+      binaryOperator: lessThan
+      element: dart:core::@class::num::@method::<
+      staticType: bool
+    condition(v1): BinaryExpression
       leftOperand: SimpleIdentifier
         token: i
         element: i@22
@@ -2480,7 +3183,23 @@ ForStatement
       staticInvokeType: bool Function(num)
       staticType: bool
     rightSeparator: ;
-    updaters
+    updaters2
+      IncrementOrDecrementExpression
+        target: UnqualifiedNameAssignmentTarget
+          name: i
+          read: VariableReadResolution
+            element: i@22
+            type: int
+          write: VariableWriteResolution
+            element: i@22
+            acceptedType: int
+        operator: ++
+        operation: increment
+        position: postfix
+        element: dart:core::@class::num::@method::+
+        operatorResultType: int
+        staticType: int
+    updaters(v1)
       PostfixExpression
         operand: SimpleIdentifier
           token: i
@@ -2498,7 +3217,13 @@ ForStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: i
+          resolution: VariableReadResolution
+            element: i@22
+            type: int
+          staticType: int
+        expression(v1): SimpleIdentifier
           token: i
           element: i@22
           staticType: int
@@ -2530,7 +3255,13 @@ ForStatement
         VariableDeclaration
           name: i
           equals: =
-          initializer: SimpleIdentifier
+          initializer2: UnqualifiedNameExpression
+            name: i
+            resolution: VariableReadResolution
+              element: i@27
+              type: dynamic
+            staticType: dynamic
+          initializer(v1): SimpleIdentifier
             token: i
             element: i@27
             staticType: dynamic
@@ -2538,7 +3269,22 @@ ForStatement
             element: hasImplicitType isPublic
               type: dynamic
     leftSeparator: ;
-    condition: BinaryExpression
+    condition2: BinaryOperatorInvocation
+      leftOperand: UnqualifiedNameExpression
+        name: i
+        resolution: VariableReadResolution
+          element: i@27
+          type: dynamic
+        staticType: dynamic
+      operator: <
+      rightOperand: IntegerLiteral
+        literal: 1
+        correspondingParameter: <null>
+        staticType: int
+      binaryOperator: lessThan
+      element: <null>
+      staticType: dynamic
+    condition(v1): BinaryExpression
       leftOperand: SimpleIdentifier
         token: i
         element: i@27
@@ -2552,7 +3298,23 @@ ForStatement
       staticInvokeType: null
       staticType: dynamic
     rightSeparator: ;
-    updaters
+    updaters2
+      IncrementOrDecrementExpression
+        target: UnqualifiedNameAssignmentTarget
+          name: i
+          read: VariableReadResolution
+            element: i@27
+            type: dynamic
+          write: VariableWriteResolution
+            element: i@27
+            acceptedType: dynamic
+        operator: ++
+        operation: increment
+        position: postfix
+        element: <null>
+        operatorResultType: dynamic
+        staticType: dynamic
+    updaters(v1)
       PostfixExpression
         operand: SimpleIdentifier
           token: i
@@ -2591,7 +3353,13 @@ ForStatement
         VariableDeclaration
           name: i2
           equals: =
-          initializer: SimpleIdentifier
+          initializer2: UnqualifiedNameExpression
+            name: i
+            resolution: VariableReadResolution
+              element: <testLibrary>::@function::f::@formalParameter::i
+              type: int
+            staticType: int
+          initializer(v1): SimpleIdentifier
             token: i
             element: <testLibrary>::@function::f::@formalParameter::i
             staticType: int
@@ -2599,7 +3367,22 @@ ForStatement
             element: hasImplicitType isPublic
               type: int
     leftSeparator: ;
-    condition: BinaryExpression
+    condition2: BinaryOperatorInvocation
+      leftOperand: UnqualifiedNameExpression
+        name: i2
+        resolution: VariableReadResolution
+          element: i2@27
+          type: int
+        staticType: int
+      operator: <
+      rightOperand: IntegerLiteral
+        literal: 10
+        correspondingParameter: dart:core::@class::num::@method::<::@formalParameter::other
+        staticType: int
+      binaryOperator: lessThan
+      element: dart:core::@class::num::@method::<
+      staticType: bool
+    condition(v1): BinaryExpression
       leftOperand: SimpleIdentifier
         token: i2
         element: i2@27
@@ -2613,7 +3396,23 @@ ForStatement
       staticInvokeType: bool Function(num)
       staticType: bool
     rightSeparator: ;
-    updaters
+    updaters2
+      IncrementOrDecrementExpression
+        operator: ++
+        target: UnqualifiedNameAssignmentTarget
+          name: i2
+          read: VariableReadResolution
+            element: i2@27
+            type: int
+          write: VariableWriteResolution
+            element: i2@27
+            acceptedType: int
+        operation: increment
+        position: prefix
+        element: dart:core::@class::num::@method::+
+        operatorResultType: int
+        staticType: int
+    updaters(v1)
       PrefixExpression
         operator: ++
         operand: SimpleIdentifier
@@ -2652,7 +3451,7 @@ ForStatement
         VariableDeclaration
           name: i
           equals: =
-          initializer: IntegerLiteral
+          initializer2: IntegerLiteral
             literal: 0
             staticType: int
           declaredFragment: isPublic i@22
@@ -2661,7 +3460,13 @@ ForStatement
         VariableDeclaration
           name: j
           equals: =
-          initializer: SimpleIdentifier
+          initializer2: UnqualifiedNameExpression
+            name: i
+            resolution: VariableReadResolution
+              element: i@22
+              type: int
+            staticType: int
+          initializer(v1): SimpleIdentifier
             token: i
             element: i@22
             staticType: int
@@ -2669,7 +3474,22 @@ ForStatement
             element: hasImplicitType isPublic
               type: int
     leftSeparator: ;
-    condition: BinaryExpression
+    condition2: BinaryOperatorInvocation
+      leftOperand: UnqualifiedNameExpression
+        name: j
+        resolution: VariableReadResolution
+          element: j@29
+          type: int
+        staticType: int
+      operator: <
+      rightOperand: IntegerLiteral
+        literal: 1
+        correspondingParameter: dart:core::@class::num::@method::<::@formalParameter::other
+        staticType: int
+      binaryOperator: lessThan
+      element: dart:core::@class::num::@method::<
+      staticType: bool
+    condition(v1): BinaryExpression
       leftOperand: SimpleIdentifier
         token: j
         element: j@29
@@ -2683,7 +3503,23 @@ ForStatement
       staticInvokeType: bool Function(num)
       staticType: bool
     rightSeparator: ;
-    updaters
+    updaters2
+      IncrementOrDecrementExpression
+        target: UnqualifiedNameAssignmentTarget
+          name: j
+          read: VariableReadResolution
+            element: j@29
+            type: int
+          write: VariableWriteResolution
+            element: j@29
+            acceptedType: int
+        operator: ++
+        operation: increment
+        position: postfix
+        element: dart:core::@class::num::@method::+
+        operatorResultType: int
+        staticType: int
+    updaters(v1)
       PostfixExpression
         operand: SimpleIdentifier
           token: j
@@ -2721,7 +3557,21 @@ ForStatement
   leftParenthesis: (
   forLoopParts: ForPartsWithExpression
     leftSeparator: ;
-    condition: FunctionExpressionInvocation
+    condition2: CallInvocation
+      receiver: UnqualifiedNameExpression
+        name: b
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::b
+          type: bool Function()
+        staticType: bool Function()
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      resolution: FunctionTypeInvocationResolution
+        invokeType: bool Function()
+        type: bool
+      staticType: bool
+    condition(v1): FunctionExpressionInvocation
       function: SimpleIdentifier
         token: b
         element: <testLibrary>::@function::f::@formalParameter::b
@@ -2756,7 +3606,7 @@ ForStatement
   forKeyword: for
   leftParenthesis: (
   forLoopParts: ForPartsWithExpression
-    initialization: PatternAssignment
+    initialization2: PatternAssignment
       pattern: ParenthesizedPattern
         leftParenthesis: (
         pattern: AssignedVariablePattern
@@ -2766,7 +3616,7 @@ ForStatement
         rightParenthesis: )
         matchedValueType: int
       equals: =
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
         staticType: int
       patternTypeSchema: int
@@ -2778,7 +3628,13 @@ ForStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: a@17
+            type: int
+          staticType: int
+        expression(v1): SimpleIdentifier
           token: a
           element: a@17
           staticType: int
@@ -2805,7 +3661,22 @@ ForStatement
   leftParenthesis: (
   forLoopParts: ForPartsWithExpression
     leftSeparator: ;
-    condition: BinaryExpression
+    condition2: BinaryOperatorInvocation
+      leftOperand: UnqualifiedNameExpression
+        name: i
+        resolution: VariableReadResolution
+          element: i@17
+          type: int
+        staticType: int
+      operator: <
+      rightOperand: IntegerLiteral
+        literal: 10
+        correspondingParameter: dart:core::@class::num::@method::<::@formalParameter::other
+        staticType: int
+      binaryOperator: lessThan
+      element: dart:core::@class::num::@method::<
+      staticType: bool
+    condition(v1): BinaryExpression
       leftOperand: SimpleIdentifier
         token: i
         element: i@17
@@ -2819,7 +3690,23 @@ ForStatement
       staticInvokeType: bool Function(num)
       staticType: bool
     rightSeparator: ;
-    updaters
+    updaters2
+      IncrementOrDecrementExpression
+        target: UnqualifiedNameAssignmentTarget
+          name: i
+          read: VariableReadResolution
+            element: i@17
+            type: int
+          write: VariableWriteResolution
+            element: i@17
+            acceptedType: int
+        operator: ++
+        operation: increment
+        position: postfix
+        element: dart:core::@class::num::@method::+
+        operatorResultType: int
+        staticType: int
+    updaters(v1)
       PostfixExpression
         operand: SimpleIdentifier
           token: i
@@ -2843,14 +3730,20 @@ ForStatement
             VariableDeclaration
               name: i
               equals: =
-              initializer: SimpleStringLiteral
+              initializer2: SimpleStringLiteral
                 literal: 'a'
               declaredFragment: isPublic i@56
                 element: hasImplicitType isPublic
                   type: String
         semicolon: ;
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: i
+          resolution: VariableReadResolution
+            element: i@56
+            type: String
+          staticType: String
+        expression(v1): SimpleIdentifier
           token: i
           element: i@56
           staticType: String
@@ -2878,7 +3771,12 @@ ForStatement
   forLoopParts: ForPartsWithExpression
     leftSeparator: ;
     rightSeparator: ;
-    updaters
+    updaters2
+      InvalidSuperExpression
+        superReference: SuperReference
+          superKeyword: super
+        staticType: InvalidType
+    updaters(v1)
       SuperExpression
         superKeyword: super
         staticType: A
@@ -2912,6 +3810,13 @@ ForStatement
       metadata
         Annotation
           atSign: @
+          expression: UnqualifiedNameExpression
+            name: deprecated
+            resolution: GetterInvocationResolution
+              element: dart:core::@getter::deprecated
+              invokeType: Deprecated Function()
+              type: Deprecated
+            staticType: Deprecated
           name: SimpleIdentifier
             token: deprecated
             element: dart:core::@getter::deprecated
@@ -2929,16 +3834,31 @@ ForStatement
         rightParenthesis: )
         matchedValueType: int
       equals: =
-      expression: ParenthesizedExpression
+      expression2: ParenthesizedExpression
         leftParenthesis: (
-        expression: IntegerLiteral
+        expression2: IntegerLiteral
           literal: 0
           staticType: int
         rightParenthesis: )
         staticType: int
       patternTypeSchema: _
     leftSeparator: ;
-    condition: BinaryExpression
+    condition2: BinaryOperatorInvocation
+      leftOperand: UnqualifiedNameExpression
+        name: a
+        resolution: VariableReadResolution
+          element: a@35
+          type: int
+        staticType: int
+      operator: <=
+      rightOperand: IntegerLiteral
+        literal: 2
+        correspondingParameter: dart:core::@class::num::@method::<=::@formalParameter::other
+        staticType: int
+      binaryOperator: lessThanOrEqual
+      element: dart:core::@class::num::@method::<=
+      staticType: bool
+    condition(v1): BinaryExpression
       leftOperand: SimpleIdentifier
         token: a
         element: a@35
@@ -2952,7 +3872,23 @@ ForStatement
       staticInvokeType: bool Function(num)
       staticType: bool
     rightSeparator: ;
-    updaters
+    updaters2
+      IncrementOrDecrementExpression
+        target: UnqualifiedNameAssignmentTarget
+          name: a
+          read: VariableReadResolution
+            element: a@35
+            type: int
+          write: VariableWriteResolution
+            element: a@35
+            acceptedType: int
+        operator: ++
+        operation: increment
+        position: postfix
+        element: dart:core::@class::num::@method::+
+        operatorResultType: int
+        staticType: int
+    updaters(v1)
       PostfixExpression
         operand: SimpleIdentifier
           token: a
@@ -2970,7 +3906,13 @@ ForStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: a@35
+            type: int
+          staticType: int
+        expression(v1): SimpleIdentifier
           token: a
           element: a@35
           staticType: int
@@ -3001,6 +3943,12 @@ ForStatement
       metadata
         Annotation
           atSign: @
+          expression: UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: a@40
+              type: InvalidType
+            staticType: InvalidType
           name: SimpleIdentifier
             token: a
             element: a@40
@@ -3018,16 +3966,31 @@ ForStatement
         rightParenthesis: )
         matchedValueType: int
       equals: =
-      expression: ParenthesizedExpression
+      expression2: ParenthesizedExpression
         leftParenthesis: (
-        expression: IntegerLiteral
+        expression2: IntegerLiteral
           literal: 0
           staticType: int
         rightParenthesis: )
         staticType: int
       patternTypeSchema: _
     leftSeparator: ;
-    condition: BinaryExpression
+    condition2: BinaryOperatorInvocation
+      leftOperand: UnqualifiedNameExpression
+        name: a
+        resolution: VariableReadResolution
+          element: a@40
+          type: int
+        staticType: int
+      operator: <=
+      rightOperand: IntegerLiteral
+        literal: 2
+        correspondingParameter: dart:core::@class::num::@method::<=::@formalParameter::other
+        staticType: int
+      binaryOperator: lessThanOrEqual
+      element: dart:core::@class::num::@method::<=
+      staticType: bool
+    condition(v1): BinaryExpression
       leftOperand: SimpleIdentifier
         token: a
         element: a@40
@@ -3041,7 +4004,23 @@ ForStatement
       staticInvokeType: bool Function(num)
       staticType: bool
     rightSeparator: ;
-    updaters
+    updaters2
+      IncrementOrDecrementExpression
+        target: UnqualifiedNameAssignmentTarget
+          name: a
+          read: VariableReadResolution
+            element: a@40
+            type: int
+          write: VariableWriteResolution
+            element: a@40
+            acceptedType: int
+        operator: ++
+        operation: increment
+        position: postfix
+        element: dart:core::@class::num::@method::+
+        operatorResultType: int
+        staticType: int
+    updaters(v1)
       PostfixExpression
         operand: SimpleIdentifier
           token: a
@@ -3059,7 +4038,13 @@ ForStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: a@40
+            type: int
+          staticType: int
+        expression(v1): SimpleIdentifier
           token: a
           element: a@40
           staticType: int
@@ -3110,18 +4095,46 @@ BlockFunctionBody
               rightParenthesis: )
               matchedValueType: (int, bool)
             equals: =
-            expression: SimpleIdentifier
+            expression2: UnqualifiedNameExpression
+              name: x
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::f::@formalParameter::x
+                type: (int, bool)
+              staticType: (int, bool)
+            expression(v1): SimpleIdentifier
               token: x
               element: <testLibrary>::@function::f::@formalParameter::x
               staticType: (int, bool)
             patternTypeSchema: (_, _)
           leftSeparator: ;
-          condition: SimpleIdentifier
+          condition2: UnqualifiedNameExpression
+            name: b
+            resolution: VariableReadResolution
+              element: b@46
+              type: bool
+            staticType: bool
+          condition(v1): SimpleIdentifier
             token: b
             element: b@46
             staticType: bool
           rightSeparator: ;
-          updaters
+          updaters2
+            IncrementOrDecrementExpression
+              target: UnqualifiedNameAssignmentTarget
+                name: a
+                read: VariableReadResolution
+                  element: a@43
+                  type: int
+                write: VariableWriteResolution
+                  element: a@43
+                  acceptedType: int
+              operator: --
+              operation: decrement
+              position: postfix
+              element: dart:core::@class::num::@method::-
+              operatorResultType: int
+              staticType: int
+          updaters(v1)
             PostfixExpression
               operand: SimpleIdentifier
                 token: a
@@ -3139,7 +4152,13 @@ BlockFunctionBody
           leftBracket: {
           rightBracket: }
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: int
+          staticType: int
+        expression(v1): SimpleIdentifier
           token: a
           element: <testLibrary>::@function::f::@formalParameter::a
           staticType: int
@@ -3188,18 +4207,46 @@ ForStatement
         rightParenthesis: )
         matchedValueType: (int, bool)
       equals: =
-      expression: SimpleIdentifier
+      expression2: UnqualifiedNameExpression
+        name: i
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::i
+          type: (int, bool)
+        staticType: (int, bool)
+      expression(v1): SimpleIdentifier
         token: i
         element: <testLibrary>::@function::f::@formalParameter::i
         staticType: (int, bool)
       patternTypeSchema: (_, _)
     leftSeparator: ;
-    condition: SimpleIdentifier
+    condition2: UnqualifiedNameExpression
+      name: b
+      resolution: VariableReadResolution
+        element: b@39
+        type: bool
+      staticType: bool
+    condition(v1): SimpleIdentifier
       token: b
       element: b@39
       staticType: bool
     rightSeparator: ;
-    updaters
+    updaters2
+      IncrementOrDecrementExpression
+        target: UnqualifiedNameAssignmentTarget
+          name: a
+          read: VariableReadResolution
+            element: a@36
+            type: int
+          write: VariableWriteResolution
+            element: a@36
+            acceptedType: int
+        operator: --
+        operation: decrement
+        position: postfix
+        element: dart:core::@class::num::@method::-
+        operatorResultType: int
+        staticType: int
+    updaters(v1)
       PostfixExpression
         operand: SimpleIdentifier
           token: a
@@ -3223,14 +4270,20 @@ ForStatement
             VariableDeclaration
               name: a
               equals: =
-              initializer: SimpleStringLiteral
+              initializer2: SimpleStringLiteral
                 literal: 'a'
               declaredFragment: isPublic a@65
                 element: hasImplicitType isPublic
                   type: String
         semicolon: ;
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: a@65
+            type: String
+          staticType: String
+        expression(v1): SimpleIdentifier
           token: a
           element: a@65
           staticType: String
@@ -3278,18 +4331,46 @@ ForStatement
         rightParenthesis: )
         matchedValueType: (int, bool)
       equals: =
-      expression: SimpleIdentifier
+      expression2: UnqualifiedNameExpression
+        name: x
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::x
+          type: (int, bool)
+        staticType: (int, bool)
+      expression(v1): SimpleIdentifier
         token: x
         element: <testLibrary>::@function::f::@formalParameter::x
         staticType: (int, bool)
       patternTypeSchema: (_, _)
     leftSeparator: ;
-    condition: SimpleIdentifier
+    condition2: UnqualifiedNameExpression
+      name: b
+      resolution: VariableReadResolution
+        element: b@39
+        type: bool
+      staticType: bool
+    condition(v1): SimpleIdentifier
       token: b
       element: b@39
       staticType: bool
     rightSeparator: ;
-    updaters
+    updaters2
+      IncrementOrDecrementExpression
+        target: UnqualifiedNameAssignmentTarget
+          name: a
+          read: VariableReadResolution
+            element: a@36
+            type: int
+          write: VariableWriteResolution
+            element: a@36
+            acceptedType: int
+        operator: --
+        operation: decrement
+        position: postfix
+        element: dart:core::@class::num::@method::-
+        operatorResultType: int
+        staticType: int
+    updaters(v1)
       PostfixExpression
         operand: SimpleIdentifier
           token: a
@@ -3307,7 +4388,13 @@ ForStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: x
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::x
+            type: (int, bool)
+          staticType: (int, bool)
+        expression(v1): SimpleIdentifier
           token: x
           element: <testLibrary>::@function::f::@formalParameter::x
           staticType: (int, bool)
@@ -3356,18 +4443,46 @@ ForStatement
         rightParenthesis: )
         matchedValueType: (int, bool)
       equals: =
-      expression: SimpleIdentifier
+      expression2: UnqualifiedNameExpression
+        name: x
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::x
+          type: (int, bool)
+        staticType: (int, bool)
+      expression(v1): SimpleIdentifier
         token: x
         element: <testLibrary>::@function::f::@formalParameter::x
         staticType: (int, bool)
       patternTypeSchema: (_, _)
     leftSeparator: ;
-    condition: SimpleIdentifier
+    condition2: UnqualifiedNameExpression
+      name: b
+      resolution: VariableReadResolution
+        element: b@39
+        type: bool
+      staticType: bool
+    condition(v1): SimpleIdentifier
       token: b
       element: b@39
       staticType: bool
     rightSeparator: ;
-    updaters
+    updaters2
+      IncrementOrDecrementExpression
+        target: UnqualifiedNameAssignmentTarget
+          name: a
+          read: VariableReadResolution
+            element: a@36
+            type: int
+          write: VariableWriteResolution
+            element: a@36
+            acceptedType: int
+        operator: --
+        operation: decrement
+        position: postfix
+        element: dart:core::@class::num::@method::-
+        operatorResultType: int
+        staticType: int
+    updaters(v1)
       PostfixExpression
         operand: SimpleIdentifier
           token: a
@@ -3385,13 +4500,25 @@ ForStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: a@36
+            type: int
+          staticType: int
+        expression(v1): SimpleIdentifier
           token: a
           element: a@36
           staticType: int
         semicolon: ;
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: b
+          resolution: VariableReadResolution
+            element: b@39
+            type: bool
+          staticType: bool
+        expression(v1): SimpleIdentifier
           token: b
           element: b@39
           staticType: bool
@@ -3438,18 +4565,46 @@ ForStatement
         rightParenthesis: )
         matchedValueType: InvalidType
       equals: =
-      expression: SimpleIdentifier
+      expression2: UnqualifiedNameExpression
+        name: a
+        resolution: VariableReadResolution
+          element: a@36
+          type: InvalidType
+        staticType: InvalidType
+      expression(v1): SimpleIdentifier
         token: a
         element: a@36
         staticType: InvalidType
       patternTypeSchema: (_, _)
     leftSeparator: ;
-    condition: SimpleIdentifier
+    condition2: UnqualifiedNameExpression
+      name: b
+      resolution: VariableReadResolution
+        element: b@39
+        type: InvalidType
+      staticType: InvalidType
+    condition(v1): SimpleIdentifier
       token: b
       element: b@39
       staticType: InvalidType
     rightSeparator: ;
-    updaters
+    updaters2
+      IncrementOrDecrementExpression
+        target: UnqualifiedNameAssignmentTarget
+          name: a
+          read: VariableReadResolution
+            element: a@36
+            type: InvalidType
+          write: VariableWriteResolution
+            element: a@36
+            acceptedType: InvalidType
+        operator: --
+        operation: decrement
+        position: postfix
+        element: <null>
+        operatorResultType: dynamic
+        staticType: InvalidType
+    updaters(v1)
       PostfixExpression
         operand: SimpleIdentifier
           token: a
@@ -3496,16 +4651,31 @@ ForStatement
         rightParenthesis: )
         matchedValueType: int
       equals: =
-      expression: ParenthesizedExpression
+      expression2: ParenthesizedExpression
         leftParenthesis: (
-        expression: IntegerLiteral
+        expression2: IntegerLiteral
           literal: 0
           staticType: int
         rightParenthesis: )
         staticType: int
       patternTypeSchema: _
     leftSeparator: ;
-    condition: BinaryExpression
+    condition2: BinaryOperatorInvocation
+      leftOperand: UnqualifiedNameExpression
+        name: a
+        resolution: VariableReadResolution
+          element: a@23
+          type: int
+        staticType: int
+      operator: <=
+      rightOperand: IntegerLiteral
+        literal: 2
+        correspondingParameter: dart:core::@class::num::@method::<=::@formalParameter::other
+        staticType: int
+      binaryOperator: lessThanOrEqual
+      element: dart:core::@class::num::@method::<=
+      staticType: bool
+    condition(v1): BinaryExpression
       leftOperand: SimpleIdentifier
         token: a
         element: a@23
@@ -3519,7 +4689,23 @@ ForStatement
       staticInvokeType: bool Function(num)
       staticType: bool
     rightSeparator: ;
-    updaters
+    updaters2
+      IncrementOrDecrementExpression
+        target: UnqualifiedNameAssignmentTarget
+          name: a
+          read: VariableReadResolution
+            element: a@23
+            type: int
+          write: VariableWriteResolution
+            element: a@23
+            acceptedType: int
+        operator: ++
+        operation: increment
+        position: postfix
+        element: dart:core::@class::num::@method::+
+        operatorResultType: int
+        staticType: int
+    updaters(v1)
       PostfixExpression
         operand: SimpleIdentifier
           token: a
@@ -3537,7 +4723,13 @@ ForStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: a@23
+            type: int
+          staticType: int
+        expression(v1): SimpleIdentifier
           token: a
           element: a@23
           staticType: int

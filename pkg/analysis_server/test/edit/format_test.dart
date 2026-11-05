@@ -174,7 +174,7 @@ enum A { a, b }
   /// Verify version 2.19 is passed to the formatter so it will not produce any
   /// edits for code containing records (since it fails to parse).
   Future<void> test_format_version_2_19() async {
-    writeTestPackageConfig(languageVersion: '2.19');
+    writeTestPackageConfig2(languageVersion: '2.19');
     await _expectFormatError('''
 var          a = (1, 2);
 ''');

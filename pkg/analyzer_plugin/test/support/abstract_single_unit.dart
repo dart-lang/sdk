@@ -7,7 +7,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
-import 'package:analyzer/src/test_utilities/find_element2.dart';
+import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:test/test.dart';
 
@@ -21,7 +21,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   late String testFile;
   late CompilationUnit testUnit;
   late FindNode findNode;
-  late FindElement2 findElement2;
+  late FindElement findElement;
 
   void addTestSource(String code) {
     testCode = code;
@@ -116,7 +116,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
       );
     }
     findNode = FindNode(testCode, testUnit);
-    findElement2 = FindElement2(testUnit);
+    findElement = FindElement(testUnit);
   }
 
   @override

@@ -68,7 +68,16 @@ abstract final class _DiagnosticOptions {
   ///
   /// We don't want to report these, this breaks clients.
   // TODO(scheglov): https://github.com/flutter/flutter/issues/141576
-  static const Set<String> removedCodeNames = {'MISSING_RETURN'};
+  static const Set<String> removedCodeNames = {
+    'MISSING_RETURN',
+    // TODO(scheglov): Remove this compatibility entry together with
+    // `test_analyzer_errors_removed_pluginsInInnerOptions` after Flutter
+    // removes its `plugins_in_inner_options` suppression.
+    'PLUGINS_IN_INNER_OPTIONS',
+    // Annotations report undefined names like other expressions, as
+    // `UNDEFINED_IDENTIFIER` or `UNDEFINED_PREFIXED_NAME`.
+    'UNDEFINED_ANNOTATION',
+  };
 
   static Set<String> currentLintCodeNames() {
     // TODO(scheglov): Move lint-code lookup behind Registry so callers don't
@@ -646,6 +655,13 @@ final class _ParsedExcludesData {
     for (var node in excludes.nodes) {
       if (node.stringValue case var pattern?) {
         patterns.add(pattern);
+        if (pattern.startsWith('/')) {
+          reporter.report(
+            diag.excludeInvalidGlob
+                .withArguments(pattern: pattern)
+                .atSourceSpan(node.span),
+          );
+        }
       } else {
         reporter.report(
           diag.invalidSectionFormat
@@ -684,7 +700,6 @@ final class _ParsedFileData {
 
   factory _ParsedFileData.parse(
     _ParsedFileNode file, {
-    required Folder contextRoot,
     required VersionConstraint? sdkVersionConstraint,
     required bool isInitialFile,
   }) {
@@ -716,8 +731,6 @@ final class _ParsedFileData {
     var plugins = _ParsedPluginsData.parse(
       yamlMap?.valueAt(AnalysisOptionsFileKeys.plugins),
       file: file.file,
-      contextRoot: contextRoot,
-      isInitialFile: isInitialFile,
       reporter: reporter,
     );
 
@@ -1516,8 +1529,6 @@ final class _ParsedPluginsData {
   factory _ParsedPluginsData.parse(
     YamlNode? plugins, {
     required File file,
-    required Folder contextRoot,
-    required bool isInitialFile,
     required DiagnosticReporter reporter,
   }) {
     if (plugins == null) {
@@ -1536,14 +1547,6 @@ final class _ParsedPluginsData {
           );
       }
       return _ParsedPluginsData._(clearsExisting: true);
-    }
-
-    if (file.parent != contextRoot && isInitialFile) {
-      reporter.report(
-        diag.pluginsInInnerOptions
-            .withArguments(contextRoot: contextRoot.path)
-            .atSourceSpan(plugins.span),
-      );
     }
 
     var configurations = <PluginConfiguration>[];

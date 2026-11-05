@@ -109,7 +109,7 @@ main() {
   Expect.equals(true, throwsTypeError(() => Float64x2.splat(dynamicNull)));
 
   // Int32x4
-  final int32x4 = Int32x4(0, 0, 0, 0);
+  final int32x4 = Int32x4.zero();
   Expect.equals(true, throwsTypeError(() => int32x4 + dynamicNull));
   Expect.equals(true, throwsTypeError(() => int32x4 - dynamicNull));
   Expect.equals(true, throwsTypeError(() => int32x4 ^ dynamicNull));

@@ -19,13 +19,10 @@ void main() {
 @reflectiveTest
 class AddMissingRequiredArgumentTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.addMissingRequiredArgument;
+  bool get addFlutterPackageDep => true;
 
   @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(flutter: true);
-  }
+  FixKind get kind => DartFixKind.addMissingRequiredArgument;
 
   Future<void> test_constructor_flutter_children() async {
     await resolveTestCode('''

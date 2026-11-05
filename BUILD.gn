@@ -51,6 +51,12 @@ group("runtime") {
       "utils/dtd:dtd_aot",
       "utils/kernel-service:frontend_server_aot_product",
     ]
+    if (is_linux) {
+      deps += [
+        "runtime/bin:dartcliruntime",
+        "runtime/bin:dartcliruntime_product",
+      ]
+    }
   } else {
     deps += [
       "utils/dart_runtime_service_vm",
@@ -92,7 +98,10 @@ group("runtime") {
   } else if (is_fuchsia) {
     deps += [ ":fuchsia_test_package" ]
   } else if (is_win) {
-    deps += [ "runtime/bin:create_process_test_helper" ]
+    deps += [
+      "runtime/bin:create_process_test_helper",
+      "runtime/bin:job_helper",
+    ]
   }
 }
 
@@ -111,13 +120,20 @@ group("runtime_precompiled") {
     "runtime/bin:process_test",
     "runtime/vm:kernel_platform_files($host_toolchain)",
   ]
+  if (is_linux) {
+    deps += [ "runtime/bin:dartcliruntime" ]
+  }
   if (is_linux || is_android) {
     deps += [ "runtime/bin:abstract_socket_test" ]
   }
   if (dart_dynamic_modules) {
     deps += [ "utils/dart2bytecode:dart2bytecode_snapshot" ]
-    deps += [ "utils/modular_aot_compiler:modular_aot_compiler_snapshot" ]
     deps += [ "utils/dynamic_module_runner:dynamic_module_runner_snapshot" ]
+  }
+  if (include_experimental_vm_service && dart_target_arch != "ia32" &&
+      dart_target_arch != "x86") {
+    deps +=
+        [ "utils/dart_runtime_service_vm:dart_runtime_service_vm_aot_snapshot" ]
   }
 }
 
@@ -165,6 +181,13 @@ group("dart2wasm_benchmark") {
   deps = [
     ":dart2wasm_platform",
     "third_party/binaryen:wasm-opt",
+  ]
+}
+
+group("modular_aot_compiler") {
+  deps = [
+    ":runtime_precompiled",
+    "utils/modular_aot_compiler",
   ]
 }
 
@@ -312,6 +335,7 @@ if (is_fuchsia) {
     "tests/ffi/static_checks/regress_60250_test.dart",
     "tests/ffi/static_checks/regress_62693_test.dart",
     "tests/ffi/static_checks/regress_62716_test.dart",
+    "tests/ffi/static_checks/regress_63388_test.dart",
     "tests/ffi/static_checks/regress_flutter_188175_test.dart",
     "tests/ffi/static_checks/vmspecific_function_callbacks_negative_test.dart",
     "tests/ffi/static_checks/vmspecific_regress_38993_test.dart",
@@ -349,6 +373,7 @@ if (is_fuchsia) {
   test_resources = []
   foreach(test_source, jit_test_sources) {
     label = string_replace(test_source, "/", "_")
+
     application_snapshot(label) {
       dart_snapshot_kind = "kernel"
       main_dart = test_source
@@ -365,6 +390,7 @@ if (is_fuchsia) {
   }
   foreach(test_source, aot_test_sources) {
     label = string_replace(test_source, "/", "_") + "_aot"
+
     aot_snapshot(label) {
       main_dart = test_source
       output = "$target_out_dir/$test_source.elf"
@@ -480,14 +506,14 @@ if (is_fuchsia) {
             dest = "lib/asan/ld.so.1"
           },
           {
-            path = "//buildtools/linux-x64/clang/lib/clang/23/lib/$triple/libclang_rt.asan.so"
+            path = "//buildtools/linux-x64/clang/lib/clang/24/lib/$triple/libclang_rt.asan.so"
             dest = "lib/libclang_rt.asan.so"
           },
         ]
       } else if (is_ubsan) {
         resources += [
           {
-            path = "//buildtools/linux-x64/clang/lib/clang/23/lib/$triple/libclang_rt.ubsan_standalone.so"
+            path = "//buildtools/linux-x64/clang/lib/clang/24/lib/$triple/libclang_rt.ubsan_standalone.so"
             dest = "lib/libclang_rt.ubsan_standalone.so"
           },
         ]

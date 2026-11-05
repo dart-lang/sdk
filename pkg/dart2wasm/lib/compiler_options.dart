@@ -61,6 +61,7 @@ class WasmCompilerOptions {
   Set<int> moduleIdsToOptimize = const {};
   bool stripWasm = true;
   Uri? recordedUsesFile;
+  bool supportsES6Modules = true;
   List<CompilerPhase> phases = const [
     CompilerPhase.cfe,
     CompilerPhase.tfa,

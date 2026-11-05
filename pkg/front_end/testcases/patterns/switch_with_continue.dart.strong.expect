@@ -3,7 +3,6 @@ import self as self;
 import "dart:core" as core;
 
 static method test(dynamic o) → core::int {
-  #L1:
   {
     core::int #t1 = 1.{core::int::unary-}(){() → core::int};
     final synthesized dynamic #0#0 = o;
@@ -12,7 +11,7 @@ static method test(dynamic o) → core::int {
     final const synthesized core::int #0#10 = #C3;
     final const synthesized core::int #0#12 = #C4;
     final const synthesized core::int #0#14 = #C5;
-    #L2:
+    #L1:
     {
       {
         hoisted dynamic a;
@@ -26,7 +25,7 @@ static method test(dynamic o) → core::int {
         if(#C2 =={core::num::==}{(core::Object) → core::bool} #0#0) {
           {
             #t1 = 0;
-            break #L2;
+            break #L1;
           }
         }
       }
@@ -40,14 +39,14 @@ static method test(dynamic o) → core::int {
       {
         if(#C3 =={core::num::==}{(core::Object) → core::bool} #0#0) {
           #t1 = 0;
-          break #L2;
+          break #L1;
         }
       }
       {
         if(#C4 =={core::num::==}{(core::Object) → core::bool} #0#0) {
           {
             #t1 = 1;
-            break #L2;
+            break #L1;
           }
         }
       }
@@ -61,19 +60,19 @@ static method test(dynamic o) → core::int {
       {
         {
           #t1 = 1;
-          break #L2;
+          break #L1;
         }
       }
     }
     switch(#t1) /* dynamic */ {
-      #L3:
+      #L2:
       case #C2:
         {
           {
             return 2;
           }
         }
-      #L4:
+      #L3:
       case #C1:
       default:
         {

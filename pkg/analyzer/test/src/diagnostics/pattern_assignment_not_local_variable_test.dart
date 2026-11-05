@@ -51,7 +51,7 @@ PatternAssignment
     rightParenthesis: )
     matchedValueType: InvalidType
   equals: =
-  expression: IntegerLiteral
+  expression2: IntegerLiteral
     literal: 0
     staticType: int
   patternTypeSchema: _
@@ -86,7 +86,7 @@ PatternAssignment
     rightParenthesis: )
     matchedValueType: InvalidType
   equals: =
-  expression: IntegerLiteral
+  expression2: IntegerLiteral
     literal: 0
     staticType: int
   patternTypeSchema: _
@@ -119,7 +119,7 @@ PatternAssignment
     rightParenthesis: )
     matchedValueType: InvalidType
   equals: =
-  expression: IntegerLiteral
+  expression2: IntegerLiteral
     literal: 0
     staticType: int
   patternTypeSchema: _

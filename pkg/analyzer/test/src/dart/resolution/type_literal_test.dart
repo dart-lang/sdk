@@ -10,7 +10,7 @@ import 'node_text_expectations.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TypeLiteralResolutionTest);
-    defineReflectiveTests(TypeLiteralResolutionTest_WithoutConstructorTearoffs);
+    defineReflectiveTests(TypeLiteralResolutionTest_BeforeConstructorTearoffs);
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
@@ -708,7 +708,6 @@ TypeLiteral
     name: C
     element: <testLibrary>::@class::C
     type: C
-  correspondingParameter: <null>
   staticType: Type
 ''');
   }
@@ -736,7 +735,6 @@ TypeLiteral
     name: C
     element: package:test/a.dart::@class::C
     type: C
-  correspondingParameter: <null>
   staticType: Type
 ''');
   }
@@ -5906,7 +5904,6 @@ TypeLiteral
     name: dynamic
     element: dynamic
     type: dynamic
-  correspondingParameter: <null>
   staticType: Type
 ''');
   }
@@ -6206,23 +6203,80 @@ var t = dynamic<int>;
 // [diag.disallowedTypeInstantiationExpression] Only a generic type, generic function, generic instance method, or generic constructor can have type arguments.
 ''');
 
-    // TODO(scheglov): This should be `TypeLiteral`.
-    var node = result.findNode.functionReference('dynamic<int>;');
+    var node = result.findNode.typeLiteral('dynamic<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function: SimpleIdentifier
-    token: dynamic
-    element: <null>
-    staticType: null
-  typeArguments: TypeArgumentList
-    leftBracket: <
-    arguments
-      NamedType
-        name: int
-        element: dart:core::@class::int
-        type: int
-    rightBracket: >
-  staticType: InvalidType
+TypeLiteral
+  type: NamedType
+    name: dynamic
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    element: dynamic
+    type: dynamic
+  staticType: Type
+''');
+  }
+
+  test_dynamic_variableDeclaration_initializer_noPrefix_hasTypeArguments_multiple() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+var t = dynamic<int, String>;
+//      ^^^^^^^
+// [diag.disallowedTypeInstantiationExpression] Only a generic type, generic function, generic instance method, or generic constructor can have type arguments.
+''');
+
+    var node = result.findNode.typeLiteral('dynamic<int, String>');
+    assertResolvedNodeText(node, r'''
+TypeLiteral
+  type: NamedType
+    name: dynamic
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        NamedType
+          name: String
+          element: dart:core::@class::String
+          type: String
+      rightBracket: >
+    element: dynamic
+    type: dynamic
+  staticType: Type
+''');
+  }
+
+  test_dynamic_variableDeclaration_initializer_noPrefix_hasTypeArguments_unknownArgument() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+var t = dynamic<Missing>;
+//      ^^^^^^^
+// [diag.disallowedTypeInstantiationExpression] Only a generic type, generic function, generic instance method, or generic constructor can have type arguments.
+//              ^^^^^^^
+// [diag.nonTypeAsTypeArgument] The name 'Missing' isn't a type, so it can't be used as a type argument.
+''');
+
+    var node = result.findNode.typeLiteral('dynamic<Missing>');
+    assertResolvedNodeText(node, r'''
+TypeLiteral
+  type: NamedType
+    name: dynamic
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: Missing
+          element: <null>
+          type: InvalidType
+      rightBracket: >
+    element: dynamic
+    type: dynamic
+  staticType: Type
 ''');
   }
 
@@ -6241,6 +6295,41 @@ TypeLiteral
       period: .
       element: <testLibraryFragment>::@prefix::core
     name: dynamic
+    element: dynamic
+    type: dynamic
+  staticType: Type
+''');
+  }
+
+  test_dynamic_variableDeclaration_initializer_withPrefix_hasTypeArguments() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+import 'dart:core' as core;
+var t = core.dynamic<core.int>;
+//           ^^^^^^^
+// [diag.disallowedTypeInstantiationExpression] Only a generic type, generic function, generic instance method, or generic constructor can have type arguments.
+''');
+
+    var node = result.findNode.typeLiteral('dynamic<core.int>');
+    assertResolvedNodeText(node, r'''
+TypeLiteral
+  type: NamedType
+    importPrefix: ImportPrefixReference
+      name: core
+      period: .
+      element: <testLibraryFragment>::@prefix::core
+    name: dynamic
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          importPrefix: ImportPrefixReference
+            name: core
+            period: .
+            element: <testLibraryFragment>::@prefix::core
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
     element: dynamic
     type: dynamic
   staticType: Type
@@ -6564,39 +6653,36 @@ import 'dart:core' as core;
 void f(core.Object? x) {}
 void g() {
   f(core.Never<core.int>);
+//       ^^^^^
+// [diag.disallowedTypeInstantiationExpression] Only a generic type, generic function, generic instance method, or generic constructor can have type arguments.
 }
 ''');
 
-    // TODO(scheglov): This should be `TypeLiteral`.
-    var node = result.findNode.functionReference('Never<core.int>)');
+    var node = result.findNode.typeLiteral('Never<core.int>)');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: core
+TypeLiteral
+  type: NamedType
+    importPrefix: ImportPrefixReference
+      name: core
+      period: .
       element: <testLibraryFragment>::@prefix::core
-      staticType: null
-    period: .
-    identifier: SimpleIdentifier
-      token: Never
-      element: Never
-      staticType: InvalidType
+    name: Never
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          importPrefix: ImportPrefixReference
+            name: core
+            period: .
+            element: <testLibraryFragment>::@prefix::core
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
     element: Never
-    staticType: InvalidType
-  typeArguments: TypeArgumentList
-    leftBracket: <
-    arguments
-      NamedType
-        importPrefix: ImportPrefixReference
-          name: core
-          period: .
-          element: <testLibraryFragment>::@prefix::core
-        name: int
-        element: dart:core::@class::int
-        type: int
-    rightBracket: >
+    type: Never
   correspondingParameter: <testLibrary>::@function::f::@formalParameter::x
-  staticType: InvalidType
+  staticType: Type
 ''');
   }
 
@@ -6642,7 +6728,6 @@ TypeLiteral
     name: Never
     element: Never
     type: Never
-  correspondingParameter: <null>
   staticType: Type
 ''');
   }
@@ -6946,23 +7031,22 @@ var t = Never<int>;
 // [diag.disallowedTypeInstantiationExpression] Only a generic type, generic function, generic instance method, or generic constructor can have type arguments.
 ''');
 
-    // TODO(scheglov): This should be `TypeLiteral`.
-    var node = result.findNode.functionReference('Never<int>;');
+    var node = result.findNode.typeLiteral('Never<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function: SimpleIdentifier
-    token: Never
-    element: <null>
-    staticType: null
-  typeArguments: TypeArgumentList
-    leftBracket: <
-    arguments
-      NamedType
-        name: int
-        element: dart:core::@class::int
-        type: int
-    rightBracket: >
-  staticType: InvalidType
+TypeLiteral
+  type: NamedType
+    name: Never
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    element: Never
+    type: Never
+  staticType: Type
 ''');
   }
 
@@ -7073,43 +7157,6 @@ TypeLiteral
 ''');
   }
 
-  test_typeAlias_methodInvocation_target_noPrefix_instantiated() async {
-    var result = await resolveTestCodeWithDiagnostics('''
-typedef Fn<T> = void Function(T);
-
-void bar() {
-  Fn<int>.foo();
-//        ^^^
-// [diag.undefinedMethodOnFunctionType] The method 'foo' isn't defined for the 'Fn' function type.
-}
-
-extension E on Type {
-  void foo() {}
-}
-''');
-
-    var node = result.findNode.typeLiteral('Fn<int>');
-    assertResolvedNodeText(node, r'''
-TypeLiteral
-  type: NamedType
-    name: Fn
-    typeArguments: TypeArgumentList
-      leftBracket: <
-      arguments
-        NamedType
-          name: int
-          element: dart:core::@class::int
-          type: int
-      rightBracket: >
-    element: <testLibrary>::@typeAlias::Fn
-    type: void Function(int)
-      alias: <testLibrary>::@typeAlias::Fn
-        typeArguments
-          int
-  staticType: Type
-''');
-  }
-
   test_typeAlias_methodInvocation_target_noPrefix_instantiated_parenthesized() async {
     var result = await resolveTestCodeWithDiagnostics('''
 typedef Fn<T> = void Function(T);
@@ -7145,87 +7192,6 @@ TypeLiteral
 ''');
   }
 
-  test_typeAlias_methodInvocation_target_withPrefix_instantiated() async {
-    newFile('$testPackageLibPath/a.dart', '''
-typedef Fn<T> = void Function(T);
-''');
-    var result = await resolveTestCodeWithDiagnostics('''
-import 'a.dart' as a;
-
-void bar() {
-  a.Fn<int>.foo();
-//          ^^^
-// [diag.undefinedMethodOnFunctionType] The method 'foo' isn't defined for the 'a.Fn' function type.
-}
-
-extension E on Type {
-  void foo() {}
-}
-''');
-
-    var node = result.findNode.typeLiteral('Fn<int>');
-    assertResolvedNodeText(node, r'''
-TypeLiteral
-  type: NamedType
-    importPrefix: ImportPrefixReference
-      name: a
-      period: .
-      element: <testLibraryFragment>::@prefix::a
-    name: Fn
-    typeArguments: TypeArgumentList
-      leftBracket: <
-      arguments
-        NamedType
-          name: int
-          element: dart:core::@class::int
-          type: int
-      rightBracket: >
-    element: package:test/a.dart::@typeAlias::Fn
-    type: void Function(int)
-      alias: package:test/a.dart::@typeAlias::Fn
-        typeArguments
-          int
-  staticType: Type
-''');
-  }
-
-  test_typeAlias_propertyAccess_target_noPrefix_instantiated_getter() async {
-    var result = await resolveTestCodeWithDiagnostics('''
-typedef Fn<T> = void Function(T);
-
-void bar() {
-  Fn<int>.foo;
-//        ^^^
-// [diag.undefinedGetterOnFunctionType] The getter 'foo' isn't defined for the 'Fn' function type.
-}
-
-extension E on Type {
-  int get foo => 1;
-}
-''');
-
-    var node = result.findNode.typeLiteral('Fn<int>');
-    assertResolvedNodeText(node, r'''
-TypeLiteral
-  type: NamedType
-    name: Fn
-    typeArguments: TypeArgumentList
-      leftBracket: <
-      arguments
-        NamedType
-          name: int
-          element: dart:core::@class::int
-          type: int
-      rightBracket: >
-    element: <testLibrary>::@typeAlias::Fn
-    type: void Function(int)
-      alias: <testLibrary>::@typeAlias::Fn
-        typeArguments
-          int
-  staticType: Type
-''');
-  }
-
   test_typeAlias_propertyAccess_target_noPrefix_instantiated_getter_parenthesized() async {
     var result = await resolveTestCodeWithDiagnostics('''
 typedef Fn<T> = void Function(T);
@@ -7236,43 +7202,6 @@ void bar() {
 
 extension E on Type {
   int get foo => 1;
-}
-''');
-
-    var node = result.findNode.typeLiteral('Fn<int>');
-    assertResolvedNodeText(node, r'''
-TypeLiteral
-  type: NamedType
-    name: Fn
-    typeArguments: TypeArgumentList
-      leftBracket: <
-      arguments
-        NamedType
-          name: int
-          element: dart:core::@class::int
-          type: int
-      rightBracket: >
-    element: <testLibrary>::@typeAlias::Fn
-    type: void Function(int)
-      alias: <testLibrary>::@typeAlias::Fn
-        typeArguments
-          int
-  staticType: Type
-''');
-  }
-
-  test_typeAlias_propertyAccess_target_noPrefix_instantiated_setter() async {
-    var result = await resolveTestCodeWithDiagnostics('''
-typedef Fn<T> = void Function(T);
-
-void bar() {
-  Fn<int>.foo = 7;
-//        ^^^
-// [diag.undefinedSetterOnFunctionType] The setter 'foo' isn't defined for the 'Fn' function type.
-}
-
-extension E on Type {
-  set foo(int value) {}
 }
 ''');
 
@@ -7570,24 +7499,57 @@ class C<T> {
 }
 ''');
 
-    // TODO(scheglov): This should be `TypeLiteral`.
-    var node = result.findNode.functionReference('T<int>)');
+    var node = result.findNode.typeLiteral('T<int>)');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function: SimpleIdentifier
-    token: T
-    element: <null>
-    staticType: null
-  typeArguments: TypeArgumentList
-    leftBracket: <
-    arguments
-      NamedType
-        name: int
-        element: dart:core::@class::int
-        type: int
-    rightBracket: >
+TypeLiteral
+  type: NamedType
+    name: T
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    element: #E0 T
+    type: InvalidType
   correspondingParameter: <testLibrary>::@class::C::@method::f::@formalParameter::x
-  staticType: InvalidType
+  staticType: Type
+''');
+  }
+
+  test_typeParameter_argumentList_argument_hasTypeArguments_unknownArgument() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C<T> {
+  void f(Type x) {}
+  void g() {
+    f(T<Missing>);
+//    ^
+// [diag.disallowedTypeInstantiationExpression] Only a generic type, generic function, generic instance method, or generic constructor can have type arguments.
+//      ^^^^^^^
+// [diag.nonTypeAsTypeArgument] The name 'Missing' isn't a type, so it can't be used as a type argument.
+  }
+}
+''');
+
+    var node = result.findNode.typeLiteral('T<Missing>');
+    assertResolvedNodeText(node, r'''
+TypeLiteral
+  type: NamedType
+    name: T
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: Missing
+          element: <null>
+          type: InvalidType
+      rightBracket: >
+    element: #E0 T
+    type: InvalidType
+  correspondingParameter: <testLibrary>::@class::C::@method::f::@formalParameter::x
+  staticType: Type
 ''');
   }
 
@@ -7671,7 +7633,6 @@ TypeLiteral
     name: T
     element: #E0 T
     type: T
-  correspondingParameter: <null>
   staticType: Type
 ''');
   }
@@ -7932,23 +7893,22 @@ class C<T> {
 }
 ''');
 
-    // TODO(scheglov): This should be `TypeLiteral`.
-    var node = result.findNode.functionReference('T<int>;');
+    var node = result.findNode.typeLiteral('T<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function: SimpleIdentifier
-    token: T
-    element: <null>
-    staticType: null
-  typeArguments: TypeArgumentList
-    leftBracket: <
-    arguments
-      NamedType
-        name: int
-        element: dart:core::@class::int
-        type: int
-    rightBracket: >
-  staticType: InvalidType
+TypeLiteral
+  type: NamedType
+    name: T
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    element: #E0 T
+    type: InvalidType
+  staticType: Type
 ''');
   }
 
@@ -8020,9 +7980,9 @@ TypeLiteral
 }
 
 @reflectiveTest
-class TypeLiteralResolutionTest_WithoutConstructorTearoffs
+class TypeLiteralResolutionTest_BeforeConstructorTearoffs
     extends PubPackageResolutionTest
-    with WithoutConstructorTearoffsMixin {
+    with BeforeConstructorTearoffsMixin {
   test_class() async {
     await resolveTestCodeWithDiagnostics('''
 class C<T> {}
@@ -8041,6 +8001,121 @@ import 'a.dart' as a;
 var t = a.C<int>;
 //         ^^^^^
 // [diag.experimentNotEnabled] This requires the 'constructor-tearoffs' language feature to be enabled.
+''');
+  }
+
+  test_dynamic_hasTypeArguments() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+var t = dynamic<int>;
+//             ^^^^^
+// [diag.experimentNotEnabled] This requires the 'constructor-tearoffs' language feature to be enabled.
+''');
+
+    var node = result.findNode.typeLiteral('dynamic<int>');
+    assertResolvedNodeText(node, r'''
+TypeLiteral
+  type: NamedType
+    name: dynamic
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    element: dynamic
+    type: dynamic
+  staticType: Type
+''');
+  }
+
+  test_never_hasTypeArguments() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+var t = Never<int>;
+//           ^^^^^
+// [diag.experimentNotEnabled] This requires the 'constructor-tearoffs' language feature to be enabled.
+''');
+
+    var node = result.findNode.typeLiteral('Never<int>');
+    assertResolvedNodeText(node, r'''
+TypeLiteral
+  type: NamedType
+    name: Never
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    element: Never
+    type: Never
+  staticType: Type
+''');
+  }
+
+  test_never_importPrefix_hasTypeArguments() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+import 'dart:core' as core;
+var t = core.Never<core.int>;
+//                ^^^^^^^^^^
+// [diag.experimentNotEnabled] This requires the 'constructor-tearoffs' language feature to be enabled.
+''');
+
+    var node = result.findNode.typeLiteral('Never<core.int>');
+    assertResolvedNodeText(node, r'''
+TypeLiteral
+  type: NamedType
+    importPrefix: ImportPrefixReference
+      name: core
+      period: .
+      element: <testLibraryFragment>::@prefix::core
+    name: Never
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          importPrefix: ImportPrefixReference
+            name: core
+            period: .
+            element: <testLibraryFragment>::@prefix::core
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    element: Never
+    type: Never
+  staticType: Type
+''');
+  }
+
+  test_typeParameter_hasTypeArguments() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C<T> {
+  Type f() => T<int>;
+//             ^^^^^
+// [diag.experimentNotEnabled] This requires the 'constructor-tearoffs' language feature to be enabled.
+}
+''');
+
+    var node = result.findNode.typeLiteral('T<int>');
+    assertResolvedNodeText(node, r'''
+TypeLiteral
+  type: NamedType
+    name: T
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    element: #E0 T
+    type: InvalidType
+  staticType: Type
 ''');
   }
 }

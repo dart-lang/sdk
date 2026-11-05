@@ -1,0 +1,2 @@
+-D--no-deprecated-js-interop
+--target=dart2js

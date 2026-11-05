@@ -137,6 +137,46 @@ class SubImpl3 extends BaseImpl2 implements Interface {
   dynamic returnBoxedX(X? ignored) => X();
 }
 
+dynamic dynObj = DynClass();
+
+class DynClass<T> {
+  void takeInts(
+    int? unboxedArg0,
+    Object unboxedArg1,
+    String boxedArg2,
+    num unboxedArg3,
+    T unboxedArg4,
+    List boxedArg5,
+    double boxedArg6,
+  ) {
+    use(unboxedArg0);
+    use(unboxedArg1);
+    use(boxedArg2);
+    use(unboxedArg3);
+    use(unboxedArg4);
+    use(boxedArg5);
+    use(boxedArg6);
+  }
+
+  void takeDoubles(
+    double? unboxedArg0,
+    Object unboxedArg1,
+    String boxedArg2,
+    num unboxedArg3,
+    T unboxedArg4,
+    List boxedArg5,
+    int boxedArg6,
+  ) {
+    use(unboxedArg0);
+    use(unboxedArg1);
+    use(boxedArg2);
+    use(unboxedArg3);
+    use(unboxedArg4);
+    use(boxedArg5);
+    use(boxedArg6);
+  }
+}
+
 main() {
   final values = [Impl1(), BaseImpl2(), SubImpl3()];
 
@@ -189,4 +229,9 @@ main() {
   use(d.returnBoxedNullableIntOrDouble(null));
   use(d.returnBoxedNullableX(null));
   use(d.returnBoxedX(null));
+
+  int i = int.parse('0');
+  dynObj.takeInts(i, i, i, i, i, i, i);
+  double dbl = double.parse('0.0');
+  dynObj.takeDoubles(dbl, dbl, dbl, dbl, dbl, dbl, dbl);
 }

@@ -9,6 +9,7 @@ import 'dart:io' as io;
 import 'package:path/path.dart' as p;
 
 import '../core.dart';
+import '../progress.dart';
 import '../sdk.dart';
 import '../templates.dart';
 import '../utils.dart';
@@ -121,24 +122,25 @@ class CreateCommand extends DartdevCommand {
 
     if (args.flag('pub')) {
       log.stdout('');
-      final progress = log.progress('Running pub get');
 
       // Run 'pub get'. We display output from the pub command, but keep the
       // output terse. This is to give the user a sense of the work that pub
       // did without scrolling the previous stdout sections off the screen.
       final buffer = StringBuffer();
-      final exitCode = await runProcess(
-        [sdk.dart, 'pub', 'get'],
-        cwd: dir,
-        logToTrace: true,
-        listener: (str) {
-          // Filter lines like '+ multi_server_socket 1.0.2'.
-          if (!str.startsWith('+ ')) {
-            buffer.writeln('  $str');
-          }
-        },
+      final exitCode = await progress(
+        'Running pub get',
+        () => runProcess(
+          [sdk.dart, 'pub', 'get'],
+          cwd: dir,
+          logToTrace: true,
+          listener: (str) {
+            // Filter lines like '+ multi_server_socket 1.0.2'.
+            if (!str.startsWith('+ ')) {
+              buffer.writeln('  $str');
+            }
+          },
+        ),
       );
-      progress.finish(showTiming: true);
       log.stdout(buffer.toString().trimRight());
       if (exitCode != 0) return exitCode;
     }

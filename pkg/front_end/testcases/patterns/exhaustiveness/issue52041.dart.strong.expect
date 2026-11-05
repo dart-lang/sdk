@@ -14,7 +14,6 @@ class C extends self::B {
     ;
 }
 static method f(self::B b) → dynamic {
-  #L1:
   {
     final synthesized self::B #0#0 = b;
     {

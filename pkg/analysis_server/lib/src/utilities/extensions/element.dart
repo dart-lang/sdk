@@ -5,6 +5,11 @@
 import 'package:analyzer/dart/element/element.dart';
 
 extension ClassElementExtensions on ClassElement {
+  /// Return `true` if this element represents the class `LinkedHashSet` from
+  /// `dart:collection`.
+  bool get isDartCollectionLinkedHashSet =>
+      name == 'LinkedHashSet' && library.isDartCollection;
+
   /// Return `true` if this element represents the class `Iterable` from
   /// `dart:core`.
   bool get isDartCoreIterable => name == 'Iterable' && library.isDartCore;
@@ -85,6 +90,11 @@ extension FragmentExtensions on Fragment {
   }
 }
 
+extension LibraryElementExtensions on LibraryElement {
+  /// Return `true` if this element represents `dart:collection`.
+  bool get isDartCollection => uri.toString() == 'dart:collection';
+}
+
 extension MethodElementExtensions on MethodElement {
   /// Return `true` if this element represents the method `cast` from either
   /// `Iterable`, `List`, `Map`, or `Set`.
@@ -100,31 +110,5 @@ extension MethodElementExtensions on MethodElement {
         definingClass.isDartCoreList ||
         definingClass.isDartCoreMap ||
         definingClass.isDartCoreSet;
-  }
-
-  /// Return `true` if this element represents the method `toList` from
-  /// `Iterable`.
-  bool get isToListMethod {
-    if (name != 'toList') {
-      return false;
-    }
-    var definingClass = enclosingElement;
-    if (definingClass is! ClassElement) {
-      return false;
-    }
-    return definingClass.isDartCoreIterable;
-  }
-
-  /// Return `true` if this element represents the method `toSet` from
-  /// `Iterable`.
-  bool get isToSetMethod {
-    if (name != 'toSet') {
-      return false;
-    }
-    var definingClass = enclosingElement;
-    if (definingClass is! ClassElement) {
-      return false;
-    }
-    return definingClass.isDartCoreIterable;
   }
 }

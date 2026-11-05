@@ -427,9 +427,11 @@ class LocalVariable extends DeclaredVariable {
   }
 
   @override
+  @Deprecated('Use LocalVariable.name instead.')
   String? get cosmeticName => name;
 
   @override
+  @Deprecated('Use LocalVariable.name instead.')
   void set cosmeticName(String? value) {
     name = value!;
   }
@@ -687,9 +689,11 @@ class LocalFunctionVariable extends DeclaredVariable {
   }
 
   @override
+  @Deprecated('Use LocalFunctionVariable.name instead.')
   String? get cosmeticName => name;
 
   @override
+  @Deprecated('Use LocalFunctionVariable.name instead.')
   void set cosmeticName(String? value) {
     name = value!;
   }
@@ -949,9 +953,11 @@ class LateVariable extends DeclaredVariable {
   }
 
   @override
+  @Deprecated('Use LateVariable.name instead.')
   String? get cosmeticName => name;
 
   @override
+  @Deprecated('Use LateVariable.name instead.')
   void set cosmeticName(String? value) {
     name = value!;
   }
@@ -1212,9 +1218,11 @@ class ConstVariable extends DeclaredVariable {
   }
 
   @override
+  @Deprecated('Use ConstVariable.name instead.')
   String? get cosmeticName => name;
 
   @override
+  @Deprecated('Use ConstVariable.name instead.')
   void set cosmeticName(String? value) {
     name = value!;
   }
@@ -1257,9 +1265,11 @@ class CatchVariable extends Variable {
   }
 
   @override
+  @Deprecated('Use CatchVariable.catchVariableName instead.')
   String? get cosmeticName => catchVariableName;
 
   @override
+  @Deprecated('Use CatchVariable.catchVariableName instead.')
   void set cosmeticName(String? value) {
     throw new UnsupportedError("${this.runtimeType}.cosmeticName=");
   }
@@ -1462,9 +1472,12 @@ class CatchVariable extends Variable {
 
 /// Abstract parameter class, the parent for positional and named parameters.
 sealed class FunctionParameter extends Variable {
+  String parameterName;
+
   Expression? defaultValue;
 
   new({
+    required this.parameterName,
     required this.defaultValue,
     required bool isCovariantByDeclaration,
     required bool isCovariantByClass,
@@ -1488,6 +1501,16 @@ sealed class FunctionParameter extends Variable {
     this.isLowered = isLowered;
     this.isSynthesized = isSynthesized;
     this.isWildcard = isWildcard;
+  }
+
+  @override
+  @Deprecated('Use FunctionParameter.parameterName instead.')
+  String get cosmeticName => parameterName;
+
+  @override
+  @Deprecated('Use FunctionParameter.parameterName instead.')
+  void set cosmeticName(String? value) {
+    parameterName = value!;
   }
 
   /// Function parameters can't be `const` or `late`, so they are assignable if
@@ -1669,12 +1692,8 @@ sealed class FunctionParameter extends Variable {
   }
 }
 
-/// Positional parameters. The [cosmeticName] field is optional and doesn't
-/// affect the runtime semantics of the program.
+/// Positional parameters.
 class PositionalParameter extends FunctionParameter {
-  @override
-  String? cosmeticName;
-
   @override
   DartType type;
 
@@ -1685,7 +1704,7 @@ class PositionalParameter extends FunctionParameter {
   late VariableContext context;
 
   new({
-    this.cosmeticName,
+    required super.parameterName,
     DartType? type,
     super.defaultValue,
     super.isCovariantByDeclaration = false,
@@ -1773,16 +1792,6 @@ class PositionalParameter extends FunctionParameter {
 
 /// Named parameters. The [name] field is mandatory.
 class NamedParameter extends FunctionParameter {
-  String parameterName;
-
-  @override
-  String? get cosmeticName => parameterName;
-
-  @override
-  void set cosmeticName(String? value) {
-    parameterName = value!;
-  }
-
   @override
   DartType type;
 
@@ -1793,7 +1802,7 @@ class NamedParameter extends FunctionParameter {
   late VariableContext context;
 
   new({
-    required this.parameterName,
+    required super.parameterName,
     DartType? type,
     super.defaultValue,
     super.isCovariantByDeclaration = false,
@@ -1894,7 +1903,7 @@ class NamedParameter extends FunctionParameter {
 /// The variable storage for `this`.
 class ThisVariable extends Variable {
   @override
-  String get cosmeticName => "";
+  String get cosmeticName => "this";
 
   @override
   void set cosmeticName(String? value) {}
@@ -2118,6 +2127,7 @@ class SyntheticVariable extends DeclaredVariable {
   late VariableContext context;
 
   @override
+  @deprecated
   // TODO(johnniwinther): Remove this.
   Expression? initializer;
 
@@ -2133,6 +2143,7 @@ class SyntheticVariable extends DeclaredVariable {
     bool hasDeclaredInitializer = false,
     bool isWildcard = false,
   }) : type = type ?? const DynamicType() {
+    // ignore: deprecated_member_use_from_same_package
     this.initializer?.parent = this;
     this.isFinal = isFinal;
     this.isLowered = isLowered;
@@ -2287,8 +2298,11 @@ class SyntheticVariable extends DeclaredVariable {
   void transformChildren(Transformer v) {
     v.transformList(annotations, this);
     type = v.visitDartType(type);
+    // ignore: deprecated_member_use_from_same_package
     if (initializer != null) {
+      // ignore: deprecated_member_use_from_same_package
       initializer = v.transform(initializer!);
+      // ignore: deprecated_member_use_from_same_package
       initializer?.parent = this;
     }
   }
@@ -2297,8 +2311,11 @@ class SyntheticVariable extends DeclaredVariable {
   void transformOrRemoveChildren(RemovingTransformer v) {
     v.transformExpressionList(annotations, this);
     type = v.visitDartType(type, cannotRemoveSentinel);
+    // ignore: deprecated_member_use_from_same_package
     if (initializer != null) {
+      // ignore: deprecated_member_use_from_same_package
       initializer = v.transformOrRemoveExpression(initializer!);
+      // ignore: deprecated_member_use_from_same_package
       initializer?.parent = this;
     }
   }
@@ -2307,6 +2324,7 @@ class SyntheticVariable extends DeclaredVariable {
   void visitChildren(Visitor v) {
     visitList(annotations, v);
     type.accept(v);
+    // ignore: deprecated_member_use_from_same_package
     initializer?.accept(v);
   }
 

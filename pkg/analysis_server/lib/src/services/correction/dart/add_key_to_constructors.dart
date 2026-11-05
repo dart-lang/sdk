@@ -10,6 +10,10 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/constant/evaluation.dart';
+import 'package:analyzer/src/dart/constant/value.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -58,16 +62,35 @@ class AddKeyToConstructors extends ResolvedCorrectionProducer {
       }
     }
 
+    var library = libraryElement2 as LibraryElementImpl;
+    var evaluationEngine = ConstantEvaluationEngine(
+      declaredVariables: library.session.declaredVariables,
+      configuration: ConstantEvaluationConfiguration(),
+    );
+    var diagnosticReporter = DiagnosticReporter(
+      DiagnosticListener.nullListener,
+      unitResult.libraryFragment.source,
+    );
+
     for (var member in classDeclaration.body.members) {
       if (member is FieldDeclaration && !member.isStatic) {
         if (!member.fields.isFinal) {
           return false;
         }
+        if (member.fields.isLate) {
+          return false;
+        }
         for (var variableDeclaration in member.fields.variables) {
-          var initializer = variableDeclaration.initializer;
-          if (initializer is InstanceCreationExpression &&
-              !initializer.isConst) {
-            return false;
+          // ignore: experimental_member_use
+          var initializer = variableDeclaration.initializer2;
+          if (initializer != null) {
+            // ignore: experimental_member_use
+            var result = initializer.accept2(
+              ConstantVisitor(evaluationEngine, library, diagnosticReporter),
+            );
+            if (result is! DartObjectImpl) {
+              return false;
+            }
           }
         }
       }

@@ -222,7 +222,12 @@ static void TestRegress38528(intptr_t header_overlap) {
   blob->WriteProtectCode();  // not writable
   Allocate(free_list.get(), alloc_size, /*is_protected=*/true);
   VirtualMemory::WriteProtectCode(blob->address(), alloc_size);
-  reinterpret_cast<void (*)()>(other_code)();
+
+  auto func = reinterpret_cast<void (*)()>(other_code);
+#if defined(HOST_ARCH_ARM64E)
+  func = ptrauth_sign_unauthenticated(func, ptrauth_key_function_pointer, 0);
+#endif
+  func();
 }
 
 TEST_CASE(Regress38528) {

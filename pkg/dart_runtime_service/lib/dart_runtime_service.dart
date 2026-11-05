@@ -13,6 +13,13 @@ export 'src/dart_runtime_service_rpcs.dart'
         RpcHandlerWithParameters,
         ServiceRpcHandler;
 export 'src/devfs.dart';
+export 'src/devtools/client.dart';
+export 'src/devtools/dtd.dart';
+export 'src/devtools/handler.dart';
+export 'src/devtools/machine_mode_command_handler.dart';
+export 'src/devtools/memory_profile.dart';
+export 'src/devtools/utils.dart';
+export 'src/devtools/vs_code.dart';
 export 'src/event_streams.dart';
 export 'src/exceptions.dart';
 export 'src/expression_evaluator.dart';

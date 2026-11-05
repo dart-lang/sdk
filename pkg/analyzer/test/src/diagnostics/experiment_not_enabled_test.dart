@@ -16,7 +16,7 @@ main() {
 class ExperimentNotEnabledTest extends PubPackageResolutionTest {
   test_constructor_tearoffs_disabled_grammar() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.12
+// %before-language-feature: constructor-tearoffs
 class Foo<X> {
   const Foo.bar();
   int get baz => 0;
@@ -26,14 +26,14 @@ main() {
 //   ^^^^^
 // [diag.experimentNotEnabled] This requires the 'constructor-tearoffs' language feature to be enabled.
 //             ^^^
-// [diag.undefinedMethod] The method 'baz' isn't defined for the type 'Function'.
+// [diag.undefinedMethod] The method 'baz' isn't defined for the type 'Foo<int> Function()'.
 }
 ''');
   }
 
   test_dotShorthands_disabled() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.8
+// %before-language-feature: dot-shorthands
 void main() {
   Object c = .hash(1, 2);
 //           ^
@@ -45,7 +45,7 @@ void main() {
 
   test_nonFunctionTypeAliases_disabled() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.12
+// %before-language-feature: nonfunction-type-aliases
 typedef A = int;
 //        ^
 // [diag.experimentNotEnabled] This requires the 'nonfunction-type-aliases' language feature to be enabled.
@@ -54,7 +54,7 @@ typedef A = int;
 
   test_nonFunctionTypeAliases_disabled_nullable() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.12
+// %before-language-feature: nonfunction-type-aliases
 typedef A = int?;
 //        ^
 // [diag.experimentNotEnabled] This requires the 'nonfunction-type-aliases' language feature to be enabled.
@@ -63,7 +63,7 @@ typedef A = int?;
 
   test_privateNamedParameters_disabled() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.8
+// %before-language-feature: private-named-parameters
 class C {
   int? _x;
 //     ^^

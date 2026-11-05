@@ -61,6 +61,10 @@ class TimingPage extends DiagnosticPageWithNav with PerformanceChartMixin {
           'operation': item.operation,
           'elapsedMs': item.performance.elapsed.inMilliseconds,
           'latency': item.requestLatency,
+          if (item.additionalTimings case var additionalTimings?)
+            for (var additionalTiming
+                in additionalTimings.timingsInMilliseconds.entries)
+              additionalTiming.key: additionalTiming.value,
           'performance': item.performance.toJson(),
         });
       }
@@ -72,14 +76,19 @@ class TimingPage extends DiagnosticPageWithNav with PerformanceChartMixin {
 
   void _emitTable(List<RequestPerformance> items) {
     buf.writeln('<table>');
-    buf.writeln('<tr><th>Time</th><th>Request</th></tr>');
+    buf.writeln(
+      '<tr><th>Total Time</th><th>Request</th><th>Excluding Additional</th><th>Additional</th><th>Latency</th></tr>',
+    );
     for (var item in items) {
       buf.writeln(
         '<tr>'
         '<td class="pre right"><a href="timing?id=${item.id}">'
-        '${formatLatencyTiming(item.performance.elapsed.inMilliseconds, item.requestLatency)}'
+        '${printMilliseconds(item.performance.elapsed.inMilliseconds)}'
         '</a></td>'
         '<td>${escape(item.operation)}</td>'
+        '<td class="pre right">${escape(formatExcludingAdditional(item))}</td>'
+        '<td class="pre right">${escape(formatAdditional(item))}</td>'
+        '<td class="pre right">${escape(printMilliseconds(item.requestLatency))}</td>'
         '</tr>',
       );
     }
@@ -107,14 +116,28 @@ class TimingPage extends DiagnosticPageWithNav with PerformanceChartMixin {
     h3("Request '${item.operation}'");
     var requestLatency = item.requestLatency;
     if (requestLatency != null) {
-      buf.writeln('Request latency: $requestLatency ms.');
-      buf.writeln('<p>');
+      buf.writeln(
+        '<p>Request latency: ${printMilliseconds(requestLatency)}.</p>',
+      );
     }
     var startTime = item.startTime;
     if (startTime != null) {
-      buf.writeln('Request start time: ${startTime.toIso8601String()}.');
-      buf.writeln('<p>');
+      buf.writeln('<p>Request start time: ${startTime.toIso8601String()}.</p>');
     }
+    var totalTime = item.performance.elapsed.inMilliseconds;
+    buf.writeln('<p>Total time: ${printMilliseconds(totalTime)}.</p>');
+    var additionalTimings =
+        item.additionalTimings?.timingsInMilliseconds ?? const {};
+    if (additionalTimings.isNotEmpty) {
+      buf.writeln('<p>Time includes:</p>');
+      buf.writeln('<ul>');
+      for (var MapEntry(key: kind, value: timeInMs)
+          in additionalTimings.entries) {
+        buf.writeln('$kind: ${printMilliseconds(timeInMs)}');
+      }
+      buf.writeln('</ul>');
+    }
+
     var buffer = StringBuffer();
     item.performance.write(buffer: buffer);
     pre(() {

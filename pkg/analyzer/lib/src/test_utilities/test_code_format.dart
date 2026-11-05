@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/test_utilities/platform.dart';
@@ -32,7 +34,8 @@ import 'package:collection/collection.dart';
 /// example, if the test code includes `[!` (such as in a list literal whose
 /// first element begins with a unary prefix operator), you can use `[/**/!` to
 /// prevent the `[!` from being interpreted as markup. Similarly, you can use
-/// `!/**/]` in places where `!]` should appear in the unmarked code.
+/// `!/**/]` in places where `!]` should appear in the unmarked code. To
+/// prevent a `^` from being interpreted as markup, you can use `^/**/`.
 ///
 /// Second, it can be used at the end of a line of code that contains trailing
 /// whitespace. Without some form of marker the formatter will remove the
@@ -131,7 +134,9 @@ class TestCode {
 
     while (!scanner.isDone) {
       start = codeBuffer.length;
-      if (positionShorthand && scanner.scan(_positionShorthand)) {
+      if (positionShorthand && zeroWidthMarker && scanner.scan('^/**/')) {
+        codeBuffer.write('^');
+      } else if (positionShorthand && scanner.scan(_positionShorthand)) {
         recordPosition(0);
       } else if (scanner.scan(_positionPattern)) {
         recordPosition(scannedNumber());
@@ -215,6 +220,11 @@ class TestCodePosition {
   final int offset;
 
   TestCodePosition(this.lineInfo, this.offset);
+
+  AstNode? findNode(ParsedUnitResult unitResult) {
+    // ignore: analyzer_to_be_deprecated_use
+    return unitResult.unit.nodeCovering(offset: offset);
+  }
 }
 
 class TestCodeRange {

@@ -31,9 +31,9 @@ void f(int x) {
 ''');
   }
 
-  test_it_language219() async {
+  test_it_beforePatterns() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
+// %before-language-feature: patterns
 void f(int x) {
   switch (x) {
     L: case 0:

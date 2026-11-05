@@ -1,0 +1,219 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/unified_collections/literal_void.dart:13:20: Error: This expression has type 'void' and can't be used.
+//   <void, void>{v: ?v}; // Error
+//                    ^
+//
+// pkg/front_end/testcases/unified_collections/literal_void.dart:14:17: Error: This expression has type 'void' and can't be used.
+//   <void, void>{?v: v}; // Error
+//                 ^
+//
+// pkg/front_end/testcases/unified_collections/literal_void.dart:21:17: Error: This expression has type 'void' and can't be used.
+//   var v6 = {v: ?v}; // Error
+//                 ^
+//
+// pkg/front_end/testcases/unified_collections/literal_void.dart:22:14: Error: This expression has type 'void' and can't be used.
+//   var v7 = {?v: v}; // Error
+//              ^
+//
+// pkg/front_end/testcases/unified_collections/literal_void.dart:29:29: Error: This expression has type 'void' and can't be used.
+//   Map<void, void> w6 = {v: ?v}; // Error
+//                             ^
+//
+// pkg/front_end/testcases/unified_collections/literal_void.dart:30:26: Error: This expression has type 'void' and can't be used.
+//   Map<void, void> w7 = {?v: v}; // Error
+//                          ^
+//
+// pkg/front_end/testcases/unified_collections/literal_void.dart:32:13: Error: This expression has type 'void' and can't be used.
+//   <dynamic>[v]; // Error
+//             ^
+//
+// pkg/front_end/testcases/unified_collections/literal_void.dart:33:14: Error: This expression has type 'void' and can't be used.
+//   <dynamic>[?v]; // Error
+//              ^
+//
+// pkg/front_end/testcases/unified_collections/literal_void.dart:34:13: Error: This expression has type 'void' and can't be used.
+//   <dynamic>{v}; // Error
+//             ^
+//
+// pkg/front_end/testcases/unified_collections/literal_void.dart:35:14: Error: This expression has type 'void' and can't be used.
+//   <dynamic>{?v}; // Error
+//              ^
+//
+// pkg/front_end/testcases/unified_collections/literal_void.dart:36:22: Error: This expression has type 'void' and can't be used.
+//   <dynamic, dynamic>{v: v}; // Error
+//                      ^
+//
+// pkg/front_end/testcases/unified_collections/literal_void.dart:36:25: Error: This expression has type 'void' and can't be used.
+//   <dynamic, dynamic>{v: v}; // Error
+//                         ^
+//
+// pkg/front_end/testcases/unified_collections/literal_void.dart:37:22: Error: This expression has type 'void' and can't be used.
+//   <dynamic, dynamic>{v: ?v}; // Error
+//                      ^
+//
+// pkg/front_end/testcases/unified_collections/literal_void.dart:37:26: Error: This expression has type 'void' and can't be used.
+//   <dynamic, dynamic>{v: ?v}; // Error
+//                          ^
+//
+// pkg/front_end/testcases/unified_collections/literal_void.dart:38:23: Error: This expression has type 'void' and can't be used.
+//   <dynamic, dynamic>{?v: v}; // Error
+//                       ^
+//
+// pkg/front_end/testcases/unified_collections/literal_void.dart:38:26: Error: This expression has type 'void' and can't be used.
+//   <dynamic, dynamic>{?v: v}; // Error
+//                          ^
+//
+import self as self;
+import "dart:core" as core;
+import "dart:collection" as col;
+
+static method test() → dynamic {
+  void v = 42;
+  <void>[v];
+  {
+    final core::List<void> #t1 = <void>[];
+    final void #t2 = v;
+    if(!(#t2 == null))
+      #t1.{core::List::add}{Invariant}(#t2){(void) → void};
+  }
+  {
+    final core::Set<void> #t3 = col::LinkedHashSet::•<void>();
+    #t3.{core::Set::add}{Invariant}(v){(void) → core::bool};
+  }
+  {
+    final core::Set<void> #t4 = col::LinkedHashSet::•<void>();
+    final void #t5 = v;
+    if(!(#t5 == null))
+      #t4.{core::Set::add}{Invariant}(#t5){(void) → core::bool};
+  }
+  <void, void>{v: v};
+  {
+    final core::Map<void, void> #t6 = <void, void>{};
+    final void #t7 = v;
+    final void #t8 = v;
+    if(!(#t8 == null))
+      #t6.{core::Map::[]=}{Invariant}(#t7, #t8){(void, void) → void};
+  }
+  {
+    final core::Map<void, void> #t9 = <void, void>{};
+    final void #t10 = v;
+    if(!(#t10 == null))
+      #t9.{core::Map::[]=}{Invariant}(#t10, v){(void, void) → void};
+  }
+  core::List<void> v1 = <void>[v];
+  core::List<void> v2 = block {
+    final core::List<void> #t11 = <void>[];
+    final void #t12 = v;
+    if(!(#t12 == null))
+      #t11.{core::List::add}{Invariant}(#t12){(void) → void};
+  } =>#t11;
+  core::Set<void> v3 = block {
+    final core::Set<void> #t13 = col::LinkedHashSet::•<void>();
+    #t13.{core::Set::add}{Invariant}(v){(void) → core::bool};
+  } =>#t13;
+  core::Set<void> v4 = block {
+    final core::Set<void> #t14 = col::LinkedHashSet::•<void>();
+    final void #t15 = v;
+    if(!(#t15 == null))
+      #t14.{core::Set::add}{Invariant}(#t15){(void) → core::bool};
+  } =>#t14;
+  core::Map<void, void> v5 = <void, void>{v: v};
+  core::Map<void, void> v6 = block {
+    final core::Map<void, void> #t16 = <void, void>{};
+    final void #t17 = v;
+    final void #t18 = v;
+    if(!(#t18 == null))
+      #t16.{core::Map::[]=}{Invariant}(#t17, #t18){(void, void) → void};
+  } =>#t16;
+  core::Map<void, void> v7 = block {
+    final core::Map<void, void> #t19 = <void, void>{};
+    final void #t20 = v;
+    if(!(#t20 == null))
+      #t19.{core::Map::[]=}{Invariant}(#t20, v){(void, void) → void};
+  } =>#t19;
+  core::List<void> w1 = <void>[v];
+  core::List<void> w2 = block {
+    final core::List<void> #t21 = <void>[];
+    final void #t22 = v;
+    if(!(#t22 == null))
+      #t21.{core::List::add}{Invariant}(#t22){(void) → void};
+  } =>#t21;
+  core::Set<void> w3 = block {
+    final core::Set<void> #t23 = col::LinkedHashSet::•<void>();
+    #t23.{core::Set::add}{Invariant}(v){(void) → core::bool};
+  } =>#t23;
+  core::Set<void> w4 = block {
+    final core::Set<void> #t24 = col::LinkedHashSet::•<void>();
+    final void #t25 = v;
+    if(!(#t25 == null))
+      #t24.{core::Set::add}{Invariant}(#t25){(void) → core::bool};
+  } =>#t24;
+  core::Map<void, void> w5 = <void, void>{v: v};
+  core::Map<void, void> w6 = block {
+    final core::Map<void, void> #t26 = <void, void>{};
+    final void #t27 = v;
+    final void #t28 = v;
+    if(!(#t28 == null))
+      #t26.{core::Map::[]=}{Invariant}(#t27, #t28){(void, void) → void};
+  } =>#t26;
+  core::Map<void, void> w7 = block {
+    final core::Map<void, void> #t29 = <void, void>{};
+    final void #t30 = v;
+    if(!(#t30 == null))
+      #t29.{core::Map::[]=}{Invariant}(#t30, v){(void, void) → void};
+  } =>#t29;
+  <dynamic>[invalid-expression "pkg/front_end/testcases/unified_collections/literal_void.dart:32:13: Error: This expression has type 'void' and can't be used.
+  <dynamic>[v]; // Error
+            ^" in v];
+  {
+    final core::List<dynamic> #t31 = <dynamic>[];
+    final dynamic #t32 = invalid-expression "pkg/front_end/testcases/unified_collections/literal_void.dart:33:14: Error: This expression has type 'void' and can't be used.
+  <dynamic>[?v]; // Error
+             ^" in v;
+    if(!(#t32 == null))
+      #t31.{core::List::add}{Invariant}(#t32){(dynamic) → void};
+  }
+  {
+    final core::Set<dynamic> #t33 = col::LinkedHashSet::•<dynamic>();
+    #t33.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/unified_collections/literal_void.dart:34:13: Error: This expression has type 'void' and can't be used.
+  <dynamic>{v}; // Error
+            ^" in v){(dynamic) → core::bool};
+  }
+  {
+    final core::Set<dynamic> #t34 = col::LinkedHashSet::•<dynamic>();
+    final dynamic #t35 = invalid-expression "pkg/front_end/testcases/unified_collections/literal_void.dart:35:14: Error: This expression has type 'void' and can't be used.
+  <dynamic>{?v}; // Error
+             ^" in v;
+    if(!(#t35 == null))
+      #t34.{core::Set::add}{Invariant}(#t35){(dynamic) → core::bool};
+  }
+  <dynamic, dynamic>{invalid-expression "pkg/front_end/testcases/unified_collections/literal_void.dart:36:22: Error: This expression has type 'void' and can't be used.
+  <dynamic, dynamic>{v: v}; // Error
+                     ^" in v: invalid-expression "pkg/front_end/testcases/unified_collections/literal_void.dart:36:25: Error: This expression has type 'void' and can't be used.
+  <dynamic, dynamic>{v: v}; // Error
+                        ^" in v};
+  {
+    final core::Map<dynamic, dynamic> #t36 = <dynamic, dynamic>{};
+    final dynamic #t37 = invalid-expression "pkg/front_end/testcases/unified_collections/literal_void.dart:37:22: Error: This expression has type 'void' and can't be used.
+  <dynamic, dynamic>{v: ?v}; // Error
+                     ^" in v;
+    final dynamic #t38 = invalid-expression "pkg/front_end/testcases/unified_collections/literal_void.dart:37:26: Error: This expression has type 'void' and can't be used.
+  <dynamic, dynamic>{v: ?v}; // Error
+                         ^" in v;
+    if(!(#t38 == null))
+      #t36.{core::Map::[]=}{Invariant}(#t37, #t38){(dynamic, dynamic) → void};
+  }
+  {
+    final core::Map<dynamic, dynamic> #t39 = <dynamic, dynamic>{};
+    final dynamic #t40 = invalid-expression "pkg/front_end/testcases/unified_collections/literal_void.dart:38:23: Error: This expression has type 'void' and can't be used.
+  <dynamic, dynamic>{?v: v}; // Error
+                      ^" in v;
+    if(!(#t40 == null))
+      #t39.{core::Map::[]=}{Invariant}(#t40, invalid-expression "pkg/front_end/testcases/unified_collections/literal_void.dart:38:26: Error: This expression has type 'void' and can't be used.
+  <dynamic, dynamic>{?v: v}; // Error
+                         ^" in v){(dynamic, dynamic) → void};
+  }
+}

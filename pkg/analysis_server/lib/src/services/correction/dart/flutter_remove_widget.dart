@@ -20,10 +20,7 @@ class FlutterRemoveWidget extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      // TODO(pq): find out why overlapping edits were not being applied (and
-      // enable).
-      CorrectionApplicability.singleLocation;
+      CorrectionApplicability.automatically;
 
   @override
   AssistKind get assistKind => DartAssistKind.flutterRemoveWidget;
@@ -38,6 +35,11 @@ class FlutterRemoveWidget extends ResolvedCorrectionProducer {
   Future<void> compute(ChangeBuilder builder) async {
     var widgetCreation = node.findInstanceCreationExpression;
     if (widgetCreation == null || !widgetCreation.isWidgetCreation) {
+      return;
+    }
+
+    if (applyingBulkFixes) {
+      await _removeDiagnosedContainers(builder, widgetCreation);
       return;
     }
 
@@ -78,6 +80,33 @@ class FlutterRemoveWidget extends ResolvedCorrectionProducer {
     } else {
       await _removeSingleWhenInList(builder, widgetCreation);
     }
+  }
+
+  /// Whether [container] is enclosed by another container in
+  /// [diagnosedContainers].
+  ///
+  /// If [root] is provided, the search considers ancestors only through
+  /// [root], including [root] itself. A [container] equal to [root] is not
+  /// considered its own ancestor.
+  ///
+  /// The bounded search is used while composing a replacement to select only
+  /// the outermost diagnosed containers within the subtree being rewritten.
+  bool _hasDiagnosedAncestor(
+    InstanceCreationExpression container,
+    Set<InstanceCreationExpression> diagnosedContainers, {
+    AstNode? root,
+  }) {
+    if (container == root) return false;
+
+    for (
+      var ancestor = container.parent;
+      ancestor != null;
+      ancestor = ancestor.parent
+    ) {
+      if (diagnosedContainers.contains(ancestor)) return true;
+      if (ancestor == root) return false;
+    }
+    return false;
   }
 
   Future<void> _removeBuilder(
@@ -135,6 +164,58 @@ class FlutterRemoveWidget extends ResolvedCorrectionProducer {
     });
   }
 
+  /// Removes the outermost diagnosed container, including any diagnosed
+  /// containers nested inside it.
+  ///
+  /// Each single-location fix replaces its whole container, so independently
+  /// produced fixes for nested containers overlap. In bulk, the outermost
+  /// diagnostic coordinates the nested fixes and produces one replacement.
+  Future<void> _removeDiagnosedContainers(
+    ChangeBuilder builder,
+    InstanceCreationExpression widgetCreation,
+  ) async {
+    var diagnosticCode = diagnostic?.diagnosticCode;
+    if (diagnosticCode == null) return;
+
+    // Use the diagnostics reported for this unit, rather than finding matching
+    // containers syntactically, so ignored diagnostics remain untouched.
+    var diagnosedContainers = <InstanceCreationExpression>{};
+    for (var candidate in unitResult.diagnostics) {
+      if (candidate.diagnosticCode != diagnosticCode) continue;
+
+      var candidateNode = unit.nodeCovering(
+        offset: candidate.offset,
+        length: candidate.length,
+      );
+      var candidateCreation = candidateNode?.findInstanceCreationExpression;
+      if (candidateCreation != null) {
+        diagnosedContainers.add(candidateCreation);
+      }
+    }
+
+    // The bulk processor invokes this producer for every diagnostic. Let only
+    // the outermost diagnosed container coordinate each nested group; its
+    // descendants will be folded into its replacement.
+    if (!diagnosedContainers.contains(widgetCreation) ||
+        _hasDiagnosedAncestor(widgetCreation, diagnosedContainers)) {
+      return;
+    }
+
+    // Compose all nested removals before adding an edit, avoiding replacements
+    // whose source ranges overlap the outer container.
+    var replacement = _replacementForDiagnosedContainer(
+      widgetCreation,
+      diagnosedContainers,
+    );
+    if (replacement == null) return;
+
+    // One whole-container replacement now represents the complete nested
+    // transformation coordinated by this diagnostic.
+    await builder.addDartFileEdit(file, (builder) {
+      builder.addSimpleReplacement(range.node(widgetCreation), replacement);
+    });
+  }
+
   Future<void> _removeSingle(
     ChangeBuilder builder,
     InstanceCreationExpression widgetCreation,
@@ -164,6 +245,72 @@ class FlutterRemoveWidget extends ResolvedCorrectionProducer {
         range.nodeInList(widgetParentNode.elements, widgetCreation),
       );
     });
+  }
+
+  /// Builds the source that replaces [container] when it is removed.
+  ///
+  /// Diagnosed containers within its `child:` expression are removed
+  /// recursively before the child is promoted to the indentation of
+  /// [container].
+  ///
+  /// Returns `null` if [container] has no `child:` argument and therefore
+  /// cannot be handled by this bulk-removal path.
+  String? _replacementForDiagnosedContainer(
+    InstanceCreationExpression container,
+    Set<InstanceCreationExpression> diagnosedContainers,
+  ) {
+    var childArgument = container.childArgument;
+    if (childArgument == null) return null;
+
+    var child = childArgument.argumentExpression;
+    var childText = _textWithDiagnosedContainersRemoved(
+      child,
+      diagnosedContainers,
+    );
+    var oldIndent = utils.getLinePrefix(child.offset);
+    var newIndent = utils.getLinePrefix(container.offset);
+    return utils.replaceSourceIndent(childText, oldIndent, newIndent);
+  }
+
+  /// Returns the source of [expression] with diagnosed containers in its
+  /// subtree, including [expression] itself, recursively replaced by their
+  /// children.
+  ///
+  /// Only the outermost diagnosed containers within [expression] are replaced
+  /// directly. Their diagnosed descendants are incorporated recursively into
+  /// those replacements, ensuring that no generated source ranges overlap.
+  /// Sibling replacements are applied from right to left so their original
+  /// offsets remain valid.
+  String _textWithDiagnosedContainersRemoved(
+    Expression expression,
+    Set<InstanceCreationExpression> diagnosedContainers,
+  ) {
+    var nestedContainers = diagnosedContainers.where((container) {
+      return expression.offset <= container.offset &&
+          container.end <= expression.end &&
+          !_hasDiagnosedAncestor(
+            container,
+            diagnosedContainers,
+            root: expression,
+          );
+    }).toList()..sort((a, b) => b.offset.compareTo(a.offset));
+
+    var text = utils.getNodeText(expression);
+    for (var container in nestedContainers) {
+      var replacement = _replacementForDiagnosedContainer(
+        container,
+        diagnosedContainers,
+      );
+      if (replacement == null) continue;
+
+      var relativeOffset = container.offset - expression.offset;
+      text = text.replaceRange(
+        relativeOffset,
+        relativeOffset + container.length,
+        replacement,
+      );
+    }
+    return text;
   }
 }
 

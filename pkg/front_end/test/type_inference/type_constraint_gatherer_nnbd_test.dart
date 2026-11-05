@@ -417,7 +417,7 @@ class TypeConstraintGathererTest {
       clientLibrary,
       expectedConstraints,
       (gatherer, type, bound) =>
-          gatherer.tryConstrainLower(type, bound, treeNodeForTesting: null),
+          gatherer.tryConstrainLower(type, bound, internalNodeForTesting: null),
       typeParameterNodesToConstrain,
       inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
     );
@@ -470,7 +470,7 @@ class TypeConstraintGathererTest {
       clientLibrary,
       expectedConstraints,
       (gatherer, type, bound) =>
-          gatherer.tryConstrainUpper(type, bound, treeNodeForTesting: null),
+          gatherer.tryConstrainUpper(type, bound, internalNodeForTesting: null),
       typeParameterNodesToConstrain,
       inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
     );

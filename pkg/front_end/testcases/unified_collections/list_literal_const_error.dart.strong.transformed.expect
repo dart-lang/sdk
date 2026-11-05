@@ -1,0 +1,69 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/unified_collections/list_literal_const_error.dart:10:21: Error: Not a constant expression.
+//     for (int i = 0; i < intList.length; i++) intList[i], // Error
+//                     ^
+//
+// pkg/front_end/testcases/unified_collections/list_literal_const_error.dart:10:54: Error: Not a constant expression.
+//     for (int i = 0; i < intList.length; i++) intList[i], // Error
+//                                                      ^
+//
+// pkg/front_end/testcases/unified_collections/list_literal_const_error.dart:10:41: Error: Not a constant expression.
+//     for (int i = 0; i < intList.length; i++) intList[i], // Error
+//                                         ^
+//
+// pkg/front_end/testcases/unified_collections/list_literal_const_error.dart:10:5: Error: 'for' is not supported in constant expressions.
+//     for (int i = 0; i < intList.length; i++) intList[i], // Error
+//     ^^^
+//
+// pkg/front_end/testcases/unified_collections/list_literal_const_error.dart:11:31: Error: Not a constant expression.
+//     for (var (i, j) = (0, 1); i < intList.length; i++) intList[i] + j, // Error
+//                               ^
+//
+// pkg/front_end/testcases/unified_collections/list_literal_const_error.dart:11:64: Error: Not a constant expression.
+//     for (var (i, j) = (0, 1); i < intList.length; i++) intList[i] + j, // Error
+//                                                                ^
+//
+// pkg/front_end/testcases/unified_collections/list_literal_const_error.dart:11:69: Error: Not a constant expression.
+//     for (var (i, j) = (0, 1); i < intList.length; i++) intList[i] + j, // Error
+//                                                                     ^
+//
+// pkg/front_end/testcases/unified_collections/list_literal_const_error.dart:11:51: Error: Not a constant expression.
+//     for (var (i, j) = (0, 1); i < intList.length; i++) intList[i] + j, // Error
+//                                                   ^
+//
+// pkg/front_end/testcases/unified_collections/list_literal_const_error.dart:11:5: Error: 'for' is not supported in constant expressions.
+//     for (var (i, j) = (0, 1); i < intList.length; i++) intList[i] + j, // Error
+//     ^^^
+//
+// pkg/front_end/testcases/unified_collections/list_literal_const_error.dart:12:5: Error: 'for' is not supported in constant expressions.
+//     for (var e in intList) e, // Error
+//     ^^^
+//
+// pkg/front_end/testcases/unified_collections/list_literal_const_error.dart:13:5: Error: 'for' is not supported in constant expressions.
+//     for (var (a, b) in intIntList) a, // Error
+//     ^^^
+//
+import self as self;
+import "dart:core" as core;
+
+static const field core::List<core::int> intList = #C4;
+static const field core::List<(core::int, core::int)> intIntList = #C8;
+static method test() → dynamic {
+  invalid-expression "pkg/front_end/testcases/unified_collections/list_literal_const_error.dart:10:5: Error: 'for' is not supported in constant expressions.
+    for (int i = 0; i < intList.length; i++) intList[i], // Error
+    ^^^";
+}
+
+constants  {
+  #C1 = 0
+  #C2 = 1
+  #C3 = 2
+  #C4 = <core::int>[#C1, #C2, #C3]
+  #C5 = (#C1, #C2)
+  #C6 = 3
+  #C7 = (#C3, #C6)
+  #C8 = <(core::int, core::int)>[#C5, #C7]
+}

@@ -109,6 +109,47 @@ suggestions
 ''');
   }
 
+  Future<void> test_initializer_declaringParameter() async {
+    includeKeywords = false;
+    await computeSuggestions('''
+class A(var int f0, int p0) { var foo = ^ }
+''');
+    assertResponse('''
+suggestions
+  p0
+    kind: parameter
+  f0
+    kind: field
+''');
+  }
+
+  Future<void> test_initializer_late_thisPromoted() async {
+    // `this` is accessible, and promotable, inside the initializer of a `late`
+    // instance field, even though the initializer isn't inside any function
+    // body.
+    includeKeywords = false;
+    await computeSuggestions('''
+class A {
+  late final List<Object> f0 = [this as B, ^];
+
+  void a0() {}
+}
+
+class B extends A {
+  void b0() {}
+}
+''');
+    assertResponse(r'''
+suggestions
+  f0
+    kind: field
+  a0
+    kind: methodInvocation
+  b0
+    kind: methodInvocation
+''');
+  }
+
   Future<void> test_initializer_partial() async {
     await computeSuggestions('''
 class A {var foo = n^}

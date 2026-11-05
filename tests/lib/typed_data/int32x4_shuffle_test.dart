@@ -1,18 +1,16 @@
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--optimization-counter-threshold=10 --no-background-compilation
 
-// Library tag to be able to run in html test framework.
-library uint32x4_shuffle_test;
+// VMOptions=--optimization-counter-threshold=10 --no-background-compilation
 
 import 'dart:typed_data';
 
 import "package:expect/expect.dart";
 
 void testShuffle() {
-  var m = new Int32x4(1, 2, 3, 4);
-  var c;
+  var m = Int32x4(1, 2, 3, 4);
+  Int32x4 c;
   c = m.shuffle(Int32x4.wzyx);
   Expect.equals(4, c.x);
   Expect.equals(3, c.y);
@@ -21,8 +19,8 @@ void testShuffle() {
 }
 
 void testShuffleNonConstant(mask) {
-  var m = new Int32x4(1, 2, 3, 4);
-  var c;
+  var m = Int32x4(1, 2, 3, 4);
+  Int32x4 c;
   c = m.shuffle(mask);
   if (mask == 1) {
     Expect.equals(2, c.x);
@@ -39,8 +37,8 @@ void testShuffleNonConstant(mask) {
 }
 
 void testShuffleMix() {
-  var m = new Int32x4(1, 2, 3, 4);
-  var n = new Int32x4(5, 6, 7, 8);
+  var m = Int32x4(1, 2, 3, 4);
+  var n = Int32x4(5, 6, 7, 8);
   var c = m.shuffleMix(n, Int32x4.xyxy);
   Expect.equals(1, c.x);
   Expect.equals(2, c.y);

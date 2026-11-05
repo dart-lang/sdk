@@ -102,18 +102,18 @@ class DartSnippetRequest {
 
       if (tokenType == TokenType.MULTI_LINE_COMMENT ||
           tokenType == TokenType.SINGLE_LINE_COMMENT) {
-        return SnippetContext.inComment;
+        return .inComment;
       }
 
       if (tokenType == TokenType.STRING ||
           tokenType == TokenType.STRING_INTERPOLATION_EXPRESSION ||
           tokenType == TokenType.STRING_INTERPOLATION_IDENTIFIER) {
-        return SnippetContext.inString;
+        return .inString;
       }
     } else if (entity is NamedArgument &&
         target.offset >= entity.name.offset &&
         target.offset <= entity.name.end) {
-      return SnippetContext.inName;
+      return .inName;
     }
 
     AstNode? node = target.containingNode;
@@ -122,79 +122,79 @@ class DartSnippetRequest {
       // and not the expression. If the target is after the end of the return
       // keyword, assume expression.
       if (node is ReturnStatement && target.offset > node.returnKeyword.end) {
-        return SnippetContext.inExpression;
+        return .inExpression;
       }
 
       if (node is Comment) {
-        return SnippetContext.inComment;
+        return .inComment;
       }
 
       if (node is StringLiteral) {
-        return SnippetContext.inString;
+        return .inString;
       }
 
       if (node is VariableDeclaration) {
-        return node.isConst
-            ? SnippetContext.inConstantExpression
-            : SnippetContext.inExpression;
+        return node.isConst ? .inConstantExpression : .inExpression;
       }
 
       if (node is VariableDeclarationList) {
-        return SnippetContext.inIdentifierDeclaration;
+        return .inIdentifierDeclaration;
       }
 
       if (node is DotShorthandInvocation ||
           node is DotShorthandConstructorInvocation ||
           node is DotShorthandPropertyAccess) {
-        return SnippetContext.inDotShorthand;
+        return .inDotShorthand;
       }
 
       if (node is PropertyAccess ||
           node is FieldFormalParameter ||
           node is PrefixedIdentifier ||
           node is ConstructorReference) {
-        return SnippetContext.inQualifiedMemberAccess;
+        return .inQualifiedMemberAccess;
       }
 
       if (node is InstanceCreationExpression) {
-        return SnippetContext.inConstructorInvocation;
+        return .inConstructorInvocation;
       }
 
       if (node is Block) {
-        return SnippetContext.inBlock;
+        return .inBlock;
       }
 
       if (node is Statement) {
-        return SnippetContext.inStatement;
+        return .inStatement;
       }
 
       // SwitchExpression outside of SwitchExpressionCase is a pattern.
       if (node is SwitchExpression) {
-        return SnippetContext.inPattern;
+        return .inPattern;
       }
 
       if (node is Expression) {
-        return node.inConstantContext
-            ? SnippetContext.inConstantExpression
-            : SnippetContext.inExpression;
+        return node.inConstantContext ? .inConstantExpression : .inExpression;
       }
 
       if (node is Annotation) {
-        return SnippetContext.inAnnotation;
+        return .inAnnotation;
       }
 
       if (node is BlockFunctionBody) {
-        return SnippetContext.inBlock;
+        return .inBlock;
+      }
+
+      if (node is BlockClassBody) {
+        return .inClassBody;
       }
 
       if (node is ClassDeclaration ||
           node is ExtensionDeclaration ||
           node is MixinDeclaration) {
-        return SnippetContext.inClass;
+        return .inClassDeclaration;
       }
 
       if (node is EnumConstantArguments) {
-        return SnippetContext.inConstantExpression;
+        return .inConstantExpression;
       }
 
       if (node is EnumDeclaration) {
@@ -203,13 +203,13 @@ class DartSnippetRequest {
           EmptyEnumBody body => body.semicolon,
         };
         return semicolon == null || target.offset <= semicolon.offset
-            ? SnippetContext.inEnumConstants
-            : SnippetContext.inEnumMembers;
+            ? .inEnumConstants
+            : .inEnumMembers;
       }
 
       node = node.parent;
     }
 
-    return SnippetContext.atTopLevel;
+    return .atTopLevel;
   }
 }

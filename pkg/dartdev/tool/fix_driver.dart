@@ -116,9 +116,8 @@ class FixRunner<T extends Logger> extends CommandRunner<int> {
   }
 
   Future<FixResult<T>> runFix(List<String> args) async {
-    log = logger;
     var argResults = argParser.parse(['fix', ...args]);
-    var result = await runCommand(argResults);
+    var result = await withLogger(logger, () => runCommand(argResults));
     return FixResult(logger, result);
   }
 }

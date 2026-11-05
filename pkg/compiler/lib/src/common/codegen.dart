@@ -692,6 +692,7 @@ enum JsNodeKind {
   namedFunction,
   access,
   parameter,
+  restParameter,
   variableDeclaration,
   thisExpression,
   variableUse,
@@ -759,6 +760,7 @@ class JsNodeTags {
   static const String namedFunction = 'js-namedFunction';
   static const String access = 'js-access';
   static const String parameter = 'js-parameter';
+  static const String restParameter = 'js-rest-parameter';
   static const String variableDeclaration = 'js-variableDeclaration';
   static const String thisExpression = 'js-thisExpression';
   static const String variableUse = 'js-variableUse';
@@ -1179,6 +1181,15 @@ class JsNodeSerializer implements js.NodeVisitor<void> {
     sink.begin(JsNodeTags.parameter);
     sink.writeString(node.name);
     sink.end(JsNodeTags.parameter);
+    _writeInfo(node);
+  }
+
+  @override
+  void visitRestParameter(js.RestParameter node) {
+    sink.writeEnum(JsNodeKind.restParameter);
+    sink.begin(JsNodeTags.restParameter);
+    sink.writeString(node.name);
+    sink.end(JsNodeTags.restParameter);
     _writeInfo(node);
   }
 
@@ -1707,6 +1718,11 @@ class JsNodeDeserializer {
         source.begin(JsNodeTags.parameter);
         node = js.Parameter(source.readString());
         source.end(JsNodeTags.parameter);
+        break;
+      case JsNodeKind.restParameter:
+        source.begin(JsNodeTags.restParameter);
+        node = js.RestParameter(source.readString());
+        source.end(JsNodeTags.restParameter);
         break;
       case JsNodeKind.variableDeclaration:
         source.begin(JsNodeTags.variableDeclaration);

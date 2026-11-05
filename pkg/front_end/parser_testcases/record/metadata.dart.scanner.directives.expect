@@ -1,0 +1,73 @@
+@metadata(x, y) a;
+
+@metadata<T>(x, y) a;
+
+@metadata <T>(x, y) a;
+
+
+@metadata (x, y) a;
+
+@metadata
+(x, y) a;
+
+@metadata (x, y) a;
+
+@metadata
+(x,) a;
+
+
+
+
+@metadata (x, y)
+class C {}
+
+
+
+
+
+
+@metadata<T> (x, y) a;
+
+
+
+
+
+
+
+
+@[SimpleToken]metadata[StringToken]([BeginToken]x[StringToken],[SimpleToken] y[StringToken])[SimpleToken] a[StringToken];[SimpleToken]
+
+@[SimpleToken]metadata[StringToken]<[BeginToken]T[StringToken]>[SimpleToken]([BeginToken]x[StringToken],[SimpleToken] y[StringToken])[SimpleToken] a[StringToken];[SimpleToken]
+
+@[SimpleToken]metadata[StringToken] <[BeginToken]T[StringToken]>[SimpleToken]([BeginToken]x[StringToken],[SimpleToken] y[StringToken])[SimpleToken] a[StringToken];[SimpleToken]
+
+
+@[SimpleToken]metadata[StringToken] ([BeginToken]x[StringToken],[SimpleToken] y[StringToken])[SimpleToken] a[StringToken];[SimpleToken]
+
+@[SimpleToken]metadata[StringToken]
+([BeginToken]x[StringToken],[SimpleToken] y[StringToken])[SimpleToken] a[StringToken];[SimpleToken]
+
+@[SimpleToken]metadata[StringToken] ([BeginToken]x[StringToken],[SimpleToken] y[StringToken])[SimpleToken] a[StringToken];[SimpleToken]
+
+@[SimpleToken]metadata[StringToken]
+([BeginToken]x[StringToken],[SimpleToken])[SimpleToken] a[StringToken];[SimpleToken]
+
+
+
+
+@[SimpleToken]metadata[StringToken] ([BeginToken]x[StringToken],[SimpleToken] y[StringToken])[SimpleToken]
+class[KeywordToken] C[StringToken] {[BeginToken]}[SimpleToken]
+
+
+
+
+
+
+@[SimpleToken]metadata[StringToken]<[BeginToken]T[StringToken]>[SimpleToken] ([BeginToken]x[StringToken],[SimpleToken] y[StringToken])[SimpleToken] a[StringToken];[SimpleToken]
+
+
+
+
+
+
+[SimpleToken]

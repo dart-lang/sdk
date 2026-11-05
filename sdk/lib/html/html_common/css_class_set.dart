@@ -49,22 +49,23 @@ abstract class CssClassSetImpl extends SetBase<String> implements CssClassSet {
   // interface Iterable - END
 
   // interface Collection - BEGIN
-  void forEach(void f(String element)) {
+  void forEach(void Function(String element) f) {
     readClasses().forEach(f);
   }
 
   String join([String separator = ""]) => readClasses().join(separator);
 
-  Iterable<T> map<T>(T f(String e)) => readClasses().map<T>(f);
+  Iterable<T> map<T>(T Function(String e) f) => readClasses().map<T>(f);
 
-  Iterable<String> where(bool f(String element)) => readClasses().where(f);
+  Iterable<String> where(bool Function(String element) f) =>
+      readClasses().where(f);
 
-  Iterable<T> expand<T>(Iterable<T> f(String element)) =>
+  Iterable<T> expand<T>(Iterable<T> Function(String element) f) =>
       readClasses().expand<T>(f);
 
-  bool every(bool f(String element)) => readClasses().every(f);
+  bool every(bool Function(String element) f) => readClasses().every(f);
 
-  bool any(bool f(String element)) => readClasses().any(f);
+  bool any(bool Function(String element) f) => readClasses().any(f);
 
   bool get isEmpty => readClasses().isEmpty;
 
@@ -72,11 +73,14 @@ abstract class CssClassSetImpl extends SetBase<String> implements CssClassSet {
 
   int get length => readClasses().length;
 
-  String reduce(String combine(String value, String element)) {
+  String reduce(String Function(String value, String element) combine) {
     return readClasses().reduce(combine);
   }
 
-  T fold<T>(T initialValue, T combine(T previousValue, String element)) {
+  T fold<T>(
+    T initialValue,
+    T Function(T previousValue, String element) combine,
+  ) {
     return readClasses().fold<T>(initialValue, combine);
   }
 
@@ -166,11 +170,11 @@ abstract class CssClassSetImpl extends SetBase<String> implements CssClassSet {
     modify((s) => s.retainAll(iterable));
   }
 
-  void removeWhere(bool test(String name)) {
+  void removeWhere(bool Function(String name) test) {
     modify((s) => s.removeWhere(test));
   }
 
-  void retainWhere(bool test(String name)) {
+  void retainWhere(bool Function(String name) test) {
     modify((s) => s.retainWhere(test));
   }
 
@@ -191,17 +195,23 @@ abstract class CssClassSetImpl extends SetBase<String> implements CssClassSet {
       readClasses().toList(growable: growable);
   Set<String> toSet() => readClasses().toSet();
   Iterable<String> take(int n) => readClasses().take(n);
-  Iterable<String> takeWhile(bool test(String value)) =>
+  Iterable<String> takeWhile(bool Function(String value) test) =>
       readClasses().takeWhile(test);
   Iterable<String> skip(int n) => readClasses().skip(n);
-  Iterable<String> skipWhile(bool test(String value)) =>
+  Iterable<String> skipWhile(bool Function(String value) test) =>
       readClasses().skipWhile(test);
-  String firstWhere(bool test(String value), {String orElse()?}) =>
-      readClasses().firstWhere(test, orElse: orElse);
-  String lastWhere(bool test(String value), {String orElse()?}) =>
-      readClasses().lastWhere(test, orElse: orElse);
-  String singleWhere(bool test(String value), {String orElse()?}) =>
-      readClasses().singleWhere(test, orElse: orElse);
+  String firstWhere(
+    bool Function(String value) test, {
+    String Function()? orElse,
+  }) => readClasses().firstWhere(test, orElse: orElse);
+  String lastWhere(
+    bool Function(String value) test, {
+    String Function()? orElse,
+  }) => readClasses().lastWhere(test, orElse: orElse);
+  String singleWhere(
+    bool Function(String value) test, {
+    String Function()? orElse,
+  }) => readClasses().singleWhere(test, orElse: orElse);
   String elementAt(int index) => readClasses().elementAt(index);
 
   void clear() {
@@ -219,7 +229,7 @@ abstract class CssClassSetImpl extends SetBase<String> implements CssClassSet {
    *   After f returns, the modified set is written to the
    *       className property of this element.
    */
-  modify(f(Set<String> s)) {
+  modify(Function(Set<String> s) f) {
     Set<String> s = readClasses();
     var ret = f(s);
     writeClasses(s);

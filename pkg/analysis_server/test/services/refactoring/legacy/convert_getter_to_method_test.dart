@@ -4,7 +4,7 @@
 
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/test_utilities/find_element2.dart';
+import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide ElementKind;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -31,7 +31,7 @@ void f(String a) {
   var va = a.test;
 }
 ''');
-    var element = findElement2.getter('test', of: 'A');
+    var element = findElement.getter('test', of: 'A');
     _createRefactoringForElement(element);
     // apply refactoring
     return _assertSuccessfulRefactoring('''
@@ -52,7 +52,7 @@ void f() {
   var b = test;
 }
 ''');
-    var element = findElement2.topGet('test');
+    var element = findElement.topGet('test');
     _createRefactoringForElement(element);
     // apply refactoring
     return _assertSuccessfulRefactoring('''
@@ -85,7 +85,7 @@ void f(A a, B b, C c, D d) {
   var vd = d.test;
 }
 ''');
-    var element = findElement2.getter('test', of: 'B');
+    var element = findElement.getter('test', of: 'B');
     _createRefactoringForElement(element);
     // apply refactoring
     return _assertSuccessfulRefactoring('''
@@ -126,7 +126,7 @@ void f(A a, B b) {
   b.test;
 }
 ''');
-    var element = findElement2.getter('test', of: 'B');
+    var element = findElement.getter('test', of: 'B');
     _createRefactoringForElement(element);
     // apply refactoring
     return _assertSuccessfulRefactoring('''
@@ -150,7 +150,7 @@ String get foo => '';
 
     await indexTestUnit(''); // Initialize project.
 
-    var element = FindElement2(externalUnit.unit).topVar('foo').getter!;
+    var element = FindElement(externalUnit.unit).topVar('foo').getter!;
     _createRefactoringForElement(element);
 
     // check conditions
@@ -165,7 +165,7 @@ int test = 42;
 void f() {
 }
 ''');
-    var element = findElement2.topGet('test');
+    var element = findElement.topGet('test');
     _createRefactoringForElement(element);
     // check conditions
     await _assertInitialConditions_fatal(
@@ -184,7 +184,7 @@ void f(A a) {
   }
 }
 ''');
-    var element = findElement2.getter('test', of: 'A');
+    var element = findElement.getter('test', of: 'A');
     _createRefactoringForElement(element);
 
     var initialState = await refactoring.checkInitialConditions();
@@ -224,7 +224,7 @@ void f(A a) {
   }
 }
 ''');
-    var element = findElement2.getter('test', of: 'A');
+    var element = findElement.getter('test', of: 'A');
     _createRefactoringForElement(element);
 
     var initialState = await refactoring.checkInitialConditions();

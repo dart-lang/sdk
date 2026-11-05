@@ -991,6 +991,61 @@ UNIT_TEST_CASE_WITH_ZONE(NativeCallingConvention_variadic_less_than_word) {
   RunSignatureTest(Z, "variadic_less_than_word", native_signature);
 }
 
+// Regression test for https://github.com/dart-lang/sdk/issues/63976.
+//
+// 9 floats exhaust FPU registers (float 8 is passed on stack).
+// The subsequent integer struct requires 0 FPU registers and 1 CPU register, so
+// it must be passed in an available integer register (%rdi on x64 non-Windows)
+// rather than being spilled to the stack.
+//
+// See the *.expect in ./unit_tests for this behavior.
+UNIT_TEST_CASE_WITH_ZONE(
+    NativeCallingConvention_floats_exhaust_fpu_struct_int) {
+  const auto& float_type = *new (Z) NativePrimitiveType(kFloat);
+  const auto& int32_type = *new (Z) NativePrimitiveType(kInt32);
+
+  auto& member_types = *new (Z) NativeTypes(Z, 1);
+  member_types.Add(&int32_type);
+  const auto& struct_type = NativeStructType::FromNativeTypes(Z, member_types);
+
+  auto& arguments = *new (Z) NativeTypes(Z, 10);
+  for (intptr_t i = 0; i < 9; i++) {
+    arguments.Add(&float_type);
+  }
+  arguments.Add(&struct_type);
+
+  RunSignatureTest(Z, "floats_exhaust_fpu_struct_int", arguments, int32_type);
+}
+
+// Regression test for https://github.com/dart-lang/sdk/issues/63976.
+//
+// 9 floats exhaust FPU registers (float 8 is on stack). The subsequent mixed
+// struct requires 1 integer register and 1 FPU register. Because FPU registers
+// are exhausted, the mixed struct must be passed on the stack. An additional
+// integer argument can still backfill the unoccupied integer register (%rdi on
+// x64 non-Windows).
+//
+// See the *.expect in ./unit_tests for this behavior.
+UNIT_TEST_CASE_WITH_ZONE(
+    NativeCallingConvention_floats_exhaust_fpu_struct_mixed) {
+  const auto& float_type = *new (Z) NativePrimitiveType(kFloat);
+  const auto& int32_type = *new (Z) NativePrimitiveType(kInt32);
+
+  auto& member_types = *new (Z) NativeTypes(Z, 2);
+  member_types.Add(&int32_type);
+  member_types.Add(&float_type);
+  const auto& struct_type = NativeStructType::FromNativeTypes(Z, member_types);
+
+  auto& arguments = *new (Z) NativeTypes(Z, 11);
+  for (intptr_t i = 0; i < 9; i++) {
+    arguments.Add(&float_type);
+  }
+  arguments.Add(&struct_type);
+  arguments.Add(&int32_type);
+
+  RunSignatureTest(Z, "floats_exhaust_fpu_struct_mixed", arguments, float_type);
+}
+
 }  // namespace ffi
 }  // namespace compiler
 }  // namespace dart

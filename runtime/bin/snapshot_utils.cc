@@ -76,7 +76,12 @@ class MappedAppSnapshot : public AppSnapshot {
       *data_buffer = reinterpret_cast<const uint8_t*>(data_mapping_->address());
     }
     if (text_mapping_ != nullptr) {
-      *text_buffer = reinterpret_cast<const uint8_t*>(text_mapping_->address());
+      auto* addr = reinterpret_cast<const uint8_t*>(text_mapping_->address());
+#if defined(HOST_ARCH_ARM64E)
+      addr =
+          ptrauth_sign_unauthenticated(addr, ptrauth_key_function_pointer, 0);
+#endif
+      *text_buffer = addr;
     }
   }
 
@@ -777,7 +782,8 @@ static bool CheckForInvalidPath(const char* path) {
 }
 
 std::pair<AppSnapshot*, CStringUniquePtr> Snapshot::TryReadSDKSnapshot(
-    const char* snapshot_name) {
+    const char* snapshot_name,
+    bool verbose) {
   auto try_resolve_path = [&](CStringUniquePtr dir_prefix) {
     // |dir_prefix| includes the last path separator.
     // First assume we're in dart-sdk/bin.
@@ -805,7 +811,9 @@ std::pair<AppSnapshot*, CStringUniquePtr> Snapshot::TryReadSDKSnapshot(
         try_resolve_path(EXEUtils::GetDirectoryPrefixFromUnresolvedExeName());
   }
   if (script_path == nullptr || !CheckForInvalidPath(script_path.get())) {
-    Syslog::PrintErr("Unable to find snapshot: %s\n", snapshot_name);
+    if (verbose) {
+      Syslog::PrintErr("Unable to find snapshot: %s\n", snapshot_name);
+    }
     return std::make_pair(static_cast<AppSnapshot*>(nullptr),
                           std::move(script_path));
   }

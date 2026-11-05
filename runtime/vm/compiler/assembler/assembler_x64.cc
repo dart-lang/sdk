@@ -573,6 +573,13 @@ void Assembler::shufpd(XmmRegister dst, XmmRegister src, const Immediate& imm) {
   EmitUint8(imm.value());
 }
 
+void Assembler::pshufd(XmmRegister dst, XmmRegister src, const Immediate& imm) {
+  EmitL(dst, src, 0x70, 0x0F, 0x66);
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  ASSERT(imm.is_uint8());
+  EmitUint8(imm.value());
+}
+
 void Assembler::roundsd(XmmRegister dst, XmmRegister src, RoundingMode mode) {
   ASSERT(src <= XMM15);
   ASSERT(dst <= XMM15);
@@ -585,6 +592,18 @@ void Assembler::roundsd(XmmRegister dst, XmmRegister src, RoundingMode mode) {
   EmitRegisterOperand(dst & 7, src);
   // Mask precision exception.
   EmitUint8(static_cast<uint8_t>(mode) | 0x8);
+}
+
+void Assembler::ptest(XmmRegister dst, XmmRegister src) {
+  ASSERT(src <= XMM15);
+  ASSERT(dst <= XMM15);
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x66);
+  EmitRegRegRex(dst, src);
+  EmitUint8(0x0F);
+  EmitUint8(0x38);
+  EmitUint8(0x17);
+  EmitRegisterOperand(dst & 7, src);
 }
 
 void Assembler::fldl(const Address& src) {
@@ -1154,6 +1173,14 @@ void Assembler::nop(int size) {
     default:
       UNIMPLEMENTED();
   }
+}
+
+void Assembler::endbr64() {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0xF3);
+  EmitUint8(0x0F);
+  EmitUint8(0x1E);
+  EmitUint8(0xFA);
 }
 
 void Assembler::j(Condition condition, Label* label, JumpDistance distance) {
@@ -2537,7 +2564,7 @@ void Assembler::TryAllocateObject(intptr_t cid,
   ASSERT(instance_size != 0);
   ASSERT(Utils::IsAligned(instance_size,
                           target::ObjectAlignment::kObjectAlignment));
-  if (FLAG_inline_alloc &&
+  if (UseInlineAllocation() &&
       target::Heap::IsAllocatableInNewSpace(instance_size)) {
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the
@@ -2569,7 +2596,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
                                  Register end_address,
                                  Register temp) {
   ASSERT(failure != nullptr);
-  if (FLAG_inline_alloc &&
+  if (UseInlineAllocation() &&
       target::Heap::IsAllocatableInNewSpace(instance_size)) {
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the

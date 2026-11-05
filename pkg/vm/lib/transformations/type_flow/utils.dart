@@ -463,7 +463,7 @@ T? filterArtificialNode<T extends TreeNode>(T? node) =>
 String localFunctionName(LocalFunction function) {
   switch (function) {
     case FunctionDeclaration():
-      return function.variable.cosmeticName!;
+      return function.variable.name;
     case FunctionExpression():
       final location = function.location;
       return '<anonymous closure' +
@@ -474,4 +474,19 @@ String localFunctionName(LocalFunction function) {
     default:
       throw 'Unexpected local function ${function.runtimeType} $function';
   }
+}
+
+InterfaceType interfaceTypeWithDefaultBounds(
+  Class cls,
+  Nullability nullability,
+) {
+  final typeParameters = cls.typeParameters;
+  return InterfaceType(
+    cls,
+    nullability,
+    DartTypeList.generate(
+      typeParameters.length,
+      (i) => typeParameters[i].defaultType,
+    ),
+  );
 }

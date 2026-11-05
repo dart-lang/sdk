@@ -18,7 +18,7 @@ Supertype? nnbdTopMergeSupertype(
   if (a.typeArguments.isEmpty) {
     return a;
   }
-  List<DartType> newTypeArguments = new List<DartType>.filled(
+  DartTypeList newTypeArguments = DartTypeList.filled(
     a.typeArguments.length,
     dummyDartType,
   );

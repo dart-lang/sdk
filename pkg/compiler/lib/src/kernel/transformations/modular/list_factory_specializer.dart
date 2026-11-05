@@ -7,6 +7,7 @@ import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/clone.dart' show CloneVisitorNotMembers;
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/type_algebra.dart';
+
 import 'factory_specializer.dart';
 
 /// Replaces invocation of List factory constructors.
@@ -112,16 +113,14 @@ class ListFactorySpecializer extends BaseSpecializer {
 
     Expression allocation = StaticInvocation(
       growable ? _arrayAllocateGrowableFactory : _arrayAllocateFixedFactory,
-      Arguments([getLength()], types: args.types),
+      Arguments(ExpressionList(getLength()), types: args.types),
     )..fileOffset = node.fileOffset;
 
     final listVariable = SyntheticVariable(
       cosmeticName: _listNameFromContext(node),
       initializer: allocation,
       isFinal: true,
-      type: InterfaceType(_jsArrayClass, Nullability.nonNullable, [
-        ...args.types,
-      ]),
+      type: InterfaceType(_jsArrayClass, Nullability.nonNullable, args.types),
     )..fileOffset = node.fileOffset;
 
     final indexVariable = SyntheticVariable(
@@ -140,28 +139,28 @@ class ListFactorySpecializer extends BaseSpecializer {
         InstanceAccessKind.Instance,
         VariableGet(indexVariable)..fileOffset = node.fileOffset,
         Name('<'),
-        Arguments([getLength()]),
+        Arguments(ExpressionList(getLength())),
         interfaceTarget: intLess,
         functionType: intLess.getterType as FunctionType,
       ),
       // updates: _i++
-      [
+      ExpressionList(
         VariableSet(
           indexVariable,
           InstanceInvocation(
             InstanceAccessKind.Instance,
             VariableGet(indexVariable)..fileOffset = node.fileOffset,
             Name('+'),
-            Arguments([IntLiteral(1)]),
+            Arguments(ExpressionList(IntLiteral(1))),
             interfaceTarget: intPlus,
             functionType: FunctionType(
-              [intType],
+              DartTypeList(intType),
               intType,
               Nullability.nonNullable,
             ),
           ),
         )..fileOffset = node.fileOffset,
-      ],
+      ),
       // body, e.g. _list[_i] = expression;
       _loopBody(node.fileOffset, listVariable, indexVariable, generator),
     )..fileOffset = node.fileOffset;
@@ -245,8 +244,8 @@ class ListFactorySpecializer extends BaseSpecializer {
 
   String _indexNameFromContext(FunctionExpression generator) {
     final function = generator.function;
-    String? candidate = function.positionalParameters.first.cosmeticName;
-    if (candidate == null || candidate == '' || candidate == '_') return '_i';
+    String? candidate = function.positionalParameters.first.parameterName;
+    if (candidate == '' || candidate == '_') return '_i';
     return candidate;
   }
 }
@@ -348,17 +347,18 @@ class ListGenerateLoopBodyInliner extends CloneVisitorNotMembers {
           InstanceAccessKind.Instance,
           VariableGet(listVariable)..fileOffset = constructorFileOffset,
           Name('[]='),
-          Arguments([
-            VariableGet(argument)..fileOffset = node.fileOffset,
-            value,
-          ]),
+          Arguments(
+            ExpressionList(
+              VariableGet(argument)..fileOffset = node.fileOffset,
+              value,
+            ),
+          ),
           interfaceTarget: listFactorySpecializer.jsArrayIndexSet,
           functionType:
-              Substitution.fromInterfaceType(
-                    listVariable.type as InterfaceType,
-                  ).substituteType(
-                    listFactorySpecializer.jsArrayIndexSet.getterType,
-                  )
+              Substitution.fromInterfaceType(listVariable.type as InterfaceType)
+                      .substituteType(
+                        listFactorySpecializer.jsArrayIndexSet.getterType,
+                      )
                   as FunctionType,
         )
         ..isInvariant = true

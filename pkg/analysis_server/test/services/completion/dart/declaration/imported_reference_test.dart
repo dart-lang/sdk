@@ -4984,7 +4984,144 @@ suggestions
 ''');
   }
 
+  Future<void> test_partFile_importedByParent() async {
+    // The file being imported.
+    newFile('$testPackageLibPath/i.dart', '''
+class I0;
+''');
+    // The library.
+    newFile('$testPackageLibPath/a.dart', '''
+import 'i.dart';
+
+part "test.dart";
+
+class A0 {
+  void m(I0 i) {}
+}
+''');
+    // The part.
+    await computeSuggestions('''
+part of 'a.dart';
+
+void f(^) {}
+''');
+    assertResponse(r'''
+suggestions
+  A0
+    kind: class
+  I0
+    kind: class
+''');
+  }
+
+  Future<void> test_partFile_importedByPart() async {
+    // The file being imported.
+    newFile('$testPackageLibPath/i.dart', '''
+class I0;
+''');
+    // The library.
+    newFile('$testPackageLibPath/a.dart', '''
+part "test.dart";
+
+class A0;
+''');
+    // The part.
+    await computeSuggestions('''
+part of 'a.dart';
+
+import 'i.dart';
+
+void f(^) {}
+''');
+    assertResponse(r'''
+suggestions
+  A0
+    kind: class
+  I0
+    kind: class
+''');
+  }
+
+  Future<void> test_partFile_importedBySibling() async {
+    // The file being imported.
+    newFile('$testPackageLibPath/i.dart', '''
+class I0;
+''');
+    // The library.
+    newFile('$testPackageLibPath/a.dart', '''
+part 'b.dart';
+part "test.dart";
+
+class A0;
+''');
+    // The sibling.
+    newFile('$testPackageLibPath/b.dart', '''
+part of 'a.dart';
+
+import 'i.dart';
+
+class B0 {
+  void m(I0 i) {}
+}
+''');
+    // The part.
+    await computeSuggestions('''
+part of 'a.dart';
+
+void f(^) {}
+''');
+    assertResponse(r'''
+suggestions
+  A0
+    kind: class
+  B0
+    kind: class
+''');
+  }
+
+  Future<void> test_partFile_shadowedByPart() async {
+    printerConfiguration.withLibraryUri = true;
+    // The file being imported by the parent.
+    newFile('$testPackageLibPath/i.dart', '''
+class I0;
+''');
+    // The file being imported by the part.
+    newFile('$testPackageLibPath/j.dart', '''
+class I0;
+''');
+    // The library.
+    newFile('$testPackageLibPath/a.dart', '''
+import 'i.dart';
+
+part "test.dart";
+
+class A0 {
+  void m(I0 i) {}
+}
+''');
+    // The part.
+    await computeSuggestions('''
+part of 'a.dart';
+
+import 'j.dart';
+
+void f(^) {}
+''');
+    assertResponse(r'''
+suggestions
+  A0
+    kind: class
+    libraryUri: null
+  I0
+    kind: class
+    libraryUri: package:test/j.dart
+''');
+  }
+
   Future<void> test_partFile_typeName() async {
+    // TODO(brianwilkerson): This test doesn't belong here because the suggested
+    //  elements aren't imported. The test would pass even if we never suggested
+    //  imported elements.
     newFile('$testPackageLibPath/b.dart', '''
 int T0 = 0;
 F0() {}
@@ -5019,6 +5156,9 @@ suggestions
   }
 
   Future<void> test_partFile_typeName2() async {
+    // TODO(brianwilkerson): This test doesn't belong here because the suggested
+    //  elements aren't imported. The test would pass even if we never suggested
+    //  imported elements.
     newFile('$testPackageLibPath/b.dart', '''
 int T0 = 0;
 F0() {}

@@ -14,11 +14,13 @@ import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/analysis_options/analysis_options.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_parser.dart';
-import 'package:analyzer/src/clients/build_resolvers/build_resolvers.dart';
+import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options_map.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/cache.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' show ErrorEncoding;
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/library_analyzer.dart';
@@ -275,7 +277,7 @@ class FileResolver {
         await performance.runAsync('collectReferences', (_) async {
           var resolved = await resolve(path: path);
           var collector = ReferencesCollector(element);
-          resolved.unit.accept(collector);
+          resolved.unit.accept2(collector);
           var matches = collector.references;
           if (matches.isNotEmpty) {
             var lineInfo = resolved.unit.lineInfo;
@@ -309,7 +311,12 @@ class FileResolver {
         return await _searchReferences_Import(element);
       } else {
         var result = performance!.run('getFilesContaining', (performance) {
-          return fsState!.getFilesContaining(element.displayName);
+          var searchName = element.displayName;
+          // Find unnamed constructors by their class name in the file index.
+          if (element is ConstructorElement && element.name == 'new') {
+            searchName = element.enclosingElement.displayName;
+          }
+          return fsState!.getFilesContaining(searchName);
         });
         for (var filePath in result) {
           await collectReferences2(filePath, performance!);
@@ -854,21 +861,10 @@ class FileResolver {
     required OperationPerformanceImpl performance,
   }) {
     performance.run('libraryContext', (performance) {
-      libraryContext!.load(
+      libraryContext!.loadForResolution(
         targetLibrary: libraryKind,
         performance: performance,
       );
-
-      for (var import in libraryKind.docLibraryImports) {
-        if (import is LibraryImportWithFile) {
-          if (import.importedLibrary case var libraryFileKind?) {
-            libraryContext!.load(
-              targetLibrary: libraryFileKind,
-              performance: performance,
-            );
-          }
-        }
-      }
     });
   }
 
@@ -884,7 +880,7 @@ class FileResolver {
         element.import,
         libraryFragment,
       );
-      unitResult.unit.accept(visitor);
+      unitResult.unit.accept2(visitor);
       var lineInfo = unitResult.lineInfo;
       var infos = visitor.results
           .map(

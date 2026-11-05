@@ -6,10 +6,9 @@ import 'package:analysis_server/src/flutter/flutter_outline_computer.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
+import 'package:analyzer_testing/src/abstract_context.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-
-import '../../abstract_context.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -23,6 +22,9 @@ class FlutterOutlineComputerTest extends AbstractContextTest {
   late TestCode testCode;
   late ResolvedUnitResult resolveResult;
   late FlutterOutlineComputer computer;
+
+  @override
+  bool get addFlutterPackageDep => true;
 
   Matcher hasCodeOffsetLength(TestCodeRange range) {
     return TypeMatcher<FlutterOutline>()
@@ -51,7 +53,6 @@ class FlutterOutlineComputerTest extends AbstractContextTest {
   @override
   void setUp() {
     super.setUp();
-    writeTestPackageConfig(flutter: true);
     testPath = convertPath('$testPackageLibPath/test.dart');
   }
 

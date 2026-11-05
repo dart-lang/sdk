@@ -23,11 +23,13 @@ class FuchsiaEmulator {
     assert(daemonIsolateDir == null);
     daemonIsolateDir = Directory.systemTemp.createTempSync();
     envs["FFX_ISOLATE_DIR"] = daemonIsolateDir!.path;
+    envs["QEMU_LD_PREFIX"] = "/usr/x86_64-linux-gnu";
+
     assert(publisher == null);
     var args = <String>[
       "./build/fuchsia/test_env.py",
       "--out-dir=$buildDir/gen/dart_test",
-      "--device-spec=$arch-emu-large",
+      "--device-spec=$arch-emu-recommended",
       "--packages=dart_test.far",
       "--logs-dir=${daemonIsolateDir!.path}",
     ];

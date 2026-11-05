@@ -13,10 +13,10 @@ overlapTest() {
   // a0:       1 2 3 4 5 6 7 8 9101112  // 12 bytes
   // a1:         a b c d e              //  5 bytes
   // a2:           p q r s t            //  5 bytes
-  var buffer = new Float32List(3).buffer;
-  var a0 = new Int8List.view(buffer);
-  var a1 = new Int8List.view(buffer, 1, 5);
-  var a2 = new Int8List.view(buffer, 2, 5);
+  var buffer = Float32List(3).buffer;
+  var a0 = Int8List.view(buffer);
+  var a1 = Int8List.view(buffer, 1, 5);
+  var a2 = Int8List.view(buffer, 2, 5);
   initialize(a0);
   Expect.equals('[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]', '$a0');
   Expect.equals('[2, 3, 4, 5, 6]', '$a1');

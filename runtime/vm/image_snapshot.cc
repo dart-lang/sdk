@@ -1242,6 +1242,45 @@ void AssemblyImageWriter::Finalize() {
 #else
   assembly_stream_->WriteString(".section .note.GNU-stack,\"\",@progbits\n");
 #endif
+  // CFI support.
+#if defined(TARGET_ARCH_X64)
+  assembly_stream_->WriteString(".section .note.gnu.property, \"a\"\n");
+  assembly_stream_->WriteString(".align 8\n");
+  assembly_stream_->WriteString(".long 4\n");   // name size
+  assembly_stream_->WriteString(".long 16\n");  // desc size
+  assembly_stream_->Printf(
+      ".long %d\n", static_cast<int>(elf::NoteType::NT_GNU_PROPERTY_TYPE_0));
+  assembly_stream_->WriteString(".string \"GNU\"\n");  // name
+  assembly_stream_->Printf(".long %d\n", GNU_PROPERTY_X86_FEATURE_1_AND);
+  assembly_stream_->WriteString(".long 4\n");
+  if (FLAG_support_cfi) {
+    assembly_stream_->Printf(".long %d\n", GNU_PROPERTY_X86_FEATURE_1_IBT);
+  } else {
+    assembly_stream_->Printf(".long 0\n");
+  }
+  assembly_stream_->WriteString(".long 0\n");
+#elif defined(TARGET_ARCH_ARM64)
+  assembly_stream_->WriteString(".section .note.gnu.property, \"a\"\n");
+  assembly_stream_->WriteString(".align 3\n");
+  assembly_stream_->WriteString(".word 4\n");   // name size
+  assembly_stream_->WriteString(".word 16\n");  // desc size
+  assembly_stream_->Printf(
+      ".long %d\n", static_cast<int>(elf::NoteType::NT_GNU_PROPERTY_TYPE_0));
+  assembly_stream_->WriteString(".string \"GNU\"\n");  // name
+  assembly_stream_->Printf(".word %d\n", GNU_PROPERTY_AARCH64_FEATURE_1_AND);
+  assembly_stream_->WriteString(".word 4\n");
+  if (FLAG_support_cfi) {
+    assembly_stream_->Printf(".word %d\n", GNU_PROPERTY_AARCH64_FEATURE_1_BTI);
+  } else {
+    assembly_stream_->Printf(".word 0\n");
+  }
+  assembly_stream_->WriteString(".word 0\n");
+#endif
+#endif
+
+#if defined(DART_TARGET_OS_MACOS) && defined(TARGET_ARCH_ARM64E)
+  // XCode clang generates this but Fuchsia clang does not.
+  // assembly_stream_->WriteString(".ptrauth_abi_version 0\n");
 #endif
 
 #if defined(DART_TARGET_OS_WINDOWS)
@@ -2038,7 +2077,8 @@ void BlobImageWriter::AddDataSymbol(const char* symbol,
 ImageReader::ImageReader(const uint8_t* data_image,
                          const uint8_t* instructions_image)
     : data_image_(ASSERT_NOTNULL(data_image)),
-      instructions_image_(ASSERT_NOTNULL(instructions_image)) {}
+      instructions_image_(ASSERT_NOTNULL(instructions_image)),
+      instructions_image_authed_(Auth(instructions_image)) {}
 
 char* ImageReader::VerifyAlignment() const {
   // If this changes, bin_to_assembly.py and bin_to_coff.py must also change.
@@ -2054,11 +2094,11 @@ char* ImageReader::VerifyAlignment() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
 uword ImageReader::GetBareInstructionsAt(uint32_t offset) const {
   ASSERT(Utils::IsAligned(offset, Instructions::kBarePayloadAlignment));
-  return reinterpret_cast<uword>(instructions_image_) + offset;
+  return reinterpret_cast<uword>(instructions_image_authed_) + offset;
 }
 
 uword ImageReader::GetBareInstructionsEnd() const {
-  Image image(instructions_image_);
+  TextImage image(instructions_image_);
   return reinterpret_cast<uword>(image.object_start()) + image.object_size();
 }
 #endif
@@ -2068,7 +2108,7 @@ InstructionsPtr ImageReader::GetInstructionsAt(uint32_t offset) const {
   ASSERT(Utils::IsAligned(offset, kObjectAlignment));
 
   ObjectPtr result = UntaggedObject::FromAddr(
-      reinterpret_cast<uword>(instructions_image_) + offset);
+      reinterpret_cast<uword>(instructions_image_authed_) + offset);
   ASSERT(result->IsInstructions());
   ASSERT(result->untag()->IsMarked());
 

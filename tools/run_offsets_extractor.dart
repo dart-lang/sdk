@@ -19,6 +19,7 @@ Future<void> buildOffsetsExtractor(List<String> args) async {
   ) async {
     print('Building $buildDir');
     await run([
+      'python3',
       'tools/build.py',
       ...args,
       '-a$arch',
@@ -32,12 +33,15 @@ Future<void> buildOffsetsExtractor(List<String> args) async {
 }
 
 Future<String> runOffsetsExtractor() async {
+  final ext = Platform.isWindows ? '.exe' : '';
   final (jit, aot) = await (
     forAllConfigurationsMode((String buildDir, _, __) async {
-      return await run(['$buildDir/offsets_extractor']);
+      final dir = buildDir.replaceAll('/', Platform.pathSeparator);
+      return await run(['${dir}offsets_extractor$ext']);
     }).then<String>((lines) => lines.join(',\n')),
     forAllConfigurationsMode((String buildDir, _, __) async {
-      return await run(['$buildDir/offsets_extractor_aotruntime']);
+      final dir = buildDir.replaceAll('/', Platform.pathSeparator);
+      return await run(['${dir}offsets_extractor_aotruntime$ext']);
     }).then<String>((lines) => lines.join(',\n')),
   ).wait;
 

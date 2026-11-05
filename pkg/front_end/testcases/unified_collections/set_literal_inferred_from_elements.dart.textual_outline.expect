@@ -1,0 +1,19 @@
+T id<T>(T t) => t;
+
+Set<int>? nullableIntSet1 = {0, 1, 2};
+
+Set<int>? nullableIntSet2 = null;
+
+var intList = [0, 1, 2];
+
+var intSet = {0, 1, 2};
+
+Set<num> numSet = {0, 1, 2};
+
+var intIntSet = {(0, 1), (2, 3)};
+
+num? nullableNum1 = 0;
+
+num? nullableNum2 = null;
+
+main() {}

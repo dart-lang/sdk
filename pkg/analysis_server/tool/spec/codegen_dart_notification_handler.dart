@@ -73,7 +73,7 @@ class CodegenNotificationHandlerVisitor extends DartCodegenVisitor
 /// [NotificationHandler] processes analysis server notifications
 /// and dispatches those notifications to different methods based upon
 /// the type of notification. Clients may override
-/// any of the "on<EventName>" methods that are of interest.
+/// any of the `on<EventName>` methods that are of interest.
 ///
 /// Clients may mix-in this class, but may not implement it.
 mixin NotificationHandler {

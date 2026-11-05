@@ -1,0 +1,732 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract class M1 extends core::Object /*isMixinDeclaration*/  {
+  get id() → core::String
+    ;
+  get id1() → core::String
+    ;
+}
+abstract class M2 extends core::Object /*isMixinDeclaration*/  {
+  get id() → core::String
+    ;
+  get id2() → core::String
+    ;
+}
+abstract class M3 extends core::Object /*isMixinDeclaration*/  {
+  get id() → core::String
+    ;
+  get id3() → core::String
+    ;
+}
+class C1a extends self::_C1a&Object&M1 {
+  synthetic constructor •() → self::C1a
+    ;
+}
+class C1b extends self::_C1b&Object&M1 {
+  synthetic constructor •() → self::C1b
+    ;
+}
+class C2a extends self::_C2a&Object&M1&M2 {
+  synthetic constructor •() → self::C2a
+    ;
+}
+class C2b extends self::_C2b&Object&M1&M2 {
+  synthetic constructor •() → self::C2b
+    ;
+}
+class C2c extends self::_C2c&Object&M1&M2 {
+  synthetic constructor •() → self::C2c
+    ;
+}
+class C3a extends self::_C3a&Object&M1&M2&M3 {
+  synthetic constructor •() → self::C3a
+    ;
+}
+class C3b extends self::_C3b&Object&M1&M2&M3 {
+  synthetic constructor •() → self::C3b
+    ;
+}
+class C3c extends self::_C3c&Object&M1&M2&M3 {
+  synthetic constructor •() → self::C3c
+    ;
+}
+class C3d extends self::_C3d&Object&M1&M2&M3 {
+  synthetic constructor •() → self::C3d
+    ;
+}
+class C3e extends self::_C3e&Object&M1&M2&M3 {
+  synthetic constructor •() → self::C3e
+    ;
+}
+class C3f extends self::_C3f&Object&M1&M2&M3 {
+  synthetic constructor •() → self::C3f
+    ;
+}
+class C3g extends self::_C3g&Object&M1&M2&M3 {
+  synthetic constructor •() → self::C3g
+    ;
+}
+class E1a extends self::_E1a&_Enum&M1 /*isEnum*/  {
+  enum-element static const field self::E1a a = const self::E1a::•(0, "a");
+  static const field core::List<self::E1a> values = const <self::E1a>[self::E1a::a];
+  const synthetic constructor •(core::int #index, core::String #name) → self::E1a
+    : super self::_E1a&_Enum&M1::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E1a.${this.{core::_Enum::_name}{core::String}}";
+}
+class E1b extends self::_E1b&_Enum&M1 /*isEnum*/  {
+  enum-element static const field self::E1b a = const self::E1b::•(0, "a");
+  static const field core::List<self::E1b> values = const <self::E1b>[self::E1b::a];
+  const synthetic constructor •(core::int #index, core::String #name) → self::E1b
+    : super self::_E1b&_Enum&M1::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E1b.${this.{core::_Enum::_name}{core::String}}";
+}
+class E2a extends self::_E2a&_Enum&M1&M2 /*isEnum*/  {
+  enum-element static const field self::E2a a = const self::E2a::•(0, "a");
+  static const field core::List<self::E2a> values = const <self::E2a>[self::E2a::a];
+  const synthetic constructor •(core::int #index, core::String #name) → self::E2a
+    : super self::_E2a&_Enum&M1&M2::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E2a.${this.{core::_Enum::_name}{core::String}}";
+}
+class E2b extends self::_E2b&_Enum&M1&M2 /*isEnum*/  {
+  enum-element static const field self::E2b a = const self::E2b::•(0, "a");
+  static const field core::List<self::E2b> values = const <self::E2b>[self::E2b::a];
+  const synthetic constructor •(core::int #index, core::String #name) → self::E2b
+    : super self::_E2b&_Enum&M1&M2::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E2b.${this.{core::_Enum::_name}{core::String}}";
+}
+class E2c extends self::_E2c&_Enum&M1&M2 /*isEnum*/  {
+  enum-element static const field self::E2c a = const self::E2c::•(0, "a");
+  static const field core::List<self::E2c> values = const <self::E2c>[self::E2c::a];
+  const synthetic constructor •(core::int #index, core::String #name) → self::E2c
+    : super self::_E2c&_Enum&M1&M2::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E2c.${this.{core::_Enum::_name}{core::String}}";
+}
+class E3a extends self::_E3a&_Enum&M1&M2&M3 /*isEnum*/  {
+  enum-element static const field self::E3a a = const self::E3a::•(0, "a");
+  static const field core::List<self::E3a> values = const <self::E3a>[self::E3a::a];
+  const synthetic constructor •(core::int #index, core::String #name) → self::E3a
+    : super self::_E3a&_Enum&M1&M2&M3::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E3a.${this.{core::_Enum::_name}{core::String}}";
+}
+class E3b extends self::_E3b&_Enum&M1&M2&M3 /*isEnum*/  {
+  enum-element static const field self::E3b a = const self::E3b::•(0, "a");
+  static const field core::List<self::E3b> values = const <self::E3b>[self::E3b::a];
+  const synthetic constructor •(core::int #index, core::String #name) → self::E3b
+    : super self::_E3b&_Enum&M1&M2&M3::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E3b.${this.{core::_Enum::_name}{core::String}}";
+}
+class E3c extends self::_E3c&_Enum&M1&M2&M3 /*isEnum*/  {
+  enum-element static const field self::E3c a = const self::E3c::•(0, "a");
+  static const field core::List<self::E3c> values = const <self::E3c>[self::E3c::a];
+  const synthetic constructor •(core::int #index, core::String #name) → self::E3c
+    : super self::_E3c&_Enum&M1&M2&M3::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E3c.${this.{core::_Enum::_name}{core::String}}";
+}
+class E3d extends self::_E3d&_Enum&M1&M2&M3 /*isEnum*/  {
+  enum-element static const field self::E3d a = const self::E3d::•(0, "a");
+  static const field core::List<self::E3d> values = const <self::E3d>[self::E3d::a];
+  const synthetic constructor •(core::int #index, core::String #name) → self::E3d
+    : super self::_E3d&_Enum&M1&M2&M3::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E3d.${this.{core::_Enum::_name}{core::String}}";
+}
+class E3e extends self::_E3e&_Enum&M1&M2&M3 /*isEnum*/  {
+  enum-element static const field self::E3e a = const self::E3e::•(0, "a");
+  static const field core::List<self::E3e> values = const <self::E3e>[self::E3e::a];
+  const synthetic constructor •(core::int #index, core::String #name) → self::E3e
+    : super self::_E3e&_Enum&M1&M2&M3::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E3e.${this.{core::_Enum::_name}{core::String}}";
+}
+class E3f extends self::_E3f&_Enum&M1&M2&M3 /*isEnum*/  {
+  enum-element static const field self::E3f a = const self::E3f::•(0, "a");
+  static const field core::List<self::E3f> values = const <self::E3f>[self::E3f::a];
+  const synthetic constructor •(core::int #index, core::String #name) → self::E3f
+    : super self::_E3f&_Enum&M1&M2&M3::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E3f.${this.{core::_Enum::_name}{core::String}}";
+}
+class E3g extends self::_E3g&_Enum&M1&M2&M3 /*isEnum*/  {
+  enum-element static const field self::E3g a = const self::E3g::•(0, "a");
+  static const field core::List<self::E3g> values = const <self::E3g>[self::E3g::a];
+  const synthetic constructor •(core::int #index, core::String #name) → self::E3g
+    : super self::_E3g&_Enum&M1&M2&M3::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E3g.${this.{core::_Enum::_name}{core::String}}";
+}
+abstract class _C1a&Object&M1 = core::Object with self::M1 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_C1a&Object&M1
+    : super core::Object::•()
+    ;
+  synthetic mixin-super-stub get id() → core::String
+    return super.{self::M1::id};
+  synthetic mixin-super-stub get id1() → core::String
+    return super.{self::M1::id1};
+}
+abstract class _C1b&Object&M1 = core::Object with self::M1 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_C1b&Object&M1
+    : super core::Object::•()
+    ;
+  synthetic mixin-super-stub get id() → core::String
+    return super.{self::M1::id};
+  synthetic mixin-super-stub get id1() → core::String
+    return super.{self::M1::id1};
+}
+abstract class _C2a&Object&M1 = core::Object with self::M1 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_C2a&Object&M1
+    : super core::Object::•()
+    ;
+  synthetic mixin-super-stub get id() → core::String
+    return super.{self::M1::id};
+  synthetic mixin-super-stub get id1() → core::String
+    return super.{self::M1::id1};
+}
+abstract class _C2a&Object&M1&M2 = self::_C2a&Object&M1 with self::M2 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_C2a&Object&M1&M2
+    : super self::_C2a&Object&M1::•()
+    ;
+  synthetic mixin-super-stub get id() → core::String
+    return super.{self::M2::id};
+  synthetic mixin-super-stub get id2() → core::String
+    return super.{self::M2::id2};
+}
+abstract class _C2b&Object&M1 = core::Object with self::M1 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_C2b&Object&M1
+    : super core::Object::•()
+    ;
+  synthetic mixin-super-stub get id() → core::String
+    return super.{self::M1::id};
+  synthetic mixin-super-stub get id1() → core::String
+    return super.{self::M1::id1};
+}
+abstract class _C2b&Object&M1&M2 = self::_C2b&Object&M1 with self::M2 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_C2b&Object&M1&M2
+    : super self::_C2b&Object&M1::•()
+    ;
+  synthetic mixin-super-stub get id() → core::String
+    return super.{self::M2::id};
+  synthetic mixin-super-stub get id2() → core::String
+    return super.{self::M2::id2};
+}
+abstract class _C2c&Object&M1 = core::Object with self::M1 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_C2c&Object&M1
+    : super core::Object::•()
+    ;
+  synthetic mixin-super-stub get id() → core::String
+    return super.{self::M1::id};
+  synthetic mixin-super-stub get id1() → core::String
+    return super.{self::M1::id1};
+}
+abstract class _C2c&Object&M1&M2 = self::_C2c&Object&M1 with self::M2 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_C2c&Object&M1&M2
+    : super self::_C2c&Object&M1::•()
+    ;
+  synthetic mixin-super-stub get id() → core::String
+    return super.{self::M2::id};
+  synthetic mixin-super-stub get id2() → core::String
+    return super.{self::M2::id2};
+}
+abstract class _C3a&Object&M1 = core::Object with self::M1 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_C3a&Object&M1
+    : super core::Object::•()
+    ;
+  synthetic mixin-super-stub get id() → core::String
+    return super.{self::M1::id};
+  synthetic mixin-super-stub get id1() → core::String
+    return super.{self::M1::id1};
+}
+abstract class _C3a&Object&M1&M2 = self::_C3a&Object&M1 with self::M2 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_C3a&Object&M1&M2
+    : super self::_C3a&Object&M1::•()
+    ;
+  synthetic mixin-super-stub get id() → core::String
+    return super.{self::M2::id};
+  synthetic mixin-super-stub get id2() → core::String
+    return super.{self::M2::id2};
+}
+abstract class _C3a&Object&M1&M2&M3 = self::_C3a&Object&M1&M2 with self::M3 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_C3a&Object&M1&M2&M3
+    : super self::_C3a&Object&M1&M2::•()
+    ;
+  synthetic mixin-super-stub get id() → core::String
+    return super.{self::M3::id};
+  synthetic mixin-super-stub get id3() → core::String
+    return super.{self::M3::id3};
+}
+abstract class _C3b&Object&M1 = core::Object with self::M1 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_C3b&Object&M1
+    : super core::Object::•()
+    ;
+  synthetic mixin-super-stub get id() → core::String
+    return super.{self::M1::id};
+  synthetic mixin-super-stub get id1() → core::String
+    return super.{self::M1::id1};
+}
+abstract class _C3b&Object&M1&M2 = self::_C3b&Object&M1 with self::M2 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_C3b&Object&M1&M2
+    : super self::_C3b&Object&M1::•()
+    ;
+  synthetic mixin-super-stub get id() → core::String
+    return super.{self::M2::id};
+  synthetic mixin-super-stub get id2() → core::String
+    return super.{self::M2::id2};
+}
+abstract class _C3b&Object&M1&M2&M3 = self::_C3b&Object&M1&M2 with self::M3 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_C3b&Object&M1&M2&M3
+    : super self::_C3b&Object&M1&M2::•()
+    ;
+  synthetic mixin-super-stub get id() → core::String
+    return super.{self::M3::id};
+  synthetic mixin-super-stub get id3() → core::String
+    return super.{self::M3::id3};
+}
+abstract class _C3c&Object&M1 = core::Object with self::M1 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_C3c&Object&M1
+    : super core::Object::•()
+    ;
+  synthetic mixin-super-stub get id() → core::String
+    return super.{self::M1::id};
+  synthetic mixin-super-stub get id1() → core::String
+    return super.{self::M1::id1};
+}
+abstract class _C3c&Object&M1&M2 = self::_C3c&Object&M1 with self::M2 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_C3c&Object&M1&M2
+    : super self::_C3c&Object&M1::•()
+    ;
+  synthetic mixin-super-stub get id() → core::String
+    return super.{self::M2::id};
+  synthetic mixin-super-stub get id2() → core::String
+    return super.{self::M2::id2};
+}
+abstract class _C3c&Object&M1&M2&M3 = self::_C3c&Object&M1&M2 with self::M3 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_C3c&Object&M1&M2&M3
+    : super self::_C3c&Object&M1&M2::•()
+    ;
+  synthetic mixin-super-stub get id() → core::String
+    return super.{self::M3::id};
+  synthetic mixin-super-stub get id3() → core::String
+    return super.{self::M3::id3};
+}
+abstract class _C3d&Object&M1 = core::Object with self::M1 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_C3d&Object&M1
+    : super core::Object::•()
+    ;
+  synthetic mixin-super-stub get id() → core::String
+    return super.{self::M1::id};
+  synthetic mixin-super-stub get id1() → core::String
+    return super.{self::M1::id1};
+}
+abstract class _C3d&Object&M1&M2 = self::_C3d&Object&M1 with self::M2 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_C3d&Object&M1&M2
+    : super self::_C3d&Object&M1::•()
+    ;
+  synthetic mixin-super-stub get id() → core::String
+    return super.{self::M2::id};
+  synthetic mixin-super-stub get id2() → core::String
+    return super.{self::M2::id2};
+}
+abstract class _C3d&Object&M1&M2&M3 = self::_C3d&Object&M1&M2 with self::M3 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_C3d&Object&M1&M2&M3
+    : super self::_C3d&Object&M1&M2::•()
+    ;
+  synthetic mixin-super-stub get id() → core::String
+    return super.{self::M3::id};
+  synthetic mixin-super-stub get id3() → core::String
+    return super.{self::M3::id3};
+}
+abstract class _C3e&Object&M1 = core::Object with self::M1 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_C3e&Object&M1
+    : super core::Object::•()
+    ;
+  synthetic mixin-super-stub get id() → core::String
+    return super.{self::M1::id};
+  synthetic mixin-super-stub get id1() → core::String
+    return super.{self::M1::id1};
+}
+abstract class _C3e&Object&M1&M2 = self::_C3e&Object&M1 with self::M2 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_C3e&Object&M1&M2
+    : super self::_C3e&Object&M1::•()
+    ;
+  synthetic mixin-super-stub get id() → core::String
+    return super.{self::M2::id};
+  synthetic mixin-super-stub get id2() → core::String
+    return super.{self::M2::id2};
+}
+abstract class _C3e&Object&M1&M2&M3 = self::_C3e&Object&M1&M2 with self::M3 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_C3e&Object&M1&M2&M3
+    : super self::_C3e&Object&M1&M2::•()
+    ;
+  synthetic mixin-super-stub get id() → core::String
+    return super.{self::M3::id};
+  synthetic mixin-super-stub get id3() → core::String
+    return super.{self::M3::id3};
+}
+abstract class _C3f&Object&M1 = core::Object with self::M1 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_C3f&Object&M1
+    : super core::Object::•()
+    ;
+  synthetic mixin-super-stub get id() → core::String
+    return super.{self::M1::id};
+  synthetic mixin-super-stub get id1() → core::String
+    return super.{self::M1::id1};
+}
+abstract class _C3f&Object&M1&M2 = self::_C3f&Object&M1 with self::M2 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_C3f&Object&M1&M2
+    : super self::_C3f&Object&M1::•()
+    ;
+  synthetic mixin-super-stub get id() → core::String
+    return super.{self::M2::id};
+  synthetic mixin-super-stub get id2() → core::String
+    return super.{self::M2::id2};
+}
+abstract class _C3f&Object&M1&M2&M3 = self::_C3f&Object&M1&M2 with self::M3 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_C3f&Object&M1&M2&M3
+    : super self::_C3f&Object&M1&M2::•()
+    ;
+  synthetic mixin-super-stub get id() → core::String
+    return super.{self::M3::id};
+  synthetic mixin-super-stub get id3() → core::String
+    return super.{self::M3::id3};
+}
+abstract class _C3g&Object&M1 = core::Object with self::M1 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_C3g&Object&M1
+    : super core::Object::•()
+    ;
+  synthetic mixin-super-stub get id() → core::String
+    return super.{self::M1::id};
+  synthetic mixin-super-stub get id1() → core::String
+    return super.{self::M1::id1};
+}
+abstract class _C3g&Object&M1&M2 = self::_C3g&Object&M1 with self::M2 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_C3g&Object&M1&M2
+    : super self::_C3g&Object&M1::•()
+    ;
+  synthetic mixin-super-stub get id() → core::String
+    return super.{self::M2::id};
+  synthetic mixin-super-stub get id2() → core::String
+    return super.{self::M2::id2};
+}
+abstract class _C3g&Object&M1&M2&M3 = self::_C3g&Object&M1&M2 with self::M3 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_C3g&Object&M1&M2&M3
+    : super self::_C3g&Object&M1&M2::•()
+    ;
+  synthetic mixin-super-stub get id() → core::String
+    return super.{self::M3::id};
+  synthetic mixin-super-stub get id3() → core::String
+    return super.{self::M3::id3};
+}
+abstract class _E1a&_Enum&M1 = core::_Enum with self::M1 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E1a&_Enum&M1
+    : super core::_Enum::•(index, _name)
+    ;
+  synthetic mixin-super-stub get id() → core::String
+    return super.{self::M1::id};
+  synthetic mixin-super-stub get id1() → core::String
+    return super.{self::M1::id1};
+}
+abstract class _E1b&_Enum&M1 = core::_Enum with self::M1 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E1b&_Enum&M1
+    : super core::_Enum::•(index, _name)
+    ;
+  synthetic mixin-super-stub get id() → core::String
+    return super.{self::M1::id};
+  synthetic mixin-super-stub get id1() → core::String
+    return super.{self::M1::id1};
+}
+abstract class _E2a&_Enum&M1 = core::_Enum with self::M1 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E2a&_Enum&M1
+    : super core::_Enum::•(index, _name)
+    ;
+  synthetic mixin-super-stub get id() → core::String
+    return super.{self::M1::id};
+  synthetic mixin-super-stub get id1() → core::String
+    return super.{self::M1::id1};
+}
+abstract class _E2a&_Enum&M1&M2 = self::_E2a&_Enum&M1 with self::M2 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E2a&_Enum&M1&M2
+    : super self::_E2a&_Enum&M1::•(index, _name)
+    ;
+  synthetic mixin-super-stub get id() → core::String
+    return super.{self::M2::id};
+  synthetic mixin-super-stub get id2() → core::String
+    return super.{self::M2::id2};
+}
+abstract class _E2b&_Enum&M1 = core::_Enum with self::M1 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E2b&_Enum&M1
+    : super core::_Enum::•(index, _name)
+    ;
+  synthetic mixin-super-stub get id() → core::String
+    return super.{self::M1::id};
+  synthetic mixin-super-stub get id1() → core::String
+    return super.{self::M1::id1};
+}
+abstract class _E2b&_Enum&M1&M2 = self::_E2b&_Enum&M1 with self::M2 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E2b&_Enum&M1&M2
+    : super self::_E2b&_Enum&M1::•(index, _name)
+    ;
+  synthetic mixin-super-stub get id() → core::String
+    return super.{self::M2::id};
+  synthetic mixin-super-stub get id2() → core::String
+    return super.{self::M2::id2};
+}
+abstract class _E2c&_Enum&M1 = core::_Enum with self::M1 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E2c&_Enum&M1
+    : super core::_Enum::•(index, _name)
+    ;
+  synthetic mixin-super-stub get id() → core::String
+    return super.{self::M1::id};
+  synthetic mixin-super-stub get id1() → core::String
+    return super.{self::M1::id1};
+}
+abstract class _E2c&_Enum&M1&M2 = self::_E2c&_Enum&M1 with self::M2 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E2c&_Enum&M1&M2
+    : super self::_E2c&_Enum&M1::•(index, _name)
+    ;
+  synthetic mixin-super-stub get id() → core::String
+    return super.{self::M2::id};
+  synthetic mixin-super-stub get id2() → core::String
+    return super.{self::M2::id2};
+}
+abstract class _E3a&_Enum&M1 = core::_Enum with self::M1 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E3a&_Enum&M1
+    : super core::_Enum::•(index, _name)
+    ;
+  synthetic mixin-super-stub get id() → core::String
+    return super.{self::M1::id};
+  synthetic mixin-super-stub get id1() → core::String
+    return super.{self::M1::id1};
+}
+abstract class _E3a&_Enum&M1&M2 = self::_E3a&_Enum&M1 with self::M2 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E3a&_Enum&M1&M2
+    : super self::_E3a&_Enum&M1::•(index, _name)
+    ;
+  synthetic mixin-super-stub get id() → core::String
+    return super.{self::M2::id};
+  synthetic mixin-super-stub get id2() → core::String
+    return super.{self::M2::id2};
+}
+abstract class _E3a&_Enum&M1&M2&M3 = self::_E3a&_Enum&M1&M2 with self::M3 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E3a&_Enum&M1&M2&M3
+    : super self::_E3a&_Enum&M1&M2::•(index, _name)
+    ;
+  synthetic mixin-super-stub get id() → core::String
+    return super.{self::M3::id};
+  synthetic mixin-super-stub get id3() → core::String
+    return super.{self::M3::id3};
+}
+abstract class _E3b&_Enum&M1 = core::_Enum with self::M1 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E3b&_Enum&M1
+    : super core::_Enum::•(index, _name)
+    ;
+  synthetic mixin-super-stub get id() → core::String
+    return super.{self::M1::id};
+  synthetic mixin-super-stub get id1() → core::String
+    return super.{self::M1::id1};
+}
+abstract class _E3b&_Enum&M1&M2 = self::_E3b&_Enum&M1 with self::M2 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E3b&_Enum&M1&M2
+    : super self::_E3b&_Enum&M1::•(index, _name)
+    ;
+  synthetic mixin-super-stub get id() → core::String
+    return super.{self::M2::id};
+  synthetic mixin-super-stub get id2() → core::String
+    return super.{self::M2::id2};
+}
+abstract class _E3b&_Enum&M1&M2&M3 = self::_E3b&_Enum&M1&M2 with self::M3 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E3b&_Enum&M1&M2&M3
+    : super self::_E3b&_Enum&M1&M2::•(index, _name)
+    ;
+  synthetic mixin-super-stub get id() → core::String
+    return super.{self::M3::id};
+  synthetic mixin-super-stub get id3() → core::String
+    return super.{self::M3::id3};
+}
+abstract class _E3c&_Enum&M1 = core::_Enum with self::M1 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E3c&_Enum&M1
+    : super core::_Enum::•(index, _name)
+    ;
+  synthetic mixin-super-stub get id() → core::String
+    return super.{self::M1::id};
+  synthetic mixin-super-stub get id1() → core::String
+    return super.{self::M1::id1};
+}
+abstract class _E3c&_Enum&M1&M2 = self::_E3c&_Enum&M1 with self::M2 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E3c&_Enum&M1&M2
+    : super self::_E3c&_Enum&M1::•(index, _name)
+    ;
+  synthetic mixin-super-stub get id() → core::String
+    return super.{self::M2::id};
+  synthetic mixin-super-stub get id2() → core::String
+    return super.{self::M2::id2};
+}
+abstract class _E3c&_Enum&M1&M2&M3 = self::_E3c&_Enum&M1&M2 with self::M3 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E3c&_Enum&M1&M2&M3
+    : super self::_E3c&_Enum&M1&M2::•(index, _name)
+    ;
+  synthetic mixin-super-stub get id() → core::String
+    return super.{self::M3::id};
+  synthetic mixin-super-stub get id3() → core::String
+    return super.{self::M3::id3};
+}
+abstract class _E3d&_Enum&M1 = core::_Enum with self::M1 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E3d&_Enum&M1
+    : super core::_Enum::•(index, _name)
+    ;
+  synthetic mixin-super-stub get id() → core::String
+    return super.{self::M1::id};
+  synthetic mixin-super-stub get id1() → core::String
+    return super.{self::M1::id1};
+}
+abstract class _E3d&_Enum&M1&M2 = self::_E3d&_Enum&M1 with self::M2 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E3d&_Enum&M1&M2
+    : super self::_E3d&_Enum&M1::•(index, _name)
+    ;
+  synthetic mixin-super-stub get id() → core::String
+    return super.{self::M2::id};
+  synthetic mixin-super-stub get id2() → core::String
+    return super.{self::M2::id2};
+}
+abstract class _E3d&_Enum&M1&M2&M3 = self::_E3d&_Enum&M1&M2 with self::M3 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E3d&_Enum&M1&M2&M3
+    : super self::_E3d&_Enum&M1&M2::•(index, _name)
+    ;
+  synthetic mixin-super-stub get id() → core::String
+    return super.{self::M3::id};
+  synthetic mixin-super-stub get id3() → core::String
+    return super.{self::M3::id3};
+}
+abstract class _E3e&_Enum&M1 = core::_Enum with self::M1 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E3e&_Enum&M1
+    : super core::_Enum::•(index, _name)
+    ;
+  synthetic mixin-super-stub get id() → core::String
+    return super.{self::M1::id};
+  synthetic mixin-super-stub get id1() → core::String
+    return super.{self::M1::id1};
+}
+abstract class _E3e&_Enum&M1&M2 = self::_E3e&_Enum&M1 with self::M2 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E3e&_Enum&M1&M2
+    : super self::_E3e&_Enum&M1::•(index, _name)
+    ;
+  synthetic mixin-super-stub get id() → core::String
+    return super.{self::M2::id};
+  synthetic mixin-super-stub get id2() → core::String
+    return super.{self::M2::id2};
+}
+abstract class _E3e&_Enum&M1&M2&M3 = self::_E3e&_Enum&M1&M2 with self::M3 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E3e&_Enum&M1&M2&M3
+    : super self::_E3e&_Enum&M1&M2::•(index, _name)
+    ;
+  synthetic mixin-super-stub get id() → core::String
+    return super.{self::M3::id};
+  synthetic mixin-super-stub get id3() → core::String
+    return super.{self::M3::id3};
+}
+abstract class _E3f&_Enum&M1 = core::_Enum with self::M1 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E3f&_Enum&M1
+    : super core::_Enum::•(index, _name)
+    ;
+  synthetic mixin-super-stub get id() → core::String
+    return super.{self::M1::id};
+  synthetic mixin-super-stub get id1() → core::String
+    return super.{self::M1::id1};
+}
+abstract class _E3f&_Enum&M1&M2 = self::_E3f&_Enum&M1 with self::M2 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E3f&_Enum&M1&M2
+    : super self::_E3f&_Enum&M1::•(index, _name)
+    ;
+  synthetic mixin-super-stub get id() → core::String
+    return super.{self::M2::id};
+  synthetic mixin-super-stub get id2() → core::String
+    return super.{self::M2::id2};
+}
+abstract class _E3f&_Enum&M1&M2&M3 = self::_E3f&_Enum&M1&M2 with self::M3 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E3f&_Enum&M1&M2&M3
+    : super self::_E3f&_Enum&M1&M2::•(index, _name)
+    ;
+  synthetic mixin-super-stub get id() → core::String
+    return super.{self::M3::id};
+  synthetic mixin-super-stub get id3() → core::String
+    return super.{self::M3::id3};
+}
+abstract class _E3g&_Enum&M1 = core::_Enum with self::M1 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E3g&_Enum&M1
+    : super core::_Enum::•(index, _name)
+    ;
+  synthetic mixin-super-stub get id() → core::String
+    return super.{self::M1::id};
+  synthetic mixin-super-stub get id1() → core::String
+    return super.{self::M1::id1};
+}
+abstract class _E3g&_Enum&M1&M2 = self::_E3g&_Enum&M1 with self::M2 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E3g&_Enum&M1&M2
+    : super self::_E3g&_Enum&M1::•(index, _name)
+    ;
+  synthetic mixin-super-stub get id() → core::String
+    return super.{self::M2::id};
+  synthetic mixin-super-stub get id2() → core::String
+    return super.{self::M2::id2};
+}
+abstract class _E3g&_Enum&M1&M2&M3 = self::_E3g&_Enum&M1&M2 with self::M3 /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E3g&_Enum&M1&M2&M3
+    : super self::_E3g&_Enum&M1&M2::•(index, _name)
+    ;
+  synthetic mixin-super-stub get id() → core::String
+    return super.{self::M3::id};
+  synthetic mixin-super-stub get id3() → core::String
+    return super.{self::M3::id3};
+}
+static method main() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///with.dart:64:20 -> InstanceConstant(const E1a{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///with.dart:64:6 -> ListConstant(const <E1a>[const E1a{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///with.dart:67:12 -> InstanceConstant(const E1b{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///with.dart:67:6 -> ListConstant(const <E1b>[const E1b{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///with.dart:70:24 -> InstanceConstant(const E2a{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///with.dart:70:6 -> ListConstant(const <E2a>[const E2a{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///with.dart:73:20 -> InstanceConstant(const E2b{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///with.dart:73:6 -> ListConstant(const <E2b>[const E2b{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///with.dart:76:12 -> InstanceConstant(const E2c{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///with.dart:76:6 -> ListConstant(const <E2c>[const E2c{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///with.dart:79:28 -> InstanceConstant(const E3a{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///with.dart:79:6 -> ListConstant(const <E3a>[const E3a{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///with.dart:83:24 -> InstanceConstant(const E3b{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///with.dart:83:6 -> ListConstant(const <E3b>[const E3b{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///with.dart:87:24 -> InstanceConstant(const E3c{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///with.dart:87:6 -> ListConstant(const <E3c>[const E3c{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///with.dart:91:20 -> InstanceConstant(const E3d{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///with.dart:91:6 -> ListConstant(const <E3d>[const E3d{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///with.dart:95:12 -> InstanceConstant(const E3e{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///with.dart:95:6 -> ListConstant(const <E3e>[const E3e{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///with.dart:99:12 -> InstanceConstant(const E3f{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///with.dart:99:6 -> ListConstant(const <E3f>[const E3f{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///with.dart:103:12 -> InstanceConstant(const E3g{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///with.dart:103:6 -> ListConstant(const <E3g>[const E3g{_Enum.index: 0, _Enum._name: "a"}])
+Extra constant evaluation: evaluated: 374, effectively constant: 24

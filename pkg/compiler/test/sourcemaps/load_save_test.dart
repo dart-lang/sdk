@@ -3,10 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
+
 import 'package:expect/expect.dart';
 import 'package:source_maps/source_maps.dart';
+
 import 'tools/load.dart';
 import 'tools/save.dart';
+
 import 'package:compiler/src/util/memory_compiler.dart';
 
 String SOURCEMAP =

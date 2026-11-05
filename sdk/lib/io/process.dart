@@ -299,8 +299,8 @@ abstract interface class Process {
   /// completes with an exception.
   ///
   /// Using an absolute path for [executable] is recommended since resolving
-  /// the [executable] path is platform-specific. On Windows, both any `PATH`
-  /// set in the [environment] map parameter and the path set in
+  /// the [executable] path is platform-specific. On Fuchsia, Mac and Windows,
+  /// both any `PATH` set in the [environment] map parameter and the path set in
   /// [workingDirectory] parameter are ignored for the purposes of resolving
   /// the [executable] path.
   ///
@@ -383,8 +383,8 @@ abstract interface class Process {
   /// process run is [executable] with the specified [arguments].
   ///
   /// Using an absolute path for [executable] is recommended since resolving
-  /// the [executable] path is platform-specific. On Windows, both any `PATH`
-  /// set in the [environment] map parameter and the path set in
+  /// the [executable] path is platform-specific. On Fuchsia, Mac and Windows,
+  /// both any `PATH` set in the [environment] map parameter and the path set in
   /// [workingDirectory] parameter are ignored for the purposes of resolving
   /// the [executable] path.
   ///

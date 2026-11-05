@@ -4,10 +4,6 @@ analyzer:
   exclude:
     # Ignore generated files
     - "lib/src/handlers/injected_client_js.dart"
-    # Ignore integration fixtures to avoid analysis errors from "package:build_daemon".
-    - "test/integration/fixtures/context.dart"
-    - "test/integration/fixtures/server.dart"
-    - "test/integration/fixtures/utilities.dart"
 
 linter:
   rules:

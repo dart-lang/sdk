@@ -32,7 +32,7 @@ A stdio based Model Context Protocol (MCP) server to aid in Dart and Flutter dev
   @override
   void printUsage() {
     final executable = runner!.executableName;
-    print('''
+    log.stdout('''
 Usage: dart mcp-server [arguments]
 
 Note: This command is a wrapper around the dart_mcp_server package.

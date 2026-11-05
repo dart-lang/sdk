@@ -58,7 +58,6 @@ void f() {
     List<String>? descriptionRegexps,
     String? kind,
     List<String>? staticTypeRegexps, {
-    bool isLocal = false,
     bool isCore = false,
     String? docRegexp,
     bool isLiteral = false,
@@ -73,7 +72,7 @@ void f() {
       if (isCore) {
         expect(path.basename(info.containingLibraryPath!), equals('core.dart'));
         expect(info.containingLibraryName, equals('dart:core'));
-      } else if (isLocal || isLiteral) {
+      } else if (isLiteral) {
         expect(info.containingLibraryPath, isNull);
         expect(info.containingLibraryName, isNull);
       } else {
@@ -165,7 +164,6 @@ void f() {
       ['int', 'param'],
       'parameter',
       ['int'],
-      isLocal: true,
       docRegexp: 'Documentation for func',
     );
 
@@ -185,7 +183,6 @@ void f() {
       ['num', 'localVar'],
       'local variable',
       ['num'],
-      isLocal: true,
     );
 
     await checkHover(
@@ -222,7 +219,6 @@ void f() {
       ['int', 'param'],
       'parameter',
       ['int'],
-      isLocal: true,
       docRegexp: 'Documentation for func',
     );
 
@@ -242,7 +238,6 @@ void f() {
       ['num', 'localVar'],
       'local variable',
       ['num'],
-      isLocal: true,
       parameter: equals('dynamic value'),
     );
 

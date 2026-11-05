@@ -109,7 +109,7 @@ static ObjectPtr InvokeDartCode(uword entry_point,
                                 const Array& arguments_descriptor,
                                 const Array& arguments,
                                 Thread* thread) {
-  const uword stub = StubCode::InvokeDartCode().EntryPoint();
+  uword stub = StubCode::InvokeDartCode().EntryPoint();
 #if defined(DART_INCLUDE_SIMULATOR)
   if (FLAG_use_simulator) {
     return static_cast<ObjectPtr>(
@@ -118,6 +118,10 @@ static ObjectPtr InvokeDartCode(uword entry_point,
             static_cast<uword>(arguments.ptr()),
             reinterpret_cast<uword>(thread))));
   }
+#endif
+#if defined(HOST_ARCH_ARM64E)
+  stub = reinterpret_cast<uword>(ptrauth_sign_unauthenticated(
+      reinterpret_cast<void*>(stub), ptrauth_key_function_pointer, 0));
 #endif
   auto invoke = reinterpret_cast<invokestub>(stub);
   uword result =

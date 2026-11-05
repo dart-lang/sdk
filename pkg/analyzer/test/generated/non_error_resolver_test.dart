@@ -623,9 +623,9 @@ class A {
 ''');
   }
 
-  test_breakWithoutLabelInSwitch_language219() async {
+  test_breakWithoutLabelInSwitch_beforePatterns() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
+// %before-language-feature: patterns
 class A {
   void m(int i) {
     switch (i) {
@@ -1502,7 +1502,7 @@ test() {
   return f;
 }
 ''');
-    assertType(result.findNode.assignment('f = C()'), 'void Function()');
+    assertType(result.findNode.directAssignment('f = C()'), 'void Function()');
   }
 
   test_importDuplicatedLibraryName() async {
@@ -2214,9 +2214,9 @@ f(E e) {
 ''');
   }
 
-  test_missingEnumConstantInSwitch_all_language219() async {
+  test_missingEnumConstantInSwitch_all_beforePatterns() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
+// %before-language-feature: patterns
 enum E { A, B, C }
 
 f(E e) {
@@ -2242,9 +2242,9 @@ f(E e) {
 ''');
   }
 
-  test_missingEnumConstantInSwitch_default_language219() async {
+  test_missingEnumConstantInSwitch_default_beforePatterns() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
+// %before-language-feature: patterns
 enum E { A, B, C }
 
 f(E e) {
@@ -2367,9 +2367,15 @@ void test(Object x) {
   x; // demoted
 }
 ''');
-    assertType(result.findNode.simple('x; // promoted'), 'Object Function()');
-    assertType(result.findNode.assignment('x = B()'), 'B');
-    assertType(result.findNode.simple('x; // demoted'), 'Object');
+    assertType(
+      result.findNode.unqualifiedNameExpression('x; // promoted'),
+      'Object Function()',
+    );
+    assertType(result.findNode.directAssignment('x = B()'), 'B');
+    assertType(
+      result.findNode.unqualifiedNameExpression('x; // demoted'),
+      'Object',
+    );
   }
 
   test_nonBoolExpression_interfaceType() async {
@@ -2784,8 +2790,8 @@ import 'b.dart';
 @B.named8()
 main() {}
 ''');
-    expect(result.unit.declarations, hasLength(1));
-    var mainDecl = result.unit.declarations[0];
+    expect(result.unit.declarations2, hasLength(1));
+    var mainDecl = result.unit.declarations2[0];
     expect(mainDecl.metadata, hasLength(8));
     for (var metadata in mainDecl.metadata) {
       var value = metadata.elementAnnotation!.computeConstantValue()!;
@@ -3279,7 +3285,7 @@ class A {
     assertType(
       result.findNode
           .yieldStatement('yield* Stream.fromIterable([1]);')
-          .expression
+          .expression2
           .staticType,
       'Stream<int>',
     );
@@ -3295,7 +3301,7 @@ class A {
 ''');
 
     assertType(
-      result.findNode.yieldStatement('yield* [1];').expression.staticType,
+      result.findNode.yieldStatement('yield* [1];').expression2.staticType,
       'List<int>',
     );
   }

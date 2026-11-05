@@ -42,6 +42,11 @@ class Table with Indexable, Exportable implements Serializable {
   /// Export a table from the module.
   @override
   Export buildExport(String name) => TableExport(name, this);
+
+  void collectUsedTypes(Set<DefType> usedTypes) {
+    final defType = type.containedDefType;
+    if (defType != null) usedTypes.add(defType);
+  }
 }
 
 /// A table defined in a module.

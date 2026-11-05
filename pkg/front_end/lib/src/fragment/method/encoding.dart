@@ -36,6 +36,7 @@ import '../../source/source_type_parameter_builder.dart';
 import '../../source/stack_listener_impl.dart' show AsyncModifier;
 import '../../source/type_parameter_factory.dart';
 import '../fragment.dart';
+import '../../type_inference/context_allocation_strategy.dart';
 
 sealed class MethodEncoding implements InferredTypeListener {
   List<SourceNominalParameterBuilder>? get clonedAndDeclaredTypeParameters;
@@ -64,13 +65,12 @@ sealed class MethodEncoding implements InferredTypeListener {
     required Uri annotatableFileUri,
   });
 
-  void buildOutlineNode(
-    SourceLibraryBuilder libraryBuilder,
-    ProblemReporting problemReporting,
-    NameScheme nameScheme,
-    BuildNodesCallback f, {
-    required Reference reference,
-    required Reference? tearOffReference,
+  void buildOutlineNode({
+    required SourceLibraryBuilder libraryBuilder,
+    required ProblemReporting problemReporting,
+    required NameScheme nameScheme,
+    required BuildNodesCallback callback,
+    required MethodReferences? references,
     required bool isAbstractOrExternal,
     required List<TypeParameter>? classTypeParameters,
   });
@@ -98,10 +98,9 @@ sealed class MethodEncoding implements InferredTypeListener {
 
   void registerFunctionBody({
     required Statement? body,
-    required Scope? scope,
     required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
-    required ThisVariable? thisVariable,
+    required ScopeProviderInfo? scopeProviderInfo,
   });
 }
 
@@ -141,7 +140,7 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
 
   @override
   List<SourceNominalParameterBuilder>? get clonedAndDeclaredTypeParameters =>
-      _fragment.declaredTypeParameters?.builders;
+      _fragment.declaredTypeParameterBuilders;
 
   @override
   List<FormalParameterBuilder>? get formals => _fragment.declaredFormals;
@@ -199,7 +198,7 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
       metadata: _fragment.metadata,
       annotationsFileUri: _fragment.fileUri,
     );
-    _fragment.declaredTypeParameters?.builders.buildOutlineExpressions(
+    _fragment.declaredTypeParameterBuilders.buildOutlineExpressions(
       classHierarchy: classHierarchy,
       libraryBuilder: libraryBuilder,
       bodyBuilderContext: bodyBuilderContext,
@@ -214,13 +213,12 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
   }
 
   @override
-  void buildOutlineNode(
-    SourceLibraryBuilder libraryBuilder,
-    ProblemReporting problemReporting,
-    NameScheme nameScheme,
-    BuildNodesCallback f, {
-    required Reference reference,
-    required Reference? tearOffReference,
+  void buildOutlineNode({
+    required SourceLibraryBuilder libraryBuilder,
+    required ProblemReporting problemReporting,
+    required NameScheme nameScheme,
+    required BuildNodesCallback callback,
+    required MethodReferences? references,
     required bool isAbstractOrExternal,
     List<TypeParameter>? classTypeParameters,
   }) {
@@ -233,7 +231,7 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
     buildTypeParametersAndFormals(
       libraryBuilder,
       function,
-      _fragment.declaredTypeParameters?.builders,
+      _fragment.declaredTypeParameterBuilders,
       _fragment.declaredFormals,
       classTypeParameters: classTypeParameters,
       supportsTypeParameters: true,
@@ -265,7 +263,7 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
       memberName.name,
       _procedureKind,
       function,
-      reference: reference,
+      reference: references?.methodReference,
       fileUri: _fragment.fileUri,
       fileStartOffset: _fragment.startOffset,
       fileOffset: _fragment.nameOffset,
@@ -279,7 +277,7 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
     );
     memberName.attachMember(procedure);
 
-    f(kind: _builtMemberKind, member: procedure);
+    callback(kind: _builtMemberKind, member: procedure);
   }
 
   @override
@@ -288,7 +286,7 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
     TypeEnvironment typeEnvironment,
   ) {
     List<SourceNominalParameterBuilder>? typeParameters =
-        _fragment.declaredTypeParameters?.builders;
+        _fragment.declaredTypeParameterBuilders;
     if (typeParameters != null && typeParameters.isNotEmpty) {
       checkTypeParameterDependencies(problemReporting, typeParameters);
     }
@@ -307,7 +305,7 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
   ) {
     sourceClassBuilder.checkVarianceInTypeParameters(
       typeEnvironment,
-      _fragment.declaredTypeParameters?.builders,
+      _fragment.declaredTypeParameterBuilders,
     );
     sourceClassBuilder.checkVarianceInFormals(
       typeEnvironment,
@@ -324,7 +322,7 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
   @override
   int computeDefaultTypes(ComputeDefaultTypeContext context) {
     bool hasErrors = context.reportSimplicityIssuesForTypeParameters(
-      _fragment.declaredTypeParameters?.builders,
+      _fragment.declaredTypeParameterBuilders,
     );
     context.reportGenericFunctionTypesForFormals(_fragment.declaredFormals);
     if (_fragment.returnType is! OmittedTypeBuilder) {
@@ -336,7 +334,7 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
       );
     }
     return context.computeDefaultTypesForVariables(
-      _fragment.declaredTypeParameters?.builders,
+      _fragment.declaredTypeParameterBuilders,
       inErrorRecovery: hasErrors,
     );
   }
@@ -392,10 +390,9 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
   @override
   void registerFunctionBody({
     required Statement? body,
-    required Scope? scope,
     required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
-    required ThisVariable? thisVariable,
+    required ScopeProviderInfo? scopeProviderInfo,
   }) {
     if (body != null) {
       function.registerFunctionBody(
@@ -404,8 +401,7 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
         emittedValueType: emittedValueType,
       );
     }
-    function.scope = scope;
-    function.thisVariable = thisVariable?..parent = function;
+    function.registerScopeProviderInfo(scopeProviderInfo);
   }
 }
 
@@ -465,7 +461,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
           _fragment.declaredTypeParameters != null
       ? [
           ...?_clonedDeclarationTypeParameters,
-          ...?_fragment.declaredTypeParameters?.builders,
+          ...?_fragment.declaredTypeParameterBuilders,
         ]
       : null;
 
@@ -531,7 +527,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
       annotationsFileUri: _fragment.fileUri,
     );
 
-    _fragment.declaredTypeParameters?.builders.buildOutlineExpressions(
+    _fragment.declaredTypeParameterBuilders.buildOutlineExpressions(
       classHierarchy: classHierarchy,
       libraryBuilder: libraryBuilder,
       bodyBuilderContext: bodyBuilderContext,
@@ -559,13 +555,12 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
   }
 
   @override
-  void buildOutlineNode(
-    SourceLibraryBuilder libraryBuilder,
-    ProblemReporting problemReporting,
-    NameScheme nameScheme,
-    BuildNodesCallback f, {
-    required Reference reference,
-    required Reference? tearOffReference,
+  void buildOutlineNode({
+    required SourceLibraryBuilder libraryBuilder,
+    required ProblemReporting problemReporting,
+    required NameScheme nameScheme,
+    required BuildNodesCallback callback,
+    required MethodReferences? references,
     required bool isAbstractOrExternal,
     required List<TypeParameter>? classTypeParameters,
   }) {
@@ -588,7 +583,8 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
       isAbstractOrExternal ? null : extern.createEmptyStatement(),
       typeParameters: typeParameters,
       positionalParameters: [
-        _thisFormal.build(libraryBuilder).astVariable as PositionalParameter,
+        _thisFormal.build(libraryBuilder).functionParameter
+            as PositionalParameter,
       ],
       asyncMarker: _fragment.asyncModifier.kind,
       fileOffset: _fragment.formalsOffset,
@@ -597,7 +593,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
     buildTypeParametersAndFormals(
       libraryBuilder,
       function,
-      _fragment.declaredTypeParameters?.builders,
+      _fragment.declaredTypeParameterBuilders,
       _fragment.declaredFormals,
       classTypeParameters: classTypeParameters,
       supportsTypeParameters: true,
@@ -629,7 +625,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
       memberName.name,
       ProcedureKind.Method,
       function,
-      reference: reference,
+      reference: references?.methodReference,
       fileUri: _fragment.fileUri,
       fileStartOffset: _fragment.startOffset,
       fileOffset: _fragment.nameOffset,
@@ -647,11 +643,15 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
       _extensionTearOff = _buildExtensionTearOff(
         procedure,
         nameScheme,
-        tearOffReference,
+        references?.tearOffReference,
       );
     }
 
-    f(kind: _builtMemberKind, member: procedure, tearOff: _extensionTearOff);
+    callback(
+      kind: _builtMemberKind,
+      member: procedure,
+      tearOff: _extensionTearOff,
+    );
   }
 
   @override
@@ -660,7 +660,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
     TypeEnvironment typeEnvironment,
   ) {
     List<SourceNominalParameterBuilder>? typeParameters =
-        _fragment.declaredTypeParameters?.builders;
+        _fragment.declaredTypeParameterBuilders;
     if (typeParameters != null && typeParameters.isNotEmpty) {
       checkTypeParameterDependencies(problemReporting, typeParameters);
     }
@@ -680,7 +680,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
   ) {
     sourceClassBuilder.checkVarianceInTypeParameters(
       typeEnvironment,
-      _fragment.declaredTypeParameters?.builders,
+      _fragment.declaredTypeParameterBuilders,
     );
     sourceClassBuilder.checkVarianceInFormals(
       typeEnvironment,
@@ -697,7 +697,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
   @override
   int computeDefaultTypes(ComputeDefaultTypeContext context) {
     bool hasErrors = context.reportSimplicityIssuesForTypeParameters(
-      _fragment.declaredTypeParameters?.builders,
+      _fragment.declaredTypeParameterBuilders,
     );
     context.reportGenericFunctionTypesForFormals(_fragment.declaredFormals);
     if (_fragment.returnType is! OmittedTypeBuilder) {
@@ -717,7 +717,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
         //  required and unnecessary.
         // ignore: unnecessary_non_null_assertion
         ..._clonedDeclarationTypeParameters!,
-        ..._fragment.declaredTypeParameters!.builders,
+        ..._fragment.declaredTypeParameterBuilders!,
       ], inErrorRecovery: hasErrors);
     } else if (_clonedDeclarationTypeParameters != null) {
       return context.computeDefaultTypesForVariables(
@@ -726,7 +726,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
       );
     } else {
       return context.computeDefaultTypesForVariables(
-        _fragment.declaredTypeParameters?.builders,
+        _fragment.declaredTypeParameterBuilders,
         inErrorRecovery: hasErrors,
       );
     }
@@ -784,7 +784,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
     return _extensionTearOffParameterMap?[_fragment
         .declaredFormals![index]
         .variable
-        .astVariable];
+        .functionParameter];
   }
 
   @override
@@ -795,10 +795,9 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
   @override
   void registerFunctionBody({
     required Statement? body,
-    required Scope? scope,
     required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
-    required ThisVariable? thisVariable,
+    required ScopeProviderInfo? scopeProviderInfo,
   }) {
     if (body != null) {
       function.registerFunctionBody(
@@ -807,10 +806,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
         emittedValueType: emittedValueType,
       );
     }
-    function.scope = scope;
-    function.thisVariable =
-        // Coverage-ignore(suite): Not run.
-        thisVariable?..parent = function;
+    function.registerScopeProviderInfo(scopeProviderInfo);
   }
 
   /// Creates a top level function that creates a tear off of an extension
@@ -886,7 +882,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
       DartType type,
     ) {
       PositionalParameter newParameter = new PositionalParameter(
-        cosmeticName: parameter.cosmeticName,
+        parameterName: parameter.parameterName,
         type: type,
         isFinal: parameter.isFinal,
         isLowered: parameter.isLowered,

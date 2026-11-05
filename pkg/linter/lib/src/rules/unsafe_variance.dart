@@ -88,12 +88,9 @@ class _UnsafeVarianceChecker extends VarianceChecker {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final AnalysisRule rule;
-  final RuleContext context;
-  final VarianceChecker checker;
-
-  new(this.rule, this.context) : checker = _UnsafeVarianceChecker(rule);
+class _Visitor(final AnalysisRule rule, final RuleContext context)
+    extends SimpleAstVisitor<void> {
+  final VarianceChecker checker = _UnsafeVarianceChecker(rule);
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {

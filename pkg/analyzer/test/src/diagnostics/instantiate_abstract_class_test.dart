@@ -27,7 +27,7 @@ void f() {
 // [diag.instantiateAbstractClass] Abstract classes can't be instantiated.
 }''');
 
-    assertType(result.findNode.instanceCreation('const A<int>'), 'A<int>');
+    assertType(result.findNode.constructorInvocation('const A<int>'), 'A<int>');
   }
 
   test_const_simple() async {
@@ -54,7 +54,7 @@ void f() {
 }
 ''');
 
-    assertType(result.findNode.instanceCreation('new A<int>'), 'A<int>');
+    assertType(result.findNode.constructorInvocation('new A<int>'), 'A<int>');
   }
 
   test_new_interfaceTypeTypedef() async {
@@ -90,7 +90,7 @@ void f() {
 }
 ''');
 
-    assertType(result.findNode.instanceCreation('A<int>'), 'A<int>');
+    assertType(result.findNode.constructorInvocation('A<int>'), 'A<int>');
   }
 
   test_noKeyword_interfaceTypeTypedef() async {

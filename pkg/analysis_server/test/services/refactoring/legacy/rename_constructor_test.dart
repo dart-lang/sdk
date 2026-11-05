@@ -99,8 +99,7 @@ void f() {
     assertRefactoringStatus(
       status,
       RefactoringProblemSeverity.FATAL,
-      expectedMessage:
-          "The constructor 'String.fromCharCodes' is defined in the SDK, so cannot be renamed.",
+      expectedMessage: "The constructor 'String.fromCharCodes' is defined in the SDK, so cannot be renamed.",
     );
   }
 
@@ -166,10 +165,66 @@ class A {
     );
   }
 
+  Future<void> test_commentReference_prefixed_add() async {
+    await indexTestUnit('''
+import '' as self;
+/// [self.A.new]
+class A {
+  A^();
+}
+''');
+    _createConstructorDeclarationRefactoring();
+    refactoring.newName = 'newName';
+    return assertSuccessfulRefactoring('''
+import '' as self;
+/// [self.A.newName]
+class A {
+  A.newName();
+}
+''');
+  }
+
+  Future<void> test_commentReference_prefixed_change() async {
+    await indexTestUnit('''
+import '' as self;
+/// [self.A.test]
+class A {
+  A.^test();
+}
+''');
+    _createConstructorDeclarationRefactoring();
+    refactoring.newName = 'newName';
+    return assertSuccessfulRefactoring('''
+import '' as self;
+/// [self.A.newName]
+class A {
+  A.newName();
+}
+''');
+  }
+
+  Future<void> test_commentReference_prefixed_remove() async {
+    await indexTestUnit('''
+import '' as self;
+/// [self.A.test]
+class A {
+  A.^test();
+}
+''');
+    _createConstructorDeclarationRefactoring();
+    refactoring.newName = '';
+    return assertSuccessfulRefactoring('''
+import '' as self;
+/// [self.A.new]
+class A {
+  A();
+}
+''');
+  }
+
   Future<void> test_createChange_add() async {
     await indexTestUnit('''
-// ignore: deprecated_new_in_comment_reference
-/// Documentation for [new A] and [A.new]
+/// Documentation for [A.new]
 class A {
   A^() {}
   factory A._() = A;
@@ -190,8 +245,7 @@ void f() {
     // validate change
     refactoring.newName = 'newName';
     return assertSuccessfulRefactoring('''
-// ignore: deprecated_new_in_comment_reference
-/// Documentation for [new A.newName] and [A.newName]
+/// Documentation for [A.newName]
 class A {
   A.newName() {}
   factory A._() = A.newName;
@@ -208,8 +262,7 @@ void f() {
 
   Future<void> test_createChange_add_toSynthetic() async {
     await indexTestUnit('''
-// ignore: deprecated_new_in_comment_reference
-/// Documentation for [new A] and [A.new]
+/// Documentation for [A.new]
 class A {
   int field = 0;
 }
@@ -229,8 +282,7 @@ void f() {
     // validate change
     refactoring.newName = 'newName';
     return assertSuccessfulRefactoring('''
-// ignore: deprecated_new_in_comment_reference
-/// Documentation for [new A.newName] and [A.newName]
+/// Documentation for [A.newName]
 class A {
   int field = 0;
 
@@ -248,8 +300,7 @@ void f() {
 
   Future<void> test_createChange_change_inBody_factory() async {
     await indexTestUnit('''
-// ignore: deprecated_new_in_comment_reference
-/// Documentation for [A.test] and [new A.test]
+/// Documentation for [A.test]
 class A {
   new () {}
   factory ^test() = A;
@@ -267,8 +318,7 @@ void f() {
     // validate change
     refactoring.newName = 'newName';
     return assertSuccessfulRefactoring('''
-// ignore: deprecated_new_in_comment_reference
-/// Documentation for [A.newName] and [new A.newName]
+/// Documentation for [A.newName]
 class A {
   new () {}
   factory newName() = A;
@@ -282,8 +332,7 @@ void f() {
 
   Future<void> test_createChange_change_inBody_full() async {
     await indexTestUnit('''
-// ignore: deprecated_new_in_comment_reference
-/// Documentation for [A.test] and [new A.test]
+/// Documentation for [A.test]
 class A {
   A.^test() {}
   factory A._() = A.test;
@@ -304,8 +353,7 @@ void f() {
     // validate change
     refactoring.newName = 'newName';
     return assertSuccessfulRefactoring('''
-// ignore: deprecated_new_in_comment_reference
-/// Documentation for [A.newName] and [new A.newName]
+/// Documentation for [A.newName]
 class A {
   A.newName() {}
   factory A._() = A.newName;
@@ -322,8 +370,7 @@ void f() {
 
   Future<void> test_createChange_change_inBody_new() async {
     await indexTestUnit('''
-// ignore: deprecated_new_in_comment_reference
-/// Documentation for [A.test] and [new A.test]
+/// Documentation for [A.test]
 class A {
   new ^test() {}
   factory A._() = A.test;
@@ -344,8 +391,7 @@ void f() {
     // validate change
     refactoring.newName = 'newName';
     return assertSuccessfulRefactoring('''
-// ignore: deprecated_new_in_comment_reference
-/// Documentation for [A.newName] and [new A.newName]
+/// Documentation for [A.newName]
 class A {
   new newName() {}
   factory A._() = A.newName;
@@ -362,8 +408,7 @@ void f() {
 
   Future<void> test_createChange_change_primary() async {
     await indexTestUnit('''
-// ignore: deprecated_new_in_comment_reference
-/// Documentation for [A.test] and [new A.test]
+/// Documentation for [A.test]
 class A.^test() {
   factory A._() = A.test;
 }
@@ -383,8 +428,7 @@ void f() {
     // validate change
     refactoring.newName = 'newName';
     return assertSuccessfulRefactoring('''
-// ignore: deprecated_new_in_comment_reference
-/// Documentation for [A.newName] and [new A.newName]
+/// Documentation for [A.newName]
 class A.newName() {
   factory A._() = A.newName;
 }
@@ -544,8 +588,7 @@ void f() {
 
   Future<void> test_createChange_remove() async {
     await indexTestUnit('''
-// ignore: deprecated_new_in_comment_reference
-/// Documentation for [A.test] and [new A.test]
+/// Documentation for [A.test]
 class A {
   A.^test() {}
   factory A._() = A.test;
@@ -566,8 +609,7 @@ void f() {
     // validate change
     refactoring.newName = '';
     return assertSuccessfulRefactoring('''
-// ignore: deprecated_new_in_comment_reference
-/// Documentation for [A] and [new A]
+/// Documentation for [A.new]
 class A {
   A() {}
   factory A._() = A;
@@ -1138,7 +1180,7 @@ void f() {
     // validate change
     refactoring.newName = '';
     return assertSuccessfulRefactoring('''
-/// [C]
+/// [C.new]
 class C {
   new _();
   factory() => C._();
@@ -1235,7 +1277,7 @@ void f() {
     // validate change
     refactoring.newName = '';
     return assertSuccessfulRefactoring('''
-/// [C]
+/// [C.new]
 class C {
   new();
 }
@@ -1331,7 +1373,7 @@ void f() {
     // validate change
     refactoring.newName = '';
     return assertSuccessfulRefactoring('''
-/// [C]
+/// [C.new]
 class C {
   C();
 }
@@ -1432,7 +1474,7 @@ void f() {
     // validate change
     refactoring.newName = '';
     return assertSuccessfulRefactoring('''
-/// [E]
+/// [E.new]
 extension type E.named(int it) {
   E() : this.named(0);
   E.other() : this();
@@ -1529,7 +1571,7 @@ void f() {
     // validate change
     refactoring.newName = '';
     return assertSuccessfulRefactoring('''
-/// [E]
+/// [E.new]
 extension type E(int it) {
   E.other() : this(0);
 }
@@ -1594,7 +1636,7 @@ class _RenameConstructorTest extends RenameRefactoringTest {
     } else {
       setPositionOrRange(index);
     }
-    return NodeLocator2(
+    return NodeLocator(
       offset,
       offset + length,
     ).searchWithin(testUnit)?.thisOrAncestorOfType<T>();

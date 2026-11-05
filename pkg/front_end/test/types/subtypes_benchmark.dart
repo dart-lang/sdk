@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:convert" show json, utf8;
+import "dart:convert" show json, ByteConversionSink;
 import "dart:io" show File, gzip;
+import "dart:typed_data";
 
+import "package:_fe_analyzer_shared/src/scanner/characters.dart";
 import "package:front_end/src/api_prototype/compiler_options.dart"
     show CompilerOptions;
 import "package:front_end/src/base/compiler_context.dart" show CompilerContext;
@@ -48,53 +50,186 @@ class SubtypeCheck {
   }
 }
 
-SubtypesBenchmark parseBenchMark(String source) {
-  Map<dynamic, dynamic> data = json.decode(source);
-  List<dynamic> classes = data["classes"];
+class ParseBenchMark extends ByteConversionSink {
+  bool _closed = false;
+  late TypeParserEnvironment environment;
+  late Library library;
 
-  // Ensure the classes required by the subtyping algorithm implementation are
-  // in 'dart:core'.
-  List<String> coreClassesForSubtyping = [
-    "class Object;",
-    "class Function extends Object;",
-    "class Record extends Object;",
-  ];
-  for (dynamic classEntry in classes) {
-    coreClassesForSubtyping.remove(classEntry);
-  }
-  classes.addAll(coreClassesForSubtyping);
-
-  Uri uri = Uri.parse("dart:core");
-  TypeParserEnvironment environment = new TypeParserEnvironment(uri, uri);
-  Library library = parseLibrary(
-    uri,
-    classes.join("\n"),
-    environment: environment,
-  );
-  List<dynamic> checks = data["checks"];
   List<SubtypeCheck> subtypeChecks = <SubtypeCheck>[];
-  for (Map<dynamic, dynamic> check in checks) {
+  Map<String, DartType> _sTypeDeduplication = {};
+  Map<String, DartType> _tTypeDeduplication = {};
+
+  final BytesBuilder _data = new BytesBuilder();
+  int _mapNesting = 0;
+  int _listNesting = 0;
+  bool _inString = false;
+  bool _collect = false;
+  _Found _foundClasses = _Found.NotFound;
+  _Found _foundChecks = _Found.NotFound;
+
+  void _foundClass(List classes) {
+    // Ensure the classes required by the subtyping algorithm implementation are
+    // in 'dart:core'.
+    List<String> coreClassesForSubtyping = [
+      "class Object;",
+      "class Function extends Object;",
+      "class Record extends Object;",
+    ];
+    for (dynamic classEntry in classes) {
+      coreClassesForSubtyping.remove(classEntry);
+    }
+    classes.addAll(coreClassesForSubtyping);
+
+    Uri uri = Uri.parse("dart:core");
+    environment = new TypeParserEnvironment(uri, uri);
+    library = parseLibrary(uri, classes.join("\n"), environment: environment);
+  }
+
+  void _processCheck(Map<dynamic, dynamic> check) {
     String kind = check["kind"];
     List<dynamic> arguments = check["arguments"];
     String sSource = arguments[0];
     String tSource = arguments[1];
-    if (sSource.contains("?")) continue;
-    if (tSource.contains("?")) continue;
-    if (sSource.contains("⊥")) continue;
-    if (tSource.contains("⊥")) continue;
-    TypeParserEnvironment localEnvironment = environment;
+    if (sSource.contains("?")) return;
+    if (tSource.contains("?")) return;
+    DartType s;
+    DartType t;
     if (arguments.length > 2) {
       List<dynamic> typeParametersSource = arguments[2];
-      localEnvironment = environment.extendWithTypeParameters(
-        "${typeParametersSource.join(', ')}",
-      );
+      TypeParserEnvironment localEnvironment = environment
+          .extendWithTypeParameters("${typeParametersSource.join(', ')}");
+      s = localEnvironment.parseType(sSource);
+      t = localEnvironment.parseType(tSource);
+    } else {
+      // Use two different caches so that it can't shortcut with identical.
+      s = _sTypeDeduplication[sSource] ??= environment.parseType(sSource);
+      t = _tTypeDeduplication[tSource] ??= environment.parseType(tSource);
     }
-    DartType s = localEnvironment.parseType(sSource);
-    DartType t = localEnvironment.parseType(tSource);
     subtypeChecks.add(new SubtypeCheck(s, t, kind == "isSubtype"));
   }
-  return new SubtypesBenchmark(library, subtypeChecks);
+
+  SubtypesBenchmark parseBenchMark(Uint8List? bytes) {
+    if (bytes!.length > 3 &&
+        bytes[0] == 0x1f &&
+        bytes[1] == 0x8b &&
+        bytes[2] == 0x08) {
+      ByteConversionSink gzipDecoder = gzip.decoder.startChunkedConversion(
+        this,
+      );
+      gzipDecoder.add(bytes);
+      gzipDecoder.close();
+    } else {
+      add(bytes);
+      close();
+    }
+
+    if (!_closed) throw "Not closed?!?";
+    if (_foundChecks != _Found.Processed) throw "Didn't find 'checks'";
+    if (subtypeChecks.isEmpty) throw "Found no checks.";
+
+    return new SubtypesBenchmark(library, subtypeChecks);
+  }
+
+  dynamic _decode() {
+    assert(_collect);
+    dynamic result = json.decode(String.fromCharCodes(_data.takeBytes()));
+    _collect = false;
+    assert(_data.isEmpty);
+    return result;
+  }
+
+  void _startCollect(int byte) {
+    assert(!_collect);
+    assert(_data.isEmpty);
+    _collect = true;
+    _data.addByte(byte);
+  }
+
+  bool _atNest(int map, int list) {
+    return _mapNesting == map && _listNesting == list;
+  }
+
+  void _processChunk(List<int> bytes) {
+    // We know the data. It's all ascii, looks like this:
+    // {
+    //   "classes": [
+    //     lots of strings
+    //   ],
+    //   "checks": [
+    //     lots of maps
+    //   ]
+    // }
+    // and there are no escaping etc.
+
+    // Though, for good measure:
+    for (int i = 0; i < bytes.length; i++) {
+      if (bytes[i] >= 128) throw "Unexpected input: ${bytes[i]}";
+    }
+
+    // Process this chunk. Find all of "classes", json decode and process it.
+    // Find each object in the "checks" list, json decode and process it
+    for (int i = 0; i < bytes.length; i++) {
+      int char = bytes[i];
+      if (_collect) _data.addByte(char);
+      if (!_inString) {
+        if (char == $OPEN_CURLY_BRACKET) {
+          _mapNesting++;
+          if (_foundChecks == _Found.Found && _atNest(2, 1)) {
+            _startCollect(char);
+          }
+        } else if (char == $CLOSE_CURLY_BRACKET) {
+          _mapNesting--;
+          if (_foundChecks == _Found.Found && _atNest(1, 1)) {
+            assert(_foundClasses == _Found.Processed);
+            _processCheck(_decode());
+          }
+        } else if (char == $OPEN_SQUARE_BRACKET) {
+          _listNesting++;
+          if (_foundClasses == _Found.Found && _atNest(1, 1)) {
+            _startCollect(char);
+          }
+        } else if (char == $CLOSE_SQUARE_BRACKET) {
+          _listNesting--;
+          if (_foundClasses == _Found.Found && _atNest(1, 0)) {
+            _foundClasses = _Found.Processed;
+            _foundClass(_decode());
+          } else if (_foundChecks == _Found.Found && _atNest(1, 0)) {
+            _foundChecks = _Found.Processed;
+          }
+        } else if (char == $DQ) {
+          if (_atNest(1, 0)) {
+            _startCollect(char);
+          }
+          _inString = true;
+        }
+      } else if (char == $DQ) {
+        if (_atNest(1, 0)) {
+          String s = _decode();
+          if (s == "classes" && _foundClasses == _Found.NotFound) {
+            _foundClasses = _Found.Found;
+          } else if (s == "checks" && _foundChecks == _Found.NotFound) {
+            _foundChecks = _Found.Found;
+          } else {
+            throw "Unexpected data: $s";
+          }
+        }
+        _inString = false;
+      }
+    }
+  }
+
+  @override
+  void add(List<int> chunk) {
+    _processChunk(chunk);
+  }
+
+  @override
+  void close() {
+    _closed = true;
+  }
 }
+
+enum _Found { NotFound, Found, Processed }
 
 void performKernelChecks(
   List<SubtypeCheck> checks,
@@ -127,14 +262,9 @@ Future<void> run(Uri benchmarkInput, String name) async {
   final Ticker ticker = new Ticker(isVerbose: false);
   Stopwatch kernelWatch = new Stopwatch();
   Stopwatch builderWatch = new Stopwatch();
-  List<int>? bytes = await new File.fromUri(benchmarkInput).readAsBytes();
-  if (bytes.length > 3) {
-    if (bytes[0] == 0x1f && bytes[1] == 0x8b && bytes[2] == 0x08) {
-      bytes = gzip.decode(bytes);
-    }
-  }
-  SubtypesBenchmark bench = parseBenchMark(utf8.decode(bytes));
-  bytes = null;
+  SubtypesBenchmark bench = new ParseBenchMark().parseBenchMark(
+    new File.fromUri(benchmarkInput).readAsBytesSync(),
+  );
   ticker.logMs("Parsed benchmark file");
   Component c = new Component(libraries: [bench.library]);
   CoreTypes coreTypes = new CoreTypes(c);

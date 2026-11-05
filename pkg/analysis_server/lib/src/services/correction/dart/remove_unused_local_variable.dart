@@ -346,6 +346,11 @@ class RemoveUnusedLocalVariable extends ResolvedCorrectionProducer {
       return [range.startStart(node, node.rightHandSide)];
     }
 
+    // The value of the assignment is used (for example as the body of
+    // `() => v = 0`), so keep the right-hand side.
+    if (parent is! ExpressionStatement) {
+      return [range.startStart(node, node.rightHandSide)];
+    }
     return [utils.getLinesRange(range.node(parent))];
   }
 

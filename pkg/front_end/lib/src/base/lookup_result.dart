@@ -3,13 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:front_end/src/codes/diagnostic.dart' as diag;
-import 'package:kernel/ast.dart';
 
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/member_builder.dart';
 import '../codes/cfe_codes.dart';
-import '../kernel/external_ast_helper.dart' as extern;
+import '../source/check_helper.dart';
 import 'compiler_context.dart';
 
 abstract class LookupResult {
@@ -45,7 +44,7 @@ abstract class LookupResult {
     return message.withLocation(fileUri, fileOffset, length);
   }
 
-  static InvalidExpression createDuplicateExpression(
+  static ErrorText createDuplicateErrorText(
     LookupResult lookupResult, {
     required CompilerContext context,
     DeclarationBuilder? enclosingDeclaration,
@@ -67,7 +66,7 @@ abstract class LookupResult {
           CfeSeverity.error,
         )
         .plain;
-    return extern.createInvalidExpression(text, fileOffset: fileOffset);
+    return new ErrorText(message: text, fileOffset: fileOffset);
   }
 
   static LookupResult? createResult(

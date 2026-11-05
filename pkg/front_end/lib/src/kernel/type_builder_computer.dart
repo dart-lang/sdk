@@ -251,10 +251,10 @@ class _TypeBuilderComputerHelper
       if (i >= node.requiredParameterCount) {
         kind = FormalParameterKind.optionalPositional;
       }
-      formals[i] = new FunctionTypeParameterBuilder(
-        kind,
-        type,
-        /* name = */ null,
+      formals[i] = new ComputedParameterBuilder(
+        kind: kind,
+        type: type,
+        name: null,
       );
     }
     for (int i = 0; i < namedParameters.length; i++) {
@@ -263,8 +263,11 @@ class _TypeBuilderComputerHelper
       FormalParameterKind kind = parameter.isRequired
           ? FormalParameterKind.requiredNamed
           : FormalParameterKind.optionalNamed;
-      formals[i + positionalParameters.length] =
-          new FunctionTypeParameterBuilder(kind, type, parameter.name);
+      formals[i + positionalParameters.length] = new ComputedParameterBuilder(
+        kind: kind,
+        type: type,
+        name: parameter.name,
+      );
     }
     return new FunctionTypeBuilderImpl(
       returnType,

@@ -635,6 +635,35 @@
       </field>
     </params>
   </notification>
+  <request method="setConfigurations">
+    <p>
+      Set the configurations for the plugins running in this isolate.
+    </p>
+    <params>
+      <field name="configurations">
+        <map>
+          <key>
+            <ref>FilePath</ref>
+          </key>
+          <value>
+            <map>
+              <key>
+                <ref>String</ref>
+              </key>
+              <value>
+                <ref>PluginConfiguration</ref>
+              </value>
+            </map>
+          </value>
+        </map>
+        <p>
+          A table mapping the path of the directory to a map of plugin names
+          to their configurations.
+        </p>
+      </field>
+    </params>
+    <result/>
+  </request>
 </domain>
 <domain name="completion">
   <p>Deprecated - no longer supported.</p>
@@ -1016,6 +1045,32 @@
         <p>
           The absolute path of the analysis options file that should be used to
           control the analysis of the files in the context.
+        </p>
+      </field>
+    </object>
+  </type>
+  <type name="PluginConfiguration">
+    <p>
+      The configuration for a single plugin in a specific directory.
+    </p>
+    <object>
+      <field name="enabled">
+        <ref>bool</ref>
+        <p>
+          True if the plugin is enabled for this directory.
+        </p>
+      </field>
+      <field name="diagnosticSeverities">
+        <map>
+          <key>
+            <ref>String</ref>
+          </key>
+          <value>
+            <ref>String</ref>
+          </value>
+        </map>
+        <p>
+          A map from diagnostic codes to their configured severities.
         </p>
       </field>
     </object>

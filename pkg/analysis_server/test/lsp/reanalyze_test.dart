@@ -15,12 +15,21 @@ void main() {
 
 @reflectiveTest
 class ReanalyzeTest extends AbstractLspAnalysisServerTest {
+  @override
+  void setUp() {
+    super.setUp();
+
+    // We use progress notifications to verify analysis happened after executing
+    // the command.
+    setWorkDoneProgressSupport();
+  }
+
   Future<void> test_reanalyze() async {
     const initialContents = 'int a = 1;';
     newFile(mainFilePath, initialContents);
 
     await initialize();
-    await initialAnalysis;
+    await workspaceAnalysisComplete();
 
     // Set up futures to wait for the new events.
     var startNotification = waitForAnalysisStart();

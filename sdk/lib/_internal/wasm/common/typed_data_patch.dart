@@ -126,29 +126,129 @@ class Float64List {
 @patch
 class Int32x4List {
   @patch
-  factory Int32x4List(int length) = NaiveInt32x4List;
+  factory Int32x4List(int length) = I32x4List;
 
   @patch
-  factory Int32x4List.fromList(List<Int32x4> elements) =
-      NaiveInt32x4List.fromList;
+  factory Int32x4List.fromList(List<Int32x4> elements) =>
+      I32x4List(elements.length)..setRange(0, elements.length, elements);
 }
 
 @patch
 class Float32x4List {
   @patch
-  factory Float32x4List(int length) = NaiveFloat32x4List;
+  factory Float32x4List(int length) = F32x4List;
 
   @patch
-  factory Float32x4List.fromList(List<Float32x4> elements) =
-      NaiveFloat32x4List.fromList;
+  factory Float32x4List.fromList(List<Float32x4> elements) =>
+      F32x4List(elements.length)..setRange(0, elements.length, elements);
 }
 
 @patch
 class Float64x2List {
   @patch
-  factory Float64x2List(int length) = NaiveFloat64x2List;
+  factory Float64x2List(int length) = F64x2List;
 
   @patch
-  factory Float64x2List.fromList(List<Float64x2> elements) =
-      NaiveFloat64x2List.fromList;
+  factory Float64x2List.fromList(List<Float64x2> elements) =>
+      F64x2List(elements.length)..setRange(0, elements.length, elements);
 }
+
+@patch
+@pragma('wasm:prefer-inline')
+bool _uint8ListRangeEquals(
+  Uint8List a,
+  int aStart,
+  Uint8List b,
+  int bStart,
+  int count,
+) => wasmI8ListRangeEquals(a, aStart, b, bStart, count);
+
+@patch
+@pragma('wasm:prefer-inline')
+bool _int8ListRangeEquals(
+  Int8List a,
+  int aStart,
+  Int8List b,
+  int bStart,
+  int count,
+) => wasmI8ListRangeEquals(a, aStart, b, bStart, count);
+
+@patch
+@pragma('wasm:prefer-inline')
+bool _uint8ClampedListRangeEquals(
+  Uint8ClampedList a,
+  int aStart,
+  Uint8ClampedList b,
+  int bStart,
+  int count,
+) => wasmI8ListRangeEquals(a, aStart, b, bStart, count);
+
+@patch
+@pragma('wasm:prefer-inline')
+bool _uint16ListRangeEquals(
+  Uint16List a,
+  int aStart,
+  Uint16List b,
+  int bStart,
+  int count,
+) => wasmI16ListRangeEquals(a, aStart, b, bStart, count);
+
+@patch
+@pragma('wasm:prefer-inline')
+bool _int16ListRangeEquals(
+  Int16List a,
+  int aStart,
+  Int16List b,
+  int bStart,
+  int count,
+) => wasmI16ListRangeEquals(a, aStart, b, bStart, count);
+
+@patch
+@pragma('wasm:prefer-inline')
+bool _uint32ListRangeEquals(
+  Uint32List a,
+  int aStart,
+  Uint32List b,
+  int bStart,
+  int count,
+) => wasmI32ListRangeEquals(a, aStart, b, bStart, count);
+
+@patch
+@pragma('wasm:prefer-inline')
+bool _int32ListRangeEquals(
+  Int32List a,
+  int aStart,
+  Int32List b,
+  int bStart,
+  int count,
+) => wasmI32ListRangeEquals(a, aStart, b, bStart, count);
+
+@patch
+@pragma('wasm:prefer-inline')
+bool _uint64ListRangeEquals(
+  Uint64List a,
+  int aStart,
+  Uint64List b,
+  int bStart,
+  int count,
+) => wasmI64ListRangeEquals(a, aStart, b, bStart, count);
+
+@patch
+@pragma('wasm:prefer-inline')
+bool _int64ListRangeEquals(
+  Int64List a,
+  int aStart,
+  Int64List b,
+  int bStart,
+  int count,
+) => wasmI64ListRangeEquals(a, aStart, b, bStart, count);
+
+@patch
+@pragma('wasm:prefer-inline')
+bool _byteDataRangeEquals(
+  ByteData a,
+  int aStart,
+  ByteData b,
+  int bStart,
+  int count,
+) => wasmByteDataRangeEquals(a, aStart, b, bStart, count);

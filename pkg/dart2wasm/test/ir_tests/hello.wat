@@ -1,12 +1,12 @@
 (module $M
   (type $#Top (struct
-    (field $field0 i32)))
+    (field $#classId i32)))
   (type $JSExternWrapper (sub $#Top (struct
-    (field $field0 i32)
+    (field $#classId i32)
     (field $_externRef externref))))
   (global $".hello world" (import "" "hello world") (ref extern))
   (global $"\"hello world\"" (ref $JSExternWrapper)
-    (i32.const 62)
+    (i32.const 64)
     (global.get $".hello world")
     (struct.new $JSExternWrapper))
   (@binaryen.inline 0)

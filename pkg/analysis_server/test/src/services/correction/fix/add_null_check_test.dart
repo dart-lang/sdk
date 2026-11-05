@@ -47,7 +47,7 @@ void f(List<int>? l) {
 void f(List<int>? l) {
   l![0] + 1;
 }
-''', matchFixMessage: "Replace '?' with '!' in invocation");
+''', fixMessageContains: "Replace '?' with '!' in invocation");
   }
 
   Future<void> test_indexExpression_notLast() async {
@@ -539,9 +539,6 @@ String? f(String? s) => s!..hashCode..length;
   }
 
   Future<void> test_spreadList() async {
-    // expected code contains !] which looks like a range.
-    allowTestCodeShorthand = false;
-
     await resolveTestCode('''
 void f (List<String>? args) {
   [...args];
@@ -549,7 +546,7 @@ void f (List<String>? args) {
 ''');
     await assertHasFix('''
 void f (List<String>? args) {
-  [...args!];
+  [...args!/**/];
 }
 ''');
   }

@@ -367,7 +367,7 @@ class _TypeCollector {
   }
 
   void visitParameters(FormalParameterList parameterList) {
-    for (var parameter in parameterList.parameters) {
+    for (var parameter in parameterList.allFormalParameters) {
       visitParameter(parameter);
     }
   }

@@ -8,31 +8,45 @@ import 'procedure_attributes.dart';
 
 // Information associated with a selector, used by the dispatch table generator.
 class TableSelectorInfo {
-  static const int kCalledOnNullBit = 1 << 0;
-  static const int kTornOffBit = 1 << 1;
+  static const int _calledOnNullBit = 1 << 0;
+  static const int _tornOffBit = 1 << 1;
+  static const int _callCountShift = 2;
+  static const int _flagsMask = (1 << _callCountShift) - 1;
+  static const int _callCountBits = 30 - _callCountShift;
+  static const int _maxCallCount = (1 << _callCountBits) - 1;
 
-  int callCount;
-  int flags;
+  int _flagsAndCallCount;
 
-  bool get calledOnNull => (flags & kCalledOnNullBit) != 0;
+  bool get calledOnNull => (_flagsAndCallCount & _calledOnNullBit) != 0;
   set calledOnNull(bool value) {
-    flags = value ? (flags | kCalledOnNullBit) : (flags & ~kCalledOnNullBit);
+    _flagsAndCallCount = value
+        ? (_flagsAndCallCount | _calledOnNullBit)
+        : (_flagsAndCallCount & ~_calledOnNullBit);
   }
 
-  bool get tornOff => (flags & kTornOffBit) != 0;
+  bool get tornOff => (_flagsAndCallCount & _tornOffBit) != 0;
   set tornOff(bool value) {
-    flags = value ? (flags | kTornOffBit) : (flags & ~kTornOffBit);
+    _flagsAndCallCount = value
+        ? (_flagsAndCallCount | _tornOffBit)
+        : (_flagsAndCallCount & ~_tornOffBit);
   }
 
-  TableSelectorInfo() : callCount = 0, flags = 0;
+  int get callCount => _flagsAndCallCount >>> _callCountShift;
+  set callCount(int value) {
+    if (value < 0 || value > _maxCallCount) {
+      throw RangeError.range(value, 0, _maxCallCount, 'callCount');
+    }
+    _flagsAndCallCount =
+        (value << _callCountShift) | (_flagsAndCallCount & _flagsMask);
+  }
+
+  TableSelectorInfo() : _flagsAndCallCount = 0;
 
   TableSelectorInfo.readFromBinary(BinarySource source)
-    : callCount = source.readUInt30(),
-      flags = source.readByte();
+    : _flagsAndCallCount = source.readUInt30();
 
   void writeToBinary(BinarySink sink) {
-    sink.writeUInt30(callCount);
-    sink.writeByte(flags);
+    sink.writeUInt30(_flagsAndCallCount);
   }
 }
 

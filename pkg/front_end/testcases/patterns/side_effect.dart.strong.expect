@@ -23,7 +23,6 @@ static method method() → dynamic {
       core::print(true);
     }
   }
-  #L1:
   {
     final synthesized core::List<dynamic> #3#0 = self::sideEffect<dynamic>(<dynamic>[]);
     {
@@ -34,12 +33,12 @@ static method method() → dynamic {
   return block {
     core::bool #t1;
     final synthesized core::List<dynamic> #4#0 = self::sideEffect<dynamic>(<dynamic>[]);
-    #L2:
+    #L1:
     {
       {
         if(true) {
           #t1 = true;
-          break #L2;
+          break #L1;
         }
       }
     }

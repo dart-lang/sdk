@@ -5,8 +5,8 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
-/// [RecursiveAstVisitor] that delegates visit methods to functions.
-class FunctionAstVisitor extends RecursiveAstVisitor<void> {
+/// [RecursiveAstVisitor2] that delegates visit methods to functions.
+class FunctionAstVisitor extends RecursiveAstVisitor2<void> {
   final void Function(Block)? block;
   final void Function(CatchClauseParameter)? catchClauseParameter;
   final void Function(DeclaredIdentifier)? declaredIdentifier;
@@ -22,16 +22,16 @@ class FunctionAstVisitor extends RecursiveAstVisitor<void> {
   final void Function(IfStatement)? ifStatement;
   final void Function(Label)? label;
   final void Function(MethodDeclaration)? methodDeclaration;
-  final void Function(MethodInvocation)? methodInvocation;
   final void Function(PatternAssignment)? patternAssignment;
   final void Function(PatternVariableDeclaration)? patternVariableDeclaration;
   final void Function(PatternVariableDeclarationStatement)?
   patternVariableDeclarationStatement;
-  final void Function(SimpleIdentifier)? simpleIdentifier;
   final void Function(SwitchExpression)? switchExpression;
   final void Function(SwitchExpressionCase)? switchExpressionCase;
   final void Function(SwitchPatternCase)? switchPatternCase;
   final void Function(TypeParameter)? typeParameter;
+  final void Function(UnqualifiedFunctionInvocation)?
+  unqualifiedFunctionInvocation;
   final void Function(VariableDeclaration)? variableDeclaration;
 
   FunctionAstVisitor({
@@ -49,15 +49,14 @@ class FunctionAstVisitor extends RecursiveAstVisitor<void> {
     this.ifStatement,
     this.label,
     this.methodDeclaration,
-    this.methodInvocation,
     this.patternAssignment,
     this.patternVariableDeclaration,
     this.patternVariableDeclarationStatement,
-    this.simpleIdentifier,
     this.switchExpression,
     this.switchExpressionCase,
     this.switchPatternCase,
     this.typeParameter,
+    this.unqualifiedFunctionInvocation,
     this.variableDeclaration,
   });
 
@@ -121,8 +120,8 @@ class FunctionAstVisitor extends RecursiveAstVisitor<void> {
   void visitFunctionExpression(FunctionExpression node) {
     if (functionExpression != null) {
       var local =
-          node.parent is! FunctionDeclaration ||
-          node.parent!.parent is FunctionDeclarationStatement;
+          node.parent2 is! FunctionDeclaration ||
+          node.parent2!.parent2 is FunctionDeclarationStatement;
       functionExpression!(node, local);
     }
     super.visitFunctionExpression(node);
@@ -161,14 +160,6 @@ class FunctionAstVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitMethodInvocation(MethodInvocation node) {
-    if (methodInvocation != null) {
-      methodInvocation!(node);
-    }
-    super.visitMethodInvocation(node);
-  }
-
-  @override
   void visitPatternAssignment(PatternAssignment node) {
     patternAssignment?.call(node);
     super.visitPatternAssignment(node);
@@ -186,14 +177,6 @@ class FunctionAstVisitor extends RecursiveAstVisitor<void> {
   ) {
     patternVariableDeclarationStatement?.call(node);
     super.visitPatternVariableDeclarationStatement(node);
-  }
-
-  @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    if (simpleIdentifier != null) {
-      simpleIdentifier!(node);
-    }
-    super.visitSimpleIdentifier(node);
   }
 
   @override
@@ -218,6 +201,12 @@ class FunctionAstVisitor extends RecursiveAstVisitor<void> {
   void visitTypeParameter(TypeParameter node) {
     typeParameter?.call(node);
     super.visitTypeParameter(node);
+  }
+
+  @override
+  void visitUnqualifiedFunctionInvocation(UnqualifiedFunctionInvocation node) {
+    unqualifiedFunctionInvocation?.call(node);
+    super.visitUnqualifiedFunctionInvocation(node);
   }
 
   @override

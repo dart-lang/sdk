@@ -11,7 +11,7 @@ import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../diagnostic.dart' as diag;
-import '../rules/control_flow_in_finally.dart';
+import 'control_flow_in_finally.dart';
 
 const _desc = r'Avoid `throw` in `finally` block.';
 
@@ -31,13 +31,9 @@ class ThrowInFinally extends AnalysisRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void>
+class _Visitor(@override final AnalysisRule rule)
+    extends SimpleAstVisitor<void>
     with ControlFlowInFinallyBlockReporter {
-  @override
-  final AnalysisRule rule;
-
-  new(this.rule);
-
   @override
   void visitThrowExpression(ThrowExpression node) {
     reportIfFinallyAncestorExists(node, kind: 'throw');

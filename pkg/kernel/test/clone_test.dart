@@ -39,8 +39,13 @@ void testBodyCloning() {
     }
     Expect.isTrue(result.isEquivalent, "$node");
   }
+  // TODO(cstefantsova): Remove special-casing of [VariableKind.ThisVariable]
+  // below, when [FunctionNode.thisVariable] is visited from
+  // [FunctionNode.visitChildren] and [FunctionNode.transformChildren].
   Expect.isEmpty(
-    creator.createdKinds.toSet()..removeAll(coverageVisitor.visited),
+    creator.createdKinds.toSet()
+      ..removeAll(coverageVisitor.visited)
+      ..remove(VariableKind.ThisVariable),
     'Nodes not covered in testing.',
   );
 }
@@ -71,8 +76,13 @@ void testBodyCloningInContext() {
     }
     Expect.isTrue(result.isEquivalent, "$node");
   }
+  // TODO(cstefantsova): Remove special-casing of [VariableKind.ThisVariable]
+  // below, when [FunctionNode.thisVariable] is visited from
+  // [FunctionNode.visitChildren] and [FunctionNode.transformChildren].
   Expect.isEmpty(
-    creator.createdKinds.toSet()..removeAll(coverageVisitor.visited),
+    creator.createdKinds.toSet()
+      ..removeAll(coverageVisitor.visited)
+      ..remove(VariableKind.ThisVariable),
     'Nodes not covered in testing.',
   );
 }
@@ -144,8 +154,13 @@ void testMemberCloning() {
       testConstructors(cls.constructors);
     }
   }
+  // TODO(cstefantsova): Remove special-casing of [VariableKind.ThisVariable]
+  // below, when [FunctionNode.thisVariable] is visited from
+  // [FunctionNode.visitChildren] and [FunctionNode.transformChildren].
   Expect.isEmpty(
-    creator.createdKinds.toSet()..removeAll(coverageVisitor.visited),
+    creator.createdKinds.toSet()
+      ..removeAll(coverageVisitor.visited)
+      ..remove(VariableKind.ThisVariable),
     'Nodes not covered in testing.',
   );
 }

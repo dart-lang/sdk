@@ -6,6 +6,9 @@ import 'package:_fe_analyzer_shared/src/util/null_value.dart';
 import 'package:_fe_analyzer_shared/src/util/value_kind.dart';
 import 'package:kernel/ast.dart' as type;
 
+import '../kernel/inferred_collections.dart' as type;
+import 'inference_results.dart' as type;
+
 class NullValues {
   static const NullValue Expression = const NullValue("Expression");
   static const NullValue MapLiteralEntry = const NullValue("MapLiteralEntry");
@@ -20,10 +23,15 @@ class ValueKinds {
       const SingleValueKind<type.Expression>();
   static const SingleValueKind<type.Expression> ExpressionOrNull =
       const SingleValueKind<type.Expression>(NullValues.Expression);
-  static const SingleValueKind<type.MapLiteralEntry> MapLiteralEntry =
-      const SingleValueKind<type.MapLiteralEntry>();
-  static const SingleValueKind<type.MapLiteralEntry> MapLiteralEntryOrNull =
-      const SingleValueKind<type.MapLiteralEntry>(NullValues.MapLiteralEntry);
+  static const SingleValueKind<type.ElementInferenceResult>
+  ElementInferenceResult = const SingleValueKind<type.ElementInferenceResult>();
+  static const SingleValueKind<type.ElementInferenceResult>
+  ElementInferenceResultOrNull =
+      const SingleValueKind<type.ElementInferenceResult>(NullValues.Expression);
+  static const SingleValueKind<type.InferredElement> InferredElement =
+      const SingleValueKind<type.InferredElement>();
+  static const SingleValueKind<type.InferredElement> InferredElementOrNull =
+      const SingleValueKind<type.InferredElement>(NullValues.Expression);
   static const SingleValueKind<type.MapPatternEntry> MapPatternEntry =
       const SingleValueKind<type.MapPatternEntry>();
   static const SingleValueKind<type.Pattern> Pattern =

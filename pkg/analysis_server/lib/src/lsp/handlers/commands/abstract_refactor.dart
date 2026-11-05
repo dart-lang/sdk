@@ -241,8 +241,9 @@ abstract class AbstractRefactorCommandHandler
       'offset': arguments[3],
       'length': arguments[4],
       // options
-      // This field is overwritten (by index) by Dart-Code (older versions that
-      // are not using Maps) so the index of this item must not change.
+      // This field is overwritten (by index) by older versions of Dart-Code
+      // that are not using Maps (prior to v3.42, 2022-06-01) so the index of
+      // this item must not change.
       'options': arguments[5],
     };
   }

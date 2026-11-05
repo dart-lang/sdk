@@ -228,9 +228,7 @@ class Maplet<K, V> extends MapBase<K, V> {
   Iterable<K> get keys => _MapletKeyIterable<K>(this);
 }
 
-class _MapletMarker {
-  const _MapletMarker();
-}
+class const _MapletMarker();
 
 class _MapletKeyIterable<K> extends IterableBase<K> {
   final Maplet<K, dynamic> maplet;

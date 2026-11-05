@@ -15,7 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class ConvertToMultilineStringTest extends AssistProcessorTest {
+class ConvertToMultilineStringTest extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.convertToMultilineString;
 

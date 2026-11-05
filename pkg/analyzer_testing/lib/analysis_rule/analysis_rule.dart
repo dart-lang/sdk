@@ -186,7 +186,10 @@ abstract class AnalysisRuleTest extends PubPackageResolutionTest {
     super.setUp();
     newAnalysisOptionsYamlFile(
       testPackageRootPath,
-      analysisOptionsContent(experiments: experiments, rules: [_analysisRule]),
+      analysisOptionsContent(
+        experimentalFeatures: experimentalFeatures,
+        rules: [_analysisRule],
+      ),
     );
   }
 

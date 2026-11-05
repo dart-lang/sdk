@@ -5,6 +5,7 @@ import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
@@ -15,11 +16,14 @@ const _desc =
     'There should be no `Future`-returning calls in synchronous functions unless they '
     'are assigned or returned.';
 
-class DiscardedFutures extends AnalysisRule {
+class DiscardedFutures extends MultiAnalysisRule {
   new() : super(name: LintNames.discarded_futures, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => diag.discardedFutures;
+  List<DiagnosticCode> get diagnosticCodes => [
+    diag.discardedFutures,
+    diag.discardedFutureOr,
+  ];
 
   @override
   void registerNodeProcessors(
@@ -28,23 +32,18 @@ class DiscardedFutures extends AnalysisRule {
   ) {
     var typeProvider = context.typeProvider;
     var visitor = UnusedFuturesVisitor(
-      rule: this,
+      reportAt: (node, type) =>
+          reportAtNode(node, diagnosticCode: _diagnosticFromType(type)),
       typeProvider: typeProvider,
-      isInteresting: (node) {
-        var type = node.staticType;
-        // This rule does concern itself with `FutureOr`.
-        if (type == null ||
-            (type.asInstanceOf(typeProvider.futureElement) == null &&
-                type.asInstanceOf(typeProvider.futureOrElement) == null)) {
-          return false;
-        }
-        // This rule is only concerned with code in sync functions.
-        return node.thisOrAncestorOfType<FunctionBody>()?.isSynchronous ??
-            false;
-      },
+      isInteresting: (node) =>
+          // This rule is only concerned with code in sync functions.
+          node.thisOrAncestorOfType<FunctionBody>()?.isSynchronous ?? false,
     );
     registry.addExpressionStatement(this, visitor);
     registry.addCascadeExpression(this, visitor);
     registry.addInterpolationExpression(this, visitor);
   }
+
+  DiagnosticCode _diagnosticFromType(DartType type) =>
+      type.isDartAsyncFutureOr ? diag.discardedFutureOr : diag.discardedFutures;
 }

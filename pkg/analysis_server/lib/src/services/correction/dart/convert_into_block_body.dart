@@ -8,9 +8,11 @@ import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -96,9 +98,16 @@ class ConvertIntoBlockBody extends ResolvedCorrectionProducer {
   ) async {
     List<String>? codeLines;
 
+    CommentToken? afterKeywordComments;
+    CommentToken? beforeLinesComment;
+    CommentToken? afterLinesComment;
     if (body is ExpressionFunctionBody) {
+      afterKeywordComments = body.functionDefinition.precedingComments;
+      beforeLinesComment = body.functionDefinition.next?.precedingComments;
+      afterLinesComment = body.semicolon?.precedingComments;
       codeLines = _getCodeForFunctionBody(body);
     } else if (body is EmptyFunctionBody) {
+      afterLinesComment = body.semicolon.precedingComments;
       codeLines = _getCodeForEmptyBody(body);
     }
     if (codeLines == null) return;
@@ -106,22 +115,67 @@ class ConvertIntoBlockBody extends ResolvedCorrectionProducer {
     // prepare prefix
     var prefix = utils.getNodePrefix(body.parent!);
     var indent = utils.oneIndent;
-    var sourceRange = range.endEnd(body.beginToken.previous!, body);
+    var beginToken = body.beginToken;
+    SourceRange sourceRange;
+    bool writeLeadingSpace;
+    if (body is EmptyFunctionBody || beginToken.precedingComments == null) {
+      sourceRange = range.endEnd(beginToken.previous!, body);
+      writeLeadingSpace = true;
+    } else {
+      sourceRange = range.startEnd(beginToken, body);
+      writeLeadingSpace = false;
+    }
 
     await builder.addDartFileEdit(file, (builder) {
-      var eol = builder.eol;
       builder.addReplacement(sourceRange, (builder) {
-        builder.write(' ');
+        if (writeLeadingSpace) builder.write(' ');
         if (body.isAsynchronous) {
           builder.write('async ');
         }
-        builder.write('{');
-        for (var line in codeLines!) {
-          builder.write('$eol$prefix$indent');
-          builder.write(line);
+        if (body.keyword != null) {
+          builder.writeComment(
+            afterKeywordComments,
+            prefix: prefix,
+            after: AfterCommentWrite.space,
+          );
+        }
+        builder.writeln('{');
+        if (beforeLinesComment != null) {
+          builder.write('$prefix$indent');
+          builder.writeComment(
+            beforeLinesComment,
+            prefix: prefix,
+            after: AfterCommentWrite.newLine,
+            indentTrailingNewLine: false,
+          );
+        }
+        for (var (index, line) in codeLines!.indexed) {
+          // `writeComment` already wrote the prefix after its trailing new line.
+          if (index == 0 && beforeLinesComment != null) {
+            builder.write(indent);
+          } else {
+            builder.write('$prefix$indent');
+          }
+          if (index < codeLines.length - 1) {
+            builder.writeln(line);
+          } else {
+            builder.write(line);
+          }
         }
         builder.selectHere();
-        builder.write('$eol$prefix}');
+        builder.writeln();
+        if (afterLinesComment != null) {
+          builder.write('$prefix$indent');
+          builder.writeComment(
+            afterLinesComment,
+            prefix: prefix,
+            after: AfterCommentWrite.newLine,
+            indentTrailingNewLine: false,
+          );
+          builder.write('}');
+        } else {
+          builder.write('$prefix}');
+        }
       });
     });
   }

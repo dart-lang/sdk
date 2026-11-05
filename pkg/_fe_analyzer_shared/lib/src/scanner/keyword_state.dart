@@ -33,41 +33,47 @@ extension type KeywordState._(int _offset) {
 
 final class KeywordStateHelper {
   static Uint16List? _table;
+
+  @pragma('vm:prefer-inline')
   static KeywordState get table {
     if (_table == null) {
-      // This is a fixed calculation, though if creating more keywords this
-      // number of (double) bytes might have to change.
-      Uint16List table = _table = new Uint16List(297 * KeywordState.blockSize);
-      int nextEmpty = 2 * KeywordState.blockSize;
-      for (int i = 0; i < Keyword.values.length; i++) {
-        Keyword keyword = Keyword.values[i];
-        String lexeme = keyword.lexeme;
-        // At this point we're looking at the $blockSize bytes
-        // $blockSize->(2 * $blockSize + 1).
-        // The first blockSize bytes (0->($blockSize-1)) are all 0s,
-        // being the "null leaf".
-        int offset = KeywordState.blockSize;
-        // For an offset, the 0'th byte is a link to the keyword
-        // (+1, so 0 means no keyword) and the remaining 58 spots are table
-        // entries for codeUnit - $A.
-        for (int j = 0; j < lexeme.length; j++) {
-          int charOffset = lexeme.codeUnitAt(j) - $A;
-          int link = table[offset + 1 + charOffset];
-          if (link == 0) {
-            // New one
-            table[offset + 1 + charOffset] = nextEmpty;
-            offset = nextEmpty;
-            nextEmpty += KeywordState.blockSize;
-          } else {
-            // Existing one.
-            offset = link;
-          }
-        }
-        // this offsets position 0 points to the i+1'th keyword.
-        table[offset + 0] = i + 1;
-      }
-      assert(nextEmpty == table.length);
+      _createTable();
     }
     return new KeywordState._(KeywordState.blockSize);
+  }
+
+  static void _createTable() {
+    // This is a fixed calculation, though if creating more keywords this
+    // number of (double) bytes might have to change.
+    Uint16List table = _table = new Uint16List(297 * KeywordState.blockSize);
+    int nextEmpty = 2 * KeywordState.blockSize;
+    for (int i = 0; i < Keyword.values.length; i++) {
+      Keyword keyword = Keyword.values[i];
+      String lexeme = keyword.lexeme;
+      // At this point we're looking at the $blockSize bytes
+      // $blockSize->(2 * $blockSize + 1).
+      // The first blockSize bytes (0->($blockSize-1)) are all 0s,
+      // being the "null leaf".
+      int offset = KeywordState.blockSize;
+      // For an offset, the 0'th byte is a link to the keyword
+      // (+1, so 0 means no keyword) and the remaining 58 spots are table
+      // entries for codeUnit - $A.
+      for (int j = 0; j < lexeme.length; j++) {
+        int charOffset = lexeme.codeUnitAt(j) - $A;
+        int link = table[offset + 1 + charOffset];
+        if (link == 0) {
+          // New one
+          table[offset + 1 + charOffset] = nextEmpty;
+          offset = nextEmpty;
+          nextEmpty += KeywordState.blockSize;
+        } else {
+          // Existing one.
+          offset = link;
+        }
+      }
+      // this offsets position 0 points to the i+1'th keyword.
+      table[offset + 0] = i + 1;
+    }
+    assert(nextEmpty == table.length);
   }
 }

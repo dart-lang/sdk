@@ -3,12 +3,19 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:expect/expect.dart';
+import 'package:expect/variations.dart';
 
+// Prevent inlining and Binaryen duplicate-function-elimination so `exception1`
+// and `exception2` remain distinct frames in stack traces when unminified.
+@pragma('wasm:never-inline')
 void exception1(String e) {
+  if (identical(e, '1')) return;
   throw e;
 }
 
+@pragma('wasm:never-inline')
 void exception2(String e) {
+  if (identical(e, '2')) return;
   throw e;
 }
 
@@ -98,7 +105,9 @@ void main() async {
     Expect.fail('should throw');
   } catch (e, s) {
     Expect.equals(e, 'outer');
-    Expect.isTrue('$s'.contains('exception1'));
+    if (symbolicUnminifiedStackTraces) {
+      Expect.isTrue('$s'.contains('exception1'));
+    }
   }
 
   try {
@@ -106,7 +115,9 @@ void main() async {
     Expect.fail('should throw');
   } catch (e, s) {
     Expect.equals(e, 'outer');
-    Expect.isTrue('$s'.contains('exception2'));
+    if (symbolicUnminifiedStackTraces) {
+      Expect.isTrue('$s'.contains('exception2'));
+    }
   }
 
   try {
@@ -114,7 +125,9 @@ void main() async {
     Expect.fail('should throw');
   } catch (e, s) {
     Expect.equals(e, 'outer');
-    Expect.isTrue('$s'.contains('exception1'));
+    if (symbolicUnminifiedStackTraces) {
+      Expect.isTrue('$s'.contains('exception1'));
+    }
   }
 
   try {
@@ -122,7 +135,9 @@ void main() async {
     Expect.fail('should throw');
   } catch (e, s) {
     Expect.equals(e, 'inner');
-    Expect.isTrue('$s'.contains('exception2'));
+    if (symbolicUnminifiedStackTraces) {
+      Expect.isTrue('$s'.contains('exception2'));
+    }
   }
 
   try {

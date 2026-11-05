@@ -39,6 +39,276 @@ class MyClass {
 ''');
   }
 
+  Future<void> test_annotation_staticConst_class() async {
+    await resolveTestCode('''
+class A {
+  static const myValue = 0;
+  final int myValeus = 0;
+  @myValeu
+  void m() {}
+}
+''');
+    await assertHasFix('''
+class A {
+  static const myValue = 0;
+  final int myValeus = 0;
+  @myValue
+  void m() {}
+}
+''');
+  }
+
+  Future<void> test_annotation_staticConst_class_inherited() async {
+    await resolveTestCode('''
+class A {
+  static const myValue = 0;
+}
+
+class B extends A {
+  @myValeu
+  void m() {}
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_annotation_staticConst_class_localFunction() async {
+    await resolveTestCode('''
+class A {
+  static const myValue = 0;
+  void m() {
+    @myValeu
+    void g() {}
+    g();
+  }
+}
+''');
+    await assertHasFix('''
+class A {
+  static const myValue = 0;
+  void m() {
+    @myValue
+    void g() {}
+    g();
+  }
+}
+''');
+  }
+
+  Future<void> test_annotation_staticConst_class_metadata() async {
+    await resolveTestCode('''
+@myValeu
+class A {
+  static const myValue = 0;
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_annotation_staticConst_enum() async {
+    await resolveTestCode('''
+enum E {
+  v;
+  static const myValue = 0;
+  @myValeu
+  void m() {}
+}
+''');
+    await assertHasFix('''
+enum E {
+  v;
+  static const myValue = 0;
+  @myValue
+  void m() {}
+}
+''');
+  }
+
+  Future<void> test_annotation_staticConst_enum_constant() async {
+    await resolveTestCode('''
+enum E {
+  @myValeu
+  v;
+  static const myValue = 0;
+}
+''');
+    await assertHasFix('''
+enum E {
+  @myValue
+  v;
+  static const myValue = 0;
+}
+''');
+  }
+
+  Future<void> test_annotation_staticConst_extension() async {
+    await resolveTestCode('''
+extension E on int {
+  static const myValue = 0;
+  @myValeu
+  void m() {}
+}
+''');
+    await assertHasFix('''
+extension E on int {
+  static const myValue = 0;
+  @myValue
+  void m() {}
+}
+''');
+  }
+
+  Future<void> test_annotation_staticConst_extensionType() async {
+    await resolveTestCode('''
+extension type E(int it) {
+  static const myValue = 0;
+  @myValeu
+  void m() {}
+}
+''');
+    await assertHasFix('''
+extension type E(int it) {
+  static const myValue = 0;
+  @myValue
+  void m() {}
+}
+''');
+  }
+
+  Future<void> test_annotation_staticConst_importPrefixed_class() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class A {
+  static const myValue = 0;
+  static int myValeus = 0;
+}
+''');
+    await resolveTestCode('''
+import 'a.dart' as p;
+
+class C {
+  static const myValeuu = 0;
+  @p.A.myValeu
+  void m() {}
+}
+''');
+    await assertHasFix('''
+import 'a.dart' as p;
+
+class C {
+  static const myValeuu = 0;
+  @p.A.myValue
+  void m() {}
+}
+''');
+  }
+
+  Future<void> test_annotation_staticConst_importPrefixed_typeAlias() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class A {
+  static const myValue = 0;
+  static int myValeus = 0;
+}
+
+typedef B = A;
+''');
+    await resolveTestCode('''
+import 'a.dart' as p;
+
+@p.B.myValeu
+void f() {}
+''');
+    await assertHasFix('''
+import 'a.dart' as p;
+
+@p.B.myValue
+void f() {}
+''');
+  }
+
+  Future<void> test_annotation_staticConst_mixin() async {
+    await resolveTestCode('''
+mixin M {
+  static const myValue = 0;
+  @myValeu
+  void m() {}
+}
+''');
+    await assertHasFix('''
+mixin M {
+  static const myValue = 0;
+  @myValue
+  void m() {}
+}
+''');
+  }
+
+  Future<void> test_annotation_staticConst_prefixed_class() async {
+    await resolveTestCode('''
+class A {
+  static const myValue = 0;
+  static int myValeus = 0;
+}
+
+@A.myValeu
+void f() {}
+''');
+    await assertHasFix('''
+class A {
+  static const myValue = 0;
+  static int myValeus = 0;
+}
+
+@A.myValue
+void f() {}
+''');
+  }
+
+  Future<void> test_annotation_staticConst_prefixed_extension() async {
+    await resolveTestCode('''
+extension E on int {
+  static const myValue = 0;
+  static int myValeus = 0;
+}
+
+@E.myValeu
+void f() {}
+''');
+    await assertHasFix('''
+extension E on int {
+  static const myValue = 0;
+  static int myValeus = 0;
+}
+
+@E.myValue
+void f() {}
+''');
+  }
+
+  Future<void> test_annotation_staticConst_prefixed_typeAlias() async {
+    await resolveTestCode('''
+class A {
+  static const myValue = 0;
+  static int myValeus = 0;
+}
+
+typedef B = A;
+
+@B.myValeu
+void f() {}
+''');
+    await assertHasFix('''
+class A {
+  static const myValue = 0;
+  static int myValeus = 0;
+}
+
+typedef B = A;
+
+@B.myValue
+void f() {}
+''');
+  }
+
   @failingTest
   Future<void> test_annotation_variable() async {
     // TODO(brianwilkerson): Add support for suggesting similar top-level

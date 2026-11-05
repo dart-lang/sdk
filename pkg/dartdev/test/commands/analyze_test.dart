@@ -2,6 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
+import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:cli_util/cli_logging.dart';
 import 'package:dartdev/src/analysis_server.dart';
 import 'package:dartdev/src/commands/analyze.dart';
@@ -332,8 +336,13 @@ class A {
 
       expect(result.exitCode, 3);
       expect(result.stderr, isEmpty);
-      expect(result.stdout, contains('a.dart:4:8.'));
+      // Diagnostic.
+      expect(result.stdout, contains('error - main.dart:5:8'));
       expect(result.stdout, contains('invalid_override'));
+      // Context message.
+      expect(result.stdout, contains('The member being overridden'));
+      expect(result.stdout, contains('a.dart:4:8.'));
+
       expect(result.stdout, contains('1 issue found.'));
     });
   });
@@ -429,6 +438,29 @@ analyzer:
     expect(result.stdout, contains('lib${path.separator}main.dart:3:6 '));
     expect(result.stdout, contains('FIXME: Fix this - fixme'));
     expect(result.stdout, contains('2 issues found.'));
+  });
+
+  test('types are populated from additional diagnostic data', () async {
+    p = project(
+      mainSrc: '''
+// TODO(author): x
+// FIXME: x
+int a = '';
+''',
+      analysisOptions: _todoAsWarningAnalysisOptions,
+    );
+    var result = await p.runAnalyze(['--format=machine', p.dirPath]);
+
+    expect(result.exitCode, equals(3));
+    expect(result.stderr, isEmpty);
+    expect(
+      result.stdout,
+      allOf(
+        contains('ERROR|COMPILE_TIME_ERROR|INVALID_ASSIGNMENT|'),
+        contains('WARNING|TODO|TODO|'),
+        contains('WARNING|TODO|FIXME|'),
+      ),
+    );
   });
 
   test('--sdk-path value does not exist', () async {
@@ -553,64 +585,71 @@ void f() {
   });
 
   group('display mode', () {
-    final sampleInfoJson = {
-      'severity': 'INFO',
-      'type': 'TODO',
-      'code': 'dead_code',
-      'location': {
-        'endLine': 16,
-        'endColumn': 12,
-        'file': 'lib/test.dart',
-        'offset': 362,
-        'length': 72,
-        'startLine': 15,
-        'startColumn': 4,
+    Diagnostic smallDiagnostic(TestProject p, [code = 'dead_code']) =>
+        Diagnostic(
+          severity: DiagnosticSeverity.Information,
+          code: code,
+          range: Range(
+            start: Position(line: 111, character: 2),
+            end: Position(line: 222, character: 3),
+          ),
+          message: .t2('Foo bar baz.'),
+          data: {'offset': 1123, 'length': 1111, 'type': 'TODO'},
+        );
+
+    Diagnostic fullDiagnostic(TestProject p) => Diagnostic(
+      severity: DiagnosticSeverity.Error,
+      range: Range(
+        start: Position(line: 111, character: 2),
+        end: Position(line: 222, character: 3),
+      ),
+      message: .t2(
+        "Local variable 's' can't be referenced before it is declared.",
+      ),
+
+      code: 'referenced_before_declaration',
+      codeDescription: CodeDescription(
+        href: Uri.parse(
+          'https://dart.dev/diagnostics/referenced_before_declaration',
+        ),
+      ),
+      data: {
+        'offset': 1123,
+        'length': 1111,
+        'type': 'COMPILE_TIME_ERROR',
+        'correctionMessage':
+            "Try moving the declaration to before the first use, or renaming the local variable so that it doesn't hide a name from an enclosing scope.",
       },
-      'message': 'Foo bar baz.',
-      'hasFix': false,
-    };
-    final fullDiagnosticJson = {
-      'severity': 'ERROR',
-      'type': 'COMPILE_TIME_ERROR',
-      'location': {
-        'file': 'lib/test.dart',
-        'offset': 19,
-        'length': 1,
-        'startLine': 2,
-        'startColumn': 9,
-      },
-      'message':
-          "Local variable 's' can't be referenced before it is declared.",
-      'correction':
-          "Try moving the declaration to before the first use, or renaming the local variable so that it doesn't hide a name from an enclosing scope.",
-      'code': 'referenced_before_declaration',
-      'url': 'https:://dart.dev/diagnostics/referenced_before_declaration',
-      'contextMessages': [
-        {
-          'message': "The declaration of 's' is on line 3.",
-          'location': {
-            'file': 'lib/test.dart',
-            'offset': 29,
-            'length': 1,
-            'startLine': 3,
-            'startColumn': 7,
-          },
-        },
+      relatedInformation: [
+        DiagnosticRelatedInformation(
+          message: "The declaration of 's' is on line 3.",
+          location: Location(
+            uri: p.mainUri,
+            range: Range(
+              start: Position(line: 333, character: 4),
+              end: Position(line: 444, character: 5),
+            ),
+          ),
+        ),
       ],
-      'hasFix': false,
-    };
+    );
 
     group('default', () {
       test('emits correct format', () {
+        p = project();
         final logger = TestLogger(false);
-        final errors = [AnalysisError(sampleInfoJson)];
+        final errors = [DiagnosticWithPath(p.mainPath, smallDiagnostic(p))];
 
-        AnalyzeCommand.emitDefaultFormat(logger, errors);
+        TestAnalyzeCommand().emitDefaultFormat(
+          logger,
+          errors,
+          relativeToDir: p.dir,
+        );
 
         expect(logger.stderrBuffer, isEmpty);
         final stdout = logger.stdoutBuffer.toString().trim();
         expect(stdout, contains('info'));
-        expect(stdout, contains('lib${path.separator}test.dart:15:4'));
+        expect(stdout, contains('lib${path.separator}main.dart:112:3'));
         expect(stdout, contains('Foo bar baz.'));
         expect(stdout, contains('dead_code'));
       });
@@ -731,57 +770,119 @@ warning - analysis_options.yaml:1:10 - The URI 'package:lints/recommended.yaml' 
           expect(stdout, contains('"line":1,"column":16'));
           expect(stdout, contains('"problemMessage":"A value of type '));
         });
+        test('priority error', () async {
+          p = project(
+            mainSrc: 'int get foo => 1;\n',
+            analysisOptions: 'include: package:lints/recommended.yaml\nf',
+          );
+          var result = await p.runAnalyze(['--format=json', p.dirPath]);
+
+          expect(result.exitCode, 3);
+          expect(result.stderr, isEmpty);
+
+          final stdout = result.stdout.trim();
+          expect(
+            stdout,
+            startsWith(
+              '{"version":1,"diagnostics":[{"code":"parse_error",',
+            ),
+          );
+          expect(stdout, contains('analysis_options.yaml'));
+          expect(stdout, contains('"line":2,"column":1'));
+          expect(stdout, contains('Could not find expected'));
+        });
       });
       test('empty', () {
+        p = project();
         final logger = TestLogger(false);
-        const List<AnalysisError> errors = [];
+        const List<DiagnosticWithPath> errors = [];
 
-        AnalyzeCommand.emitJsonFormat(logger, errors, null);
+        TestAnalyzeCommand().emitJsonFormat(logger, errors, null);
 
         expect(logger.stderrBuffer, isEmpty);
         final stdout = logger.stdoutBuffer.toString().trim();
         expect(stdout, '{"version":1,"diagnostics":[]}');
       });
       test('short', () {
+        p = project();
         final logger = TestLogger(false);
-        final errors = [AnalysisError(sampleInfoJson)];
+        final errors = [DiagnosticWithPath(p.mainPath, smallDiagnostic(p))];
 
-        AnalyzeCommand.emitJsonFormat(logger, errors, null);
+        TestAnalyzeCommand().emitJsonFormat(logger, errors, null);
 
         expect(logger.stderrBuffer, isEmpty);
         final stdout = logger.stdoutBuffer.toString().trim();
         expect(
           stdout,
-          '{"version":1,"diagnostics":[{"code":"dead_code","severity":"INFO",'
-          '"type":"TODO","location":{"file":"lib/test.dart","range":{'
-          '"start":{"offset":362,"line":15,"column":4},"end":{"offset":434,'
-          '"line":16,"column":12}}},"problemMessage":"Foo bar baz."}]}',
+          jsonEncode({
+            'version': 1,
+            'diagnostics': [
+              {
+                'code': 'dead_code',
+                'severity': 'INFO',
+                'type': 'TODO',
+                'location': {
+                  'file': p.mainPath,
+                  'range': {
+                    'start': {'offset': 1123, 'line': 112, 'column': 3},
+                    'end': {'offset': 2234, 'line': 223, 'column': 4},
+                  },
+                },
+                'problemMessage': 'Foo bar baz.',
+              },
+            ],
+          }),
         );
       });
       test('full', () {
+        p = project();
         final logger = TestLogger(false);
-        final errors = [AnalysisError(fullDiagnosticJson)];
+        final errors = [DiagnosticWithPath(p.mainPath, fullDiagnostic(p))];
 
-        AnalyzeCommand.emitJsonFormat(logger, errors, null);
+        TestAnalyzeCommand().emitJsonFormat(logger, errors, null);
 
         expect(logger.stderrBuffer, isEmpty);
         final stdout = logger.stdoutBuffer.toString().trim();
         expect(
           stdout,
-          '{"version":1,"diagnostics":[{'
-          '"code":"referenced_before_declaration","severity":"ERROR",'
-          '"type":"COMPILE_TIME_ERROR","location":{"file":"lib/test.dart",'
-          '"range":{"start":{"offset":19,"line":2,"column":9},"end":{'
-          '"offset":20,"line":null,"column":null}}},"problemMessage":'
-          '"Local variable \'s\' can\'t be referenced before it is declared.",'
-          '"correctionMessage":"Try moving the declaration to before the'
-          ' first use, or renaming the local variable so that it doesn\'t hide'
-          ' a name from an enclosing scope.","contextMessages":[{"location":{'
-          '"file":"lib/test.dart","range":{"start":{"offset":29,"line":3,'
-          '"column":7},"end":{"offset":30,"line":null,"column":null}}},'
-          '"message":"The declaration of \'s\' is on line 3."}],'
-          '"documentation":'
-          '"https:://dart.dev/diagnostics/referenced_before_declaration"}]}',
+          jsonEncode({
+            'version': 1,
+            'diagnostics': [
+              {
+                'code': 'referenced_before_declaration',
+                'severity': 'ERROR',
+                'type': 'COMPILE_TIME_ERROR',
+                'location': {
+                  'file': p.mainPath,
+                  'range': {
+                    'start': {'offset': 1123, 'line': 112, 'column': 3},
+                    'end': {'offset': 2234, 'line': 223, 'column': 4},
+                  },
+                },
+                'problemMessage':
+                    "Local variable 's' can't be referenced before it is "
+                    'declared.',
+                'correctionMessage':
+                    'Try moving the declaration to before the first use, '
+                    "or renaming the local variable so that it doesn't hide a "
+                    'name from an enclosing scope.',
+                'contextMessages': [
+                  {
+                    'location': {
+                      'file': p.mainPath,
+                      'range': {
+                        'start': {'offset': 3345, 'line': 334, 'column': 5},
+                        'end': {'offset': 4456, 'line': 445, 'column': 6},
+                      },
+                    },
+                    'message': "The declaration of 's' is on line 3.",
+                  },
+                ],
+                'documentation':
+                    'https://dart.dev/diagnostics/referenced_before_declaration',
+              },
+            ],
+          }),
         );
       });
     });
@@ -809,17 +910,33 @@ warning - analysis_options.yaml:1:10 - The URI 'package:lints/recommended.yaml' 
           expect(stdout, contains('|A value of type '));
           expect(stdout, contains('lib${escapedSeparator}main.dart|1|16|'));
         });
+        test('priority error', () async {
+          p = project(
+            mainSrc: 'int get foo => 1;\n',
+            analysisOptions: 'include: package:lints/recommended.yaml\nf',
+          );
+          var result = await p.runAnalyze(['--format=machine', p.dirPath]);
+
+          expect(result.exitCode, 3);
+          expect(result.stderr, isEmpty);
+
+          final stdout = result.stdout.trim();
+          expect(stdout, contains('|PARSE_ERROR'));
+          expect(stdout, contains('analysis_options.yaml|2|1|'));
+        });
       });
       test('short', () {
+        p = project();
         final logger = TestLogger(false);
-        final errors = [AnalysisError(sampleInfoJson)];
+        final errors = [DiagnosticWithPath(p.mainPath, smallDiagnostic(p))];
 
-        AnalyzeCommand.emitMachineFormat(logger, errors);
+        TestAnalyzeCommand().emitMachineFormat(logger, errors);
 
+        var escapedPath = p.mainPath.replaceAll(r'\', r'\\');
         expect(logger.stderrBuffer, isEmpty);
         expect(
           logger.stdoutBuffer.toString().trim(),
-          'INFO|TODO|DEAD_CODE|lib/test.dart|15|4|72|Foo bar baz.',
+          'INFO|TODO|DEAD_CODE|$escapedPath|112|3|1111|Foo bar baz.',
         );
       });
     });
@@ -850,6 +967,29 @@ warning - analysis_options.yaml:1:10 - The URI 'package:lints/recommended.yaml' 
       expect(result.stdout, contains('No issues found!'));
     });
   });
+}
+
+/// Overrides [getOffset] of [AnalyzeCommand] to return dummy values for
+/// testing that don't require reading content from disk.
+///
+/// For convenience and easy verification, the returned values are just
+/// the line/col numbers concatenated together, adjusted to account for LSP
+/// types being 0-based.
+class TestAnalyzeCommand extends AnalyzeCommand {
+  @override
+  LineInfo? getLineInfo(String filePath) {
+    throw UnimplementedError('File content is not available for these tests');
+  }
+
+  @override
+  int getOffset(String filePath, Position pos) {
+    // LSP types are zero-based, but for convenience we want this to match the
+    // line/col that users see which are one-based.
+    var line = pos.line + 1;
+    var col = pos.character + 1;
+
+    return int.parse('$line$col');
+  }
 }
 
 class TestLogger implements Logger {

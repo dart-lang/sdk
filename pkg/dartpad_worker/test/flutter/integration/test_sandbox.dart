@@ -37,13 +37,35 @@ void main() => testFlutterIntegration('sandbox.runApp (flutter)', (ctx) async {
     }
   ''');
 
-  printOnFailure('# Compiling main.dart');
-  final result = await ctx.ws.compile(Uri.parse('main.dart'));
-  check(result).successEmptyLog();
-
   printOnFailure('# Running code in sandbox');
-  await ctx.sandbox.loadModule(code: result.code!);
-  await ctx.sandbox.runApp(ctx.ws.workspaceFolder.resolve('main.dart'));
+  await ctx.sandbox.run('main.dart', mode: 'flutter');
 
-  await ctx.checkConsole((m) => m.contains('Hello from Flutter!'));
+  await ctx.checkConsole(.it()..contains('Hello from Flutter!'));
+
+  final service = await ctx.sandbox.startServiceProtocol();
+  try {
+    final vm = await service.getVM();
+    final isolateId = vm.isolates!.first.id!;
+    final isolate = await service.getIsolate(isolateId);
+    check(
+      isolate.extensionRPCs,
+    ).isNotNull().contains('ext.flutter.inspector.getRootWidgetTree');
+    check(
+      isolate.extensionRPCs,
+    ).isNotNull().contains('ext.flutter.inspector.structuredErrors');
+
+    final tree = await service.callServiceExtension(
+      'ext.flutter.inspector.getRootWidgetTree',
+      isolateId: isolateId,
+      args: {
+        'groupName': 'test-group',
+        'isSummaryTree': 'true',
+        'withPreviews': 'false',
+        'fullDetails': 'false',
+      },
+    );
+    check(tree.json?['result']).isNotNull();
+  } finally {
+    await service.dispose();
+  }
 });

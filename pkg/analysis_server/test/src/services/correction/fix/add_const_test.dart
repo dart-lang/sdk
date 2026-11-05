@@ -427,10 +427,12 @@ void f(int x) {
 @reflectiveTest
 class AddConst_PreferConstConstructorsBulkTest extends BulkFixProcessorTest {
   @override
+  bool get addMetaPackageDep => true;
+
+  @override
   String get lintCode => LintNames.prefer_const_constructors;
 
   Future<void> test_final() async {
-    writeTestPackageConfig(meta: true);
     createAnalysisOptionsFile(
       lints: [
         LintNames.prefer_const_constructors,
@@ -452,7 +454,6 @@ const c = C(C());
   }
 
   Future<void> test_final_variableDeclarationList_const() async {
-    writeTestPackageConfig(meta: true);
     createAnalysisOptionsFile(
       lints: [
         LintNames.prefer_const_constructors,
@@ -474,7 +475,6 @@ const c1 = C(C()), c2 = C();
   }
 
   Future<void> test_final_variableDeclarationList_nonConst_first() async {
-    writeTestPackageConfig(meta: true);
     createAnalysisOptionsFile(
       lints: [
         LintNames.prefer_const_constructors,
@@ -496,7 +496,6 @@ final f = Future.value(7), c = const C(C());
   }
 
   Future<void> test_final_variableDeclarationList_nonConst_last() async {
-    writeTestPackageConfig(meta: true);
     createAnalysisOptionsFile(
       lints: [
         LintNames.prefer_const_constructors,
@@ -517,8 +516,32 @@ final c = const C(C()), f = Future.value(7);
 ''');
   }
 
+  Future<void> test_instanceField_preferConstDeclarations() async {
+    createAnalysisOptionsFile(
+      lints: [
+        LintNames.prefer_const_constructors,
+        LintNames.prefer_const_declarations,
+      ],
+    );
+    await resolveTestCode(r'''
+class C {
+  const C();
+}
+class A {
+  final c = C();
+}
+''');
+    await assertHasFix(r'''
+class C {
+  const C();
+}
+class A {
+  final c = const C();
+}
+''');
+  }
+
   Future<void> test_noKeyword() async {
-    writeTestPackageConfig(meta: true);
     await resolveTestCode(r'''
 class C {
   const C([C? c]);
@@ -538,10 +561,12 @@ var c = const C(C());
 class AddConst_PreferConstConstructorsInImmutablesBulkTest
     extends BulkFixProcessorTest {
   @override
+  bool get addMetaPackageDep => true;
+
+  @override
   String get lintCode => LintNames.prefer_const_constructors_in_immutables;
 
   Future<void> test_multipleConstructors() async {
-    writeTestPackageConfig(meta: true);
     await resolveTestCode('''
 import 'package:meta/meta.dart';
 
@@ -569,16 +594,13 @@ class A {
 class AddConst_PreferConstConstructorsInImmutablesTest
     extends FixProcessorLintTest {
   @override
+  bool get addMetaPackageDep => true;
+
+  @override
   FixKind get kind => DartFixKind.addConst;
 
   @override
   String get lintCode => LintNames.prefer_const_constructors_in_immutables;
-
-  @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(meta: true);
-  }
 
   Future<void> test_named() async {
     await resolveTestCode('''
@@ -747,6 +769,31 @@ void f() {
 ''');
   }
 
+  Future<void> test_instanceField_preferConstDeclarations() async {
+    createAnalysisOptionsFile(
+      lints: [
+        LintNames.prefer_const_constructors,
+        LintNames.prefer_const_declarations,
+      ],
+    );
+    await resolveTestCode('''
+class C {
+  const C();
+}
+class A {
+  final c = C();
+}
+''');
+    await assertHasFix('''
+class C {
+  const C();
+}
+class A {
+  final c = const C();
+}
+''');
+  }
+
   Future<void> test_new() async {
     await resolveTestCode('''
 class C {
@@ -808,13 +855,10 @@ void f() {
 class AddConst_PreferConstLiteralsToCreateImmutablesBulkTest
     extends BulkFixProcessorTest {
   @override
-  String get lintCode => LintNames.prefer_const_literals_to_create_immutables;
+  bool get addMetaPackageDep => true;
 
   @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(meta: true);
-  }
+  String get lintCode => LintNames.prefer_const_literals_to_create_immutables;
 
   Future<void> test_map() async {
     await resolveTestCode('''
@@ -854,15 +898,13 @@ void f() {
 class AddConst_PreferConstLiteralsToCreateImmutablesTest
     extends FixProcessorLintTest {
   @override
+  bool get addMetaPackageDep => true;
+
+  @override
   FixKind get kind => DartFixKind.addConst;
 
   @override
   String get lintCode => LintNames.prefer_const_literals_to_create_immutables;
-  @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(meta: true);
-  }
 
   Future<void> test_list() async {
     await resolveTestCode('''

@@ -1,0 +1,76 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+
+class Token1 extends core::Object {
+  synthetic constructor •() → self::Token1
+    : super core::Object::•()
+    ;
+}
+class Token2 extends core::Object {
+  synthetic constructor •() → self::Token2
+    : super core::Object::•()
+    ;
+}
+class Token3 extends core::Object {
+  synthetic constructor •() → self::Token3
+    : super core::Object::•()
+    ;
+}
+abstract class Base extends core::Object {
+  synthetic constructor •() → self::Base
+    : super core::Object::•()
+    ;
+
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]
+  abstract method method(core::Object token, [core::int? optionalArg]) → void;
+}
+class Sub1 extends self::Base {
+  synthetic constructor •() → self::Sub1
+    : super self::Base::•()
+    ;
+
+  [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]
+  method method(core::Object token, [core::int? optionalArg = #C1]) → void {
+    core::print(token);
+    core::print(#C2);
+    core::print(optionalArg);
+  }
+}
+class Sub2 extends self::Base {
+  synthetic constructor •() → self::Sub2
+    : super self::Base::•()
+    ;
+
+  [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]
+  method method(core::Object token, [core::int? optionalArg = #C1]) → void {
+    core::print(token);
+    core::print(#C2);
+    core::print(optionalArg);
+  }
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method callMethod([@vm.inferred-arg-type.metadata=!] self::Base b, [@vm.inferred-arg-type.metadata=!] core::Object token, [[@vm.inferred-arg-type.metadata=dart.core::_Smi?] core::int? opt = #C1]) → void {
+  if(!(opt == null)) {
+    [@vm.direct-call.metadata=#lib::Sub2.method] [@vm.inferred-type.metadata=? (skip check)] b.{self::Base::method}(token, opt{core::int}){(core::Object, core::Symbol, [core::int?]) → void};
+  }
+  else {
+    b.{self::Base::method}(token){(core::Object, core::Symbol, [core::int?]) → void};
+  }
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method main() → void {
+  final self::Sub1 sub1 = new self::Sub1::•();
+  final self::Sub2 sub2 = new self::Sub2::•();
+  self::callMethod(sub1, new self::Token1::•());
+  self::callMethod(sub2, new self::Token2::•(), 42);
+  self::callMethod(sub1, new self::Token3::•());
+}
+constants  {
+  #C1 = null
+  #C2 = #invariant
+}

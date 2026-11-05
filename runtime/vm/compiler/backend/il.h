@@ -311,6 +311,21 @@ class HierarchyInfo : public ThreadStackResource {
   // simple [CidRange]-based subtype-check.
   bool CanUseRecordSubtypeRangeCheckFor(const AbstractType& type);
 
+  // Returns ranges of class ids of all classes B such that every concrete
+  // (non-abstract) class C which is a subtype of [supertype] is either B or
+  // a subclass of B. In other words, the returned ranges cover the
+  // intersection of superclass chains of all concrete subtypes of
+  // [supertype].
+  //
+  // If concrete subtypes of [supertype] can't be enumerated (e.g. because
+  // they can be extended dynamically) then returned ranges only contain
+  // Object class.
+  //
+  // Returns empty ranges if [supertype] has no concrete subtypes.
+  //
+  // Result is cached.
+  const CidRangeVector& GuaranteedBaseClassesFor(const Class& supertype);
+
  private:
   // Does not use any hierarchy information available in the system but computes
   // it via O(n) class table traversal.
@@ -341,6 +356,8 @@ class HierarchyInfo : public ThreadStackResource {
   std::unique_ptr<CidRangeVector[]> cid_subtype_ranges_abstract_nullable_;
   std::unique_ptr<CidRangeVector[]> cid_subtype_ranges_nonnullable_;
   std::unique_ptr<CidRangeVector[]> cid_subtype_ranges_abstract_nonnullable_;
+  std::unique_ptr<CidRangeVector[]> cid_guaranteed_base_class_ranges_;
+  const CidRangeVector empty_cid_range_;
 };
 
 // An embedded container with N elements of type T.  Used (with partial
@@ -479,6 +496,7 @@ struct InstrAttrs {
   M(HashDoubleOp, kNoGC)                                                       \
   M(HashIntegerOp, kNoGC)                                                      \
   M(UnarySmiOp, kNoGC)                                                         \
+  M(UnaryInt32Op, kNoGC)                                                       \
   M(UnaryDoubleOp, kNoGC)                                                      \
   M(CheckStackOverflow, _)                                                     \
   M(SmiToDouble, kNoGC)                                                        \
@@ -488,7 +506,7 @@ struct InstrAttrs {
   M(DoubleToSmi, kNoGC)                                                        \
   M(DoubleToFloat, kNoGC)                                                      \
   M(FloatToDouble, kNoGC)                                                      \
-  M(FloatCompare, kNoGC)                                                       \
+  M(CompareAsMask, kNoGC)                                                      \
   M(CheckClass, kNoGC)                                                         \
   M(CheckClassId, kNoGC)                                                       \
   M(CheckSmi, kNoGC)                                                           \
@@ -1156,12 +1174,16 @@ class Instruction : public ZoneObject {
   PRINT_OPERANDS_TO_SUPPORT
 
 #define DECLARE_INSTRUCTION_TYPE_CHECK(Name, Type)                             \
-  bool Is##Name() const { return (As##Name() != nullptr); }                    \
+  bool Is##Name() const {                                                      \
+    return (As##Name() != nullptr);                                            \
+  }                                                                            \
   Type* As##Name() {                                                           \
     auto const_this = static_cast<const Instruction*>(this);                   \
     return const_cast<Type*>(const_this->As##Name());                          \
   }                                                                            \
-  virtual const Type* As##Name() const { return nullptr; }
+  virtual const Type* As##Name() const {                                       \
+    return nullptr;                                                            \
+  }
 #define INSTRUCTION_TYPE_CHECK(Name, Attrs)                                    \
   DECLARE_INSTRUCTION_TYPE_CHECK(Name, Name##Instr)
 
@@ -1175,7 +1197,9 @@ class Instruction : public ZoneObject {
 #undef INSTRUCTION_TYPE_CHECK
 
 #define DECLARE_INSTRUCTION_TYPE_CHECK(Name, Type)                             \
-  bool Is##Name() const { return (As##Name() != nullptr); }                    \
+  bool Is##Name() const {                                                      \
+    return (As##Name() != nullptr);                                            \
+  }                                                                            \
   Type* As##Name() {                                                           \
     auto const_this = static_cast<const Instruction*>(this);                   \
     return const_cast<Type*>(const_this->As##Name());                          \
@@ -1290,6 +1314,14 @@ class Instruction : public ZoneObject {
 
   // Returns true if CSE and LICM are allowed for this instruction.
   virtual bool AllowsCSE() const { return false; }
+
+  // Returns true if this instruction will have an equivalent behavior in any
+  // position which is dominated by the definitions of all of its inputs and
+  // dominates its current position.
+  //
+  // Note: this does not check correctness of hoisting with respect to
+  // changes in observable side-effects.
+  virtual bool IsSafeToHoist() const { return false; }
 
   // Returns true if this instruction has any side-effects besides storing.
   // See StoreFieldInstr::HasUnknownSideEffects() for rationale.
@@ -1469,6 +1501,7 @@ class PureInstruction : public Instruction {
       : Instruction(source, deopt_id) {}
 
   virtual bool AllowsCSE() const { return true; }
+  virtual bool IsSafeToHoist() const = 0;
   virtual bool HasUnknownSideEffects() const { return false; }
 
   DECLARE_EMPTY_SERIALIZATION(PureInstruction, Instruction)
@@ -1486,23 +1519,35 @@ struct NoThrow {
 // Types to be used as CSETrait for TemplateInstruction/TemplateDefinition.
 // Pure instructions are those that allow CSE and have no effects and
 // no dependencies.
-template <typename DefaultBase, typename PureBase>
-struct Pure {
-  typedef PureBase Base;
-};
+enum class CSEBehavior { kNoCSE, kPure, kPureAndMovable };
 
-template <typename DefaultBase, typename PureBase>
-struct NoCSE {
-  typedef DefaultBase Base;
-};
+constexpr auto Pure = CSEBehavior::kPure;
+constexpr auto PureAndMovable = CSEBehavior::kPureAndMovable;
+constexpr auto NoCSE = CSEBehavior::kNoCSE;
 
-template <intptr_t N,
-          typename ThrowsTrait,
-          template <typename Default, typename Pure> class CSETrait = NoCSE>
-class TemplateInstruction
-    : public CSETrait<Instruction, PureInstruction>::Base {
+template <typename PureBase>
+class MovableBase : public PureBase {
  public:
-  using BaseClass = typename CSETrait<Instruction, PureInstruction>::Base;
+  template <typename... Args>
+  explicit MovableBase(Args&&... args)
+      : PureBase(std::forward<Args>(args)...) {}
+
+  virtual bool IsSafeToHoist() const { return true; }
+
+  DECLARE_EMPTY_SERIALIZATION(MovableBase, PureBase)
+};
+
+template <CSEBehavior B, typename ImpureBase, typename PureBase>
+using InstructionBase = std::conditional_t<
+    B == CSEBehavior::kPureAndMovable,
+    MovableBase<PureBase>,
+    std::conditional_t<B == CSEBehavior::kPure, PureBase, ImpureBase>>;
+
+template <intptr_t N, typename ThrowsTrait, CSEBehavior CSE = NoCSE>
+class TemplateInstruction
+    : public InstructionBase<CSE, Instruction, PureInstruction> {
+ public:
+  using BaseClass = InstructionBase<CSE, Instruction, PureInstruction>;
 
   explicit TemplateInstruction(intptr_t deopt_id = DeoptId::kNone)
       : BaseClass(deopt_id), inputs_() {}
@@ -2813,17 +2858,17 @@ class PureDefinition : public Definition {
       : Definition(source, deopt_id) {}
 
   virtual bool AllowsCSE() const { return true; }
+  virtual bool IsSafeToHoist() const = 0;
   virtual bool HasUnknownSideEffects() const { return false; }
 
   DECLARE_EMPTY_SERIALIZATION(PureDefinition, Definition)
 };
 
-template <intptr_t N,
-          typename ThrowsTrait,
-          template <typename Impure, typename Pure> class CSETrait = NoCSE>
-class TemplateDefinition : public CSETrait<Definition, PureDefinition>::Base {
+template <intptr_t N, typename ThrowsTrait, CSEBehavior CSE = NoCSE>
+class TemplateDefinition
+    : public InstructionBase<CSE, Definition, PureDefinition> {
  public:
-  using BaseClass = typename CSETrait<Definition, PureDefinition>::Base;
+  using BaseClass = InstructionBase<CSE, Definition, PureDefinition>;
 
   explicit TemplateDefinition(intptr_t deopt_id = DeoptId::kNone)
       : BaseClass(deopt_id), inputs_() {}
@@ -3375,7 +3420,7 @@ class MemoryCopyInstr : public TemplateInstruction<5, NoThrow> {
 //
 // This lowlevel instruction is non-inlinable since it makes assumptions about
 // the frame.  This is asserted via `inliner.cc::CalleeGraphValidator`.
-class TailCallInstr : public TemplateInstruction<1, Throws, Pure> {
+class TailCallInstr : public TemplateInstruction<1, Throws, PureAndMovable> {
  public:
   TailCallInstr(const Code& code, Value* arg_desc) : code_(code) {
     SetInputAt(0, arg_desc);
@@ -3978,6 +4023,7 @@ class ConditionInstr : public Definition {
 class PureCondition : public ConditionInstr {
  public:
   virtual bool AllowsCSE() const { return true; }
+  virtual bool IsSafeToHoist() const = 0;
   virtual bool HasUnknownSideEffects() const { return false; }
 
   DECLARE_EMPTY_SERIALIZATION(PureCondition, ConditionInstr)
@@ -3988,12 +4034,11 @@ class PureCondition : public ConditionInstr {
       : ConditionInstr(source, kind, deopt_id) {}
 };
 
-template <intptr_t N,
-          typename ThrowsTrait,
-          template <typename Impure, typename Pure> class CSETrait = NoCSE>
-class TemplateCondition : public CSETrait<ConditionInstr, PureCondition>::Base {
+template <intptr_t N, typename ThrowsTrait, CSEBehavior CSE = NoCSE>
+class TemplateCondition
+    : public InstructionBase<CSE, ConditionInstr, PureCondition> {
  public:
-  using BaseClass = typename CSETrait<ConditionInstr, PureCondition>::Base;
+  using BaseClass = InstructionBase<CSE, ConditionInstr, PureCondition>;
 
   TemplateCondition(const InstructionSource& source,
                     Token::Kind kind,
@@ -4015,7 +4060,7 @@ class TemplateCondition : public CSETrait<ConditionInstr, PureCondition>::Base {
 };
 
 // Compares left and right.
-class ComparisonInstr : public TemplateCondition<2, NoThrow, Pure> {
+class ComparisonInstr : public TemplateCondition<2, NoThrow, PureAndMovable> {
  public:
   Value* left() const { return InputAt(0); }
   Value* right() const { return InputAt(1); }
@@ -4188,7 +4233,7 @@ class BranchInstr : public Instruction {
   DISALLOW_COPY_AND_ASSIGN(BranchInstr);
 };
 
-class DeoptimizeInstr : public TemplateInstruction<0, NoThrow, Pure> {
+class DeoptimizeInstr : public TemplateInstruction<0, NoThrow, PureAndMovable> {
  public:
   DeoptimizeInstr(ICData::DeoptReasonId deopt_reason, intptr_t deopt_id)
       : TemplateInstruction(deopt_id), deopt_reason_(deopt_reason) {}
@@ -4341,7 +4386,7 @@ class ConstraintInstr : public TemplateDefinition<1, NoThrow> {
   DISALLOW_COPY_AND_ASSIGN(ConstraintInstr);
 };
 
-class ConstantInstr : public TemplateDefinition<0, NoThrow, Pure> {
+class ConstantInstr : public TemplateDefinition<0, NoThrow, PureAndMovable> {
  public:
   explicit ConstantInstr(const Object& value)
       : ConstantInstr(value, InstructionSource(TokenPosition::kConstant)) {}
@@ -4435,7 +4480,8 @@ class UnboxedConstantInstr : public ConstantInstr {
 // Checks that one type is a subtype of another (e.g. for type parameter bounds
 // checking). Throws a TypeError otherwise. Both types are instantiated at
 // runtime as necessary.
-class AssertSubtypeInstr : public TemplateInstruction<5, Throws, Pure> {
+class AssertSubtypeInstr
+    : public TemplateInstruction<5, Throws, PureAndMovable> {
  public:
   enum {
     kInstantiatorTAVPos = 0,
@@ -4499,7 +4545,8 @@ class AssertSubtypeInstr : public TemplateInstruction<5, Throws, Pure> {
   DISALLOW_COPY_AND_ASSIGN(AssertSubtypeInstr);
 };
 
-class AssertAssignableInstr : public TemplateDefinition<4, Throws, Pure> {
+class AssertAssignableInstr
+    : public TemplateDefinition<4, Throws, PureAndMovable> {
  public:
 #define FOR_EACH_ASSERT_ASSIGNABLE_KIND(V)                                     \
   V(ParameterCheck)                                                            \
@@ -5217,7 +5264,7 @@ class StrictCompareInstr : public ComparisonInstr {
 };
 
 // Test (left & right) == 0 pattern.
-class TestIntInstr : public TemplateCondition<2, NoThrow, Pure> {
+class TestIntInstr : public TemplateCondition<2, NoThrow, PureAndMovable> {
  public:
   TestIntInstr(const InstructionSource& source,
                Token::Kind kind,
@@ -5284,7 +5331,7 @@ class TestIntInstr : public TemplateCondition<2, NoThrow, Pure> {
 // the opposite for cids not on the list.  The first element in the table must
 // always be the result for the Smi class-id and is allowed to differ from the
 // other results even in the no-deopt case.
-class TestCidsInstr : public TemplateCondition<1, NoThrow, Pure> {
+class TestCidsInstr : public TemplateCondition<1, NoThrow, PureAndMovable> {
  public:
   TestCidsInstr(const InstructionSource& source,
                 Token::Kind kind,
@@ -5328,7 +5375,7 @@ class TestCidsInstr : public TemplateCondition<1, NoThrow, Pure> {
   DISALLOW_COPY_AND_ASSIGN(TestCidsInstr);
 };
 
-class TestRangeInstr : public TemplateCondition<1, NoThrow, Pure> {
+class TestRangeInstr : public TemplateCondition<1, NoThrow, PureAndMovable> {
  public:
   TestRangeInstr(const InstructionSource& source,
                  Value* value,
@@ -5518,6 +5565,7 @@ class IfThenElseInstr : public Definition {
   intptr_t if_false() const { return if_false_; }
 
   virtual bool AllowsCSE() const { return condition()->AllowsCSE(); }
+  virtual bool IsSafeToHoist() const { return condition()->IsSafeToHoist(); }
   virtual bool HasUnknownSideEffects() const {
     return condition()->HasUnknownSideEffects();
   }
@@ -5918,7 +5966,7 @@ class DropTempsInstr : public Definition {
 // that consumes this value from the expression stack - not knowing that
 // this value represents a placeholder - which might lead issues if instruction
 // has specialization for constant inputs (see https://dartbug.com/33195).
-class MakeTempInstr : public TemplateDefinition<0, NoThrow, Pure> {
+class MakeTempInstr : public TemplateDefinition<0, NoThrow, PureAndMovable> {
  public:
   explicit MakeTempInstr(Zone* zone)
       : null_(new (zone) ConstantInstr(Object::ZoneHandle())) {
@@ -6514,7 +6562,7 @@ class StoreFieldInstr : public TemplateInstruction<2, NoThrow> {
   DISALLOW_COPY_AND_ASSIGN(StoreFieldInstr);
 };
 
-class GuardFieldInstr : public TemplateInstruction<1, NoThrow, Pure> {
+class GuardFieldInstr : public TemplateInstruction<1, NoThrow, PureAndMovable> {
  public:
   GuardFieldInstr(Value* value, const Field& field, intptr_t deopt_id)
       : TemplateInstruction(deopt_id), field_(field) {
@@ -6638,6 +6686,7 @@ class CheckFieldImmutabilityInstr : public TemplateInstruction<1, Throws> {
   virtual bool CanBecomeDeoptimizationTarget() const { return true; }
 
   virtual bool AllowsCSE() const { return true; }
+  virtual bool IsSafeToHoist() const { return true; }
   virtual bool HasUnknownSideEffects() const { return false; }
 
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
@@ -6776,6 +6825,8 @@ class LoadStaticFieldInstr : public TemplateLoadField<0> {
     return field().is_final() &&
            (!field().is_late() || field().has_initializer());
   }
+
+  virtual bool IsSafeToHoist() const { return true; }
 
   virtual bool AttributesEqual(const Instruction& other) const;
 
@@ -6924,6 +6975,8 @@ class LoadIndexedInstr : public TemplateDefinition<2, NoThrow> {
 
   virtual bool HasUnknownSideEffects() const { return false; }
 
+  virtual bool IsSafeToHoist() const;
+
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   PRINT_OPERANDS_TO_SUPPORT
@@ -7032,7 +7085,7 @@ class LoadCodeUnitsInstr : public TemplateDefinition<2, NoThrow> {
 };
 
 class OneByteStringFromCharCodeInstr
-    : public TemplateDefinition<1, NoThrow, Pure> {
+    : public TemplateDefinition<1, NoThrow, PureAndMovable> {
  public:
   explicit OneByteStringFromCharCodeInstr(Value* char_code) {
     SetInputAt(0, char_code);
@@ -7066,6 +7119,7 @@ class StringToCharCodeInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   Value* str() const { return inputs_[0]; }
 
+  virtual bool IsSafeToHoist() const;
   virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual bool AttributesEqual(const Instruction& other) const {
@@ -7654,7 +7708,7 @@ class AllocateClosureInstr : public TemplateAllocation<2> {
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   virtual bool AllowsCSE() const { return is_tear_off(); }
-
+  virtual bool IsSafeToHoist() const { return true; }
   virtual bool HasUnknownSideEffects() const { return false; }
 
   virtual bool AttributesEqual(const Instruction& other) const {
@@ -8121,7 +8175,7 @@ class CalculateElementAddressInstr : public TemplateDefinition<3, NoThrow> {
   }
 
   virtual bool AllowsCSE() const { return !MayCreateUnsafeUntaggedPointer(); }
-
+  virtual bool IsSafeToHoist() const { return true; }
   virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual bool HasUnknownSideEffects() const { return false; }
@@ -8166,6 +8220,8 @@ class LoadClassIdInstr : public TemplateDefinition<1, NoThrow, Pure> {
   Value* object() const { return inputs_[0]; }
 
   virtual bool ComputeCanDeoptimize() const { return false; }
+
+  virtual bool IsSafeToHoist() const;
 
   virtual bool AttributesEqual(const Instruction& other) const {
     auto const other_load = other.AsLoadClassId();
@@ -8316,6 +8372,7 @@ class LoadFieldInstr : public TemplateLoadField<1> {
   static bool IsUnmodifiableTypedDataViewFactory(const Function& function);
 
   virtual bool AllowsCSE() const { return slot_.is_immutable(); }
+  virtual bool IsSafeToHoist() const;
 
   virtual bool CanTriggerGC() const { return calls_initializer(); }
 
@@ -8574,7 +8631,8 @@ class CloneContextInstr : public TemplateDefinition<1, Throws> {
   DISALLOW_COPY_AND_ASSIGN(CloneContextInstr);
 };
 
-class CheckEitherNonSmiInstr : public TemplateInstruction<2, NoThrow, Pure> {
+class CheckEitherNonSmiInstr
+    : public TemplateInstruction<2, NoThrow, PureAndMovable> {
  public:
   CheckEitherNonSmiInstr(Value* left, Value* right, intptr_t deopt_id)
       : TemplateInstruction(deopt_id) {
@@ -8630,7 +8688,7 @@ struct Boxing : public AllStatic {
   static intptr_t BoxCid(Representation rep);
 };
 
-class BoxInstr : public TemplateDefinition<1, NoThrow, Pure> {
+class BoxInstr : public TemplateDefinition<1, NoThrow, PureAndMovable> {
  public:
   static BoxInstr* Create(Representation from, Value* value);
 
@@ -8790,7 +8848,10 @@ class UnboxInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   Value* value() const { return inputs_[0]; }
 
-  bool HasMatchingType();
+  bool HasMatchingType(CompileType* type) const;
+  bool HasMatchingType() const { return HasMatchingType(value()->Type()); }
+
+  virtual bool IsSafeToHoist() const;
 
   virtual bool ComputeCanDeoptimize() const {
     return value_mode() == ValueMode::kCheckType;
@@ -8937,7 +8998,7 @@ bool Definition::IsInt64Definition() {
 }
 
 // Represents Math's static min and max functions.
-class MathMinMaxInstr : public TemplateDefinition<2, NoThrow, Pure> {
+class MathMinMaxInstr : public TemplateDefinition<2, NoThrow, PureAndMovable> {
  public:
   MathMinMaxInstr(MethodRecognizer::Kind op_kind,
                   Value* left_value,
@@ -8989,7 +9050,8 @@ class MathMinMaxInstr : public TemplateDefinition<2, NoThrow, Pure> {
   DISALLOW_COPY_AND_ASSIGN(MathMinMaxInstr);
 };
 
-class BinaryDoubleOpInstr : public TemplateDefinition<2, NoThrow, Pure> {
+class BinaryDoubleOpInstr
+    : public TemplateDefinition<2, NoThrow, PureAndMovable> {
  public:
   BinaryDoubleOpInstr(Token::Kind op_kind,
                       Value* left,
@@ -9057,7 +9119,7 @@ class BinaryDoubleOpInstr : public TemplateDefinition<2, NoThrow, Pure> {
   DISALLOW_COPY_AND_ASSIGN(BinaryDoubleOpInstr);
 };
 
-class DoubleTestOpInstr : public TemplateCondition<1, NoThrow, Pure> {
+class DoubleTestOpInstr : public TemplateCondition<1, NoThrow, PureAndMovable> {
  public:
   DoubleTestOpInstr(MethodRecognizer::Kind op_kind,
                     Value* value,
@@ -9104,7 +9166,8 @@ class DoubleTestOpInstr : public TemplateCondition<1, NoThrow, Pure> {
   DISALLOW_COPY_AND_ASSIGN(DoubleTestOpInstr);
 };
 
-class HashDoubleOpInstr : public TemplateDefinition<1, NoThrow, Pure> {
+class HashDoubleOpInstr
+    : public TemplateDefinition<1, NoThrow, PureAndMovable> {
  public:
   HashDoubleOpInstr(Value* value, intptr_t deopt_id)
       : TemplateDefinition(deopt_id) {
@@ -9155,6 +9218,8 @@ class HashIntegerOpInstr : public TemplateDefinition<1, NoThrow, Pure> {
     return new HashIntegerOpInstr(value, smi, deopt_id);
   }
 
+  virtual bool IsSafeToHoist() const;
+
   Value* value() const { return inputs_[0]; }
 
   virtual intptr_t DeoptimizationTarget() const {
@@ -9191,7 +9256,8 @@ class HashIntegerOpInstr : public TemplateDefinition<1, NoThrow, Pure> {
   DISALLOW_COPY_AND_ASSIGN(HashIntegerOpInstr);
 };
 
-class UnaryIntegerOpInstr : public TemplateDefinition<1, NoThrow, Pure> {
+class UnaryIntegerOpInstr
+    : public TemplateDefinition<1, NoThrow, PureAndMovable> {
  public:
   UnaryIntegerOpInstr(Token::Kind op_kind, Value* value, intptr_t deopt_id)
       : TemplateDefinition(deopt_id), op_kind_(op_kind) {
@@ -9210,6 +9276,8 @@ class UnaryIntegerOpInstr : public TemplateDefinition<1, NoThrow, Pure> {
   Token::Kind op_kind() const { return op_kind_; }
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
+
+  virtual void InferRange(RangeAnalysis* analysis, Range* range);
 
   virtual bool AttributesEqual(const Instruction& other) const {
     return other.AsUnaryIntegerOp()->op_kind() == op_kind();
@@ -9286,6 +9354,34 @@ class UnaryUint32OpInstr : public UnaryIntegerOpInstr {
   DISALLOW_COPY_AND_ASSIGN(UnaryUint32OpInstr);
 };
 
+class UnaryInt32OpInstr : public UnaryIntegerOpInstr {
+ public:
+  UnaryInt32OpInstr(Token::Kind op_kind, Value* value, intptr_t deopt_id)
+      : UnaryIntegerOpInstr(op_kind, value, deopt_id) {
+    ASSERT(IsSupported(op_kind));
+  }
+
+  virtual bool ComputeCanDeoptimize() const { return false; }
+
+  virtual Representation representation() const { return kUnboxedInt32; }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0);
+    return kUnboxedInt32;
+  }
+
+  static bool IsSupported(Token::Kind op_kind) {
+    return op_kind == Token::kBIT_NOT;
+  }
+
+  DECLARE_INSTRUCTION(UnaryInt32Op)
+
+  DECLARE_EMPTY_SERIALIZATION(UnaryInt32OpInstr, UnaryIntegerOpInstr)
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(UnaryInt32OpInstr);
+};
+
 class UnaryInt64OpInstr : public UnaryIntegerOpInstr {
  public:
   UnaryInt64OpInstr(Token::Kind op_kind, Value* value, intptr_t deopt_id)
@@ -9313,7 +9409,8 @@ class UnaryInt64OpInstr : public UnaryIntegerOpInstr {
   DISALLOW_COPY_AND_ASSIGN(UnaryInt64OpInstr);
 };
 
-class BinaryIntegerOpInstr : public TemplateDefinition<2, NoThrow, Pure> {
+class BinaryIntegerOpInstr
+    : public TemplateDefinition<2, NoThrow, PureAndMovable> {
  public:
   static constexpr intptr_t kShiftCountLimit = 63;
 
@@ -9596,7 +9693,8 @@ class BinaryInt64OpInstr : public BinaryIntegerOpInstr {
   DISALLOW_COPY_AND_ASSIGN(BinaryInt64OpInstr);
 };
 
-class UnaryDoubleOpInstr : public TemplateDefinition<1, NoThrow, Pure> {
+class UnaryDoubleOpInstr
+    : public TemplateDefinition<1, NoThrow, PureAndMovable> {
  public:
   UnaryDoubleOpInstr(Token::Kind op_kind,
                      Value* value,
@@ -9721,7 +9819,7 @@ class CheckStackOverflowInstr : public TemplateInstruction<0, NoThrow> {
 };
 
 // TODO(vegorov): remove this instruction in favor of Int32ToDouble.
-class SmiToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
+class SmiToDoubleInstr : public TemplateDefinition<1, NoThrow, PureAndMovable> {
  public:
   SmiToDoubleInstr(Value* value, const InstructionSource& source)
       : TemplateDefinition(source), token_pos_(source.token_pos) {
@@ -9750,7 +9848,8 @@ class SmiToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
   DISALLOW_COPY_AND_ASSIGN(SmiToDoubleInstr);
 };
 
-class Int32ToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
+class Int32ToDoubleInstr
+    : public TemplateDefinition<1, NoThrow, PureAndMovable> {
  public:
   explicit Int32ToDoubleInstr(Value* value) { SetInputAt(0, value); }
 
@@ -9775,7 +9874,8 @@ class Int32ToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
   DISALLOW_COPY_AND_ASSIGN(Int32ToDoubleInstr);
 };
 
-class Int64ToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
+class Int64ToDoubleInstr
+    : public TemplateDefinition<1, NoThrow, PureAndMovable> {
  public:
   Int64ToDoubleInstr(Value* value, intptr_t deopt_id)
       : TemplateDefinition(deopt_id) {
@@ -9809,7 +9909,8 @@ class Int64ToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
   DISALLOW_COPY_AND_ASSIGN(Int64ToDoubleInstr);
 };
 
-class DoubleToIntegerInstr : public TemplateDefinition<1, Throws, Pure> {
+class DoubleToIntegerInstr
+    : public TemplateDefinition<1, Throws, PureAndMovable> {
  public:
   DoubleToIntegerInstr(Value* value,
                        MethodRecognizer::Kind recognized_kind,
@@ -9862,7 +9963,7 @@ class DoubleToIntegerInstr : public TemplateDefinition<1, Throws, Pure> {
 
 // Similar to 'DoubleToIntegerInstr' but expects unboxed double as input
 // and creates a Smi.
-class DoubleToSmiInstr : public TemplateDefinition<1, NoThrow, Pure> {
+class DoubleToSmiInstr : public TemplateDefinition<1, NoThrow, PureAndMovable> {
  public:
   DoubleToSmiInstr(Value* value, intptr_t deopt_id)
       : TemplateDefinition(deopt_id) {
@@ -9891,7 +9992,8 @@ class DoubleToSmiInstr : public TemplateDefinition<1, NoThrow, Pure> {
   DISALLOW_COPY_AND_ASSIGN(DoubleToSmiInstr);
 };
 
-class DoubleToFloatInstr : public TemplateDefinition<1, NoThrow, Pure> {
+class DoubleToFloatInstr
+    : public TemplateDefinition<1, NoThrow, PureAndMovable> {
  public:
   DoubleToFloatInstr(Value* value, intptr_t deopt_id)
       : TemplateDefinition(deopt_id) {
@@ -9923,7 +10025,8 @@ class DoubleToFloatInstr : public TemplateDefinition<1, NoThrow, Pure> {
   DISALLOW_COPY_AND_ASSIGN(DoubleToFloatInstr);
 };
 
-class FloatToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
+class FloatToDoubleInstr
+    : public TemplateDefinition<1, NoThrow, PureAndMovable> {
  public:
   FloatToDoubleInstr(Value* value, intptr_t deopt_id)
       : TemplateDefinition(deopt_id) {
@@ -9956,10 +10059,14 @@ class FloatToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
 };
 
 // left op right ? -1 : 0
-class FloatCompareInstr : public TemplateDefinition<2, NoThrow, Pure> {
+class CompareAsMaskInstr
+    : public TemplateDefinition<2, NoThrow, PureAndMovable> {
  public:
-  FloatCompareInstr(Token::Kind op_kind, Value* left, Value* right)
-      : op_kind_(op_kind) {
+  CompareAsMaskInstr(Representation input_representation,
+                     Token::Kind op_kind,
+                     Value* left,
+                     Value* right)
+      : input_representation_(input_representation), op_kind_(op_kind) {
     SetInputAt(0, left);
     SetInputAt(1, right);
   }
@@ -9967,33 +10074,37 @@ class FloatCompareInstr : public TemplateDefinition<2, NoThrow, Pure> {
   Value* left() const { return inputs_[0]; }
   Value* right() const { return inputs_[1]; }
 
+  Representation input_representation() const { return input_representation_; }
   Token::Kind op_kind() const { return op_kind_; }
 
-  DECLARE_INSTRUCTION(FloatCompare)
+  DECLARE_INSTRUCTION(CompareAsMask)
 
-  DECLARE_ATTRIBUTE(op_kind())
+  DECLARE_ATTRIBUTES_NAMED(("input_representation", "op_kind"),
+                           (input_representation(), op_kind()))
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual Representation representation() const { return kUnboxedInt32; }
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
-    return kUnboxedFloat;
+    return input_representation_;
   }
 
   virtual bool AttributesEqual(const Instruction& other) const {
-    return other.AsFloatCompare()->op_kind() == op_kind();
+    return other.AsCompareAsMask()->op_kind() == op_kind();
   }
 
-#define FIELD_LIST(F) F(const Token::Kind, op_kind_)
+#define FIELD_LIST(F)                                                          \
+  F(const Representation, input_representation_)                               \
+  F(const Token::Kind, op_kind_)
 
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(FloatCompareInstr,
+  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(CompareAsMaskInstr,
                                           TemplateDefinition,
                                           FIELD_LIST)
 #undef FIELD_LIST
 
  private:
-  DISALLOW_COPY_AND_ASSIGN(FloatCompareInstr);
+  DISALLOW_COPY_AND_ASSIGN(CompareAsMaskInstr);
 };
 
 // TODO(sjindel): Replace with FFICallInstr.
@@ -10026,6 +10137,7 @@ class InvokeMathCFunctionInstr : public VariadicDefinition {
   virtual intptr_t DeoptimizationTarget() const { return GetDeoptId(); }
 
   virtual bool AllowsCSE() const { return true; }
+  virtual bool IsSafeToHoist() const { return true; }
   virtual bool HasUnknownSideEffects() const { return false; }
 
   virtual bool AttributesEqual(const Instruction& other) const {
@@ -10226,7 +10338,8 @@ class SanReadWriteIndexedInstr : public TemplateInstruction<2, NoThrow> {
   DISALLOW_COPY_AND_ASSIGN(SanReadWriteIndexedInstr);
 };
 
-class ExtractNthOutputInstr : public TemplateDefinition<1, NoThrow, Pure> {
+class ExtractNthOutputInstr
+    : public TemplateDefinition<1, NoThrow, PureAndMovable> {
  public:
   // Extract the Nth output register from value.
   ExtractNthOutputInstr(Value* value,
@@ -10283,7 +10396,7 @@ class ExtractNthOutputInstr : public TemplateDefinition<1, NoThrow, Pure> {
 };
 
 // Combines 2 values into a pair with kPairOfTagged representation.
-class MakePairInstr : public TemplateDefinition<2, NoThrow, Pure> {
+class MakePairInstr : public TemplateDefinition<2, NoThrow, PureAndMovable> {
  public:
   MakePairInstr(Value* x, Value* y) {
     SetInputAt(0, x);
@@ -10332,6 +10445,8 @@ class UnboxLaneInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   virtual Representation representation() const { return definition_rep_; }
 
+  virtual bool IsSafeToHoist() const;
+
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     ASSERT(idx == 0);
     return kTagged;
@@ -10361,7 +10476,7 @@ class UnboxLaneInstr : public TemplateDefinition<1, NoThrow, Pure> {
   DISALLOW_COPY_AND_ASSIGN(UnboxLaneInstr);
 };
 
-class BoxLanesInstr : public TemplateDefinition<4, NoThrow, Pure> {
+class BoxLanesInstr : public TemplateDefinition<4, NoThrow, PureAndMovable> {
  public:
   BoxLanesInstr(Representation from_representation, Value* x, Value* y)
       : from_representation_(from_representation) {
@@ -10448,7 +10563,7 @@ class BoxLanesInstr : public TemplateDefinition<4, NoThrow, Pure> {
   DISALLOW_COPY_AND_ASSIGN(BoxLanesInstr);
 };
 
-class TruncDivModInstr : public TemplateDefinition<2, NoThrow, Pure> {
+class TruncDivModInstr : public TemplateDefinition<2, NoThrow, PureAndMovable> {
  public:
   TruncDivModInstr(Value* lhs, Value* rhs, intptr_t deopt_id);
 
@@ -10518,6 +10633,7 @@ class CheckClassInstr : public TemplateInstruction<1, NoThrow> {
   intptr_t ComputeCidMask() const;
 
   virtual bool AllowsCSE() const { return true; }
+  virtual bool IsSafeToHoist() const { return true; }
   virtual bool HasUnknownSideEffects() const { return false; }
 
   virtual bool AttributesEqual(const Instruction& other) const;
@@ -10553,7 +10669,7 @@ class CheckClassInstr : public TemplateInstruction<1, NoThrow> {
   DISALLOW_COPY_AND_ASSIGN(CheckClassInstr);
 };
 
-class CheckSmiInstr : public TemplateInstruction<1, NoThrow, Pure> {
+class CheckSmiInstr : public TemplateInstruction<1, NoThrow, PureAndMovable> {
  public:
   CheckSmiInstr(Value* value,
                 intptr_t deopt_id,
@@ -10587,7 +10703,7 @@ class CheckSmiInstr : public TemplateInstruction<1, NoThrow, Pure> {
 // CheckNull instruction takes one input (`value`) and tests it for `null`.
 // If `value` is `null`, then an exception is thrown according to
 // `exception_type`. Otherwise, execution proceeds to the next instruction.
-class CheckNullInstr : public TemplateDefinition<1, Throws, Pure> {
+class CheckNullInstr : public TemplateDefinition<1, Throws, PureAndMovable> {
  public:
   enum ExceptionType {
     kNoSuchMethod,
@@ -10673,6 +10789,7 @@ class CheckClassIdInstr : public TemplateInstruction<1, NoThrow> {
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
   virtual bool AllowsCSE() const { return true; }
+  virtual bool IsSafeToHoist() const { return true; }
   virtual bool HasUnknownSideEffects() const { return false; }
 
   virtual bool AttributesEqual(const Instruction& other) const {
@@ -10696,7 +10813,8 @@ class CheckClassIdInstr : public TemplateInstruction<1, NoThrow> {
 
 // Base class for speculative [CheckArrayBoundInstr] and
 // non-speculative [GenericCheckBoundInstr] bounds checking.
-class CheckBoundBaseInstr : public TemplateDefinition<2, NoThrow, Pure> {
+class CheckBoundBaseInstr
+    : public TemplateDefinition<2, NoThrow, PureAndMovable> {
  public:
   CheckBoundBaseInstr(Value* length, Value* index, intptr_t deopt_id)
       : TemplateDefinition(deopt_id) {
@@ -10860,6 +10978,8 @@ class CheckWritableInstr : public TemplateDefinition<1, Throws, Pure> {
     SetInputAt(kReceiver, receiver);
   }
 
+  virtual bool IsSafeToHoist() const;
+
   virtual bool AttributesEqual(const Instruction& other) const { return true; }
 
   DECLARE_INSTRUCTION(CheckWritable)
@@ -10916,6 +11036,7 @@ class CheckConditionInstr : public Instruction {
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
   virtual bool AllowsCSE() const { return true; }
+  virtual bool IsSafeToHoist() const { return true; }
   virtual bool HasUnknownSideEffects() const { return false; }
 
   virtual bool AttributesEqual(const Instruction& other) const {
@@ -10950,7 +11071,8 @@ class CheckConditionInstr : public Instruction {
   DISALLOW_COPY_AND_ASSIGN(CheckConditionInstr);
 };
 
-class IntConverterInstr : public TemplateDefinition<1, NoThrow, Pure> {
+class IntConverterInstr
+    : public TemplateDefinition<1, NoThrow, PureAndMovable> {
  public:
   IntConverterInstr(Representation from, Representation to, Value* value)
       : TemplateDefinition(DeoptId::kNone),
@@ -11026,7 +11148,7 @@ class IntConverterInstr : public TemplateDefinition<1, NoThrow, Pure> {
 // Moves a floating-point value between CPU and FPU registers. Used to implement
 // "softfp" calling conventions, where FPU arguments/return values are passed in
 // normal CPU registers.
-class BitCastInstr : public TemplateDefinition<1, NoThrow, Pure> {
+class BitCastInstr : public TemplateDefinition<1, NoThrow, PureAndMovable> {
  public:
   BitCastInstr(Representation from, Representation to, Value* value)
       : TemplateDefinition(DeoptId::kNone),
@@ -11077,7 +11199,7 @@ class BitCastInstr : public TemplateDefinition<1, NoThrow, Pure> {
   DISALLOW_COPY_AND_ASSIGN(BitCastInstr);
 };
 
-class LoadThreadInstr : public TemplateDefinition<0, NoThrow, Pure> {
+class LoadThreadInstr : public TemplateDefinition<0, NoThrow, PureAndMovable> {
  public:
   LoadThreadInstr() : TemplateDefinition(DeoptId::kNone) {}
 
@@ -11178,6 +11300,7 @@ class LoadThreadInstr : public TemplateDefinition<0, NoThrow, Pure> {
   SIMD_PER_COMPONENT_XYZW(M, 1, Float32x4Get, (Float32x4), Double)             \
   SIMD_PER_COMPONENT_XYZW(M, 2, Float32x4With, (Double, Float32x4), Float32x4) \
   SIMD_PER_COMPONENT_XYZW(M, 1, Int32x4Get, (Int32x4), Int32)                  \
+  SIMD_PER_COMPONENT_XYZW(M, 2, Int32x4With, (Int32x4, Int32), Int32x4)        \
   SIMD_PER_COMPONENT_XYZW(M, 1, Int32x4GetFlag, (Int32x4), Bool)               \
   SIMD_PER_COMPONENT_XYZW(M, 2, Int32x4WithFlag, (Int32x4, Bool), Int32x4)     \
   M(1, MASK, Float32x4Shuffle, (Float32x4), Float32x4)                         \
@@ -11185,6 +11308,11 @@ class LoadThreadInstr : public TemplateDefinition<0, NoThrow, Pure> {
   M(2, MASK, Float32x4ShuffleMix, (Float32x4, Float32x4), Float32x4)           \
   M(2, MASK, Int32x4ShuffleMix, (Int32x4, Int32x4), Int32x4)                   \
   M(2, _, Float32x4Equal, (Float32x4, Float32x4), Int32x4)                     \
+  M(2, _, Int32x4Equal, (Int32x4, Int32x4), Int32x4)                           \
+  M(2, _, Int32x4NotEqual, (Int32x4, Int32x4), Int32x4)                        \
+  M(2, _, Int32x4Shl, (Int32x4, Int32), Int32x4)                               \
+  M(2, _, Int32x4ShrS, (Int32x4, Int32), Int32x4)                              \
+  M(2, _, Int32x4AndNot, (Int32x4, Int32x4), Int32x4)                          \
   M(2, _, Float32x4GreaterThan, (Float32x4, Float32x4), Int32x4)               \
   M(2, _, Float32x4GreaterThanOrEqual, (Float32x4, Float32x4), Int32x4)        \
   M(2, _, Float32x4LessThan, (Float32x4, Float32x4), Int32x4)                  \
@@ -11196,9 +11324,12 @@ class LoadThreadInstr : public TemplateDefinition<0, NoThrow, Pure> {
   M(2, _, Float64x2FromDoubles, (Double, Double), Float64x2)                   \
   M(0, _, Float32x4Zero, (), Float32x4)                                        \
   M(0, _, Float64x2Zero, (), Float64x2)                                        \
+  M(1, _, Int32x4Splat, (Int32), Int32x4)                                      \
   M(1, _, Float32x4Splat, (Double), Float32x4)                                 \
   M(1, _, Float64x2Splat, (Double), Float64x2)                                 \
   M(1, _, Int32x4GetSignMask, (Int32x4), Int8)                                 \
+  M(1, _, Int32x4AnyTrue, (Int32x4), Bool)                                     \
+  M(1, _, Int32x4AllTrue, (Int32x4), Bool)                                     \
   M(1, _, Float32x4GetSignMask, (Float32x4), Int8)                             \
   M(1, _, Float64x2GetSignMask, (Float64x2), Int8)                             \
   M(2, _, Float32x4Scale, (Double, Float32x4), Float32x4)                      \
@@ -11211,6 +11342,7 @@ class LoadThreadInstr : public TemplateDefinition<0, NoThrow, Pure> {
   M(1, _, Float64x2Negate, (Float64x2), Float64x2)                             \
   M(1, _, Float32x4Abs, (Float32x4), Float32x4)                                \
   M(1, _, Float64x2Abs, (Float64x2), Float64x2)                                \
+  M(1, _, Int32x4Not, (Int32x4), Int32x4)                                      \
   M(3, _, Float32x4Clamp, (Float32x4, Float32x4, Float32x4), Float32x4)        \
   M(3, _, Float64x2Clamp, (Float64x2, Float64x2, Float64x2), Float64x2)        \
   M(1, _, Float64x2GetX, (Float64x2), Double)                                  \
@@ -11292,6 +11424,8 @@ class SimdOpInstr : public Definition {
 
   virtual CompileType ComputeType() const;
 
+  virtual void InferRange(RangeAnalysis* analysis, Range* range);
+
   virtual bool MayThrow() const { return false; }
   virtual bool ComputeCanDeoptimize() const { return false; }
 
@@ -11302,6 +11436,7 @@ class SimdOpInstr : public Definition {
   }
 
   virtual bool HasUnknownSideEffects() const { return false; }
+  virtual bool IsSafeToHoist() const { return true; }
   virtual bool AllowsCSE() const { return true; }
 
   virtual bool AttributesEqual(const Instruction& other) const {

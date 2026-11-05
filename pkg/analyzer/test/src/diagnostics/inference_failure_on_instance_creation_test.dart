@@ -20,7 +20,10 @@ class InferenceFailureOnInstanceCreationTest extends PubPackageResolutionTest {
   void setUp() {
     super.setUp();
     writeTestPackageAnalysisOptionsFile(
-      analysisOptionsContent(experiments: experiments, strictInference: true),
+      analysisOptionsContent(
+        experimentalFeatures: experimentalFeatures,
+        strictInference: true,
+      ),
     );
   }
 
@@ -95,12 +98,12 @@ class C<T> {
 }
 
 @C()
-// [diag.inferenceFailureOnInstanceCreation][column 1][length 4] The type argument(s) of the constructor 'C' can't be inferred.
+// [diag.inferenceFailureOnInstanceCreation][column 2][length 1] The type argument(s) of the constructor 'C' can't be inferred.
 void f() {}
 ''');
   }
 
-  test_genericMetadata_missingTypeArg_withoutGenericMetadata() async {
+  test_genericMetadata_missingTypeArg_beforeGenericMetadata() async {
     writeTestPackageConfig(PackageConfigFileBuilder(), languageVersion: '2.12');
     await resolveTestCodeWithDiagnostics(r'''
 class C<T> {

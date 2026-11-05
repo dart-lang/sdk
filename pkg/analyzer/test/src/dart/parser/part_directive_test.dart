@@ -32,6 +32,42 @@ PartDirective
 ''');
   }
 
+  test_afterPartOf_beforeEnhancedParts() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+// %before-language-feature: enhanced-parts
+part of 'a.dart';
+part 'b.dart';
+// [diag.nonPartOfDirectiveInPart][column 1][length 4] The part-of directive must be the only directive in a part.
+''');
+
+    var node = parseResult.findNode.singlePartDirective;
+    assertParsedNodeText(node, r'''
+PartDirective
+  partKeyword: part
+  uri: SimpleStringLiteral
+    literal: 'b.dart'
+  semicolon: ;
+''');
+  }
+
+  test_beforePartOf_beforeEnhancedParts() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+// %before-language-feature: enhanced-parts
+part 'b.dart';
+part of 'a.dart';
+// [diag.nonPartOfDirectiveInPart][column 1][length 4] The part-of directive must be the only directive in a part.
+''');
+
+    var node = parseResult.findNode.singlePartDirective;
+    assertParsedNodeText(node, r'''
+PartDirective
+  partKeyword: part
+  uri: SimpleStringLiteral
+    literal: 'b.dart'
+  semicolon: ;
+''');
+  }
+
   test_it() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 part 'a.dart';
@@ -43,42 +79,6 @@ PartDirective
   partKeyword: part
   uri: SimpleStringLiteral
     literal: 'a.dart'
-  semicolon: ;
-''');
-  }
-
-  test_language305_afterPartOf() {
-    var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart = 3.5
-part of 'a.dart';
-part 'b.dart';
-// [diag.nonPartOfDirectiveInPart][column 1][length 4] The part-of directive must be the only directive in a part.
-''');
-
-    var node = parseResult.findNode.singlePartDirective;
-    assertParsedNodeText(node, r'''
-PartDirective
-  partKeyword: part
-  uri: SimpleStringLiteral
-    literal: 'b.dart'
-  semicolon: ;
-''');
-  }
-
-  test_language305_beforePartOf() {
-    var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart = 3.5
-part 'b.dart';
-part of 'a.dart';
-// [diag.nonPartOfDirectiveInPart][column 1][length 4] The part-of directive must be the only directive in a part.
-''');
-
-    var node = parseResult.findNode.singlePartDirective;
-    assertParsedNodeText(node, r'''
-PartDirective
-  partKeyword: part
-  uri: SimpleStringLiteral
-    literal: 'b.dart'
   semicolon: ;
 ''');
   }

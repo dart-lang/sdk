@@ -22,9 +22,12 @@ typedef StaticOptions =
     Either2<SemanticTokensOptions, SemanticTokensRegistrationOptions>;
 
 abstract class AbstractSemanticTokensHandler<T>
-    extends LspMessageHandler<T, SemanticTokens?>
+    extends SharedMessageHandler<T, SemanticTokens?>
     with LspPluginRequestHandlerMixin {
   new(super.server);
+
+  @override
+  bool get requiresTrustedCaller => false;
 
   List<List<HighlightRegion>> getPluginResults(String path) {
     var notificationManager = server.notificationManager;

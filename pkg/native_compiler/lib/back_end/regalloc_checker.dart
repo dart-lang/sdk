@@ -18,6 +18,8 @@ final class RegisterAllocationChecker extends Pass {
   final Constraints constraints;
 
   late final Set<Location> _allLocations = {};
+  late final Set<Register> _regLocations;
+  late final Set<FPRegister> _fpregLocations;
 
   /// Block preorder number -> incoming state for a block.
   late final List<Map<Location, _Incoming>> _in;
@@ -46,6 +48,7 @@ final class RegisterAllocationChecker extends Pass {
   /// Also, collect a set of all locations.
   void verifyConstraints() {
     final locs = backEndState.operandLocations;
+    final safepoints = backEndState.safepoints;
     for (final block in graph.reversePostorder) {
       currentBlock = block;
       for (final instr in block) {
@@ -85,9 +88,21 @@ final class RegisterAllocationChecker extends Pass {
                 _allLocations.add(move.to.physicalLocation);
             }
           }
+        } else {
+          if ((constr?.safepoint != null) != (safepoints[instr.id] != null)) {
+            throw 'Safepoint ${safepoints[instr.id]} for ${IrToText.instruction(instr)} does not match constraints';
+          }
         }
       }
     }
+    _regLocations = constraints
+        .getAllocatableRegisters()
+        .where((r) => _allLocations.contains(r))
+        .toSet();
+    _fpregLocations = constraints
+        .getAllocatableFPRegisters()
+        .where((r) => _allLocations.contains(r))
+        .toSet();
   }
 
   void verifyConstraint(
@@ -138,12 +153,7 @@ final class RegisterAllocationChecker extends Pass {
           _handleParallelMove(instr, out);
         } else {
           final constr = constraints.getConstraints(instr);
-          for (var i = 0, n = constr?.temps.length ?? 0; i < n; ++i) {
-            final temp = locs[OperandId.temp(instr.id, i)]?.physicalLocation;
-            if (temp != null) {
-              out[temp] = _Garbage(instr);
-            }
-          }
+          _clobberLocations(instr, constr, out);
           final result = locs[OperandId.result(instr.id)]?.physicalLocation;
           if (result != null) {
             out[result] = _Value.fromDef(instr as Definition);
@@ -164,6 +174,33 @@ final class RegisterAllocationChecker extends Pass {
         }
         if (_updateOutState(block)) {
           changed = true;
+        }
+      }
+    }
+  }
+
+  void _clobberLocations(
+    Instruction instr,
+    InstructionConstraints? constr,
+    Map<Location, _Value> state,
+  ) {
+    final locs = backEndState.operandLocations;
+    for (var i = 0, n = constr?.temps.length ?? 0; i < n; ++i) {
+      final temp = locs[OperandId.temp(instr.id, i)]?.physicalLocation;
+      if (temp != null) {
+        state[temp] = _Garbage(instr);
+      }
+    }
+    final safepoint = backEndState.safepoints[instr.id];
+    if (safepoint != null) {
+      for (final r in _regLocations) {
+        if (!safepoint.liveRegs.contains(r)) {
+          state[r] = _Garbage(instr);
+        }
+      }
+      for (final r in _fpregLocations) {
+        if (!safepoint.liveFPRegs.contains(r)) {
+          state[r] = _Garbage(instr);
         }
       }
     }
@@ -276,12 +313,7 @@ final class RegisterAllocationChecker extends Pass {
               }
             }
           }
-          for (var i = 0, n = constr?.temps.length ?? 0; i < n; ++i) {
-            final temp = locs[OperandId.temp(instr.id, i)]?.physicalLocation;
-            if (temp != null) {
-              state[temp] = _Garbage(instr);
-            }
-          }
+          _clobberLocations(instr, constr, state);
           if (result != null) {
             state[result] = _Value.fromDef(instr as Definition);
           }
@@ -366,6 +398,7 @@ class RegisterAllocationPrinter(
     }
     final buf = StringBuffer();
     final locs = backEndState.operandLocations;
+    final safepoints = backEndState.safepoints;
     buf.write('  # RA: ');
     final result = locs[OperandId.result(instr.id)]?.physicalLocation;
     if (result != null) {
@@ -383,6 +416,20 @@ class RegisterAllocationPrinter(
       buf.write(
         ' temps: ${[for (var i = 0, n = constr.temps.length; i < n; ++i) locs[OperandId.temp(instr.id, i)]?.physicalLocation]}',
       );
+    }
+    final safepoint = safepoints[instr.id];
+    if (safepoint != null) {
+      final allocatableRegisters = constraints.getAllocatableRegisters();
+      final allocatableFPRegisters = constraints.getAllocatableFPRegisters();
+      final liveRegs = [
+        ...safepoint.liveRegs.elements(allocatableRegisters),
+        ...safepoint.liveFPRegs.elements(allocatableFPRegisters),
+      ];
+      final objects = [
+        ...safepoint.objectRegs.elements(allocatableRegisters),
+        ...safepoint.stackMap.elements.map((int i) => SpillSlot(i)),
+      ];
+      buf.write(' SAFEPT{live: $liveRegs, objects: $objects}');
     }
     return buf.toString();
   }

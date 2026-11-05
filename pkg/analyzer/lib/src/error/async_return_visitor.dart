@@ -8,7 +8,7 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
 
-class AsyncReturnVisitor extends SimpleAstVisitor<void> {
+class AsyncReturnVisitor extends SimpleAstVisitor2<void> {
   final Diagnostic? Function(Token token) _reportAtToken;
   final TypeSystem _typeSystem;
   final TypeProvider _typeProvider;
@@ -27,19 +27,19 @@ class AsyncReturnVisitor extends SimpleAstVisitor<void> {
   @override
   void visitExpressionFunctionBody(ExpressionFunctionBody node) {
     if (_withinTryBlock) return;
-    var expression = node.expression;
+    var expression = node.expression2;
     var expressionType = expression.staticType ?? DynamicTypeImpl.instance;
-    var body = node.withAncestors.whereType<FunctionBody>().firstOrNull;
+    var body = node.withAncestors2.whereType<FunctionBody>().firstOrNull;
     _report(body, expressionType, node.functionDefinition);
   }
 
   @override
   void visitReturnStatement(ReturnStatement node) {
-    var expression = node.expression;
+    var expression = node.expression2;
     if (expression == null) return;
     if (_withinTryBlock != node.isWithinTryBlock) return;
     var expressionType = expression.staticType ?? DynamicTypeImpl.instance;
-    var body = node.withAncestors.whereType<FunctionBody>().firstOrNull;
+    var body = node.withAncestors2.whereType<FunctionBody>().firstOrNull;
     _report(body, expressionType, node.returnKeyword);
   }
 
@@ -71,8 +71,8 @@ class AsyncReturnVisitor extends SimpleAstVisitor<void> {
 
 extension on ReturnStatement {
   bool get isWithinTryBlock {
-    for (var ancestor in withAncestors) {
-      if (ancestor case Block(:var parent)) {
+    for (var ancestor in withAncestors2) {
+      if (ancestor case Block(parent2: var parent)) {
         if (parent is BlockFunctionBody) {
           return false;
         }
@@ -86,12 +86,14 @@ extension on ReturnStatement {
 }
 
 extension on FunctionBody {
-  DartType? get returnType => switch (parent) {
+  DartType? get returnType => switch (parent2) {
     MethodDeclaration(:var declaredFragment) ||
     FunctionDeclaration(:var declaredFragment) ||
     FunctionExpression(
       :var declaredFragment,
     ) => declaredFragment?.element.returnType,
+    TopLevelGetterDeclaration(:var declaredFragment) =>
+      declaredFragment?.element.returnType,
     _ => null,
   };
 }

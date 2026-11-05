@@ -70,7 +70,7 @@ class DillTypeAliasBuilder extends TypeAliasBuilderImpl {
   }
 
   @override
-  List<DartType> buildAliasedTypeArguments(
+  DartTypeList buildAliasedTypeArguments(
     LibraryBuilder library,
     List<TypeBuilder>? arguments,
     ClassHierarchyBase? hierarchy,
@@ -80,26 +80,17 @@ class DillTypeAliasBuilder extends TypeAliasBuilderImpl {
     // [cls.typeParameters].
     if (arguments == null) {
       // TODO(johnniwinther): Use i2b here when needed.
-      List<DartType> result = new List<DartType>.generate(
+      return new DartTypeList.generate(
         typedef.typeParameters.length,
-        (int i) {
-          return typedef.typeParameters[i].defaultType;
-        },
-        growable: true,
+        (int i) => typedef.typeParameters[i].defaultType,
       );
-      return result;
     }
 
     // [arguments] != null
-    List<DartType> result = new List<DartType>.generate(arguments.length, (
-      int i,
-    ) {
-      return arguments[i].buildAliased(
-        library,
-        TypeUse.typeArgument,
-        hierarchy,
-      );
-    }, growable: true);
-    return result;
+    return new DartTypeList.generate(
+      arguments.length,
+      (int i) =>
+          arguments[i].buildAliased(library, TypeUse.typeArgument, hierarchy),
+    );
   }
 }

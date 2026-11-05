@@ -252,11 +252,13 @@ bool _valuesInObjectPropertyOrder(List<ConstantValue> keys) {
 
 ConstructedConstantValue createSymbol(
   CommonElements commonElements,
-  String text,
-) {
+  String text, [
+  Uri? libraryUri,
+]) {
   InterfaceType type = commonElements.symbolImplementationType;
   FieldEntity field = commonElements.symbolField;
-  ConstantValue argument = createString(text);
+  String name = libraryUri != null ? '$text@$libraryUri' : text;
+  ConstantValue argument = createString(name);
   var fields = <FieldEntity, ConstantValue>{field: argument};
   return ConstructedConstantValue(type, fields);
 }

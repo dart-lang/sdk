@@ -93,6 +93,26 @@ class C {
 ''');
   }
 
+  test_assignedInSubpart() async {
+    newFile('$testPackageLibPath/part.dart', r'''
+part of 'test.dart';
+part 'subpart.dart';
+''');
+    newFile('$testPackageLibPath/subpart.dart', r'''
+part of 'part.dart';
+int f(C c) {
+  c._x = 1;
+  return c._x;
+}
+''');
+    await assertNoDiagnostics(r'''
+part 'part.dart';
+class C {
+  int _x = 0;
+}
+''');
+  }
+
   test_assignedInTopLevelFunction() async {
     await assertNoDiagnostics(r'''
 class C {
@@ -117,6 +137,18 @@ class C {
 ''');
   }
 
+  test_declaredInLibrary_unused_withPart() async {
+    newFile('$testPackageLibPath/part.dart', r'''
+part of 'test.dart';
+''');
+    await assertDiagnosticsFromMarkup(r'''
+part 'part.dart';
+class C {
+  int [!_x = 0!];
+}
+''');
+  }
+
   test_declaredInPart() async {
     newFile('$testPackageLibPath/part.dart', r'''
 part of 'test.dart';
@@ -129,6 +161,116 @@ part 'part.dart';
 int f(C c) {
   c._x = 1;
   return c._x;
+}
+''');
+  }
+
+  test_declaredInPart_assignedInSubpart() async {
+    newFile('$testPackageLibPath/part.dart', r'''
+part of 'test.dart';
+part 'subpart.dart';
+class C {
+  int _x = 0;
+}
+''');
+    newFile('$testPackageLibPath/subpart.dart', r'''
+part of 'part.dart';
+int f(C c) {
+  c._x = 1;
+  return c._x;
+}
+''');
+    await assertNoDiagnostics(r'''
+part 'part.dart';
+''');
+  }
+
+  test_declaredInPart_unused_fromDeclaringParameter_withSubpart() async {
+    newFile('$testPackageLibPath/test.dart', r'''
+part 'part.dart';
+''');
+    newFile('$testPackageLibPath/subpart.dart', r'''
+part of 'part.dart';
+''');
+    await assertDiagnosticsInFileNameFromMarkup('part.dart', r'''
+part of 'test.dart';
+part 'subpart.dart';
+class C([!var int _x!]) {
+  void m() {
+    print(_x);
+  }
+}
+''');
+  }
+
+  test_declaredInPart_unused_withSubpart() async {
+    newFile('$testPackageLibPath/test.dart', r'''
+part 'part.dart';
+''');
+    newFile('$testPackageLibPath/subpart.dart', r'''
+part of 'part.dart';
+''');
+    await assertDiagnosticsInFileNameFromMarkup('part.dart', r'''
+part of 'test.dart';
+part 'subpart.dart';
+class C {
+  int [!_x = 0!];
+}
+''');
+  }
+
+  test_declaredInSubpart() async {
+    newFile('$testPackageLibPath/part.dart', r'''
+part of 'test.dart';
+part 'subpart.dart';
+''');
+    newFile('$testPackageLibPath/subpart.dart', r'''
+part of 'part.dart';
+class C {
+  int _x = 0;
+}
+''');
+    await assertNoDiagnostics(r'''
+part 'part.dart';
+int f(C c) {
+  c._x = 1;
+  return c._x;
+}
+''');
+  }
+
+  test_declaredInSubpart_assignedInPart() async {
+    newFile('$testPackageLibPath/part.dart', r'''
+part of 'test.dart';
+part 'subpart.dart';
+int f(C c) {
+  c._x = 1;
+  return c._x;
+}
+''');
+    newFile('$testPackageLibPath/subpart.dart', r'''
+part of 'part.dart';
+class C {
+  int _x = 0;
+}
+''');
+    await assertNoDiagnostics(r'''
+part 'part.dart';
+''');
+  }
+
+  test_declaredInSubpart_unused() async {
+    newFile('$testPackageLibPath/test.dart', r'''
+part 'part.dart';
+''');
+    newFile('$testPackageLibPath/part.dart', r'''
+part of 'test.dart';
+part 'subpart.dart';
+''');
+    await assertDiagnosticsInFileNameFromMarkup('subpart.dart', r'''
+part of 'part.dart';
+class C {
+  int [!_x = 0!];
 }
 ''');
   }
@@ -360,6 +502,17 @@ class C {
   void f() {
     _x = 2;
   }
+}
+''');
+  }
+
+  test_reassigned_beforeDeclaration() async {
+    await assertNoDiagnostics(r'''
+class C {
+  void f() {
+    _x = 2;
+  }
+  var _x = 1;
 }
 ''');
   }

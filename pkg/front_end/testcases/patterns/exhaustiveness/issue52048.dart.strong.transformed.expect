@@ -23,7 +23,6 @@ static method main() → dynamic {
   self::f(new self::B::•());
 }
 static method f(self::A a) → dynamic {
-  #L1:
   {
     final synthesized self::A #0#0 = a;
     {

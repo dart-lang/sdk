@@ -63,10 +63,15 @@ mixin M {}
     var node = result.findNode.commentReference('a]');
     assertResolvedNodeText(node, r'''
 CommentReference
+  components
+    CommentReferenceComponent
+      name: a
+      element: <testLibrary>::@getter::a
   expression: SimpleIdentifier
     token: a
     element: <testLibrary>::@getter::a
     staticType: null
+  element: <testLibrary>::@getter::a
 ''');
   }
 
@@ -86,9 +91,9 @@ MixinDeclaration
 ''');
   }
 
-  test_emptyBody_language310() async {
+  test_emptyBody_beforePrimaryConstructors() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 mixin M;
 //     ^
 // [diag.experimentNotEnabled] This requires the 'primary-constructors' language feature to be enabled.
@@ -148,7 +153,7 @@ MethodDeclaration
   name: foo
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression: IntegerLiteral
+    expression2: IntegerLiteral
       literal: 0
       staticType: int
     semicolon: ;
@@ -226,6 +231,13 @@ mixin M {}
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: UnqualifiedNameExpression
+    name: a
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::a
+      invokeType: int Function()
+      type: int
+    staticType: int
   name: SimpleIdentifier
     token: a
     element: <testLibrary>::@getter::a
@@ -275,9 +287,25 @@ class C<T> {}
 mixin M<T> on C<T> {}
 ''');
 
-    var node = result.findNode.functionExpressionInvocation('f()');
+    var node = result.findNode.callInvocation('f()');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
+CallInvocation
+  receiver: UnqualifiedNameExpression
+    name: f
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::g::@formalParameter::f
+      type: M<T> Function<T>()
+    staticType: M<T> Function<T>()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: FunctionTypeInvocationResolution
+    invokeType: M<int> Function()
+    type: M<int>
+  staticType: M<int>
+  typeArgumentTypes
+    int
+V1: FunctionExpressionInvocation
   function: SimpleIdentifier
     token: f
     element: <testLibrary>::@function::g::@formalParameter::f
@@ -335,6 +363,19 @@ MethodDeclaration
   name: foo
   parameters: FormalParameterList
     leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        name: _
+        declaredFragment: <testLibraryFragment> _@29
+          element: isPrivate
+            type: int
+    rightParenthesis: )
+  parameters(v1): FormalParameterList
+    leftParenthesis: (
     parameter: RegularFormalParameter
       type: NamedType
         name: int
@@ -370,9 +411,19 @@ mixin M on A {
 class X extends A with M {}
 ''');
 
-    var node = result.findNode.propertyAccess('super.foo;');
+    var node = result.findNode.receiverPropertyExtraction('super.foo;');
     assertResolvedNodeText(node, r'''
-PropertyAccess
+ReceiverPropertyExtraction
+  receiver: SuperReference
+    superKeyword: super
+  operator: .
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::A::@getter::foo
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: PropertyAccess
   target: SuperExpression
     superKeyword: super
     staticType: M
@@ -400,9 +451,27 @@ mixin M on A {
 class X extends A with M {}
 ''');
 
-    var node = result.findNode.methodInvocation('foo(42)');
+    var node = result.findNode.receiverMethodInvocation('foo(42)');
     assertResolvedNodeText(node, r'''
-MethodInvocation
+ReceiverMethodInvocation
+  receiver: SuperReference
+    superKeyword: super
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 42
+        correspondingParameter: <testLibrary>::@class::A::@method::foo::@formalParameter::x
+        staticType: int
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::A::@method::foo
+    invokeType: void Function(int)
+    type: void
+  staticType: void
+V1: MethodInvocation
   target: SuperExpression
     superKeyword: super
     staticType: M
@@ -439,9 +508,25 @@ mixin M on A {
 class X extends A with M {}
 ''');
 
-    var node = result.findNode.assignment('foo =');
+    var node = result.findNode.directAssignment('foo =');
     assertResolvedNodeText(node, r'''
-AssignmentExpression
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: SuperReference
+      superKeyword: super
+    operator: .
+    name: foo
+    read: <null>
+    write: SetterInvocationResolution
+      element: <testLibrary>::@class::A::@setter::foo
+      acceptedType: int
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <testLibrary>::@class::A::@setter::foo::@formalParameter::_
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
   leftHandSide: PropertyAccess
     target: SuperExpression
       superKeyword: super

@@ -9,7 +9,7 @@
 class C1 {
   int? bad;
   //   ^^^
-  // [context 1] 'bad' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 1] 'bad' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
   f(int i) {}
 }
 
@@ -25,7 +25,7 @@ required_unnamed(C1 c) {
 class C2 {
   int? bad;
   //   ^^^
-  // [context 2] 'bad' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 2] 'bad' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
   f([int i = 0]) {}
 }
 
@@ -41,7 +41,7 @@ optional_unnamed(C2 c) {
 class C3 {
   int? bad;
   //   ^^^
-  // [context 3] 'bad' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 3] 'bad' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
   f({required int i}) {}
 }
 
@@ -57,7 +57,7 @@ required_named(C3 c) {
 class C4 {
   int? bad;
   //   ^^^
-  // [context 4] 'bad' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 4] 'bad' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
   f({int i = 0}) {}
 }
 
@@ -73,7 +73,7 @@ optional_named(C4 c) {
 class C5 {
   List<int>? bad;
   //         ^^^
-  // [context 5] 'bad' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 5] 'bad' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
   f<T>(List<T> x) {}
 }
 
@@ -89,7 +89,7 @@ type_inferred(C5 c) {
 class C6 {
   int? bad;
   //   ^^^
-  // [context 6] 'bad' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 6] 'bad' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
   C6(int i);
 }
 
@@ -105,7 +105,7 @@ C6? constructor_with_implicit_new(C6 c) {
 class C7 {
   int? bad;
   //   ^^^
-  // [context 7] 'bad' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 7] 'bad' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
   C7(int i);
 }
 
@@ -121,7 +121,7 @@ C7? constructor_with_explicit_new(C7 c) {
 class C8 {
   int? bad;
   //   ^^^
-  // [context 8] 'bad' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 8] 'bad' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
 }
 
 userDefinableBinaryOpRhs(C8 c) {
@@ -172,8 +172,8 @@ equalRhs(C10 c, D10 d) {
 class C11 {
   bool? bad;
   //    ^^^
-  // [context 9] 'bad' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
-  // [context 10] 'bad' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 9] 'bad' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
+  // [context 10] 'bad' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
   f(bool b) {}
 }
 
@@ -194,8 +194,8 @@ andOperand(C11 c, bool b) {
 class C12 {
   bool? bad;
   //    ^^^
-  // [context 11] 'bad' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
-  // [context 12] 'bad' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 11] 'bad' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
+  // [context 12] 'bad' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
   f(bool b) {}
 }
 
@@ -216,7 +216,7 @@ orOperand(C12 c, bool b) {
 class C13 {
   bool? bad;
   //    ^^^
-  // [context 13] 'bad' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 13] 'bad' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
 }
 
 assertStatementCondition(C13 c) {
@@ -231,7 +231,7 @@ assertStatementCondition(C13 c) {
 class C14 {
   bool? bad;
   //    ^^^
-  // [context 14] 'bad' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 14] 'bad' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
   C14.assertInitializerCondition(C14 c) : bad = c.bad!, assert(c.bad);
   //                                                           ^^^^^
   // [analyzer 14] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
@@ -242,7 +242,7 @@ class C14 {
 class C15 {
   bool? bad;
   //    ^^^
-  // [context 15] 'bad' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 15] 'bad' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
   f(bool b) {}
 }
 
@@ -258,10 +258,10 @@ notOperand(C15 c) {
 class C16 {
   bool? bad;
   //    ^^^
-  // [context 16] 'bad' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
-  // [context 17] 'bad' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
-  // [context 18] 'bad' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
-  // [context 19] 'bad' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 16] 'bad' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
+  // [context 17] 'bad' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
+  // [context 18] 'bad' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
+  // [context 19] 'bad' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
 }
 
 forLoopCondition(C16 c) {
@@ -291,7 +291,7 @@ forLoopCondition(C16 c) {
 class C17 {
   bool? bad;
   //    ^^^
-  // [context 20] 'bad' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 20] 'bad' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
   f(int i) {}
 }
 
@@ -307,7 +307,7 @@ conditionalExpressionCondition(C17 c) {
 class C18 {
   bool? bad;
   //    ^^^
-  // [context 21] 'bad' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 21] 'bad' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
 }
 
 doLoopCondition(C18 c) {
@@ -322,10 +322,10 @@ doLoopCondition(C18 c) {
 class C19 {
   bool? bad;
   //    ^^^
-  // [context 22] 'bad' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
-  // [context 23] 'bad' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
-  // [context 24] 'bad' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
-  // [context 25] 'bad' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 22] 'bad' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
+  // [context 23] 'bad' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
+  // [context 24] 'bad' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
+  // [context 25] 'bad' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
 }
 
 ifCondition(C19 c) {
@@ -355,7 +355,7 @@ ifCondition(C19 c) {
 class C20 {
   bool? bad;
   //    ^^^
-  // [context 26] 'bad' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 26] 'bad' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
 }
 
 whileCondition(C20 c) {
@@ -370,7 +370,7 @@ whileCondition(C20 c) {
 class C21 {
   int? bad;
   //   ^^^
-  // [context 27] 'bad' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 27] 'bad' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
 }
 
 assignmentRhs(C21 c, int i) {
@@ -385,7 +385,7 @@ assignmentRhs(C21 c, int i) {
 class C22 {
   int? bad;
   //   ^^^
-  // [context 28] 'bad' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 28] 'bad' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
 }
 
 variableInitializer(C22 c) {
@@ -400,7 +400,7 @@ variableInitializer(C22 c) {
 class C23 {
   int? bad;
   //   ^^^
-  // [context 29] 'bad' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 29] 'bad' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
   final int x;
   final int y;
   C23.constructorInitializer(C23 c) : x = c.bad!, y = c.bad;
@@ -413,10 +413,10 @@ class C23 {
 class C24 {
   int? bad;
   //   ^^^
-  // [context 30] 'bad' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
-  // [context 31] 'bad' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
-  // [context 32] 'bad' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
-  // [context 33] 'bad' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 30] 'bad' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
+  // [context 31] 'bad' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
+  // [context 32] 'bad' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
+  // [context 33] 'bad' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
 }
 
 forVariableInitializer(C24 c) {
@@ -446,10 +446,10 @@ forVariableInitializer(C24 c) {
 class C25 {
   int? bad;
   //   ^^^
-  // [context 34] 'bad' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
-  // [context 35] 'bad' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
-  // [context 36] 'bad' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
-  // [context 37] 'bad' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 34] 'bad' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
+  // [context 35] 'bad' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
+  // [context 36] 'bad' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
+  // [context 37] 'bad' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
 }
 
 forAssignmentInitializer(C25 c, int i) {
@@ -479,7 +479,7 @@ forAssignmentInitializer(C25 c, int i) {
 class C26 {
   int? bad;
   //   ^^^
-  // [context 38] 'bad' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 38] 'bad' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
 }
 
 compoundAssignmentRhs(C26 c) {
@@ -495,7 +495,7 @@ compoundAssignmentRhs(C26 c) {
 class C27 {
   int? bad;
   //   ^^^
-  // [context 39] 'bad' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 39] 'bad' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
 }
 
 indexGet(C27 c, List<int> values) {
@@ -510,7 +510,7 @@ indexGet(C27 c, List<int> values) {
 class C28 {
   int? bad;
   //   ^^^
-  // [context 40] 'bad' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 40] 'bad' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
 }
 
 indexSet(C28 c, List<int> values) {
@@ -525,7 +525,7 @@ indexSet(C28 c, List<int> values) {
 class C29 {
   int? bad;
   //   ^^^
-  // [context 41] 'bad' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 41] 'bad' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
 }
 
 indexSetCompound(C29 c, List<int> values) {
@@ -540,7 +540,7 @@ indexSetCompound(C29 c, List<int> values) {
 class C30 {
   int? bad;
   //   ^^^
-  // [context 42] 'bad' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 42] 'bad' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
 }
 
 indexSetIfNull(C30 c, List<int?> values) {
@@ -555,8 +555,8 @@ indexSetIfNull(C30 c, List<int?> values) {
 class C31 {
   int? bad;
   //   ^^^
-  // [context 43] 'bad' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
-  // [context 44] 'bad' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 43] 'bad' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
+  // [context 44] 'bad' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
 }
 
 indexSetPreIncDec(C31 c, List<int> values) {
@@ -576,8 +576,8 @@ indexSetPreIncDec(C31 c, List<int> values) {
 class C32 {
   int? bad;
   //   ^^^
-  // [context 45] 'bad' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
-  // [context 46] 'bad' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 45] 'bad' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
+  // [context 46] 'bad' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
 }
 
 indexSetPostIncDec(C32 c, List<int> values) {
@@ -601,7 +601,7 @@ extension E33 on int {
 class C33 {
   int? bad;
   //   ^^^
-  // [context 47] 'bad' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 47] 'bad' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
 }
 
 explicitExtensionInvocation(C33 c) {
@@ -616,7 +616,7 @@ explicitExtensionInvocation(C33 c) {
 class C34 {
   int? bad;
   //   ^^^
-  // [context 48] 'bad' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 48] 'bad' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
   C34(int value);
 }
 
@@ -632,7 +632,7 @@ class D34 extends C34 {
 class C35 {
   int? bad;
   //   ^^^
-  // [context 49] 'bad' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 49] 'bad' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
 }
 
 indexSetRhs(C35 c, List<int> x) {

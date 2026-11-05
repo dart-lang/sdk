@@ -5,11 +5,11 @@
 import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/dart/ast/ast.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
 import '../diagnostic.dart' as diag;
@@ -18,7 +18,7 @@ import '../util/ascii_utils.dart';
 
 const _desc = r'Avoid leading underscores for local identifiers.';
 
-class NoLeadingUnderscoresForLocalIdentifiers extends AnalysisRule {
+class NoLeadingUnderscoresForLocalIdentifiers extends MultiAnalysisRule {
   new()
     : super(
         name: LintNames.no_leading_underscores_for_local_identifiers,
@@ -26,8 +26,10 @@ class NoLeadingUnderscoresForLocalIdentifiers extends AnalysisRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      diag.noLeadingUnderscoresForLocalIdentifiers;
+  List<DiagnosticCode> get diagnosticCodes => const [
+    diag.noLeadingUnderscoresForLocalIdentifiers,
+    diag.noLeadingUnderscoresForLocalIdentifiersShadowed,
+  ];
 
   @override
   void registerNodeProcessors(
@@ -45,34 +47,44 @@ class NoLeadingUnderscoresForLocalIdentifiers extends AnalysisRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final AnalysisRule rule;
-
-  new(this.rule);
-
-  void checkIdentifier(Token? id) {
-    if (id == null) return;
+class _Visitor(final MultiAnalysisRule rule) extends SimpleAstVisitor<void> {
+  void checkIdentifier(Token? id, AstNode? node, Element? element) {
+    if (id == null || node == null) return;
     if (!id.lexeme.hasLeadingUnderscore) return;
     if (id.lexeme.isJustUnderscores) return;
 
-    rule.reportAtToken(id, arguments: [id.lexeme]);
+    rule.reportAtToken(
+      id,
+      arguments: [id.lexeme],
+      diagnosticCode: _isShadowing(id.lexeme, node, element)
+          ? diag.noLeadingUnderscoresForLocalIdentifiersShadowed
+          : diag.noLeadingUnderscoresForLocalIdentifiers,
+    );
   }
 
   @override
   void visitCatchClause(CatchClause node) {
-    checkIdentifier(node.exceptionParameter?.name);
-    checkIdentifier(node.stackTraceParameter?.name);
+    checkIdentifier(
+      node.exceptionParameter?.name,
+      node.exceptionParameter,
+      node.exceptionParameter?.declaredFragment?.element,
+    );
+    checkIdentifier(
+      node.stackTraceParameter?.name,
+      node.stackTraceParameter,
+      node.stackTraceParameter?.declaredFragment?.element,
+    );
   }
 
   @override
   void visitDeclaredIdentifier(DeclaredIdentifier node) {
-    checkIdentifier(node.name);
+    checkIdentifier(node.name, node, node.declaredFragment?.element);
   }
 
   @override
   void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
     if (node.parent.isFieldNameShortcut) return;
-    checkIdentifier(node.name);
+    checkIdentifier(node.name, node, node.declaredFragment?.element);
   }
 
   @override
@@ -96,7 +108,11 @@ class _Visitor extends SimpleAstVisitor<void> {
       }
       if (!parameter.isNamed) {
         // Named parameters produce a `private_optional_parameter` diagnostic.
-        checkIdentifier(parameter.name);
+        checkIdentifier(
+          parameter.name,
+          parameter,
+          parameter.declaredFragment?.element,
+        );
       }
     }
   }
@@ -104,19 +120,43 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
     for (var variable in node.variables.variables) {
-      checkIdentifier(variable.name);
+      checkIdentifier(
+        variable.name,
+        variable,
+        variable.declaredFragment?.element,
+      );
     }
   }
 
   @override
   void visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
-    checkIdentifier(node.functionDeclaration.name);
+    checkIdentifier(
+      node.functionDeclaration.name,
+      node.functionDeclaration,
+      node.functionDeclaration.declaredFragment?.element,
+    );
   }
 
   @override
   void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
     for (var variable in node.variables.variables) {
-      checkIdentifier(variable.name);
+      checkIdentifier(
+        variable.name,
+        variable,
+        variable.declaredFragment?.element,
+      );
     }
+  }
+
+  /// Whether removing the leading underscore from [lexeme] would, at some
+  /// reference to the element declared by [node], make that reference
+  /// resolve to a different element, or would already name an accessible
+  /// member of an enclosing class, mixin, enum, or extension type.
+  bool _isShadowing(String lexeme, AstNode node, Element? element) {
+    var newName = lexeme.substring(1);
+    if (newName.isEmpty) return false;
+
+    return element != null &&
+        node.enclosingBody.isShadowedAtSomeReference(newName, element);
   }
 }

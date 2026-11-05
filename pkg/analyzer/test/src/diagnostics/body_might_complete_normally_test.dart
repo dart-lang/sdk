@@ -10,7 +10,7 @@ import '../dart/resolution/node_text_expectations.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(BodyMayCompleteNormallyTest);
-    defineReflectiveTests(BodyMayCompleteNormallyTest_Language219);
+    defineReflectiveTests(BodyMayCompleteNormallyTest_BeforePatterns);
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
@@ -23,8 +23,9 @@ class BodyMayCompleteNormallyTest extends PubPackageResolutionTest
 }
 
 @reflectiveTest
-class BodyMayCompleteNormallyTest_Language219 extends PubPackageResolutionTest
-    with WithLanguage219Mixin, BodyMayCompleteNormallyTestCases {
+class BodyMayCompleteNormallyTest_BeforePatterns
+    extends PubPackageResolutionTest
+    with BeforePatternsMixin, BodyMayCompleteNormallyTestCases {
   @override
   bool get _arePatternsEnabled => false;
 }

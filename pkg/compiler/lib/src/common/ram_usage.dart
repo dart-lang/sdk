@@ -18,6 +18,7 @@
 library;
 
 import 'dart:developer';
+
 import 'package:vm_service/vm_service_io.dart' as vm_service_io;
 
 Future<int?> _currentHeapCapacity() async {

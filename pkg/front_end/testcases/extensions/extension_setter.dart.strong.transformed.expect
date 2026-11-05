@@ -59,8 +59,8 @@ static extension-member method Extension|set#setterWithReturn(lowered final self
 static extension-member method Extension|get#setterWithClosure(lowered final self::Class #this) → core::int
   return #this.{self::Class::field}{core::int};
 static extension-member method Extension|set#setterWithClosure(lowered final self::Class #this, core::int value) → void {
-  function abs(dynamic value) → dynamic {
-    return value{dynamic}.<(0) as{TypeError,ForDynamic} core::bool ?{dynamic} value{dynamic}.unary-() : value;
+  function abs(dynamic value##1) → dynamic {
+    return value##1{dynamic}.<(0) as{TypeError,ForDynamic} core::bool ?{dynamic} value##1{dynamic}.unary-() : value##1;
   }
   #this.{self::Class::field} = abs(value){(dynamic) → dynamic} as{TypeError,ForDynamic} core::int;
 }

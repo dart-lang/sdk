@@ -20,7 +20,7 @@ Usage: binary_bench.dart [--golem|--raw] <Benchmark> <SourceDill>
 Benchmark can be one of: ${benchmarks.keys.join(', ')}
 ''';
 
-typedef void Benchmark(Uint8List bytes);
+typedef Benchmark = void Function(Uint8List bytes);
 
 final benchmarks = <String, Benchmark>{
   'AstFromBinaryEager': (Uint8List bytes) {

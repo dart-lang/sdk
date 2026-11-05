@@ -27,10 +27,15 @@ abstract class ProgressReporter {
 
   new _();
 
+  /// Starts progress reporting with a [title] and optional initial [message].
   // TODO(dantup): Add support for cancellable progress notifications.
   FutureOr<void> begin(String title, {String? message});
 
+  /// Ends progress reporting with an optional final [message].
   FutureOr<void> end([String message]);
+
+  /// Reports progress with an updated [message].
+  FutureOr<void> report(String message);
 }
 
 class _NoopProgressReporter extends ProgressReporter {
@@ -39,6 +44,8 @@ class _NoopProgressReporter extends ProgressReporter {
   void begin(String title, {String? message}) {}
   @override
   void end([String? message]) {}
+  @override
+  void report(String message) {}
 }
 
 class _ServerCreatedProgressReporter extends _TokenProgressReporter {
@@ -116,6 +123,12 @@ class _TokenProgressReporter extends ProgressReporter {
     if (!_needsEnd) return;
     _needsEnd = false;
     _sendNotification(WorkDoneProgressEnd(message: message));
+  }
+
+  @override
+  void report(String message) {
+    if (!_needsEnd) return;
+    _sendNotification(WorkDoneProgressReport(message: message));
   }
 
   void _sendNotification(ToJsonable value) {

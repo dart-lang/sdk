@@ -3,22 +3,20 @@ library from "org-dartlang-test:///main.dart" as main {
 
   static field dart.core::int value = block {
     dart.core::int #t1;
-    final synthesized dart.core::int #0#0 = 0;
-    final const synthesized dart.core::int #0#1 = #C1;
     #L1:
-    {
-      {
-        if(#C1 =={dart.core::num::==}{(dart.core::Object) → dart.core::bool} #0#0) {
+    switch(0) /* dart.core::int */ {
+      #L2:
+      case #C1:
+        {
           #t1 = 1;
           break #L1;
         }
-      }
-      {
-        if(true) {
+      #L3:
+      default:
+        {
           #t1 = 2;
           break #L1;
         }
-      }
     }
   } =>#t1;
   static method main() → dynamic {

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:js_interop';
+
 import 'package:web/web.dart';
 
 // According to the CSP3 spec a nonce must be a valid base64 string.

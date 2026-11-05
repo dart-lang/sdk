@@ -6,7 +6,7 @@ part of "dart:async";
 
 @Since("3.0")
 extension FutureIterable<T> on Iterable<Future<T>> {
-  /// Waits for futures in parallel.
+  /// Waits for futures concurrently.
   ///
   /// Waits for all the futures in this iterable.
   /// Returns a list of the resulting values,
@@ -59,7 +59,7 @@ bool _notNull(Object? object) => object != null;
 /// Parallel operations on a record of futures.
 ///
 /// {@template record-parallel-wait}
-/// Waits for futures in parallel.
+/// Waits for futures concurrently.
 ///
 /// Waits for all the futures in this record.
 /// Returns a record of the values, if all futures are successful.

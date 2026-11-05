@@ -5,7 +5,8 @@
 import 'dart:io' show File, IOSink;
 import 'dart:typed_data' show BytesBuilder, Uint8List;
 
-import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart';
+import 'package:_fe_analyzer_shared/src/parser/parser.dart'
+    show FormalParameterKind, MemberKind;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show SyntheticToken, TokenType;
@@ -60,6 +61,11 @@ void printNodeOn(Node? node, StringSink sink) {
   } else {
     sink.write(node.toText(defaultAstTextStrategy));
   }
+}
+
+// Coverage-ignore(suite): Not run.
+void printInternalNodeOn(InternalNode node, StringSink sink) {
+  sink.write(node.toText(defaultAstTextStrategy));
 }
 
 // Coverage-ignore(suite): Not run.
@@ -206,17 +212,20 @@ Component createExpressionEvaluationComponent(Procedure procedure) {
       typeParams: typeParams,
     );
 
-    for (TypeParameter typeParam in realClass.typeParameters) {
-      fakeClass.typeParameters.add(
-        typeParam.accept<TreeNode>(cloner) as TypeParameter,
-      );
-    }
+    fakeClass.typeParameters = TypeParameterList.mapped(
+      realClass.typeParameters,
+      (TypeParameter typeParam) =>
+          typeParam.accept<TreeNode>(cloner) as TypeParameter,
+    );
 
     if (realClass.supertype != null) {
       // supertype is null for Object.
       fakeClass.supertype = new Supertype.byReference(
         realClass.supertype!.className,
-        realClass.supertype!.typeArguments.map(cloner.visitType).toList(),
+        new DartTypeList.generate(
+          realClass.supertype!.typeArguments.length,
+          (int i) => cloner.visitType(realClass.supertype!.typeArguments[i]),
+        ),
       );
     }
 
@@ -321,9 +330,11 @@ final FormalParameterBuilder dummyFormalParameterBuilder =
     );
 final FunctionTypeParameterBuilder dummyFunctionTypeParameterBuilder =
     new FunctionTypeParameterBuilder(
-      FormalParameterKind.requiredPositional,
-      const ImplicitTypeBuilder(),
-      '',
+      kind: FormalParameterKind.requiredPositional,
+      type: const ImplicitTypeBuilder(),
+      name: '',
+      fileOffset: -1,
+      isWildcard: false,
     );
 final NominalParameterBuilder dummyNominalVariableBuilder =
     new SourceNominalParameterBuilder(
@@ -382,7 +393,7 @@ class _DummyExtensionScope implements ExtensionScope {
   void forEachExtension(void Function(ExtensionBuilder) f) {}
 }
 
-final Argument dummyArgument = new PositionalArgument(dummyExpression);
+final Argument dummyArgument = new PositionalArgument(dummyInternalExpression);
 
 bool isOutlineAnnotatedWithPragma(
   Annotatable node,
@@ -430,4 +441,31 @@ bool isAnnotatedWithPragma(
     }
   }
   return false;
+}
+
+extension MemberKindExtensions on MemberKind {
+  bool get isFunctionType {
+    switch (this) {
+      case MemberKind.FunctionTypeAlias:
+      case MemberKind.FunctionTypedParameter:
+      case MemberKind.GeneralizedFunctionType:
+        return true;
+      case MemberKind.Catch:
+      case MemberKind.Factory:
+      case MemberKind.Local:
+      case MemberKind.AnonymousMethod:
+      case MemberKind.NonStaticMethod:
+      case MemberKind.StaticMethod:
+      case MemberKind.TopLevelMethod:
+      case MemberKind.ExtensionNonStaticMethod:
+      case MemberKind.ExtensionStaticMethod:
+      case MemberKind.ExtensionTypeNonStaticMethod:
+      case MemberKind.ExtensionTypeStaticMethod:
+      case MemberKind.NonStaticField:
+      case MemberKind.StaticField:
+      case MemberKind.TopLevelField:
+      case MemberKind.PrimaryConstructor:
+        return false;
+    }
+  }
 }

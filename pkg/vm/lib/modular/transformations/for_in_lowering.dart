@@ -83,15 +83,15 @@ class ForInLowering {
       final streamIteratorType = new InterfaceType(
         coreTypes.streamIteratorClass,
         staticTypeContext.nullable,
-        [valueVariable.type],
+        DartTypeList(valueVariable.type),
       );
       final forIteratorVariable = SyntheticVariable(
         cosmeticName: ForInVariables.forIterator,
         initializer: new ConstructorInvocation(
           coreTypes.streamIteratorDefaultConstructor,
           new Arguments(
-            <Expression>[new VariableGet(streamVariable)],
-            types: [valueVariable.type],
+            ExpressionList(new VariableGet(streamVariable)),
+            types: DartTypeList(valueVariable.type),
           ),
         ),
         type: streamIteratorType,
@@ -103,7 +103,7 @@ class ForInLowering {
           InstanceAccessKind.Instance,
           VariableGet(forIteratorVariable),
           coreTypes.streamIteratorMoveNext.name,
-          new Arguments([]),
+          new Arguments.empty(),
           interfaceTarget: coreTypes.streamIteratorMoveNext,
           functionType:
               coreTypes.streamIteratorMoveNext.getterType as FunctionType,
@@ -117,14 +117,15 @@ class ForInLowering {
         // _asyncStarMoveNextHelper(:stream)
         final asyncStarMoveNextCall = new StaticInvocation(
           coreTypes.asyncStarMoveNextHelper,
-          new Arguments([new VariableGet(streamVariable)]),
+          new Arguments(ExpressionList(new VariableGet(streamVariable))),
         )..fileOffset = stmt.fileOffset;
 
         // let _ = asyncStarMoveNextCall in (condition)
-        whileCondition = new Let(
-          SyntheticVariable(initializer: asyncStarMoveNextCall),
-          condition,
-        );
+        whileCondition = CachedExpression.fromValue(
+          value: asyncStarMoveNextCall,
+          type: const DynamicType(),
+          fileOffset: TreeNode.noOffset,
+        ).createLet(body: condition);
       }
 
       // T <variable> = :for-iterator.current;
@@ -169,7 +170,7 @@ class ForInLowering {
               InstanceAccessKind.Instance,
               VariableGet(forIteratorVariable),
               coreTypes.streamIteratorCancel.name,
-              new Arguments(<Expression>[]),
+              new Arguments.empty(),
               interfaceTarget: coreTypes.streamIteratorCancel,
               functionType:
                   coreTypes.streamIteratorCancel.getterType as FunctionType,
@@ -232,7 +233,7 @@ class ForInLowering {
     final iteratorType = InterfaceType(
       coreTypes.iteratorClass,
       staticTypeContext.nonNullable,
-      [elementType],
+      DartTypeList(elementType),
     );
 
     final syncForIteratorVariableInitializer = InstanceGet(
@@ -257,7 +258,7 @@ class ForInLowering {
       InstanceAccessKind.Instance,
       VariableGet(syncForIteratorVariable),
       coreTypes.iteratorMoveNext.name,
-      Arguments([]),
+      Arguments.empty(),
       interfaceTarget: coreTypes.iteratorMoveNext,
       functionType: coreTypes.iteratorMoveNext.getterType as FunctionType,
     )..fileOffset = iterable.fileOffset;
@@ -288,7 +289,7 @@ class ForInLowering {
       body.scope = new Scope(contexts: [stmtVariableContext]);
     }
 
-    final forStatement = ForStatement([], condition, [], body)
+    final forStatement = ForStatement([], condition, ExpressionList.empty, body)
       ..fileOffset = stmt.fileOffset
       ..scope = stmt.scope;
 

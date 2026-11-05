@@ -31,6 +31,235 @@ class SubtypeHelper {
 
   /// Return `true` if [T0] is a subtype of [T1].
   bool isSubtypeOf(TypeImpl T0, TypeImpl T1) {
+    try {
+      _typeSystem.enterTypeOperation();
+      return _isSubtypeOf(T0, T1);
+    } on TypeOperationDepthLimitExceeded {
+      return false;
+    } finally {
+      _typeSystem.exitTypeOperation();
+    }
+  }
+
+  bool _interfaceArguments(
+    InterfaceElementImpl element,
+    InterfaceTypeImpl subType,
+    InterfaceTypeImpl superType,
+  ) {
+    var parameters = element.typeParameters;
+    var subArguments = subType.typeArguments;
+    var superArguments = superType.typeArguments;
+
+    assert(subArguments.length == superArguments.length);
+    assert(parameters.length == subArguments.length);
+
+    for (var i = 0; i < subArguments.length; i++) {
+      var parameter = parameters[i];
+      var subArgument = subArguments[i];
+      var superArgument = superArguments[i];
+
+      Variance variance = parameter.variance;
+      if (variance.isCovariant) {
+        if (!isSubtypeOf(subArgument, superArgument)) {
+          return false;
+        }
+      } else if (variance.isContravariant) {
+        if (!isSubtypeOf(superArgument, subArgument)) {
+          return false;
+        }
+      } else if (variance.isInvariant) {
+        if (!isSubtypeOf(subArgument, superArgument) ||
+            !isSubtypeOf(superArgument, subArgument)) {
+          return false;
+        }
+      } else {
+        throw StateError(
+          'Type parameter $parameter has unknown '
+          'variance $variance for subtype checking.',
+        );
+      }
+    }
+    return true;
+  }
+
+  /// Check that [f] is a subtype of [g].
+  bool _isFunctionSubtypeOf(FunctionTypeImpl f, FunctionTypeImpl g) {
+    var fresh = _typeSystem.relateTypeParameters(
+      f.typeParameters,
+      g.typeParameters,
+    );
+    if (fresh == null) {
+      return false;
+    }
+
+    f = f.instantiate(fresh.typeParameterTypes);
+    g = g.instantiate(fresh.typeParameterTypes);
+
+    if (!isSubtypeOf(f.returnType, g.returnType)) {
+      return false;
+    }
+
+    var fParameters = f.formalParameters;
+    var gParameters = g.formalParameters;
+
+    var fIndex = 0;
+    var gIndex = 0;
+    while (fIndex < fParameters.length && gIndex < gParameters.length) {
+      var fParameter = fParameters[fIndex];
+      var gParameter = gParameters[gIndex];
+      if (fParameter.isRequiredPositional) {
+        if (gParameter.isRequiredPositional) {
+          if (isSubtypeOf(gParameter.type, fParameter.type)) {
+            fIndex++;
+            gIndex++;
+          } else {
+            return false;
+          }
+        } else {
+          return false;
+        }
+      } else if (fParameter.isOptionalPositional) {
+        if (gParameter.isPositional) {
+          if (isSubtypeOf(gParameter.type, fParameter.type)) {
+            fIndex++;
+            gIndex++;
+          } else {
+            return false;
+          }
+        } else {
+          return false;
+        }
+      } else if (fParameter.isNamed) {
+        if (gParameter.isNamed) {
+          var fName = fParameter.name;
+          var gName = gParameter.name;
+          if (fName == null || gName == null) {
+            return false;
+          }
+
+          var compareNames = fName.compareTo(gName);
+          switch (compareNames) {
+            case 0:
+              if (fParameter.isRequiredNamed && !gParameter.isRequiredNamed) {
+                return false;
+              } else if (isSubtypeOf(gParameter.type, fParameter.type)) {
+                fIndex++;
+                gIndex++;
+              } else {
+                return false;
+              }
+            case < 0:
+              if (fParameter.isRequiredNamed) {
+                return false;
+              } else {
+                fIndex++;
+              }
+            default:
+              // The subtype must accept all parameters of the supertype.
+              return false;
+          }
+        } else {
+          break;
+        }
+      }
+    }
+
+    // The supertype must provide all required parameters to the subtype.
+    while (fIndex < fParameters.length) {
+      var fParameter = fParameters[fIndex++];
+      if (fParameter.isRequired) {
+        return false;
+      }
+    }
+
+    // The subtype must accept all parameters of the supertype.
+    assert(fIndex == fParameters.length);
+    if (gIndex < gParameters.length) {
+      return false;
+    }
+
+    return true;
+  }
+
+  bool _isInterfaceSubtypeOf(
+    InterfaceTypeImpl subType,
+    InterfaceTypeImpl superType,
+  ) {
+    // Note: we should never reach `_isInterfaceSubtypeOf` with `i2 == Object`,
+    // because top types are eliminated before `isSubtypeOf` calls this.
+    // TODO(scheglov): Replace with assert().
+    if (identical(subType, superType) || superType.isDartCoreObject) {
+      return true;
+    }
+
+    // Object cannot subtype anything but itself (handled above).
+    if (subType.isDartCoreObject) {
+      return false;
+    }
+
+    var subElement = subType.element;
+    var superElement = superType.element;
+    if (identical(subElement, superElement)) {
+      return _interfaceArguments(superElement, subType, superType);
+    }
+
+    // Classes types cannot subtype `Function` or vice versa.
+    if (subType.isDartCoreFunction || superType.isDartCoreFunction) {
+      return false;
+    }
+
+    for (var interface in subElement.allSupertypes) {
+      if (identical(interface.element, superElement)) {
+        var substitution = Substitution.fromInterfaceType(subType);
+        var substitutedInterface = substitution.mapInterfaceType(interface);
+        return _interfaceArguments(
+          superElement,
+          substitutedInterface,
+          superType,
+        );
+      }
+    }
+
+    return false;
+  }
+
+  /// Check that [subType] is a subtype of [superType].
+  bool _isRecordSubtypeOf(RecordTypeImpl subType, RecordTypeImpl superType) {
+    var subPositional = subType.positionalFields;
+    var superPositional = superType.positionalFields;
+    if (subPositional.length != superPositional.length) {
+      return false;
+    }
+
+    var subNamed = subType.namedFields;
+    var superNamed = superType.namedFields;
+    if (subNamed.length != superNamed.length) {
+      return false;
+    }
+
+    for (var i = 0; i < subPositional.length; i++) {
+      var subField = subPositional[i];
+      var superField = superPositional[i];
+      if (!isSubtypeOf(subField.type, superField.type)) {
+        return false;
+      }
+    }
+
+    for (var i = 0; i < subNamed.length; i++) {
+      var subField = subNamed[i];
+      var superField = superNamed[i];
+      if (subField.name != superField.name) {
+        return false;
+      }
+      if (!isSubtypeOf(subField.type, superField.type)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  bool _isSubtypeOf(TypeImpl T0, TypeImpl T1) {
     // Reflexivity: if `T0` and `T1` are the same type then `T0 <: T1`.
     if (identical(T0, T1)) {
       return true;
@@ -291,223 +520,5 @@ class SubtypeHelper {
     }
 
     return false;
-  }
-
-  bool _interfaceArguments(
-    InterfaceElementImpl element,
-    InterfaceTypeImpl subType,
-    InterfaceTypeImpl superType,
-  ) {
-    var parameters = element.typeParameters;
-    var subArguments = subType.typeArguments;
-    var superArguments = superType.typeArguments;
-
-    assert(subArguments.length == superArguments.length);
-    assert(parameters.length == subArguments.length);
-
-    for (var i = 0; i < subArguments.length; i++) {
-      var parameter = parameters[i];
-      var subArgument = subArguments[i];
-      var superArgument = superArguments[i];
-
-      Variance variance = parameter.variance;
-      if (variance.isCovariant) {
-        if (!isSubtypeOf(subArgument, superArgument)) {
-          return false;
-        }
-      } else if (variance.isContravariant) {
-        if (!isSubtypeOf(superArgument, subArgument)) {
-          return false;
-        }
-      } else if (variance.isInvariant) {
-        if (!isSubtypeOf(subArgument, superArgument) ||
-            !isSubtypeOf(superArgument, subArgument)) {
-          return false;
-        }
-      } else {
-        throw StateError(
-          'Type parameter $parameter has unknown '
-          'variance $variance for subtype checking.',
-        );
-      }
-    }
-    return true;
-  }
-
-  /// Check that [f] is a subtype of [g].
-  bool _isFunctionSubtypeOf(FunctionTypeImpl f, FunctionTypeImpl g) {
-    var fresh = _typeSystem.relateTypeParameters(
-      f.typeParameters,
-      g.typeParameters,
-    );
-    if (fresh == null) {
-      return false;
-    }
-
-    f = f.instantiate(fresh.typeParameterTypes);
-    g = g.instantiate(fresh.typeParameterTypes);
-
-    if (!isSubtypeOf(f.returnType, g.returnType)) {
-      return false;
-    }
-
-    var fParameters = f.formalParameters;
-    var gParameters = g.formalParameters;
-
-    var fIndex = 0;
-    var gIndex = 0;
-    while (fIndex < fParameters.length && gIndex < gParameters.length) {
-      var fParameter = fParameters[fIndex];
-      var gParameter = gParameters[gIndex];
-      if (fParameter.isRequiredPositional) {
-        if (gParameter.isRequiredPositional) {
-          if (isSubtypeOf(gParameter.type, fParameter.type)) {
-            fIndex++;
-            gIndex++;
-          } else {
-            return false;
-          }
-        } else {
-          return false;
-        }
-      } else if (fParameter.isOptionalPositional) {
-        if (gParameter.isPositional) {
-          if (isSubtypeOf(gParameter.type, fParameter.type)) {
-            fIndex++;
-            gIndex++;
-          } else {
-            return false;
-          }
-        } else {
-          return false;
-        }
-      } else if (fParameter.isNamed) {
-        if (gParameter.isNamed) {
-          var fName = fParameter.name;
-          var gName = gParameter.name;
-          if (fName == null || gName == null) {
-            return false;
-          }
-
-          var compareNames = fName.compareTo(gName);
-          switch (compareNames) {
-            case 0:
-              if (fParameter.isRequiredNamed && !gParameter.isRequiredNamed) {
-                return false;
-              } else if (isSubtypeOf(gParameter.type, fParameter.type)) {
-                fIndex++;
-                gIndex++;
-              } else {
-                return false;
-              }
-            case < 0:
-              if (fParameter.isRequiredNamed) {
-                return false;
-              } else {
-                fIndex++;
-              }
-            default:
-              // The subtype must accept all parameters of the supertype.
-              return false;
-          }
-        } else {
-          break;
-        }
-      }
-    }
-
-    // The supertype must provide all required parameters to the subtype.
-    while (fIndex < fParameters.length) {
-      var fParameter = fParameters[fIndex++];
-      if (fParameter.isRequired) {
-        return false;
-      }
-    }
-
-    // The subtype must accept all parameters of the supertype.
-    assert(fIndex == fParameters.length);
-    if (gIndex < gParameters.length) {
-      return false;
-    }
-
-    return true;
-  }
-
-  bool _isInterfaceSubtypeOf(
-    InterfaceTypeImpl subType,
-    InterfaceTypeImpl superType,
-  ) {
-    // Note: we should never reach `_isInterfaceSubtypeOf` with `i2 == Object`,
-    // because top types are eliminated before `isSubtypeOf` calls this.
-    // TODO(scheglov): Replace with assert().
-    if (identical(subType, superType) || superType.isDartCoreObject) {
-      return true;
-    }
-
-    // Object cannot subtype anything but itself (handled above).
-    if (subType.isDartCoreObject) {
-      return false;
-    }
-
-    var subElement = subType.element;
-    var superElement = superType.element;
-    if (identical(subElement, superElement)) {
-      return _interfaceArguments(superElement, subType, superType);
-    }
-
-    // Classes types cannot subtype `Function` or vice versa.
-    if (subType.isDartCoreFunction || superType.isDartCoreFunction) {
-      return false;
-    }
-
-    for (var interface in subElement.allSupertypes) {
-      if (identical(interface.element, superElement)) {
-        var substitution = Substitution.fromInterfaceType(subType);
-        var substitutedInterface = substitution.mapInterfaceType(interface);
-        return _interfaceArguments(
-          superElement,
-          substitutedInterface,
-          superType,
-        );
-      }
-    }
-
-    return false;
-  }
-
-  /// Check that [subType] is a subtype of [superType].
-  bool _isRecordSubtypeOf(RecordTypeImpl subType, RecordTypeImpl superType) {
-    var subPositional = subType.positionalFields;
-    var superPositional = superType.positionalFields;
-    if (subPositional.length != superPositional.length) {
-      return false;
-    }
-
-    var subNamed = subType.namedFields;
-    var superNamed = superType.namedFields;
-    if (subNamed.length != superNamed.length) {
-      return false;
-    }
-
-    for (var i = 0; i < subPositional.length; i++) {
-      var subField = subPositional[i];
-      var superField = superPositional[i];
-      if (!isSubtypeOf(subField.type, superField.type)) {
-        return false;
-      }
-    }
-
-    for (var i = 0; i < subNamed.length; i++) {
-      var subField = subNamed[i];
-      var superField = superNamed[i];
-      if (subField.name != superField.name) {
-        return false;
-      }
-      if (!isSubtypeOf(subField.type, superField.type)) {
-        return false;
-      }
-    }
-
-    return true;
   }
 }

@@ -44,11 +44,7 @@ class FlutterStyleTodos extends AnalysisRule {
       !content.startsWith(_todoExpectedRegExp);
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final AnalysisRule rule;
-
-  new(this.rule);
-
+class _Visitor(final AnalysisRule rule) extends SimpleAstVisitor<void> {
   void checkComments(Token token) {
     Token? comment = token.precedingComments;
     while (comment != null) {

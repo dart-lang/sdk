@@ -343,12 +343,15 @@ FreshTypeParameters _createFreshTypeParameters(
   FreshTypeParameters freshTypeParameters;
   if (originalTypeParameters.isNotEmpty) {
     freshTypeParameters = getFreshTypeParameters(originalTypeParameters);
-    List<TypeParameter> typeParameters =
-        freshTypeParameters.freshTypeParameters;
-    newFunctionNode.typeParameters.addAll(typeParameters);
+    TypeParameterList typeParameters = freshTypeParameters.freshTypeParameters;
+    newFunctionNode.typeParameters = typeParameters;
     setParents(typeParameters, newFunctionNode);
   } else {
-    freshTypeParameters = new FreshTypeParameters([], [], Substitution.empty);
+    freshTypeParameters = new FreshTypeParameters(
+      TypeParameterList.empty,
+      DartTypeList.empty,
+      Substitution.empty,
+    );
   }
   return freshTypeParameters;
 }
@@ -370,7 +373,7 @@ DelayedDefaultValueCloner _createParameters(
       constructorParameter.type,
     );
     return extern.createPositionalParameter(
-      cosmeticName: constructorParameter.cosmeticName,
+      parameterName: constructorParameter.parameterName,
       type: tearOffParameterType,
       fileOffset: constructorParameter.fileOffset,
     );
@@ -390,21 +393,18 @@ DelayedDefaultValueCloner _createParameters(
     );
   }
 
-  for (PositionalParameter constructorParameter
-      in function.positionalParameters) {
-    PositionalParameter tearOffParameter = createTearOffPositionalParameter(
-      constructorParameter,
-    );
-    tearOff.function.positionalParameters.add(tearOffParameter);
-    tearOffParameter.parent = tearOff.function;
-  }
-  for (NamedParameter constructorParameter in function.namedParameters) {
-    NamedParameter tearOffParameter = createTearOffNamedParameter(
-      constructorParameter,
-    );
-    tearOff.function.namedParameters.add(tearOffParameter);
-    tearOffParameter.parent = tearOff.function;
-  }
+  tearOff.function.positionalParameters = PositionalParameterList.mapped(
+    function.positionalParameters,
+    (PositionalParameter constructorParameter) =>
+        createTearOffPositionalParameter(constructorParameter)
+          ..parent = tearOff.function,
+  );
+  tearOff.function.namedParameters = NamedParameterList.mapped(
+    function.namedParameters,
+    (NamedParameter constructorParameter) =>
+        createTearOffNamedParameter(constructorParameter)
+          ..parent = tearOff.function,
+  );
   tearOff.function.returnType = substitution.substituteType(
     function.returnType,
   );
@@ -444,7 +444,7 @@ Arguments _createArguments(
   for (NamedParameter tearOffParameter in tearOff.function.namedParameters) {
     namedArguments.add(
       extern.createNamedExpression(
-        tearOffParameter.cosmeticName!,
+        tearOffParameter.parameterName,
         extern.createVariableGet(tearOffParameter, fileOffset: fileOffset),
       ),
     );
@@ -483,6 +483,9 @@ void _createTearOffBody(Procedure tearOff, Member target, Arguments arguments) {
   tearOff.function.registerFunctionBody(
     extern.createReturnStatement(constructorInvocation),
   );
+  // TODO(cstefantsova): Verify that null should be passed for scopeProviderInfo
+  //  in the call below.
+  tearOff.function.registerScopeProviderInfo(null);
 }
 
 /// Reverse engineered typedef tear off information.

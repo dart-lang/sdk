@@ -5,6 +5,7 @@
 /// Helper program that shows the closure data on a dart program.
 
 import 'package:args/args.dart';
+
 import '../equivalence/show_helper.dart';
 import 'closure_test.dart';
 

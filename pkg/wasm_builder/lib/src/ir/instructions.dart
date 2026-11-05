@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../../source_map.dart';
+import 'dart:typed_data';
+
+import '../../debug_info.dart';
 import '../serialize/printer.dart';
 import '../serialize/serialize.dart';
 import 'ir.dart';
@@ -27,55 +29,85 @@ class Instructions implements Serializable {
   /// A string trace.
   late final trace = _traceLines.join();
 
-  /// Mappings for the instructions in `_instructions` to their source code.
-  ///
-  /// Since we add mappings as we generate instructions, this will be sorted
-  /// based on [SourceMapping.instructionOffset].
-  final List<SourceMapping>? _sourceMappings;
+  /// Debug info bytecode indexed by instruction index.
+  final Uint8List? debugInfo;
 
   /// Create a new instruction sequence.
   Instructions(
-    this.locals,
+    List<Local> locals,
     this.localNames,
-    this.instructions,
-    this._stackTraces,
-    this._traceLines,
-    this._sourceMappings,
-  );
+    List<Instruction> instructions,
+    Map<Instruction, StackTrace>? stackTraces,
+    List<String> traceLines,
+    this.debugInfo,
+  ) : locals = locals.isEmpty ? const [] : locals.toList(growable: false),
+      instructions = instructions.toList(growable: false),
+      _stackTraces = stackTraces == null
+          ? null
+          : (stackTraces.isEmpty ? const {} : stackTraces),
+      _traceLines = traceLines.isEmpty
+          ? const []
+          : traceLines.toList(growable: false);
 
+  void collectUsedTypes(Set<DefType> usedTypes) {
+    for (final local in locals) {
+      final localDefType = local.type.containedDefType;
+      if (localDefType != null) usedTypes.add(localDefType);
+    }
+    for (final instruction in instructions) {
+      usedTypes.addAll(instruction.usedDefTypes);
+      for (final valueType in instruction.usedValueTypes) {
+        final type = valueType.containedDefType;
+        if (type != null) usedTypes.add(type);
+      }
+    }
+  }
+
+  /// Serializes the instructions into [s].
+  ///
+  /// If [recordDebugInfo] is true and [debugInfo] is present, converts the
+  /// instruction-offset based [debugInfo] into function-body-relative
+  /// byte-offset based debug info and returns it.
   @override
-  void serialize(Serializer s) {
-    final sourceMappings = _sourceMappings;
-    int sourceMappingIdx = 0;
-    for (
-      int instructionIdx = 0;
-      instructionIdx < instructions.length;
-      instructionIdx += 1
-    ) {
-      final i = instructions[instructionIdx];
-      if (_stackTraces != null) s.debugTrace(_stackTraces[i]!);
+  Uint8List? serialize(Serializer s, [bool recordDebugInfo = false]) {
+    final debugInfo = this.debugInfo;
+    if (recordDebugInfo && debugInfo != null && debugInfo.isNotEmpty) {
+      final reader = DebugInfoReader(debugInfo);
+      final writer = DebugInfoWriter();
+      final bodyStart = s.offset;
 
-      if (sourceMappings != null) {
-        // Skip to the mapping that covers the current instruction.
-        while (sourceMappingIdx < sourceMappings.length - 1 &&
-            sourceMappings[sourceMappingIdx + 1].instructionOffset <=
-                instructionIdx) {
-          sourceMappingIdx += 1;
-        }
+      for (int i = 0; i < instructions.length; i++) {
+        final instr = instructions[i];
+        if (_stackTraces != null) s.debugTrace(_stackTraces[instr]!);
 
-        if (sourceMappingIdx < sourceMappings.length) {
-          final mapping = sourceMappings[sourceMappingIdx];
-          if (mapping.instructionOffset <= instructionIdx) {
-            s.sourceMapSerializer.addMapping(s.offset, mapping.sourceInfo);
-            sourceMappingIdx += 1;
+        if (reader.moveUntil(i)) {
+          final relOffset = s.offset - bodyStart;
+          if (reader.hasSourcePosition) {
+            writer.setSourcePositionWithIndices(
+              relOffset,
+              reader.fileIndex,
+              reader.line,
+              reader.col,
+              reader.nameIndex,
+            );
+          } else {
+            writer.clearSourcePosition(relOffset);
           }
         }
+
+        instr.serialize(s);
       }
 
-      i.serialize(s);
+      writer.clearSourcePosition(s.offset - bodyStart);
+      return writer.build();
+    } else {
+      for (int i = 0; i < instructions.length; i++) {
+        final instr = instructions[i];
+        if (_stackTraces != null) s.debugTrace(_stackTraces[instr]!);
+        instr.serialize(s);
+      }
+      return null;
     }
-
-    s.sourceMapSerializer.addMapping(s.offset, null);
   }
 
   void printInitializerTo(IrPrinter p) {
@@ -96,8 +128,23 @@ class Instructions implements Serializable {
 
   void printTo(IrPrinter p) {
     p.beginLabeledBlock(null);
+
+    final debugInfo = this.debugInfo;
+    final reader =
+        (p.printSourcePositions && debugInfo != null && debugInfo.isNotEmpty)
+        ? DebugInfoReader(debugInfo, p.module.debugInfoTables)
+        : null;
+
     for (int k = 0; k < instructions.length; ++k) {
       final i = instructions[k];
+
+      if (reader != null && reader.moveUntil(k)) {
+        if (reader.hasSourcePosition) {
+          p.printSourcePosition(reader.fileUri, reader.line, reader.col);
+        } else {
+          p.printUnmapped();
+        }
+      }
 
       final isTry =
           i is BeginNoEffectTry ||
@@ -178,7 +225,7 @@ class Instructions implements Serializable {
       instructions.add(instruction);
       if (instruction is End) break;
     }
-    return Instructions([], {}, instructions, null, [], null);
+    return Instructions(const [], const {}, instructions, null, const [], null);
   }
 
   static Instructions deserialize(
@@ -207,6 +254,6 @@ class Instructions implements Serializable {
       instructions.add(instruction);
       if (instruction is End) break;
     }
-    return Instructions([], {}, instructions, null, [], null);
+    return Instructions(const [], const {}, instructions, null, const [], null);
   }
 }

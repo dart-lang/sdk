@@ -15,13 +15,14 @@ import 'package:kernel/target/targets.dart' show Target;
 
 import 'calls.dart'
     as calls
-    show Selector, DirectSelector, InterfaceSelector, VirtualSelector;
+    show CallKind, Selector, DirectSelector, InterfaceSelector, VirtualSelector;
 import 'native_code.dart'
     show EntryPointsListener, NativeCodeOracle, PragmaEntryPointsVisitor;
 import 'protobuf_handler.dart' show ProtobufHandler;
 import 'types.dart' show Closure, ConcreteType, RecordShape, TFClass, Type;
 import 'utils.dart' show combineHashes;
-import '../pragma.dart' show ConstantPragmaAnnotationParser;
+import 'package:vm/modular/transformations/pragma.dart'
+    show ConstantPragmaAnnotationParser;
 
 class Selector {
   final Name name;
@@ -604,6 +605,9 @@ class _EntryPointsListenerImpl implements EntryPointsListener {
   @override
   void addRawCall(calls.Selector selector) {
     if (selector is calls.DirectSelector) {
+      if (selector.callKind == calls.CallKind.SetFieldInConstructor) {
+        return;
+      }
       rta.addMember(selector.member);
     } else if (selector is calls.InterfaceSelector) {
       rta.addCall(

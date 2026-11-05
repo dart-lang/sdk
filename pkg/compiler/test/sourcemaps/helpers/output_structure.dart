@@ -5,6 +5,7 @@
 library sourcemap.output_structure;
 
 import 'dart:math' as Math;
+
 import 'html_parts.dart' show CodeLine, JsonStrategy;
 
 // Constants used to identify the subsection of the JavaScript output. These

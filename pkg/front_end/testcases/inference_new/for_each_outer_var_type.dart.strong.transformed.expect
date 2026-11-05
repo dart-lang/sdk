@@ -55,32 +55,32 @@ static method test(core::Iterable<self::B> iterable, asy::Stream<self::B> stream
         await :for-iterator.{asy::_StreamIterator::cancel}(){() → asy::Future<dynamic>};
   }
   {
-    synthesized core::Iterator<self::B> :sync-for-iterator = iterable.{core::Iterable::iterator}{core::Iterator<self::B>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final self::B #t4 = :sync-for-iterator.{core::Iterator::current}{self::B};
+    synthesized core::Iterator<self::B> :sync-for-iterator##1 = iterable.{core::Iterable::iterator}{core::Iterator<self::B>};
+    for (; :sync-for-iterator##1.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final self::B #t4 = :sync-for-iterator##1.{core::Iterator::current}{self::B};
       {
         b = #t4;
       }
     }
   }
   {
-    synthesized asy::Stream<self::B> :stream = stream;
-    synthesized asy::_StreamIterator<self::B>? :for-iterator = new asy::_StreamIterator::•<self::B>(:stream);
+    synthesized asy::Stream<self::B> :stream##1 = stream;
+    synthesized asy::_StreamIterator<self::B>? :for-iterator##1 = new asy::_StreamIterator::•<self::B>(:stream##1);
     try
-      while (let dynamic #t5 = asy::_asyncStarMoveNextHelper(:stream) in await :for-iterator.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>}) {
-        final self::B #t6 = :for-iterator.{asy::_StreamIterator::current}{self::B};
+      while (let dynamic #t5 = asy::_asyncStarMoveNextHelper(:stream##1) in await :for-iterator##1.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>}) {
+        final self::B #t6 = :for-iterator##1.{asy::_StreamIterator::current}{self::B};
         {
           b = #t6;
         }
       }
     finally
-      if(!(:for-iterator.{asy::_StreamIterator::_subscription}{asy::StreamSubscription<self::B>?} == null))
-        await :for-iterator.{asy::_StreamIterator::cancel}(){() → asy::Future<dynamic>};
+      if(!(:for-iterator##1.{asy::_StreamIterator::_subscription}{asy::StreamSubscription<self::B>?} == null))
+        await :for-iterator##1.{asy::_StreamIterator::cancel}(){() → asy::Future<dynamic>};
   }
   {
-    synthesized core::Iterator<self::B> :sync-for-iterator = iterable.{core::Iterable::iterator}{core::Iterator<self::B>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final self::B #t7 = :sync-for-iterator.{core::Iterator::current}{self::B};
+    synthesized core::Iterator<self::B> :sync-for-iterator##2 = iterable.{core::Iterable::iterator}{core::Iterator<self::B>};
+    for (; :sync-for-iterator##2.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final self::B #t7 = :sync-for-iterator##2.{core::Iterator::current}{self::B};
       {
         i = invalid-expression "pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart:20:10: Error: A value of type 'B' can't be assigned to a variable of type 'int'.
  - 'B' is from 'pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart'.
@@ -90,11 +90,11 @@ static method test(core::Iterable<self::B> iterable, asy::Stream<self::B> stream
     }
   }
   {
-    synthesized asy::Stream<self::B> :stream = stream;
-    synthesized asy::_StreamIterator<self::B>? :for-iterator = new asy::_StreamIterator::•<self::B>(:stream);
+    synthesized asy::Stream<self::B> :stream##2 = stream;
+    synthesized asy::_StreamIterator<self::B>? :for-iterator##2 = new asy::_StreamIterator::•<self::B>(:stream##2);
     try
-      while (let dynamic #t8 = asy::_asyncStarMoveNextHelper(:stream) in await :for-iterator.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>}) {
-        final self::B #t9 = :for-iterator.{asy::_StreamIterator::current}{self::B};
+      while (let dynamic #t8 = asy::_asyncStarMoveNextHelper(:stream##2) in await :for-iterator##2.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>}) {
+        final self::B #t9 = :for-iterator##2.{asy::_StreamIterator::current}{self::B};
         {
           i = invalid-expression "pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart:21:16: Error: A value of type 'B' can't be assigned to a variable of type 'int'.
  - 'B' is from 'pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart'.
@@ -103,31 +103,31 @@ static method test(core::Iterable<self::B> iterable, asy::Stream<self::B> stream
         }
       }
     finally
-      if(!(:for-iterator.{asy::_StreamIterator::_subscription}{asy::StreamSubscription<self::B>?} == null))
-        await :for-iterator.{asy::_StreamIterator::cancel}(){() → asy::Future<dynamic>};
+      if(!(:for-iterator##2.{asy::_StreamIterator::_subscription}{asy::StreamSubscription<self::B>?} == null))
+        await :for-iterator##2.{asy::_StreamIterator::cancel}(){() → asy::Future<dynamic>};
   }
   {
-    synthesized core::Iterator<self::A> :sync-for-iterator = self::f<core::Iterable<self::A>>().{core::Iterable::iterator}{core::Iterator<self::A>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final self::A #t10 = :sync-for-iterator.{core::Iterator::current}{self::A};
+    synthesized core::Iterator<self::A> :sync-for-iterator##3 = self::f<core::Iterable<self::A>>().{core::Iterable::iterator}{core::Iterator<self::A>};
+    for (; :sync-for-iterator##3.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final self::A #t10 = :sync-for-iterator##3.{core::Iterator::current}{self::A};
       {
         a = #t10;
       }
     }
   }
   {
-    synthesized asy::Stream<self::A> :stream = self::f<asy::Stream<self::A>>();
-    synthesized asy::_StreamIterator<self::A>? :for-iterator = new asy::_StreamIterator::•<self::A>(:stream);
+    synthesized asy::Stream<self::A> :stream##3 = self::f<asy::Stream<self::A>>();
+    synthesized asy::_StreamIterator<self::A>? :for-iterator##3 = new asy::_StreamIterator::•<self::A>(:stream##3);
     try
-      while (let dynamic #t11 = asy::_asyncStarMoveNextHelper(:stream) in await :for-iterator.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>}) {
-        final self::A #t12 = :for-iterator.{asy::_StreamIterator::current}{self::A};
+      while (let dynamic #t11 = asy::_asyncStarMoveNextHelper(:stream##3) in await :for-iterator##3.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>}) {
+        final self::A #t12 = :for-iterator##3.{asy::_StreamIterator::current}{self::A};
         {
           a = #t12;
         }
       }
     finally
-      if(!(:for-iterator.{asy::_StreamIterator::_subscription}{asy::StreamSubscription<self::A>?} == null))
-        await :for-iterator.{asy::_StreamIterator::cancel}(){() → asy::Future<dynamic>};
+      if(!(:for-iterator##3.{asy::_StreamIterator::_subscription}{asy::StreamSubscription<self::A>?} == null))
+        await :for-iterator##3.{asy::_StreamIterator::cancel}(){() → asy::Future<dynamic>};
   }
 }
 static method main() → dynamic {}

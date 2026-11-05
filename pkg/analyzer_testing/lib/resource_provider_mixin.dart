@@ -168,6 +168,9 @@ mixin ResourceProviderMixin {
     newPackageConfigJsonFileFromBuilder(packagePath, builder);
   }
 
+  /// Joins the part paths as per [path.Context.normalize].
+  String normalize(String path) => resourceProvider.pathContext.normalize(path);
+
   /// Converts [path] to a URI.
   Uri toUri(String path) {
     path = convertPath(path);

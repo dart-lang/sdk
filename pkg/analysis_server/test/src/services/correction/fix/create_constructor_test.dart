@@ -287,7 +287,7 @@ enum E {
 
   const new x();
 }
-''', matchFixMessage: "Create constructor 'E.x'");
+''', fixMessageContains: "Create constructor 'E.x'");
   }
 
   Future<void> test_undefined_enum_constructor_unnamed() async {
@@ -304,7 +304,7 @@ enum E {
 
   const new();
 }
-''', matchFixMessage: "Create constructor 'E'");
+''', fixMessageContains: "Create constructor 'E'");
   }
 
   Future<void> test_undefined_enum_constructor_unnamed_parameters() async {

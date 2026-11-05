@@ -16,9 +16,9 @@ class MyFinalizable extends core::Object implements ffi::Finalizable {
       final synthesized () → core::int :expressionValueWrappedFinalizable = () → core::int {
         final core::int result = this.{self::MyFinalizable::_internalValue}{core::int};
         return block {
-          final synthesized core::int :expressionValueWrappedFinalizable = result;
+          final synthesized core::int :expressionValueWrappedFinalizable##1 = result;
           _in::reachabilityFence(this);
-        } =>:expressionValueWrappedFinalizable;
+        } =>:expressionValueWrappedFinalizable##1;
       };
       _in::reachabilityFence(this);
     } =>:expressionValueWrappedFinalizable;
@@ -27,9 +27,9 @@ class MyFinalizable extends core::Object implements ffi::Finalizable {
     return block {
       final synthesized () → core::int :expressionValueWrappedFinalizable = () → core::int {
         return block {
-          final synthesized core::int :expressionValueWrappedFinalizable = this.{self::MyFinalizable::_internalValue}{core::int};
+          final synthesized core::int :expressionValueWrappedFinalizable##1 = this.{self::MyFinalizable::_internalValue}{core::int};
           _in::reachabilityFence(this);
-        } =>:expressionValueWrappedFinalizable;
+        } =>:expressionValueWrappedFinalizable##1;
       };
       _in::reachabilityFence(this);
     } =>:expressionValueWrappedFinalizable;
@@ -38,9 +38,9 @@ class MyFinalizable extends core::Object implements ffi::Finalizable {
     return block {
       final synthesized () → core::int :expressionValueWrappedFinalizable = () → core::int {
         return block {
-          final synthesized core::int :expressionValueWrappedFinalizable = this.{self::MyFinalizable::_internalValue}{core::int};
+          final synthesized core::int :expressionValueWrappedFinalizable##1 = this.{self::MyFinalizable::_internalValue}{core::int};
           _in::reachabilityFence(this);
-        } =>:expressionValueWrappedFinalizable;
+        } =>:expressionValueWrappedFinalizable##1;
       };
       _in::reachabilityFence(this);
     } =>:expressionValueWrappedFinalizable;
@@ -50,14 +50,14 @@ class MyFinalizable extends core::Object implements ffi::Finalizable {
       final synthesized () → core::int :expressionValueWrappedFinalizable = () → core::int {
         if(new core::DateTime::now().{core::DateTime::millisecondsSinceEpoch}{core::int} =={core::num::==}{(core::Object) → core::bool} 42) {
           return block {
-            final synthesized core::int :expressionValueWrappedFinalizable = 3;
+            final synthesized core::int :expressionValueWrappedFinalizable##1 = 3;
             _in::reachabilityFence(this);
-          } =>:expressionValueWrappedFinalizable;
+          } =>:expressionValueWrappedFinalizable##1;
         }
         return block {
-          final synthesized core::int :expressionValueWrappedFinalizable = this.{self::MyFinalizable::_internalValue}{core::int};
+          final synthesized core::int :expressionValueWrappedFinalizable##2 = this.{self::MyFinalizable::_internalValue}{core::int};
           _in::reachabilityFence(this);
-        } =>:expressionValueWrappedFinalizable;
+        } =>:expressionValueWrappedFinalizable##2;
       };
       _in::reachabilityFence(this);
     } =>:expressionValueWrappedFinalizable;

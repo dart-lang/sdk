@@ -99,7 +99,11 @@ static int testFunction(int x) {
 NO_SANITIZE_UNDEFINED_FUNCTION  // See https://dartbug.com/52440
 VM_UNIT_TEST_CASE(DuplicateRXVirtualMemory) {
   const uword page_size = VirtualMemory::PageSize();
-  const uword pointer = reinterpret_cast<uword>(&testFunction);
+  auto* func_pointer = &testFunction;
+#if defined(HOST_ARCH_ARM64E)
+  func_pointer = ptrauth_strip(func_pointer, ptrauth_key_function_pointer);
+#endif
+  const uword pointer = reinterpret_cast<uword>(func_pointer);
   const uword page_start = Utils::RoundDown(pointer, page_size);
   const uword offset = pointer - page_start;
 
@@ -117,6 +121,10 @@ VM_UNIT_TEST_CASE(DuplicateRXVirtualMemory) {
   EXPECT_EQ(true, ok);
 
   auto testFunction2 = reinterpret_cast<int (*)(int)>(vm2->start() + offset);
+#if defined(HOST_ARCH_ARM64E)
+  testFunction2 = ptrauth_sign_unauthenticated(testFunction2,
+                                               ptrauth_key_function_pointer, 0);
+#endif
   EXPECT_NE(&testFunction, testFunction2);
 
   EXPECT_EQ(246, testFunction2(123));

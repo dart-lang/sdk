@@ -10,10 +10,7 @@ import 'dart:_interceptors' show JSArray;
 import 'dart:_foreign_helper'
     show JS, JS_GET_FLAG, createJsSentinel, isJsSentinel;
 import 'dart:typed_data' show Uint8List;
-
-@patch
-@pragma('dart2js:tryInline')
-bool typeAcceptsNull<T>() => null is T;
+import 'dart:isolate' show Isolate;
 
 /// No-op in dart2js.
 ///
@@ -28,7 +25,7 @@ int? getHotRestartGeneration() => null;
 bool isCurrentHotRestartGeneration(int _) => true;
 
 @patch
-class Symbol implements core.Symbol {
+class Symbol {
   @patch
   const Symbol(String name) : this._name = name;
 
@@ -43,11 +40,16 @@ class Symbol implements core.Symbol {
   }
 
   @patch
-  String toString() => 'Symbol("$_name")';
+  String toString() => 'Symbol("${computeUnmangledName(this)}")';
 
   @patch
   static String computeUnmangledName(Symbol symbol) {
-    throw "unsupported operation";
+    final mangledName = Symbol.getName(symbol);
+    // The name will only be mangled if the symbol is private.
+    if (!mangledName.startsWith('_')) return mangledName;
+    final index = mangledName.indexOf('@');
+    if (index == -1) return mangledName;
+    return mangledName.substring(0, index);
   }
 }
 
@@ -91,14 +93,6 @@ T unsafeCast<T>(dynamic v) => v;
 @patch
 Future<Object?> loadDynamicModule({Uri? uri, Uint8List? bytes}) =>
     throw 'Unsupported operation';
-
-@patch
-@pragma("vm:entry-point")
-abstract interface class IsolateGroup {
-  @patch
-  static Object? _runSync(Object computation) =>
-      throw UnsupportedError("_runSync");
-}
 
 final List<Object> _toStringVisiting = [];
 @patch

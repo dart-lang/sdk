@@ -14,17 +14,17 @@ main() {
 
 @reflectiveTest
 class ConstEvalTypeBoolNumStringTest extends PubPackageResolutionTest {
-  test_equal_double_object_language219() async {
+  test_equal_double_object_beforePatterns() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
+// %before-language-feature: patterns
 const a = 0.1;
 const b = a == Object();
 ''');
   }
 
-  test_equal_userClass_int_language219() async {
+  test_equal_userClass_int_beforePatterns() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
+// %before-language-feature: patterns
 class A {
   const A();
 }
@@ -36,17 +36,17 @@ const b = a == 0;
 ''');
   }
 
-  test_notEqual_double_object_language219() async {
+  test_notEqual_double_object_beforePatterns() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
+// %before-language-feature: patterns
 const a = 0.1;
 const b = a != Object();
 ''');
   }
 
-  test_notEqual_userClass_int_language219() async {
+  test_notEqual_userClass_int_beforePatterns() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
+// %before-language-feature: patterns
 class A {
   const A();
 }

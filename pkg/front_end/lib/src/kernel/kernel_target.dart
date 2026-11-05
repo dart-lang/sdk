@@ -356,7 +356,9 @@ class KernelTarget {
   bool _hasComputedNeededPrecompilations = false;
 
   // TODO(johnniwinther): Remove this.
-  Future<void> computeNeededPrecompilations() async {
+  Future<void> computeNeededPrecompilations({
+    bool onlyDirectives = false,
+  }) async {
     assert(
       !_hasComputedNeededPrecompilations,
       "Needed precompilations have already been computed.",
@@ -367,7 +369,7 @@ class KernelTarget {
       benchmarker
       // Coverage-ignore(suite): Not run.
       ?.enterPhase(BenchmarkPhases.outline_kernelBuildOutlines);
-      await loader.buildOutlines();
+      await loader.buildOutlines(onlyDirectives: onlyDirectives);
 
       benchmarker
       // Coverage-ignore(suite): Not run.
@@ -457,10 +459,6 @@ class KernelTarget {
         // Coverage-ignore(suite): Not run.
         ?.enterPhase(BenchmarkPhases.outline_computeSupertypes);
         loader.computeSupertypes(loader.sourceLibraryBuilders);
-
-        benchmarker
-        // Coverage-ignore(suite): Not run.
-        ?.enterPhase(BenchmarkPhases.outline_computeMacroApplications);
 
         benchmarker
         // Coverage-ignore(suite): Not run.
@@ -1073,12 +1071,9 @@ class KernelTarget {
     bool hasTypeDependency = false;
     Substitution substitution = Substitution.fromMap(substitutionMap);
 
-    PositionalParameter copyPositionalParameter(
-      PositionalParameter formal, {
-      required bool isPositional,
-    }) {
+    PositionalParameter copyPositionalParameter(PositionalParameter formal) {
       PositionalParameter copy = extern.createPositionalParameter(
-        cosmeticName: formal.cosmeticName,
+        parameterName: formal.parameterName,
         type: const UnknownType(),
         isFinal: formal.isFinal,
         isRequired: formal.isRequired,
@@ -1093,10 +1088,7 @@ class KernelTarget {
       return copy;
     }
 
-    NamedParameter copyNamedParameter(
-      NamedParameter formal, {
-      required bool isPositional,
-    }) {
+    NamedParameter copyNamedParameter(NamedParameter formal) {
       NamedParameter copy = extern.createNamedParameter(
         parameterName: formal.parameterName,
         type: const UnknownType(),
@@ -1123,28 +1115,29 @@ class KernelTarget {
         }
       }
     }
-    List<PositionalParameter> positionalParameters = [];
-    List<NamedParameter> namedParameters = [];
-    List<Expression> positional = <Expression>[];
-    List<NamedExpression> named = <NamedExpression>[];
-
-    for (PositionalParameter formal
-        in superConstructor.function.positionalParameters) {
-      positionalParameters.add(
-        copyPositionalParameter(formal, isPositional: true),
-      );
-      positional.add(new VariableGet(positionalParameters.last));
-    }
-    for (NamedParameter formal in superConstructor.function.namedParameters) {
-      NamedParameter clone = copyNamedParameter(formal, isPositional: false);
-      namedParameters.add(clone);
-      named.add(
-        new NamedExpression(
-          formal.parameterName,
-          new VariableGet(namedParameters.last),
-        ),
-      );
-    }
+    List<PositionalParameter> superPositional =
+        superConstructor.function.positionalParameters;
+    List<NamedParameter> superNamed = superConstructor.function.namedParameters;
+    PositionalParameterList positionalParameters =
+        PositionalParameterList.mapped(
+          superPositional,
+          copyPositionalParameter,
+        );
+    NamedParameterList namedParameters = NamedParameterList.mapped(
+      superNamed,
+      copyNamedParameter,
+    );
+    ExpressionList positional = ExpressionList.mapped(
+      positionalParameters,
+      VariableGet.new,
+    );
+    NamedExpressionList named = NamedExpressionList.mapped(
+      namedParameters,
+      (NamedParameter parameter) => new NamedExpression(
+        parameter.parameterName,
+        new VariableGet(parameter),
+      ),
+    );
     FunctionNode function = new FunctionNode(
       new EmptyStatement(),
       positionalParameters: positionalParameters,
@@ -1228,7 +1221,8 @@ class KernelTarget {
       fileUri: classBuilder.fileUri,
       constructorReferences: constructorReferences,
       nameScheme: nameScheme,
-      introductory: declaration,
+      declarations: [declaration],
+      implementation: declaration,
       isConst: isConst,
     );
 
@@ -1346,23 +1340,20 @@ class KernelTarget {
       fileUri: classBuilder.fileUri,
       constructorReferences: constructorReferences,
       nameScheme: nameScheme,
-      introductory: declaration,
+      declarations: [declaration],
+      implementation: declaration,
       isConst: false,
     );
   }
 
   DartType makeConstructorReturnType(Class enclosingClass) {
-    List<DartType> typeParameterTypes = <DartType>[];
-    for (int i = 0; i < enclosingClass.typeParameters.length; i++) {
-      TypeParameter typeParameter = enclosingClass.typeParameters[i];
-      typeParameterTypes.add(
-        new TypeParameterType.withDefaultNullability(typeParameter),
-      );
-    }
     return new InterfaceType(
       enclosingClass,
       enclosingClass.enclosingLibrary.nonNullable,
-      typeParameterTypes,
+      getAsTypeArguments(
+        enclosingClass.typeParameters,
+        enclosingClass.enclosingLibrary,
+      ),
     );
   }
 
@@ -1522,6 +1513,9 @@ class KernelTarget {
           /// >and no body is provided, then c implicitly has an empty body {}.
           /// We use an empty statement instead.
           constructor.function.registerFunctionBody(new EmptyStatement());
+          // TODO(cstefantsova): Verify that null should be passed for
+          //  scopeProviderInfo in the call below.
+          constructor.function.registerScopeProviderInfo(null);
         }
       }
     }

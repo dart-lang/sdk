@@ -108,7 +108,7 @@ library from "org-dartlang-test:///main.dart" as main {
   static field foo::Foo extensionBoz = foo::FooExtension|boz(null);
   static field foo::Foo extensionConstFoo = foo::FooExtension|constFoo(null, $creationLocationd_0dea112b090073317d4: #C45);
   static field foo::Foo extensionGetterFoo = foo::FooExtension|get#getterFoo(null, $creationLocationd_0dea112b090073317d4: #C49);
-  static field () → Null extensionSetterFoo = () → Null => let final has-declared-initializer Null #t1 = null in let final void #t2 = foo::FooExtension|set#setterFoo(null, #t1, $creationLocationd_0dea112b090073317d4: #C53) in #t1;
+  static field () → Null extensionSetterFoo = () → Null => let final Null #t1 = null in let final void #t2 = foo::FooExtension|set#setterFoo(null, #t1, $creationLocationd_0dea112b090073317d4: #C53) in #t1;
   static field foo::Foo extensionOperatorFoo = foo::FooExtension|unary-(null, $creationLocationd_0dea112b090073317d4: #C56);
   static field foo::Foo extensionStaticFoo = foo::FooExtension|staticFoo();
 }
@@ -173,16 +173,16 @@ constants  {
 
 
 Constructor coverage from constants:
-org-dartlang-test:///main.dart:
-- CreationLocation._ (from org-dartlang-sdk:///lib/developer/creation_tracking.dart)
-- Object. (from org-dartlang-sdk:///lib/core/object.dart)
-
 org-dartlang-test:///foo.dart:
 - CreationLocation._ (from org-dartlang-sdk:///lib/developer/creation_tracking.dart)
 - Object. (from org-dartlang-sdk:///lib/core/object.dart)
 - Foo._ (from org-dartlang-test:///foo.dart:10:9)
 - Widget. (from org-dartlang-test:///flutter/lib/src/widgets/framework.dart:9:9)
 - Bar. (from org-dartlang-test:///flutter/lib/src/widgets/framework.dart:4:9)
+
+org-dartlang-test:///main.dart:
+- CreationLocation._ (from org-dartlang-sdk:///lib/developer/creation_tracking.dart)
+- Object. (from org-dartlang-sdk:///lib/core/object.dart)
 
 org-dartlang-test:///flutter/lib/src/widgets/framework.dart:
 - pragma._ (from org-dartlang-sdk:///lib/core/annotations.dart)

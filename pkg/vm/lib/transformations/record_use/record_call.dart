@@ -110,7 +110,7 @@ class CallRecorder {
     final bool hasReceiver =
         (target.function.positionalParameters.isNotEmpty &&
             isExtensionThisName(
-              target.function.positionalParameters[0].cosmeticName,
+              target.function.positionalParameters[0].parameterName,
             )) ||
         isTearOffLowering;
 
@@ -204,7 +204,7 @@ Definition definitionFromMember(ast.Member target) {
     final bool hasReceiver =
         (target.function.positionalParameters.isNotEmpty &&
             isExtensionThisName(
-              target.function.positionalParameters[0].cosmeticName,
+              target.function.positionalParameters[0].parameterName,
             )) ||
         isTearOffLowering;
 

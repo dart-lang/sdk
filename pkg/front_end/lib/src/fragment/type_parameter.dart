@@ -46,9 +46,8 @@ class TypeParameterFragment {
   String toString() => 'TypeParameterFragment($name)';
 }
 
-// TODO(johnniwinther): Avoid this.
 extension TypeParameterFragmentHelper on List<TypeParameterFragment> {
-  List<SourceNominalParameterBuilder> get builders {
+  List<SourceNominalParameterBuilder> get computeBuilderList {
     return this.map((p) => p.builder).toList();
   }
 }

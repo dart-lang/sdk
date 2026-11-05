@@ -31,6 +31,11 @@ ExportDirective
   combinators
     HideCombinator
       keyword: hide
+      names
+        CombinatorName
+          name: Random
+          element: dart:math::@class::Random
+          setterElement: <null>
       hiddenNames
         SimpleIdentifier
           token: Random
@@ -59,6 +64,11 @@ ExportDirective
   combinators
     HideCombinator
       keyword: hide
+      names
+        CombinatorName
+          name: Unresolved
+          element: <null>
+          setterElement: <null>
       hiddenNames
         SimpleIdentifier
           token: Unresolved
@@ -85,6 +95,11 @@ ExportDirective
   combinators
     ShowCombinator
       keyword: show
+      names
+        CombinatorName
+          name: Random
+          element: dart:math::@class::Random
+          setterElement: <null>
       shownNames
         SimpleIdentifier
           token: Random
@@ -113,6 +128,11 @@ ExportDirective
   combinators
     ShowCombinator
       keyword: show
+      names
+        CombinatorName
+          name: Unresolved
+          element: <null>
+          setterElement: <null>
       shownNames
         SimpleIdentifier
           token: Unresolved
@@ -420,7 +440,7 @@ ExportDirective
         contents: '
       InterpolationExpression
         leftBracket: ${
-        expression: SimpleStringLiteral
+        expression2: SimpleStringLiteral
           literal: 'foo'
         rightBracket: }
       InterpolationString
@@ -644,7 +664,7 @@ ExportDirective
         contents: '
       InterpolationExpression
         leftBracket: ${
-        expression: SimpleStringLiteral
+        expression2: SimpleStringLiteral
           literal: 'foo'
         rightBracket: }
       InterpolationString

@@ -542,9 +542,7 @@ class AnalyzerStatePrinter {
             sink.write(' ${file.uri}');
           }
 
-          if (import.isSyntheticDartCore) {
-            sink.write(' synthetic');
-          }
+          _writeLibraryImportFlags(import);
         });
       case LibraryImportWithInSummarySource():
         sink.writeIndentedLine(() {
@@ -557,27 +555,42 @@ class AnalyzerStatePrinter {
             sink.write(' notLibrary');
           }
 
-          if (import.isSyntheticDartCore) {
-            sink.write(' synthetic');
-          }
+          _writeLibraryImportFlags(import);
         });
       case LibraryImportWithUri():
         sink.writeIndentedLine(() {
           sink.write('uri: ${import.selectedUri.relativeUri}');
-          if (import.isSyntheticDartCore) {
-            sink.write(' synthetic');
-          }
+          _writeLibraryImportFlags(import);
         });
       case LibraryImportWithUriStr():
         sink.writeIndentedLine(() {
           var uriStr = _stringOfUriStr(import.selectedUri.relativeUriStr);
           sink.write('uriStr: $uriStr');
-          if (import.isSyntheticDartCore) {
-            sink.write(' synthetic');
-          }
+          _writeLibraryImportFlags(import);
         });
       default:
         sink.writelnWithIndent('noUriStr');
+    }
+  }
+
+  /// Writes the unlinked properties of [import] that are not visible
+  /// through the imported file: the prefix, the combinators, and whether
+  /// it is synthetic.
+  void _writeLibraryImportFlags(LibraryImportState import) {
+    if (import.unlinked.prefix case var prefix?) {
+      if (prefix.deferredOffset != null) {
+        sink.write(' deferred');
+      }
+      sink.write(' as ${prefix.name?.name ?? '<missing>'}');
+    }
+
+    for (var combinator in import.unlinked.combinators) {
+      var keyword = combinator.isShow ? 'show' : 'hide';
+      sink.write(' $keyword ${combinator.names.join(', ')}');
+    }
+
+    if (import.isSyntheticDartCore) {
+      sink.write(' synthetic');
     }
   }
 
@@ -586,6 +599,7 @@ class AnalyzerStatePrinter {
       'libraryImports',
       container.libraryImports,
       (import) {
+        expect(import.isDocImport, isFalse);
         _writeLibraryImport(container, import);
       },
     );

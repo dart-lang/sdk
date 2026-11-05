@@ -6,7 +6,9 @@ import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart'
     show
         DartType,
+        DartTypeList,
         InvalidType,
+        NamedDartTypeList,
         NamedType,
         Nullability,
         RecordType,
@@ -320,8 +322,10 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
     // TODO(johnniwinther): Should we create an [InvalidType] if there is <= 1
     // entries?
     return new RecordType(
-      positionalEntries,
-      namedEntries ?? [],
+      new DartTypeList.from(positionalEntries),
+      namedEntries == null
+          ? NamedDartTypeList.empty
+          : new NamedDartTypeList.from(namedEntries),
       nullabilityBuilder.build(),
     );
   }

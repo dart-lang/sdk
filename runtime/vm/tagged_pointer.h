@@ -107,7 +107,9 @@ class ObjectPtr {
   }
 
 #define DEFINE_IS_CID(clazz)                                                   \
-  bool Is##clazz() const { return ((GetClassId() == k##clazz##Cid)); }
+  bool Is##clazz() const {                                                     \
+    return ((GetClassId() == k##clazz##Cid));                                  \
+  }
   CLASS_LIST(DEFINE_IS_CID)
 #undef DEFINE_IS_CID
 
@@ -128,7 +130,9 @@ class ObjectPtr {
 #undef DEFINE_IS_CID
 
 #define DEFINE_IS_CID(clazz)                                                   \
-  bool IsFfi##clazz() const { return ((GetClassId() == kFfi##clazz##Cid)); }
+  bool IsFfi##clazz() const {                                                  \
+    return ((GetClassId() == kFfi##clazz##Cid));                               \
+  }
   CLASS_LIST_FFI(DEFINE_IS_CID)
 #undef DEFINE_IS_CID
 
@@ -376,6 +380,7 @@ DEFINE_TAGGED_POINTER(PcDescriptors, Object)
 DEFINE_TAGGED_POINTER(CodeSourceMap, Object)
 DEFINE_TAGGED_POINTER(CompressedStackMaps, Object)
 DEFINE_TAGGED_POINTER(LocalVarDescriptors, Object)
+DEFINE_TAGGED_POINTER(LocalVarDescriptor, Object)
 DEFINE_TAGGED_POINTER(ExceptionHandlers, Object)
 DEFINE_TAGGED_POINTER(Context, Object)
 DEFINE_TAGGED_POINTER(ContextScope, Object)

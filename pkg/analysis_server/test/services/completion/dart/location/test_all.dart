@@ -29,6 +29,7 @@ import 'dot_shorthand_property_access_test.dart'
     as dot_shorthand_property_access;
 import 'enum_constant_test.dart' as enum_constant;
 import 'enum_declaration_test.dart' as enum_declaration;
+import 'export_directive_test.dart' as export_directive;
 import 'extends_clause_test.dart' as extends_clause;
 import 'extension_body_test.dart' as extension_body;
 import 'extension_declaration_test.dart' as extension_declaration;
@@ -83,6 +84,7 @@ import 'super_formal_parameter_test.dart' as super_formal_parameter;
 import 'switch_expression_test.dart' as switch_expression;
 import 'switch_pattern_case_test.dart' as switch_pattern_case;
 import 'switch_statement_test.dart' as switch_statement;
+import 'symbol_test.dart' as symbol;
 import 'try_statement_test.dart' as try_statement;
 import 'type_argument_list_test.dart' as type_argument_list;
 import 'type_test_test.dart' as type_test;
@@ -116,6 +118,7 @@ void main() {
     dot_shorthand_property_access.main();
     enum_constant.main();
     enum_declaration.main();
+    export_directive.main();
     extends_clause.main();
     extension_body.main();
     extension_declaration.main();
@@ -168,6 +171,7 @@ void main() {
     switch_expression.main();
     switch_pattern_case.main();
     switch_statement.main();
+    symbol.main();
     try_statement.main();
     type_argument_list.main();
     type_test.main();

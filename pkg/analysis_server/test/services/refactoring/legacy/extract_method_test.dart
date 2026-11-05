@@ -500,6 +500,40 @@ void f() {
     );
   }
 
+  Future<void> test_bad_statements_breakOutOfSelection() async {
+    await _createRefactoring('''
+void f(List<int> values) {
+  for (var value in values) {
+    [!if (value == 0) {
+      break;
+    }!]
+    print(value);
+  }
+}
+''');
+    return _assertConditionsFatal(
+      "Cannot extract a 'break' or 'continue' statement that jumps "
+      'outside of the selection.',
+    );
+  }
+
+  Future<void> test_bad_statements_continueOutOfSelection() async {
+    await _createRefactoring('''
+void f(List<int> values) {
+  for (var value in values) {
+    [!if (value == 0) {
+      continue;
+    }!]
+    print(value);
+  }
+}
+''');
+    return _assertConditionsFatal(
+      "Cannot extract a 'break' or 'continue' statement that jumps "
+      'outside of the selection.',
+    );
+  }
+
   Future<void> test_bad_statements_exit_notAllExecutionFlows() async {
     await _createRefactoring('''
 void f(int p) {
@@ -510,6 +544,25 @@ void f(int p) {
 }
 ''');
     return _assertConditionsError(ExtractMethodRefactoringImpl.errorExits);
+  }
+
+  Future<void> test_bad_statements_exit_returnOrBreak() async {
+    await _createRefactoring('''
+int f(List<int> values) {
+  for (var value in values) {
+    [!if (value == 0) {
+      return 0;
+    } else {
+      break;
+    }!]
+  }
+  return 1;
+}
+''');
+    return _assertConditionsFatal(
+      "Cannot extract a 'break' or 'continue' statement that jumps "
+      'outside of the selection.',
+    );
   }
 
   Future<void> test_bad_statements_return_andAssignsVariable() async {
@@ -1147,6 +1200,37 @@ void f() {
       unorderedEquals([findOffset('1 + 2'), findOffset('1 +  2')]),
     );
     expect(refactoring.lengths, unorderedEquals([5, 6]));
+  }
+
+  Future<void> test_parameterName_notInUse_dotShorthand() async {
+    // The parameter `foo` cannot shadow the dot shorthand `.foo`, which is
+    // resolved against the context type, so there is no conflict.
+    await _createRefactoring('''
+class A {
+  static A get foo => A();
+}
+void g(A a) {}
+void f() {
+  int foo = 1;
+  [!g(.foo);
+  print(foo);!]
+}
+''');
+    return _assertSuccessfulRefactoring('''
+class A {
+  static A get foo => A();
+}
+void g(A a) {}
+void f() {
+  int foo = 1;
+  res(foo);
+}
+
+void res(int foo) {
+  g(.foo);
+  print(foo);
+}
+''');
   }
 
   Future<void> test_parameterType_nullableTypeWithTypeArguments() async {
@@ -2112,6 +2196,34 @@ int res(int v) {
 ''');
   }
 
+  Future<void> test_statements_break_insideSelection() async {
+    await _createRefactoring('''
+void f(List<int> values) {
+  [!for (var value in values) {
+    if (value == 0) {
+      break;
+    }
+    print(value);
+  }!]
+}
+''');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+void f(List<int> values) {
+  res(values);
+}
+
+void res(List<int> values) {
+  for (var value in values) {
+    if (value == 0) {
+      break;
+    }
+    print(value);
+  }
+}
+''');
+  }
+
   Future<void> test_statements_changeIndentation() async {
     await _createRefactoring('''
 void f() {
@@ -2357,6 +2469,90 @@ myFunctionB() {
 void res() {
   int varB = 1;
   print(varB);
+}
+''');
+  }
+
+  Future<void> test_statements_duplicate_overlapping() async {
+    // https://github.com/dart-lang/sdk/issues/37297
+    await _createRefactoring('''
+void f() {
+  print('Test!');
+  [!print('Test!');
+  print('Test!');!]
+  print('Test!');
+}
+''');
+    // The unselected statements only partially overlap the selection, so
+    // they must not be matched in place of it.
+    return _assertSuccessfulRefactoring('''
+void f() {
+  print('Test!');
+  res();
+  print('Test!');
+}
+
+void res() {
+  print('Test!');
+  print('Test!');
+}
+''');
+  }
+
+  Future<void> test_statements_duplicate_overlapping_disabled() async {
+    // https://github.com/dart-lang/sdk/issues/37297
+    await _createRefactoring('''
+void f() {
+  print('Test!');
+  [!print('Test!');
+  print('Test!');!]
+  print('Test!');
+  print('Test!');
+  print('Test!');
+}
+''');
+    refactoring.extractAll = false;
+    return _assertSuccessfulRefactoring('''
+void f() {
+  print('Test!');
+  res();
+  print('Test!');
+  print('Test!');
+  print('Test!');
+}
+
+void res() {
+  print('Test!');
+  print('Test!');
+}
+''');
+  }
+
+  Future<void> test_statements_duplicate_overlapping_enabled() async {
+    // https://github.com/dart-lang/sdk/issues/37297
+    await _createRefactoring('''
+void f() {
+  print('Test!');
+  [!print('Test!');
+  print('Test!');!]
+  print('Test!');
+  print('Test!');
+  print('Test!');
+}
+''');
+    // The selection is replaced, and the non-overlapping duplicate that
+    // follows it is still found.
+    return _assertSuccessfulRefactoring('''
+void f() {
+  print('Test!');
+  res();
+  res();
+  print('Test!');
+}
+
+void res() {
+  print('Test!');
+  print('Test!');
 }
 ''');
   }
@@ -2911,6 +3107,38 @@ List<Object> res(bool b) {
   } else {
     print(false);
     return <String>[];
+  }
+}
+''');
+  }
+
+  Future<void> test_statements_return_multiple_switchExhaustive() async {
+    await _createRefactoring('''
+enum E { first, second }
+
+int f(E e) {
+  [!switch (e) {
+    case E.first:
+      return 1;
+    case E.second:
+      return 2;
+  }!]
+}
+''');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+enum E { first, second }
+
+int f(E e) {
+  return res(e);
+}
+
+int res(E e) {
+  switch (e) {
+    case E.first:
+      return 1;
+    case E.second:
+      return 2;
   }
 }
 ''');

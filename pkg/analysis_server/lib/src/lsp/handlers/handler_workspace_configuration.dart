@@ -8,7 +8,7 @@ import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
 
 class WorkspaceDidChangeConfigurationMessageHandler
-    extends LspMessageHandler<DidChangeConfigurationParams, void> {
+    extends SharedMessageHandler<DidChangeConfigurationParams, void> {
   new(super.server);
 
   @override
@@ -17,6 +17,11 @@ class WorkspaceDidChangeConfigurationMessageHandler
   @override
   LspJsonHandler<DidChangeConfigurationParams> get jsonHandler =>
       DidChangeConfigurationParams.jsonHandler;
+
+  @override
+  // The configuration that is fetched in response to this notification is the
+  // editor's, so only the editor should be able to tell us it has changed.
+  bool get requiresTrustedCaller => true;
 
   @override
   Future<ErrorOr<void>> handle(
@@ -28,7 +33,7 @@ class WorkspaceDidChangeConfigurationMessageHandler
     // they can be resource-scoped, so this is used only as a notification and
     // to keep settings up-to-date we must re-request them from the client
     // whenever we are told they may have changed.
-    await server.fetchClientConfigurationAndPerformDynamicRegistration();
+    await server.fetchClientConfiguration();
 
     return success(null);
   }

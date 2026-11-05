@@ -334,7 +334,19 @@ namespace RTN = dart;
 namespace RTN = dart::compiler::target;
 #endif  //  defined(DART_PRECOMPILED_RUNTIME)
 
-class Object {
+// Explicitly choose the discriminator, since we can't ask what the default is.
+#define HANDLE_DISCRIMINATOR 0x1234
+
+#if defined(HOST_ARCH_ARM64E)
+#define KNOWN_VTABLE_DISCRIMINATOR                                             \
+  [[clang::ptrauth_vtable_pointer(default_key, address_discrimination,         \
+                                  custom_discrimination,                       \
+                                  HANDLE_DISCRIMINATOR)]]
+#else
+#define KNOWN_VTABLE_DISCRIMINATOR
+#endif
+
+class KNOWN_VTABLE_DISCRIMINATOR Object {
  public:
   using UntaggedObjectType = UntaggedObject;
   using ObjectPtrType = ObjectPtr;
@@ -380,7 +392,9 @@ class Object {
   virtual intptr_t HandleTag() const { return kObjectCid; }
 
 #define DEFINE_LEAF_CHECK(clazz)                                               \
-  bool Is##clazz() const { return HandleTag() == k##clazz##Cid; }
+  bool Is##clazz() const {                                                     \
+    return HandleTag() == k##clazz##Cid;                                       \
+  }
   LEAF_HANDLE_LIST(DEFINE_LEAF_CHECK)
 #undef DEFINE_LEAF_CHECK
   bool IsTypedDataBase() const {
@@ -523,6 +537,7 @@ class Object {
   V(TypeArguments, null_type_arguments)                                        \
   V(CompressedStackMaps, null_compressed_stackmaps)                            \
   V(Closure, null_closure)                                                     \
+  V(Bytecode, null_bytecode)                                                   \
   V(TypeArguments, empty_type_arguments)                                       \
   V(Array, empty_array)                                                        \
   V(Array, empty_instantiations_cache_array)                                   \
@@ -577,7 +592,9 @@ class Object {
   V(TypedData, empty_coverage_array)
 
 #define DEFINE_SHARED_READONLY_HANDLE_GETTER(Type, name)                       \
-  static const Type& name() { return Roots::name(); }
+  static const Type& name() {                                                  \
+    return Roots::name();                                                      \
+  }
   SHARED_READONLY_HANDLES_LIST(DEFINE_SHARED_READONLY_HANDLE_GETTER)
 #undef DEFINE_SHARED_READONLY_HANDLE_GETTER
 
@@ -707,13 +724,34 @@ class Object {
   // representation of C++ objects, but works okay in practice with
   // -fno-strict-vtable-pointers.
   cpp_vtable vtable() const {
-    cpp_vtable result;
-    memcpy(&result, reinterpret_cast<const void*>(this),  // NOLINT
-           sizeof(result));
-    return result;
+    void* data;
+    memcpy(&data, reinterpret_cast<const void*>(this),  // NOLINT
+           sizeof(cpp_vtable));
+#if defined(HOST_ARCH_ARM64E)
+    // Adjust the vtable pointer so it doesn't depend on the address of the
+    // prototype handle.
+    data = ptrauth_auth_and_resign(
+        data, ptrauth_key_cxx_vtable_pointer,
+        ptrauth_blend_discriminator(this, HANDLE_DISCRIMINATOR),
+        ptrauth_key_cxx_vtable_pointer, 0x4321);
+#endif
+    return reinterpret_cast<cpp_vtable>(data);
   }
-  void set_vtable(cpp_vtable value) {
-    memcpy(reinterpret_cast<void*>(this), &value,  // NOLINT
+  void set_vtable(cpp_vtable data_in) {
+    void* data = reinterpret_cast<void*>(data_in);
+#if defined(HOST_ARCH_ARM64E)
+    // Resign the vtable pointer for the new handle's address.
+    data = ptrauth_auth_and_resign(
+        data, ptrauth_key_cxx_vtable_pointer, 0x4321,
+        ptrauth_key_cxx_vtable_pointer,
+        ptrauth_blend_discriminator(this, HANDLE_DISCRIMINATOR));
+#endif
+    memcpy(reinterpret_cast<void*>(this), &data,  // NOLINT
+           sizeof(cpp_vtable));
+  }
+  void set_vtable_invalid() {
+    void* data = nullptr;
+    memcpy(reinterpret_cast<void*>(this), &data,  // NOLINT
            sizeof(cpp_vtable));
   }
 
@@ -838,6 +876,12 @@ class Object {
     // Can't use Contains, as it uses tags_, which is set through this method.
     ASSERT(reinterpret_cast<uword>(addr) >= UntaggedObject::ToAddr(ptr()));
     *const_cast<FieldType*>(addr) = value;
+  }
+  template <typename FieldType, typename ValueType>
+  void StoreNonPointerUnaligned(const FieldType* addr, ValueType value) const {
+    // Can't use Contains, as it uses tags_, which is set through this method.
+    ASSERT(reinterpret_cast<uword>(addr) >= UntaggedObject::ToAddr(ptr()));
+    StoreUnaligned(const_cast<FieldType*>(addr), value);
   }
 
   template <typename FieldType, typename ValueType, std::memory_order order>
@@ -1066,7 +1110,7 @@ class PassiveObject : public Object {
     PassiveObject* obj =
         reinterpret_cast<PassiveObject*>(VMHandles::AllocateHandle(zone));
     obj->ptr_ = ptr;
-    obj->set_vtable(0);
+    obj->set_vtable_invalid();
     return *obj;
   }
   static PassiveObject& Handle(ObjectPtr ptr) {
@@ -1082,7 +1126,7 @@ class PassiveObject : public Object {
     PassiveObject* obj =
         reinterpret_cast<PassiveObject*>(VMHandles::AllocateZoneHandle(zone));
     obj->ptr_ = ptr;
-    obj->set_vtable(0);
+    obj->set_vtable_invalid();
     return *obj;
   }
   static PassiveObject& ZoneHandle(ObjectPtr ptr) {
@@ -1929,6 +1973,9 @@ class Class : public Object {
   void PatchFieldsAndFunctions() const;
   void MigrateImplicitStaticClosures(ProgramReloadContext* context,
                                      const Class& new_cls) const;
+#if defined(DART_DYNAMIC_MODULES)
+  void MarkReloadedImplicitClosureFunctions() const;
+#endif
   void CopyCanonicalConstants(const Class& old_cls) const;
   void CopyDeclarationType(const Class& old_cls) const;
   void CheckReload(const Class& replacement,
@@ -2269,7 +2316,9 @@ class SingleTargetCache : public Object {
   }
 
 #define DEFINE_NON_POINTER_FIELD_ACCESSORS(type, name)                         \
-  type name() const { return untag()->name##_; }                               \
+  type name() const {                                                          \
+    return untag()->name##_;                                                   \
+  }                                                                            \
   void set_##name(type value) const {                                          \
     StoreNonPointer(&untag()->name##_, value);                                 \
   }                                                                            \
@@ -3046,7 +3095,8 @@ class Function : public Object {
   ClassPtr Owner() const { return Owner(ptr()); }
   static ClassPtr Owner(FunctionPtr function);
   void set_owner(const Object& value) const;
-  ScriptPtr script() const;
+  ScriptPtr script() const { return script(ptr()); }
+  static ScriptPtr script(FunctionPtr function);
 #if !defined(DART_PRECOMPILED_RUNTIME)
   KernelProgramInfoPtr KernelProgramInfo() const;
 #endif
@@ -3515,9 +3565,13 @@ class Function : public Object {
     UNREACHABLE();                                                             \
     return 0;                                                                  \
   }                                                                            \
-  return_type name() const { return 0; }                                       \
+  return_type name() const {                                                   \
+    return 0;                                                                  \
+  }                                                                            \
                                                                                \
-  void set_##name(type value) const { UNREACHABLE(); }
+  void set_##name(type value) const {                                          \
+    UNREACHABLE();                                                             \
+  }
 #else
 #define DEFINE_GETTERS_AND_SETTERS(return_type, type, name)                    \
   static intptr_t name##_offset() {                                            \
@@ -4055,6 +4109,15 @@ class Function : public Object {
                                BitVector* is_generic_covariant_impl) const;
 #endif
 
+#if defined(DART_DYNAMIC_MODULES) && !defined(PRODUCT) &&                      \
+    !defined(DART_PRECOMPILED_RUNTIME)
+  static bool IsReloadedImplicitClosure(FunctionPtr ptr);
+  bool IsReloadedImplicitClosure() const {
+    return IsReloadedImplicitClosure(ptr());
+  }
+  void SetIsReloadedImplicitClosure(bool value) const;
+#endif
+
   // Slow function, use in asserts to track changes in important library
   // functions.
   int32_t SourceFingerprint() const;
@@ -4130,7 +4193,9 @@ class Function : public Object {
   void Set##Name(bool value) const {                                           \
     set_state_bits(Name##Bit::update(value, state_bits()));                    \
   }                                                                            \
-  bool Name() const { return Name##Bit::decode(state_bits()); }
+  bool Name() const {                                                          \
+    return Name##Bit::decode(state_bits());                                    \
+  }
   STATE_BITS_LIST(DEFINE_FLAG_ACCESSORS)
 #undef DEFINE_FLAG_ACCESSORS
 
@@ -4202,7 +4267,9 @@ class Function : public Object {
   void set_##accessor_name(bool value) const {                                 \
     untag()->kind_tag_.UpdateUnsynchronized<name##Bit>(value);                 \
   }                                                                            \
-  bool accessor_name() const { return untag()->kind_tag_.Read<name##Bit>(); }
+  bool accessor_name() const {                                                 \
+    return untag()->kind_tag_.Read<name##Bit>();                               \
+  }
   FOR_EACH_FUNCTION_KIND_BIT(DEFINE_ACCESSORS)
 #undef DEFINE_ACCESSORS
 
@@ -4214,7 +4281,9 @@ class Function : public Object {
   void set_##accessor_name(bool value) const {                                 \
     untag()->kind_tag_.UpdateBool<name##Bit>(value);                           \
   }                                                                            \
-  bool accessor_name() const { return untag()->kind_tag_.Read<name##Bit>(); }
+  bool accessor_name() const {                                                 \
+    return untag()->kind_tag_.Read<name##Bit>();                               \
+  }
   FOR_EACH_FUNCTION_VOLATILE_KIND_BIT(DEFINE_ACCESSORS)
 #undef DEFINE_ACCESSORS
 
@@ -4238,14 +4307,22 @@ class Function : public Object {
                             UntaggedFunction::Kind,
                             0,
                             UntaggedFunction::kKindBitSize>;
+  static constexpr intptr_t kKindBitsPos = KindBits::shift();
+  static constexpr intptr_t kKindBitsSize = KindBits::bitsize();
+
   using RecognizedBits = BitField<decltype(UntaggedFunction::kind_tag_),
                                   MethodRecognizer::Kind,
                                   KindBits::kNextBit,
                                   MethodRecognizer::kKindBitSize>;
+  static constexpr intptr_t kRecognizedBitsPos = RecognizedBits::shift();
+  static constexpr intptr_t kRecognizedBitsSize = RecognizedBits::bitsize();
+
   using ModifierBits = BitField<decltype(UntaggedFunction::kind_tag_),
                                 UntaggedFunction::AsyncModifier,
                                 RecognizedBits::kNextBit,
                                 UntaggedFunction::kAsyncModifierBitSize>;
+  static constexpr intptr_t kModifierBitsPos = ModifierBits::shift();
+  static constexpr intptr_t kModifierBitsSize = ModifierBits::bitsize();
 
   enum KindTagBits {
 // Single bit sized fields start here.
@@ -4257,7 +4334,8 @@ class Function : public Object {
 
 #define DEFINE_BIT(name, _)                                                    \
   using name##Bit = BitField<decltype(UntaggedFunction::kind_tag_), bool,      \
-                             ModifierBits::kNextBit + k##name##Bit>;
+                             ModifierBits::kNextBit + k##name##Bit>;           \
+  static constexpr intptr_t k##name##BitPos = name##Bit::shift();
   FOR_EACH_FUNCTION_KIND_BIT(DEFINE_BIT)
   FOR_EACH_FUNCTION_VOLATILE_KIND_BIT(DEFINE_BIT)
 #undef DEFINE_BIT
@@ -4359,6 +4437,15 @@ class ClosureData : public Object {
   }
   void set_default_type_arguments_instantiation_mode(
       InstantiationMode value) const;
+
+#if defined(DART_DYNAMIC_MODULES) && !defined(PRODUCT) &&                      \
+    !defined(DART_PRECOMPILED_RUNTIME)
+  static bool ReloadedImplicitClosure(ClosureDataPtr ptr) {
+    return ptr->untag()
+        ->packed_fields_.Read<UntaggedClosureData::ReloadedImplicitClosure>();
+  }
+  void set_reloaded_implicit_closure(bool value) const;
+#endif
 
   static ClosureDataPtr New();
 
@@ -4560,7 +4647,8 @@ class Field : public Object {
   inline void set_field_id_unsafe(intptr_t field_id) const;
 
   ClassPtr Owner() const;
-  ScriptPtr Script() const;
+  ScriptPtr Script() const { return Script(ptr()); }
+  static ScriptPtr Script(FieldPtr field);
 #if !defined(DART_PRECOMPILED_RUNTIME)
   KernelProgramInfoPtr KernelProgramInfo() const;
 #endif
@@ -5213,10 +5301,6 @@ class Library : public Object {
   // more regular.
   void AddClass(const Class& cls) const;
   void AddObject(const Object& obj, const String& name) const;
-  ObjectPtr LookupReExport(
-      const String& name,
-      ZoneGrowableArray<intptr_t>* visited = nullptr) const;
-  ObjectPtr LookupLocalOrReExportObject(const String& name) const;
   LibraryPrefixPtr LookupLocalLibraryPrefix(const String& name) const;
 
   // These lookups are local within the library.
@@ -5345,9 +5429,6 @@ class Library : public Object {
     set_flags(UntaggedLibrary::DartSchemeBit::update(value, untag()->flags_));
   }
 
-  // Includes 'dart:async', 'dart:typed_data', etc.
-  bool IsAnyCoreLibrary() const;
-
   inline intptr_t UrlHash() const;
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -5459,7 +5540,6 @@ class Library : public Object {
 
   void set_num_imports(intptr_t value) const;
   void set_flags(uint8_t flags) const;
-  bool HasExports() const;
   ArrayPtr loaded_scripts() const { return untag()->loaded_scripts(); }
   ArrayPtr metadata() const {
     DEBUG_ASSERT(
@@ -5789,7 +5869,9 @@ class Instructions : public Object {
 #define DEFINE_INSTRUCTIONS_FLAG_HANDLING(Name)                                \
   using Name##Bit = BitField<decltype(UntaggedInstructions::size_and_flags_),  \
                              bool, k##Name##Index>;                            \
-  bool Name() const { return Name##Bit::decode(untag()->size_and_flags_); }    \
+  bool Name() const {                                                          \
+    return Name##Bit::decode(untag()->size_and_flags_);                        \
+  }                                                                            \
   static bool Name(const InstructionsPtr instr) {                              \
     return Name##Bit::decode(instr->untag()->size_and_flags_);                 \
   }
@@ -6124,14 +6206,37 @@ class InstructionsTable : public Object {
   friend class Deserializer;
 };
 
+class LocalVarDescriptor : public Object {
+ public:
+  StringPtr name() const { return untag()->name(); }
+  AbstractTypePtr static_type() const { return untag()->static_type(); }
+
+  void set_name(const String& value) const;
+  void set_static_type(const AbstractType& value) const;
+
+  static LocalVarDescriptorPtr New(const String& name,
+                                   const AbstractType& static_type,
+                                   Heap::Space space = Heap::kNew);
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(UntaggedLocalVarDescriptor));
+  }
+
+ private:
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(LocalVarDescriptor, Object);
+  friend class Class;
+  friend class Object;
+};
+
 class LocalVarDescriptors : public Object {
  public:
   intptr_t Length() const;
 
   StringPtr GetName(intptr_t var_index) const;
+  AbstractTypePtr GetStaticType(intptr_t var_index) const;
 
   void SetVar(intptr_t var_index,
               const String& name,
+              const AbstractType& static_type,
               UntaggedLocalVarDescriptors::VarInfo* info) const;
 
   void GetInfo(intptr_t var_index,
@@ -6139,7 +6244,7 @@ class LocalVarDescriptors : public Object {
 
   static constexpr intptr_t kBytesPerElement =
       sizeof(UntaggedLocalVarDescriptors::VarInfo) +
-      sizeof(CompressedStringPtr);
+      sizeof(CompressedLocalVarDescriptorPtr);
   static constexpr intptr_t kMaxElements =
       UntaggedLocalVarDescriptors::VarInfo::kMaxIndex;
 
@@ -6152,7 +6257,7 @@ class LocalVarDescriptors : public Object {
 
   static intptr_t InstanceSize() {
     ASSERT(sizeof(UntaggedLocalVarDescriptors) ==
-           OFFSET_OF_RETURNED_VALUE(UntaggedLocalVarDescriptors, names));
+           OFFSET_OF_RETURNED_VALUE(UntaggedLocalVarDescriptors, descriptors));
     return 0;
   }
   static intptr_t InstanceSize(intptr_t len) {
@@ -6923,6 +7028,11 @@ class Code : public Object {
   }
   void set_is_force_optimized(bool value) const;
 
+  bool can_be_deoptimized() const {
+    return CanBeDeoptimizedBit::decode(untag()->state_bits_);
+  }
+  void set_can_be_deoptimized(bool value) const;
+
   bool is_alive() const { return AliveBit::decode(untag()->state_bits_); }
   void set_is_alive(bool value) const;
 
@@ -7021,8 +7131,7 @@ class Code : public Object {
 #else
     auto instr = InstructionsOf(code);
     if (instr == Instructions::null()) {
-      // TODO(alexmarkov): keep size in the Code objects.
-      return 0;
+      return code->untag()->instructions_length_;
     }
     return Instructions::Size(instr);
 #endif
@@ -7409,9 +7518,13 @@ class Code : public Object {
                                      bool,
                                      OptimizedBit::kNextBit>;
 
+  using CanBeDeoptimizedBit = BitField<decltype(UntaggedCode::state_bits_),
+                                       bool,
+                                       ForceOptimizedBit::kNextBit>;
+
   using AliveBit = BitField<decltype(UntaggedCode::state_bits_),
                             bool,
-                            ForceOptimizedBit::kNextBit>;
+                            CanBeDeoptimizedBit::kNextBit>;
 
   // Set by precompiler if this Code object doesn't contain
   // useful information besides instructions and compressed stack map.
@@ -12779,13 +12892,28 @@ class Closure : public Instance {
     SetElementAt(function_type_arguments_index(), args);
   }
 
+  static intptr_t ContextIndexOf(ClosurePtr ptr) {
+    const intptr_t length_and_flags =
+        Smi::Value(ptr.untag()->length_and_flags());
+    return UntaggedClosure::ContextIndex(
+        UntaggedClosure::HasDelayedTypeArgumentsBit::decode(length_and_flags),
+        UntaggedClosure::HasInstantiatorTypeArgumentsBit::decode(
+            length_and_flags),
+        UntaggedClosure::HasFunctionTypeArgumentsBit::decode(length_and_flags));
+  }
   static ObjectPtr RawContextOf(ClosurePtr ptr) {
-    return ptr->untag()->element(LengthOf(ptr) - 1);
+    const intptr_t context_index = ContextIndexOf(ptr);
+    if (context_index < LengthOf(ptr)) {
+      return ptr->untag()->element(context_index);
+    }
+    return Object::null();
   }
   ObjectPtr RawContext() const { return RawContextOf(ptr()); }
 
   void SetRawContext(const Object& context) const {
-    SetElementAt(length() - 1, context);
+    const intptr_t context_index = ContextIndexOf(ptr());
+    ASSERT(context_index < length());
+    SetElementAt(context_index, context);
   }
 
   ContextPtr GetContext() const {

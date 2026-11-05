@@ -212,6 +212,8 @@ abstract class AbstractCodeActionsProducer
       protocol.newAnalysisError_fromEngine(result, diagnostic),
       supportedTags: callerSupportedDiagnosticTags,
       clientSupportsCodeDescription: callerSupportsCodeDescription,
+      // Only supported for publishDiagnostcs, not code actions.
+      clientSupportsDiagnosticData: false,
     );
   }
 

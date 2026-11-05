@@ -12,6 +12,9 @@ import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
     show ScannerConfiguration;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show LanguageVersionToken;
+import 'package:front_end/src/api_prototype/terminal_color_support.dart'
+    as colors
+    show enableColors, enableColorsRaw;
 
 import 'package:kernel/binary/ast_from_binary.dart'
     show
@@ -44,6 +47,8 @@ import 'package:kernel/kernel.dart'
         NamedParameter,
         Node,
         Nullability,
+        PositionalParameter,
+        PositionalParameterList,
         Procedure,
         ProcedureKind,
         Reference,
@@ -52,17 +57,19 @@ import 'package:kernel/kernel.dart'
         Supertype,
         TreeNode,
         TypeParameter,
+        TypeParameterList,
         TypeParameterType,
         Variable,
+        Version,
         VisitorDefault,
         VisitorVoidMixin,
-        Version,
-        PositionalParameter;
+        loadComponentSourceFromBytes;
 import 'package:kernel/kernel.dart' as kernel show Combinator;
 import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/target/changed_structure_notifier.dart'
     show ChangedStructureNotifier;
 import 'package:kernel/type_algebra.dart' show Substitution;
+import 'package:kernel/util/graph.dart' as kernelGraph;
 import 'package:package_config/package_config.dart'
     show Package, PackageConfig, LanguageVersion;
 
@@ -105,7 +112,9 @@ import '../kernel/internal_ast.dart'
         InternalVariableGet,
         InternalVariableSet,
         InternalVariable,
-        InternalVariableDeclaration;
+        InternalConstVariable,
+        InternalExpression,
+        InternalInvalidExpression;
 import '../kernel/internal_ast_helper.dart' as intern;
 import '../kernel/kernel_target.dart' show BuildResult, KernelTarget;
 import '../source/check_helper.dart';
@@ -122,7 +131,12 @@ import '../type_inference/object_access_target.dart'
         ExpressionEvaluationParameterTarget;
 import '../util/error_reporter_file_copier.dart' show saveAsGzip;
 import '../util/experiment_environment_getter.dart'
-    show enableIncrementalCompilerBenchmarking, getExperimentEnvironment;
+    show
+        enableIncrementalCompilerBenchmarking,
+        enableIncrementalCompilerDepsScanAndLoad,
+        getExperimentEnvironment,
+        getEnvironmentValue,
+        pathIncrementalCompilerDepsScanAndLoad;
 import '../util/expression_evaluation_helpers.dart'
     show ExpressionEvaluationHelper, OverwrittenInterfaceMember;
 import '../util/textual_outline.dart' show textualOutline;
@@ -130,8 +144,11 @@ import 'builder_graph.dart' show BuilderGraph;
 import 'combinator.dart' show CombinatorBuilder;
 import 'compiler_context.dart' show CompilerContext;
 import 'hybrid_file_system.dart' show HybridFileSystem;
+import 'incremental_compiler_cache_impl.dart' show IncrementalCompilerCacheImpl;
+import 'incremental_compiler_utils.dart' show MD5Ish;
 import 'incremental_serializer.dart' show IncrementalSerializer;
 import 'library_graph.dart' show LibraryGraph;
+import 'loader.dart' show Loader;
 import 'lookup_result.dart' show LookupResult;
 import 'messages.dart'
     show DiagnosticMessageFromJson, Message, ProblemReporting;
@@ -139,7 +156,7 @@ import 'name_space.dart' show NameSpace, areNameSpacesEquivalent;
 import 'processed_options.dart' show ProcessedOptions;
 import 'ticker.dart' show Ticker;
 import 'uri_translator.dart' show UriTranslator;
-import 'uris.dart' show getPartUri;
+import 'uris.dart' show getPartImportUri;
 
 final Uri dartFfiUri = Uri.parse("dart:ffi");
 
@@ -172,6 +189,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   List<Component>? _modulesToLoad;
   final IncrementalSerializer? _incrementalSerializer;
   final _ComponentProblems _componentProblems = new _ComponentProblems();
+  IncrementalCompilerCache? incrementalCompilerCache;
 
   // This will be set if the right environment variable is set
   // (enableIncrementalCompilerBenchmarking).
@@ -220,6 +238,20 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
          _initializeFromDillUri,
        ),
        this.outlineOnly = outlineOnly ?? false,
+       this._initializedForExpressionCompilationOnly = false {
+    _enableExperimentsBasedOnEnvironment();
+  }
+
+  // Coverage-ignore(suite): Not run.
+  new experimentalCacheForTesting(
+    this.context, {
+    this._incrementalSerializer,
+    required this.incrementalCompilerCache,
+  }) : _ticker = context.options.ticker,
+       _resetTicker = true,
+       _previousPackagesUri = context.options.packagesUriRaw,
+       _initializationStrategy = new _InitializationFromExperimentalCache(),
+       this.outlineOnly = false,
        this._initializedForExpressionCompilationOnly = false {
     _enableExperimentsBasedOnEnvironment();
   }
@@ -332,6 +364,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       IncrementalCompilerData data = await _ensurePlatformAndInitialize(
         uriTranslator,
         c,
+        entryPoints,
       );
 
       // Figure out what to keep and what to throw away.
@@ -424,6 +457,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         reusedLibraries,
         experimentalInvalidation,
         entryPoints,
+        _dillLoadedData!,
       );
       Map<DillLibraryBuilder, CompilationUnit>? rebuildBodiesMap =
           _experimentalInvalidationCreateRebuildBodiesBuilders(
@@ -540,7 +574,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       );
       _experimentalCompilationPostCompilePatchup(
         experimentalInvalidation,
-        compiledLibraries,
         uriToSource,
       );
 
@@ -634,6 +667,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         print(encoder.convert(_benchmarker));
       }
 
+      _ticker.logMs("Compile finished");
+      _cacheCompiledLibraries(compiledLibraries, result, uriTranslator);
+
       return new IncrementalCompilerResult(
         result,
         classHierarchy: currentKernelTarget.loader.hierarchy,
@@ -642,6 +678,73 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         loadedComponents: data.loadedModules ?? const [],
       );
     });
+  }
+
+  void _cacheCompiledLibraries(
+    List<Library> compiledLibraries,
+    Component fromComponent,
+    UriTranslator uriTranslator,
+  ) {
+    IncrementalCompilerCache? incrementalCompilerCache =
+        this.incrementalCompilerCache;
+    if (incrementalCompilerCache == null) return;
+    // Coverage-ignore-block(suite): Not run.
+    // Component.problemsAsJson aren't (currently?) serialized (it wouldn't be
+    // right to serialize it on every library so it would have to be serialized
+    // on only some of them and then loading should deduplicate etc).
+    if ((fromComponent.problemsAsJson?.length ?? 0) > 0) return;
+
+    // Make sure we can serialize individual libraries.
+    fromComponent.computeCanonicalNames();
+
+    TransitiveDependenciesCalculator transitiveDependenciesCalculator =
+        new TransitiveDependenciesCalculator(
+          _currentPackagesMap,
+          fromComponent.uriToSource,
+          compiledLibraries,
+        );
+    List<String?>? transitiveDependencies =
+        transitiveDependenciesCalculator.transitiveDependencies;
+    if (transitiveDependencies == null) {
+      return;
+    }
+    List<List<Library>> strongComponents =
+        transitiveDependenciesCalculator.strongComponents;
+
+    Set<Library> compiledLibrariesSet = compiledLibraries.toSet();
+
+    for (
+      int strongComponentIndex = 0;
+      strongComponentIndex < strongComponents.length;
+      strongComponentIndex++
+    ) {
+      List<Library> component = strongComponents[strongComponentIndex];
+
+      // Only save new ones.
+      int countInCompiledLibraries = 0;
+      for (Library library in component) {
+        if (compiledLibrariesSet.contains(library)) countInCompiledLibraries++;
+      }
+      if (countInCompiledLibraries == 0) continue;
+      if (countInCompiledLibraries != component.length) {
+        return;
+      }
+
+      String? transitiveDepsHash = transitiveDependencies[strongComponentIndex];
+      if (transitiveDepsHash == null) {
+        continue;
+      }
+
+      incrementalCompilerCache.cacheLibraries(
+        component,
+        transitiveDepsHash,
+        fromComponent,
+      );
+    }
+
+    // Make the component good again.
+    fromComponent.adoptChildren();
+    _ticker.logMs("Cached dills");
   }
 
   void _rewriteEntryPointsIfPart(
@@ -843,16 +946,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     return outputLibraries;
   }
 
-  /// If doing experimental compilation, make sure [compiledLibraries] and
-  /// [uriToSource] looks as they would have if we hadn't done experimental
-  /// compilation, i.e. before this call [compiledLibraries] might only contain
-  /// the single Library we compiled again, but after this call, it will also
-  /// contain all the libraries that would normally have been recompiled.
-  /// This might be a temporary thing, but we need to figure out if the VM
-  /// can (always) work with only getting the actually rebuild stuff.
+  /// If doing experimental compilation, make sure [uriToSource] looks as it
+  /// would have if we hadn't done experimental compilation.
   void _experimentalCompilationPostCompilePatchup(
     ExperimentalInvalidation? experimentalInvalidation,
-    List<Library> compiledLibraries,
     Map<Uri, Source> uriToSource,
   ) {
     if (experimentalInvalidation != null) {
@@ -970,6 +1067,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   }
 
   IncrementalKernelTarget createIncrementalKernelTarget(
+    CompilerContext context,
     FileSystem fileSystem,
     bool includeComments,
     DillTarget dillTarget,
@@ -993,18 +1091,20 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     List<DillLibraryBuilder> reusedLibraries,
     ExperimentalInvalidation? experimentalInvalidation,
     List<Uri> entryPoints,
+    DillTarget dillLoadedData,
   ) {
     IncrementalKernelTarget kernelTarget = createIncrementalKernelTarget(
+      c,
       new HybridFileSystem(
         new MemoryFileSystem(new Uri(scheme: "org-dartlang-debug", path: "/")),
         c.fileSystem,
       ),
       false,
-      _dillLoadedData!,
+      dillLoadedData,
       uriTranslator,
     );
     kernelTarget.loader.hierarchy = hierarchy;
-    _dillLoadedData!.loader.currentSourceLoader = kernelTarget.loader;
+    dillLoadedData.loader.currentSourceLoader = kernelTarget.loader;
 
     // Re-use the libraries we've deemed re-usable.
     for (DillLibraryBuilder library in reusedLibraries) {
@@ -1207,6 +1307,41 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       return null;
     }
 
+    // If a library that would have been recompiled has one or more problems
+    // where one of the invalidated uris are mentioned in a context we have to
+    // bail to get the message updated correctly.
+    // TODO(jensj): Possibly just treat any such libraries as bodies-only
+    // changed.
+    {
+      Set<Uri>? directlyInvalidatedImportUris;
+      for (DillLibraryBuilder builder in reusedResult.notReusedLibraries) {
+        if (builder.library.problemsAsJson == null) continue;
+        if (reusedResult.directlyInvalidated.contains(builder)) continue;
+        for (String jsonString in builder.library.problemsAsJson!) {
+          DiagnosticMessageFromJson message =
+              new DiagnosticMessageFromJson.fromJson(jsonString);
+          List<Uri>? relatedUris = message.relatedUris;
+          if (relatedUris != null) {
+            if (directlyInvalidatedImportUris == null) {
+              directlyInvalidatedImportUris = {};
+              for (DillLibraryBuilder invalidated
+                  in reusedResult.directlyInvalidated) {
+                directlyInvalidatedImportUris.add(invalidated.fileUri);
+              }
+            }
+            for (Uri relatedUri in relatedUris) {
+              if (directlyInvalidatedImportUris.contains(relatedUri)) {
+                recorderForTesting?.recordAdvancedInvalidationResult(
+                  AdvancedInvalidationResult.problemsInRelatedLibrary,
+                );
+                return null;
+              }
+            }
+          }
+        }
+      }
+    }
+
     // Figure out if the file(s) have changed outline, or we can just
     // rebuild the bodies.
     for (DillLibraryBuilder builder in reusedResult.directlyInvalidated) {
@@ -1220,11 +1355,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       List<Uri> builderUris = [builder.fileUri];
       for (LibraryPart part in builder.library.parts) {
-        Uri? fileUri = uriTranslator.getPartFileUri(
-          builder.library.fileUri,
-          part,
-        );
-        if (fileUri != null) builderUris.add(fileUri);
+        builderUris.add(part.fileUri);
       }
 
       for (Uri uri in builderUris) {
@@ -1393,7 +1524,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       // Coverage-ignore-block(suite): Not run.
       _previousPackagesUri = c.options.packagesUriRaw;
       bypassCache = true;
-    } else if (this._invalidatedUris.contains(c.options.packagesUri)) {
+    } else if (this._invalidatedUris.contains(c.options.packagesUri) ||
+        this._invalidatedUris.contains(c.options.packagesUriRaw)) {
       bypassCache = true;
     }
     UriTranslator uriTranslator = await c.options.getUriTranslator(
@@ -1425,6 +1557,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   Future<IncrementalCompilerData> _ensurePlatformAndInitialize(
     UriTranslator uriTranslator,
     CompilerContext context,
+    List<Uri> entryPoints,
   ) async {
     IncrementalCompilerData data = new IncrementalCompilerData();
     if (_dillLoadedData == null) {
@@ -1437,7 +1570,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       );
       int bytesLength = await _initializationStrategy.initialize(
         this,
-        dillLoadedData,
+        dillLoadedData.loader,
+        _ticker,
         uriTranslator,
         _currentPackagesMap!,
         context,
@@ -1445,6 +1579,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         _componentProblems,
         _incrementalSerializer,
         recorderForTesting,
+        entryPoints,
       );
       _appendLibraries(data, bytesLength);
 
@@ -1663,8 +1798,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       if (library.parts.isNotEmpty) {
         for (int partIndex = 0; partIndex < library.parts.length; partIndex++) {
           LibraryPart part = library.parts[partIndex];
-          Uri partUri = getPartUri(library.importUri, part);
-          partUriToLibraryImportUri[partUri] = library.importUri;
+          Uri partImportUri = getPartImportUri(library.importUri, part);
+          partUriToLibraryImportUri[partImportUri] = library.importUri;
         }
       }
       if (library.importUri.isScheme("dart")) {
@@ -1716,11 +1851,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             inputLibrariesFiltered?.add(library);
           }
           for (LibraryPart part in library.parts) {
-            Uri? partFileUri = uriTranslator.getPartFileUri(
-              library.fileUri,
-              part,
-            );
-            partsUsed.add(partFileUri);
+            partsUsed.add(part.fileUri);
           }
         }
       }
@@ -1798,7 +1929,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     uriToSourceExtra?.remove(builder.fileUri);
     Library lib = builder.library;
     for (LibraryPart part in lib.parts) {
-      Uri? partFileUri = uriTranslator.getPartFileUri(lib.fileUri, part);
+      Uri partFileUri = part.fileUri;
       if (partsUsed != null &&
           // Coverage-ignore(suite): Not run.
           partsUsed.contains(partFileUri)) {
@@ -1887,293 +2018,102 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   }) async {
     IncrementalKernelTarget? lastGoodKernelTarget = this._lastGoodKernelTarget;
     assert(_dillLoadedData != null && lastGoodKernelTarget != null);
-    Map<String, DartType> usedDefinitions = new Map<String, DartType>.of(
-      inputDefinitions,
-    );
-    final Set<String> renamedPrivateNamedParameter = {};
 
     return await context.runInContext((_) async {
-      CompilationUnit? compilationUnit = lastGoodKernelTarget!.loader
-          .lookupCompilationUnit(libraryUri);
-      compilationUnit ??= lastGoodKernelTarget.loader
-          .lookupCompilationUnitByFileUri(libraryUri);
-      if (compilationUnit == null) {
-        // TODO(johnniwinther): Report an error?
-        return null;
-      }
-      LibraryBuilder libraryBuilder = compilationUnit.libraryBuilder;
-      List<InternalVariableDeclaration> extraKnownVariables = [];
-      String? usedMethodName = methodName;
-      Substitution? substitution;
-      Set<String> removedDefinitionNames = {};
-      if (scriptUri != null && offset != TreeNode.noOffset) {
-        Uri? scriptUriAsUri = Uri.tryParse(scriptUri);
-        if (scriptUriAsUri != null) {
-          Library library = libraryBuilder.library;
-          Class? cls;
-          if (className != null) {
-            for (Class c in library.classes) {
-              if (c.name == className) {
-                cls = c;
-                break;
-              }
-            }
-          }
-
-          scriptUriAsUri = _processScriptUri(
-            scriptUriAsUri,
-            lastGoodKernelTarget.uriTranslator,
-            library,
-          );
-
-          DartScope foundScope = DartScopeBuilder2.findScopeFromOffsetAndClass(
-            library,
-            scriptUriAsUri,
-            cls,
-            offset,
-          );
-
-          if (foundScope.member != null &&
-              (foundScope.member!.isExtensionMember ||
-                  foundScope.member!.isExtensionTypeMember)) {
-            usedMethodName = extractQualifiedNameFromExtensionMethodName(
-              foundScope.member!.name.text,
-              keepUnnamedExtensionNamePrefix: true,
+      LibraryBuilder libraryBuilder;
+      {
+        CompilationUnit? compilationUnit =
+            lastGoodKernelTarget!.loader.lookupCompilationUnit(libraryUri) ??
+            lastGoodKernelTarget.loader.lookupCompilationUnitByFileUri(
+              libraryUri,
             );
-          }
+        if (compilationUnit == null) {
+          // TODO(johnniwinther): Report an error?
+          return null;
+        }
+        libraryBuilder = compilationUnit.libraryBuilder;
+      }
 
-          substitution =
-              _calculateExpressionEvaluationTypeParameterSubstitution(
-                typeDefinitions,
-                foundScope.typeParameters,
-              );
-
-          final bool alwaysInlineConstants = lastGoodKernelTarget
-              .backendTarget
-              .constantsBackend
-              .alwaysInlineConstants;
-          // For now, if any definition is (or contains) an Extension Type,
-          // we'll overwrite the given (runtime?) definitions so we know about
-          // the extension type. If any definition is said to be dynamic we'll
-          // overwrite as well because that mostly means that the value is
-          // currently null. This can also mean that the VM can't send over the
-          // information - this for instance happens for function types.
-          for (MapEntry<String, Variable> def in foundScope.variables.entries) {
-            if (definitionsAddedByUser != null &&
-                definitionsAddedByUser.contains(def.key)) {
-              // Don't try to overwrite types of "fake" definitions added by
-              // the user - even if it shadows real variables.
-              continue;
-            }
-
-            DartType? existingType = usedDefinitions[def.key];
-
-            if (existingType != null &&
-                def.value is NamedParameter &&
-                (def.value as NamedParameter).isRenamedPrivateNamedParameter) {
-              // We have to rename this for correct scope lookups.
-              renamedPrivateNamedParameter.add(def.key);
-            }
-
-            if (existingType == null) {
-              // We found a variable, but we weren't told about it.
-              // For now we'll only do something special if it's a const
-              // variable that will be inlined.
-              if (alwaysInlineConstants &&
-                  def.value.isConst &&
-                  def.value.initializer is ConstantExpression) {
-                extraKnownVariables.add(
-                  intern.createVariableDeclaration(
-                    intern.createConstVariable(
-                      name: def.key,
-                      type: substitution.substituteType(def.value.type),
-                      hasDeclaredInitializer: true,
-                      fileOffset: def.value.fileOffset,
-                    ),
-                    initializer: def.value.initializer,
-                    fileOffset: def.value.fileOffset,
-                  ),
-                );
-              } else if (def.value.isInitializingFormal ||
-                  def.value.isSuperInitializingFormal) {
-                // An (super) initializing formal parameter of a constructor
-                // should not shadow the field it was used to initialize,
-                // so we'll ignore it.
-              } else {
-                // Non-const variable we should know about but wasn't told
-                // about. Maybe the variable was optimized out? Maybe it wasn't
-                // captured? Either way there's something shadowing any fields
-                // etc.
-                extraKnownVariables.add(
-                  intern.createVariableDeclaration(
-                    intern.createLocalVariable(
-                      name: def.key,
-                      type: substitution.substituteType(def.value.type),
-                      fileOffset: def.value.fileOffset,
-                    ),
-                    initializer: null,
-                    fileOffset: def.value.fileOffset,
-                  ),
-                );
-              }
-            } else if (existingType is DynamicType ||
-                _ExtensionTypeFinder.isOrContainsExtensionType(
-                  def.value.type,
-                )) {
-              usedDefinitions[def.key] = substitution.substituteType(
-                def.value.type,
-              );
-            } else if (existingType is InterfaceType &&
-                existingType.classNode.enclosingLibrary.importUri.isScheme(
-                  "dart",
-                )) {
-              // The VM tells us about a type from the platform.
-              // We use the static type instead because the compiler for
-              // instance special case int in certain places which is - by the
-              // VM - often described as _Smi.
-              DartType usedType = substitution.substituteType(def.value.type);
-              if (existingType.nullability == Nullability.nonNullable &&
-                  usedType.nullability == Nullability.nullable) {
-                // If a statically nullable type is known to be non-null,
-                // we keep that information though.
-                usedType = usedType.toNonNull();
-              }
-              usedDefinitions[def.key] = usedType;
-            }
-          }
-
-          for (String name in usedDefinitions.keys) {
-            if (definitionsAddedByUser != null &&
-                definitionsAddedByUser.contains(name)) {
-              // Don't remove user-provided "fake" definitions.
-              continue;
-            }
-            if (!foundScope.variables.containsKey(name)) {
-              removedDefinitionNames.add(name);
-            }
+      Library library = libraryBuilder.library;
+      Class? cls;
+      if (className != null) {
+        for (Class c in library.classes) {
+          if (c.name == className) {
+            cls = c;
+            break;
           }
         }
       }
 
+      // TODO(jensj): If the found class is an eliminated mixin (and we thus do
+      // some rewriting below) possibly we need to provide the alternative
+      // library too to be able to figure out uris properly.
+      _ExpressionCompilationScopeData scopeData =
+          _computeExpressionCompilationScopeData(
+            cls: cls,
+            methodName: methodName,
+            scriptUri: scriptUri,
+            offset: offset,
+            lastGoodKernelTarget: lastGoodKernelTarget,
+            library: libraryBuilder.library,
+            typeDefinitions: typeDefinitions,
+            definitionsAddedByUser: definitionsAddedByUser,
+            inputDefinitions: inputDefinitions,
+          );
+
+      if (cls != null && cls.isEliminatedMixin) {
+        // For an eliminated mixin we found the right types above, but need to
+        // be in the origin class/library for the actual compilation for proper
+        // lookup of static and private stuff, language version, imports etc.
+        Class origin = cls.implementedTypes.last.classNode;
+        Library originLibrary = origin.enclosingLibrary;
+
+        CompilationUnit? compilationUnit = lastGoodKernelTarget.loader
+            .lookupCompilationUnit(originLibrary.importUri);
+        if (compilationUnit == null) {
+          // TODO(johnniwinther): Report an error?
+          // This should _not_ happen.
+          return null;
+        }
+        libraryBuilder = compilationUnit.libraryBuilder;
+        library = libraryBuilder.library;
+        assert(originLibrary == library);
+        cls = origin;
+        className = cls.name;
+        libraryUri = originLibrary.importUri;
+      }
+
       _ticker.logMs("Loaded library $libraryUri");
 
-      int? offsetToUse;
-      Class? cls;
+      _ExpressionCompilationExtensionData extensionData =
+          _computeExpressionCompilationExtensionData(
+            scopeData: scopeData,
+            libraryBuilder: libraryBuilder,
+            typeDefinitions: typeDefinitions,
+          );
+
+      int? offsetToUse =
+          extensionData.foundBuilder?.fileOffset ?? cls?.fileOffset;
       if (className != null) {
         Builder? scopeMember = libraryBuilder.libraryNameSpace
-            .lookup(className)
+            .lookup(className!)
             ?.getable;
         if (scopeMember is ClassBuilder) {
-          cls = scopeMember.cls;
-          offsetToUse = cls.fileOffset;
+          assert(cls == scopeMember.cls, "$cls != ${scopeMember.cls}");
         } else {
           return null;
         }
       }
 
-      bool isExtensionOrExtensionTypeInstanceMember = false;
-      String? extensionName;
-      if (usedMethodName != null) {
-        int indexOfDot = usedMethodName.indexOf(".");
-        if (indexOfDot >= 0) {
-          String beforeDot = usedMethodName.substring(0, indexOfDot);
-          String afterDot = usedMethodName.substring(indexOfDot + 1);
-          Builder? builder = libraryBuilder.libraryNameSpace
-              .lookup(beforeDot)
-              ?.getable;
-
-          if (builder == null && hasUnnamedExtensionNamePrefix(beforeDot)) {
-            // If the name looks like an unnamed extension, try to find if we
-            // can find such a builder.
-            ExtensionBuilder? foundExtensionBuilder;
-            libraryBuilder.libraryExtensions.forEachLocalExtension((
-              ExtensionBuilder extension,
-            ) {
-              if (extension.name == beforeDot) {
-                foundExtensionBuilder = extension;
-              }
-            });
-            builder = foundExtensionBuilder;
-          }
-          extensionName = beforeDot;
-          if (builder is ExtensionBuilder) {
-            offsetToUse = builder.fileOffset;
-            Builder? subBuilder = builder.lookupLocalMember(afterDot)?.getable;
-            if (subBuilder is MemberBuilder) {
-              if (subBuilder.isExtensionInstanceMember) {
-                isExtensionOrExtensionTypeInstanceMember = true;
-              }
-            }
-          } else if (builder is ExtensionTypeDeclarationBuilder) {
-            offsetToUse = builder.fileOffset;
-            Builder? subBuilder = builder.lookupLocalMember(afterDot)?.getable;
-            if (subBuilder is MemberBuilder) {
-              if (subBuilder.isExtensionTypeInstanceMember) {
-                List<PositionalParameter>? positionals =
-                    subBuilder.invokeTarget?.function?.positionalParameters;
-                if (positionals != null &&
-                    positionals.isNotEmpty &&
-                    isExtensionThisName(positionals.first.cosmeticName) &&
-                    usedDefinitions.containsKey(syntheticThisName)) {
-                  // If we setup the extensionType (and later the
-                  // `extensionThis`) we should also set the type correctly
-                  // (at least in a non-static setting).
-                  if (substitution == null || substitution.isEmpty) {
-                    // Re-do substitutions if the old one is empty - in case the
-                    // finding of scope didn't find the right thing (e.g.
-                    // sometimes the VM claims to be on the offset for a method
-                    // name while having data as if it is inside the method).
-                    substitution =
-                        _calculateExpressionEvaluationTypeParameterSubstitution(
-                          typeDefinitions,
-                          subBuilder.invokeTarget?.function?.typeParameters,
-                        );
-                  }
-                  usedDefinitions[syntheticThisName] = substitution
-                      .substituteType(positionals.first.type);
-                }
-                isExtensionOrExtensionTypeInstanceMember = true;
-              }
-            }
-          }
-        }
-      }
-
       lastGoodKernelTarget.loader.resetSeenMessages();
 
-      for (TypeParameter typeParam in typeDefinitions) {
-        if (!isLegalIdentifier(typeParam.name!)) {
-          lastGoodKernelTarget.loader.addProblem(
-            diag.incrementalCompilerIllegalTypeParameter.withArguments(
-              typeParameterName: '$typeParam',
-            ),
-            typeParam.fileOffset,
-            0,
-            libraryUri,
-          );
-          return null;
-        }
-      }
-      for (String name in usedDefinitions.keys) {
-        if (isLegalIdentifier(name)) continue;
-        if (isExtensionThisName(name) &&
-            isExtensionOrExtensionTypeInstanceMember) {
-          // Accept  #this for "instance members" on extensions and
-          // extension types.
-          continue;
-        }
-
-        lastGoodKernelTarget.loader.addProblem(
-          diag.incrementalCompilerIllegalParameter.withArguments(
-            parameterName: name,
-          ),
-          // TODO: pass variable declarations instead of
-          // parameter names for proper location detection.
-          // https://github.com/dart-lang/sdk/issues/44158
-          -1,
-          -1,
-          libraryUri,
-        );
+      if (_expressionCompilationHasNamingErrors(
+        typeDefinitions: typeDefinitions,
+        scopeData: scopeData,
+        extensionData: extensionData,
+        lastGoodKernelTarget: lastGoodKernelTarget,
+        libraryUri: libraryUri,
+      )) {
         return null;
       }
 
@@ -2274,50 +2214,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       MemoryFileSystem fs = hfs.memory;
       fs.entityForUri(debugExprUri).writeAsStringSync(expression);
 
-      // Prepare for having a different set of parameters for compiling vs in
-      // the output (for when the VM tells us about a variable we don't actually
-      // have).
-      PositionalParameter? extensionThis;
-      List<PositionalParameter> positionalParametersUsedForCompiling = [];
-      Map<String, PositionalParameter> extraParametersIfNotShadowing = {};
-      List<PositionalParameter> allPositionalParameters = [];
-      for (MapEntry<String, DartType> def in usedDefinitions.entries) {
-        String name = def.key;
-        if (renamedPrivateNamedParameter.contains(name)) {
-          // We rename it here so scopes will be correct.
-          name = "_$name";
-        }
-        DartType type = def.value;
-        PositionalParameter variable = extern.createPositionalParameter(
-          cosmeticName: name,
-          type: type,
-          fileOffset: offsetToUse ?? libraryBuilder.library.fileOffset,
-        );
-        allPositionalParameters.add(variable);
-
-        if (!identical(name, def.key)) {
-          // Include under the public name too.
-          extraParametersIfNotShadowing[def.key] = variable;
-        }
-
-        // If the VM tells us we have #this --- let's assume we do even if we
-        // didn't find it.
-        if (isExtensionOrExtensionTypeInstanceMember &&
-            isExtensionThisName(name) &&
-            extensionThis == null) {
-          // The `#this` variable is special.
-          extensionThis = variable..isLowered = true;
-          positionalParametersUsedForCompiling.add(variable);
-        } else if (!removedDefinitionNames.contains(name)) {
-          // If this definition hasn't been removed we use it for compiling.
-          positionalParametersUsedForCompiling.add(variable);
-        } else {
-          // Pass the variables not in scope so that we can compile using
-          // these if we would have otherwise created a compile time error.
-          extraParametersIfNotShadowing[name] = variable;
-        }
-      }
-
       lastGoodKernelTarget.buildSyntheticLibrariesUntilBuildScopes([
         debugLibrary,
       ]);
@@ -2333,24 +2229,35 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       ClassHierarchy hierarchy = lastGoodKernelTarget.loader.hierarchy;
       ExpressionEvaluationHelper expressionEvaluationHelper =
-          new ExpressionEvaluationHelperImpl(extraKnownVariables, hierarchy);
-
-      ExpressionCompilationData expressionCompilationData =
-          new ExpressionCompilationData(
-            fileOffset: TreeNode.noOffset,
-            typeParameters: typeDefinitions,
-            positionalParameters: positionalParametersUsedForCompiling,
-            extraParametersIfNotShadowing: extraParametersIfNotShadowing,
-            extraKnownVariables: extraKnownVariables,
+          new ExpressionEvaluationHelperImpl(
+            scopeData.extraKnownVariables,
+            hierarchy,
           );
+
+      _ExpressionCompilationParameters parameters =
+          _computeExpressionCompilationParameters(
+            scopeData: scopeData,
+            extensionData: extensionData,
+            fileOffset: offsetToUse ?? libraryBuilder.library.fileOffset,
+          );
+
+      ExpressionCompilationData
+      expressionCompilationData = new ExpressionCompilationData(
+        fileOffset: TreeNode.noOffset,
+        typeParameters: typeDefinitions,
+        positionalParameters: parameters.positionalParametersUsedForCompiling,
+        extraParametersIfNotShadowing: parameters.extraParametersIfNotShadowing,
+        extraKnownVariables: scopeData.extraKnownVariables,
+      );
 
       Expression compiledExpression = await lastGoodKernelTarget.loader
           .buildExpression(
             debugLibrary,
-            className ?? extensionName,
-            (className != null && !isStatic) || extensionThis != null,
+            className ?? extensionData.extensionName,
+            (className != null && !isStatic) ||
+                parameters.extensionThis != null,
             expressionCompilationData,
-            extensionThis,
+            parameters.extensionThis,
             expressionEvaluationHelper,
           );
       lastGoodKernelTarget.uriToSource.remove(debugExprUri);
@@ -2361,8 +2268,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         ProcedureKind.Method,
         new FunctionNode(
           new ReturnStatement(compiledExpression),
-          typeParameters: typeDefinitions,
-          positionalParameters: allPositionalParameters,
+          typeParameters: new TypeParameterList.from(typeDefinitions),
+          positionalParameters: new PositionalParameterList.from(
+            parameters.allPositionalParameters,
+          ),
         ),
         isStatic: isStatic,
         fileUri: debugLibrary.fileUri,
@@ -2382,7 +2291,341 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   }
 
   // Coverage-ignore(suite): Not run.
-  Substitution _calculateExpressionEvaluationTypeParameterSubstitution(
+  static _ExpressionCompilationParameters
+  _computeExpressionCompilationParameters({
+    required _ExpressionCompilationScopeData scopeData,
+    required _ExpressionCompilationExtensionData extensionData,
+    required int fileOffset,
+  }) {
+    // Prepare for having a different set of parameters for compiling vs in
+    // the output (for when the VM tells us about a variable we don't actually
+    // have).
+
+    _ExpressionCompilationParameters result =
+        new _ExpressionCompilationParameters();
+
+    for (MapEntry<String, DartType> def in scopeData.usedDefinitions.entries) {
+      String name = def.key;
+      if (scopeData.renamedPrivateNamedParameter.contains(name)) {
+        // We rename it here so scopes will be correct.
+        name = "_$name";
+      }
+      DartType type = def.value;
+      PositionalParameter variable = extern.createPositionalParameter(
+        parameterName: name,
+        type: type,
+        fileOffset: fileOffset,
+      );
+      result.allPositionalParameters.add(variable);
+
+      if (!identical(name, def.key)) {
+        // Include under the public name too.
+        result.extraParametersIfNotShadowing[def.key] = variable;
+      }
+
+      // If the VM tells us we have #this --- let's assume we do even if we
+      // didn't find it.
+      if (extensionData.isExtensionOrExtensionTypeInstanceMember &&
+          isExtensionThisName(name) &&
+          result.extensionThis == null) {
+        // The `#this` variable is special.
+        result.extensionThis = variable..isLowered = true;
+        result.positionalParametersUsedForCompiling.add(variable);
+      } else if (!scopeData.removedDefinitionNames.contains(name)) {
+        // If this definition hasn't been removed we use it for compiling.
+        result.positionalParametersUsedForCompiling.add(variable);
+      } else {
+        // Pass the variables not in scope so that we can compile using
+        // these if we would have otherwise created a compile time error.
+        result.extraParametersIfNotShadowing[name] = variable;
+      }
+    }
+
+    return result;
+  }
+
+  // Coverage-ignore(suite): Not run.
+  static bool _expressionCompilationHasNamingErrors({
+    required List<TypeParameter> typeDefinitions,
+    required _ExpressionCompilationScopeData scopeData,
+    required _ExpressionCompilationExtensionData extensionData,
+    required IncrementalKernelTarget lastGoodKernelTarget,
+    required Uri libraryUri,
+  }) {
+    bool foundErrors = false;
+    for (TypeParameter typeParam in typeDefinitions) {
+      if (!isLegalIdentifier(typeParam.name!)) {
+        lastGoodKernelTarget.loader.addProblem(
+          diag.incrementalCompilerIllegalTypeParameter.withArguments(
+            typeParameterName: '$typeParam',
+          ),
+          typeParam.fileOffset,
+          0,
+          libraryUri,
+        );
+        foundErrors = true;
+      }
+    }
+
+    for (String name in scopeData.usedDefinitions.keys) {
+      if (isLegalIdentifier(name)) continue;
+      if (isExtensionThisName(name) &&
+          extensionData.isExtensionOrExtensionTypeInstanceMember) {
+        // Accept  #this for "instance members" on extensions and
+        // extension types.
+        continue;
+      }
+
+      lastGoodKernelTarget.loader.addProblem(
+        diag.incrementalCompilerIllegalParameter.withArguments(
+          parameterName: name,
+        ),
+        // TODO: pass variable declarations instead of
+        // parameter names for proper location detection.
+        // https://github.com/dart-lang/sdk/issues/44158
+        -1,
+        -1,
+        libraryUri,
+      );
+      foundErrors = true;
+    }
+
+    return foundErrors;
+  }
+
+  // Coverage-ignore(suite): Not run.
+  static _ExpressionCompilationExtensionData
+  _computeExpressionCompilationExtensionData({
+    required _ExpressionCompilationScopeData scopeData,
+    required LibraryBuilder libraryBuilder,
+    required List<TypeParameter> typeDefinitions,
+  }) {
+    _ExpressionCompilationExtensionData result =
+        new _ExpressionCompilationExtensionData();
+    if (scopeData.usedMethodName == null) return result;
+
+    final String usedMethodName = scopeData.usedMethodName!;
+    int indexOfDot = usedMethodName.indexOf(".");
+    if (indexOfDot < 0) return result;
+
+    String beforeDot = usedMethodName.substring(0, indexOfDot);
+    String afterDot = usedMethodName.substring(indexOfDot + 1);
+    Builder? builder = libraryBuilder.libraryNameSpace
+        .lookup(beforeDot)
+        ?.getable;
+
+    if (builder == null && hasUnnamedExtensionNamePrefix(beforeDot)) {
+      // If the name looks like an unnamed extension, try to find if we
+      // can find such a builder.
+      ExtensionBuilder? foundExtensionBuilder;
+      libraryBuilder.libraryExtensions.forEachLocalExtension((
+        ExtensionBuilder extension,
+      ) {
+        if (extension.name == beforeDot) {
+          foundExtensionBuilder = extension;
+        }
+      });
+      builder = foundExtensionBuilder;
+    }
+
+    result.extensionName = beforeDot;
+
+    if (builder is ExtensionBuilder) {
+      result.foundBuilder = builder;
+      Builder? subBuilder = builder.lookupLocalMember(afterDot)?.getable;
+      if (subBuilder is MemberBuilder) {
+        if (subBuilder.isExtensionInstanceMember) {
+          result.isExtensionOrExtensionTypeInstanceMember = true;
+        }
+      }
+    } else if (builder is ExtensionTypeDeclarationBuilder) {
+      result.foundBuilder = builder;
+      Builder? subBuilder = builder.lookupLocalMember(afterDot)?.getable;
+      if (subBuilder is MemberBuilder) {
+        if (subBuilder.isExtensionTypeInstanceMember) {
+          List<PositionalParameter>? positionals =
+              subBuilder.invokeTarget?.function?.positionalParameters;
+          if (positionals != null &&
+              positionals.isNotEmpty &&
+              isExtensionThisName(positionals.first.parameterName) &&
+              scopeData.usedDefinitions.containsKey(syntheticThisName)) {
+            // If we setup the extensionType (and later the
+            // `extensionThis`) we should also set the type correctly
+            // (at least in a non-static setting).
+            if (scopeData.substitution == null ||
+                scopeData.substitution!.isEmpty) {
+              // Re-do substitutions if the old one is empty - in case the
+              // finding of scope didn't find the right thing (e.g.
+              // sometimes the VM claims to be on the offset for a method
+              // name while having data as if it is inside the method).
+              scopeData.substitution =
+                  _calculateExpressionEvaluationTypeParameterSubstitution(
+                    typeDefinitions,
+                    subBuilder.invokeTarget?.function?.typeParameters,
+                  );
+            }
+            scopeData.usedDefinitions[syntheticThisName] = scopeData
+                .substitution!
+                .substituteType(positionals.first.type);
+          }
+          result.isExtensionOrExtensionTypeInstanceMember = true;
+        }
+      }
+    }
+
+    return result;
+  }
+
+  // Coverage-ignore(suite): Not run.
+  static _ExpressionCompilationScopeData
+  _computeExpressionCompilationScopeData({
+    required Class? cls,
+    required String? methodName,
+    required String? scriptUri,
+    required int offset,
+    required IncrementalKernelTarget lastGoodKernelTarget,
+    required Library library,
+    required List<TypeParameter> typeDefinitions,
+    required Set<String>? definitionsAddedByUser,
+    required Map<String, DartType> inputDefinitions,
+  }) {
+    _ExpressionCompilationScopeData result =
+        new _ExpressionCompilationScopeData(
+          usedDefinitions: new Map<String, DartType>.of(inputDefinitions),
+          usedMethodName: methodName,
+        );
+
+    if (scriptUri == null || offset == TreeNode.noOffset) return result;
+    Uri? scriptUriAsUri = Uri.tryParse(scriptUri);
+    if (scriptUriAsUri == null) return result;
+
+    scriptUriAsUri = _processScriptUri(
+      scriptUriAsUri,
+      lastGoodKernelTarget.uriTranslator,
+      library,
+    );
+
+    DartScope foundScope = DartScopeBuilder2.findScopeFromOffsetAndClass(
+      library,
+      scriptUriAsUri,
+      cls,
+      offset,
+    );
+
+    if (foundScope.member != null &&
+        (foundScope.member!.isExtensionMember ||
+            foundScope.member!.isExtensionTypeMember)) {
+      result.usedMethodName = extractQualifiedNameFromExtensionMethodName(
+        foundScope.member!.name.text,
+        keepUnnamedExtensionNamePrefix: true,
+      );
+    }
+
+    Substitution substitution = result.substitution =
+        _calculateExpressionEvaluationTypeParameterSubstitution(
+          typeDefinitions,
+          foundScope.typeParameters,
+        );
+
+    final bool alwaysInlineConstants = lastGoodKernelTarget
+        .backendTarget
+        .constantsBackend
+        .alwaysInlineConstants;
+
+    // For now, if any definition is (or contains) an Extension Type,
+    // we'll overwrite the given (runtime?) definitions so we know about
+    // the extension type. If any definition is said to be dynamic we'll
+    // overwrite as well because that mostly means that the value is
+    // currently null. This can also mean that the VM can't send over the
+    // information - this for instance happens for function types.
+    for (MapEntry<String, Variable> def in foundScope.variables.entries) {
+      if (definitionsAddedByUser != null &&
+          definitionsAddedByUser.contains(def.key)) {
+        // Don't try to overwrite types of "fake" definitions added by
+        // the user - even if it shadows real variables.
+        continue;
+      }
+
+      DartType? existingType = result.usedDefinitions[def.key];
+
+      if (existingType != null &&
+          def.value is NamedParameter &&
+          (def.value as NamedParameter).isRenamedPrivateNamedParameter) {
+        // We have to rename this for correct scope lookups.
+        result.renamedPrivateNamedParameter.add(def.key);
+      }
+
+      if (existingType == null) {
+        // We found a variable, but we weren't told about it.
+        // For now we'll only do something special if it's a const
+        // variable that will be inlined.
+        if (alwaysInlineConstants &&
+            def.value.isConst &&
+            def.value.initializer is ConstantExpression) {
+          InternalConstVariable variable = intern.createConstVariable(
+            name: def.key,
+            type: substitution.substituteType(def.value.type),
+            hasDeclaredInitializer: true,
+            fileOffset: def.value.fileOffset,
+            value: def.value.initializer,
+          );
+          result.extraKnownVariables.add(variable);
+        } else if (def.value.isInitializingFormal ||
+            def.value.isSuperInitializingFormal) {
+          // An (super) initializing formal parameter of a constructor
+          // should not shadow the field it was used to initialize,
+          // so we'll ignore it.
+        } else {
+          // Non-const variable we should know about but wasn't told
+          // about. Maybe the variable was optimized out? Maybe it wasn't
+          // captured? Either way there's something shadowing any fields
+          // etc.
+          result.extraKnownVariables.add(
+            intern.createLocalVariable(
+              name: def.key,
+              type: substitution.substituteType(def.value.type),
+              fileOffset: def.value.fileOffset,
+            ),
+          );
+        }
+      } else if (existingType is DynamicType ||
+          _ExtensionTypeFinder.isOrContainsExtensionType(def.value.type)) {
+        result.usedDefinitions[def.key] = substitution.substituteType(
+          def.value.type,
+        );
+      } else if (existingType is InterfaceType &&
+          existingType.classNode.enclosingLibrary.importUri.isScheme("dart")) {
+        // The VM tells us about a type from the platform.
+        // We use the static type instead because the compiler for
+        // instance special case int in certain places which is - by the
+        // VM - often described as _Smi.
+        DartType usedType = substitution.substituteType(def.value.type);
+        if (existingType.nullability == Nullability.nonNullable &&
+            usedType.nullability == Nullability.nullable) {
+          // If a statically nullable type is known to be non-null,
+          // we keep that information though.
+          usedType = usedType.toNonNull();
+        }
+        result.usedDefinitions[def.key] = usedType;
+      }
+    }
+
+    for (String name in result.usedDefinitions.keys) {
+      if (definitionsAddedByUser != null &&
+          definitionsAddedByUser.contains(name)) {
+        // Don't remove user-provided "fake" definitions.
+        continue;
+      }
+      if (!foundScope.variables.containsKey(name)) {
+        result.removedDefinitionNames.add(name);
+      }
+    }
+
+    return result;
+  }
+
+  // Coverage-ignore(suite): Not run.
+  static Substitution _calculateExpressionEvaluationTypeParameterSubstitution(
     List<TypeParameter> typeDefinitions,
     List<TypeParameter>? typeParameters,
   ) {
@@ -2449,10 +2692,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     List<Uri> invalidatedImportUris = [];
 
     bool isInvalidated(Uri importUri, Uri? fileUri) {
-      if (invalidatedUris.contains(importUri)) return true;
-      if (importUri != fileUri && invalidatedUris.contains(fileUri)) {
-        return true;
-      }
+      // Check translation of package uris before checking direct invalidation
+      // to ensure proper setting of [invalidatedBecauseOfPackageUpdate].
       if (_hasToCheckPackageUris &&
           // Coverage-ignore(suite): Not run.
           importUri.isScheme("package")) {
@@ -2480,6 +2721,12 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           }
         }
       }
+
+      if (invalidatedUris.contains(importUri)) return true;
+      if (importUri != fileUri && invalidatedUris.contains(fileUri)) {
+        return true;
+      }
+
       if (builders[importUri]?.isSynthetic ?? false) return true;
       return false;
     }
@@ -2499,22 +2746,19 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         invalidatedImportUris.add(uri);
       }
       for (LibraryPart part in libraryBuilder.library.parts) {
-        Uri partUri = getPartUri(libraryBuilder.importUri, part);
-        Uri? fileUri = uriTranslator.getPartFileUri(
-          libraryBuilder.library.fileUri,
-          part,
-        );
-        partUriToParent[partUri] = libraryBuilder;
-        partUriToParent[fileUri] = libraryBuilder;
+        Uri partImportUri = getPartImportUri(libraryBuilder.importUri, part);
+        Uri partFileUri = part.fileUri;
+        partUriToParent[partImportUri] = libraryBuilder;
+        partUriToParent[partFileUri] = libraryBuilder;
 
-        if (isInvalidated(partUri, fileUri)) {
-          invalidatedImportUris.add(partUri);
-          if (builders[partUri] == null) {
+        if (isInvalidated(partImportUri, partFileUri)) {
+          invalidatedImportUris.add(partImportUri);
+          if (builders[partImportUri] == null) {
             // Only add if entry doesn't already exist.
             // For good cases it shouldn't exist, but if one library claims
             // another library is a part (when it's not) we don't want to
             // overwrite the real library builder.
-            builders[partUri] = libraryBuilder;
+            builders[partImportUri] = libraryBuilder;
           }
         }
       }
@@ -2602,6 +2846,11 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     _invalidatedUris.add(uri);
   }
 
+  // Coverage-ignore(suite): Not run.
+  void _invalidateSet(Set<Uri> uris) {
+    _invalidatedUris.addAll(uris);
+  }
+
   @override
   // Coverage-ignore(suite): Not run.
   void invalidateAllSources() {
@@ -2627,25 +2876,50 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   }
 }
 
+class _ExpressionCompilationParameters {
+  PositionalParameter? extensionThis;
+  List<PositionalParameter> positionalParametersUsedForCompiling = [];
+  Map<String, PositionalParameter> extraParametersIfNotShadowing = {};
+  List<PositionalParameter> allPositionalParameters = [];
+}
+
+class _ExpressionCompilationExtensionData {
+  bool isExtensionOrExtensionTypeInstanceMember = false;
+  String? extensionName;
+  Builder? foundBuilder;
+}
+
+// Coverage-ignore(suite): Not run.
+class _ExpressionCompilationScopeData {
+  final Map<String, DartType> usedDefinitions;
+  final Set<String> removedDefinitionNames = {};
+  final Set<String> renamedPrivateNamedParameter = {};
+  final List<InternalVariable> extraKnownVariables = [];
+  String? usedMethodName;
+  Substitution? substitution;
+
+  new({required this.usedDefinitions, required this.usedMethodName});
+}
+
 // Coverage-ignore(suite): Not run.
 class ExpressionEvaluationHelperImpl implements ExpressionEvaluationHelper {
   final Set<InternalVariable> knownButUnavailable = {};
   final ClassHierarchy hierarchy;
   final Map<String, FormalParameterBuilder> extraParametersIfNotShadowing = {};
 
-  new(List<InternalVariableDeclaration> extraKnown, this.hierarchy) {
-    for (InternalVariableDeclaration declaration in extraKnown) {
-      if (declaration.variable.isConst) {
+  new(List<InternalVariable> extraKnown, this.hierarchy) {
+    for (InternalVariable variable in extraKnown) {
+      if (variable.isConst) {
         // We allow const variables - these are inlined (we check
         // `alwaysInlineConstants` in `compileExpression`).
         continue;
       }
-      knownButUnavailable.add(declaration.variable);
+      knownButUnavailable.add(variable);
     }
   }
 
   @override
-  ExpressionInferenceResult? visitInternalVariableGet(
+  ExpressionInferenceResult? visitVariableGet(
     InternalVariableGet node,
     DartType typeContext,
     ProblemReporting problemReporting,
@@ -2665,7 +2939,7 @@ class ExpressionEvaluationHelperImpl implements ExpressionEvaluationHelper {
   }
 
   @override
-  ExpressionInferenceResult? visitInternalVariableSet(
+  ExpressionInferenceResult? visitVariableSet(
     InternalVariableSet node,
     DartType typeContext,
     ProblemReporting problemReporting,
@@ -2685,7 +2959,7 @@ class ExpressionEvaluationHelperImpl implements ExpressionEvaluationHelper {
   }
 
   ExpressionInferenceResult _returnKnownVariableUnavailable(
-    Expression node,
+    InternalExpression node,
     InternalVariable variable,
     ProblemReporting problemReporting,
     CompilerContext compilerContext,
@@ -2693,16 +2967,16 @@ class ExpressionEvaluationHelperImpl implements ExpressionEvaluationHelper {
   ) {
     return new ExpressionInferenceResult(
       variable.type,
-      problemReporting.wrapInProblem(
-        compilerContext: compilerContext,
-        expression: node,
-        message: diag.expressionEvaluationKnownVariableUnavailable
-            .withArguments(variableName: variable.cosmeticName!),
-        fileUri: fileUri,
-        fileOffset: node.fileOffset,
-        length: variable.cosmeticName!.length,
-        errorHasBeenReported: false,
-        includeExpression: false,
+      extern.createInvalidExpressionFromErrorText(
+        problemReporting.buildProblem(
+          compilerContext: compilerContext,
+          message: diag.expressionEvaluationKnownVariableUnavailable
+              .withArguments(variableName: variable.cosmeticName!),
+          fileUri: fileUri,
+          fileOffset: node.fileOffset,
+          length: variable.cosmeticName!.length,
+          errorHasBeenReported: node is InternalInvalidExpression,
+        ),
       ),
     );
   }
@@ -2723,7 +2997,7 @@ class ExpressionEvaluationHelperImpl implements ExpressionEvaluationHelper {
         if (registered != null) {
           return new OverwrittenInterfaceMember(
             target: new ExpressionEvaluationParameterTarget(
-              registered.variable.astVariable,
+              registered.variable,
             ),
             name: name,
           );
@@ -2936,6 +3210,10 @@ abstract class _InitializationStrategy {
   factory fromUri(Uri? uri) {
     return uri != null
         ? new _InitializationFromUri(uri)
+        : getExperimentEnvironment().contains(
+            enableIncrementalCompilerDepsScanAndLoad,
+          )
+        ? new _InitializationFromExperimentalCache()
         : const _InitializationFromSdkSummary();
   }
 
@@ -2947,7 +3225,8 @@ abstract class _InitializationStrategy {
 
   Future<int> initialize(
     IncrementalCompiler incrementalCompiler,
-    DillTarget dillLoadedData,
+    Loader loaderForProblemReporting,
+    Ticker ticker,
     UriTranslator uriTranslator,
     Map<String, Package> currentPackagesMap,
     CompilerContext context,
@@ -2955,6 +3234,7 @@ abstract class _InitializationStrategy {
     _ComponentProblems componentProblems,
     IncrementalSerializer? incrementalSerializer,
     RecorderForTesting? recorderForTesting,
+    List<Uri> entryPoints,
   );
 }
 
@@ -2965,7 +3245,8 @@ class _InitializationFromSdkSummary extends _InitializationStrategy {
   // Coverage-ignore(suite): Not run.
   Future<int> initialize(
     IncrementalCompiler incrementalCompiler,
-    DillTarget dillLoadedData,
+    Loader loaderForProblemReporting,
+    Ticker ticker,
     UriTranslator uriTranslator,
     Map<String, Package> currentPackagesMap,
     CompilerContext context,
@@ -2973,11 +3254,12 @@ class _InitializationFromSdkSummary extends _InitializationStrategy {
     _ComponentProblems componentProblems,
     IncrementalSerializer? incrementalSerializer,
     RecorderForTesting? recorderForTesting,
+    List<Uri> entryPoints,
   ) async {
     ProcessedOptions options = context.options;
     Uint8List? summaryBytes = await options.loadSdkSummaryBytes();
     int bytesLength = _prepareSummary(
-      dillLoadedData,
+      ticker,
       summaryBytes,
       uriTranslator,
       context,
@@ -2996,7 +3278,7 @@ class _InitializationFromSdkSummary extends _InitializationStrategy {
 
   // Coverage-ignore(suite): Not run.
   int _prepareSummary(
-    DillTarget dillLoadedTarget,
+    Ticker ticker,
     Uint8List? summaryBytes,
     UriTranslator uriTranslator,
     CompilerContext context,
@@ -3006,15 +3288,13 @@ class _InitializationFromSdkSummary extends _InitializationStrategy {
 
     data.component = context.options.target.configureComponent(new Component());
     if (summaryBytes != null) {
-      dillLoadedTarget.ticker.logMs("Read ${context.options.sdkSummary}");
+      ticker.logMs("Read ${context.options.sdkSummary}");
       new BinaryBuilderWithMetadata(
         summaryBytes,
         disableLazyReading: false,
         disableLazyClassReading: true,
       ).readComponent(data.component!);
-      dillLoadedTarget.ticker.logMs(
-        "Deserialized ${context.options.sdkSummary}",
-      );
+      ticker.logMs("Deserialized ${context.options.sdkSummary}");
       bytesLength += summaryBytes.length;
     }
 
@@ -3031,7 +3311,8 @@ class _InitializationFromComponent extends _InitializationStrategy {
   @override
   Future<int> initialize(
     IncrementalCompiler incrementalCompiler,
-    DillTarget dillLoadedData,
+    Loader loaderForProblemReporting,
+    Ticker ticker,
     UriTranslator uriTranslator,
     Map<String, Package> currentPackagesMap,
     CompilerContext context,
@@ -3039,13 +3320,14 @@ class _InitializationFromComponent extends _InitializationStrategy {
     _ComponentProblems componentProblems,
     IncrementalSerializer? incrementalSerializer,
     RecorderForTesting? recorderForTesting,
+    List<Uri> entryPoints,
   ) {
     Component? componentToInitializeFrom = _componentToInitializeFrom;
     _componentToInitializeFrom = null;
     if (componentToInitializeFrom == null) {
       throw const InitializeFromComponentError("Initialized twice.");
     }
-    dillLoadedData.ticker.logMs("About to initializeFromComponent");
+    ticker.logMs("About to initializeFromComponent");
 
     Component component = data.component =
         new Component(
@@ -3077,7 +3359,7 @@ class _InitializationFromComponent extends _InitializationStrategy {
       );
     }
 
-    dillLoadedData.ticker.logMs("Ran initializeFromComponent");
+    ticker.logMs("Ran initializeFromComponent");
     return new Future<int>.value(0);
   }
 }
@@ -3091,7 +3373,8 @@ class _InitializationFromUri extends _InitializationFromSdkSummary {
   @override
   Future<int> initialize(
     IncrementalCompiler incrementalCompiler,
-    DillTarget dillLoadedData,
+    Loader loaderForProblemReporting,
+    Ticker ticker,
     UriTranslator uriTranslator,
     Map<String, Package> currentPackagesMap,
     CompilerContext context,
@@ -3099,10 +3382,11 @@ class _InitializationFromUri extends _InitializationFromSdkSummary {
     _ComponentProblems componentProblems,
     IncrementalSerializer? incrementalSerializer,
     RecorderForTesting? recorderForTesting,
+    List<Uri> entryPoints,
   ) async {
     Uint8List? summaryBytes = await context.options.loadSdkSummaryBytes();
     int bytesLength = _prepareSummary(
-      dillLoadedData,
+      ticker,
       summaryBytes,
       uriTranslator,
       context,
@@ -3111,7 +3395,7 @@ class _InitializationFromUri extends _InitializationFromSdkSummary {
     try {
       bytesLength += await _initializeFromDill(
         incrementalCompiler,
-        dillLoadedData,
+        ticker,
         initializeFromDillUri,
         uriTranslator,
         currentPackagesMap,
@@ -3124,7 +3408,7 @@ class _InitializationFromUri extends _InitializationFromSdkSummary {
       // We might have loaded x out of y libraries into the component.
       // To avoid any unforeseen problems start over.
       bytesLength = _prepareSummary(
-        dillLoadedData,
+        ticker,
         summaryBytes,
         uriTranslator,
         context,
@@ -3155,7 +3439,12 @@ class _InitializationFromUri extends _InitializationFromSdkSummary {
               : diag.initializeFromDillNotSelfContainedNoDump.withArguments(
                   previousCompilationUri: initializeFromDillUri.toString(),
                 );
-          dillLoadedData.loader.addProblem(message, TreeNode.noOffset, 1, null);
+          loaderForProblemReporting.addProblem(
+            message,
+            TreeNode.noOffset,
+            1,
+            null,
+          );
         } else {
           // Unknown error: Report problem as such.
           Message message = gzInitializedFrom != null
@@ -3170,7 +3459,12 @@ class _InitializationFromUri extends _InitializationFromSdkSummary {
                   exception: "$e",
                   stackTrace: "$st",
                 );
-          dillLoadedData.loader.addProblem(message, TreeNode.noOffset, 1, null);
+          loaderForProblemReporting.addProblem(
+            message,
+            TreeNode.noOffset,
+            1,
+            null,
+          );
         }
       }
     }
@@ -3190,7 +3484,7 @@ class _InitializationFromUri extends _InitializationFromSdkSummary {
   // This procedure will try to load the dill file and will crash if it cannot.
   Future<int> _initializeFromDill(
     IncrementalCompiler incrementalCompiler,
-    DillTarget dillLoadedData,
+    Ticker ticker,
     Uri initializeFromDillUri,
     UriTranslator uriTranslator,
     Map<String, Package> currentPackagesMap,
@@ -3206,7 +3500,7 @@ class _InitializationFromUri extends _InitializationFromSdkSummary {
     if (await entity.exists()) {
       Uint8List initializationBytes = await entity.readAsBytes();
       if (initializationBytes.isNotEmpty) {
-        dillLoadedData.ticker.logMs("Read $initializeFromDillUri");
+        ticker.logMs("Read $initializeFromDillUri");
         data.initializationBytes = initializationBytes;
 
         // We're going to output all we read here so lazy loading it
@@ -3310,6 +3604,274 @@ class _InitializationFromUri extends _InitializationFromSdkSummary {
   }
 }
 
+// Coverage-ignore(suite): Not run.
+class _InitializationFromExperimentalCache
+    extends _InitializationFromSdkSummary {
+  @override
+  Future<int> initialize(
+    IncrementalCompiler incrementalCompiler,
+    Loader loaderForProblemReporting,
+    Ticker ticker,
+    UriTranslator uriTranslator,
+    Map<String, Package> currentPackagesMap,
+    CompilerContext context,
+    IncrementalCompilerData data,
+    _ComponentProblems componentProblems,
+    IncrementalSerializer? incrementalSerializer,
+    RecorderForTesting? recorderForTesting,
+    List<Uri> entryPoints,
+  ) async {
+    ProcessedOptions options = context.options;
+    Uint8List? summaryBytes = await options.loadSdkSummaryBytes();
+    int bytesLength = _prepareSummary(
+      ticker,
+      summaryBytes,
+      uriTranslator,
+      context,
+      data,
+    );
+
+    if (options.hasAdditionalDillModules) {
+      List<Component> loadedModules = await options.loadAdditionalDillModules(
+        data.component?.root,
+      );
+      data.loadedModules = loadedModules;
+    }
+
+    IncrementalCompilerCache? cache =
+        incrementalCompiler.incrementalCompilerCache;
+    if (cache == null) {
+      String? path = getEnvironmentValue(
+        pathIncrementalCompilerDepsScanAndLoad,
+      );
+      if (path != null) {
+        cache = incrementalCompiler.incrementalCompilerCache =
+            new IncrementalCompilerCacheImpl(path);
+      }
+    }
+    if (cache != null && cache.mainDirectoryExists) {
+      await loadLibrariesFromCache(
+        cache,
+        context,
+        ticker,
+        data,
+        incrementalCompiler,
+        uriTranslator,
+        entryPoints,
+      );
+    }
+
+    return bytesLength;
+  }
+
+  Future<void> loadLibrariesFromCache(
+    IncrementalCompilerCache cache,
+    CompilerContext context,
+    Ticker ticker,
+    IncrementalCompilerData data,
+    IncrementalCompiler incrementalCompiler,
+    UriTranslator uriTranslator,
+    List<Uri> entryPoints,
+  ) async {
+    Component? dataComponent = data.component;
+    if (dataComponent == null || dataComponent.libraries.isEmpty) return;
+    DillTarget dillLoadedData = new DillTarget(
+      context,
+      // Create new ticker to avoid the extra prints when verbose if on - we add
+      // a ticker entry below.
+      new Ticker(isVerbose: false),
+      uriTranslator,
+      context.options.target,
+    );
+
+    dillLoadedData.loader.appendLibraries(dataComponent);
+    List<Component>? loadedModules = data.loadedModules;
+    Set<Library>? loadedModulesLibraries;
+    if (loadedModules != null) {
+      loadedModulesLibraries = {};
+      for (Component module in loadedModules) {
+        dillLoadedData.loader.appendLibraries(module);
+        for (Library library in module.libraries) {
+          loadedModulesLibraries.add(library);
+        }
+      }
+    }
+    dillLoadedData.buildOutlines(suppressFinalizationErrors: true);
+
+    IncrementalKernelTarget kernelTarget = incrementalCompiler
+        ._setupNewKernelTarget(
+          context,
+          uriTranslator,
+          null,
+          [],
+          null,
+          entryPoints,
+          dillLoadedData,
+        );
+    kernelTarget.setEntryPoints(entryPoints);
+    context.options.temporarilySkipReporting = true;
+    bool? enableColorsRaw = colors.enableColorsRaw;
+    colors.enableColors = false;
+    await kernelTarget.computeNeededPrecompilations(onlyDirectives: true);
+    BuildResult buildResult = await kernelTarget.buildOutlines(
+      nameRoot: dataComponent.root,
+    );
+    colors.enableColors = enableColorsRaw;
+    context.options.temporarilySkipReporting = false;
+    Component? buildComponent = buildResult.component;
+    if (buildComponent == null) {
+      ticker.logMs("Error when calculating dependencies");
+      return;
+    }
+    // Compute canonical names so we can link correctly when loading below.
+    buildComponent.computeCanonicalNames();
+    List<Library> libraries = buildComponent.libraries;
+    ticker.logMs(
+      "Calculated dependencies to and for ${libraries.length} libraries",
+    );
+
+    // TODO(jensj): We have to handle defines too. One way could be to keep
+    // track of them during compile (e.g. wrap the "map" and record access and
+    // answers sort of like how the VM one is implemented), save it along with
+    // the cached dill and verify that for the used stuff we get the same
+    // answer. If we can get a list of everything (which we currently can't)
+    // we could possibly also just encode it into the folder the cache is saved
+    // in just like we should with other settings.
+
+    TransitiveDependenciesCalculator transitiveDependenciesCalculator =
+        new TransitiveDependenciesCalculator(
+          incrementalCompiler._currentPackagesMap,
+          buildComponent.uriToSource,
+          libraries,
+        );
+    List<String?>? transitiveDependencies =
+        transitiveDependenciesCalculator.transitiveDependencies;
+    if (transitiveDependencies == null) {
+      ticker.logMs("Error on source calculating transitive dependencies.");
+      return;
+    }
+    List<List<Library>> strongComponents =
+        transitiveDependenciesCalculator.strongComponents;
+
+    bool loadedEverything = true;
+    for (
+      int strongComponentIndex = 0;
+      strongComponentIndex < strongComponents.length;
+      strongComponentIndex++
+    ) {
+      List<Library> component = strongComponents[strongComponentIndex];
+      Set<Uri> compareTheseFiles = {};
+      for (Library library in component) {
+        compareTheseFiles.add(library.fileUri);
+        for (LibraryPart part in library.parts) {
+          compareTheseFiles.add(part.fileUri);
+        }
+      }
+
+      if (loadedModulesLibraries != null) {
+        // Either all should be in a loaded module or none should be.
+        int countInLoadedModules = 0;
+        for (Library library in component) {
+          if (loadedModulesLibraries.contains(library)) countInLoadedModules++;
+        }
+        if (countInLoadedModules == component.length) continue;
+        if (countInLoadedModules != 0) {
+          incrementalCompiler._invalidateSet(compareTheseFiles);
+          loadedEverything = false;
+          continue;
+        }
+      }
+      {
+        int countInPlatform = 0;
+        for (Library library in component) {
+          if (library.importUri.isScheme("dart")) countInPlatform++;
+        }
+        if (countInPlatform == component.length) continue;
+        if (countInPlatform != 0) {
+          incrementalCompiler._invalidateSet(compareTheseFiles);
+          loadedEverything = false;
+          continue;
+        }
+      }
+      String? transitiveDepsHash = transitiveDependencies[strongComponentIndex];
+      if (transitiveDepsHash == null) {
+        incrementalCompiler._invalidateSet(compareTheseFiles);
+        loadedEverything = false;
+        continue;
+      }
+      dataComponent.libraries.addAll(component);
+
+      // TODO(jensj): Depending on how we invalidate things here we should
+      // probably also disable advanced invalidation - at least for now.
+      // If a library isn't loaded the content is completely wrong because we
+      // only scanned and parsed the directives.
+      // We could opt to load cached libraries that has changed if they still
+      // have the same outline - and if that's the only way we invalidate
+      // advanced invalidation should be enabled.
+
+      Uint8List? cachedData = cache.getCachedDillBytes(transitiveDepsHash);
+      if (cachedData == null) {
+        incrementalCompiler._invalidateSet(compareTheseFiles);
+        loadedEverything = false;
+        continue;
+      }
+
+      // No need to compare the files - the hash matched.
+      assert(
+        areSourcesUnchanged(compareTheseFiles, buildComponent, cachedData),
+      );
+
+      // Try to load the dill.
+      try {
+        new BinaryBuilderWithMetadata(
+          cachedData,
+          disableLazyReading: false,
+          disableLazyClassReading: true,
+        ).readComponent(dataComponent);
+      } catch (_) {
+        incrementalCompiler._invalidateSet(compareTheseFiles);
+        loadedEverything = false;
+      }
+    }
+
+    if (!loadedEverything) {
+      // TODO(jensj): Not necessarily invalidated because of package update.
+      incrementalCompiler._invalidatedBecauseOfPackageUpdate = true;
+    }
+
+    ticker.logMs("Compared and loaded cached files");
+  }
+
+  /// Compare the files in [compareTheseFiles] between the current (via
+  /// [buildComponent]) and the cached (via [cachedData]).
+  /// Returns true if the sources are the same and false otherwise.
+  bool areSourcesUnchanged(
+    Set<Uri> compareTheseFiles,
+    Component buildComponent,
+    Uint8List cachedData,
+  ) {
+    Component cachedSources = loadComponentSourceFromBytes(cachedData);
+    for (Uri uri in compareTheseFiles) {
+      Source? cachedSource = cachedSources.uriToSource[uri];
+      Source? currentSource = buildComponent.uriToSource[uri];
+      if (cachedSource == null || currentSource == null) {
+        return false;
+      }
+      Uint8List cachedSourceBytes = cachedSource.source;
+      Uint8List currentSourceBytes = currentSource.source;
+      if (cachedSourceBytes.length != currentSourceBytes.length) {
+        return false;
+      }
+      for (int i = 0; i < cachedSourceBytes.length; ++i) {
+        if (cachedSourceBytes[i] != currentSourceBytes[i]) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+}
+
 class _ComponentProblems {
   Map<Uri, List<DiagnosticMessageFromJson>> _remainingComponentProblems =
       new Map<Uri, List<DiagnosticMessageFromJson>>();
@@ -3327,8 +3889,7 @@ class _ComponentProblems {
       // Remove parts too.
       for (LibraryPart part in lib.parts) {
         // Coverage-ignore-block(suite): Not run.
-        Uri? partFileUri = uriTranslator.getPartFileUri(lib.fileUri, part);
-        _remainingComponentProblems.remove(partFileUri);
+        _remainingComponentProblems.remove(part.fileUri);
       }
     }
   }
@@ -3401,20 +3962,6 @@ class _ComponentProblems {
   }
 }
 
-extension on UriTranslator {
-  Uri? getPartFileUri(Uri parentFileUri, LibraryPart part) {
-    Uri? fileUri = getPartUri(parentFileUri, part);
-    if (fileUri.isScheme("package")) {
-      // Coverage-ignore-block(suite): Not run.
-      // Part was specified via package URI and the resolve above thus
-      // did not go as expected. Translate the package URI to get the
-      // actual file URI.
-      fileUri = translate(fileUri, false);
-    }
-    return fileUri;
-  }
-}
-
 // Coverage-ignore(suite): Not run.
 /// Translate a script uri provided as a package uri to a file uri.
 /// Otherwise return as is.
@@ -3455,16 +4002,16 @@ extension on UriTranslator {
 ///       Uri.parse("package:foo/c.dart"),
 ///       fileUri: Uri.parse("file://a/b/c.dart"),
 ///       parts: [
-///         LibraryPart([], "d.dart"),
-///         LibraryPart([], "e.dart"),
-///         LibraryPart([], "f.dart"),
+///         LibraryPart([], "d.dart", Uri.parse("file://a/b/d.dart")),
+///         LibraryPart([], "e.dart", Uri.parse("file://a/b/e.dart")),
+///         LibraryPart([], "f.dart", Uri.parse("file://a/b/f.dart")),
 ///       ],
 ///     ),
 ///   ),
 ///   Uri.parse("file://a/b/e.dart"),
 /// )
 ///
-/// // Part uri can be package uri too though :(
+/// // Part uri can be package uri too though.
 /// DartDocTest(
 ///   _processScriptUri(
 ///     Uri.parse("package:foo/e.dart"),
@@ -3473,14 +4020,18 @@ extension on UriTranslator {
 ///       Uri.parse("package:foo/c.dart"),
 ///       fileUri: Uri.parse("file://a/b/c.dart"),
 ///       parts: [
-///         LibraryPart([], "d.dart"),
-///         LibraryPart([], "package:foo/e.dart"),
-///         LibraryPart([], "f.dart"),
+///         LibraryPart([], "d.dart", Uri.parse("file://a/b/d.dart")),
+///         LibraryPart(
+///           [],
+///           "package:foo/e.dart",
+///           Uri.parse("file://foo/lib/e.dart"),
+///         ),
+///         LibraryPart([], "f.dart", Uri.parse("file://a/b/f.dart")),
 ///       ],
 ///     ),
 ///   ),
-///   Uri.parse("package:foo/e.dart"),
-/// )
+///   Uri.parse("file://foo/lib/e.dart"),
+/// );
 /// ```
 Uri _processScriptUri(
   Uri scriptUriAsUri,
@@ -3503,17 +4054,14 @@ Uri _processScriptUri(
 
   // If we still don't have an answer it's probably a part file.
   for (LibraryPart part in library.parts) {
-    Uri partImportUri = getPartUri(library.importUri, part);
+    Uri partImportUri = getPartImportUri(library.importUri, part);
     if (partImportUri == scriptUriAsUri) {
-      return getPartUri(library.fileUri, part);
+      return part.fileUri;
     }
   }
 
-  // We failed. Likely there's no packages file, it's a part and the part is
-  // specified with a package uri.
-  // TODO(jensj): What more can we do? We might be able to find the data we want
-  // from the components `uriToSource`. If that has been removed it might be ok
-  // for expression compilation not to work?
+  // We failed somehow. It's not the library, nor from a part.
+  // This shouldn't happen.
   return scriptUriAsUri;
 }
 
@@ -3535,6 +4083,9 @@ enum AdvancedInvalidationResult {
 
   /// Problems in invalidated library, advanced invalidation is not supported.
   problemsInLibrary,
+
+  /// Problems in related library, advanced invalidation is not supported.
+  problemsInRelatedLibrary,
 
   /// No previous source for invalidated library, can't compare to new source.
   noPreviousSource,
@@ -3578,4 +4129,126 @@ class RecorderForTesting {
 
   // Coverage-ignore(suite): Not run.
   void recordTemporaryFile(Uri uri) {}
+}
+
+abstract interface class IncrementalCompilerCache {
+  bool get mainDirectoryExists;
+  Uint8List? getCachedDillBytes(String transitiveDepsHash);
+  void cacheLibraries(
+    List<Library> libraries,
+    String transitiveDepsHash,
+    Component fromComponent,
+  );
+}
+
+// Coverage-ignore(suite): Not run.
+class TransitiveDependenciesCalculator {
+  late final List<List<Library>> strongComponents;
+  final Map<String, Package>? currentPackagesMap;
+  final Map<Uri, Source> uriToSource;
+  late final List<String?> _transitiveDependencies;
+  bool _error = false;
+
+  new(this.currentPackagesMap, this.uriToSource, Iterable<Library> libraries) {
+    kernelGraph.LibraryGraph graph = new kernelGraph.LibraryGraph(libraries);
+    strongComponents = kernelGraph.computeStrongComponents(graph);
+    _transitiveDependencies = new List.filled(strongComponents.length, null);
+    _calculateTransitiveHashes();
+  }
+
+  List<String?>? get transitiveDependencies =>
+      _error ? null : _transitiveDependencies;
+
+  LanguageVersion? _getPackageLanguageVersion(Uri importUri) {
+    if (!importUri.isScheme("package")) return null;
+    String path = importUri.path;
+    int firstSlash = path.indexOf('/');
+    if (firstSlash == -1) return null;
+    String packageName = path.substring(0, firstSlash);
+    Package? package = currentPackagesMap?[packageName];
+    return package?.languageVersion;
+  }
+
+  void _calculateTransitiveHashes() {
+    Map<Library, int> libraryToStrongComponentIndex = {};
+    for (
+      int componentNumber = 0;
+      componentNumber < strongComponents.length;
+      componentNumber++
+    ) {
+      List<Library> component = strongComponents[componentNumber];
+      for (Library library in component) {
+        if (library.importUri.isScheme("dart")) continue;
+        libraryToStrongComponentIndex[library] = componentNumber;
+      }
+    }
+
+    List<Set<int>> directDependencies = new List.generate(
+      strongComponents.length,
+      (_) => {},
+      growable: false,
+    );
+
+    for (List<Library> component in strongComponents) {
+      for (Library library in component) {
+        int? thisLibraryComponent = libraryToStrongComponentIndex[library];
+        if (thisLibraryComponent == null) continue;
+        Set<int> componentDeps = directDependencies[thisLibraryComponent];
+        for (LibraryDependency dependency in library.dependencies) {
+          int? componentNumber =
+              libraryToStrongComponentIndex[dependency.targetLibrary];
+          if (componentNumber == null ||
+              componentNumber == thisLibraryComponent) {
+            continue;
+          }
+          componentDeps.add(componentNumber);
+        }
+      }
+    }
+
+    for (int i = 0; i < strongComponents.length; i++) {
+      _fillTransitiveDeps(i, directDependencies);
+    }
+  }
+
+  void _fillTransitiveDeps(
+    int componentNumber,
+    List<Set<int>> directDependencies,
+  ) {
+    if (_transitiveDependencies[componentNumber] != null) return;
+    List<String> hashMe = [];
+    List<Library> component = strongComponents[componentNumber];
+    for (Library lib in component) {
+      if (lib.importUri.isScheme("dart")) continue;
+      LanguageVersion? version = _getPackageLanguageVersion(lib.importUri);
+      hashMe.add("${lib.fileUri}=v$version");
+      Source? source = uriToSource[lib.fileUri];
+      if (source == null) {
+        _error = true;
+        return;
+      }
+      // TODO(jensj): To support advanced invalidation this should be the
+      // textual outline instead.
+      hashMe.add("${lib.fileUri}=${MD5Ish.hashBytes(source.source)}");
+      for (LibraryPart part in lib.parts) {
+        source = uriToSource[part.fileUri];
+        if (source == null) {
+          _error = true;
+          return;
+        }
+        hashMe.add("${part.fileUri}=${MD5Ish.hashBytes(source.source)}");
+      }
+    }
+
+    Set<int> directDeps = directDependencies[componentNumber];
+    for (int dep in directDeps) {
+      _fillTransitiveDeps(dep, directDependencies);
+      String directTransitiveHash = _transitiveDependencies[dep]!;
+      hashMe.add(directTransitiveHash);
+    }
+    hashMe.sort();
+    String hashMeString = hashMe.join("\n");
+    String hash = MD5Ish.hashString(hashMeString);
+    _transitiveDependencies[componentNumber] = hash;
+  }
 }

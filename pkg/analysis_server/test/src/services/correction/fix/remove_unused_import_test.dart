@@ -20,10 +20,7 @@ void main() {
 
 @reflectiveTest
 class RemoveUnusedImportBulkTest extends BulkFixProcessorTest {
-  @FailingTest(reason: 'multiple deletions conflict')
   Future<void> test_multipleOnSingleLine() async {
-    // TODO(brianwilkerson): Remove test_multipleOnSingleLine_temporary when this
-    //  test starts to pass.
     await resolveTestCode('''
 import 'dart:collection'; import 'dart:math'; import 'dart:async';
 void f() {}
@@ -34,14 +31,36 @@ void f() {}
 ''');
   }
 
-  Future<void> test_multipleOnSingleLine_temporary() async {
+  Future<void> test_multipleOnSingleLine_oneUsed_first() async {
     await resolveTestCode('''
-import 'dart:collection'; import 'dart:math'; import 'dart:async';
-void f() {}
+import 'dart:async'; import 'dart:collection'; import 'dart:math';
+void f(Completer<void> completer) {}
 ''');
     await assertHasFix('''
-import 'dart:math';
-void f() {}
+import 'dart:async';
+void f(Completer<void> completer) {}
+''');
+  }
+
+  Future<void> test_multipleOnSingleLine_oneUsed_last() async {
+    await resolveTestCode('''
+import 'dart:collection'; import 'dart:math'; import 'dart:async';
+void f(Completer<void> completer) {}
+''');
+    await assertHasFix('''
+import 'dart:async';
+void f(Completer<void> completer) {}
+''');
+  }
+
+  Future<void> test_multipleOnSingleLine_oneUsed_middle() async {
+    await resolveTestCode('''
+import 'dart:collection'; import 'dart:math' as math; import 'dart:async';
+var tau = math.pi * 2;
+''');
+    await assertHasFix('''
+import 'dart:math' as math;
+var tau = math.pi * 2;
 ''');
   }
 
@@ -118,27 +137,13 @@ void f() {}
 ''');
   }
 
-  @FailingTest(reason: 'multiple deletions conflict')
   Future<void> test_all_singleLine() async {
-    // TODO(brianwilkerson): Remove test_multipleOnSingleLine_temporary when this
-    //  test starts to pass.
     await resolveTestCode('''
 import 'dart:math'; import 'dart:math'; import 'dart:math';
 void f() {}
 ''');
     await assertHasFixAllFix(diag.unusedImport, '''
 
-void f() {}
-''');
-  }
-
-  Future<void> test_all_singleLine_temporary() async {
-    await resolveTestCode('''
-import 'dart:math'; import 'dart:math'; import 'dart:math';
-void f() {}
-''');
-    await assertHasFixAllFix(diag.unusedImport, '''
-import 'dart:math';
 void f() {}
 ''');
   }
@@ -161,9 +166,26 @@ class RemoveUnusedImportTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.removeUnusedImport;
 
-  Future<void> test_anotherImportOnLine() async {
+  Future<void> test_anotherImportOnLine_unusedFirst() async {
     await resolveTestCode('''
 import 'dart:math'; import 'dart:async';
+
+void f(Completer f) {
+  print(f);
+}
+''');
+    await assertHasFix('''
+import 'dart:async';
+
+void f(Completer f) {
+  print(f);
+}
+''');
+  }
+
+  Future<void> test_anotherImportOnLine_unusedLast() async {
+    await resolveTestCode('''
+import 'dart:async'; import 'dart:math';
 
 void f(Completer f) {
   print(f);
@@ -207,6 +229,21 @@ import 'part.dart';
 ''');
   }
 
+  Future<void> test_inPartFile() async {
+    newFile('$testPackageLibPath/lib.dart', r'''
+part 'test.dart';
+''');
+    await resolveTestCode(r'''
+part of 'lib.dart';
+
+import 'dart:math';
+''');
+    await assertHasFix('''
+part of 'lib.dart';
+
+''');
+  }
+
   test_internalLibraryImport() async {
     await resolveTestCode('''
 import 'dart:_internal';
@@ -214,6 +251,51 @@ import 'dart:_internal';
 
     await assertHasFix('''
 ''', filter: (e) => e.diagnosticCode == diag.unusedImport);
+  }
+
+  Future<void> test_multipleUnusedOnLine_targetFirst() async {
+    await resolveTestCode('''
+import 'dart:collection'; import 'dart:math'; import 'dart:async';
+void f() {}
+''');
+    await assertHasFix(
+      '''
+import 'dart:math'; import 'dart:async';
+void f() {}
+''',
+      allowFixAllFixes: true,
+      filter: (error) => error.offset == testCode.indexOf("'dart:collection'"),
+    );
+  }
+
+  Future<void> test_multipleUnusedOnLine_targetLast() async {
+    await resolveTestCode('''
+import 'dart:collection'; import 'dart:math';
+void f() {}
+''');
+    await assertHasFix(
+      '''
+import 'dart:collection';
+void f() {}
+''',
+      allowFixAllFixes: true,
+      filter: (error) => error.offset == testCode.indexOf("'dart:math'"),
+    );
+  }
+
+  Future<void> test_multipleUnusedOnLine_targetMiddle() async {
+    await resolveTestCode('''
+import 'dart:collection'; import 'dart:math'; import 'dart:async';
+void f() {}
+''');
+    await assertHasFix(
+      '''
+import 'dart:collection'; import 'dart:async';
+void f() {}
+''',
+      allowFixAllFixes: true,
+      filter: (error) => error.offset == testCode.indexOf("'dart:math'"),
+    );
   }
 
   Future<void> test_severalLines() async {

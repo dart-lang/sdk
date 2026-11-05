@@ -8,3 +8,6 @@ import 'package:web/web.dart';
 
 void logErrorImpl(String message) =>
     console.error('worker.dart: $message'.toJS);
+
+void logWarningImpl(String message) =>
+    console.warn('worker.dart: $message'.toJS);

@@ -43,7 +43,7 @@ static method useAddAll() → void {
     #t8.{core::List::addAll}{Invariant}(iterableIntList){(core::Iterable<core::num>) → void};
     #t8.{core::List::addAll}{Invariant}(intList){(core::Iterable<core::num>) → void};
   } =>#t8;
-  self::expect(core::List::generate<core::num>(15, (core::int i) → core::int => i), list2);
+  self::expect(core::List::generate<core::num>(15, (core::int i##1) → core::int => i##1), list2);
   core::List<core::int> list3 = block {
     final core::List<core::int> #t15 = <core::int>[];
     for (final has-declared-initializer dynamic #t16 in dynamicList1 as{TypeError,ForDynamic} core::Iterable<dynamic>) {
@@ -61,7 +61,7 @@ static method useAddAll() → void {
     #t15.{core::List::addAll}{Invariant}(iterableIntList){(core::Iterable<core::int>) → void};
     #t15.{core::List::addAll}{Invariant}(intList){(core::Iterable<core::int>) → void};
   } =>#t15;
-  self::expect(core::List::generate<core::int>(15, (core::int i) → core::int => i), list3);
+  self::expect(core::List::generate<core::int>(15, (core::int i##2) → core::int => i##2), list3);
   core::List<dynamic> list4 = block {
     final core::List<dynamic> #t22 = core::List::of<dynamic>(dynamicList1 as{TypeError,ForDynamic} core::Iterable<dynamic>);
     #t22.{core::List::addAll}{Invariant}(dynamicList2 as{TypeError,ForDynamic} core::Iterable<dynamic>){(core::Iterable<dynamic>) → void};
@@ -69,7 +69,7 @@ static method useAddAll() → void {
     #t22.{core::List::addAll}{Invariant}(iterableIntList){(core::Iterable<dynamic>) → void};
     #t22.{core::List::addAll}{Invariant}(intList){(core::Iterable<dynamic>) → void};
   } =>#t22;
-  self::expect(core::List::generate<dynamic>(15, (core::int i) → core::int => i), list4);
+  self::expect(core::List::generate<dynamic>(15, (core::int i##3) → core::int => i##3), list4);
   {
     core::List<core::int> intList1 = <core::int>[0, 1, 2];
     core::List<core::int> intList2 = <core::int>[3, 4, 5];
@@ -77,7 +77,7 @@ static method useAddAll() → void {
       final core::List<core::int> #t23 = core::List::of<core::int>(intList1);
       #t23.{core::List::addAll}{Invariant}(intList2){(core::Iterable<core::int>) → void};
     } =>#t23;
-    self::expect(core::List::generate<core::int>(6, (core::int i) → core::int => i), list);
+    self::expect(core::List::generate<core::int>(6, (core::int i##4) → core::int => i##4), list);
   }
 }
 static method useAddAllNullable() → void {
@@ -141,7 +141,7 @@ static method useAddAllNullable() → void {
     if(!(#t47 == null))
       #t36.{core::List::addAll}{Invariant}(#t47{core::Iterable<core::num>}){(core::Iterable<core::num>) → void};
   } =>#t36;
-  self::expect(core::List::generate<core::num>(15, (core::int i) → core::int => i), list2);
+  self::expect(core::List::generate<core::num>(15, (core::int i##1) → core::int => i##1), list2);
   core::List<core::int> list3 = block {
     final core::List<core::int> #t48 = <core::int>[];
     final core::Iterable<dynamic>? #t49 = dynamicList1 as{TypeError,ForDynamic} core::Iterable<dynamic>?;
@@ -169,7 +169,7 @@ static method useAddAllNullable() → void {
     if(!(#t59 == null))
       #t48.{core::List::addAll}{Invariant}(#t59{core::Iterable<core::int>}){(core::Iterable<core::int>) → void};
   } =>#t48;
-  self::expect(core::List::generate<core::int>(15, (core::int i) → core::int => i), list3);
+  self::expect(core::List::generate<core::int>(15, (core::int i##2) → core::int => i##2), list3);
   core::List<dynamic> list4 = block {
     final core::List<dynamic> #t60 = <dynamic>[];
     final core::Iterable<dynamic>? #t61 = dynamicList1 as{TypeError,ForDynamic} core::Iterable<dynamic>?;
@@ -188,7 +188,7 @@ static method useAddAllNullable() → void {
     if(!(#t65 == null))
       #t60.{core::List::addAll}{Invariant}(#t65{core::Iterable<dynamic>}){(core::Iterable<dynamic>) → void};
   } =>#t60;
-  self::expect(core::List::generate<dynamic>(15, (core::int i) → core::int => i), list4);
+  self::expect(core::List::generate<dynamic>(15, (core::int i##3) → core::int => i##3), list4);
 }
 static method main() → dynamic {
   self::useAddAll();

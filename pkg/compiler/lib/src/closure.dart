@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart' as ir;
+
 import 'common.dart';
 import 'elements/entities.dart';
 import 'js_model/closure.dart';

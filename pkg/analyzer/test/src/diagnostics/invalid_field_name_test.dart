@@ -188,10 +188,9 @@ void f(({int _, int b}) r) {}
 ''');
   }
 
-  void test_wildcard_named_preWildcards() async {
+  void test_wildcard_named_beforeWildcardVariables() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.4
-// (pre wildcard-variables)
+// %before-language-feature: wildcard-variables
 
 void f(({int _, int b}) r) {}
 //           ^
@@ -205,10 +204,9 @@ void f((int _, int b) r) {}
 ''');
   }
 
-  void test_wildcard_positional_preWildcards() async {
+  void test_wildcard_positional_beforeWildcardVariables() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.4
-// (pre wildcard-variables)
+// %before-language-feature: wildcard-variables
 
 void f((int _, int b) r) {}
 //          ^

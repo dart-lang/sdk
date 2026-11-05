@@ -22,7 +22,7 @@ static method main() → dynamic async /* emittedValueType= dynamic */ {
   if(stream is asy::Future<core::Object?>)
     return;
   await self::expectAsyncThrows(() → asy::Future<Null> async /* emittedValueType= Null */ {
-    core::int i = await stream{asy::Stream<core::int>}.{asy::Stream::first}{asy::Future<core::int>};
+    core::int i##1 = await stream{asy::Stream<core::int>}.{asy::Stream::first}{asy::Future<core::int>};
   }) /* runtimeCheckType= asy::Future<dynamic> */ ;
 }
 static method expectThrows(dynamic f) → dynamic {

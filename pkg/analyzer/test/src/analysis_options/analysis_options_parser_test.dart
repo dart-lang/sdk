@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:mirrors';
-
 import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_state.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
@@ -22,10 +20,8 @@ import 'analysis_options_test_support.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisOptionsParserTest);
-    defineReflectiveTests(ErrorCodeValuesTest);
     defineReflectiveTests(UpdateNodeTextExpectations);
 
-    // TODO(srawlins): add tests for multiple includes.
     // TODO(srawlins): add tests with duplicate legacy plugin names.
     // https://github.com/dart-lang/sdk/issues/50980
   });
@@ -60,20 +56,18 @@ class AnalysisOptionsParserTest extends AbstractAnalysisOptionsTest {
     super.setUp();
   }
 
-  test_analyzer_cannotIgnore_invalid_badValue() {
+  test_analyzer_cannotIgnore_errorSeverity() {
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   cannot-ignore:
-    - not_an_error_code
-//    ^^^^^^^^^^^^^^^^^
-// [diag.unrecognizedErrorCode] 'not_an_error_code' isn't a recognized diagnostic code.
+    - error
 ''');
 
-    assertAnalysisOptionsText(analysisOptions, r'''
-AnalysisOptionsImpl
-  unignorableDiagnosticCodeNames
-    not_an_error_code
-''');
+    // Keep this as a broad probe: `error` should include all diagnostics with
+    // error severity, not just a single named code.
+    var unignorableCodeNames = analysisOptions.unignorableDiagnosticCodeNames;
+    expect(unignorableCodeNames, contains('invalid_annotation'));
+    expect(unignorableCodeNames.length, greaterThan(500));
   }
 
   test_analyzer_cannotIgnore_invalid_notList() {
@@ -87,6 +81,22 @@ analyzer:
 
     assertAnalysisOptionsText(analysisOptions, r'''
 AnalysisOptionsImpl
+''');
+  }
+
+  test_analyzer_cannotIgnore_invalid_unrecognizedCode() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  cannot-ignore:
+    - not_an_error_code
+//    ^^^^^^^^^^^^^^^^^
+// [diag.unrecognizedErrorCode] 'not_an_error_code' isn't a recognized diagnostic code.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  unignorableDiagnosticCodeNames
+    not_an_error_code
 ''');
   }
 
@@ -104,47 +114,22 @@ AnalysisOptionsImpl
 ''');
   }
 
-  test_analyzer_cannotIgnore_severity() {
+  test_analyzer_cannotIgnore_lintRule() {
+    registerLintRule(TestRule());
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   cannot-ignore:
-    - error
+    - fantastic_test_rule
 ''');
 
-    var unignorableCodeNames = analysisOptions.unignorableDiagnosticCodeNames;
-    expect(unignorableCodeNames, contains('invalid_annotation'));
-    expect(unignorableCodeNames.length, greaterThan(500));
-  }
-
-  test_analyzer_cannotIgnore_severity_withProcessor() {
-    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
-analyzer:
-  errors:
-    unused_import: error
-  cannot-ignore:
-    - error
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  unignorableDiagnosticCodeNames
+    fantastic_test_rule
 ''');
-
-    var unignorableCodeNames = analysisOptions.unignorableDiagnosticCodeNames;
-    expect(unignorableCodeNames, contains('unused_import'));
   }
 
-  test_analyzer_cannotIgnore_severity_withProcessor_oldSeverity() {
-    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
-analyzer:
-  errors:
-    unused_import: error
-  cannot-ignore:
-    - warning
-''');
-
-    // Since `unused_import` has been reclassified as an error,
-    // `cannot-ignore: - warning` should not apply to it.
-    var unignorableCodeNames = analysisOptions.unignorableDiagnosticCodeNames;
-    expect(unignorableCodeNames, isNot(contains('unused_import')));
-  }
-
-  test_analyzer_cannotIgnore_valid() {
+  test_analyzer_cannotIgnore_multipleCodes() {
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   cannot-ignore:
@@ -160,7 +145,35 @@ AnalysisOptionsImpl
 ''');
   }
 
-  test_analyzer_cannotIgnore_valid_code() {
+  test_analyzer_cannotIgnore_severity_errorIncludesReclassifiedDiagnostic() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  errors:
+    unused_import: error
+  cannot-ignore:
+    - error
+''');
+
+    var unignorableCodeNames = analysisOptions.unignorableDiagnosticCodeNames;
+    expect(unignorableCodeNames, contains('unused_import'));
+  }
+
+  test_analyzer_cannotIgnore_severity_warningExcludesReclassifiedDiagnostic() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  errors:
+    unused_import: error
+  cannot-ignore:
+    - warning
+''');
+
+    // Since `unused_import` has been reclassified as an error,
+    // `cannot-ignore: - warning` should not apply to it.
+    var unignorableCodeNames = analysisOptions.unignorableDiagnosticCodeNames;
+    expect(unignorableCodeNames, isNot(contains('unused_import')));
+  }
+
+  test_analyzer_cannotIgnore_singleCode() {
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   cannot-ignore:
@@ -172,35 +185,6 @@ AnalysisOptionsImpl
   unignorableDiagnosticCodeNames
     invalid_annotation
 ''');
-  }
-
-  test_analyzer_cannotIgnore_valid_lintRule() {
-    registerLintRule(TestRule());
-    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
-analyzer:
-  cannot-ignore:
-    - fantastic_test_rule
-''');
-
-    assertAnalysisOptionsText(analysisOptions, r'''
-AnalysisOptionsImpl
-  unignorableDiagnosticCodeNames
-    fantastic_test_rule
-''');
-  }
-
-  test_analyzer_cannotIgnore_valid_severity() {
-    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
-analyzer:
-  cannot-ignore:
-    - error
-''');
-
-    // Keep this as a broad probe: `error` should include all diagnostics with
-    // error severity, not just a single named code.
-    var unignorableCodeNames = analysisOptions.unignorableDiagnosticCodeNames;
-    expect(unignorableCodeNames, contains('invalid_annotation'));
-    expect(unignorableCodeNames.length, greaterThan(500));
   }
 
   test_analyzer_empty() {
@@ -306,7 +290,7 @@ AnalysisOptionsImpl
 ''');
   }
 
-  test_analyzer_enableExperiment_valid() {
+  test_analyzer_enableExperiment_knownExperiment() {
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   enable-experiment:
@@ -322,26 +306,51 @@ AnalysisOptionsImpl
 ''');
   }
 
-  test_analyzer_errors_cannotBeIgnoredByUniqueName() {
+  test_analyzer_errors_errorSeverityAppliesToWarningDiagnostic() {
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   errors:
-    return_type_invalid_for_catch_error: ignore
-//  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// [diag.unrecognizedErrorCode] 'return_type_invalid_for_catch_error' isn't a recognized diagnostic code.
+    unused_local_variable: error
 ''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
 AnalysisOptionsImpl
   errorProcessors
-    return_type_invalid_for_catch_error: ignore
+    unused_local_variable: error
 ''');
 
     var warning = Diagnostic.tmp(
       source: FileSource(newFile('/test.dart', '')),
       offset: 0,
       length: 1,
-      diagnosticCode: diag.returnTypeInvalidForCatchError,
+      diagnosticCode: diag.unusedLocalVariable,
+      arguments: [
+        ['x'],
+      ],
+    );
+
+    var processor = analysisOptions.errorProcessors.single;
+    expect(processor.appliesTo(warning), isTrue);
+  }
+
+  test_analyzer_errors_ignoreSeverityAppliesToErrorDiagnostic() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  errors:
+    invalid_assignment: ignore
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  errorProcessors
+    invalid_assignment: ignore
+''');
+
+    var error = Diagnostic.tmp(
+      source: FileSource(newFile('/test.dart', '')),
+      offset: 0,
+      length: 1,
+      diagnosticCode: diag.invalidAssignment,
       arguments: [
         ['x'],
         ['y'],
@@ -349,85 +358,7 @@ AnalysisOptionsImpl
     );
 
     var processor = analysisOptions.errorProcessors.single;
-    expect(processor.appliesTo(warning), isFalse);
-  }
-
-  test_analyzer_errors_code_supported() {
-    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
-analyzer:
-  errors:
-    unused_local_variable: ignore
-    invalid_assignment: warning
-    assignment_of_do_not_store: error
-    dead_code: info
-''');
-
-    assertAnalysisOptionsText(analysisOptions, r'''
-AnalysisOptionsImpl
-  errorProcessors
-    unused_local_variable: ignore
-    invalid_assignment: warning
-    assignment_of_do_not_store: error
-    dead_code: info
-''');
-  }
-
-  test_analyzer_errors_code_supported_invalidValue() {
-    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
-analyzer:
-  errors:
-    unused_local_variable: ftw
-//                         ^^^
-// [diag.unsupportedOptionWithLegalValues] The option 'ftw' isn't supported by 'errors'.
-''');
-
-    assertAnalysisOptionsText(analysisOptions, r'''
-AnalysisOptionsImpl
-''');
-  }
-
-  test_analyzer_errors_code_supported_nullValue() {
-    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
-analyzer:
-  errors:
-    unused_local_variable: null
-//                         ^^^^
-// [diag.unsupportedOptionWithLegalValues] The option 'null' isn't supported by 'errors'.
-''');
-
-    assertAnalysisOptionsText(analysisOptions, r'''
-AnalysisOptionsImpl
-''');
-  }
-
-  test_analyzer_errors_code_unsupported() {
-    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
-analyzer:
-  errors:
-    not_supported: ignore
-//  ^^^^^^^^^^^^^
-// [diag.unrecognizedErrorCode] 'not_supported' isn't a recognized diagnostic code.
-''');
-
-    assertAnalysisOptionsText(analysisOptions, r'''
-AnalysisOptionsImpl
-  errorProcessors
-    not_supported: ignore
-''');
-  }
-
-  test_analyzer_errors_code_unsupported_null() {
-    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
-analyzer:
-  errors:
-    null: ignore
-//  ^^^^
-// [diag.unrecognizedErrorCode] 'null' isn't a recognized diagnostic code.
-''');
-
-    assertAnalysisOptionsText(analysisOptions, r'''
-AnalysisOptionsImpl
-''');
+    expect(processor.appliesTo(error), isTrue);
   }
 
   test_analyzer_errors_include_merged() {
@@ -530,6 +461,33 @@ AnalysisOptionsImpl
 ''');
   }
 
+  test_analyzer_errors_include_sharedTransitiveIncludeAppliedPerPath() {
+    var options = parseAnalysisOptionsFilesWithDiagnostics({
+      analysisOptionsFile: r'''
+include:
+  - first_options.yaml
+  - shared_options.yaml
+''',
+      getFile('$testPackageRootPath/first_options.yaml'): '''
+include: shared_options.yaml
+analyzer:
+  errors:
+    invalid_assignment: error
+''',
+      getFile('$testPackageRootPath/shared_options.yaml'): '''
+analyzer:
+  errors:
+    invalid_assignment: warning
+''',
+    });
+
+    assertAnalysisOptionsText(options, r'''
+AnalysisOptionsImpl
+  errorProcessors
+    invalid_assignment: warning
+''');
+  }
+
   test_analyzer_errors_include_subsequentIncludeWins() {
     var options = parseAnalysisOptionsFilesWithDiagnostics({
       analysisOptionsFile: r'''
@@ -629,7 +587,35 @@ AnalysisOptionsImpl
 ''');
   }
 
-  test_analyzer_errors_lintCode_recognized() {
+  test_analyzer_errors_invalidNullSeverity() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  errors:
+    unused_local_variable: null
+//                         ^^^^
+// [diag.unsupportedOptionWithLegalValues] The option 'null' isn't supported by 'errors'.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
+  }
+
+  test_analyzer_errors_invalidSeverity() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  errors:
+    unused_local_variable: ftw
+//                         ^^^
+// [diag.unsupportedOptionWithLegalValues] The option 'ftw' isn't supported by 'errors'.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
+  }
+
+  test_analyzer_errors_registeredLintCode() {
     registerLintRule(TestRule());
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
@@ -644,62 +630,58 @@ AnalysisOptionsImpl
 ''');
   }
 
-  test_analyzer_errors_severityIsError() {
+  test_analyzer_errors_removed_pluginsInInnerOptions() {
+    // TODO(scheglov): Remove this test together with the
+    // `PLUGINS_IN_INNER_OPTIONS` entry in `_DiagnosticOptions.removedCodeNames`
+    // after Flutter removes its suppression.
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   errors:
-    unused_local_variable: error
+    plugins_in_inner_options: ignore
 ''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
 AnalysisOptionsImpl
   errorProcessors
-    unused_local_variable: error
+    plugins_in_inner_options: ignore
 ''');
-
-    var warning = Diagnostic.tmp(
-      source: FileSource(newFile('/test.dart', '')),
-      offset: 0,
-      length: 1,
-      diagnosticCode: diag.unusedLocalVariable,
-      arguments: [
-        ['x'],
-      ],
-    );
-
-    var processor = analysisOptions.errorProcessors.single;
-    expect(processor.appliesTo(warning), isTrue);
   }
 
-  test_analyzer_errors_severityIsIgnore() {
+  test_analyzer_errors_removed_undefinedAnnotation() {
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   errors:
-    invalid_assignment: ignore
+    undefined_annotation: ignore
 ''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
 AnalysisOptionsImpl
   errorProcessors
-    invalid_assignment: ignore
+    undefined_annotation: ignore
 ''');
-
-    var error = Diagnostic.tmp(
-      source: FileSource(newFile('/test.dart', '')),
-      offset: 0,
-      length: 1,
-      diagnosticCode: diag.invalidAssignment,
-      arguments: [
-        ['x'],
-        ['y'],
-      ],
-    );
-
-    var processor = analysisOptions.errorProcessors.single;
-    expect(processor.appliesTo(error), isTrue);
   }
 
-  test_analyzer_errors_sharedNameAppliesToAllSharedCodes() {
+  test_analyzer_errors_severityValues() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  errors:
+    unused_local_variable: ignore
+    invalid_assignment: warning
+    assignment_of_do_not_store: error
+    dead_code: info
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  errorProcessors
+    unused_local_variable: ignore
+    invalid_assignment: warning
+    assignment_of_do_not_store: error
+    dead_code: info
+''');
+  }
+
+  test_analyzer_errors_sharedNameMatchesSharedDiagnosticCode() {
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   errors:
@@ -727,26 +709,117 @@ AnalysisOptionsImpl
     expect(processor.appliesTo(warning), isTrue);
   }
 
+  test_analyzer_errors_uniqueNameDoesNotMatchSharedDiagnosticCode() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  errors:
+    return_type_invalid_for_catch_error: ignore
+//  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.unrecognizedErrorCode] 'return_type_invalid_for_catch_error' isn't a recognized diagnostic code.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  errorProcessors
+    return_type_invalid_for_catch_error: ignore
+''');
+
+    var warning = Diagnostic.tmp(
+      source: FileSource(newFile('/test.dart', '')),
+      offset: 0,
+      length: 1,
+      diagnosticCode: diag.returnTypeInvalidForCatchError,
+      arguments: [
+        ['x'],
+        ['y'],
+      ],
+    );
+
+    var processor = analysisOptions.errorProcessors.single;
+    expect(processor.appliesTo(warning), isFalse);
+  }
+
+  test_analyzer_errors_unrecognizedCode() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  errors:
+    not_supported: ignore
+//  ^^^^^^^^^^^^^
+// [diag.unrecognizedErrorCode] 'not_supported' isn't a recognized diagnostic code.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  errorProcessors
+    not_supported: ignore
+''');
+  }
+
+  test_analyzer_errors_unrecognizedNullCode() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  errors:
+    null: ignore
+//  ^^^^
+// [diag.unrecognizedErrorCode] 'null' isn't a recognized diagnostic code.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
+  }
+
   test_analyzer_exclude_include_merged() {
-    var options = parseAnalysisOptionsFilesWithDiagnostics({
+    var analysisOptions = parseAnalysisOptionsFilesWithDiagnostics({
       analysisOptionsFile: r'''
-include: other_options.yaml
+include: ../other_options.yaml
 analyzer:
   exclude:
     - lowlevelexclude.dart
 ''',
-      getFile('$testPackageRootPath/other_options.yaml'): '''
+      getFile('/home/other_options.yaml'): '''
 analyzer:
   exclude:
-    - toplevelexclude.dart
+    - test/toplevelexclude.dart
 ''',
     });
 
-    assertAnalysisOptionsText(options, r'''
+    assertAnalysisOptionsText(analysisOptions, r'''
 AnalysisOptionsImpl
   excludePatterns
-    toplevelexclude.dart
-    lowlevelexclude.dart
+    AnalysisOptionsExcludePattern
+      declaringFile: /home/other_options.yaml
+      pattern: test/toplevelexclude.dart
+    AnalysisOptionsExcludePattern
+      declaringFile: /home/test/analysis_options.yaml
+      pattern: lowlevelexclude.dart
+''');
+  }
+
+  test_analyzer_exclude_include_samePatternDifferentFiles() {
+    var analysisOptions = parseAnalysisOptionsFilesWithDiagnostics({
+      analysisOptionsFile: r'''
+include: ../other_options.yaml
+analyzer:
+  exclude:
+    - generated/**
+''',
+      getFile('/home/other_options.yaml'): '''
+analyzer:
+  exclude:
+    - generated/**
+''',
+    });
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  excludePatterns
+    AnalysisOptionsExcludePattern
+      declaringFile: /home/other_options.yaml
+      pattern: generated/**
+    AnalysisOptionsExcludePattern
+      declaringFile: /home/test/analysis_options.yaml
+      pattern: generated/**
 ''');
   }
 
@@ -780,7 +853,9 @@ analyzer:
     assertAnalysisOptionsText(analysisOptions, r'''
 AnalysisOptionsImpl
   excludePatterns
-    included.dart
+    AnalysisOptionsExcludePattern
+      declaringFile: /home/test/included.yaml
+      pattern: included.dart
 ''');
   }
 
@@ -798,12 +873,16 @@ analyzer:
     assertAnalysisOptionsText(analysisOptions, r'''
 AnalysisOptionsImpl
   excludePatterns
-    foo/bar.dart
-    test/**
+    AnalysisOptionsExcludePattern
+      declaringFile: /home/test/analysis_options.yaml
+      pattern: foo/bar.dart
+    AnalysisOptionsExcludePattern
+      declaringFile: /home/test/analysis_options.yaml
+      pattern: test/**
 ''');
   }
 
-  test_analyzer_exclude_valid_patterns() {
+  test_analyzer_exclude_patterns() {
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   exclude:
@@ -814,12 +893,16 @@ analyzer:
     assertAnalysisOptionsText(analysisOptions, r'''
 AnalysisOptionsImpl
   excludePatterns
-    foo/bar.dart
-    test/**
+    AnalysisOptionsExcludePattern
+      declaringFile: /home/test/analysis_options.yaml
+      pattern: foo/bar.dart
+    AnalysisOptionsExcludePattern
+      declaringFile: /home/test/analysis_options.yaml
+      pattern: test/**
 ''');
   }
 
-  test_analyzer_exclude_valid_singlePattern() {
+  test_analyzer_exclude_singlePattern() {
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   exclude:
@@ -829,7 +912,27 @@ analyzer:
     assertAnalysisOptionsText(analysisOptions, r'''
 AnalysisOptionsImpl
   excludePatterns
-    test/_data/p4/lib/lib1.dart
+    AnalysisOptionsExcludePattern
+      declaringFile: /home/test/analysis_options.yaml
+      pattern: test/_data/p4/lib/lib1.dart
+''');
+  }
+
+  test_analyzer_exclude_startsWithForwardSlash() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  exclude:
+    - /test/**
+//    ^^^^^^^^
+// [diag.excludeInvalidGlob] The exclude glob pattern '/test/**' shouldn't start with a forward slash.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  excludePatterns
+    AnalysisOptionsExcludePattern
+      declaringFile: /home/test/analysis_options.yaml
+      pattern: /test/**
 ''');
   }
 
@@ -997,7 +1100,7 @@ AnalysisOptionsImpl
   }
 
   // TODO(srawlins): Enable when we deprecate strict-raw-types.
-  @SkippedTest(reason: 'Enable when we deprecate strict-raw-types')
+  @FailingTest(reason: 'Enable when we deprecate strict-raw-types')
   test_analyzer_language_strictRawTypes_deprecated() {
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
@@ -1095,20 +1198,7 @@ AnalysisOptionsImpl
 ''');
   }
 
-  test_analyzer_optionalChecks_chromeOsManifestChecks_supported() {
-    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
-analyzer:
-  optional-checks:
-    chrome-os-manifest-checks
-''');
-
-    assertAnalysisOptionsText(analysisOptions, r'''
-AnalysisOptionsImpl
-  chromeOsManifestChecks: true
-''');
-  }
-
-  test_analyzer_optionalChecks_chromeOsManifestChecks_valid_map() {
+  test_analyzer_optionalChecks_chromeOsManifestChecks_map() {
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   optional-checks:
@@ -1120,7 +1210,7 @@ AnalysisOptionsImpl
 ''');
   }
 
-  test_analyzer_optionalChecks_chromeOsManifestChecks_valid_scalar() {
+  test_analyzer_optionalChecks_chromeOsManifestChecks_scalar() {
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   optional-checks:
@@ -1171,6 +1261,17 @@ AnalysisOptionsImpl
 ''');
   }
 
+  test_analyzer_optionalChecks_propagateLinterExceptions_false() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  optional-checks:
+    propagate-linter-exceptions: false
+''');
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
+  }
+
   test_analyzer_optionalChecks_propagateLinterExceptions_invalid_notScalar() {
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
@@ -1186,44 +1287,7 @@ AnalysisOptionsImpl
 ''');
   }
 
-  test_analyzer_optionalChecks_propagateLinterExceptions_supported() {
-    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
-analyzer:
-  optional-checks:
-    propagate-linter-exceptions
-''');
-
-    assertAnalysisOptionsText(analysisOptions, r'''
-AnalysisOptionsImpl
-  propagateLinterExceptions: true
-''');
-  }
-
-  test_analyzer_optionalChecks_propagateLinterExceptions_valid_false() {
-    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
-analyzer:
-  optional-checks:
-    propagate-linter-exceptions: false
-''');
-    assertAnalysisOptionsText(analysisOptions, r'''
-AnalysisOptionsImpl
-''');
-  }
-
-  test_analyzer_optionalChecks_propagateLinterExceptions_valid_mapKey() {
-    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
-analyzer:
-  optional-checks:
-    propagate-linter-exceptions: true
-''');
-
-    assertAnalysisOptionsText(analysisOptions, r'''
-AnalysisOptionsImpl
-  propagateLinterExceptions: true
-''');
-  }
-
-  test_analyzer_optionalChecks_propagateLinterExceptions_valid_scalar() {
+  test_analyzer_optionalChecks_propagateLinterExceptions_scalar() {
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   optional-checks:
@@ -1235,7 +1299,7 @@ AnalysisOptionsImpl
 ''');
   }
 
-  test_analyzer_optionalChecks_propagateLinterExceptions_valid_true() {
+  test_analyzer_optionalChecks_propagateLinterExceptions_true() {
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   optional-checks:
@@ -1403,7 +1467,7 @@ AnalysisOptionsImpl
 ''');
   }
 
-  test_analyzer_plugins_legacy_chooseFirst() {
+  test_analyzer_plugins_include_nestedMultiple_chooseFirst() {
     var options = parseAnalysisOptionsFilesWithDiagnostics({
       analysisOptionsFile: r'''
 include: other_options.yaml
@@ -1453,29 +1517,7 @@ AnalysisOptionsImpl
 ''');
   }
 
-  test_analyzer_plugins_legacy_include() {
-    var options = parseAnalysisOptionsFilesWithDiagnostics({
-      analysisOptionsFile: r'''
-include: other_options.yaml
-//       ^^^^^^^^^^^^^^^^^^
-// [diag.includedFileWarning] Warning in the included options file /home/test/other_options.yaml(12..18): Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
-''',
-      getFile('$testPackageRootPath/other_options.yaml'): '''
-analyzer:
-  plugins:
-    toplevelplugin:
-      enabled: true
-''',
-    });
-
-    assertAnalysisOptionsText(options, r'''
-AnalysisOptionsImpl
-  enabledLegacyPluginNames
-    toplevelplugin
-''');
-  }
-
-  test_analyzer_plugins_legacy_list() {
+  test_analyzer_plugins_list() {
     // TODO(srawlins): Test legacy plugins as a list of non-scalar values
     // (`- angular2: yes`).
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
@@ -1496,10 +1538,8 @@ AnalysisOptionsImpl
 ''');
   }
 
-  test_analyzer_plugins_legacy_map() {
-    // TODO(srawlins): Test legacy plugins as a map of scalar values
-    // (`angular2: yes`).
-    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+  test_analyzer_plugins_list_duplicateName() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics(r'''
 analyzer:
   plugins:
 //^^^^^^^
@@ -1515,19 +1555,25 @@ AnalysisOptionsImpl
 ''');
   }
 
-  test_analyzer_plugins_legacy_string() {
-    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+  test_analyzer_plugins_list_multiple() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics(r'''
 analyzer:
   plugins:
 //^^^^^^^
 // [diag.analysisOptionsDeprecatedPlugins] Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
-    angular2
+    - plugin_one
+    - plugin_two
+//    ^^^^^^^^^^
+// [diag.multiplePlugins] Multiple plugins can't be enabled.
+    - plugin_three
+//    ^^^^^^^^^^^^
+// [diag.multiplePlugins] Multiple plugins can't be enabled.
 ''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
 AnalysisOptionsImpl
   enabledLegacyPluginNames
-    angular2
+    plugin_one
 ''');
   }
 
@@ -1565,30 +1611,10 @@ AnalysisOptionsImpl
 ''');
   }
 
-  test_analyzer_plugins_multiple_directList() {
-    var analysisOptions = parseAnalysisOptionsWithDiagnostics(r'''
-analyzer:
-  plugins:
-//^^^^^^^
-// [diag.analysisOptionsDeprecatedPlugins] Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
-    - plugin_one
-    - plugin_two
-//    ^^^^^^^^^^
-// [diag.multiplePlugins] Multiple plugins can't be enabled.
-    - plugin_three
-//    ^^^^^^^^^^^^
-// [diag.multiplePlugins] Multiple plugins can't be enabled.
-''');
-
-    assertAnalysisOptionsText(analysisOptions, r'''
-AnalysisOptionsImpl
-  enabledLegacyPluginNames
-    plugin_one
-''');
-  }
-
-  test_analyzer_plugins_multiple_directList_nonString_afterString() {
-    var analysisOptions = parseAnalysisOptionsWithDiagnostics(r'''
+  test_analyzer_plugins_map() {
+    // TODO(srawlins): Test legacy plugins as a map of scalar values
+    // (`angular2: yes`).
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   plugins:
 //^^^^^^^
@@ -1604,24 +1630,22 @@ AnalysisOptionsImpl
 ''');
   }
 
-  test_analyzer_plugins_multiple_directList_sameName() {
+  test_analyzer_plugins_map_duplicateKey() {
     var analysisOptions = parseAnalysisOptionsWithDiagnostics(r'''
 analyzer:
   plugins:
-//^^^^^^^
-// [diag.analysisOptionsDeprecatedPlugins] Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
-    - plugin_one
-    - plugin_one
+    plugin_one: yes
+    plugin_one: sure
+//  ^^^^^^^^^^
+// [diag.parseError] Duplicate mapping key.
 ''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
 AnalysisOptionsImpl
-  enabledLegacyPluginNames
-    plugin_one
 ''');
   }
 
-  test_analyzer_plugins_multiple_directMap() {
+  test_analyzer_plugins_map_multiple() {
     var analysisOptions = parseAnalysisOptionsWithDiagnostics(r'''
 analyzer:
   plugins:
@@ -1640,152 +1664,19 @@ AnalysisOptionsImpl
 ''');
   }
 
-  test_analyzer_plugins_multiple_directMap_sameName() {
-    var analysisOptions = parseAnalysisOptionsWithDiagnostics(r'''
-analyzer:
-  plugins:
-    plugin_one: yes
-    plugin_one: sure
-//  ^^^^^^^^^^
-// [diag.parseError] Duplicate mapping key.
-''');
-
-    assertAnalysisOptionsText(analysisOptions, r'''
-AnalysisOptionsImpl
-''');
-  }
-
-  test_analyzer_plugins_multiple_firstIncludedSecondDirect_list() {
-    newFile('$testPackageRootPath/other_options.yaml', '''
-analyzer:
-  plugins:
-    - plugin_one
-''');
-    var analysisOptions = parseAnalysisOptionsWithDiagnostics(r'''
-include: other_options.yaml
-//       ^^^^^^^^^^^^^^^^^^
-// [diag.includedFileWarning] Warning in the included options file /home/test/other_options.yaml(12..18): Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
+  test_analyzer_plugins_scalar() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   plugins:
 //^^^^^^^
 // [diag.analysisOptionsDeprecatedPlugins] Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
-    - plugin_two
-//    ^^^^^^^^^^
-// [diag.multiplePlugins] Multiple plugins can't be enabled.
+    angular2
 ''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
 AnalysisOptionsImpl
   enabledLegacyPluginNames
-    plugin_one
-''');
-  }
-
-  test_analyzer_plugins_multiple_firstIncludedSecondDirect_map() {
-    newFile('$testPackageRootPath/other_options.yaml', '''
-analyzer:
-  plugins:
-    - plugin_one
-''');
-    var analysisOptions = parseAnalysisOptionsWithDiagnostics(r'''
-include: other_options.yaml
-//       ^^^^^^^^^^^^^^^^^^
-// [diag.includedFileWarning] Warning in the included options file /home/test/other_options.yaml(12..18): Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
-analyzer:
-  plugins:
-//^^^^^^^
-// [diag.analysisOptionsDeprecatedPlugins] Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
-    plugin_two:
-//  ^^^^^^^^^^
-// [diag.multiplePlugins] Multiple plugins can't be enabled.
-      foo: bar
-''');
-
-    assertAnalysisOptionsText(analysisOptions, r'''
-AnalysisOptionsImpl
-  enabledLegacyPluginNames
-    plugin_two
-''');
-  }
-
-  test_analyzer_plugins_multiple_firstIncludedSecondDirect_scalar() {
-    newFile('$testPackageRootPath/other_options.yaml', '''
-analyzer:
-  plugins:
-    - plugin_one
-''');
-    var analysisOptions = parseAnalysisOptionsWithDiagnostics(r'''
-include: other_options.yaml
-//       ^^^^^^^^^^^^^^^^^^
-// [diag.includedFileWarning] Warning in the included options file /home/test/other_options.yaml(12..18): Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
-analyzer:
-  plugins: plugin_two
-//^^^^^^^
-// [diag.analysisOptionsDeprecatedPlugins] Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
-//         ^^^^^^^^^^
-// [diag.multiplePlugins] Multiple plugins can't be enabled.
-''');
-
-    assertAnalysisOptionsText(analysisOptions, r'''
-AnalysisOptionsImpl
-  enabledLegacyPluginNames
-    plugin_two
-''');
-  }
-
-  test_analyzer_plugins_multiple_firstIndirectlyIncludedSecondDirect() {
-    newFile('$testPackageRootPath/more_options.yaml', '''
-analyzer:
-  plugins:
-    - plugin_one
-''');
-    newFile('$testPackageRootPath/other_options.yaml', '''
-include: more_options.yaml
-''');
-    var analysisOptions = parseAnalysisOptionsWithDiagnostics(r'''
-include: other_options.yaml
-//       ^^^^^^^^^^^^^^^^^^
-// [diag.includedFileWarning] Warning in the included options file /home/test/more_options.yaml(12..18): Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
-analyzer:
-  plugins:
-//^^^^^^^
-// [diag.analysisOptionsDeprecatedPlugins] Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
-    - plugin_two
-//    ^^^^^^^^^^
-// [diag.multiplePlugins] Multiple plugins can't be enabled.
-''');
-
-    assertAnalysisOptionsText(analysisOptions, r'''
-AnalysisOptionsImpl
-  enabledLegacyPluginNames
-    plugin_one
-''');
-  }
-
-  test_analyzer_plugins_multiple_firstIndirectlyIncludedSecondIncluded() {
-    newFile('$testPackageRootPath/more_options.yaml', '''
-analyzer:
-  plugins:
-    - plugin_one
-''');
-    newFile('$testPackageRootPath/other_options.yaml', '''
-include: more_options.yaml
-analyzer:
-  plugins:
-    - plugin_two
-''');
-    var analysisOptions = parseAnalysisOptionsWithDiagnostics(r'''
-include: other_options.yaml
-//       ^^^^^^^^^^^^^^^^^^
-// [diag.includedFileWarning] Warning in the included options file /home/test/other_options.yaml(39..45): Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
-// [diag.includedFileWarning] Warning in the included options file /home/test/more_options.yaml(12..18): Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
-// [diag.includedFileWarning] Warning in the included options file /home/test/other_options.yaml(54..63): Multiple plugins can't be enabled.
-''');
-
-    assertAnalysisOptionsText(analysisOptions, r'''
-AnalysisOptionsImpl
-  enabledLegacyPluginNames
-    plugin_one
+    angular2
 ''');
   }
 
@@ -1832,7 +1723,7 @@ AnalysisOptionsImpl
 ''');
   }
 
-  test_analyzer_strongMode_implicitDynamic_valid() {
+  test_analyzer_strongMode_implicitDynamic_true() {
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   strong-mode:
@@ -1889,7 +1780,6 @@ AnalysisOptionsImpl
 code-style:
   format: false
 ''');
-
     assertAnalysisOptionsText(analysisOptions, r'''
 AnalysisOptionsImpl
 ''');
@@ -1900,7 +1790,6 @@ AnalysisOptionsImpl
 code-style:
   format: true
 ''');
-
     assertAnalysisOptionsText(analysisOptions, r'''
 AnalysisOptionsImpl
   codeStyleOptions
@@ -1908,20 +1797,7 @@ AnalysisOptionsImpl
 ''');
   }
 
-  test_codeStyle_format_invalid() {
-    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
-code-style:
-  format: 80
-//        ^^
-// [diag.unsupportedValue] The value '80' isn't supported by 'format'.
-''');
-
-    assertAnalysisOptionsText(analysisOptions, r'''
-AnalysisOptionsImpl
-''');
-  }
-
-  test_codeStyle_format_invalidDoesNotOverrideIncluded() {
+  test_codeStyle_format_include_invalidDoesNotOverrideIncluded() {
     newFile('$testPackageRootPath/included.yaml', '''
 code-style:
   format: true
@@ -1938,6 +1814,19 @@ code-style:
 AnalysisOptionsImpl
   codeStyleOptions
     useFormatter: true
+''');
+  }
+
+  test_codeStyle_format_invalid_int() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+code-style:
+  format: 80
+//        ^^
+// [diag.unsupportedValue] The value '80' isn't supported by 'format'.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
 ''');
   }
 
@@ -1991,25 +1880,59 @@ AnalysisOptionsImpl
 ''');
   }
 
-  test_codeStyle_format_valid_false() {
-    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+  test_codeStyle_include_invalid_notMap_doesNotOverrideIncluded() {
+    newFile('$testPackageRootPath/included.yaml', '''
 code-style:
-  format: false
+  format: true
 ''');
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+include: included.yaml
+code-style: format
+//          ^^^^^^
+// [diag.invalidSectionFormat] Invalid format for the 'code-style' section.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  codeStyleOptions
+    useFormatter: true
+''');
+  }
+
+  test_codeStyle_invalid_notMap() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+code-style: 7
+//          ^
+// [diag.invalidSectionFormat] Invalid format for the 'code-style' section.
+''');
+
     assertAnalysisOptionsText(analysisOptions, r'''
 AnalysisOptionsImpl
 ''');
   }
 
-  test_codeStyle_format_valid_true() {
+  test_codeStyle_invalid_notMap_list() {
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 code-style:
-  format: true
+  - format
+//^^^^^^^^
+// [diag.invalidSectionFormat] Invalid format for the 'code-style' section.
 ''');
+
     assertAnalysisOptionsText(analysisOptions, r'''
 AnalysisOptionsImpl
-  codeStyleOptions
-    useFormatter: true
+''');
+  }
+
+  test_codeStyle_invalid_notMap_scalar() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+code-style: format
+//          ^^^^^^
+// [diag.invalidSectionFormat] Invalid format for the 'code-style' section.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
 ''');
   }
 
@@ -2286,63 +2209,7 @@ AnalysisOptionsImpl
 ''');
   }
 
-  test_codeStyle_notMap() {
-    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
-code-style: 7
-//          ^
-// [diag.invalidSectionFormat] Invalid format for the 'code-style' section.
-''');
-
-    assertAnalysisOptionsText(analysisOptions, r'''
-AnalysisOptionsImpl
-''');
-  }
-
-  test_codeStyle_notMap_doesNotOverrideIncluded() {
-    newFile('$testPackageRootPath/included.yaml', '''
-code-style:
-  format: true
-''');
-    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
-include: included.yaml
-code-style: format
-//          ^^^^^^
-// [diag.invalidSectionFormat] Invalid format for the 'code-style' section.
-''');
-
-    assertAnalysisOptionsText(analysisOptions, r'''
-AnalysisOptionsImpl
-  codeStyleOptions
-    useFormatter: true
-''');
-  }
-
-  test_codeStyle_notMap_list() {
-    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
-code-style:
-  - format
-//^^^^^^^^
-// [diag.invalidSectionFormat] Invalid format for the 'code-style' section.
-''');
-
-    assertAnalysisOptionsText(analysisOptions, r'''
-AnalysisOptionsImpl
-''');
-  }
-
-  test_codeStyle_notMap_scalar() {
-    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
-code-style: format
-//          ^^^^^^
-// [diag.invalidSectionFormat] Invalid format for the 'code-style' section.
-''');
-
-    assertAnalysisOptionsText(analysisOptions, r'''
-AnalysisOptionsImpl
-''');
-  }
-
-  test_codeStyle_unsupportedOption() {
+  test_codeStyle_unsupportedKey() {
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 code-style:
   not_supported: true
@@ -2365,6 +2232,25 @@ AnalysisOptionsImpl
 ''');
   }
 
+  test_formatter_include_invalid_notMap_doesNotOverrideIncluded() {
+    newFile('$testPackageRootPath/included.yaml', '''
+formatter:
+  page_width: 80
+''');
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+include: included.yaml
+formatter: format
+//         ^^^^^^
+// [diag.invalidSectionFormat] Invalid format for the 'formatter' section.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  formatterOptions
+    pageWidth: 80
+''');
+  }
+
   test_formatter_include_merged() {
     newFile('$testPackageRootPath/included.yaml', '''
 formatter:
@@ -2381,25 +2267,6 @@ AnalysisOptionsImpl
   formatterOptions
     pageWidth: 80
     trailingCommas: automate
-''');
-  }
-
-  test_formatter_include_notMap_doesNotOverrideIncluded() {
-    newFile('$testPackageRootPath/included.yaml', '''
-formatter:
-  page_width: 80
-''');
-    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
-include: included.yaml
-formatter: format
-//         ^^^^^^
-// [diag.invalidSectionFormat] Invalid format for the 'formatter' section.
-''');
-
-    assertAnalysisOptionsText(analysisOptions, r'''
-AnalysisOptionsImpl
-  formatterOptions
-    pageWidth: 80
 ''');
   }
 
@@ -2420,7 +2287,7 @@ AnalysisOptionsImpl
 ''');
   }
 
-  test_formatter_include_pageWidth_invalidDoesNotOverrideIncluded() {
+  test_formatter_pageWidth_include_invalidDoesNotOverrideIncluded() {
     newFile('$testPackageRootPath/included.yaml', '''
 formatter:
   page_width: 80
@@ -2440,23 +2307,16 @@ AnalysisOptionsImpl
 ''');
   }
 
-  test_formatter_include_trailingCommas_invalidDoesNotOverrideIncluded() {
-    newFile('$testPackageRootPath/included.yaml', '''
-formatter:
-  trailing_commas: automate
-''');
+  test_formatter_pageWidth_integer() {
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
-include: included.yaml
 formatter:
-  trailing_commas: foo
-//                 ^^^
-// [diag.invalidOption] Invalid option specified for 'trailing_commas': "trailing_commas" must be "automate" or "preserve".
+  page_width: 123
 ''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
 AnalysisOptionsImpl
   formatterOptions
-    trailingCommas: automate
+    pageWidth: 123
 ''');
   }
 
@@ -2512,16 +2372,36 @@ AnalysisOptionsImpl
 ''');
   }
 
-  test_formatter_pageWidth_valid_integer() {
+  test_formatter_trailingCommas_automate() {
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 formatter:
-  page_width: 123
+  trailing_commas: automate
 ''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
 AnalysisOptionsImpl
   formatterOptions
-    pageWidth: 123
+    trailingCommas: automate
+''');
+  }
+
+  test_formatter_trailingCommas_include_invalidDoesNotOverrideIncluded() {
+    newFile('$testPackageRootPath/included.yaml', '''
+formatter:
+  trailing_commas: automate
+''');
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+include: included.yaml
+formatter:
+  trailing_commas: foo
+//                 ^^^
+// [diag.invalidOption] Invalid option specified for 'trailing_commas': "trailing_commas" must be "automate" or "preserve".
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  formatterOptions
+    trailingCommas: automate
 ''');
   }
 
@@ -2565,33 +2445,7 @@ AnalysisOptionsImpl
 ''');
   }
 
-  test_formatter_trailingCommas_valid() {
-    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
-formatter:
-  trailing_commas: automate
-''');
-
-    assertAnalysisOptionsText(analysisOptions, r'''
-AnalysisOptionsImpl
-  formatterOptions
-    trailingCommas: automate
-''');
-  }
-
-  test_formatter_unsupportedKey() {
-    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
-formatter:
-  wrong: 123
-//^^^^^
-// [diag.unsupportedOptionWithoutValues] The option 'wrong' isn't supported by 'formatter'.
-''');
-
-    assertAnalysisOptionsText(analysisOptions, r'''
-AnalysisOptionsImpl
-''');
-  }
-
-  test_formatter_unsupportedKeys() {
+  test_formatter_unsupportedKey_multiple() {
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 formatter:
   wrong: 123
@@ -2600,6 +2454,19 @@ formatter:
   wrong2: 123
 //^^^^^^
 // [diag.unsupportedOptionWithoutValues] The option 'wrong2' isn't supported by 'formatter'.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
+  }
+
+  test_formatter_unsupportedKey_single() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+formatter:
+  wrong: 123
+//^^^^^
+// [diag.unsupportedOptionWithoutValues] The option 'wrong' isn't supported by 'formatter'.
 ''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
@@ -2972,20 +2839,6 @@ AnalysisOptionsImpl
 ''');
   }
 
-  test_include_recursive_self_direct() {
-    // Test that the appropriate error is issued if `analysis_options.yaml`
-    // tries to include itself.
-    var analysisOptions = parseAnalysisOptionsWithDiagnostics(r'''
-include: analysis_options.yaml
-//       ^^^^^^^^^^^^^^^^^^^^^
-// [diag.recursiveIncludeFile] The URI 'analysis_options.yaml' included in '/home/test/analysis_options.yaml' includes '/home/test/analysis_options.yaml', creating a circular reference.
-''');
-
-    assertAnalysisOptionsText(analysisOptions, r'''
-AnalysisOptionsImpl
-''');
-  }
-
   test_include_recursive_self_doubleQuoted() {
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 include: "./analysis_options.yaml"
@@ -3149,7 +3002,7 @@ AnalysisOptionsImpl
 ''');
   }
 
-  test_linter_rules_deprecated_inIncludedFile_ok() {
+  test_linter_rules_deprecated_inIncludedFile() {
     newFile('$testPackageRootPath/included.yaml', '''
 linter:
   rules:
@@ -3213,7 +3066,7 @@ AnalysisOptionsImpl
 ''');
   }
 
-  test_linter_rules_deprecated_previousSdk() {
+  test_linter_rules_deprecated_since_afterDeprecationSdk() {
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 linter:
   rules:
@@ -3230,7 +3083,7 @@ AnalysisOptionsImpl
 ''');
   }
 
-  test_linter_rules_deprecated_since_inCurrentSdk() {
+  test_linter_rules_deprecated_since_atDeprecationSdk() {
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 linter:
   rules:
@@ -3247,7 +3100,7 @@ AnalysisOptionsImpl
 ''');
   }
 
-  test_linter_rules_deprecated_since_notInCurrentSdk() {
+  test_linter_rules_deprecated_since_beforeDeprecationSdk() {
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 linter:
   rules:
@@ -3262,7 +3115,7 @@ AnalysisOptionsImpl
 ''');
   }
 
-  test_linter_rules_deprecated_since_unknownSdk() {
+  test_linter_rules_deprecated_since_unknownPackageSdk() {
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 linter:
   rules:
@@ -3329,7 +3182,7 @@ AnalysisOptionsImpl
 ''');
   }
 
-  test_linter_rules_duplicate_inIncludedFile_ok() {
+  test_linter_rules_duplicate_inIncludedFile() {
     newFile('$testPackageRootPath/included.yaml', '''
 linter:
   rules:
@@ -4307,6 +4160,22 @@ AnalysisOptionsImpl
 ''');
   }
 
+  test_linter_rules_registeredRule() {
+    registerLintRule(TestRule());
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+linter:
+  rules:
+    - fantastic_test_rule
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    fantastic_test_rule
+''');
+  }
+
   test_linter_rules_removed() {
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 linter:
@@ -4324,41 +4193,8 @@ AnalysisOptionsImpl
 ''');
   }
 
-  test_linter_rules_removed_inIncludedFile_ok() {
-    newFile('$testPackageRootPath/included.yaml', '''
-linter:
-  rules:
-    - removed_in_2_12_lint
-''');
-    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
-include: included.yaml
-''');
-
-    assertAnalysisOptionsText(analysisOptions, r'''
-AnalysisOptionsImpl
-  lint: true
-  lintRules
-    removed_in_2_12_lint
-''');
-  }
-
-  test_linter_rules_removed_notYet_ok() {
-    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
-linter:
-  rules:
-    - removed_in_2_12_lint
-''', sdkVersionConstraint: Version(2, 11, 0));
-
-    assertAnalysisOptionsText(analysisOptions, r'''
-AnalysisOptionsImpl
-  lint: true
-  lintRules
-    removed_in_2_12_lint
-''');
-  }
-
   /// https://github.com/dart-lang/sdk/issues/59869
-  test_linter_rules_removed_previousSdk() {
+  test_linter_rules_removed_afterRemovalSdk() {
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 linter:
   rules:
@@ -4375,7 +4211,7 @@ AnalysisOptionsImpl
 ''');
   }
 
-  test_linter_rules_removed_previousSdk_mixedCase() {
+  test_linter_rules_removed_afterRemovalSdk_mixedCase() {
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 linter:
   rules:
@@ -4383,6 +4219,39 @@ linter:
 //    ^^^^^^^^^^^^^^^^^^^^
 // [diag.removedLint] 'remOved_in_2_12_lint' was removed in Dart '2.12.0'
 ''', sdkVersionConstraint: dart3_3);
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    removed_in_2_12_lint
+''');
+  }
+
+  test_linter_rules_removed_beforeRemovalSdk() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+linter:
+  rules:
+    - removed_in_2_12_lint
+''', sdkVersionConstraint: Version(2, 11, 0));
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  lint: true
+  lintRules
+    removed_in_2_12_lint
+''');
+  }
+
+  test_linter_rules_removed_inIncludedFile() {
+    newFile('$testPackageRootPath/included.yaml', '''
+linter:
+  rules:
+    - removed_in_2_12_lint
+''');
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+include: included.yaml
+''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
 AnalysisOptionsImpl
@@ -4483,22 +4352,6 @@ AnalysisOptionsImpl
   lint: true
   lintRules
     stable_lint
-''');
-  }
-
-  test_linter_rules_supported() {
-    registerLintRule(TestRule());
-    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
-linter:
-  rules:
-    - fantastic_test_rule
-''');
-
-    assertAnalysisOptionsText(analysisOptions, r'''
-AnalysisOptionsImpl
-  lint: true
-  lintRules
-    fantastic_test_rule
 ''');
   }
 
@@ -4845,64 +4698,6 @@ AnalysisOptionsImpl
 ''');
   }
 
-  test_plugins_configuration_git() {
-    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
-plugins:
-  plugin_one:
-    git: https://github.com/dart-lang/plugin_one.git
-''');
-
-    assertAnalysisOptionsText(analysisOptions, r'''
-AnalysisOptionsImpl
-  pluginsOptions
-    configurations
-      plugin_one
-        source: GitPluginSource
-          url: https://github.com/dart-lang/plugin_one.git
-''');
-  }
-
-  test_plugins_configuration_git_full() {
-    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
-plugins:
-  plugin_one:
-    git:
-      url: https://github.com/dart-lang/sdk.git
-      ref: main
-      path: pkg/plugin_one
-      tag_pattern: 'v*'
-''');
-
-    assertAnalysisOptionsText(analysisOptions, r'''
-AnalysisOptionsImpl
-  pluginsOptions
-    configurations
-      plugin_one
-        source: GitPluginSource
-          url: https://github.com/dart-lang/sdk.git
-          ref: main
-          path: pkg/plugin_one
-          tagPattern: v*
-''');
-  }
-
-  test_plugins_configuration_git_scalar() {
-    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
-plugins:
-  plugin_one:
-    git: https://github.com/dart-lang/plugin_one.git
-''');
-
-    assertAnalysisOptionsText(analysisOptions, r'''
-AnalysisOptionsImpl
-  pluginsOptions
-    configurations
-      plugin_one
-        source: GitPluginSource
-          url: https://github.com/dart-lang/plugin_one.git
-''');
-  }
-
   test_plugins_configuration_path() {
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 plugins:
@@ -4917,23 +4712,6 @@ AnalysisOptionsImpl
       plugin_one
         source: PathPluginSource
           path: /foo/bar
-''');
-  }
-
-  test_plugins_configuration_path_relative() {
-    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
-plugins:
-  plugin_one:
-    path: foo/bar
-''');
-
-    assertAnalysisOptionsText(analysisOptions, '''
-AnalysisOptionsImpl
-  pluginsOptions
-    configurations
-      plugin_one
-        source: PathPluginSource
-          path: /home/test/foo/bar
 ''');
   }
 
@@ -4990,38 +4768,7 @@ AnalysisOptionsImpl
 ''');
   }
 
-  test_plugins_configuration_versionScalar() {
-    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
-plugins:
-  plugin_one: ^1.2.3
-''');
-
-    assertAnalysisOptionsText(analysisOptions, r'''
-AnalysisOptionsImpl
-  pluginsOptions
-    configurations
-      plugin_one
-        source: VersionedPluginSource
-          constraint: ^1.2.3
-''');
-  }
-
-  test_plugins_dependencyOverrides_invalidKey() {
-    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
-plugins:
-  dependency_overrides:
-    one:
-      ppath: foo/bar
-//    ^^^^^
-// [diag.unsupportedOptionWithLegalValues] The option 'ppath' isn't supported by 'plugins/dependency_overrides/one'.
-''');
-
-    assertAnalysisOptionsText(analysisOptions, r'''
-AnalysisOptionsImpl
-''');
-  }
-
-  test_plugins_dependencyOverrides_valid() {
+  test_plugins_dependencyOverrides_git() {
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 plugins:
   dependency_overrides:
@@ -5039,7 +4786,50 @@ AnalysisOptionsImpl
 ''');
   }
 
-  test_plugins_diagnostics_invalid() {
+  test_plugins_dependencyOverrides_invalid_unsupportedKey() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+plugins:
+  dependency_overrides:
+    one:
+      ppath: foo/bar
+//    ^^^^^
+// [diag.unsupportedOptionWithLegalValues] The option 'ppath' isn't supported by 'plugins/dependency_overrides/one'.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
+  }
+
+  test_plugins_diagnostics_bool() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+plugins:
+  one:
+    diagnostics:
+      code1: true
+      code2: false
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
+  }
+
+  test_plugins_diagnostics_invalid_notMap() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+plugins:
+  one:
+    diagnostics: 7
+//               ^
+// [diag.invalidSectionFormat] Invalid format for the 'plugins/one/diagnostics' section.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+''');
+  }
+
+  test_plugins_diagnostics_invalid_severity() {
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 plugins:
   one:
@@ -5054,21 +4844,7 @@ AnalysisOptionsImpl
 ''');
   }
 
-  test_plugins_diagnostics_notMap() {
-    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
-plugins:
-  one:
-    diagnostics: 7
-//               ^
-// [diag.invalidSectionFormat] Invalid format for the 'plugins/one/diagnostics' section.
-''');
-
-    assertAnalysisOptionsText(analysisOptions, r'''
-AnalysisOptionsImpl
-''');
-  }
-
-  test_plugins_diagnostics_supported_severity() {
+  test_plugins_diagnostics_severity() {
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 plugins:
   one:
@@ -5077,20 +4853,6 @@ plugins:
       code2: warning
       code3: error
       code4: info
-''');
-
-    assertAnalysisOptionsText(analysisOptions, r'''
-AnalysisOptionsImpl
-''');
-  }
-
-  test_plugins_diagnostics_supported_trueOrFalse() {
-    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
-plugins:
-  one:
-    diagnostics:
-      code1: true
-      code2: false
 ''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
@@ -5108,15 +4870,15 @@ AnalysisOptionsImpl
 ''');
   }
 
-  test_plugins_git_invalidKey() {
+  test_plugins_git_invalid_refNotString() {
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 plugins:
   one:
     git:
       url: https://github.com/dart-lang/linter.git
-      invalid: main
-//    ^^^^^^^
-// [diag.unsupportedOptionWithLegalValues] The option 'invalid' isn't supported by 'plugins/one/git'.
+      ref: 7
+//         ^
+// [diag.invalidSectionFormat] Invalid format for the 'plugins/one/git/ref' section.
 ''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
@@ -5129,15 +4891,15 @@ AnalysisOptionsImpl
 ''');
   }
 
-  test_plugins_git_invalidValue() {
+  test_plugins_git_invalid_unsupportedKey() {
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 plugins:
   one:
     git:
       url: https://github.com/dart-lang/linter.git
-      ref: 7
-//         ^
-// [diag.invalidSectionFormat] Invalid format for the 'plugins/one/git/ref' section.
+      invalid: main
+//    ^^^^^^^
+// [diag.unsupportedOptionWithLegalValues] The option 'invalid' isn't supported by 'plugins/one/git'.
 ''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
@@ -5225,8 +4987,6 @@ version: 0.0.1
       innerOptionsFile: '''
 plugins:
   one: ^1.0.0
-//^^^^^^^^^^^
-// [diag.pluginsInInnerOptions] Plugins can only be specified in the root of a pub workspace or the root of a package that isn't in a workspace.
 ''',
     });
 
@@ -5296,7 +5056,7 @@ AnalysisOptionsImpl
 ''');
   }
 
-  test_plugins_notMap_scalar() {
+  test_plugins_invalid_notMap_scalar() {
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 plugins: 7
 //       ^
@@ -5308,7 +5068,7 @@ AnalysisOptionsImpl
 ''');
   }
 
-  test_plugins_plugin_invalidKey() {
+  test_plugins_plugin_invalid_unsupportedKey() {
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 plugins:
   one:
@@ -5322,7 +5082,7 @@ AnalysisOptionsImpl
 ''');
   }
 
-  test_plugins_plugin_validKey() {
+  test_plugins_plugin_pathKey() {
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 plugins:
   one:
@@ -5339,7 +5099,7 @@ AnalysisOptionsImpl
 ''');
   }
 
-  test_plugins_plugin_validScalar() {
+  test_plugins_plugin_scalar() {
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 plugins:
   one: ^1.2.3
@@ -5495,51 +5255,6 @@ class DeprecatedSince3Lint extends TestLintRule {
         name: 'deprecated_since_3_lint',
         state: RuleState.deprecated(since: dart3),
       );
-}
-
-@reflectiveTest
-class ErrorCodeValuesTest {
-  test_errorCodes() {
-    // Now that we're using unique names for comparison, the only reason to
-    // split the codes by class is to find all of the classes that need to be
-    // checked against `errorCodeValues`.
-    var errorTypeMap = <Type, List<DiagnosticCode>>{};
-    for (DiagnosticCode code in diagnosticCodeValues) {
-      Type type = code.runtimeType;
-      errorTypeMap.putIfAbsent(type, () => <DiagnosticCode>[]).add(code);
-    }
-
-    StringBuffer missingCodes = StringBuffer();
-    errorTypeMap.forEach((Type errorType, List<DiagnosticCode> codes) {
-      var listedNames = codes
-          .map((DiagnosticCode code) => code.lowerCaseUniqueName)
-          .toSet();
-
-      var declaredNames = reflectClass(errorType).declarations.values
-          .map((DeclarationMirror declarationMirror) {
-            String name = declarationMirror.simpleName.toString();
-            // TODO(danrubel): find a better way to extract the text from the symbol
-            assert(name.startsWith('Symbol("') && name.endsWith('")'));
-            return '$errorType.${name.substring(8, name.length - 2)}';
-          })
-          .where((String name) {
-            return name == name.toUpperCase();
-          })
-          .toList();
-
-      // Assert that all declared names are in errorCodeValues.
-
-      for (String declaredName in declaredNames) {
-        if (!listedNames.contains(declaredName)) {
-          missingCodes.writeln();
-          missingCodes.write('  $declaredName');
-        }
-      }
-    });
-    if (missingCodes.isNotEmpty) {
-      fail('Missing error codes:$missingCodes');
-    }
-  }
 }
 
 class ReplacingLint extends TestLintRule {

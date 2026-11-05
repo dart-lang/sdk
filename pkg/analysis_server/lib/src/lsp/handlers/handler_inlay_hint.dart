@@ -13,7 +13,7 @@ typedef StaticOptions =
     Either3<bool, InlayHintOptions, InlayHintRegistrationOptions>;
 
 class InlayHintHandler
-    extends LspMessageHandler<InlayHintParams, List<InlayHint>> {
+    extends SharedMessageHandler<InlayHintParams, List<InlayHint>> {
   new(super.server);
   @override
   Method get handlesMessage => Method.textDocument_inlayHint;
@@ -21,6 +21,9 @@ class InlayHintHandler
   @override
   LspJsonHandler<InlayHintParams> get jsonHandler =>
       InlayHintParams.jsonHandler;
+
+  @override
+  bool get requiresTrustedCaller => false;
 
   @override
   Future<ErrorOr<List<InlayHint>>> handle(

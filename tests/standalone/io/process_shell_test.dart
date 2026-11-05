@@ -11,11 +11,10 @@ import "dart:isolate";
 import "package:path/path.dart";
 import "package:expect/async_helper.dart";
 
-void testRunShell() {
-  test(args) {
-    asyncStart();
+testRunShell() async {
+  test(args) async {
     var script = Platform.script.resolve("process_echo_util.dart").toFilePath();
-    Process.run(
+    var process_result = await Process.run(
       Platform.executable,
       []
         ..addAll(Platform.executableArguments)
@@ -23,54 +22,51 @@ void testRunShell() {
         ..add(script)
         ..addAll(args),
       runInShell: true,
-    ).then((process_result) {
-      var result;
-      if (Platform.operatingSystem == "windows") {
-        result = process_result.stdout.split("\r\n");
-      } else {
-        result = process_result.stdout.split("\n");
+    );
+    var result;
+    if (Platform.operatingSystem == "windows") {
+      result = process_result.stdout.split("\r\n");
+    } else {
+      result = process_result.stdout.split("\n");
+    }
+    if (result.length - 1 != args.length) {
+      throw "wrong number of args: $args vs $result";
+    }
+    for (int i = 0; i < args.length; i++) {
+      if (args[i] != result[i]) {
+        throw "bad result at $i: '${args[i]}' vs '${result[i]}'";
       }
-      if (result.length - 1 != args.length) {
-        throw "wrong number of args: $args vs $result";
-      }
-      for (int i = 0; i < args.length; i++) {
-        if (args[i] != result[i]) {
-          throw "bad result at $i: '${args[i]}' vs '${result[i]}'";
-        }
-      }
-      asyncEnd();
-    });
+    }
   }
 
-  test(["\""]);
-  test(["a b"]);
-  test(["'"]);
-  test(["'", "'"]);
-  test(["'\"\"'\"'\"'"]);
-  test(["'\"\"'", "\"'\"'"]);
-  test(["'\\\"\\\"'\\", "\"\\'\"'"]);
-  test(["'\$HOME'"]);
-  test(["'\$tmp'"]);
-  test(["arg'"]);
-  test(["arg\\'", "'\\arg"]);
+  await test(["\""]);
+  await test(["a b"]);
+  await test(["'"]);
+  await test(["'", "'"]);
+  await test(["'\"\"'\"'\"'"]);
+  await test(["'\"\"'", "\"'\"'"]);
+  await test(["'\\\"\\\"'\\", "\"\\'\"'"]);
+  await test(["'\$HOME'"]);
+  await test(["'\$tmp'"]);
+  await test(["arg'"]);
+  await test(["arg\\'", "'\\arg"]);
 }
 
-void testBadRunShell() {
-  test(exe, [List<String> args = const []]) {
-    asyncStart();
-    Process.run(exe, args, runInShell: true).then((result) {
-      if (result.exitCode == 0) {
-        throw "error expected";
-      }
-      asyncEnd();
-    });
+testBadRunShell() async {
+  test(exe, [List<String> args = const []]) async {
+    var result = await Process.run(exe, args, runInShell: true);
+    if (result.exitCode == 0) {
+      throw "error expected";
+    }
   }
 
-  test("'\"'");
-  test("'\$HOME'");
+  await test("'\"'");
+  await test("'\$HOME'");
 }
 
-void main() {
-  testRunShell();
-  testBadRunShell();
+main() async {
+  asyncStart();
+  await testRunShell();
+  await testBadRunShell();
+  asyncEnd();
 }

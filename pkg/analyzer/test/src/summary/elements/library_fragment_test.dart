@@ -90,6 +90,13 @@ library
           metadata
             Annotation
               atSign: @ @21
+              expression: UnqualifiedNameExpression
+                name: deprecated @22
+                resolution: GetterInvocationResolution
+                  element: dart:core::@getter::deprecated
+                  invokeType: Deprecated Function()
+                  type: Deprecated
+                staticType: Deprecated
               name: SimpleIdentifier
                 token: deprecated @22
                 element: dart:core::@getter::deprecated
@@ -164,6 +171,13 @@ library
           metadata
             Annotation
               atSign: @ @21
+              expression: UnqualifiedNameExpression
+                name: deprecated @22
+                resolution: GetterInvocationResolution
+                  element: dart:core::@getter::deprecated
+                  invokeType: Deprecated Function()
+                  type: Deprecated
+                staticType: Deprecated
               name: SimpleIdentifier
                 token: deprecated @22
                 element: dart:core::@getter::deprecated
@@ -1456,7 +1470,7 @@ package:test/a.dart
     );
   }
 
-  test_scope_wildcardName_importPrefix_preWildcardVariables() async {
+  test_scope_wildcardName_importPrefix_beforeWildcardVariables() async {
     newFile('$testPackageLibPath/x.dart', r'''
 extension X on int {}
 ''');
@@ -1466,7 +1480,7 @@ part of 'test.dart';
 ''');
 
     var library = await buildLibrary(r'''
-// @dart=3.5
+// %before-language-feature: wildcard-variables
 import 'x.dart' as _;
 part 'a.dart';
 ''');

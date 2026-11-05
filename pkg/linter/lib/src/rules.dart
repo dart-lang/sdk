@@ -13,6 +13,7 @@ import 'rules/always_specify_types.dart';
 import 'rules/always_use_package_imports.dart';
 import 'rules/analyzer_element_model_tracking.dart';
 import 'rules/analyzer_public_api.dart';
+import 'rules/analyzer_to_be_deprecated_use.dart';
 import 'rules/annotate_overrides.dart';
 import 'rules/annotate_redeclares.dart';
 import 'rules/async_return_with_no_await.dart';
@@ -91,6 +92,7 @@ import 'rules/erase_dart_type_extension_types.dart';
 import 'rules/exhaustive_cases.dart';
 import 'rules/file_names.dart';
 import 'rules/flutter_style_todos.dart';
+import 'rules/future_sync_value.dart';
 import 'rules/hash_and_equals.dart';
 import 'rules/implementation_imports.dart';
 import 'rules/implicit_call_tearoffs.dart';
@@ -237,6 +239,7 @@ import 'rules/unnecessary_statements.dart';
 import 'rules/unnecessary_string_escapes.dart';
 import 'rules/unnecessary_string_interpolations.dart';
 import 'rules/unnecessary_this.dart';
+import 'rules/unnecessary_this_alias.dart';
 import 'rules/unnecessary_to_list_in_spreads.dart';
 import 'rules/unnecessary_type_name_in_constructor.dart';
 import 'rules/unnecessary_unawaited.dart';
@@ -282,6 +285,7 @@ void registerLintRules() {
     ..registerLintRule(AlwaysUsePackageImports())
     ..registerLintRule(AnalyzerElementModelTracking())
     ..registerLintRule(AnalyzerPublicApi())
+    ..registerLintRule(AnalyzerToBeDeprecatedUse())
     ..registerLintRule(AnnotateOverrides())
     ..registerLintRule(AnnotateRedeclares())
     ..registerLintRule(AsyncReturnWithNoAwait())
@@ -361,6 +365,7 @@ void registerLintRules() {
     ..registerLintRule(ExhaustiveCases())
     ..registerLintRule(FileNames())
     ..registerLintRule(FlutterStyleTodos())
+    ..registerLintRule(FutureSyncValue())
     ..registerLintRule(HashAndEquals())
     ..registerLintRule(ImplementationImports())
     ..registerLintRule(ImplicitCallTearoffs())
@@ -506,6 +511,7 @@ void registerLintRules() {
     ..registerLintRule(UnnecessaryStringEscapes())
     ..registerLintRule(UnnecessaryStringInterpolations())
     ..registerLintRule(UnnecessaryThis())
+    ..registerLintRule(UnnecessaryThisAlias())
     ..registerLintRule(UnnecessaryToListInSpreads())
     ..registerLintRule(UnnecessaryTypeNameInConstructor())
     ..registerLintRule(UnnecessaryUnawaited())

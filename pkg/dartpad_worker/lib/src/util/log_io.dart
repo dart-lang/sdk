@@ -5,3 +5,5 @@
 import 'dart:io';
 
 void logErrorImpl(String message) => stderr.writeln('worker.dart: $message');
+
+void logWarningImpl(String message) => stderr.writeln('worker.dart: $message');

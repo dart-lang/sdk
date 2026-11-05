@@ -167,12 +167,7 @@ void f() {}
     _assertReplacementForChildren<Annotation>(
       destination: parseResult.findNode.annotation('prefix.A'),
       source: parseResult.findNode.annotation('prefix.B'),
-      childAccessors: [
-        (node) => node.arguments!,
-        (node) => node.constructorName!,
-        (node) => node.name,
-        (node) => node.typeArguments!,
-      ],
+      childAccessors: [(node) => node.expression],
     );
   }
 
@@ -185,8 +180,8 @@ void f() {
     var argumentList = parseResult.findNode.argumentList('(0, 1)');
     _assertReplaceInList(
       destination: argumentList,
-      child: argumentList.arguments[0],
-      replacement: argumentList.arguments[1],
+      child: argumentList.arguments2[0],
+      replacement: argumentList.arguments2[1],
     );
   }
 
@@ -200,7 +195,7 @@ void f() {
     _assertReplacementForChildren<AsExpression>(
       destination: parseResult.findNode.as_('0 as'),
       source: parseResult.findNode.as_('1 as'),
-      childAccessors: [(node) => node.expression, (node) => node.type],
+      childAccessors: [(node) => node.expression2, (node) => node.type],
     );
   }
 
@@ -214,7 +209,7 @@ void f() {
     _assertReplacementForChildren<AssertStatement>(
       destination: parseResult.findNode.assertStatement('first'),
       source: parseResult.findNode.assertStatement('second'),
-      childAccessors: [(node) => node.condition, (node) => node.message!],
+      childAccessors: [(node) => node.condition2, (node) => node.message2!],
     );
   }
 
@@ -225,13 +220,10 @@ void f() {
   b = 1;
 }
 ''');
-    _assertReplacementForChildren<AssignmentExpression>(
-      destination: parseResult.findNode.assignment('a ='),
-      source: parseResult.findNode.assignment('b ='),
-      childAccessors: [
-        (node) => node.leftHandSide,
-        (node) => node.rightHandSide,
-      ],
+    _assertReplacementForChildren<DirectAssignment>(
+      destination: parseResult.findNode.directAssignment('a ='),
+      source: parseResult.findNode.directAssignment('b ='),
+      childAccessors: [(node) => node.target, (node) => node.value],
     );
   }
 
@@ -245,7 +237,7 @@ void f() async {
     _assertReplacementForChildren<AwaitExpression>(
       destination: parseResult.findNode.awaitExpression('0'),
       source: parseResult.findNode.awaitExpression('1'),
-      childAccessors: [(node) => node.expression],
+      childAccessors: [(node) => node.expression2],
     );
   }
 
@@ -256,9 +248,9 @@ void f() {
   1 + 2;
 }
 ''');
-    _assertReplacementForChildren<BinaryExpression>(
-      destination: parseResult.findNode.binary('0 + 1'),
-      source: parseResult.findNode.binary('1 + 2'),
+    _assertReplacementForChildren<BinaryOperatorInvocation>(
+      destination: parseResult.findNode.binaryOperatorInvocation('0 + 1'),
+      source: parseResult.findNode.binaryOperatorInvocation('1 + 2'),
       childAccessors: [(node) => node.leftOperand, (node) => node.rightOperand],
     );
   }
@@ -311,6 +303,24 @@ void f() {
     );
   }
 
+  void test_callInvocation() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+void f() {
+  (g)<int>(0);
+  (h)<double>(1);
+}
+''');
+    _assertReplacementForChildren<CallInvocation>(
+      destination: parseResult.findNode.callInvocation('<int>'),
+      source: parseResult.findNode.callInvocation('<double>'),
+      childAccessors: [
+        (node) => node.receiver,
+        (node) => node.typeArguments!,
+        (node) => node.argumentList,
+      ],
+    );
+  }
+
   void test_cascadeExpression() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
@@ -321,14 +331,14 @@ void f() {
     var cascadeExpression = parseResult.findNode.cascade('0');
     _assertReplaceInList(
       destination: cascadeExpression,
-      child: cascadeExpression.cascadeSections[0],
-      replacement: cascadeExpression.cascadeSections[1],
+      child: cascadeExpression.sections[0],
+      replacement: cascadeExpression.sections[1],
     );
 
     _assertReplacementForChildren<CascadeExpression>(
       destination: parseResult.findNode.cascade('0'),
       source: parseResult.findNode.cascade('1'),
-      childAccessors: [(node) => node.target],
+      childAccessors: [(node) => node.target2],
     );
   }
 
@@ -401,7 +411,7 @@ void f() {}
     _assertReplacementForChildren<CommentReference>(
       destination: parseResult.findNode.commentReference('foo'),
       source: parseResult.findNode.commentReference('bar'),
-      childAccessors: [(node) => node.expression],
+      childAccessors: [(node) => node.components.single],
     );
   }
 
@@ -420,8 +430,8 @@ class B {}
     );
     _assertReplaceInList(
       destination: unit,
-      child: unit.declarations[0],
-      replacement: unit.declarations[1],
+      child: unit.declarations2[0],
+      replacement: unit.declarations2[1],
     );
   }
 
@@ -436,9 +446,9 @@ void f() {
       destination: parseResult.findNode.conditionalExpression('true'),
       source: parseResult.findNode.conditionalExpression('false'),
       childAccessors: [
-        (node) => node.condition,
-        (node) => node.thenExpression,
-        (node) => node.elseExpression,
+        (node) => node.condition2,
+        (node) => node.thenExpression2,
+        (node) => node.elseExpression2,
       ],
     );
   }
@@ -457,7 +467,7 @@ void f(x) async {
       source:
           parseResult.findNode.caseClause('1').guardedPattern.pattern
               as ConstantPattern,
-      childAccessors: [(node) => node.expression],
+      childAccessors: [(node) => node.expression2],
     );
   }
 
@@ -481,7 +491,7 @@ class B {
     _assertAnnotatedNode(parseResult.findNode.constructor('A.named'));
   }
 
-  void test_constructorDeclaration_redirectedConstructor() {
+  void test_constructorDeclaration_factoryRedirectionTarget() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 class A {
   factory A() = R;
@@ -494,7 +504,7 @@ class B {
     _assertReplacementForChildren<ConstructorDeclaration>(
       destination: parseResult.findNode.constructor('factory A'),
       source: parseResult.findNode.constructor('factory B'),
-      childAccessors: [(node) => node.redirectedConstructor!],
+      childAccessors: [(node) => node.factoryRedirectionTarget!],
     );
   }
 
@@ -507,21 +517,42 @@ class A {
     _assertReplacementForChildren<ConstructorFieldInitializer>(
       destination: parseResult.findNode.constructorFieldInitializer('a ='),
       source: parseResult.findNode.constructorFieldInitializer('b ='),
-      childAccessors: [(node) => node.fieldName, (node) => node.expression],
+      childAccessors: [(node) => node.expression2],
     );
   }
 
-  void test_constructorName() {
+  void test_constructorInvocation() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+void f() {
+  new A(0);
+  new B(1);
+}
+''');
+    _assertReplacementForChildren<ConstructorInvocation>(
+      destination: parseResult.findNode.constructorInvocation('A('),
+      source: parseResult.findNode.constructorInvocation('B('),
+      childAccessors: [
+        (node) => node.constructorReference,
+        (node) => node.argumentList,
+      ],
+    );
+  }
+
+  void test_constructorReference2() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   new prefix.A.foo();
   new prefix.B.bar();
 }
 ''');
-    _assertReplacementForChildren<ConstructorName>(
-      destination: parseResult.findNode.constructorName('A.foo'),
-      source: parseResult.findNode.constructorName('B.bar'),
-      childAccessors: [(node) => node.type, (node) => node.name!],
+    _assertReplacementForChildren<ConstructorReference2>(
+      destination: parseResult.findNode
+          .constructorInvocation('A.foo')
+          .constructorReference,
+      source: parseResult.findNode
+          .constructorInvocation('B.bar')
+          .constructorReference,
+      childAccessors: [(node) => node.typeReference, (node) => node.selector!],
     );
   }
 
@@ -580,7 +611,7 @@ void f() {
     _assertReplacementForChildren<DoStatement>(
       destination: parseResult.findNode.doStatement('true'),
       source: parseResult.findNode.doStatement('false'),
-      childAccessors: [(node) => node.body, (node) => node.condition],
+      childAccessors: [(node) => node.body, (node) => node.condition2],
     );
   }
 
@@ -640,6 +671,8 @@ enum E2<U> with M2 implements I2 {one, two}
 @myA1
 @myA2
 export 'a.dart' hide A show B;
+//                     ^^^^
+// [diag.multipleCombinators] At most one 'show' or 'hide' combinator can be used on an import or export directive.
 export 'b.dart';
 ''');
     var export_a = parseResult.findNode.export('a.dart');
@@ -664,7 +697,7 @@ void g() => 1;
     _assertReplacementForChildren<ExpressionFunctionBody>(
       destination: parseResult.findNode.expressionFunctionBody('0'),
       source: parseResult.findNode.expressionFunctionBody('1'),
-      childAccessors: [(node) => node.expression],
+      childAccessors: [(node) => node.expression2],
     );
   }
 
@@ -678,7 +711,7 @@ void f() {
     _assertReplacementForChildren<ExpressionStatement>(
       destination: parseResult.findNode.expressionStatement('0'),
       source: parseResult.findNode.expressionStatement('1'),
-      childAccessors: [(node) => node.expression],
+      childAccessors: [(node) => node.expression2],
     );
   }
 
@@ -784,7 +817,7 @@ void f() {
     _assertReplacementForChildren<ForEachPartsWithDeclaration>(
       destination: parseResult.findNode.forEachPartsWithDeclaration('a in'),
       source: parseResult.findNode.forEachPartsWithDeclaration('b in'),
-      childAccessors: [(node) => node.loopVariable, (node) => node.iterable],
+      childAccessors: [(node) => node.loopVariable, (node) => node.iterable2],
     );
   }
 
@@ -798,7 +831,7 @@ void f() {
     _assertReplacementForChildren<ForEachPartsWithIdentifier>(
       destination: parseResult.findNode.forEachPartsWithIdentifier('a in'),
       source: parseResult.findNode.forEachPartsWithIdentifier('b in'),
-      childAccessors: [(node) => node.identifier, (node) => node.iterable],
+      childAccessors: [(node) => node.iterable2],
     );
   }
 
@@ -812,7 +845,7 @@ void f() {
     _assertReplacementForChildren<ForEachPartsWithPattern>(
       destination: parseResult.findNode.forEachPartsWithPattern('(a)'),
       source: parseResult.findNode.forEachPartsWithPattern('(b)'),
-      childAccessors: [(node) => node.iterable],
+      childAccessors: [(node) => node.iterable2],
     );
   }
 
@@ -851,13 +884,13 @@ void f() {
     var for_i = parseResult.findNode.forPartsWithDeclarations('i = 0');
     _assertReplaceInList(
       destination: for_i,
-      child: for_i.updaters[0],
-      replacement: for_i.updaters[1],
+      child: for_i.updaters2[0],
+      replacement: for_i.updaters2[1],
     );
     _assertReplacementForChildren<ForPartsWithDeclarations>(
       destination: for_i,
       source: parseResult.findNode.forPartsWithDeclarations('j = 0'),
-      childAccessors: [(node) => node.variables, (node) => node.condition!],
+      childAccessors: [(node) => node.variables, (node) => node.condition2!],
     );
   }
 
@@ -871,15 +904,15 @@ void f() {
     var for_i = parseResult.findNode.forPartsWithExpression('i = 0');
     _assertReplaceInList(
       destination: for_i,
-      child: for_i.updaters[0],
-      replacement: for_i.updaters[1],
+      child: for_i.updaters2[0],
+      replacement: for_i.updaters2[1],
     );
     _assertReplacementForChildren<ForPartsWithExpression>(
       destination: for_i,
       source: parseResult.findNode.forPartsWithExpression('j = 0'),
       childAccessors: [
-        (node) => node.initialization!,
-        (node) => node.condition!,
+        (node) => node.initialization2!,
+        (node) => node.condition2!,
       ],
     );
   }
@@ -938,24 +971,6 @@ void g<U>(double b) {
     _assertRemovalForNullableChild<FunctionExpression>(
       destination: destination,
       childAccessor: (node) => node.typeParameters,
-    );
-  }
-
-  void test_functionExpressionInvocation() {
-    var parseResult = parseTestCodeWithDiagnostics(r'''
-void f() {
-  (g)<int>(0);
-  (h)<double>(1);
-}
-''');
-    _assertReplacementForChildren<FunctionExpressionInvocation>(
-      destination: parseResult.findNode.functionExpressionInvocation('<int>'),
-      source: parseResult.findNode.functionExpressionInvocation('<double>'),
-      childAccessors: [
-        (node) => node.function,
-        (node) => node.typeArguments!,
-        (node) => node.argumentList,
-      ],
     );
   }
 
@@ -1055,8 +1070,8 @@ import '' hide A, B;
     var node = parseResult.findNode.hideCombinator('hide');
     _assertReplaceInList(
       destination: node,
-      child: node.hiddenNames[0],
-      replacement: node.hiddenNames[1],
+      child: node.names[0],
+      replacement: node.names[1],
     );
   }
 
@@ -1079,7 +1094,7 @@ void f() {
       destination: parseResult.findNode.ifStatement('true'),
       source: parseResult.findNode.ifStatement('false'),
       childAccessors: [
-        (node) => node.expression,
+        (node) => node.expression2,
         (node) => node.thenStatement,
         (node) => node.elseStatement!,
       ],
@@ -1103,6 +1118,8 @@ class A implements I, J {}
 @myA1
 @myA2
 import 'a.dart' hide A show B;
+//                     ^^^^
+// [diag.multipleCombinators] At most one 'show' or 'hide' combinator can be used on an import or export directive.
 import 'b.dart';
 ''');
     var import_a = parseResult.findNode.import('a.dart');
@@ -1126,27 +1143,10 @@ void f() {
   b[1];
 }
 ''');
-    _assertReplacementForChildren<IndexExpression>(
-      destination: parseResult.findNode.index('[0]'),
-      source: parseResult.findNode.index('[1]'),
-      childAccessors: [(node) => node.target!, (node) => node.index],
-    );
-  }
-
-  void test_instanceCreationExpression() {
-    var parseResult = parseTestCodeWithDiagnostics(r'''
-void f() {
-  new A(0);
-  new B(1);
-}
-''');
-    _assertReplacementForChildren<InstanceCreationExpression>(
-      destination: parseResult.findNode.instanceCreation('A('),
-      source: parseResult.findNode.instanceCreation('B('),
-      childAccessors: [
-        (node) => node.constructorName,
-        (node) => node.argumentList,
-      ],
+    _assertReplacementForChildren<ReceiverIndexExpression>(
+      destination: parseResult.findNode.receiverIndexExpression('[0]'),
+      source: parseResult.findNode.receiverIndexExpression('[1]'),
+      childAccessors: [(node) => node.receiver, (node) => node.index],
     );
   }
 
@@ -1159,7 +1159,7 @@ void f() {
     _assertReplacementForChildren<InterpolationExpression>(
       destination: parseResult.findNode.interpolationExpression('foo'),
       source: parseResult.findNode.interpolationExpression('bar'),
-      childAccessors: [(node) => node.expression],
+      childAccessors: [(node) => node.expression2],
     );
   }
 
@@ -1173,7 +1173,7 @@ void f() {
     _assertReplacementForChildren<IsExpression>(
       destination: parseResult.findNode.isExpression('0 is'),
       source: parseResult.findNode.isExpression('1 is'),
-      childAccessors: [(node) => node.expression, (node) => node.type],
+      childAccessors: [(node) => node.expression2, (node) => node.type],
     );
   }
 
@@ -1222,8 +1222,8 @@ void f() {
     var node = parseResult.findNode.listLiteral('[0');
     _assertReplaceInList(
       destination: node,
-      child: node.elements[0],
-      replacement: node.elements[1],
+      child: node.elements2[0],
+      replacement: node.elements2[1],
     );
     _assertReplacementForChildren<ListLiteral>(
       destination: parseResult.findNode.listLiteral('<int>'),
@@ -1241,7 +1241,7 @@ void f() {
     _assertReplacementForChildren<MapLiteralEntry>(
       destination: parseResult.findNode.mapLiteralEntry('0: 1'),
       source: parseResult.findNode.mapLiteralEntry('2: 3'),
-      childAccessors: [(node) => node.key, (node) => node.value],
+      childAccessors: [(node) => node.key2, (node) => node.value2],
     );
   }
 
@@ -1274,24 +1274,6 @@ class A {
     _assertRemovalForNullableChild<MethodDeclaration>(
       destination: destination,
       childAccessor: (node) => node.typeParameters,
-    );
-  }
-
-  void test_methodInvocation() {
-    var parseResult = parseTestCodeWithDiagnostics(r'''
-void f() {
-  a.foo<int>(0);
-  b.bar<double>(1);
-}
-''');
-    _assertReplacementForChildren<MethodInvocation>(
-      destination: parseResult.findNode.methodInvocation('foo'),
-      source: parseResult.findNode.methodInvocation('bar'),
-      childAccessors: [
-        (node) => node.target!,
-        (node) => node.typeArguments!,
-        (node) => node.argumentList,
-      ],
     );
   }
 
@@ -1333,7 +1315,7 @@ void f() {
     _assertReplacementForChildren<NamedArgument>(
       destination: parseResult.findNode.namedArgument('foo'),
       source: parseResult.findNode.namedArgument('bar'),
-      childAccessors: [(node) => node.argumentExpression],
+      childAccessors: [(node) => node.argumentExpression2],
     );
   }
 
@@ -1376,7 +1358,83 @@ void f() {
     _assertReplacementForChildren<ParenthesizedExpression>(
       destination: parseResult.findNode.parenthesized('0'),
       source: parseResult.findNode.parenthesized('1'),
-      childAccessors: [(node) => node.expression],
+      childAccessors: [(node) => node.expression2],
+    );
+  }
+
+  void test_parsedNameAccess() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+void f() {
+  a.foo;
+  b.bar;
+}
+''');
+    _assertReplacementForChildren<ParsedNameAccess>(
+      destination:
+          parseResult.findNode.parsedExpression('a.foo') as ParsedNameAccess,
+      source:
+          parseResult.findNode.parsedExpression('b.bar') as ParsedNameAccess,
+      childAccessors: [(node) => node.operand],
+    );
+  }
+
+  void test_parsedTypeArguments() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+void f() {
+  (a).foo<int>(0);
+  (b).bar<double>(1);
+}
+''');
+    _assertReplacementForChildren<ParsedTypeArguments>(
+      destination:
+          (parseResult.findNode.expressionStatement('(a)').expression2
+                      as ParsedValueArguments)
+                  .operand
+              as ParsedTypeArguments,
+      source:
+          (parseResult.findNode.expressionStatement('(b)').expression2
+                      as ParsedValueArguments)
+                  .operand
+              as ParsedTypeArguments,
+      childAccessors: [(node) => node.operand, (node) => node.typeArguments],
+    );
+  }
+
+  void test_parsedValueArguments() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+void f() {
+  (a).foo<int>(0);
+  (b).bar<double>(1);
+}
+''');
+    _assertReplacementForChildren<ParsedValueArguments>(
+      destination:
+          parseResult.findNode.expressionStatement('(a)').expression2
+              as ParsedValueArguments,
+      source:
+          parseResult.findNode.expressionStatement('(b)').expression2
+              as ParsedValueArguments,
+      childAccessors: [(node) => node.operand, (node) => node.argumentList],
+    );
+  }
+
+  void test_parsedValueArguments_cascade() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class A {
+  void f() {
+    a..foo<int>(0);
+    c..bar<double>(1);
+  }
+}
+''');
+    _assertReplacementForChildren<ParsedValueArguments>(
+      destination:
+          parseResult.findNode.cascade('a..').sections.single.body
+              as ParsedValueArguments,
+      source:
+          parseResult.findNode.cascade('c..').sections.single.body
+              as ParsedValueArguments,
+      childAccessors: [(node) => node.operand, (node) => node.argumentList],
     );
   }
 
@@ -1423,7 +1481,7 @@ void f() {
     _assertReplacementForChildren<PatternAssignment>(
       destination: parseResult.findNode.patternAssignment('0'),
       source: parseResult.findNode.patternAssignment('1'),
-      childAccessors: [(node) => node.expression],
+      childAccessors: [(node) => node.expression2],
     );
   }
 
@@ -1437,49 +1495,35 @@ void f() {
     _assertReplacementForChildren<PatternVariableDeclaration>(
       destination: parseResult.findNode.patternVariableDeclaration('0'),
       source: parseResult.findNode.patternVariableDeclaration('1'),
-      childAccessors: [(node) => node.expression],
+      childAccessors: [(node) => node.expression2],
     );
   }
 
-  void test_postfixExpression() {
+  void test_postfixIncrement() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   a++;
   b++;
 }
 ''');
-    _assertReplacementForChildren<PostfixExpression>(
-      destination: parseResult.findNode.postfix('a++'),
-      source: parseResult.findNode.postfix('b++'),
-      childAccessors: [(node) => node.operand],
+    _assertReplacementForChildren<IncrementOrDecrementExpression>(
+      destination: parseResult.findNode.incrementOrDecrement('a++'),
+      source: parseResult.findNode.incrementOrDecrement('b++'),
+      childAccessors: [(node) => node.target],
     );
   }
 
-  void test_prefixedIdentifier() {
-    var parseResult = parseTestCodeWithDiagnostics(r'''
-void f() {
-  a.foo;
-  b.bar;
-}
-''');
-    _assertReplacementForChildren<PrefixedIdentifier>(
-      destination: parseResult.findNode.prefixed('a.foo'),
-      source: parseResult.findNode.prefixed('b.bar'),
-      childAccessors: [(node) => node.prefix, (node) => node.identifier],
-    );
-  }
-
-  void test_prefixExpression() {
+  void test_prefixIncrement() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   ++a;
   ++b;
 }
 ''');
-    _assertReplacementForChildren<PrefixExpression>(
-      destination: parseResult.findNode.prefix('++a'),
-      source: parseResult.findNode.prefix('++b'),
-      childAccessors: [(node) => node.operand],
+    _assertReplacementForChildren<IncrementOrDecrementExpression>(
+      destination: parseResult.findNode.incrementOrDecrement('++a'),
+      source: parseResult.findNode.incrementOrDecrement('++b'),
+      childAccessors: [(node) => node.target],
     );
   }
 
@@ -1506,17 +1550,17 @@ class B<U>.b(double b) {}
     );
   }
 
-  void test_propertyAccess() {
+  void test_propertyExtraction() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   (a).foo;
   (b).bar;
 }
 ''');
-    _assertReplacementForChildren<PropertyAccess>(
-      destination: parseResult.findNode.propertyAccess('(a)'),
-      source: parseResult.findNode.propertyAccess('(b)'),
-      childAccessors: [(node) => node.target!, (node) => node.propertyName],
+    _assertReplacementForChildren<ReceiverPropertyExtraction>(
+      destination: parseResult.findNode.receiverPropertyExtraction('(a)'),
+      source: parseResult.findNode.receiverPropertyExtraction('(b)'),
+      childAccessors: [(node) => node.receiver],
     );
   }
 
@@ -1529,8 +1573,8 @@ void f() {
     var node = parseResult.findNode.recordLiteral('(1');
     _assertReplaceInList(
       destination: node,
-      child: node.fields[0],
-      replacement: node.fields[1],
+      child: node.fields2[0],
+      replacement: node.fields2[1],
     );
   }
 
@@ -1546,7 +1590,7 @@ class A {
       destination: parseResult.findNode.redirectingConstructorInvocation('(0)'),
       source: parseResult.findNode.redirectingConstructorInvocation('(1)'),
       childAccessors: [
-        (node) => node.constructorName!,
+        (node) => node.constructorSelector!,
         (node) => node.argumentList,
       ],
     );
@@ -1600,7 +1644,7 @@ void f(x) {
     _assertReplacementForChildren<RelationalPattern>(
       destination: parseResult.findNode.relationalPattern('> 0'),
       source: parseResult.findNode.relationalPattern('> 1'),
-      childAccessors: [(node) => node.operand],
+      childAccessors: [(node) => node.operand2],
     );
   }
 
@@ -1614,7 +1658,7 @@ void f() {
     _assertReplacementForChildren<ReturnStatement>(
       destination: parseResult.findNode.returnStatement('0;'),
       source: parseResult.findNode.returnStatement('1;'),
-      childAccessors: [(node) => node.expression!],
+      childAccessors: [(node) => node.expression2!],
     );
   }
 
@@ -1628,8 +1672,8 @@ void f() {
     var node = parseResult.findNode.setOrMapLiteral('<int');
     _assertReplaceInList(
       destination: node,
-      child: node.elements[0],
-      replacement: node.elements[1],
+      child: node.elements2[0],
+      replacement: node.elements2[1],
     );
     _assertReplacementForChildren<SetOrMapLiteral>(
       destination: parseResult.findNode.setOrMapLiteral('<int'),
@@ -1645,8 +1689,8 @@ import '' show A, B;
     var node = parseResult.findNode.showCombinator('show');
     _assertReplaceInList(
       destination: node,
-      child: node.shownNames[0],
-      replacement: node.shownNames[1],
+      child: node.names[0],
+      replacement: node.names[1],
     );
   }
 
@@ -1693,7 +1737,7 @@ class A {
       destination: parseResult.findNode.superConstructorInvocation('first'),
       source: parseResult.findNode.superConstructorInvocation('second'),
       childAccessors: [
-        (node) => node.constructorName!,
+        (node) => node.constructorSelector!,
         (node) => node.argumentList,
       ],
     );
@@ -1738,9 +1782,9 @@ class B extends A {
     );
   }
 
-  void test_switchCase_language219() {
+  void test_switchCase_beforePatterns() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart = 2.19
+// %before-language-feature: patterns
 void f() {
   switch (x) {
     foo: bar:
@@ -1753,7 +1797,7 @@ void f() {
     _assertReplacementForChildren<SwitchCase>(
       destination: parseResult.findNode.switchCase('case 0'),
       source: parseResult.findNode.switchCase('case 1'),
-      childAccessors: [(node) => node.expression],
+      childAccessors: [(node) => node.expression2],
     );
   }
 
@@ -1769,9 +1813,9 @@ void f() {
     _assertSwitchMember(parseResult.findNode.switchDefault('default: 0'));
   }
 
-  void test_switchStatement_language219() {
+  void test_switchStatement_beforePatterns() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart = 2.19
+// %before-language-feature: patterns
 void f() {
   switch (0) {
     case 0: break;
@@ -1788,7 +1832,7 @@ void f() {
     _assertReplacementForChildren<SwitchStatement>(
       destination: parseResult.findNode.switchStatement('(0)'),
       source: parseResult.findNode.switchStatement('(1)'),
-      childAccessors: [(node) => node.expression],
+      childAccessors: [(node) => node.expression2],
     );
   }
 
@@ -1802,7 +1846,7 @@ void f() {
     _assertReplacementForChildren<ThrowExpression>(
       destination: parseResult.findNode.throw_('throw 0'),
       source: parseResult.findNode.throw_('throw 1'),
-      childAccessors: [(node) => node.expression],
+      childAccessors: [(node) => node.expression2],
     );
   }
 
@@ -1900,7 +1944,7 @@ void f() {
     _assertReplacementForChildren<VariableDeclaration>(
       destination: parseResult.findNode.variableDeclaration('a = 0'),
       source: parseResult.findNode.variableDeclaration('b = 1'),
-      childAccessors: [(node) => node.initializer!],
+      childAccessors: [(node) => node.initializer2!],
     );
   }
 
@@ -1947,7 +1991,7 @@ void f() {
     _assertReplacementForChildren<WhenClause>(
       destination: parseResult.findNode.whenClause('when 1'),
       source: parseResult.findNode.whenClause('when 2'),
-      childAccessors: [(node) => node.expression],
+      childAccessors: [(node) => node.expression2],
     );
   }
 
@@ -1965,7 +2009,7 @@ void f() {
     _assertReplacementForChildren<WhileStatement>(
       destination: parseResult.findNode.whileStatement('(true)'),
       source: parseResult.findNode.whileStatement('(false)'),
-      childAccessors: [(node) => node.condition, (node) => node.body],
+      childAccessors: [(node) => node.condition2, (node) => node.body],
     );
   }
 
@@ -1991,7 +2035,7 @@ void f() sync* {
     _assertReplacementForChildren<YieldStatement>(
       destination: parseResult.findNode.yieldStatement('yield 0;'),
       source: parseResult.findNode.yieldStatement('yield 1'),
-      childAccessors: [(node) => node.expression],
+      childAccessors: [(node) => node.expression2],
     );
   }
 
@@ -2022,7 +2066,7 @@ void f() sync* {
     required AstNode? Function(T node) childAccessor,
   }) {
     var child = childAccessor(destination)!;
-    expect(child.parent, destination);
+    expect(child.parent2, destination);
 
     (child as AstNodeImpl).removeFromParent();
     expect(childAccessor(destination), isNull);
@@ -2035,10 +2079,10 @@ void f() sync* {
     required AstNode child,
     required AstNode replacement,
   }) {
-    expect(child.parent, destination);
+    expect(child.parent2, destination);
 
     (child as AstNodeImpl).replaceWith(replacement as AstNodeImpl);
-    expect(replacement.parent, destination);
+    expect(replacement.parent2, destination);
   }
 
   /// Asserts for each child returned by a function from [childAccessors]
@@ -2053,12 +2097,12 @@ void f() sync* {
   }) {
     for (var childAccessor in childAccessors) {
       var child = childAccessor(destination);
-      expect(child.parent, destination);
+      expect(child.parent2, destination);
 
       var replacement = childAccessor(source);
       (child as AstNodeImpl).replaceWith(replacement as AstNodeImpl);
       expect(childAccessor(destination), replacement);
-      expect(replacement.parent, destination);
+      expect(replacement.parent2, destination);
     }
   }
 

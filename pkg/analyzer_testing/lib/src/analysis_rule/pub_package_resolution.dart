@@ -4,22 +4,15 @@
 
 import 'dart:convert' show json;
 
-import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart'; // ignore: implementation_imports
-import 'package:analyzer/src/dart/analysis/byte_store.dart'; // ignore: implementation_imports
-import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart'; // ignore: implementation_imports
-import 'package:analyzer/src/dart/analysis/experiments.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/diagnostic/diagnostic.dart' // ignore: implementation_imports
     as diag;
-import 'package:analyzer/src/test_utilities/mock_sdk.dart'; // ignore: implementation_imports
-import 'package:analyzer_testing/experiments/experiments.dart';
-import 'package:analyzer_testing/mock_packages/mock_packages.dart';
 import 'package:analyzer_testing/package_config_file_builder.dart';
-import 'package:analyzer_testing/resource_provider_mixin.dart';
+import 'package:analyzer_testing/src/abstract_context.dart';
 import 'package:analyzer_testing/src/spelunker.dart';
 import 'package:analyzer_testing/utilities/extensions/diagnostic_code.dart';
 import 'package:analyzer_testing/utilities/utilities.dart';
@@ -222,20 +215,10 @@ class PackageBuilder {
   }
 }
 
-class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
-  /// The byte store that is reused between tests.
-  ///
-  /// This allows reusing all unlinked and linked summaries for SDK, so that
-  /// tests run much faster. However nothing is preserved between Dart VM runs,
-  /// so changes to the implementation are still fully verified.
-  static final MemoryByteStore _sharedByteStore = MemoryByteStore();
-
-  final MemoryByteStore _byteStore = _sharedByteStore;
-
-  AnalysisContextCollectionImpl? _analysisContextCollection;
-
+class PubPackageResolutionTest extends AbstractContextTest {
   /// The test file being analyzed.
-  late File testFile = newFile(_testFilePath, '');
+  @override
+  late File testFile = newFile(testFilePath, '');
 
   /// The analysis result that is used in various `assertDiagnostics` methods.
   late ResolvedUnitResult result;
@@ -244,37 +227,8 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
   /// [PackageConfigFileBuilder].
   final Set<String> _packagesToAdd = {};
 
-  /// Adds the 'fixnum' package as a dependency to the package-under-test.
-  ///
-  /// This allows `package:fixnum/fixnum.dart` imports to resolve.
-  bool get addFixnumPackageDep => false;
-
-  /// Adds the 'flutter' package as a dependency to the package-under-test.
-  ///
-  /// This allows various `package:flutter/` imports to resolve.
-  bool get addFlutterPackageDep => false;
-
-  /// Adds the 'meta' package as a dependency to the package-under-test.
-  ///
-  /// This allows various `package:meta/` imports to resolve.
-  bool get addMetaPackageDep => false;
-
-  /// Adds the 'test_reflective_loader' package as a dependency to the
-  /// package-under-test.
-  ///
-  /// This allows various `package:test_reflective_loader/` imports to resolve.
-  bool get addTestReflectiveLoaderPackageDep => false;
-
-  AnalysisContextCollection get contextCollection {
-    _createAnalysisContexts();
-    return _analysisContextCollection!;
-  }
-
   /// Whether to print out the syntax tree being tested, on a test failure.
   bool get dumpAstOnFailures => true;
-
-  /// The list of language experiments to be enabled for these tests.
-  List<String> get experiments => experimentsForTests;
 
   /// Error codes that by default should be ignored in test expectations.
   List<DiagnosticCode> get ignoredDiagnosticCodes => [
@@ -283,37 +237,17 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
     diag.unusedLocalVariable,
   ];
 
-  /// The path to the root of the external packages.
-  @override
-  String get packagesRootPath => '/packages';
-
-  Folder get sdkRoot => newFolder('/sdk');
-
-  /// The name of the test file.
-  String get testFileName => 'test.dart';
-
   /// The language version for the package-under-test.
   ///
   /// Used for writing out a package config file. A `null` value means no
   /// 'languageVersion' is written to the package config file.
+  @override
   String? get testPackageLanguageVersion => null;
-
-  String get testPackageLibPath => '$testPackageRootPath/lib';
-
-  String get testPackagePubspecPath => '$testPackageRootPath/pubspec.yaml';
-
-  String get testPackageRootPath => '$workspaceRootPath/test';
-
-  String get workspaceRootPath => '/home';
-
-  List<String> get _collectionIncludedPaths => [workspaceRootPath];
 
   /// The diagnostics that were computed during analysis.
   List<Diagnostic> get _diagnostics => result.diagnostics
       .where((e) => !ignoredDiagnosticCodes.any((c) => e.diagnosticCode == c))
       .toList();
-
-  String get _testFilePath => '$testPackageLibPath/$testFileName';
 
   /// Asserts that the number of diagnostics reported in [content] matches the
   /// number of [expectedDiagnostics] and that they have the expected error
@@ -420,11 +354,11 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
   /// Note: Be sure to `await` any use of this API, to avoid stale analysis
   /// results (See [DisposedAnalysisContextResult]).
   Future<void> assertDiagnosticsInUnits(
-    List<(String path, List<ExpectedDiagnostic> expectedDiagnostics)>
+    List<(String unitPath, List<ExpectedDiagnostic> expectedDiagnostics)>
     unitsAndDiagnostics,
   ) async {
-    for (var (path, expectedDiagnostics) in unitsAndDiagnostics) {
-      result = await resolveFile(convertPath(path));
+    for (var (unitPath, expectedDiagnostics) in unitsAndDiagnostics) {
+      result = await resolveFile(unitPath);
       assertDiagnosticsIn(result.diagnostics, expectedDiagnostics);
     }
   }
@@ -442,13 +376,6 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
   /// results (See [DisposedAnalysisContextResult]).
   Future<void> assertNoDiagnosticsInFile(String path) async =>
       assertDiagnosticsInFile(path, const []);
-
-  DriverBasedAnalysisContext contextFor(String path) {
-    _createAnalysisContexts();
-
-    var convertedPath = convertPath(path);
-    return _analysisContextCollection!.contextFor(convertedPath);
-  }
 
   /// Text to display upon failure, which indicates possible corrections.
   @visibleForOverriding
@@ -544,15 +471,6 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
     return buffer.toString();
   }
 
-  @override
-  File newFile(String path, String content) {
-    if (_analysisContextCollection != null && !path.endsWith('.dart')) {
-      throw StateError('Only dart files can be changed after analysis.');
-    }
-
-    return super.newFile(path, content);
-  }
-
   /// Registers a package named [name].
   ///
   /// The returned [PackageBuilder] can be used to add Dart source files in the
@@ -563,38 +481,23 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
     return PackageBuilder._(packagePath, this);
   }
 
-  /// Resolves a Dart source file at [path].
-  ///
-  /// [path] must be converted for this file system.
-  Future<ResolvedUnitResult> resolveFile(String path) async {
-    var analysisContext = contextFor(path);
-    var session = analysisContext.currentSession;
-    return await session.getResolvedUnit(path) as ResolvedUnitResult;
-  }
-
   @mustCallSuper
+  @override
   void setUp() {
-    createMockSdk(resourceProvider: resourceProvider, root: sdkRoot);
+    super.setUp();
 
-    // Check for any needlessly enabled experiments.
-    for (var experiment in experiments) {
-      var feature = ExperimentStatus.knownFeatures[experiment];
-      if (feature?.isEnabledByDefault ?? false) {
+    // Check for any needlessly enabled experimental features.
+    for (var feature in experimentalFeatures) {
+      if (feature.status
+          case FeatureStatus.provisional || FeatureStatus.current) {
         fail(
-          "The '$experiment' experiment is enabled by default, "
-          'try removing it from `experiments`.',
+          "The '$feature' feature is enabled by default, "
+          'try removing it from `experimentalFeatures`.',
         );
       }
     }
 
-    writeTestPackageConfig(PackageConfigFileBuilder());
     _writeTestPackagePubspecYamlFile(pubspecYamlContent(name: 'test'));
-  }
-
-  @mustCallSuper
-  Future<void> tearDown() async {
-    await _analysisContextCollection?.dispose();
-    _analysisContextCollection = null;
   }
 
   /// Text to display upon failure, indicating that [unmatchedActual]
@@ -648,12 +551,14 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
     return buffer.toString();
   }
 
+  @Deprecated('Use writePackageConfig2 instead')
   void writePackageConfig(String path, PackageConfigFileBuilder config) {
     newFile(path, config.toContent());
   }
 
   /// Writes a `package_config.json` file from [config], and for packages that
   /// have been added via [newPackage].
+  @Deprecated('Use writeTestPackageConfig2 instead')
   void writeTestPackageConfig(PackageConfigFileBuilder config) {
     var configCopy = config.copy();
 
@@ -698,35 +603,35 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
     writePackageConfig(path, configCopy);
   }
 
+  /// Writes a `package_config.json` file from [config], and for packages that
+  /// have been added via [newPackage].
+  @override
+  void writeTestPackageConfig2({
+    PackageConfigFileBuilder? config,
+    String? languageVersion,
+  }) {
+    config = (config ?? PackageConfigFileBuilder()).copy();
+    for (var packageName in _packagesToAdd) {
+      var packagePath = convertPath('/package/$packageName');
+      config.add(name: packageName, rootFolder: getFolder(packagePath));
+    }
+
+    super.writeTestPackageConfig2(
+      config: config,
+      languageVersion: languageVersion,
+    );
+  }
+
   void _addTestFile(String content) {
     testFile.writeAsStringSync(content);
   }
 
-  /// Creates all analysis contexts in [_collectionIncludedPaths].
-  void _createAnalysisContexts() {
-    if (_analysisContextCollection != null) {
-      return;
-    }
-
-    _analysisContextCollection = AnalysisContextCollectionImpl(
-      byteStore: _byteStore,
-      declaredVariables: {},
-      enableIndex: true,
-      includedPaths: _collectionIncludedPaths.map(convertPath).toList(),
-      resourceProvider: resourceProvider,
-      sdkPath: sdkRoot.path,
-      withFineDependencies: true,
-    );
+  /// Resolves the file with the [filePath] into [result].
+  Future<void> _resolveFile(String filePath) async {
+    result = await resolveFile(filePath);
   }
 
-  /// Resolves the file with the [path] into [result].
-  Future<void> _resolveFile(String path) async {
-    var convertedPath = convertPath(path);
-
-    result = await resolveFile(convertedPath);
-  }
-
-  Future<void> _resolveTestFile() => _resolveFile(_testFilePath);
+  Future<void> _resolveTestFile() => _resolveFile(testFilePath);
 
   void _writeTestPackagePubspecYamlFile(String content) {
     newPubspecYamlFile(testPackageRootPath, content);

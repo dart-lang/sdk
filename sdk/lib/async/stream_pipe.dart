@@ -231,7 +231,7 @@ class _WhereStream<T> extends _ForwardingStream<T, T> {
   }
 }
 
-typedef T _Transformation<S, T>(S value);
+typedef _Transformation<S, T> = T Function(S value);
 
 /// A stream pipe that converts data events before passing them on.
 class _MapStream<S, T> extends _ForwardingStream<S, T> {

@@ -137,4 +137,21 @@ void closureCall() {
   x(42);
 }
 
+void identicalComparisons(
+  Object? x,
+  num y,
+  Comparable z,
+  List l,
+  int i,
+  int j,
+  double d,
+) {
+  print(!identical(x, x));
+  print(identical(x, y));
+  print(identical(x, z));
+  print(identical(x, l));
+  print(identical(i, j));
+  print(identical(i, d));
+}
+
 void main() {}

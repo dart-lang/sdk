@@ -17,12 +17,12 @@ class ClassTest extends A {
       case B():
         this.bOnly();
         bOnly();
-        this.expectStaticType<Exactly<B>>();
+        this.expectStaticType<Exactly<B>>;
     }
 
     // 2. Switch expression
     var _ = switch (this) {
-      B() => <void>[this.expectStaticType<Exactly<B>>(), bOnly(), this.bOnly()],
+      B() => <void>[this.expectStaticType<Exactly<B>>, bOnly(), this.bOnly()],
       _ => null,
     };
 
@@ -30,7 +30,7 @@ class ClassTest extends A {
     if (this case B()) {
       this.bOnly();
       bOnly();
-      this.expectStaticType<Exactly<B>>();
+      this.expectStaticType<Exactly<B>>;
     }
   }
 }
@@ -42,12 +42,12 @@ mixin M on A {
       case B():
         this.bOnly();
         bOnly();
-        this.expectStaticType<Exactly<B>>();
+        this.expectStaticType<Exactly<B>>;
     }
 
     // 2. Switch expression
     var _ = switch (this) {
-      B() => <void>[this.expectStaticType<Exactly<B>>(), bOnly(), this.bOnly()],
+      B() => <void>[this.expectStaticType<Exactly<B>>, bOnly(), this.bOnly()],
       _ => null,
     };
 
@@ -55,7 +55,7 @@ mixin M on A {
     if (this case B()) {
       this.bOnly();
       bOnly();
-      this.expectStaticType<Exactly<B>>();
+      this.expectStaticType<Exactly<B>>;
     }
   }
 }
@@ -71,12 +71,12 @@ extension Ext on A {
       case B():
         this.bOnly();
         bOnly();
-        this.expectStaticType<Exactly<B>>();
+        this.expectStaticType<Exactly<B>>;
     }
 
     // 2. Switch expression
     var _ = switch (this) {
-      B() => <void>[this.expectStaticType<Exactly<B>>(), bOnly(), this.bOnly()],
+      B() => <void>[this.expectStaticType<Exactly<B>>, bOnly(), this.bOnly()],
       _ => null,
     };
 
@@ -84,14 +84,79 @@ extension Ext on A {
     if (this case B()) {
       this.bOnly();
       bOnly();
-      this.expectStaticType<Exactly<B>>();
+      this.expectStaticType<Exactly<B>>;
     }
   }
 }
 
+extension type C(A r) {
+  void aOnly() {}
+}
+
+extension type D(ClassTest r) implements C {
+  void testExtensionTypeD() {
+    // 1. Switch statement
+    switch (this) {
+      case F():
+        this.bOnly();
+        bOnly();
+        this.expectStaticType<Exactly<F>>;
+    }
+
+    // 2. Switch expression
+    var _ = switch (this) {
+      F() => <void>[this.expectStaticType<Exactly<F>>, bOnly(), this.bOnly()],
+      _ => null,
+    };
+
+    // 3. If-case statement
+    if (this case F()) {
+      this.bOnly();
+      bOnly();
+      this.expectStaticType<Exactly<F>>;
+    }
+  }
+}
+
+extension type E(M r) implements C {
+  void testExtensionTypeE() {
+    // 1. Switch statement
+    switch (this) {
+      case F():
+        this.bOnly();
+        bOnly();
+        this.expectStaticType<Exactly<F>>;
+    }
+
+    // 2. Switch expression
+    var _ = switch (this) {
+      F() => <void>[this.expectStaticType<Exactly<F>>, bOnly(), this.bOnly()],
+      _ => null,
+    };
+
+    // 3. If-case statement
+    if (this case F()) {
+      this.bOnly();
+      bOnly();
+      this.expectStaticType<Exactly<F>>;
+    }
+  }
+}
+
+extension type F(B r) implements D, E {
+  void bOnly() {}
+}
+
 void main() {
-  var obj = B();
-  obj.testClass();
-  obj.testMixin();
-  obj.testExtension();
+  A().testExtension();
+  ClassTest().testClass();
+  ClassTest().testExtension();
+  B().testClass();
+  B().testMixin();
+  B().testExtension();
+  D(ClassTest()).testExtensionTypeD();
+  D(B()).testExtensionTypeD();
+  E(B()).testExtensionTypeE();
+  F(B()).testExtensionTypeD();
+  F(B()).testExtensionTypeE();
 }

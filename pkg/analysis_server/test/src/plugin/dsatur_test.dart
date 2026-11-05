@@ -18,40 +18,40 @@ class DsaturTest {
   void test_conflict_differentGitRefs() {
     var v1 = PluginSpecVertex('v1', [
       _git('a', 'https://github.com/user/repo.git', ref: 'v1.0.0'),
-    ]);
+    ], {});
     var v2 = PluginSpecVertex('v2', [
       _git('a', 'https://github.com/user/repo.git', ref: 'v2.0.0'),
-    ]);
+    ], {});
 
     var groups = groupVerticesMinimal([v1, v2]);
     expect(groups, hasLength(2));
   }
 
   void test_conflict_differentPaths() {
-    var v1 = PluginSpecVertex('v1', [_path('a', '/path/to/a')]);
-    var v2 = PluginSpecVertex('v2', [_path('a', '/path/to/b')]);
+    var v1 = PluginSpecVertex('v1', [_path('a', '/path/to/a')], {});
+    var v2 = PluginSpecVertex('v2', [_path('a', '/path/to/b')], {});
 
     var groups = groupVerticesMinimal([v1, v2]);
     expect(groups, hasLength(2));
   }
 
   void test_conflict_differentPubVersions() {
-    var v1 = PluginSpecVertex('v1', [_versioned('a', '^1.0.0')]);
-    var v2 = PluginSpecVertex('v2', [_versioned('a', '^2.0.0')]);
+    var v1 = PluginSpecVertex('v1', [_versioned('a', '^1.0.0')], {});
+    var v2 = PluginSpecVertex('v2', [_versioned('a', '^2.0.0')], {});
 
     var groups = groupVerticesMinimal([v1, v2]);
     expect(groups, hasLength(2));
   }
 
   void test_conflict_fiveSpecs_makeThreeGroups() {
-    var v1 = PluginSpecVertex('v1', [_versioned('a', '^1.0.0')]);
+    var v1 = PluginSpecVertex('v1', [_versioned('a', '^1.0.0')], {});
     var v2 = PluginSpecVertex('v2', [
       _versioned('a', '^1.0.0'),
       _versioned('b', '^2.0.0'),
-    ]);
-    var v3 = PluginSpecVertex('v3', [_versioned('a', '^2.0.0')]);
-    var v4 = PluginSpecVertex('v4', [_versioned('a', '^2.0.0')]);
-    var v5 = PluginSpecVertex('v5', [_versioned('c', '^3.0.0')]);
+    ], {});
+    var v3 = PluginSpecVertex('v3', [_versioned('a', '^2.0.0')], {});
+    var v4 = PluginSpecVertex('v4', [_versioned('a', '^2.0.0')], {});
+    var v5 = PluginSpecVertex('v5', [_versioned('c', '^3.0.0')], {});
 
     var groups = groupVerticesMinimal([v1, v2, v3, v4, v5]);
     expect(groups, hasLength(3));
@@ -69,26 +69,26 @@ class DsaturTest {
   }
 
   void test_conflict_noSubset() {
-    var v1 = PluginSpecVertex('v1', [_versioned('a', '^1.0.0')]);
-    var v2 = PluginSpecVertex('v2', [_versioned('b', '^2.0.0')]);
+    var v1 = PluginSpecVertex('v1', [_versioned('a', '^1.0.0')], {});
+    var v2 = PluginSpecVertex('v2', [_versioned('b', '^2.0.0')], {});
 
     var groups = groupVerticesMinimal([v1, v2]);
     expect(groups, hasLength(2));
   }
 
   void test_conflict_pathVsVersioned() {
-    var v1 = PluginSpecVertex('v1', [_path('a', '/path/to/a')]);
-    var v2 = PluginSpecVertex('v2', [_versioned('a', '^1.0.0')]);
+    var v1 = PluginSpecVertex('v1', [_path('a', '/path/to/a')], {});
+    var v2 = PluginSpecVertex('v2', [_versioned('a', '^1.0.0')], {});
 
     var groups = groupVerticesMinimal([v1, v2]);
     expect(groups, hasLength(2));
   }
 
   void test_conflict_versionedDifferentHosts() {
-    var v1 = PluginSpecVertex('v1', [_versioned('a', '^1.0.0')]);
+    var v1 = PluginSpecVertex('v1', [_versioned('a', '^1.0.0')], {});
     var v2 = PluginSpecVertex('v2', [
       _versioned('a', '^1.0.0', hostedUrl: 'https://custom.pub.dev'),
-    ]);
+    ], {});
 
     var groups = groupVerticesMinimal([v1, v2]);
     expect(groups, hasLength(2));
@@ -100,11 +100,11 @@ class DsaturTest {
   }
 
   void test_noConflict_subset() {
-    var v1 = PluginSpecVertex('v1', [_versioned('a', '^1.0.0')]);
+    var v1 = PluginSpecVertex('v1', [_versioned('a', '^1.0.0')], {});
     var v2 = PluginSpecVertex('v2', [
       _versioned('a', '^1.0.0'),
       _versioned('b', '^2.0.0'),
-    ]);
+    ], {});
 
     var groups = groupVerticesMinimal([v1, v2]);
     expect(groups, hasLength(1));

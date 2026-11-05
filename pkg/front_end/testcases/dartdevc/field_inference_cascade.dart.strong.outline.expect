@@ -1,0 +1,31 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  static field self::B? _#b;
+  static field core::bool _#b#isSet;
+  synthetic constructor •() → self::A
+    ;
+  static get b() → self::B;
+  static synthetic method _#new#tearOff() → self::A
+    return new self::A::•();
+}
+class B extends core::Object {
+  field self::C? _#B#c;
+  synthetic constructor •() → self::B
+    ;
+  get c() → self::C;
+  set c(self::C c#param) → void;
+  static synthetic method _#new#tearOff() → self::B
+    return new self::B::•();
+}
+class C extends core::Object {
+  synthetic constructor •() → self::C
+    ;
+  static synthetic method _#new#tearOff() → self::C
+    return new self::C::•();
+}
+static field self::C? _#c;
+static field core::bool _#c#isSet;
+static get c() → self::C;

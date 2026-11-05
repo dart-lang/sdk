@@ -486,6 +486,13 @@ void f() {
 ''');
   }
 
+  /// https://github.com/dart-lang/sdk/issues/59038
+  test_intLiteralInside_equalityExpression() async {
+    await assertDiagnosticsFromMarkup(r'''
+bool f(int x) => x == [!(10)!];
+''');
+  }
+
   test_intLiteralInside_recordLiteral() async {
     await assertDiagnosticsFromMarkup(r'''
 void f() {

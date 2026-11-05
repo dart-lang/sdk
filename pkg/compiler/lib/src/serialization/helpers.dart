@@ -137,7 +137,7 @@ class DartTypeNodeWriter
   ) {
     _sink.writeEnum(DartTypeNodeKind.functionType);
     _sink.begin(functionTypeNodeTag);
-    functionTypeVariables = List<ir.StructuralParameter>.from(
+    functionTypeVariables = List<ir.StructuralParameter>.of(
       functionTypeVariables,
     )..addAll(node.typeParameters);
     _sink.writeInt(node.typeParameters.length);

@@ -12,6 +12,7 @@ import 'dart:convert';
 import 'dart:developer' show Service, debugger;
 import 'dart:io';
 import 'dart:isolate';
+
 import 'package:bazel_worker/bazel_worker.dart';
 import 'package:kernel/ast.dart' show clearDummyTreeNodesParentPointer;
 import 'package:shell_arg_splitter/shell_arg_splitter.dart';
@@ -119,9 +120,8 @@ class _BatchHelper {
         enable: true,
         silenceOutput: true,
       );
-      File.fromUri(
-        Directory.systemTemp.uri.resolve('./dart_leak_test_uri'),
-      ).writeAsStringSync(services.serverUri!.toString());
+      File.fromUri(Directory.systemTemp.uri.resolve('./dart_leak_test_uri'))
+          .writeAsStringSync(services.serverUri!.toString());
     }
 
     watch.start();

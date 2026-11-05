@@ -1,0 +1,82 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+part unordered_constructor_part1.dart;
+part unordered_constructor_part2.dart;
+class Class1 extends core::Object {
+  @/* from org-dartlang-testcase:///unordered_constructor_part1.dart */ #C1
+  @/* from org-dartlang-testcase:///unordered_constructor_part2.dart */ #C2
+  constructor •() → self::Class1
+    : super core::Object::•() {
+    core::print("Class1.new");
+  }
+  @/* from org-dartlang-testcase:///unordered_constructor_part1.dart */ #C1
+  @/* from org-dartlang-testcase:///unordered_constructor_part2.dart */ #C2
+  constructor alias() → self::Class1
+    : super core::Object::•()
+    ;
+  @/* from org-dartlang-testcase:///unordered_constructor_part1.dart */ #C1
+  @/* from org-dartlang-testcase:///unordered_constructor_part2.dart */ #C2
+  static factory fact() → self::Class1 {
+    core::print("Class1.fact");
+    return new self::Class1::•();
+  }
+  @/* from org-dartlang-testcase:///unordered_constructor_part1.dart */ #C1
+  @/* from org-dartlang-testcase:///unordered_constructor_part2.dart */ #C2
+  static factory redirect() → self::Class1 /* redirection-target: self::Class1::• */
+    return new self::Class1::•();
+}
+class Class2 extends core::Object {
+  @/* from org-dartlang-testcase:///unordered_constructor.dart */ #C1
+  @/* from org-dartlang-testcase:///unordered_constructor_part2.dart */ #C2
+  constructor /* from org-dartlang-testcase:///unordered_constructor_part1.dart */ •() → self::Class2
+    : super core::Object::•() {
+    core::print("Class2.new");
+  }
+  @/* from org-dartlang-testcase:///unordered_constructor.dart */ #C1
+  @/* from org-dartlang-testcase:///unordered_constructor_part2.dart */ #C2
+  constructor /* from org-dartlang-testcase:///unordered_constructor_part1.dart */ alias() → self::Class2
+    : super core::Object::•()
+    ;
+  @/* from org-dartlang-testcase:///unordered_constructor.dart */ #C1
+  @/* from org-dartlang-testcase:///unordered_constructor_part2.dart */ #C2
+  static factory /* from org-dartlang-testcase:///unordered_constructor_part1.dart */ fact() → self::Class2 {
+    core::print("Class2.fact");
+    return new self::Class2::•();
+  }
+  @/* from org-dartlang-testcase:///unordered_constructor.dart */ #C1
+  @/* from org-dartlang-testcase:///unordered_constructor_part2.dart */ #C2
+  static factory /* from org-dartlang-testcase:///unordered_constructor_part1.dart */ redirect() → self::Class2 /* redirection-target: self::Class2::• */
+    return new self::Class2::•();
+}
+class Class3 extends core::Object {
+  @/* from org-dartlang-testcase:///unordered_constructor.dart */ #C1
+  @/* from org-dartlang-testcase:///unordered_constructor_part1.dart */ #C2
+  constructor /* from org-dartlang-testcase:///unordered_constructor_part2.dart */ •() → self::Class3
+    : super core::Object::•() {
+    core::print("Class3.new");
+  }
+  @/* from org-dartlang-testcase:///unordered_constructor.dart */ #C1
+  @/* from org-dartlang-testcase:///unordered_constructor_part1.dart */ #C2
+  constructor /* from org-dartlang-testcase:///unordered_constructor_part2.dart */ alias() → self::Class3
+    : this self::Class3::•()
+    ;
+  @/* from org-dartlang-testcase:///unordered_constructor.dart */ #C1
+  @/* from org-dartlang-testcase:///unordered_constructor_part1.dart */ #C2
+  static factory /* from org-dartlang-testcase:///unordered_constructor_part2.dart */ fact() → self::Class3 {
+    core::print("Class3.fact");
+    return new self::Class3::•();
+  }
+  @/* from org-dartlang-testcase:///unordered_constructor.dart */ #C1
+  @/* from org-dartlang-testcase:///unordered_constructor_part1.dart */ #C2
+  static factory /* from org-dartlang-testcase:///unordered_constructor_part2.dart */ redirect() → self::Class3 /* redirection-target: self::Class3::• */
+    return new self::Class3::•();
+}
+static const field core::int annotation1 = #C1;
+static const field core::int annotation2 = #C2;
+
+constants  {
+  #C1 = 1
+  #C2 = 2
+}

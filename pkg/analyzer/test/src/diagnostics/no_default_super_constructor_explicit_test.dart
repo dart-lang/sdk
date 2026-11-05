@@ -16,9 +16,9 @@ main() {
 
 @reflectiveTest
 class NoDefaultSuperConstructorExplicitTest extends PubPackageResolutionTest {
-  test_requiredNamed_constructor_typeName() async {
+  test_requiredNamed_constructor_typeName_beforeSuperParameters() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.16
+// %before-language-feature: super-parameters
 class A {
   A({required int a});
 }
@@ -30,9 +30,9 @@ class B extends A {
 ''');
   }
 
-  test_requiredPositional_constructor_typeName() async {
+  test_requiredPositional_constructor_typeName_beforeSuperParameters() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.16
+// %before-language-feature: super-parameters
 class A {
   A(int a);
 }

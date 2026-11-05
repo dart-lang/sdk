@@ -16,6 +16,25 @@ main() {
 
 @reflectiveTest
 class UndefinedClassTest extends PubPackageResolutionTest {
+  test_builtInIdentifier() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import<int> x = [];
+// [diag.builtInIdentifierAsType][column 1][length 6] The built-in identifier 'import' can't be used as a type.
+''');
+  }
+
+  test_builtInIdentifier_prefixed() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'dart:math' as p;
+//     ^^^^^^^^^^^
+// [diag.unusedImport] Unused import: 'dart:math'.
+
+void f(p.import x) {}
+//       ^^^^^^
+// [diag.builtInIdentifierAsType] The built-in identifier 'import' can't be used as a type.
+''');
+  }
+
   test_const() async {
     await resolveTestCodeWithDiagnostics(r'''
 f() {
@@ -155,22 +174,22 @@ void f(Record r) {}
 ''');
   }
 
-  test_Record_language219() async {
+  test_Record_beforeRecords() async {
     await resolveTestCodeWithDiagnostics('''
-// @dart = 2.19
+// %before-language-feature: records
 void f(Record r) {}
 //     ^^^^^^
 // [diag.undefinedClass] Undefined class 'Record'.
 ''');
   }
 
-  test_Record_language219_exported() async {
+  test_Record_beforeRecords_exported() async {
     newFile('$testPackageLibPath/a.dart', r'''
 export 'dart:core' show Record;
 ''');
 
     await resolveTestCodeWithDiagnostics('''
-// @dart = 2.19
+// %before-language-feature: records
 import 'a.dart';
 void f(Record r) {}
 ''');

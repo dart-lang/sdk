@@ -25,6 +25,15 @@ class CreateClassLowercaseTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.createClassLowercase;
 
+  Future<void> test_functionTypeAssignment_noFix() async {
+    await resolveTestCode('''
+void a() {
+  void Function(int i) _ = function;
+}
+''');
+    await assertNoFix();
+  }
+
   Future<void> test_ifNull_notType() async {
     await resolveTestCode('''
 class A {

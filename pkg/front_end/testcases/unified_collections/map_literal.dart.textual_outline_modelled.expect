@@ -1,0 +1,23 @@
+List<(int, int)> intIntList = <(int, int)>[(0, 1), (2, 3)];
+
+List<int> intList = <int>[0, 1, 2];
+
+Map<int, String>? nullableIntMap1 = <int, String>{0: '0', 1: '1', 2: '2'};
+
+Map<int, String>? nullableIntMap2 = null;
+
+Map<int, String> intMap = <int, String>{0: '0', 1: '1', 2: '2'};
+
+Map<num, String> numMap = <num, String>{0: '0', 1: '1', 2: '2'};
+
+String? nullableString1 = '0';
+
+String? nullableString2 = null;
+
+T id<T>(T t) => t;
+
+main() {}
+
+num? nullableNum1 = 0;
+
+num? nullableNum2 = null;

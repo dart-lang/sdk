@@ -8,6 +8,7 @@ import 'dart:io';
 
 import 'package:path/path.dart';
 
+import 'core.dart';
 import 'sdk.dart';
 
 class DDSRunner {
@@ -23,7 +24,7 @@ class DDSRunner {
     required bool enableServicePortFallback,
   }) async {
     void printError(String details) =>
-        stderr.writeln('Could not start the VM service:\n$details');
+        log.stderr('Could not start the VM service:\n$details');
 
     final sdkDir = dirname(sdk.dart);
     final fullSdk = sdkDir.endsWith('bin');
@@ -63,7 +64,7 @@ class DDSRunner {
           .listen((event) {
             if (event.startsWith(devToolsMessagePrefix)) {
               final ddsDebuggingUri = event.split(' ').last;
-              print(
+              log.stdout(
                 'A DevTools debugger for DDS is available at: $ddsDebuggingUri',
               );
               stdoutSub.cancel();
@@ -79,7 +80,7 @@ class DDSRunner {
       if (result case {'state': 'started', 'ddsUri': final String ddsUriStr}) {
         ddsUri = Uri.parse(ddsUriStr);
         if (result case {'devToolsUri': String devToolsUri}) {
-          print('$devToolsMessagePrefix $devToolsUri');
+          log.stdout('$devToolsMessagePrefix $devToolsUri');
         }
       } else {
         final error = result['error'] ?? result;

@@ -36,9 +36,9 @@ class inout = A with B;
 ''');
   }
 
-  test_classTypeAlias_inout_language310() async {
+  test_classTypeAlias_inout_beforePrimaryConstructors() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 class A {}
 mixin B {}
 class inout = A with B;
@@ -55,9 +55,9 @@ class out = A with B;
 ''');
   }
 
-  test_classTypeAlias_out_language310() async {
+  test_classTypeAlias_out_beforePrimaryConstructors() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 class A {}
 mixin B {}
 class out = A with B;
@@ -90,9 +90,9 @@ typedef void inout();
 ''');
   }
 
-  test_typedef_classic_inout_language310() async {
+  test_typedef_classic_inout_beforePrimaryConstructors() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 typedef void inout();
 ''');
   }
@@ -105,9 +105,9 @@ typedef void out();
 ''');
   }
 
-  test_typedef_classic_out_language310() async {
+  test_typedef_classic_out_beforePrimaryConstructors() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 typedef void out();
 ''');
   }
@@ -129,9 +129,9 @@ typedef inout = void Function();
 ''');
   }
 
-  test_typedef_generic_inout_language310() async {
+  test_typedef_generic_inout_beforePrimaryConstructors() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 typedef inout = void Function();
 ''');
   }
@@ -144,9 +144,9 @@ typedef out = void Function();
 ''');
   }
 
-  test_typedef_generic_out_language310() async {
+  test_typedef_generic_out_beforePrimaryConstructors() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 typedef out = void Function();
 ''');
   }

@@ -52,7 +52,7 @@ class DeprecatedFunctionalityVerifier {
         element: element,
         argumentList: redirectingConstructorInvocation.argumentList,
         errorEntity:
-            redirectingConstructorInvocation.constructorName ??
+            redirectingConstructorInvocation.constructorSelector?.name2 ??
             redirectingConstructorInvocation.thisKeyword,
       );
     }
@@ -61,35 +61,41 @@ class DeprecatedFunctionalityVerifier {
     // constructor.
   }
 
-  void constructorName(ConstructorName node) {
-    var interfaceElement = node.type.element;
+  void constructorInvocation(ConstructorInvocation node) {
+    var constructor = node.constructorReference.element;
+    if (constructor == null) return;
+    _checkForDeprecatedOptional(
+      element: constructor,
+      argumentList: node.argumentList,
+      errorEntity: node.constructorReference,
+    );
+  }
+
+  void constructorReference2(ConstructorReference2 node) {
+    var interfaceElement = node.typeReference.element;
     if (interfaceElement is! InterfaceElement) return;
     _checkForDeprecatedInstantiate(element: interfaceElement, errorNode: node);
   }
 
-  void dotShorthandConstructorInvocation(
-    DotShorthandConstructorInvocation node,
+  void constructorTearOff(ConstructorTearOff node) {
+    var interfaceElement = node.typeReference.element;
+    if (interfaceElement is! InterfaceElement) return;
+    _checkForDeprecatedInstantiate(element: interfaceElement, errorNode: node);
+  }
+
+  void dotShorthandConstructorInvocation2(
+    DotShorthandConstructorInvocation2Impl node,
   ) {
     var element = node.element;
-    if (element is! ConstructorElement) return;
+    if (element == null) return;
     _checkForDeprecatedOptional(
       element: element,
       argumentList: node.argumentList,
-      errorEntity: node.constructorName,
+      errorEntity: node.name,
     );
     _checkForDeprecatedInstantiate(
       element: element.enclosingElement,
-      errorNode: node.constructorName,
-    );
-  }
-
-  void dotShorthandInvocation(DotShorthandInvocation node) {
-    var element = node.memberName.element;
-    if (element is! ExecutableElement) return;
-    _checkForDeprecatedOptional(
-      element: element,
-      argumentList: node.argumentList,
-      errorEntity: node.memberName,
+      errorNode: node.name,
     );
   }
 
@@ -98,38 +104,24 @@ class DeprecatedFunctionalityVerifier {
     _checkForDeprecatedMixin(node.withClause);
   }
 
-  void instanceCreationExpression(InstanceCreationExpression node) {
-    var constructor = node.constructorName.element;
-    if (constructor == null) return;
-    _checkForDeprecatedOptional(
-      element: constructor,
-      argumentList: node.argumentList,
-      errorEntity: node.constructorName,
-    );
-    var interfaceElement = node.constructorName.type.element;
-    if (interfaceElement is! InterfaceElement) return;
-    _checkForDeprecatedInstantiate(
-      element: interfaceElement,
-      errorNode: node.constructorName,
-    );
-  }
-
-  void methodInvocation(MethodInvocation node) {
-    var method = node.methodName.element;
-    if (method is! ExecutableElement) return;
-    if (method is LocalFunctionElement) return;
-    _checkForDeprecatedOptional(
-      element: method,
-      argumentList: node.argumentList,
-      errorEntity: node.methodName,
-    );
-  }
-
   void mixinDeclaration(MixinDeclaration node) {
     _checkForDeprecatedImplement(node.implementsClause?.interfaces);
     // Not technically "implementing," but is similar enough for
     // `@Deprecated.implement` and `@Deprecated.subclass`.
     _checkForDeprecatedImplement(node.onClause?.superclassConstraints);
+  }
+
+  void namedFunctionInvocation(NamedFunctionInvocation node) {
+    var method = switch (node.resolution) {
+      ExecutableInvocationResolution(:var element) => element,
+      _ => null,
+    };
+    if (method is! ExecutableElement || method is LocalFunctionElement) return;
+    _checkForDeprecatedOptional(
+      element: method,
+      argumentList: node.argumentList,
+      errorEntity: node.name,
+    );
   }
 
   void primaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
@@ -187,7 +179,7 @@ class DeprecatedFunctionalityVerifier {
 
   void _checkForDeprecatedInstantiate({
     required InterfaceElement element,
-    required AstNode errorNode,
+    required SyntacticEntity errorNode,
   }) {
     if (element.isDeprecatedWithKind('instantiate')) {
       _diagnosticReporter.report(
@@ -218,7 +210,7 @@ class DeprecatedFunctionalityVerifier {
     required SyntacticEntity errorEntity,
   }) {
     var omittedParameters = element.formalParameters.toList();
-    for (var argument in argumentList.arguments) {
+    for (var argument in argumentList.arguments2) {
       var parameter = argument.correspondingParameter;
       if (parameter == null) continue;
       omittedParameters.remove(parameter);
@@ -237,13 +229,14 @@ class DeprecatedFunctionalityVerifier {
   void _checkForDeprecatedOptionalRedirectedParameters(
     ConstructorDeclaration node,
   ) {
-    if (node.redirectedConstructor?.element case var redirectedConstructor?) {
+    if (node.factoryRedirectionTarget?.element
+        case var redirectedConstructor?) {
       var SourceRange(offset: errorOffset, length: errorLength) =
           node.errorRange;
-      var positionalArgumentCount = node.parameters.parameters
+      var positionalArgumentCount = node.parameters.allFormalParameters
           .where((p) => p.isPositional)
           .length;
-      var namedArgumentNames = node.parameters.parameters
+      var namedArgumentNames = node.parameters.allFormalParameters
           .where((p) => p.isNamed)
           .map((p) => p.name?.lexeme)
           .nonNulls
@@ -305,10 +298,10 @@ class DeprecatedFunctionalityVerifier {
       // `superConstructorInvocation` or via super-parameters.
       var superConstructorInvocation = superConstructorInvocations.single;
       superConstructorArguments =
-          superConstructorInvocation.argumentList.arguments;
+          superConstructorInvocation.argumentList.arguments2;
 
       var errorEntity =
-          superConstructorInvocation.constructorName ??
+          superConstructorInvocation.constructorSelector?.name2 ??
           superConstructorInvocation.superKeyword;
       errorRange = errorEntity.sourceRange;
     }

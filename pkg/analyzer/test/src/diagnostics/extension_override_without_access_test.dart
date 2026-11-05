@@ -5,10 +5,12 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExtensionOverrideWithoutAccessTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -52,7 +54,40 @@ f(C c) {
 // [diag.extensionOverrideWithoutAccess] An extension override can only be used to access instance members.
 }
 ''');
-    assertTypeDynamic(result.findNode.extensionOverride('E(c)'));
+    var node = result.findNode.singleInvalidExtensionOverrideExpression;
+    assertResolvedNodeText(node, r'''
+InvalidExtensionOverrideExpression
+  extensionOverride: ExtensionOverride2
+    name: E
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        UnqualifiedNameExpression
+          name: c
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::c
+            type: C
+          correspondingParameter: <null>
+          staticType: C
+      rightParenthesis: )
+    element: <testLibrary>::@extension::E
+    extendedType: C
+  staticType: InvalidType
+V1: ExtensionOverride
+  name: E
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: c
+        correspondingParameter: <null>
+        element: <testLibrary>::@function::f::@formalParameter::c
+        staticType: C
+    rightParenthesis: )
+  element: <testLibrary>::@extension::E
+  extendedType: C
+  staticType: dynamic
+''');
   }
 
   test_getter() async {

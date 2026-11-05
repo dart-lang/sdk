@@ -22,8 +22,8 @@ export 'package:analyzer/src/dart/analysis/experiments_impl.dart'
         IllegalUseOfExpiredFlag,
         UnnecessaryUseOfExpiredFlag,
         UnrecognizedFlag,
-        validateFlags,
-        ValidationResult;
+        ValidationResult,
+        validateFlags;
 
 part 'experiments.g.dart';
 

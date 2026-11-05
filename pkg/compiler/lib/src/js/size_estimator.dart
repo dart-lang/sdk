@@ -889,6 +889,12 @@ class SizeEstimator implements NodeVisitor<void> {
     out(sizeEstimate(param));
   }
 
+  @override
+  void visitRestParameter(RestParameter param) {
+    out('...');
+    visitParameter(param);
+  }
+
   bool isDigit(int charCode) {
     return char_codes.$0 <= charCode && charCode <= char_codes.$9;
   }

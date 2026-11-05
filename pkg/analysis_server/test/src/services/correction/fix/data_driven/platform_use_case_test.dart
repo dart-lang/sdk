@@ -29,7 +29,7 @@ class PlatformUseCaseTest extends DataDrivenFixProcessorTest {
 }
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'p', rootFolder: getFolder('$workspaceRootPath/p'))
         ..add(name: 'p2', rootFolder: getFolder('$workspaceRootPath/p2')),
@@ -86,7 +86,7 @@ class HostPlatform {
 }
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'p', rootFolder: getFolder('$workspaceRootPath/p')),
     );
@@ -143,7 +143,7 @@ class NativePlatform {
 }
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'p', rootFolder: getFolder('$workspaceRootPath/p')),
     );
@@ -200,7 +200,7 @@ class NativePlatform {
 }
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'p', rootFolder: getFolder('$workspaceRootPath/p')),
     );
@@ -252,7 +252,7 @@ class HostPlatform {
 }
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'p', rootFolder: getFolder('$workspaceRootPath/p')),
     );

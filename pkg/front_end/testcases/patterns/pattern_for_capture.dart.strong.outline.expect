@@ -1,0 +1,16 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method main() → void
+  ;
+static method forStatement() → void
+  ;
+static method patternForStatement() → void
+  ;
+static method forElement() → void
+  ;
+static method patternForElement() → void
+  ;
+static method check(core::List<() → core::int> actual, core::List<core::int> expected) → void
+  ;

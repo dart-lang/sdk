@@ -163,7 +163,7 @@ class A {
 class B {
   const B() : a = new A();
 //                ^^^^^^^
-// [context 1] The error is in the field initializer of 'B', and occurs here.
+// [context 1] The error is in the field initializer of 'B.new', and occurs here.
 // [diag.invalidConstant] Invalid constant value.
   final a;
 }
@@ -194,22 +194,6 @@ class B extends A {
   static var C;
   const B() : super(C);
 //                  ^
-// [diag.invalidConstant] Invalid constant value.
-}
-''');
-  }
-
-  test_issue49389() async {
-    await resolveTestCodeWithDiagnostics(r'''
-class Foo {
-  const Foo({required this.bar});
-  final Map<String, String> bar;
-}
-
-void main() {
-  final data = <String, String>{};
-  const Foo(bar: data);
-//               ^^^^
 // [diag.invalidConstant] Invalid constant value.
 }
 ''');

@@ -38,7 +38,7 @@ library
         #F1 hasImplicitReturnType isComplete isOriginDeclaration isStatic f (nameOffset:0) (firstTokenOffset:0) (offset:0)
           element: <testLibrary>::@function::f
   functions
-    isOriginDeclaration isStatic f
+    hasImplicitReturnType isOriginDeclaration isStatic f
       reference: <testLibrary>::@function::f
       firstFragment: #F1
       returnType: dynamic
@@ -71,7 +71,7 @@ library
       firstFragment: #F1
       aliasedType: dynamic Function(int)
   functions
-    isOriginDeclaration isStatic main
+    hasImplicitReturnType isOriginDeclaration isStatic main
       reference: <testLibrary>::@function::main
       firstFragment: #F2
       formalParameters
@@ -191,7 +191,7 @@ library
     expect(variables, hasLength(1));
     var x = variables[0];
     _assertTypeStr(x.type, 'Type');
-    expect(x.constantInitializer.toString(), 'FutureOr');
+    expect(x.constantInitializer2.toString(), 'FutureOr');
   }
 
   test_futureOr_inferred() async {
@@ -446,14 +446,22 @@ library
           constantInitializers
             RedirectingConstructorInvocation
               thisKeyword: this @57
-              period: . @61
-              constructorName: SimpleIdentifier
-                token: named @62
-                element: <testLibrary>::@class::D::@constructor::named
-                staticType: null
+              constructorSelector: ConstructorSelector
+                period: . @61
+                name2: named @62
               argumentList: ArgumentList
                 leftParenthesis: ( @67
-                arguments
+                arguments2
+                  ImplicitCallTearOff
+                    operand: UnqualifiedNameExpression
+                      name: c @68
+                      resolution: VariableReadResolution
+                        element: <testLibrary>::@class::D::@constructor::new::@formalParameter::c
+                        type: C
+                      staticType: C
+                    element: <testLibrary>::@class::C::@method::call
+                    staticType: void Function()
+                arguments(v1)
                   ImplicitCallReference
                     expression: SimpleIdentifier
                       token: c @68
@@ -462,6 +470,11 @@ library
                     element: <testLibrary>::@class::C::@method::call
                     staticType: void Function()
                 rightParenthesis: ) @69
+              period: . @61
+              constructorName: SimpleIdentifier
+                token: named @62
+                element: <testLibrary>::@class::D::@constructor::named
+                staticType: null
               element: <testLibrary>::@class::D::@constructor::named
           redirectedConstructor: <testLibrary>::@class::D::@constructor::named
         isConst isOriginDeclaration named
@@ -1868,14 +1881,15 @@ library
             #F2 optionalPositional hasImplicitType isOriginDeclaration p (nameOffset:40) (firstTokenOffset:40) (offset:40)
               element: <testLibrary>::@function::foo::@formalParameter::p
               initializer: expression_0
-                SimpleIdentifier
-                  token: V @44
-                  element: multiplyDefinedElement
-                    package:test/a.dart::@function::V
-                    package:test/b.dart::@function::V
+                UnqualifiedNameExpression
+                  name: V @44
+                  resolution: InvalidNamedReadResolution
+                    recoveryElement: multiplyDefinedElement
+                      package:test/a.dart::@function::V
+                      package:test/b.dart::@function::V
                   staticType: InvalidType
   functions
-    isOriginDeclaration isStatic foo
+    hasImplicitReturnType isOriginDeclaration isStatic foo
       reference: <testLibrary>::@function::foo
       firstFragment: #F1
       formalParameters
@@ -1920,12 +1934,14 @@ library
             #F2 optionalPositional hasImplicitType isOriginDeclaration p (nameOffset:23) (firstTokenOffset:23) (offset:23)
               element: <testLibrary>::@function::foo::@formalParameter::p
               initializer: expression_0
-                SimpleIdentifier
-                  token: V @27
-                  element: package:test/a.dart::@function::V
+                UnqualifiedNameExpression
+                  name: V @27
+                  resolution: ExecutableTearOffResolution
+                    element: package:test/a.dart::@function::V
+                    type: dynamic Function()
                   staticType: dynamic Function()
   functions
-    isOriginDeclaration isStatic foo
+    hasImplicitReturnType isOriginDeclaration isStatic foo
       reference: <testLibrary>::@function::foo
       firstFragment: #F1
       formalParameters
@@ -1974,9 +1990,12 @@ library
             #F6 optionalPositional hasImplicitType isOriginDeclaration p (nameOffset:5) (firstTokenOffset:5) (offset:5)
               element: <testLibrary>::@function::foo::@formalParameter::p
               initializer: expression_0
-                SimpleIdentifier
-                  token: V @9
-                  element: <testLibrary>::@getter::V
+                UnqualifiedNameExpression
+                  name: V @9
+                  resolution: GetterInvocationResolution
+                    element: <testLibrary>::@getter::V
+                    invokeType: dynamic Function()
+                    type: dynamic
                   staticType: dynamic
         #F7 hasImplicitReturnType isComplete isOriginDeclaration isStatic V (nameOffset:16) (firstTokenOffset:16) (offset:16)
           element: <testLibrary>::@function::V
@@ -2004,7 +2023,7 @@ library
       returnType: void
       variable: <testLibrary>::@topLevelVariable::V
   functions
-    isOriginDeclaration isStatic foo
+    hasImplicitReturnType isOriginDeclaration isStatic foo
       reference: <testLibrary>::@function::foo
       firstFragment: #F5
       formalParameters
@@ -2015,7 +2034,7 @@ library
             fragment: #F6
             expression: expression_0
       returnType: dynamic
-    isOriginDeclaration isStatic V
+    hasImplicitReturnType isOriginDeclaration isStatic V
       reference: <testLibrary>::@function::V
       firstFragment: #F7
       returnType: dynamic

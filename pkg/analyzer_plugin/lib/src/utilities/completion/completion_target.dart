@@ -305,13 +305,6 @@ class CompletionTarget {
         return node.realTarget;
       }
     }
-    if (node is NamedType) {
-      var importPrefix = node.importPrefix;
-      if (importPrefix != null && identical(node.name, entity)) {
-        return SimpleIdentifierImpl(token: importPrefix.name)
-          ..element = importPrefix.element;
-      }
-    }
     if (node is PropertyAccess) {
       if (identical(node.propertyName, entity)) {
         return node.realTarget;

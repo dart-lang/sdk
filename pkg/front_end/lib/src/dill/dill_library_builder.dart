@@ -196,7 +196,7 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
       yield dependency.targetLibrary.importUri;
     }
     for (LibraryPart part in library.parts) {
-      yield getPartUri(importUri, part);
+      yield getPartImportUri(importUri, part);
     }
   }
 

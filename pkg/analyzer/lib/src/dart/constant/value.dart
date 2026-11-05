@@ -10,7 +10,8 @@ library;
 import 'dart:collection';
 
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/ast.dart' as ast show ConstructorInvocation;
+import 'package:analyzer/dart/ast/ast.dart' hide ConstructorInvocation;
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -138,7 +139,7 @@ class BoolState extends InstanceState {
 /// [InvalidConstant] represents an invalid result with error information.
 sealed class Constant {}
 
-class ConstructorInvocationImpl implements ConstructorInvocation {
+class ConstructorInvocationDataImpl implements ConstructorInvocation {
   @override
   final ConstructorElement constructor;
 
@@ -148,7 +149,7 @@ class ConstructorInvocationImpl implements ConstructorInvocation {
   @override
   final Map<String, DartObjectImpl> namedArguments;
 
-  ConstructorInvocationImpl(
+  ConstructorInvocationDataImpl(
     this.constructor,
     this.positionalArguments,
     this.namedArguments,
@@ -269,7 +270,7 @@ class DartObjectImpl implements DartObject, Constant {
   }
 
   @override
-  ConstructorInvocationImpl? get constructorInvocation {
+  ConstructorInvocationDataImpl? get constructorInvocation {
     return state.tryCast<GenericState>()?.invocation;
   }
 
@@ -1516,7 +1517,7 @@ class GenericState extends InstanceState {
   int? _hashCode;
 
   /// Information about the constructor invoked to generate this instance.
-  final ConstructorInvocationImpl? invocation;
+  final ConstructorInvocationDataImpl? invocation;
 
   @override
   final bool isUnknown;
@@ -2544,16 +2545,22 @@ class InvalidConstant implements Constant {
     required AstNode node,
     bool isUnresolved = false,
   }) {
-    var parent = node.parent;
-    var parent2 = parent?.parent;
-    if (parent is ArgumentList &&
-        parent2 is InstanceCreationExpression &&
-        parent2.isConst) {
-      return InvalidConstant.forEntity(
-        entity: node,
-        locatableDiagnostic: diag.constWithNonConstantArgument,
-        isUnresolved: isUnresolved,
-      );
+    var parent = node.parent2;
+    // The value of a named argument is in the argument list too.
+    if (parent is NamedArgument) {
+      parent = parent.parent2;
+    }
+    // Don't ask an `Annotation` for its parent: an element annotation's AST is
+    // detached, and `Annotation.parent2` throws then.
+    if (parent is ArgumentList) {
+      if (parent.parent2 case ast.ConstructorInvocation invocation
+          when invocation.isConst) {
+        return InvalidConstant.forEntity(
+          entity: node,
+          locatableDiagnostic: diag.constWithNonConstantArgument,
+          isUnresolved: isUnresolved,
+        );
+      }
     }
     return InvalidConstant.forEntity(
       entity: node,

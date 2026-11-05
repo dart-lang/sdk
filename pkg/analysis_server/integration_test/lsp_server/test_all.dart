@@ -5,17 +5,19 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'analyzer_status_test.dart' as analyzer_status;
-import 'diagnostic_test.dart' as diagnostic_test;
-import 'dtd_test.dart' as dtd_test;
-import 'initialization_test.dart' as initialization_test;
-import 'server_test.dart' as server_test;
+import 'diagnostic_test.dart' as diagnostic;
+import 'dtd_test.dart' as dtd;
+import 'initialization_test.dart' as initialization;
+import 'server_test.dart' as server;
+import 'workspace_analysis_complete_test.dart' as workspace_analysis_complete;
 
 void main() {
   defineReflectiveSuite(() {
     analyzer_status.main();
-    diagnostic_test.main();
-    dtd_test.main();
-    initialization_test.main();
-    server_test.main();
+    diagnostic.main();
+    dtd.main();
+    initialization.main();
+    server.main();
+    workspace_analysis_complete.main();
   }, name: 'lsp integration');
 }

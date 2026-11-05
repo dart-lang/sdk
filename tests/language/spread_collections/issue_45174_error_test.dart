@@ -8,7 +8,8 @@ f(Object? objectQuestion) {
   // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER
   //                     ^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-  // [cfe] Unexpected type 'Object?' of a map spread entry.  Expected 'dynamic' or a Map.
+  // [cfe] An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+  // [cfe] Unexpected type 'Object?' of a spread element.  Expected 'dynamic', a Map or an Iterable.
 }
 
 main() {}

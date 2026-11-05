@@ -1,0 +1,16 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static const field core::List<core::int> intList = const <core::int>[0, 1, 2];
+static const field core::Set<core::int> intSet = const <core::int>{0, 1, 2};
+static const field core::Set<(core::int, core::int)> intIntSet = const <(core::int, core::int)>{const (0, 1), const (2, 3)};
+static method test() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ListLiteral @ org-dartlang-testcase:///set_literal_const_error.dart:5:32 -> ListConstant(const <int>[0, 1, 2])
+Evaluated: SetLiteral @ org-dartlang-testcase:///set_literal_const_error.dart:6:30 -> SetConstant(const <int>{0, 1, 2})
+Evaluated: SetLiteral @ org-dartlang-testcase:///set_literal_const_error.dart:7:47 -> SetConstant(const <(int, int)>{const (0, 1), const (2, 3)})
+Extra constant evaluation: evaluated: 3, effectively constant: 3

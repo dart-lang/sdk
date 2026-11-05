@@ -29,6 +29,7 @@ class JsInteropChecks extends RecursiveVisitor {
   late final ExtensionIndex extensionIndex;
   final Procedure _functionToJSTarget;
   final Procedure _functionToJSCaptureThisTarget;
+  final ExtensionTypeDeclaration _jsAny;
   // Errors on constants need source information, so we use the surrounding
   // `ConstantExpression` as the source.
   ConstantExpression? _lastConstantExpression;
@@ -100,6 +101,7 @@ class JsInteropChecks extends RecursiveVisitor {
          'dart:js_interop',
          'FunctionToJSExportedDartFunction|get#toJSCaptureThis',
        ),
+       _jsAny = _coreTypes.index.getExtensionType('dart:js_interop', 'JSAny'),
        _staticTypeContext = StatefulStaticTypeContext.stacked(
          TypeEnvironment(_coreTypes, hierarchy),
        ) {
@@ -335,16 +337,23 @@ class JsInteropChecks extends RecursiveVisitor {
     } else {
       _checkJsInteropOperator(node);
 
-      // Check JS Interop positional and named parameters. Literal constructors
-      // can only have named parameters, and every other interop member can only
-      // have positional parameters.
-      final isObjectLiteralConstructor =
+      final isConstructor =
           node.isExtensionTypeMember &&
           (extensionIndex.getExtensionTypeDescriptor(node)!.kind ==
                   ExtensionTypeMemberKind.Constructor ||
               extensionIndex.getExtensionTypeDescriptor(node)!.kind ==
-                  ExtensionTypeMemberKind.Factory) &&
-          node.function.namedParameters.isNotEmpty;
+                  ExtensionTypeMemberKind.Factory);
+
+      // `@JS` annotations on extension type constructors have no effect.
+      if (isConstructor && hasJSInteropAnnotation(node)) {
+        report(diag.jsInteropExtensionConstructorJsAnnotationHasNoEffect);
+      }
+
+      // Check JS Interop positional and named parameters. Literal constructors
+      // can only have named parameters, and every other interop member can only
+      // have positional parameters.
+      final isObjectLiteralConstructor =
+          isConstructor && node.function.namedParameters.isNotEmpty;
       final isAnonymousFactory = _classHasAnonymousAnnotation && node.isFactory;
       if (isObjectLiteralConstructor || isAnonymousFactory) {
         _checkLiteralConstructorHasNoPositionalParams(
@@ -873,7 +882,7 @@ class JsInteropChecks extends RecursiveVisitor {
                   : 'Object literal constructors',
             ),
         firstPositionalParam.fileOffset,
-        firstPositionalParam.cosmeticName!.length,
+        firstPositionalParam.parameterName.length,
         firstPositionalParam.location!.file,
       );
     }
@@ -903,7 +912,7 @@ class JsInteropChecks extends RecursiveVisitor {
         _reporter.report(
           diag.jsInteropStaticInteropParameterInitializersAreIgnored,
           param.fileOffset,
-          param.cosmeticName!.length,
+          param.parameterName.length,
           param.location!.file,
         );
       }
@@ -1100,7 +1109,40 @@ class JsInteropChecks extends RecursiveVisitor {
     FunctionType functionType,
     StaticInvocation invocation,
   ) {
-    if (!_isAllowedExternalFunctionType(functionType)) {
+    final returnType = functionType.returnType;
+    var hasAllowedReturnType = _isAllowedExternalType(returnType);
+    if (returnType is InterfaceType &&
+        returnType.classNode == _coreTypes.futureClass) {
+      final typeArgument = returnType.typeArguments[0];
+      final isVoid = typeArgument is VoidType;
+      final jsAnyType = ExtensionType(_jsAny, Nullability.nullable);
+
+      if (isVoid ||
+          _staticTypeContext.typeEnvironment.isSubtypeOf(
+            typeArgument,
+            jsAnyType,
+          )) {
+        hasAllowedReturnType = true;
+      } else {
+        _reporter.report(
+          diag.futureTypeMustBeSubtypeOfJSAnyForConversionToJSPromise,
+          invocation.fileOffset,
+          invocation.name.text.length,
+          invocation.location?.file,
+        );
+        return;
+      }
+    }
+
+    final hasAllowedParameters =
+        functionType.namedParameters.every(
+          (p) => _isAllowedExternalType(p.type),
+        ) &&
+        functionType.positionalParameters.every(
+          (p) => _isAllowedExternalType(p),
+        );
+
+    if (!hasAllowedReturnType || !hasAllowedParameters) {
       _reporter.report(
         diag.jsInteropFunctionToJSTypeViolation.withArguments(
           conversion: invocation.target == _functionToJSTarget

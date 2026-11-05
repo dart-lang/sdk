@@ -8,10 +8,12 @@ import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
+import 'package:analyzer_testing/src/single_unit.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../abstract_single_unit.dart';
+import '../../find_element.dart';
+import '../../find_node.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -21,10 +23,11 @@ void main() {
 }
 
 @reflectiveTest
-class RefactoringLocationTest extends AbstractSingleUnitTest {
+class RefactoringLocationTest extends SingleUnitTest
+    with FindElementMixin, FindNodeMixin {
   Future<void> test_createLocation_forElement() async {
     await resolveTestCode('class MyClass {}');
-    var element = findElement2.class_('MyClass');
+    var element = findElement.class_('MyClass');
     // check
     var location = newLocation_fromElement(element)!;
     expect(location.file, testFile.path);
@@ -36,7 +39,7 @@ class RefactoringLocationTest extends AbstractSingleUnitTest {
 
   Future<void> test_createLocation_forMatch() async {
     await resolveTestCode('class MyClass {}');
-    var element = findElement2.class_('MyClass');
+    var element = findElement.class_('MyClass');
     var firstFragment = element.firstFragment;
     var libraryFragment = firstFragment.libraryFragment;
     var sourceRange = range.fragmentName(firstFragment)!;

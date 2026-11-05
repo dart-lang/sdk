@@ -15,7 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class ConvertToSetLiteralTest extends AssistProcessorTest {
+class ConvertToSetLiteralTest extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.convertToSetLiteral;
 
@@ -53,6 +53,28 @@ var s = S^et<int>();
     await assertHasAssist('''
 var s = <int>{};
 ''');
+  }
+
+  Future<void> test_default_typeArg_linkedHashSet() async {
+    await resolveTestCode('''
+import 'dart:collection';
+
+var s = Linked^HashSet<int>();
+''');
+    await assertHasAssist('''
+import 'dart:collection';
+
+var s = <int>{};
+''');
+  }
+
+  Future<void> test_default_typeArg_linkedHashSet_local() async {
+    await resolveTestCode('''
+class LinkedHashSet<T> {}
+
+var s = Linked^HashSet<int>();
+''');
+    await assertNoAssist();
   }
 
   Future<void> test_from_empty() async {

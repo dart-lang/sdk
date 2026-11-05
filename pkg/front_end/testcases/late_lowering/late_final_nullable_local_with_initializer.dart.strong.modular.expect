@@ -23,16 +23,16 @@ static method main() → dynamic {
   self::expect(null, lateLocalInit);
   self::expect(123, #lateLocal#get(){() → core::int?});
   self::expect(123, lateLocalInit);
-  function local<T extends core::Object? = dynamic>(T? value) → Null {
+  function local<T extends core::Object? = dynamic>(T? value##1) → Null {
     T? lateGenericLocalInit;
-    function initLateGenericLocal(T? value) → T? {
-      return lateGenericLocalInit = value;
+    function initLateGenericLocal(T? value##2) → T? {
+      return lateGenericLocalInit = value##2;
     }
     lowered final has-declared-initializer T? #lateGenericLocal;
     lowered core::bool #lateGenericLocal#isSet = false;
     function #lateGenericLocal#get() → T? {
       if(!#lateGenericLocal#isSet) {
-        final T? #t2 = initLateGenericLocal(value){(T?) → T?};
+        final T? #t2 = initLateGenericLocal(value##1){(T?) → T?};
         if(#lateGenericLocal#isSet)
           throw{for-error-handling} new _in::LateError::localADI("lateGenericLocal");
         #lateGenericLocal = #t2;
@@ -41,8 +41,8 @@ static method main() → dynamic {
       return #lateGenericLocal;
     }
     self::expect(null, lateGenericLocalInit);
-    self::expect(value, #lateGenericLocal#get(){() → T?});
-    self::expect(value, lateGenericLocalInit);
+    self::expect(value##1, #lateGenericLocal#get(){() → T?});
+    self::expect(value##1, lateGenericLocalInit);
   }
   local<core::int?>(null){(core::int?) → Null};
   local<core::int?>(42){(core::int?) → Null};

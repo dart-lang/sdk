@@ -38,12 +38,8 @@ class UnnecessaryAwaitInReturn extends AnalysisRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final AnalysisRule rule;
-  final TypeSystem typeSystem;
-
-  new(this.rule, this.typeSystem);
-
+class _Visitor(final AnalysisRule rule, final TypeSystem typeSystem)
+    extends SimpleAstVisitor<void> {
   @override
   void visitExpressionFunctionBody(ExpressionFunctionBody node) {
     _visit(node, node.expression.unParenthesized);

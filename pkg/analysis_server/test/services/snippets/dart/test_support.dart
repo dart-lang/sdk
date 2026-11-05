@@ -7,11 +7,10 @@ import 'package:analysis_server/src/services/snippets/dart_snippet_request.dart'
 import 'package:analysis_server/src/services/snippets/snippet.dart';
 import 'package:analysis_server/src/services/snippets/snippet_manager.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
+import 'package:analyzer_testing/src/single_unit.dart';
 import 'package:test/test.dart';
 
-import '../../../abstract_single_unit.dart';
-
-abstract class DartSnippetProducerTest extends AbstractSingleUnitTest {
+abstract class DartSnippetProducerTest extends SingleUnitTest {
   SnippetProducerGenerator get generator;
   String get label;
   String get prefix;
@@ -104,6 +103,9 @@ abstract class DartSnippetProducerTest extends AbstractSingleUnitTest {
 }
 
 abstract class FlutterSnippetProducerTest extends DartSnippetProducerTest {
+  @override
+  bool get addFlutterPackageDep => true;
+
   /// A version of [assertSnippetResult] that expects all positions in
   /// [expected] to match a single linked edit group for the text
   /// [linkedGroupText] and the selection to be at the marked range.
@@ -148,7 +150,7 @@ abstract class FlutterSnippetProducerTest extends DartSnippetProducerTest {
   /// prefix, the imports will be inserted at offset 0 and the snippet will
   /// replace from 0 to the end of the typed prefix.
   Future<void> test_valid_importsAndEditsOverlap() async {
-    writeTestPackageConfig(flutter: true);
+    writeTestPackageConfig2();
 
     var snippet = await expectValidSnippet(TestCode.parse('$prefix^'));
     expect(snippet.prefix, prefix);
@@ -166,7 +168,7 @@ abstract class FlutterSnippetProducerTest extends DartSnippetProducerTest {
   }
 
   Future<void> test_valid_suffixReplacement() async {
-    writeTestPackageConfig(flutter: true);
+    writeTestPackageConfig2();
 
     var snippet = await expectValidSnippet(
       TestCode.parse('''

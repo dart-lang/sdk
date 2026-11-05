@@ -243,7 +243,7 @@ class _BufferingStreamSubscription<T>
   Future<E> asFuture<E>([E? futureValue]) {
     E resultValue;
     if (futureValue == null) {
-      if (!typeAcceptsNull<E>()) {
+      if (null is! E) {
         throw ArgumentError.notNull("futureValue");
       }
       resultValue = futureValue as dynamic;
@@ -684,7 +684,9 @@ class _PendingEvents<T> {
   }
 }
 
-typedef void _BroadcastCallback<T>(StreamSubscription<T> subscription);
+typedef _BroadcastCallback<T> = void Function(
+  StreamSubscription<T> subscription,
+);
 
 /// Done subscription that will send one done event as soon as possible.
 class _DoneStreamSubscription<T> implements StreamSubscription<T> {
@@ -783,7 +785,7 @@ class _DoneStreamSubscription<T> implements StreamSubscription<T> {
   Future<E> asFuture<E>([E? futureValue]) {
     E resultValue;
     if (futureValue == null) {
-      if (!typeAcceptsNull<E>()) {
+      if (null is! E) {
         throw ArgumentError.notNull("futureValue");
       }
       resultValue = futureValue as dynamic;

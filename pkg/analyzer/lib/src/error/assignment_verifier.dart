@@ -3,21 +3,24 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/listener.dart';
+import 'package:analyzer/src/utilities/extensions/object.dart';
 
-/// Helper for verifying resolution of assignments, in form of explicit
-/// an [AssignmentExpression], or a [PrefixExpression] or [PostfixExpression]
-/// when the operator is an increment operator.
+/// Helper for verifying resolution of explicit [AssignmentExpression]s or
+/// implicit [IncrementOrDecrementExpression]s.
 class AssignmentVerifier {
   final DiagnosticReporter _diagnosticReporter;
 
   AssignmentVerifier(this._diagnosticReporter);
 
-  /// We resolved [node] and found that it references the [requested] element.
+  /// We resolved [name] and found that it references the [requested] element.
   /// Verify that this element is actually writable.
   ///
   /// If the [requested] element is `null`, we might have the [recovery]
@@ -28,7 +31,51 @@ class AssignmentVerifier {
   /// [diag.undefinedSetter] instead of a more generic
   /// [diag.undefinedIdentifier].
   void verify({
-    required SimpleIdentifier node,
+    required Token name,
+    required Element? requested,
+    required Element? recovery,
+    required DartType? receiverType,
+  }) => _verify(
+    node: name,
+    name: name.lexeme,
+    isSynthetic: name.isSynthetic,
+    requested: requested,
+    recovery: recovery,
+    receiverType: receiverType,
+  );
+
+  void verifyUnqualifiedName({
+    required SyntacticEntity node,
+    required Token name,
+    required Element? requested,
+    required Element? recovery,
+  }) {
+    var ambiguousElement =
+        requested.tryCast<MultiplyDefinedElementImpl>() ??
+        recovery.tryCast<MultiplyDefinedElementImpl>();
+    if (ambiguousElement != null) {
+      _diagnosticReporter.report(
+        DiagnosticFactory().ambiguousImport(
+          name: name,
+          element: ambiguousElement,
+        ),
+      );
+      return;
+    }
+    _verify(
+      node: node,
+      name: name.lexeme,
+      isSynthetic: name.isSynthetic,
+      requested: requested,
+      recovery: recovery,
+      receiverType: null,
+    );
+  }
+
+  void _verify({
+    required SyntacticEntity node,
+    required String name,
+    required bool isSynthetic,
     required Element? requested,
     required Element? recovery,
     required DartType? receiverType,
@@ -88,18 +135,18 @@ class AssignmentVerifier {
     } else if (recovery is MultiplyDefinedElementImpl) {
       // Will be reported in ErrorVerifier.
     } else {
-      if (node.isSynthetic) {
+      if (isSynthetic) {
         return;
       }
       if (receiverType != null) {
         _diagnosticReporter.report(
           diag.undefinedSetter
-              .withArguments(setterName: node.name, type: receiverType)
+              .withArguments(setterName: name, type: receiverType)
               .at(node),
         );
       } else {
         _diagnosticReporter.report(
-          diag.undefinedIdentifier.withArguments(name: node.name).at(node),
+          diag.undefinedIdentifier.withArguments(name: name).at(node),
         );
       }
     }

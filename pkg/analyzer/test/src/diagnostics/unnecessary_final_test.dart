@@ -18,7 +18,7 @@ main() {
 class UnnecessaryFinalTest extends PubPackageResolutionTest {
   test_final() async {
     await resolveTestCodeWithDiagnostics('''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 class C {
   C(final int value);
 }
@@ -27,7 +27,7 @@ class C {
 
   test_positional() async {
     await resolveTestCodeWithDiagnostics('''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 class C {
   C([final this.value = 0]);
 //   ^^^^^
@@ -55,7 +55,7 @@ class C(final int x);
 
   test_super() async {
     await resolveTestCodeWithDiagnostics('''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 class A {
   A(this.value);
   int value;
@@ -71,7 +71,7 @@ class B extends A {
 
   test_this() async {
     await resolveTestCodeWithDiagnostics('''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 class C {
   C(final this.value);
 //  ^^^^^

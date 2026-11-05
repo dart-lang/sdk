@@ -7,17 +7,28 @@ static method main() → dynamic
   ;
 
 library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/patching/patch_lib.dart:64:24: Error: 'Interface' can only be implemented once.
+// Try removing 1 of the occurrences.
+// class Class implements Interface {
+//                        ^
+//
 import self as self2;
-import "dart:_internal" as _in;
 import "dart:core" as core;
+import "dart:_internal" as _in;
 
 import "dart:_internal";
 
-@/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch
-class Class extends core::Object {
-  @_in::patch
-  constructor /* from org-dartlang-testcase:///patch_lib.dart */ •(core::int value) → self2::Class
+abstract class Interface extends core::Object {
+  synthetic constructor •() → self2::Interface
     ;
+}
+@/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch
+class Class extends core::Object implements self2::Interface, self2::Interface {
+  @/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch
+  external constructor •(core::int value) → self2::Class;
   @_in::patch
   constructor /* from org-dartlang-testcase:///patch_lib.dart */ redirecting(core::int value) → self2::Class
     ;
@@ -169,7 +180,7 @@ static extension-member method /* from org-dartlang-testcase:///patch_lib.dart *
 
 Extra constant evaluation status:
 Evaluated: FileUriExpression @ org-dartlang-testcase:///patch_lib.dart:63:1 -> InstanceConstant(const _Patch{})
-Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:65:4 -> InstanceConstant(const _Patch{})
+Evaluated: FileUriExpression @ org-dartlang-testcase:///patch_lib.dart:65:3 -> InstanceConstant(const _Patch{})
 Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:70:4 -> InstanceConstant(const _Patch{})
 Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:75:4 -> InstanceConstant(const _Patch{})
 Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:80:4 -> InstanceConstant(const _Patch{})

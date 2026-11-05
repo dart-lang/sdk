@@ -50,11 +50,7 @@ class _TrackingAnnotation {
   new({required this.node, required this.element});
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final MultiAnalysisRule rule;
-
-  new(this.rule);
-
+class _Visitor(final MultiAnalysisRule rule) extends SimpleAstVisitor<void> {
   @override
   void visitClassDeclaration(ClassDeclaration node) {
     var element = node.declaredFragment!.element;

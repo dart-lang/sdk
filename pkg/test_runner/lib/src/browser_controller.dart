@@ -72,12 +72,16 @@ abstract class Browser {
     Browser browser;
     switch (configuration.runtime) {
       case Runtime.firefox:
-        browser = Firefox(configuration.browserLocation);
+        browser = Firefox(
+          configuration.browserLocation,
+          headless: configuration.headless,
+        );
         break;
       case Runtime.chrome:
         browser = Chrome(
           configuration.browserLocation,
           noSandbox: configuration.noSandbox,
+          headless: configuration.headless,
         );
         break;
       case Runtime.safari:
@@ -149,7 +153,7 @@ abstract class Browser {
     List<String> arguments, {
     Map<String, String>? environment,
   }) {
-    return Process.start(command, arguments, environment: environment)
+    return startProcess(command, arguments, environment: environment)
         .then((startedProcess) {
           _logEvent("Started browser using $command ${arguments.join(' ')}");
           process = startedProcess;
@@ -363,10 +367,11 @@ class Safari extends WebDriverBrowser {
 }
 
 class Chrome extends Browser {
-  Chrome(this._binary, {this.noSandbox = false});
+  Chrome(this._binary, {this.noSandbox = false, this.headless = true});
 
   final String _binary;
   final bool noSandbox;
+  final bool headless;
 
   @override
   Future<String> get version async {
@@ -421,6 +426,7 @@ class Chrome extends Browser {
       };
       var args = [
         if (noSandbox) "--no-sandbox",
+        if (headless) "--headless",
         "--bwsi",
         "--disable-component-update",
         "--disable-extensions",
@@ -535,9 +541,10 @@ class AndroidChrome extends Browser {
 }
 
 class Firefox extends Browser {
-  Firefox(this._binary);
+  Firefox(this._binary, {this.headless = true});
 
   final String _binary;
+  final bool headless;
 
   static const String enablePopUp =
       'user_pref("dom.disable_open_during_load", false);';
@@ -584,7 +591,14 @@ class Firefox extends Browser {
       _cleanup = () {
         userDir.deleteSync(recursive: true);
       };
-      var args = ["-profile", userDir.path, "-no-remote", "-new-instance", url];
+      var args = [
+        if (headless) "-headless",
+        "-profile",
+        userDir.path,
+        "-no-remote",
+        "-new-instance",
+        url,
+      ];
       var environment = Map<String, String>.from(Platform.environment);
       environment["MOZ_CRASHREPORTER_DISABLE"] = "1";
       return await startBrowserProcess(_binary, args, environment: environment);

@@ -19,7 +19,7 @@ class SetElementFromDeferredLibraryTest extends PubPackageResolutionTest
     with SetElementFromDeferredLibraryTestCases {}
 
 mixin SetElementFromDeferredLibraryTestCases on PubPackageResolutionTest {
-  @skippedTest
+  @failingTest
   test_const_ifElement_thenTrue_elseDeferred() async {
     // reports wrong error code
     newFile('$testPackageLibPath/lib1.dart', r'''

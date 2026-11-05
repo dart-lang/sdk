@@ -494,7 +494,6 @@ class FolderBasedDartSdk extends AbstractDartSdk {
         String contents = librariesFile.readAsStringSync();
         return SdkLibrariesReader().readFromFile(librariesFile, contents);
       } catch (exception, stackTrace) {
-        print('[exception: $exception][stackTrace: $stackTrace]');
         searchedPaths.add(librariesFile.path);
         lastException = exception;
         lastStackTrace = stackTrace;
@@ -587,7 +586,7 @@ class SdkLibrariesReader {
 
     var libraryBuilder = SdkLibrariesReader_LibraryBuilder();
     if (parseResult.errors.isEmpty) {
-      unit.accept(libraryBuilder);
+      unit.accept2(libraryBuilder);
     }
     return libraryBuilder.librariesMap;
   }

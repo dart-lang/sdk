@@ -81,6 +81,10 @@ extension BarExt on Bar {
   external var barField;
 }
 
+extension BarSelfRefExt<T extends Bar> on T {
+  external T? get selfReference;
+}
+
 @JS()
 @staticInterop
 class Nested<T extends JSAny?> {
@@ -278,5 +282,12 @@ void main() {
           .toDart
           .split('foo'),
     );
+  }
+
+  {
+    // Generic extension on `T` where `T` extends a staticInterop class.
+    var obj = Bar(0);
+    (obj as JSObject)['selfReference'] = obj as JSObject;
+    Expect.equals(obj, obj.selfReference);
   }
 }

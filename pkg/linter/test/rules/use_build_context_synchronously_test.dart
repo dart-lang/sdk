@@ -29,8 +29,6 @@ class AsyncStateTest extends PubPackageResolutionTest {
 
   FindNode get findNode => FindNode(result.content, result.unit);
 
-  String get testFilePath => convertPath('$testPackageLibPath/$testFileName');
-
   Future<void> resolveCode(String code) async {
     newFile(testFilePath, code);
     result = await resolveFile(testFilePath);
@@ -686,6 +684,22 @@ void foo(BuildContext context) async {
       ifElement.asyncStateFor(reference, contextElement),
       AsyncState.asynchronous,
     );
+  }
+
+  test_ifElement_referenceAfter_instanceCreationInThen() async {
+    await resolveCode(r'''
+import 'package:flutter/widgets.dart';
+class A {}
+void foo(BuildContext context) {
+  [
+    if (true) A(),
+    context /* ref */,
+  ];
+}
+''');
+    var ifElement = findNode.listLiteral('if (');
+    var reference = findNode.expression('context /* ref */,');
+    expect(ifElement.asyncStateFor(reference, contextElement), isNull);
   }
 
   test_ifElement_referenceInElse_asyncInCondition() async {
@@ -2544,6 +2558,14 @@ Future<void> foo(BuildContext context) async {
 }
 
 Future<void> bar({required BuildContext context}) async {}
+''');
+  }
+
+  test_forEachStatement_instanceCreationIterable() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  for (var e in List<int>.empty()) {}
+}
 ''');
   }
 

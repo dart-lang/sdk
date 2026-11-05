@@ -26,7 +26,7 @@ class InvalidUseOfInternalMemberTest extends PubPackageResolutionTest {
     super.setUp();
     newAnalysisOptionsYamlFile(
       fooPackageRootPath,
-      analysisOptionsContent(experiments: experiments),
+      analysisOptionsContent(experimentalFeatures: experimentalFeatures),
     );
     writeTestPackageConfig(
       PackageConfigFileBuilder()
@@ -420,6 +420,59 @@ int g() => foo((x) => 2*x, 7);
 ''');
   }
 
+  test_outsidePackage_getter_incrementDecrement() async {
+    newFile('$fooPackageRootPath/lib/src/a.dart', '''
+import 'package:meta/meta.dart';
+class C {
+  @internal
+  int get a => 0;
+  set a(int value) {}
+}
+''');
+
+    await resolveTestCodeWithDiagnostics('''
+import 'package:foo/src/a.dart';
+
+void f(C c) {
+  ++(c).a;
+//      ^
+// [diag.invalidUseOfInternalMember] The member 'a' can only be used within its package.
+  (c).a++;
+//    ^
+// [diag.invalidUseOfInternalMember] The member 'a' can only be used within its package.
+  --(c).a;
+//      ^
+// [diag.invalidUseOfInternalMember] The member 'a' can only be used within its package.
+  (c).a--;
+//    ^
+// [diag.invalidUseOfInternalMember] The member 'a' can only be used within its package.
+}
+''');
+  }
+
+  test_outsidePackage_getterOnly_assignment_importPrefixed() async {
+    newFile('$fooPackageRootPath/lib/a.dart', '''
+import 'package:meta/meta.dart';
+@internal
+int get foo => 0;
+''');
+
+    await resolveTestCodeWithDiagnostics('''
+import 'package:foo/a.dart' as p;
+
+void f() {
+  p.foo = 1;
+//  ^^^
+// [diag.undefinedPrefixedName] The name 'foo' is being referenced through the prefix 'p', but it isn't defined in any of the libraries imported using that prefix.
+// [diag.invalidUseOfInternalMember] The member 'foo' can only be used within its package.
+  p.foo += 1;
+//  ^^^
+// [diag.undefinedPrefixedName] The name 'foo' is being referenced through the prefix 'p', but it isn't defined in any of the libraries imported using that prefix.
+// [diag.invalidUseOfInternalMember] The member 'foo' can only be used within its package.
+}
+''');
+  }
+
   test_outsidePackage_inCommentReference() async {
     newFile('$fooPackageRootPath/lib/src/a.dart', '''
 import 'package:meta/meta.dart';
@@ -559,7 +612,7 @@ int a = C().m(a: 5);
 ''');
   }
 
-  @SkippedTest(issue: 'https://github.com/dart-lang/sdk/issues/28066')
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/28066')
   test_outsidePackage_methodParameter_positional() async {
     newFile('$fooPackageRootPath/lib/src/a.dart', '''
 import 'package:meta/meta.dart';
@@ -691,6 +744,36 @@ f() {
 ''');
   }
 
+  test_outsidePackage_setter_incrementDecrement() async {
+    newFile('$fooPackageRootPath/lib/src/a.dart', '''
+import 'package:meta/meta.dart';
+class C {
+  int get a => 0;
+  @internal
+  set a(int value) {}
+}
+''');
+
+    await resolveTestCodeWithDiagnostics('''
+import 'package:foo/src/a.dart';
+
+void f(C c) {
+  ++(c).a;
+//      ^
+// [diag.invalidUseOfInternalMember] The member 'a' can only be used within its package.
+  (c).a++;
+//    ^
+// [diag.invalidUseOfInternalMember] The member 'a' can only be used within its package.
+  --(c).a;
+//      ^
+// [diag.invalidUseOfInternalMember] The member 'a' can only be used within its package.
+  (c).a--;
+//    ^
+// [diag.invalidUseOfInternalMember] The member 'a' can only be used within its package.
+}
+''');
+  }
+
   test_outsidePackage_setter_questionQuestion() async {
     newFile('$fooPackageRootPath/lib/src/a.dart', '''
 import 'package:meta/meta.dart';
@@ -709,6 +792,52 @@ f() {
   C().s ??= 7;
 //    ^
 // [diag.invalidUseOfInternalMember] The member 's' can only be used within its package.
+}
+''');
+  }
+
+  test_outsidePackage_setter_topLevel() async {
+    newFile('$fooPackageRootPath/lib/src/a.dart', '''
+import 'package:meta/meta.dart';
+@internal
+set s(int value) {}
+''');
+
+    await resolveTestCodeWithDiagnostics('''
+import 'package:foo/src/a.dart';
+
+f() {
+  s = 7;
+//^
+// [diag.invalidUseOfInternalMember] The member 's' can only be used within its package.
+}
+''');
+  }
+
+  test_outsidePackage_setter_topLevel_incrementDecrement() async {
+    newFile('$fooPackageRootPath/lib/src/a.dart', '''
+import 'package:meta/meta.dart';
+int get a => 0;
+@internal
+set a(int value) {}
+''');
+
+    await resolveTestCodeWithDiagnostics('''
+import 'package:foo/src/a.dart';
+
+void f() {
+  ++a;
+//  ^
+// [diag.invalidUseOfInternalMember] The member 'a' can only be used within its package.
+  a++;
+//^
+// [diag.invalidUseOfInternalMember] The member 'a' can only be used within its package.
+  --a;
+//  ^
+// [diag.invalidUseOfInternalMember] The member 'a' can only be used within its package.
+  a--;
+//^
+// [diag.invalidUseOfInternalMember] The member 'a' can only be used within its package.
 }
 ''');
   }
@@ -767,6 +896,34 @@ int b = a + 1;
 ''');
   }
 
+  test_outsidePackage_topLevelGetter_incrementDecrement() async {
+    newFile('$fooPackageRootPath/lib/src/a.dart', '''
+import 'package:meta/meta.dart';
+@internal
+int get a => 0;
+set a(int value) {}
+''');
+
+    await resolveTestCodeWithDiagnostics('''
+import 'package:foo/src/a.dart';
+
+void f() {
+  ++a;
+//  ^
+// [diag.invalidUseOfInternalMember] The member 'a' can only be used within its package.
+  a++;
+//^
+// [diag.invalidUseOfInternalMember] The member 'a' can only be used within its package.
+  --a;
+//  ^
+// [diag.invalidUseOfInternalMember] The member 'a' can only be used within its package.
+  a--;
+//^
+// [diag.invalidUseOfInternalMember] The member 'a' can only be used within its package.
+}
+''');
+  }
+
   test_outsidePackage_typedef() async {
     newFile('$fooPackageRootPath/lib/src/a.dart', '''
 import 'package:meta/meta.dart';
@@ -782,7 +939,7 @@ t func = () {};
 ''');
   }
 
-  @SkippedTest(issue: 'https://github.com/dart-lang/sdk/issues/28066')
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/28066')
   test_outsidePackage_typedefParameter() async {
     newFile('$fooPackageRootPath/lib/src/a.dart', '''
 import 'package:meta/meta.dart';
@@ -827,6 +984,57 @@ import 'package:foo/src/a.dart' as foo;
 int b = foo.a + 1;
 //          ^
 // [diag.invalidUseOfInternalMember] The member 'a' can only be used within its package.
+''');
+  }
+
+  test_outsidePackage_variable_prefixed_assignmentTargets() async {
+    newFile('$fooPackageRootPath/lib/src/a.dart', '''
+import 'package:meta/meta.dart';
+@internal
+int? a = 0;
+''');
+
+    await resolveTestCodeWithDiagnostics('''
+import 'package:foo/src/a.dart' as p;
+
+void f() {
+  p.a = 1;
+//  ^
+// [diag.invalidUseOfInternalMember] The member 'a' can only be used within its package.
+  p.a ??= 2;
+//  ^
+// [diag.invalidUseOfInternalMember] The member 'a' can only be used within its package.
+}
+''');
+  }
+
+  test_outsidePackage_variable_prefixed_incrementDecrement() async {
+    newFile('$fooPackageRootPath/lib/src/a.dart', '''
+import 'package:meta/meta.dart';
+@internal
+int a = 0;
+''');
+
+    await resolveTestCodeWithDiagnostics('''
+import 'package:foo/src/a.dart' as p;
+
+void f() {
+  p.a += 1;
+//  ^
+// [diag.invalidUseOfInternalMember] The member 'a' can only be used within its package.
+  ++p.a;
+//    ^
+// [diag.invalidUseOfInternalMember] The member 'a' can only be used within its package.
+  p.a++;
+//  ^
+// [diag.invalidUseOfInternalMember] The member 'a' can only be used within its package.
+  --p.a;
+//    ^
+// [diag.invalidUseOfInternalMember] The member 'a' can only be used within its package.
+  p.a--;
+//  ^
+// [diag.invalidUseOfInternalMember] The member 'a' can only be used within its package.
+}
 ''');
   }
 }

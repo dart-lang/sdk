@@ -29,6 +29,7 @@ backed
 c
 cast
 collide
+combinator
 compilercontext.runincontext
 compilesdk
 compounds
@@ -68,6 +69,7 @@ float64x
 flutter_runner
 function(object
 function.tojs
+future<t
 futureor
 github.com
 guarded
@@ -91,7 +93,6 @@ lane
 libraries.json
 list.filled
 loadlibrary
-macro
 member(s)
 memorytype
 migrate
@@ -117,10 +118,12 @@ opt
 opts
 outdated
 package:js
+package:web
 part(s)
 patch(es)
 patterns
 placing
+planned
 pointer`s
 pragma
 pragma('vm:deeply
@@ -130,6 +133,7 @@ pubspec.yaml
 r
 re
 refutable
+removal
 resource
 risks
 sdksummary

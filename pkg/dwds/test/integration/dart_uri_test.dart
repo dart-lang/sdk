@@ -2,17 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@TestOn('vm')
-@Timeout(Duration(minutes: 2))
-library;
-
 import 'package:dwds/src/utilities/dart_uri.dart';
+import 'package:dwds_test_common/fixtures/fakes.dart';
+import 'package:dwds_test_common/fixtures/utilities.dart';
 import 'package:dwds_test_common/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
-
-import 'fixtures/fakes.dart';
-import 'fixtures/utilities.dart';
 
 class TestStrategy extends FakeStrategy {
   TestStrategy(super.assetReader);

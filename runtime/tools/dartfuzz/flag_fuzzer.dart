@@ -32,17 +32,17 @@ final profilerFlags = [
 ];
 
 final gcFlags = [
-  "--compactor_tasks=${range(1, 3)}",
+  "--compactor_tasks=${range(0, 3)}",
   "--dontneed_on_sweep",
   "--force_evacuation",
   "--mark_when_idle",
-  "--marker_tasks=${range(1, 3)}",
+  "--marker_tasks=${range(0, 3)}",
   "--no_concurrent_mark",
   "--no_concurrent_sweep",
   "--no_inline_alloc",
   "--runtime_allocate_old",
   "--runtime_allocate_spill_tlab",
-  "--scavenger_tasks=${range(1, 3)}",
+  "--scavenger_tasks=${range(-1, 3)}",
   "--use_compactor",
   "--verify_after_gc",
   "--verify_after_marking",

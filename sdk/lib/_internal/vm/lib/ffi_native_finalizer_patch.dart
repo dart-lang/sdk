@@ -37,6 +37,9 @@ final class _NativeFinalizer extends FinalizerBase implements NativeFinalizer {
     isolateRegisterFinalizer();
   }
 
+  @override
+  Pointer<NativeFinalizerFunction> get callback => _callback;
+
   void attach(
     Object value,
     Pointer<Void> token, {

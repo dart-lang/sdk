@@ -1,0 +1,45 @@
+abstract class Class {
+  abstract final int finalInstanceField1;
+  abstract final int finalInstanceField2;
+  abstract int instanceField1;
+  abstract int instanceField2;
+  abstract int instanceField3;
+  abstract int instanceField4;
+  augment final int finalInstanceField1 = 0;
+  augment int get finalInstanceField2 => 0;
+  augment int get instanceField2 => 0;
+  augment int get instanceField3 => 0;
+  augment int get instanceGetter => 0;
+  augment int instanceField1 = 0;
+  augment void set instanceField2(int value) {}
+  augment void set instanceField4(int value) {}
+  augment void set instanceSetter(int value) {}
+  int get instanceGetter;
+  void set instanceSetter(int value);
+}
+
+abstract final int finalTopLevelField1;
+
+abstract final int finalTopLevelField2;
+
+abstract int topLevelField1;
+
+abstract int topLevelField2;
+
+augment final int finalTopLevelField1 = 0;
+
+augment int get finalTopLevelField2 => 0;
+
+augment int get topLevelField2 => 0;
+
+augment int get topLevelGetter => 0;
+
+augment int topLevelField1 = 0;
+
+augment void set topLevelField2(int value) {}
+
+augment void set topLevelSetter(int value) {}
+
+int get topLevelGetter;
+
+void set topLevelSetter(int value);

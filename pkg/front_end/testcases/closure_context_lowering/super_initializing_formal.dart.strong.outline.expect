@@ -3,10 +3,10 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  constructor •(positional-parameter x) → self::A
+  constructor •(core::int x) → self::A
     ;
 }
 class B extends self::A {
-  constructor •(positional-parameter x) → self::B
+  constructor •(super-initializing-formal core::int x) → self::B
     ;
 }

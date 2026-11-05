@@ -56,7 +56,7 @@ ExtensionDeclaration
 ''');
   }
 
-  test_augment_hasOnClause() {
+  test_augment_onClause() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 augment extension E on int {}
 //                  ^^
@@ -73,6 +73,23 @@ ExtensionDeclaration
     onKeyword: on
     extendedType: NamedType
       name: int
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_augment_unnamed() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+augment extension {}
+// [diag.extensionAugmentationWithoutName][column 1][length 7] An extension augmentation must have a name.
+''');
+
+    var node = parseResult.findNode.singleExtensionDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionDeclaration
+  augmentKeyword: augment
+  extensionKeyword: extension
   body: BlockClassBody
     leftBracket: {
     rightBracket: }
@@ -104,7 +121,7 @@ ExtensionDeclaration
         name: foo
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: IntegerLiteral
+          expression2: IntegerLiteral
             literal: 0
           semicolon: ;
     rightBracket: }
@@ -167,6 +184,14 @@ ExtensionDeclaration
         name: foo
         parameters: FormalParameterList
           leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              type: NamedType
+                name: int
+              name: _
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
+          leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
               name: int
@@ -199,9 +224,9 @@ ExtensionDeclaration
 ''');
   }
 
-  test_emptyBody_language310() {
+  test_emptyBody_beforePrimaryConstructors() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension E on int;
 //                ^
 // [diag.experimentNotEnabled] This requires the 'primary-constructors' language feature to be enabled.
@@ -245,7 +270,7 @@ ExtensionDeclaration
             VariableDeclaration
               name: x
               equals: =
-              initializer: IntegerLiteral
+              initializer2: IntegerLiteral
                 literal: 0
         semicolon: ;
     rightBracket: }
@@ -277,7 +302,7 @@ ExtensionDeclaration
             VariableDeclaration
               name: x
               equals: =
-              initializer: IntegerLiteral
+              initializer2: IntegerLiteral
                 literal: 0
         semicolon: ;
     rightBracket: }
@@ -306,7 +331,7 @@ ExtensionDeclaration
         name: foo
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: IntegerLiteral
+          expression2: IntegerLiteral
             literal: 0
           semicolon: ;
     rightBracket: }
@@ -336,7 +361,7 @@ ExtensionDeclaration
         name: foo
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: IntegerLiteral
+          expression2: IntegerLiteral
             literal: 0
           semicolon: ;
     rightBracket: }
@@ -454,6 +479,14 @@ ExtensionDeclaration
         name: +
         parameters: FormalParameterList
           leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              type: NamedType
+                name: int
+              name: other
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
+          leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
               name: int
@@ -461,7 +494,7 @@ ExtensionDeclaration
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: IntegerLiteral
+          expression2: IntegerLiteral
             literal: 0
           semicolon: ;
     rightBracket: }
@@ -490,9 +523,9 @@ ExtensionDeclaration
 ''');
   }
 
-  test_primaryConstructor_const_typeName_formalParameters_language310() {
+  test_primaryConstructor_const_typeName_formalParameters_beforePrimaryConstructors() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart=3.10
+// %before-language-feature: primary-constructors
 extension const A() on int {}
 //        ^^^^^
 // [diag.unexpectedToken] Unexpected text 'const'.
@@ -535,9 +568,9 @@ ExtensionDeclaration
 ''');
   }
 
-  test_primaryConstructor_const_typeName_noFormalParameters_language310() {
+  test_primaryConstructor_const_typeName_noFormalParameters_beforePrimaryConstructors() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart=3.10
+// %before-language-feature: primary-constructors
 extension const A on int {}
 //        ^^^^^
 // [diag.unexpectedToken] Unexpected text 'const'.
@@ -580,9 +613,9 @@ ExtensionDeclaration
 ''');
   }
 
-  test_primaryConstructor_const_typeName_periodName_formalParameters_language310() {
+  test_primaryConstructor_const_typeName_periodName_formalParameters_beforePrimaryConstructors() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart=3.10
+// %before-language-feature: primary-constructors
 extension const A.name() on int {}
 //        ^^^^^
 // [diag.unexpectedToken] Unexpected text 'const'.
@@ -625,9 +658,9 @@ ExtensionDeclaration
 ''');
   }
 
-  test_primaryConstructor_typeName_formalParameters_language310() {
+  test_primaryConstructor_typeName_formalParameters_beforePrimaryConstructors() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart=3.10
+// %before-language-feature: primary-constructors
 extension A() on int {}
 //         ^
 // [diag.unexpectedToken] Unexpected text '('.
@@ -670,9 +703,9 @@ ExtensionDeclaration
 ''');
   }
 
-  test_primaryConstructor_typeName_periodName_formalParameters_language310() {
+  test_primaryConstructor_typeName_periodName_formalParameters_beforePrimaryConstructors() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart=3.10
+// %before-language-feature: primary-constructors
 extension A.name() on int {}
 //         ^
 // [diag.unexpectedToken] Unexpected text '.'.
@@ -740,6 +773,14 @@ ExtensionDeclaration
         name: foo
         parameters: FormalParameterList
           leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              type: NamedType
+                name: int
+              name: x
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
+          leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
               name: int
@@ -773,6 +814,14 @@ ExtensionDeclaration
         propertyKeyword: set
         name: foo
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              type: NamedType
+                name: int
+              name: x
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType

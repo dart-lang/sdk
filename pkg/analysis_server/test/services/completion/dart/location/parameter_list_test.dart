@@ -207,6 +207,22 @@ class ParameterListInFunctionTest extends AbstractCompletionDriverTest
     with ParameterListInFunctionTestCases {}
 
 mixin ParameterListInFunctionTestCases on AbstractCompletionDriverTest {
+  Future<void> test_afterLeftParen_atEndOfFile() async {
+    await computeSuggestions('''
+f(^
+''');
+
+    assertResponse(r'''
+suggestions
+  void
+    kind: keyword
+  covariant
+    kind: keyword
+  dynamic
+    kind: keyword
+''');
+  }
+
   Future<void> test_afterLeftParen_beforeFunctionType_partial() async {
     await computeSuggestions('''
 void f(^void Function() g) {}

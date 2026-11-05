@@ -897,14 +897,20 @@ void f() {
 }
 ''');
   }
+
+  Future<void> test_while_false_emptyStatement() async {
+    await resolveTestCode('''
+void f() {
+  while (false);
+}
+''');
+    await assertNoFix();
+  }
 }
 
 @reflectiveTest
 class RemoveDeadCodeSoundFlowAnalysisTest extends FixProcessorTest
     with RemoveDeadCodeClassicTestCases {
-  @override
-  List<String> get experiments => [...super.experiments, 'sound-flow-analysis'];
-
   Future<void> test_conditional_unnecessaryNullCheck_equalsNull() async {
     await resolveTestCode(r'''
 class C {

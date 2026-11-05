@@ -1,14 +1,14 @@
 (module $M
   (type $#Top (struct
-    (field $field0 i32)))
+    (field $#classId i32)))
   (type $Array<Object?> (array (field (mut (ref null $#Top)))))
   (type $JSExternWrapper (sub $Object (struct
-    (field $field0 i32)
-    (field $field1 (mut i32))
+    (field $#classId i32)
+    (field $#identityHash (mut i32))
     (field $_externRef externref))))
   (type $Object (sub $#Top (struct
-    (field $field0 i32)
-    (field $field1 (mut i32)))))
+    (field $#classId i32)
+    (field $#identityHash (mut i32)))))
   (func $"wasm:js-string.charCodeAt (import)" (import "wasm:js-string" "charCodeAt") (param externref i32) (result i32))
   (@binaryen.removable.if.unused)
   (func $"wasm:js-string.concat (import)" (import "wasm:js-string" "concat") (param externref externref) (result (ref extern)))
@@ -30,11 +30,11 @@
     (set 12 (ref.func $JSStringImpl.fromRefUnchecked))
     (set 13 (ref.func $_throwIndexError))
     (set 14 (ref.func $JSStringImpl._interpolate))
-    (set 15 (ref.func $JSStringImpl.*)))
+    (set 15 (ref.func $JSStringImpl._interpolate2)))
   (func $Error._throwWithCurrentStackTrace (param $var0 (ref $#Top)) <...>)
   (func $IntegerDivisionByZeroException (result (ref $Object)) <...>)
-  (func $JSStringImpl.* (param $var0 (ref $JSExternWrapper)) (param $var1 i64) (result (ref $JSExternWrapper)) <...>)
   (func $JSStringImpl._interpolate (param $var0 (ref $Array<Object?>)) (result (ref $JSExternWrapper)) <...>)
+  (func $JSStringImpl._interpolate2 (param $var0 (ref null $#Top)) (param $var1 (ref null $#Top)) (result (ref $JSExternWrapper)) <...>)
   (func $JSStringImpl._interpolate3 (param $var0 (ref null $#Top)) (param $var1 (ref null $#Top)) (param $var2 (ref null $#Top)) (result (ref $JSExternWrapper)) <...>)
   (func $JSStringImpl.fromRefUnchecked (param $var0 externref) (result (ref $JSExternWrapper)) <...>)
   (func $JSStringImpl.substring (param $var0 (ref $JSExternWrapper)) (param $var1 i64) (param $var2 i64) (result (ref $JSExternWrapper)) <...>)

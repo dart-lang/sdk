@@ -68,7 +68,7 @@ class StaticTypeAnalyzer {
   /// of the form <i>e..suffix</i> is equivalent to the expression <i>(t) {t.suffix; return
   /// t;}(e)</i>.</blockquote>
   void visitCascadeExpression(covariant CascadeExpressionImpl node) {
-    node.recordStaticType(node.target.typeOrThrow, resolver: _resolver);
+    node.recordStaticType(node.target2.typeOrThrow, resolver: _resolver);
   }
 
   void visitConditionalExpression(
@@ -79,9 +79,9 @@ class StaticTypeAnalyzer {
     // `K` is analyzed as follows:
     //
     // - Let `T1` be the type of `e1` inferred with context type `K`
-    var t1 = node.thenExpression.typeOrThrow;
+    var t1 = node.thenExpression2.typeOrThrow;
     // - Let `T2` be the type of `e2` inferred with context type `K`
-    var t2 = node.elseExpression.typeOrThrow;
+    var t2 = node.elseExpression2.typeOrThrow;
     // - Let `T` be  `UP(T1, T2)`
     var t = _typeSystem.leastUpperBound(t1, t2);
     // - Let `S` be the greatest closure of `K`
@@ -117,7 +117,7 @@ class StaticTypeAnalyzer {
     node.recordStaticType(_typeProvider.doubleType, resolver: _resolver);
   }
 
-  void visitExtensionOverride(ExtensionOverride node) {
+  void visitExtensionOverride2(ExtensionOverride2 node) {
     assert(
       false,
       'Resolver should call extensionResolver.resolveOverride directly',
@@ -153,11 +153,6 @@ class StaticTypeAnalyzer {
   /// where <i>T<sub>i</sub>, 1 &lt;= i &lt;= n</i>, is not specified, it is considered to have been
   /// specified as dynamic.</blockquote>
   void visitFunctionExpression(FunctionExpression node) {}
-
-  void visitFunctionReference(covariant FunctionReferenceImpl node) {
-    // TODO(paulberry): implement
-    node.setPseudoExpressionStaticType(_dynamicType);
-  }
 
   /// <blockquote>
   /// An integer literal has static type \code{int}, unless the surrounding
@@ -203,10 +198,6 @@ class StaticTypeAnalyzer {
     node.recordStaticType(_typeProvider.boolType, resolver: _resolver);
   }
 
-  void visitMethodInvocation(MethodInvocation node) {
-    throw StateError('Should not be invoked');
-  }
-
   /// The Dart Language Specification, 12.2: <blockquote>The static type of `null` is bottom.
   /// </blockquote>
   void visitNullLiteral(covariant NullLiteralImpl node) {
@@ -216,7 +207,7 @@ class StaticTypeAnalyzer {
   void visitParenthesizedExpression(
     covariant ParenthesizedExpressionImpl node,
   ) {
-    Expression expression = node.expression;
+    Expression expression = node.expression2;
     node.recordStaticType(expression.typeOrThrow, resolver: _resolver);
   }
 
@@ -238,25 +229,6 @@ class StaticTypeAnalyzer {
     node.recordStaticType(_typeProvider.stringType, resolver: _resolver);
   }
 
-  void visitSuperExpression(covariant SuperExpressionImpl node) {
-    var thisType = _resolver.thisType;
-    _resolver.flowAnalysis.storeExpressionInfo(
-      node,
-      _resolver.flowAnalysis.flow?.thisOrSuper(
-        SharedTypeView(thisType ?? _dynamicType),
-        isSuper: true,
-      ),
-    );
-    if (thisType == null ||
-        node.thisOrAncestorOfType<ExtensionDeclaration>() != null) {
-      // TODO(brianwilkerson): Report this error if it hasn't already been
-      // reported.
-      node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);
-    } else {
-      node.recordStaticType(thisType, resolver: _resolver);
-    }
-  }
-
   void visitSymbolLiteral(covariant SymbolLiteralImpl node) {
     node.recordStaticType(_typeProvider.symbolType, resolver: _resolver);
   }
@@ -264,14 +236,16 @@ class StaticTypeAnalyzer {
   /// The Dart Language Specification, 12.10: <blockquote>The static type of `this` is the
   /// interface of the immediately enclosing class.</blockquote>
   void visitThisExpression(covariant ThisExpressionImpl node) {
-    var staticType = _resolver.effectiveThisType ?? _dynamicType;
-    _resolver.flowAnalysis.storeExpressionInfo(
-      node,
-      _resolver.flowAnalysis.flow?.thisOrSuper(
-        SharedTypeView(staticType),
-        isSuper: false,
-      ),
-    );
+    var (:promotedType, :expressionInfo) =
+        _resolver.flowAnalysis.flow?.thisExpression() ??
+        (promotedType: null, expressionInfo: null);
+    _resolver.flowAnalysis.storeExpressionInfo(node, expressionInfo);
+    var staticType =
+        (_resolver.isThisAccessible
+            ? promotedType?.unwrapTypeView<TypeImpl>() ??
+                  _resolver.unpromotedThisType
+            : null) ??
+        InvalidTypeImpl.instance;
     node.recordStaticType(staticType, resolver: _resolver);
   }
 

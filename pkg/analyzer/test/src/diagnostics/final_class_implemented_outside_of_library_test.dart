@@ -35,10 +35,10 @@ final class Bar implements Foo {}
 ''');
   }
 
-  test_class_outside_viaLanguage219AndCore() async {
+  test_class_outside_viaBeforeClassModifiersAndCore() async {
     var a = getFile('$testPackageLibPath/a.dart');
     await resolveFileWithDiagnostics(a, r'''
-// @dart=2.19
+// %before-language-feature: class-modifiers
 import 'dart:core';
 class A implements MapEntry<int, int> {
   int get key => 0;

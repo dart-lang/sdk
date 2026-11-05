@@ -28,7 +28,7 @@ base class RunningIsolate {
   late final _logger = Logger('Isolate ($name)');
   final String name;
   final int id;
-  // ignore: unused_field, will be used for resume permission logic.
+  IsolateState get state => _state;
   IsolateState _state;
 
   /// Invoked when the isolate has shutdown.

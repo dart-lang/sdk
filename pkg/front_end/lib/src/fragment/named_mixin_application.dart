@@ -17,7 +17,7 @@ class NamedMixinApplicationFragment implements Fragment {
   final List<TypeParameterFragment>? typeParameters;
   final LookupScope typeParameterScope;
   final NominalParameterNameSpace nominalParameterNameSpace;
-  final TypeBuilder? supertype;
+  final TypeBuilder supertype;
   final List<TypeBuilder> mixins;
   final List<TypeBuilder>? interfaces;
   final LookupScope enclosingScope;
@@ -31,6 +31,9 @@ class NamedMixinApplicationFragment implements Fragment {
     nameOffset,
     name.length,
   );
+
+  late final List<SourceNominalParameterBuilder>? typeParameterBuilders =
+      typeParameters?.computeBuilderList;
 
   new({
     required this.name,

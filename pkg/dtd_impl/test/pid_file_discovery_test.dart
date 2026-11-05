@@ -24,7 +24,6 @@ void main() {
 
   Future<(Process process, String uri)> startDtdProcess() async {
     final process = await Process.start(Platform.resolvedExecutable, [
-      'run',
       dtdScriptPath,
       '--port=0',
     ], environment: env);
@@ -201,7 +200,6 @@ void main() {
 
       // Trigger the list command
       final result = await Process.run(Platform.resolvedExecutable, [
-        'run',
         dtdScriptPath,
         '--list',
       ], environment: env);
@@ -217,7 +215,6 @@ void main() {
     test('list prints correct number of instances', () async {
       // 0 instances initially.
       var result = await Process.run(Platform.resolvedExecutable, [
-        'run',
         dtdScriptPath,
         '--list',
       ], environment: env);
@@ -226,7 +223,6 @@ void main() {
       // 1 instance.
       final (dtd1, _) = await startDtdProcess();
       result = await Process.run(Platform.resolvedExecutable, [
-        'run',
         dtdScriptPath,
         '--list',
       ], environment: env);
@@ -238,7 +234,6 @@ void main() {
       // 2 instances.
       final (dtd2, _) = await startDtdProcess();
       result = await Process.run(Platform.resolvedExecutable, [
-        'run',
         dtdScriptPath,
         '--list',
       ], environment: env);
@@ -257,7 +252,6 @@ void main() {
     test('list --machine prints JSON list of instances', () async {
       // 0 instances initially.
       var result = await Process.run(Platform.resolvedExecutable, [
-        'run',
         dtdScriptPath,
         '--list',
         '--machine',
@@ -268,7 +262,6 @@ void main() {
       // 1 instance.
       final (dtd1, _) = await startDtdProcess();
       result = await Process.run(Platform.resolvedExecutable, [
-        'run',
         dtdScriptPath,
         '--list',
         '--machine',
@@ -279,7 +272,6 @@ void main() {
       // 2 instances.
       final (dtd2, _) = await startDtdProcess();
       result = await Process.run(Platform.resolvedExecutable, [
-        'run',
         dtdScriptPath,
         '--list',
         '--machine',

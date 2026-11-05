@@ -1082,16 +1082,11 @@ class ProgramBuilder {
       if (!_rtiNeed.classNeedsTypeArguments(enclosingClass)) {
         // Erase type arguments.
         List<DartType> typeArguments = enclosingType.typeArguments;
-        type =
-            _dartTypes.subst(
-                  List<DartType>.filled(
-                    typeArguments.length,
-                    _dartTypes.erasedType(),
-                  ),
-                  typeArguments,
-                  type,
-                )
-                as FunctionType;
+        type = _dartTypes.subst(
+          List<DartType>.filled(typeArguments.length, _dartTypes.erasedType()),
+          typeArguments,
+          type,
+        ) as FunctionType;
       }
     }
 

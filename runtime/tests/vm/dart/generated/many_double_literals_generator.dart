@@ -8,21 +8,26 @@ main() {
 
   print("double sum = 0.0;");
   print("@pragma('vm:never-inline')");
-  print("@pragma('dart2js:noInline')");
+  print("@pragma('dart2js:never-inline')");
   print("add(double x) { sum += x; }");
 
+  final buffer = StringBuffer();
   for (var i = 0; i < m; i++) {
-    print("chunk${i}() {");
-    for (var j = 0; j < n / m; j++) {
-      print("  add(${n ~/ m * i + j}.0);");
+    buffer.clear();
+    buffer.writeln("chunk${i}() {");
+    for (var j = 0; j < n ~/ m; j++) {
+      buffer.writeln("  add(${n ~/ m * i + j}.0);");
     }
-    print("}");
+    buffer.write("}");
+    print(buffer);
   }
 
-  print("main() {");
+  buffer.clear();
+  buffer.writeln("main() {");
   for (var i = 0; i < m; i++) {
-    print("  chunk${i}();");
+    buffer.writeln("  chunk${i}();");
   }
-  print("  if (sum != ${n * (n - 1) ~/ 2}.0) throw 'Wrong!';");
-  print("}");
+  buffer.writeln("  if (sum != ${n * (n - 1) ~/ 2}.0) throw 'Wrong!';");
+  buffer.write("}");
+  print(buffer);
 }

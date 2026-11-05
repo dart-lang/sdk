@@ -141,13 +141,18 @@ abstract class _JoinIfWithElseBlock extends ResolvedCorrectionProducer {
       // TODO(applicability): comment on why.
       CorrectionApplicability.singleLocation;
 
-  String _blockSource(
+  String? _blockSource(
     Block block,
     String? startCommentsSource,
     String prefix,
     String? endCommentSource, {
     required String eol,
   }) {
+    // A synthetic right bracket has no corresponding `}` in the source.
+    if (block.rightBracket.isSynthetic) {
+      return null;
+    }
+
     var lineRanges = range.node(block);
     var blockSource = utils.getRangeText(lineRanges);
     blockSource = utils.indentSourceLeftRight(blockSource).trimRight();
@@ -256,13 +261,17 @@ abstract class _JoinIfWithElseBlock extends ResolvedCorrectionProducer {
         );
 
         if (statement case Block block) {
-          newBlockSource = _blockSource(
+          var blockSource = _blockSource(
             block,
             beginCommentsSource,
             prefix,
             endCommentSource,
             eol: eol,
           );
+          if (blockSource == null) {
+            return;
+          }
+          newBlockSource = blockSource;
         } else {
           var statementSource = utils.getNodeText(statement);
           // Add indentation for the else statement if it is missing.

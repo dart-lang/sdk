@@ -10,8 +10,6 @@ import 'package:analyzer/source/source.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart'
-    show DiagnosticMessageImpl;
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
 extension DartTypeExtension on DartType {
@@ -21,6 +19,17 @@ extension DartTypeExtension on DartType {
 }
 
 extension Element2Extension on Element {
+  /// Whether a reference to this element reads a constant variable, either
+  /// the variable itself, or its implicit getter.
+  bool get denotesConstantVariable {
+    return switch (this) {
+      PropertyAccessorElement(:var isOriginDeclaration, :var variable) =>
+        !isOriginDeclaration && variable.isConst,
+      VariableElement(:var isConst) => isConst,
+      _ => false,
+    };
+  }
+
   TypeImpl? get firstParameterType {
     var self = this;
     if (self is InternalMethodElement) {
@@ -145,24 +154,6 @@ extension FormalParameterElementMixinExtension
 extension InterfaceTypeExtension on InterfaceType {
   bool get isDartCoreObjectNone {
     return isDartCoreObject && nullabilitySuffix == NullabilitySuffix.none;
-  }
-}
-
-extension InternalExecutableElementExtension on InternalExecutableElement {
-  /// Return a diagnostic message pointing at the first fragment.
-  DiagnosticMessageImpl diagnosticMessage({
-    required String message,
-    String? url,
-  }) {
-    var baseElement = nonSynthetic.baseElement as ElementImpl;
-    var location = baseElement.firstFragmentLocation;
-    return DiagnosticMessageImpl(
-      filePath: location.libraryFragment!.source.fullName,
-      message: message,
-      offset: location.nameOffset ?? -1,
-      length: location.name?.length ?? 0,
-      url: url,
-    );
   }
 }
 

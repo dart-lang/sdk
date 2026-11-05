@@ -33,6 +33,7 @@ library;
 
 import 'dart:developer';
 import 'dart:io' as io;
+
 import 'package:vm_service/vm_service.dart' show VmService, ReloadReport;
 import 'package:vm_service/vm_service_io.dart' as vm_service_io;
 

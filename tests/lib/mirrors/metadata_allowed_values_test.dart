@@ -14,7 +14,7 @@ import 'metadata_allowed_values_import.dart' as prefix;
 
    @A
 // ^^
-// [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_ANNOTATION_CONSTRUCTOR
+// [analyzer] COMPILE_TIME_ERROR.NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS
 //  ^
 // [cfe] This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
 class A {}
@@ -29,9 +29,8 @@ class E {
 }
 
    @F(6)
-// ^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_ANNOTATION_CONSTRUCTOR
-//  ^
+//  ^^^^
+// [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_CONST
 // [cfe] Cannot invoke a non-'const' constructor where a const expression is expected.
 class F {
   final field;
@@ -39,9 +38,8 @@ class F {
 }
 
    @G.named(4)
-// ^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_ANNOTATION_CONSTRUCTOR
-//  ^
+//  ^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_CONST
 // [cfe] Cannot invoke a non-'const' constructor where a const expression is expected.
 class G {
   final field;
@@ -61,9 +59,8 @@ class G {
 class I {}
 
    @this.toString
-// ^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_ANNOTATION
 //  ^^^^
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
 // [cfe] 'this' can't be used as an identifier because it's a keyword.
 //       ^
@@ -71,9 +68,8 @@ class I {}
 class J {}
 
    @super.toString
-// ^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_ANNOTATION
 //  ^^^^^
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
 // [cfe] 'super' can't be used as an identifier because it's a keyword.
 //        ^
@@ -81,9 +77,8 @@ class J {}
 class K {}
 
    @L.func()
-// ^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_ANNOTATION
-//    ^
+//    ^^^^
+// [analyzer] COMPILE_TIME_ERROR.CONST_WITH_UNDEFINED_CONSTRUCTOR
 // [cfe] Couldn't find constructor 'L.func'.
 class L {
   static func() => 6;
@@ -131,46 +126,37 @@ topLevelTearOff() => 4;
 class W {}
 
    @TypeParameter
-// ^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_ANNOTATION
-//  ^
+//  ^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
 // [cfe] Undefined name 'TypeParameter'.
 class X<TypeParameter> {}
 
    @TypeParameter.member
-// ^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_ANNOTATION
+//  ^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
 //                ^
 // [cfe] Member not found: 'TypeParameter.member'.
 class Y<TypeParameter> {}
 
    @1
-// [error column 4]
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_ANNOTATION
 //  ^
 // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
 // [cfe] Expected an identifier, but got '1'.
 class Z {}
 
    @3.14
-// [error column 4]
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_ANNOTATION
 //  ^^^^
 // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
 // [cfe] Expected an identifier, but got '3.14'.
 class AA {}
 
    @'string'
-// [error column 4]
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_ANNOTATION
 //  ^^^^^^^^
 // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
 // [cfe] Expected an identifier, but got ''string''.
 class BB {}
 
    @#symbol
-// ^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_ANNOTATION
 //  ^
 // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
 // [cfe] Expected an identifier, but got '#'.
@@ -203,27 +189,24 @@ class DD {}
 class EE {}
 
    @true
-// ^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_ANNOTATION
 //  ^^^^
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
 // [cfe] 'true' can't be used as an identifier because it's a keyword.
 // [cfe] Undefined name 'true'.
 class FF {}
 
    @false
-// ^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_ANNOTATION
 //  ^^^^^
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
 // [cfe] 'false' can't be used as an identifier because it's a keyword.
 // [cfe] Undefined name 'false'.
 class GG {}
 
    @null
-// ^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_ANNOTATION
 //  ^^^^
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
 // [cfe] 'null' can't be used as an identifier because it's a keyword.
 // [cfe] Undefined name 'null'.

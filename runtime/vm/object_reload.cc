@@ -348,6 +348,20 @@ void Class::MigrateImplicitStaticClosures(ProgramReloadContext* irc,
   }
 }
 
+#if defined(DART_DYNAMIC_MODULES)
+void Class::MarkReloadedImplicitClosureFunctions() const {
+  const Array& funcs = Array::Handle(current_functions());
+  Function& func = Function::Handle();
+  for (intptr_t i = 0; i < funcs.Length(); i++) {
+    func ^= funcs.At(i);
+    if (func.HasImplicitClosureFunction()) {
+      func = func.ImplicitClosureFunction();
+      func.SetIsReloadedImplicitClosure(true);
+    }
+  }
+}
+#endif
+
 class EnumClassConflict : public ClassReasonForCancelling {
  public:
   EnumClassConflict(Zone* zone, const Class& from, const Class& to)

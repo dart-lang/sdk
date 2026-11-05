@@ -30,6 +30,9 @@ abstract interface class Future<T> {
 
   factory Future.value([FutureOr<T>? value]) => throw 0;
 
+  @Since("3.10")
+  factory Future.syncValue([FutureOr<T>? value]) => throw 0;
+
   Future<T> catchError(Function onError, {bool test(Object error)?});
 
   Future<R> then<R>(FutureOr<R> onValue(T value), {Function? onError});

@@ -366,6 +366,25 @@ abstract class IntegrationTestMixin {
     return null;
   }
 
+  /// Set the configurations for the plugins running in this isolate.
+  ///
+  /// Parameters
+  ///
+  /// * `configurations: Map<FilePath, Map<String, PluginConfiguration>>`
+  ///
+  ///   A table mapping the path of the directory to a map of plugin names to
+  ///   their configurations.
+  ///
+  /// Returns
+  Future<AnalysisSetConfigurationsResult> sendAnalysisSetConfigurations(
+    Map<String, Map<String, PluginConfiguration>> configurations,
+  ) async {
+    var params = AnalysisSetConfigurationsParams(configurations).toJson();
+    var result = await server.send('analysis.setConfigurations', params);
+    var decoder = ResponseDecoder(null);
+    return AnalysisSetConfigurationsResult.fromJson(decoder, 'result', result);
+  }
+
   /// Used to report the errors associated with a given file. The set of errors
   /// included in the notification is always a complete list that supersedes
   /// any previously reported errors.

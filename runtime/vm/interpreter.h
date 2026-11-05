@@ -55,6 +55,20 @@ class LookupCache : public ValueObject {
   Entry entries_[kNumEntries];
 };
 
+#if defined(DEBUG)
+// Helper macro for printing to the interpreter trace outside the interpreter.
+#define PRINT_IF_TRACING_INTERPRETER(format, ...)                              \
+  do {                                                                         \
+    if (auto* const interpreter = thread->interpreter()) {                     \
+      if (interpreter->IsTracingExecution()) {                                 \
+        interpreter->PrintInExecutionTrace(format, ##__VA_ARGS__);             \
+      }                                                                        \
+    }                                                                          \
+  } while (0)
+#else
+#define PRINT_IF_TRACING_INTERPRETER(format, ...) USE(__VA_ARGS__)
+#endif
+
 class Interpreter {
  public:
   static const uword kInterpreterStackUnderflowSize = 0x80;
@@ -119,6 +133,18 @@ class Interpreter {
 
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
   void ClearLookupCache() { lookup_cache_.Clear(); }
+
+#if defined(DEBUG)
+  // Returns true if tracing of executed instructions is enabled.
+  DART_FORCE_INLINE bool IsTracingExecution() const {
+    return icount_ > FLAG_trace_interpreter_after;
+  }
+
+  // Helper for printing debugging information for traces from other parts of
+  // the VM, like runtime entries.
+  void PrintInExecutionTrace(const char* format, ...) const
+      PRINTF_ATTRIBUTE(2, 3);
+#endif
 
  private:
   enum {
@@ -227,6 +253,11 @@ class Interpreter {
                          const KBCInstr* pc,
                          ObjectPtr* FP,
                          ObjectPtr* SP);
+  bool AllocateInt32x4(Thread* thread,
+                       simd128_value_t value,
+                       const KBCInstr* pc,
+                       ObjectPtr* FP,
+                       ObjectPtr* SP);
   bool AllocateArray(Thread* thread,
                      TypeArgumentsPtr type_args,
                      ObjectPtr length,
@@ -282,8 +313,9 @@ class Interpreter {
   }
 
 #if defined(DEBUG)
-  // Returns true if tracing of executed instructions is enabled.
-  bool IsTracingExecution() const;
+  // Prints the instruction count (and OS thread id if
+  // FLAG_print_interpreter_threads is set) as the prefix for a text trace.
+  void PrintTracePrefix() const;
 
   // Prints bytecode instruction at given pc for instruction tracing.
   void TraceInstruction(const KBCInstr* pc, ObjectPtr* FP) const;

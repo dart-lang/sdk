@@ -58,15 +58,22 @@ class SetupCompilerOptions {
   final bool canaryFeatures;
   final bool enableAsserts;
 
+  /// Whether the deprecated JS interop libraries are supported.
+  final bool deprecatedJsInterop;
+
   static fe.CompilerOptions _getOptions({
     required bool enableAsserts,
+    required bool deprecatedJsInterop,
     required List<String> enableExperiments,
   }) {
     var options = fe.CompilerOptions()
       ..verbose =
           false // set to true for debugging
       ..sdkRoot = sdkRoot
-      ..target = DevCompilerTarget(TargetFlags())
+      ..target = DevCompilerTarget(
+        TargetFlags(),
+        deprecatedJsInterop: deprecatedJsInterop,
+      )
       ..omitPlatform = true
       ..sdkSummary = buildRoot.resolve('ddc_outline.dill')
       ..environmentDefines = addGeneratedVariables(
@@ -84,9 +91,11 @@ class SetupCompilerOptions {
     this.enableAsserts = true,
     this.moduleFormat = ModuleFormat.amd,
     this.canaryFeatures = false,
+    this.deprecatedJsInterop = true,
     List<String> enableExperiments = const [],
   }) : options = _getOptions(
          enableAsserts: enableAsserts,
+         deprecatedJsInterop: deprecatedJsInterop,
          enableExperiments: enableExperiments,
        ) {
     options.onDiagnostic = (fe.CfeDiagnosticMessage m) {
@@ -116,6 +125,7 @@ class SetupCompilerOptions {
     ModuleFormat moduleFormat = ModuleFormat.amd,
     List<String> enableExperiments = const [],
     List<String> args = const [],
+    bool deprecatedJsInterop = true,
   }) {
     // Find if the test is run with arguments overriding the configuration
     late bool enableAsserts;
@@ -137,6 +147,7 @@ class SetupCompilerOptions {
       enableAsserts: enableAsserts,
       moduleFormat: moduleFormat,
       canaryFeatures: canaryFeatures,
+      deprecatedJsInterop: deprecatedJsInterop,
       enableExperiments: enableExperiments,
     );
   }

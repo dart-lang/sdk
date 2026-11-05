@@ -14,13 +14,13 @@ runEnvironmentProcess(
   name,
   includeParent,
   callback,
-) {
+) async {
   var dartExecutable = Platform.executable;
   var printEnv = 'tests/standalone/io/print_env.dart';
   if (!new File(printEnv).existsSync()) {
     printEnv = '../$printEnv';
   }
-  Process.run(
+  var result = await Process.run(
     dartExecutable,
     []
       ..addAll(Platform.executableArguments)
@@ -28,30 +28,28 @@ runEnvironmentProcess(
       ..addAll([printEnv, name]),
     environment: environment,
     includeParentEnvironment: includeParent,
-  ).then((result) {
-    if (result.exitCode != 0) {
-      print(
-        'print_env.dart subprocess failed '
-        'with exit code ${result.exitCode}',
-      );
-      print('stdout:');
-      print(result.stdout);
-      print('stderr:');
-      print(result.stderr);
-    }
-    Expect.equals(0, result.exitCode);
-    callback(result.stdout);
-  });
+  );
+  if (result.exitCode != 0) {
+    print(
+      'print_env.dart subprocess failed '
+      'with exit code ${result.exitCode}',
+    );
+    print('stdout:');
+    print(result.stdout);
+    print('stderr:');
+    print(result.stderr);
+  }
+  Expect.equals(0, result.exitCode);
+  await callback(result.stdout);
 }
 
-testEnvironment() {
-  asyncStart();
+testEnvironment() async {
   Map env = Platform.environment;
   Expect.isFalse(env.isEmpty);
   // Check that some value in the environment stays the same when passed
   // to another process.
   for (var k in env.keys) {
-    runEnvironmentProcess({}, k, true, (output) {
+    await runEnvironmentProcess({}, k, true, (output) async {
       // Only check startsWith. The print statements will add
       // newlines at the end.
       Expect.isTrue(output.startsWith(env[k]));
@@ -61,9 +59,8 @@ testEnvironment() {
       var name = 'MYENVVAR';
       while (env.containsKey(name)) name = '${name}_';
       copy[name] = 'value';
-      runEnvironmentProcess(copy, name, true, (output) {
+      await runEnvironmentProcess(copy, name, true, (output) {
         Expect.isTrue(output.startsWith('value'));
-        asyncEnd();
       });
     });
     // Only check one value to not spin up too many processes testing the
@@ -72,19 +69,19 @@ testEnvironment() {
   }
 }
 
-testNoIncludeEnvironment() {
-  asyncStart();
+testNoIncludeEnvironment() async {
   var env = Platform.environment;
   Expect.isTrue(env.containsKey('PATH'));
   env = new Map.from(env);
   env.remove('PATH');
-  runEnvironmentProcess(env, "PATH", false, (output) {
+  await runEnvironmentProcess(env, "PATH", false, (output) {
     Expect.isTrue(output.startsWith("null"));
-    asyncEnd();
   });
 }
 
-main() {
-  testEnvironment();
-  testNoIncludeEnvironment();
+main() async {
+  asyncStart();
+  await testEnvironment();
+  await testNoIncludeEnvironment();
+  asyncEnd();
 }

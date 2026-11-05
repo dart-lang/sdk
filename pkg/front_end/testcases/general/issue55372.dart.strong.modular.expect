@@ -40,25 +40,25 @@ static method main() → dynamic {
   {
     final core::Map<core::String, core::Map<core::String, core::String>> nestedMap = <core::String, core::Map<core::String, core::String>>{};
     let final core::Map<core::String, core::Map<core::String, core::String>> #t9 = nestedMap in #t9 == null ?{core::Map<core::String, core::String>?} null : let final core::String #t10 = "hello" in #t9.{core::Map::[]}(#t10){(core::Object?) → core::Map<core::String, core::String>?} == null ?{core::Map<core::String, core::String>?} #t9.{core::Map::[]=}(#t10, <core::String, core::String>{}){(core::String, core::Map<core::String, core::String>) → void} : null;
-    core::Map<core::String, core::String>? x = let final core::Map<core::String, core::Map<core::String, core::String>> #t11 = nestedMap in #t11 == null ?{core::Map<core::String, core::String>?} null : let final core::String #t12 = "hello" in let final core::Map<core::String, core::String>? #t13 = #t11.{core::Map::[]}(#t12){(core::Object?) → core::Map<core::String, core::String>?} in #t13 == null ?{core::Map<core::String, core::String>} let final core::Map<core::String, core::String> #t14 = <core::String, core::String>{} in let final void #t15 = #t11.{core::Map::[]=}(#t12, #t14){(core::String, core::Map<core::String, core::String>) → void} in #t14 : #t13{core::Map<core::String, core::String>};
+    core::Map<core::String, core::String>? x##1 = let final core::Map<core::String, core::Map<core::String, core::String>> #t11 = nestedMap in #t11 == null ?{core::Map<core::String, core::String>?} null : let final core::String #t12 = "hello" in let final core::Map<core::String, core::String>? #t13 = #t11.{core::Map::[]}(#t12){(core::Object?) → core::Map<core::String, core::String>?} in #t13 == null ?{core::Map<core::String, core::String>} let final core::Map<core::String, core::String> #t14 = <core::String, core::String>{} in let final void #t15 = #t11.{core::Map::[]=}(#t12, #t14){(core::String, core::Map<core::String, core::String>) → void} in #t14 : #t13{core::Map<core::String, core::String>};
   }
   {
     let final dynamic #t16 = false in let final core::String #t17 = "hello" in self::E|[](#t16, #t17) == null ?{core::int?} self::E|[]=(#t16, #t17, 1) : null;
-    core::int x = let final dynamic #t18 = false in let final core::String #t19 = "hello" in let final core::int? #t20 = self::E|[](#t18, #t19) in #t20 == null ?{core::int} let final core::int #t21 = 1 in let final void #t22 = self::E|[]=(#t18, #t19, #t21) in #t21 : #t20{core::int};
+    core::int x##2 = let final dynamic #t18 = false in let final core::String #t19 = "hello" in let final core::int? #t20 = self::E|[](#t18, #t19) in #t20 == null ?{core::int} let final core::int #t21 = 1 in let final void #t22 = self::E|[]=(#t18, #t19, #t21) in #t21 : #t20{core::int};
   }
   {
-    self::A a = new self::A::•();
-    let final self::A #t23 = a in #t23.{self::A::foo2}{core::String?} == null ?{core::String?} #t23.{self::A::foo2} = "" : null;
-    core::String x = let final self::A #t24 = a in let final core::String? #t25 = #t24.{self::A::foo2}{core::String?} in #t25 == null ?{core::String} #t24.{self::A::foo2} = "" : #t25{core::String};
+    self::A a##1 = new self::A::•();
+    let final self::A #t23 = a##1 in #t23.{self::A::foo2}{core::String?} == null ?{core::String?} #t23.{self::A::foo2} = "" : null;
+    core::String x##3 = let final self::A #t24 = a##1 in let final core::String? #t25 = #t24.{self::A::foo2}{core::String?} in #t25 == null ?{core::String} #t24.{self::A::foo2} = "" : #t25{core::String};
   }
   {
     core::bool? b1;
     core::bool? b2;
     b1 == null ?{core::bool?} b1 = false : null;
-    core::bool x = let final core::bool? #t26 = b2 in #t26 == null ?{core::bool} b2 = false : #t26{core::bool};
+    core::bool x##4 = let final core::bool? #t26 = b2 in #t26 == null ?{core::bool} b2 = false : #t26{core::bool};
   }
   {
-    self::A? a = new self::A::•();
-    let final self::A #t27 = a{self::A} in #t27 == null ?{core::int?} null : #t27.{self::A::foo3} = #t27.{self::A::foo3}{core::int}.{core::num::+}(1){(core::num) → core::int};
+    self::A? a##2 = new self::A::•();
+    let final self::A #t27 = a##2{self::A} in #t27 == null ?{core::int?} null : #t27.{self::A::foo3} = #t27.{self::A::foo3}{core::int}.{core::num::+}(1){(core::num) → core::int};
   }
 }

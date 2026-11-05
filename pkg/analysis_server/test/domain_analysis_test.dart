@@ -445,7 +445,7 @@ AnalysisErrors
 ''');
 
     // Write `package_config.json`, recreate analysis contexts.
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'aaa', rootFolder: getFolder(aaaRootPath)),
     );
@@ -647,11 +647,11 @@ AnalysisErrors
   file: /home/test/pubspec.yaml
   errors: empty
 AnalysisErrors
-  file: /home/test/analysis_options.yaml
-  errors: empty
-AnalysisErrors
   file: /home/test/AndroidManifest.xml
   errors: notEmpty
+AnalysisErrors
+  file: /home/test/analysis_options.yaml
+  errors: empty
 AnalysisErrors
   file: /home/test/lib/a.dart
   errors: empty
@@ -993,7 +993,7 @@ AnalysisErrors
 ''');
 
     // Write `package_config.json`, recreate analysis contexts.
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'aaa', rootFolder: getFolder(aaaRootPath)),
     );
@@ -1097,11 +1097,11 @@ AnalysisErrors
   file: /home/test/pubspec.yaml
   errors: empty
 AnalysisErrors
-  file: /home/test/analysis_options.yaml
-  errors: empty
-AnalysisErrors
   file: /home/test/AndroidManifest.xml
   errors: notEmpty
+AnalysisErrors
+  file: /home/test/analysis_options.yaml
+  errors: empty
 AnalysisErrors
   file: /home/test/lib/a.dart
   errors: empty
@@ -1324,7 +1324,7 @@ class A {}
 ''');
 
     // Write the empty file, without `package:aaa`.
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'aaa', rootFolder: getFolder(aaaRootPath)),
     );
@@ -1786,11 +1786,11 @@ AnalysisErrors
   file: /home/test/pubspec.yaml
   errors: empty
 AnalysisErrors
-  file: /home/test/analysis_options.yaml
-  errors: empty
-AnalysisErrors
   file: /home/test/AndroidManifest.xml
   errors: notEmpty
+AnalysisErrors
+  file: /home/test/analysis_options.yaml
+  errors: empty
 AnalysisErrors
   file: /home/test/lib/a.dart
   errors: empty
@@ -1897,7 +1897,7 @@ AnalysisErrors
 class A {}
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'aaa', rootFolder: getFolder(aaaRootPath)),
     );
@@ -2115,7 +2115,7 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
     // nestedFolder1 has no plugins enabled.
     newAnalysisOptionsYamlFile(
       join(workspaceRootPath, 'package1', 'nestedFolder1'),
-      analysisOptionsContent(experiments: experiments),
+      analysisOptionsContent(experimentalFeatures: experimentalFeatures),
     );
 
     // Write the single package config at the root that can resolve both
@@ -2157,7 +2157,7 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
     newAnalysisOptionsYamlFile(
       join(workspaceRootPath, 'package1', 'nestedFolder1'),
       analysisOptionsContent(
-        experiments: experiments,
+        experimentalFeatures: experimentalFeatures,
         legacyPlugins: [plugin2.name],
       ),
     );
@@ -2201,7 +2201,7 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
     newAnalysisOptionsYamlFile(
       join(workspaceRootPath, 'package1', 'nestedFolder1'),
       analysisOptionsContent(
-        experiments: experiments,
+        experimentalFeatures: experimentalFeatures,
         legacyPlugins: [plugin1.name],
       ),
     );
@@ -2433,7 +2433,7 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
     newAnalysisOptionsYamlFile(
       packagePath,
       analysisOptionsContent(
-        experiments: experiments,
+        experimentalFeatures: experimentalFeatures,
         legacyPlugins: plugins.map((plugin) => plugin.name).toList(),
       ),
     );
@@ -2509,7 +2509,7 @@ class SetSubscriptionsTest extends PubPackageAnalysisServerTest {
 library lib_a;
 class A {}
 ''');
-    writePackageConfig(
+    writePackageConfig2(
       convertPath('/project'),
       config: (PackageConfigFileBuilder()
         ..add(name: 'pkgA', rootFolder: getFolder('/packages/pkgA'))),
@@ -2561,7 +2561,7 @@ void f() {
 library lib_a;
 class A {}
 ''');
-    writePackageConfig(
+    writePackageConfig2(
       convertPath('/project'),
       config: (PackageConfigFileBuilder()
         ..add(name: 'pkgA', rootFolder: getFolder('/packages/pkgA'))),

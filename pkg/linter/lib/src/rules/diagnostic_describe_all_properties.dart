@@ -67,11 +67,7 @@ class _IdentifierVisitor extends RecursiveAstVisitor<void> {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final AnalysisRule rule;
-
-  new(this.rule);
-
+class _Visitor(final AnalysisRule rule) extends SimpleAstVisitor<void> {
   void removeReferences(MethodDeclaration? method, List<Token> properties) {
     method?.body.accept(_IdentifierVisitor(properties));
   }

@@ -70,10 +70,14 @@ class A {
     assertResolvedNodeText(node, r'''
 AwaitExpression
   awaitKeyword: await
-  expression: SuperExpression
+  expression2: InvalidSuperExpression
+    superReference: SuperReference
+      superKeyword: super
+    staticType: InvalidType
+  expression(v1): SuperExpression
     superKeyword: super
     staticType: A
-  staticType: A
+  staticType: InvalidType
 ''');
   }
 
@@ -90,7 +94,17 @@ class A {
     assertResolvedNodeText(node, r'''
 AwaitExpression
   awaitKeyword: await
-  expression: PropertyAccess
+  expression2: ReceiverPropertyExtraction
+    receiver: SuperReference
+      superKeyword: super
+    operator: .
+    name: hashCode
+    resolution: GetterInvocationResolution
+      element: dart:core::@class::Object::@getter::hashCode
+      invokeType: int Function()
+      type: int
+    staticType: int
+  expression(v1): PropertyAccess
     target: SuperExpression
       superKeyword: super
       staticType: A
@@ -117,7 +131,12 @@ void f() async {
     assertResolvedNodeText(node, r'''
 AwaitExpression
   awaitKeyword: await
-  expression: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: unresolved
+    resolution: InvalidNamedReadResolution
+      recoveryElement: <null>
+    staticType: InvalidType
+  expression(v1): SimpleIdentifier
     token: unresolved
     element: <null>
     staticType: InvalidType
@@ -140,7 +159,16 @@ void f() async {
     assertResolvedNodeText(node, r'''
 AwaitExpression
   awaitKeyword: await
-  expression: PrefixedIdentifier
+  expression2: ImportPrefixedNameExpression
+    importPrefix: ImportPrefixReference
+      name: prefix
+      period: .
+      element: <testLibraryFragment>::@prefix::prefix
+    name: unresolved
+    resolution: InvalidNamedReadResolution
+      recoveryElement: <null>
+    staticType: InvalidType
+  expression(v1): PrefixedIdentifier
     prefix: SimpleIdentifier
       token: prefix
       element: <testLibraryFragment>::@prefix::prefix
@@ -169,7 +197,24 @@ void f() async {
     assertResolvedNodeText(node, r'''
 AwaitExpression
   awaitKeyword: await
-  expression: PropertyAccess
+  expression2: ReceiverPropertyExtraction
+    receiver: ReceiverPropertyExtraction
+      receiver: IntegerLiteral
+        literal: 0
+        staticType: int
+      operator: .
+      name: isEven
+      resolution: GetterInvocationResolution
+        element: dart:core::@class::int::@getter::isEven
+        invokeType: bool Function()
+        type: bool
+      staticType: bool
+    operator: .
+    name: unresolved
+    resolution: InvalidNamedReadResolution
+      recoveryElement: <null>
+    staticType: InvalidType
+  expression(v1): PropertyAccess
     target: PropertyAccess
       target: IntegerLiteral
         literal: 0

@@ -37,6 +37,20 @@ class C {
 ''');
   }
 
+  test_class_constructorDeclaration_noPublicName_beforePrivateNamedParameters() async {
+    await resolveTestCodeWithDiagnostics('''
+// %before-language-feature: private-named-parameters
+class C {
+  int? _123;
+//     ^^^^
+// [diag.unusedField] The value of the field '_123' isn't used.
+  C({this._123}) {}
+//        ^^^^
+// [diag.experimentNotEnabled] This requires the 'private-named-parameters' language feature to be enabled.
+}
+''');
+  }
+
   test_class_constructorDeclaration_noPublicName_nonIdentifier() async {
     await resolveTestCodeWithDiagnostics('''
 class C {
@@ -46,20 +60,6 @@ class C {
   C({this._123}) {}
 //        ^^^^
 // [diag.privateNamedParameterWithoutPublicName] A private named parameter must be a public identifier after removing the leading underscore.
-}
-''');
-  }
-
-  test_class_constructorDeclaration_noPublicName_preFeature() async {
-    await resolveTestCodeWithDiagnostics('''
-// @dart=3.10
-class C {
-  int? _123;
-//     ^^^^
-// [diag.unusedField] The value of the field '_123' isn't used.
-  C({this._123}) {}
-//        ^^^^
-// [diag.experimentNotEnabled] This requires the 'private-named-parameters' language feature to be enabled.
 }
 ''');
   }

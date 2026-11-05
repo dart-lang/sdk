@@ -117,6 +117,29 @@ f() => [!LinkedHashMap()!];
 ''');
   }
 
+  test_ifNull_assignment() async {
+    await assertNoDiagnostics(r'''
+import 'dart:collection';
+
+void f(LinkedHashMap<String, int>? a) {
+  LinkedHashMap<String, int> b;
+  b = a ?? LinkedHashMap<String, int>();
+}
+''');
+  }
+
+  test_ifNull_constructorInitializer() async {
+    await assertNoDiagnostics(r'''
+import 'dart:collection';
+
+class C {
+  final LinkedHashMap<String, int> a;
+  C({LinkedHashMap<String, int>? a})
+      : a = a ?? LinkedHashMap<String, int>();
+}
+''');
+  }
+
   test_iterable_emptyConstructor_iterableDeclaration() async {
     await assertNoDiagnostics(r'''
 void f() {

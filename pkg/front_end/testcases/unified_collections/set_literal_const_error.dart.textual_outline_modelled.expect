@@ -1,0 +1,7 @@
+const List<int> intList = <int>[0, 1, 2];
+
+const Set<(int, int)> intIntSet = <(int, int)>{(0, 1), (2, 3)};
+
+const Set<int> intSet = <int>{0, 1, 2};
+
+test() {}

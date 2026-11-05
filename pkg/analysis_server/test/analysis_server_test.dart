@@ -133,7 +133,7 @@ class X extends A with M {}
     var fooLibFolder = _addSimplePackage('foo', '');
     var barLibFolder = _addSimplePackage('bar', '');
     var config = PackageConfigFileBuilder();
-    writePackageConfig(projectPackageConfigFile, config);
+    writePackageConfig2(projectPackageConfigFile, config);
 
     // Track diagnostics that arrive.
     var errorsByFile = <String, List<AnalysisError>>{};
@@ -163,10 +163,10 @@ class X extends A with M {}
     // Write both packages, in two events so that the first one will trigger
     // a rebuild.
     config.add(name: 'foo', rootFolder: fooLibFolder.parent);
-    writePackageConfig(projectPackageConfigFile, config);
+    writePackageConfig2(projectPackageConfigFile, config);
     await pumpEventQueue(times: 1); // Allow server to begin processing.
     config.add(name: 'bar', rootFolder: barLibFolder.parent);
-    writePackageConfig(projectPackageConfigFile, config);
+    writePackageConfig2(projectPackageConfigFile, config);
 
     // Eventually the errors are gone.
     while (true) {
@@ -350,7 +350,7 @@ analyzer:
     });
   }
 
-  void writePackageConfig(String path, PackageConfigFileBuilder config) {
+  void writePackageConfig2(String path, PackageConfigFileBuilder config) {
     newFile(path, config.toContent());
   }
 

@@ -19,6 +19,17 @@ class CreateParameterTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.createParameter;
 
+  Future<void> test_annotation() async {
+    await resolveTestCode('''
+void f() {
+  @foo
+  var x = 0;
+  print(x);
+}
+''');
+    await assertNoFix();
+  }
+
   Future<void> test_final_comma() async {
     await resolveTestCode('''
 int f(

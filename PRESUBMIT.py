@@ -58,15 +58,16 @@ def _CheckFormat(input_api, identification, extension, windows,
                                            bool], exclude_folders):
     files = files_to_check_for_format(input_api, extension, exclude_folders)
     if not files:
-        return []
+        return [], []
 
     # Check for formatting errors in bulk first. This is orders of magnitude
     # faster than checking file-by-file on large changes with hundreds of files.
     if not hasFormatErrors(filenames=[f.AbsoluteLocalPath() for f in files]):
-        return []
+        return [], []
 
     print("Formatting errors found, comparing against old versions.")
     unformatted_files = []
+    warnings = []
     for git_file in files:
         filename = git_file.AbsoluteLocalPath()
         if hasFormatErrors(filename=filename):
@@ -82,12 +83,12 @@ def _CheckFormat(input_api, identification, extension, windows,
                 old_version_has_errors = False
 
             if old_version_has_errors:
-                print("WARNING: %s has existing and possibly new %s issues" %
-                      (git_file.LocalPath(), identification))
+                warnings.append("%s has existing and possibly new %s issues" %
+                                (git_file.LocalPath(), identification))
             else:
                 unformatted_files.append(filename)
 
-    return unformatted_files
+    return unformatted_files, warnings
 
 
 def load_source(modname, filename):
@@ -114,8 +115,11 @@ def _CheckDartFormat(input_api, output_api):
         dart += '.exe'
 
     if not os.path.isfile(dart):
-        print('WARNING: dart not found: %s' % (dart))
-        return []
+        return [
+            output_api.PresubmitError(
+                'dart not found (please ensure to use a gclient based '
+                'checkout of dart-lang/sdk): %s' % dart)
+        ]
 
     def HasFormatErrors(filename: str = None,
                         filenames: list = None,
@@ -172,21 +176,22 @@ def _CheckDartFormat(input_api, output_api):
         # parsed and formatted. Don't treat those as errors.
         return process.returncode == 1
 
-    unformatted_files = _CheckFormat(input_api, "dart format", ".dart", windows,
-                                     HasFormatErrors, [])
+    unformatted_files, warnings = _CheckFormat(input_api, "dart format",
+                                               ".dart", windows,
+                                               HasFormatErrors, [])
 
+    results = [output_api.PresubmitPromptWarning(w) for w in warnings]
     if unformatted_files:
         lineSep = " \\\n"
         if windows:
             lineSep = " ^\n"
-        return [
+        results.append(
             output_api.PresubmitError(
                 'File output does not match dart format.\n'
                 'Fix these issues with:\n'
-                '%s format %s' % (dart, lineSep.join(unformatted_files)))
-        ]
+                '%s format %s' % (dart, lineSep.join(unformatted_files))))
 
-    return []
+    return results
 
 
 def _CheckStatusFiles(input_api, output_api):
@@ -201,12 +206,18 @@ def _CheckStatusFiles(input_api, output_api):
         dart += '.exe'
 
     if not os.path.isfile(dart):
-        print('WARNING: dart not found: %s' % dart)
-        return []
+        return [
+            output_api.PresubmitError(
+                'dart not found (please ensure to use a gclient based '
+                'checkout of dart-lang/sdk): %s' % dart)
+        ]
 
     if not os.path.isfile(lint):
-        print('WARNING: Status file linter not found: %s' % lint)
-        return []
+        return [
+            output_api.PresubmitError(
+                'Status file linter not found (please ensure to use a '
+                'gclient based checkout of dart-lang/sdk): %s' % lint)
+        ]
 
     def HasFormatErrors(filename=None, filenames=None, contents=None):
         if filenames:
@@ -222,24 +233,25 @@ def _CheckStatusFiles(input_api, output_api):
         "pkg/status_file/test/data/",
         "pkg/front_end/",
     ]
-    unformatted_files = _CheckFormat(input_api, "status file", ".status",
-                                     windows, HasFormatErrors, exclude_folders)
+    unformatted_files, warnings = _CheckFormat(input_api, "status file",
+                                               ".status", windows,
+                                               HasFormatErrors, exclude_folders)
 
+    results = [output_api.PresubmitPromptWarning(w) for w in warnings]
     if unformatted_files:
         normalize = os.path.join(local_root, 'pkg', 'status_file', 'bin',
                                  'normalize.dart')
         lineSep = " \\\n"
         if windows:
             lineSep = " ^\n"
-        return [
+        results.append(
             output_api.PresubmitError(
                 'Status files are not normalized.\n'
                 'Fix these issues with:\n'
-                '%s %s -w%s%s' % (dart, normalize, lineSep,
-                                  lineSep.join(unformatted_files)))
-        ]
+                '%s %s -w%s%s' %
+                (dart, normalize, lineSep, lineSep.join(unformatted_files))))
 
-    return []
+    return results
 
 
 def _CheckValidHostsInDEPS(input_api, output_api):
@@ -291,12 +303,24 @@ def _CheckLayering(input_api, output_api):
     return []
 
 
+def _ClangToolPath(name):
+    """Returns the clang tool path for this host, or None if not enabled here."""
+    system, machine = platform.system(), platform.machine()
+    if system == 'Linux' and machine == 'x86_64':
+        plat = 'linux-x64'
+    elif system == 'Darwin':
+        plat = 'mac-arm64' if machine == 'arm64' else 'mac-x64'
+    elif system == 'Windows':
+        plat = 'win-x64'
+        name = name + '.exe'
+    else:
+        return None
+    path = 'buildtools/%s/clang/bin/%s' % (plat, name)
+    return path if os.path.isfile(path) else None
+
+
 def _CheckClangTidy(input_api, output_api):
     """Run clang-tidy on VM changes."""
-
-    # Only run clang-tidy on linux x64.
-    if platform.system() != 'Linux' or platform.machine() != 'x86_64':
-        return []
 
     # Run only for modified .cc or .h files.
     files = []
@@ -306,6 +330,13 @@ def _CheckClangTidy(input_api, output_api):
 
     if not files:
         return []
+
+    # clang-tidy currently only runs on linux-x64.
+    if platform.system() != 'Linux' or platform.machine() != 'x86_64':
+        return [
+            output_api.PresubmitNotifyResult(
+                'clang-tidy not enabled on this platform.')
+        ]
 
     args = [
         'tools/sdks/dart-sdk/bin/dart',
@@ -326,10 +357,6 @@ def _CheckClangTidy(input_api, output_api):
 def _CheckClangFormat(input_api, output_api):
     """Run clang-format on VM changes."""
 
-    # Only run clang-format on linux x64.
-    if platform.system() != 'Linux' or platform.machine() != 'x86_64':
-        return []
-
     # Run only for modified .cc or .h files, except for DEPS changes.
     files = []
     is_deps = False
@@ -343,6 +370,16 @@ def _CheckClangFormat(input_api, output_api):
         if is_cpp_file(path) and os.path.isfile(
                 path) and not path.startswith('third_party/'):
             files.append(path)
+
+    if not is_deps and not files:
+        return []
+
+    clang_format = _ClangToolPath('clang-format')
+    if clang_format is None:
+        return [
+            output_api.PresubmitNotifyResult(
+                'clang-format not enabled on this platform.')
+        ]
 
     if is_deps:
         find_args = [
@@ -360,7 +397,7 @@ def _CheckClangFormat(input_api, output_api):
         return []
 
     args = [
-        'buildtools/linux-x64/clang/bin/clang-format',
+        clang_format,
         '--dry-run',
         '--Werror',
     ]
@@ -521,9 +558,61 @@ def _CheckDartApiWinCSync(input_api, output_api):
     return []
 
 
+# Directories whose changes require a TEST=/Tested: description. Keep in sync
+# with the Gerrit "Commit-Message-Has-TEST" submit requirement, which is the
+# source of truth and lives in the project config on refs/meta/config:
+#   git fetch <remote> refs/meta/config && git show FETCH_HEAD:project.config
+_TEST_REQUIRED_DIRS = (
+    'runtime/vm/',
+    'runtime/bin/',
+    'runtime/lib/',
+    'runtime/include/',
+    'runtime/observatory/',
+    'runtime/observatory_2/',
+    'pkg/vm/',
+    'sdk/lib/_internal/vm/',
+)
+
+
+def _CheckHasTestField(input_api, output_api):
+    """Warns when a CL touching Dart VM sources lacks a TEST=/Tested: line.
+
+    Early upload-time reminder mirroring the Gerrit Commit-Message-Has-TEST
+    submit requirement (which stays the authoritative check). See
+    docs/Gerrit-Submit-Requirements.md#commit-message-has-test.
+    """
+    if not any(
+            f.LocalPath().startswith(_TEST_REQUIRED_DIRS)
+            for f in input_api.AffectedFiles()):
+        return []
+
+    # Pure reverts restore already-tested code and are exempt.
+    if input_api.change.DescriptionText().lstrip().startswith('Revert "'):
+        return []
+
+    # A `TEST=`/`TESTED=` line or a `Tested:` footer satisfies the rule.
+    has_test = bool(
+        input_api.change.tags.get('TEST') or
+        input_api.change.tags.get('TESTED'))
+    has_tested_footer = bool(
+        input_api.change.GitFootersFromDescription().get('Tested'))
+    if has_test or has_tested_footer:
+        return []
+
+    return [
+        output_api.PresubmitPromptWarning(
+            'This CL touches Dart VM sources but has no TEST= line or Tested: '
+            'footer describing how it was tested. Add one, e.g.:\n'
+            '  TEST=vm/cc/MyNewUnitTest\n'
+            '  TEST=ci   (existing CI coverage is sufficient)\n'
+            'See docs/Gerrit-Submit-Requirements.md#commit-message-has-test.')
+    ]
+
+
 def _CommonChecks(input_api, output_api):
     results = []
     results.extend(_CheckValidHostsInDEPS(input_api, output_api))
+    results.extend(_CheckHasTestField(input_api, output_api))
     results.extend(_CheckDartFormat(input_api, output_api))
     results.extend(_CheckStatusFiles(input_api, output_api))
     results.extend(_CheckLayering(input_api, output_api))

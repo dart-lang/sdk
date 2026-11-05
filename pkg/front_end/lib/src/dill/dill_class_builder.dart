@@ -323,7 +323,7 @@ class DillClassBuilder extends ClassBuilderImpl {
   int get typeParametersCount => cls.typeParameters.length;
 
   @override
-  List<DartType> buildAliasedTypeArguments(
+  DartTypeList buildAliasedTypeArguments(
     LibraryBuilder library,
     List<TypeBuilder>? arguments,
     ClassHierarchyBase? hierarchy,
@@ -333,19 +333,17 @@ class DillClassBuilder extends ClassBuilderImpl {
     // [cls.typeParameters].
     if (arguments == null) {
       // TODO(johnniwinther): Use i2b here when needed.
-      return new List<DartType>.generate(
+      return new DartTypeList.generate(
         cls.typeParameters.length,
         (int i) => cls.typeParameters[i].defaultType,
-        growable: true,
       );
     }
 
     // [arguments] != null
-    return new List<DartType>.generate(
+    return new DartTypeList.generate(
       arguments.length,
       (int i) =>
           arguments[i].buildAliased(library, TypeUse.typeArgument, hierarchy),
-      growable: true,
     );
   }
 
@@ -397,10 +395,10 @@ TypeBuilder? computeTypeBuilder(
 }
 
 List<DillNominalParameterBuilder>? computeTypeParameterBuilders(
-  List<TypeParameter>? typeParameters,
+  List<TypeParameter> typeParameters,
   Loader loader,
 ) {
-  if (typeParameters == null || typeParameters.length == 0) return null;
+  if (typeParameters.length == 0) return null;
   return <DillNominalParameterBuilder>[
     for (TypeParameter typeParameter in typeParameters)
       new DillNominalParameterBuilder(typeParameter, loader: loader),

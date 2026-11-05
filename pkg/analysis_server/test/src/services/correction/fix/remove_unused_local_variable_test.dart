@@ -338,6 +338,35 @@ void f(str) {
 ''');
   }
 
+  /// https://github.com/dart-lang/sdk/issues/51032
+  Future<void> test_assigned_inExpressionFunctionBody() async {
+    await resolveTestCode(r'''
+void f() {
+  var v = false;
+  (() => v = true)();
+}
+''');
+    await assertHasFix(r'''
+void f() {
+  (() => true)();
+}
+''');
+  }
+
+  Future<void> test_assigned_inParenthesizedExpression() async {
+    await resolveTestCode(r'''
+void f() {
+  var v = 1;
+  print((v = 2));
+}
+''');
+    await assertHasFix(r'''
+void f() {
+  print((2));
+}
+''');
+  }
+
   Future<void> test_assigned_parenthesised_awaitedInvocation() async {
     await resolveTestCode(r'''
 Future<int> foo() async => 0;

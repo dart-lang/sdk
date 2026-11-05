@@ -19,7 +19,76 @@ void main() {
 @reflectiveTest
 class AddFieldFormalNamedParametersTest extends FixProcessorTest {
   @override
+  bool get addFlutterPackageDep => true;
+
+  @override
   FixKind get kind => DartFixKind.addInitializingFormalNamedParameters;
+
+  Future<void> test_conciseConstructor() async {
+    await resolveTestCode('''
+class Foo {
+  new();
+  final int i;
+}
+''');
+    await assertHasFix('''
+class Foo {
+  new({required this.i});
+  final int i;
+}
+''');
+  }
+
+  Future<void> test_conciseConstructor_hasNamedParameter() async {
+    await resolveTestCode('''
+class Foo {
+  new({this.i});
+  final int? i;
+  final int j;
+}
+''');
+    await assertHasFix('''
+class Foo {
+  new({this.i, required this.j});
+  final int? i;
+  final int j;
+}
+''');
+  }
+
+  Future<void> test_conciseConstructor_hasRequiredParameter() async {
+    await resolveTestCode('''
+class Foo {
+  new(this.i);
+  final int i;
+  final int j;
+}
+''');
+    await assertHasFix('''
+class Foo {
+  new(this.i, {required this.j});
+  final int i;
+  final int j;
+}
+''');
+  }
+
+  Future<void> test_conciseConstructor_multipleFields() async {
+    await resolveTestCode('''
+class Foo {
+  new();
+  final int i;
+  final String s;
+}
+''');
+    await assertHasFix('''
+class Foo {
+  new({required this.i, required this.s});
+  final int i;
+  final String s;
+}
+''');
+  }
 
   Future<void> test_enum() async {
     await resolveTestCode('''
@@ -77,7 +146,6 @@ enum MyEnum({required this.value}) {
   }
 
   Future<void> test_flutter_nullable() async {
-    writeTestPackageConfig(flutter: true);
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
@@ -105,7 +173,6 @@ class MyWidget extends StatelessWidget {
   }
 
   Future<void> test_flutter_nullable_lint() async {
-    writeTestPackageConfig(flutter: true);
     createAnalysisOptionsFile(
       lints: [LintNames.always_put_required_named_parameters_first],
     );
@@ -136,8 +203,6 @@ class MyWidget extends StatelessWidget {
   }
 
   Future<void> test_flutter_potentiallyNullable() async {
-    writeTestPackageConfig(flutter: true);
-
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
@@ -558,7 +623,59 @@ class A {
 @reflectiveTest
 class AddFieldFormalParametersTest extends FixProcessorTest {
   @override
+  bool get addFlutterPackageDep => true;
+
+  @override
   FixKind get kind => DartFixKind.addInitializingFormalParameters;
+
+  Future<void> test_conciseConstructor() async {
+    await resolveTestCode('''
+class Foo {
+  new();
+  final int i;
+}
+''');
+    await assertHasFix('''
+class Foo {
+  new(this.i);
+  final int i;
+}
+''');
+  }
+
+  Future<void> test_conciseConstructor_hasRequiredParameter() async {
+    await resolveTestCode('''
+class Foo {
+  new(this.i);
+  final int i;
+  final int j;
+}
+''');
+    await assertHasFix('''
+class Foo {
+  new(this.i, this.j);
+  final int i;
+  final int j;
+}
+''');
+  }
+
+  Future<void> test_conciseConstructor_multipleFields() async {
+    await resolveTestCode('''
+class Foo {
+  new();
+  final int i;
+  final String s;
+}
+''');
+    await assertHasFix('''
+class Foo {
+  new(this.i, this.s);
+  final int i;
+  final String s;
+}
+''');
+  }
 
   Future<void> test_enum() async {
     await resolveTestCode('''
@@ -582,7 +699,6 @@ enum MyEnum {
   }
 
   Future<void> test_flutter() async {
-    writeTestPackageConfig(flutter: true);
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 

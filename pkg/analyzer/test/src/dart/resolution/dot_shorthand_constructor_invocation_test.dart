@@ -18,7 +18,7 @@ main() {
 class DotShorthandConstructorInvocationResolutionTest
     extends PubPackageResolutionTest {
   test_abstractClass() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 abstract class Foo<T> {
   Foo();
 }
@@ -29,10 +29,39 @@ void main() {
 // [diag.instantiateAbstractClass] Abstract classes can't be instantiated.
 }
 ''');
+
+    var node = result.findNode.singleDotShorthandConstructorInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandConstructorInvocation2
+  period: .
+  name: new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: Foo<dynamic>
+    lookupType: Foo<dynamic>
+  element: SubstitutedConstructorElementImpl
+    baseElement: <testLibrary>::@class::Foo::@constructor::new
+    substitution: {T: dynamic}
+  staticType: Foo<dynamic>
+V1: DotShorthandConstructorInvocation
+  period: .
+  constructorName: SimpleIdentifier
+    token: new
+    element: SubstitutedConstructorElementImpl
+      baseElement: <testLibrary>::@class::Foo::@constructor::new
+      substitution: {T: dynamic}
+    staticType: null
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: Foo<dynamic>
+''');
   }
 
   test_abstractClass_const() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 abstract class C {
   static C fn() => CB.named(1);
 }
@@ -49,10 +78,47 @@ void main() {
   print(c);
 }
 ''');
+
+    var node = result.findNode.singleDotShorthandConstructorInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandConstructorInvocation2
+  constKeyword: const
+  period: .
+  name: fn
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 1
+        correspondingParameter: <null>
+        staticType: int
+    rightParenthesis: )
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
+  element: <null>
+  staticType: dynamic
+V1: DotShorthandConstructorInvocation
+  constKeyword: const
+  period: .
+  constructorName: SimpleIdentifier
+    token: fn
+    element: <null>
+    staticType: null
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 1
+        correspondingParameter: <null>
+        staticType: int
+    rightParenthesis: )
+  staticType: dynamic
+''');
   }
 
   test_abstractClass_const_typeArguments() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 abstract class C {
   static C fn() => CB.named(1);
 }
@@ -71,6 +137,59 @@ void main() {
   print(c);
 }
 ''');
+
+    var node = result.findNode.singleDotShorthandConstructorInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandConstructorInvocation2
+  constKeyword: const
+  period: .
+  name: fn
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 1
+        correspondingParameter: <null>
+        staticType: int
+    rightParenthesis: )
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
+  element: <null>
+  staticType: dynamic
+V1: DotShorthandConstructorInvocation
+  constKeyword: const
+  period: .
+  constructorName: SimpleIdentifier
+    token: fn
+    element: <null>
+    staticType: null
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 1
+        correspondingParameter: <null>
+        staticType: int
+    rightParenthesis: )
+  staticType: dynamic
+''');
   }
 
   test_abstractClass_factory() async {
@@ -85,7 +204,30 @@ void main() async {
 
     var node = result.findNode.singleDotShorthandConstructorInvocation;
     assertResolvedNodeText(node, r'''
-DotShorthandConstructorInvocation
+DotShorthandConstructorInvocation2
+  period: .
+  name: fromIterable
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      UnqualifiedNameExpression
+        name: iter
+        resolution: VariableReadResolution
+          element: iter@26
+          type: List<int>
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: dart:async::@class::Stream::@constructor::fromIterable::@formalParameter::elements
+          substitution: {T: int}
+        staticType: List<int>
+    rightParenthesis: )
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: Stream<_>
+    lookupType: Stream<_>
+  element: SubstitutedConstructorElementImpl
+    baseElement: dart:async::@class::Stream::@constructor::fromIterable
+    substitution: {T: int}
+  staticType: Stream<int>
+V1: DotShorthandConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
     token: fromIterable
@@ -104,7 +246,6 @@ DotShorthandConstructorInvocation
         element: iter@26
         staticType: List<int>
     rightParenthesis: )
-  isDotShorthand: true
   staticType: Stream<int>
 ''');
   }
@@ -126,7 +267,21 @@ Foo<T> bar<T>() => const .a();
 
     var node = result.findNode.singleDotShorthandConstructorInvocation;
     assertResolvedNodeText(node, r'''
-DotShorthandConstructorInvocation
+DotShorthandConstructorInvocation2
+  constKeyword: const
+  period: .
+  name: a
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: Foo<T>
+    lookupType: Foo<T>
+  element: SubstitutedConstructorElementImpl
+    baseElement: <testLibrary>::@class::Foo::@constructor::a
+    substitution: {T: Never}
+  staticType: Foo<Never>
+V1: DotShorthandConstructorInvocation
   constKeyword: const
   period: .
   constructorName: SimpleIdentifier
@@ -138,13 +293,12 @@ DotShorthandConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  isDotShorthand: true
   staticType: Foo<Never>
 ''');
   }
 
   test_abstractClass_factory_const_typeArguments() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 abstract class Foo<T> {
   const factory Foo.a() = _Foo;
 
@@ -159,10 +313,57 @@ Foo<int> bar<T>() => const .a<int>();
 //                           ^^^^^
 // [diag.wrongNumberOfTypeArgumentsDotShorthandConstructor] The dot shorthand resolves to the constructor 'Foo.a', and type parameters can't be applied to dot shorthand constructor invocations.
 ''');
+
+    var node = result.findNode.singleDotShorthandConstructorInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandConstructorInvocation2
+  constKeyword: const
+  period: .
+  name: a
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: Foo<int>
+    lookupType: Foo<int>
+  element: SubstitutedConstructorElementImpl
+    baseElement: <testLibrary>::@class::Foo::@constructor::a
+    substitution: {T: int}
+  staticType: Foo<int>
+V1: DotShorthandConstructorInvocation
+  constKeyword: const
+  period: .
+  constructorName: SimpleIdentifier
+    token: a
+    element: SubstitutedConstructorElementImpl
+      baseElement: <testLibrary>::@class::Foo::@constructor::a
+      substitution: {T: int}
+    staticType: null
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: Foo<int>
+''');
   }
 
   test_abstractClass_factory_typeArguments() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 abstract class Foo<T> {
   factory Foo.a() = _Foo;
 
@@ -177,20 +378,90 @@ Foo<T> bar<T>() => .a<T>();
 //                   ^^^
 // [diag.wrongNumberOfTypeArgumentsDotShorthandConstructor] The dot shorthand resolves to the constructor 'Foo.a', and type parameters can't be applied to dot shorthand constructor invocations.
 ''');
+
+    var node = result.findNode.singleDotShorthandConstructorInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandConstructorInvocation2
+  period: .
+  name: a
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: T
+        element: #E0 T
+        type: T
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: Foo<T>
+    lookupType: Foo<T>
+  element: SubstitutedConstructorElementImpl
+    baseElement: <testLibrary>::@class::Foo::@constructor::a
+    substitution: {T: T}
+  staticType: Foo<T>
+V1: DotShorthandConstructorInvocation
+  period: .
+  constructorName: SimpleIdentifier
+    token: a
+    element: SubstitutedConstructorElementImpl
+      baseElement: <testLibrary>::@class::Foo::@constructor::a
+      substitution: {T: T}
+    staticType: null
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: T
+        element: #E0 T
+        type: T
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: Foo<T>
+''');
   }
 
   test_abstractClass_function() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 Function getFunction() {
   return .new();
 //       ^^^^^^
 // [diag.instantiateAbstractClass] Abstract classes can't be instantiated.
 }
 ''');
+
+    var node = result.findNode.singleDotShorthandConstructorInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandConstructorInvocation2
+  period: .
+  name: new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: Function
+    lookupType: Function
+  element: dart:core::@class::Function::@constructor::new
+  staticType: Function
+V1: DotShorthandConstructorInvocation
+  period: .
+  constructorName: SimpleIdentifier
+    token: new
+    element: dart:core::@class::Function::@constructor::new
+    staticType: null
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: Function
+''');
   }
 
   test_abstractClass_typeArguments() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 abstract class Foo<T> {
   Foo();
 }
@@ -200,6 +471,51 @@ void main() {
 //        ^^^^^^^^^^^
 // [diag.instantiateAbstractClass] Abstract classes can't be instantiated.
 }
+''');
+
+    var node = result.findNode.singleDotShorthandConstructorInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandConstructorInvocation2
+  period: .
+  name: new
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: Foo<dynamic>
+    lookupType: Foo<dynamic>
+  element: SubstitutedConstructorElementImpl
+    baseElement: <testLibrary>::@class::Foo::@constructor::new
+    substitution: {T: int}
+  staticType: Foo<int>
+V1: DotShorthandConstructorInvocation
+  period: .
+  constructorName: SimpleIdentifier
+    token: new
+    element: SubstitutedConstructorElementImpl
+      baseElement: <testLibrary>::@class::Foo::@constructor::new
+      substitution: {T: int}
+    staticType: null
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: Foo<int>
 ''');
   }
 
@@ -217,9 +533,36 @@ void main() {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('method();');
+    var node = result.findNode.receiverMethodInvocation('method();');
     assertResolvedNodeText(node, r'''
-MethodInvocation
+ReceiverMethodInvocation
+  receiver: DotShorthandConstructorInvocation2
+    period: .
+    name: new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        IntegerLiteral
+          literal: 1
+          correspondingParameter: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
+          staticType: int
+      rightParenthesis: )
+    shorthandContext: ValidDotShorthandContextResolution
+      contextType: C
+      lookupType: C
+    element: <testLibrary>::@class::C::@constructor::new
+    staticType: C
+  operator: .
+  name: method
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::C::@method::method
+    invokeType: C Function()
+    type: C
+  staticType: C
+V1: MethodInvocation
   target: DotShorthandConstructorInvocation
     period: .
     constructorName: SimpleIdentifier
@@ -234,7 +577,6 @@ MethodInvocation
           correspondingParameter: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
           staticType: int
       rightParenthesis: )
-    isDotShorthand: false
     staticType: C
   operator: .
   methodName: SimpleIdentifier
@@ -263,9 +605,37 @@ void main() {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('method();');
+    var node = result.findNode.receiverMethodInvocation('method();');
     assertResolvedNodeText(node, r'''
-MethodInvocation
+ReceiverMethodInvocation
+  receiver: DotShorthandConstructorInvocation2
+    constKeyword: const
+    period: .
+    name: new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        IntegerLiteral
+          literal: 1
+          correspondingParameter: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
+          staticType: int
+      rightParenthesis: )
+    shorthandContext: ValidDotShorthandContextResolution
+      contextType: C
+      lookupType: C
+    element: <testLibrary>::@class::C::@constructor::new
+    staticType: C
+  operator: .
+  name: method
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::C::@method::method
+    invokeType: C Function()
+    type: C
+  staticType: C
+V1: MethodInvocation
   target: DotShorthandConstructorInvocation
     constKeyword: const
     period: .
@@ -281,7 +651,6 @@ MethodInvocation
           correspondingParameter: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
           staticType: int
       rightParenthesis: )
-    isDotShorthand: false
     staticType: C
   operator: .
   methodName: SimpleIdentifier
@@ -310,9 +679,33 @@ void main() {
 }
 ''');
 
-    var node = result.findNode.singlePropertyAccess;
+    var node = result.findNode.singleReceiverPropertyExtraction;
     assertResolvedNodeText(node, r'''
-PropertyAccess
+ReceiverPropertyExtraction
+  receiver: DotShorthandConstructorInvocation2
+    period: .
+    name: new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        IntegerLiteral
+          literal: 1
+          correspondingParameter: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
+          staticType: int
+      rightParenthesis: )
+    shorthandContext: ValidDotShorthandContextResolution
+      contextType: C
+      lookupType: C
+    element: <testLibrary>::@class::C::@constructor::new
+    staticType: C
+  operator: .
+  name: property
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::C::@getter::property
+    invokeType: C Function()
+    type: C
+  staticType: C
+V1: PropertyAccess
   target: DotShorthandConstructorInvocation
     period: .
     constructorName: SimpleIdentifier
@@ -327,7 +720,6 @@ PropertyAccess
           correspondingParameter: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
           staticType: int
       rightParenthesis: )
-    isDotShorthand: false
     staticType: C
   operator: .
   propertyName: SimpleIdentifier
@@ -352,9 +744,34 @@ void main() {
 }
 ''');
 
-    var node = result.findNode.singlePropertyAccess;
+    var node = result.findNode.singleReceiverPropertyExtraction;
     assertResolvedNodeText(node, r'''
-PropertyAccess
+ReceiverPropertyExtraction
+  receiver: DotShorthandConstructorInvocation2
+    constKeyword: const
+    period: .
+    name: new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        IntegerLiteral
+          literal: 1
+          correspondingParameter: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
+          staticType: int
+      rightParenthesis: )
+    shorthandContext: ValidDotShorthandContextResolution
+      contextType: C
+      lookupType: C
+    element: <testLibrary>::@class::C::@constructor::new
+    staticType: C
+  operator: .
+  name: property
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::C::@getter::property
+    invokeType: C Function()
+    type: C
+  staticType: C
+V1: PropertyAccess
   target: DotShorthandConstructorInvocation
     constKeyword: const
     period: .
@@ -370,7 +787,6 @@ PropertyAccess
           correspondingParameter: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
           staticType: int
       rightParenthesis: )
-    isDotShorthand: false
     staticType: C
   operator: .
   propertyName: SimpleIdentifier
@@ -395,7 +811,23 @@ void main() {
 
     var node = result.findNode.singleDotShorthandConstructorInvocation;
     assertResolvedNodeText(node, r'''
-DotShorthandConstructorInvocation
+DotShorthandConstructorInvocation2
+  period: .
+  name: value
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 1
+        correspondingParameter: <testLibrary>::@class::A::@constructor::value::@formalParameter::value
+        staticType: int
+    rightParenthesis: )
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: A
+    lookupType: A
+  element: <testLibrary>::@class::A::@constructor::value
+  staticType: A
+V1: DotShorthandConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
     token: value
@@ -409,7 +841,6 @@ DotShorthandConstructorInvocation
         correspondingParameter: <testLibrary>::@class::A::@constructor::value::@formalParameter::value
         staticType: int
     rightParenthesis: )
-  isDotShorthand: true
   staticType: A
 ''');
   }
@@ -429,7 +860,23 @@ void main() {
 
     var node = result.findNode.singleDotShorthandConstructorInvocation;
     assertResolvedNodeText(node, r'''
-DotShorthandConstructorInvocation
+DotShorthandConstructorInvocation2
+  period: .
+  name: value
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 1
+        correspondingParameter: <testLibrary>::@class::A::@constructor::value::@formalParameter::val
+        staticType: int
+    rightParenthesis: )
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: A
+    lookupType: A
+  element: <testLibrary>::@class::A::@constructor::value
+  staticType: A
+V1: DotShorthandConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
     token: value
@@ -443,7 +890,6 @@ DotShorthandConstructorInvocation
         correspondingParameter: <testLibrary>::@class::A::@constructor::value::@formalParameter::val
         staticType: int
     rightParenthesis: )
-  isDotShorthand: true
   staticType: A
 ''');
   }
@@ -464,7 +910,18 @@ void main() {
 
     var node = result.findNode.singleDotShorthandConstructorInvocation;
     assertResolvedNodeText(node, r'''
-DotShorthandConstructorInvocation
+DotShorthandConstructorInvocation2
+  period: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: A
+    lookupType: A
+  element: <testLibrary>::@class::A::@constructor::foo
+  staticType: A
+V1: DotShorthandConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
     token: foo
@@ -473,7 +930,6 @@ DotShorthandConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  isDotShorthand: true
   staticType: A
 ''');
   }
@@ -497,7 +953,23 @@ void main() {
 
     var node = result.findNode.singleDotShorthandConstructorInvocation;
     assertResolvedNodeText(node, r'''
-DotShorthandConstructorInvocation
+DotShorthandConstructorInvocation2
+  period: .
+  name: value
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 1
+        correspondingParameter: <testLibrary>::@class::A::@constructor::value::@formalParameter::val
+        staticType: int
+    rightParenthesis: )
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: A
+    lookupType: A
+  element: <testLibrary>::@class::A::@constructor::value
+  staticType: A
+V1: DotShorthandConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
     token: value
@@ -511,7 +983,6 @@ DotShorthandConstructorInvocation
         correspondingParameter: <testLibrary>::@class::A::@constructor::value::@formalParameter::val
         staticType: int
     rightParenthesis: )
-  isDotShorthand: true
   staticType: A
 ''');
   }
@@ -531,7 +1002,25 @@ class CAssert {
 
     var node = result.findNode.singleDotShorthandConstructorInvocation;
     assertResolvedNodeText(node, r'''
-DotShorthandConstructorInvocation
+DotShorthandConstructorInvocation2
+  constKeyword: const
+  period: .
+  name: named
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 1
+        correspondingParameter: <testLibrary>::@class::C::@constructor::named::@formalParameter::x
+        staticType: int
+    rightParenthesis: )
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
+  element: <testLibrary>::@class::C::@constructor::named
+  correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
+  staticType: C
+V1: DotShorthandConstructorInvocation
   constKeyword: const
   period: .
   constructorName: SimpleIdentifier
@@ -546,7 +1035,6 @@ DotShorthandConstructorInvocation
         correspondingParameter: <testLibrary>::@class::C::@constructor::named::@formalParameter::x
         staticType: int
     rightParenthesis: )
-  isDotShorthand: true
   correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
   staticType: C
 ''');
@@ -567,7 +1055,23 @@ void main() {
 
     var node = result.findNode.singleDotShorthandConstructorInvocation;
     assertResolvedNodeText(node, r'''
-DotShorthandConstructorInvocation
+DotShorthandConstructorInvocation2
+  period: .
+  name: named
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 1
+        correspondingParameter: <testLibrary>::@class::C::@constructor::named::@formalParameter::x
+        staticType: int
+    rightParenthesis: )
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
+  element: <testLibrary>::@class::C::@constructor::named
+  staticType: C
+V1: DotShorthandConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
     token: named
@@ -581,7 +1085,6 @@ DotShorthandConstructorInvocation
         correspondingParameter: <testLibrary>::@class::C::@constructor::named::@formalParameter::x
         staticType: int
     rightParenthesis: )
-  isDotShorthand: true
   staticType: C
 ''');
   }
@@ -601,7 +1104,24 @@ void main() {
 
     var node = result.findNode.singleDotShorthandConstructorInvocation;
     assertResolvedNodeText(node, r'''
-DotShorthandConstructorInvocation
+DotShorthandConstructorInvocation2
+  constKeyword: const
+  period: .
+  name: named
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 1
+        correspondingParameter: <testLibrary>::@class::C::@constructor::named::@formalParameter::x
+        staticType: int
+    rightParenthesis: )
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
+  element: <testLibrary>::@class::C::@constructor::named
+  staticType: C
+V1: DotShorthandConstructorInvocation
   constKeyword: const
   period: .
   constructorName: SimpleIdentifier
@@ -616,13 +1136,82 @@ DotShorthandConstructorInvocation
         correspondingParameter: <testLibrary>::@class::C::@constructor::named::@formalParameter::x
         staticType: int
     rightParenthesis: )
-  isDotShorthand: true
+  staticType: C
+''');
+  }
+
+  test_const_keyword_nestedImplicitConst() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class C {
+  const C.named(D d);
+}
+
+class D {
+  const D();
+}
+
+void f() {
+  C c = const .named(D());
+  print(c);
+}
+''');
+
+    var node = result.findNode.singleDotShorthandConstructorInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandConstructorInvocation2
+  constKeyword: const
+  period: .
+  name: named
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      ConstructorInvocation
+        constructorReference: ConstructorReference2
+          typeReference: ConstructorTypeReference
+            name: D
+            element: <testLibrary>::@class::D
+            type: D
+          element: <testLibrary>::@class::D::@constructor::new
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        correspondingParameter: <testLibrary>::@class::C::@constructor::named::@formalParameter::d
+        staticType: D
+    rightParenthesis: )
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
+  element: <testLibrary>::@class::C::@constructor::named
+  staticType: C
+V1: DotShorthandConstructorInvocation
+  constKeyword: const
+  period: .
+  constructorName: SimpleIdentifier
+    token: named
+    element: <testLibrary>::@class::C::@constructor::named
+    staticType: null
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      InstanceCreationExpression
+        constructorName: ConstructorName
+          type: NamedType
+            name: D
+            element: <testLibrary>::@class::D
+            type: D
+          element: <testLibrary>::@class::D::@constructor::new
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        correspondingParameter: <testLibrary>::@class::C::@constructor::named::@formalParameter::d
+        staticType: D
+    rightParenthesis: )
   staticType: C
 ''');
   }
 
   test_const_nonConst_constructor() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   final int x;
   C.named(this.x);
@@ -635,10 +1224,47 @@ void main() {
   print(c);
 }
 ''');
+
+    var node = result.findNode.singleDotShorthandConstructorInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandConstructorInvocation2
+  constKeyword: const
+  period: .
+  name: named
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 1
+        correspondingParameter: <testLibrary>::@class::C::@constructor::named::@formalParameter::x
+        staticType: int
+    rightParenthesis: )
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
+  element: <testLibrary>::@class::C::@constructor::named
+  staticType: C
+V1: DotShorthandConstructorInvocation
+  constKeyword: const
+  period: .
+  constructorName: SimpleIdentifier
+    token: named
+    element: <testLibrary>::@class::C::@constructor::named
+    staticType: null
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 1
+        correspondingParameter: <testLibrary>::@class::C::@constructor::named::@formalParameter::x
+        staticType: int
+    rightParenthesis: )
+  staticType: C
+''');
   }
 
   test_const_nonConst_method() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   static C fn() => C.named(1);
   final int x;
@@ -651,6 +1277,43 @@ void main() {
 // [diag.constWithUndefinedConstructor] The class 'C' doesn't have a constant constructor 'fn'.
   print(c);
 }
+''');
+
+    var node = result.findNode.singleDotShorthandConstructorInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandConstructorInvocation2
+  constKeyword: const
+  period: .
+  name: fn
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 1
+        correspondingParameter: <null>
+        staticType: int
+    rightParenthesis: )
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
+  element: <null>
+  staticType: dynamic
+V1: DotShorthandConstructorInvocation
+  constKeyword: const
+  period: .
+  constructorName: SimpleIdentifier
+    token: fn
+    element: <null>
+    staticType: null
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 1
+        correspondingParameter: <null>
+        staticType: int
+    rightParenthesis: )
+  staticType: dynamic
 ''');
   }
 
@@ -669,7 +1332,23 @@ void main() {
 
     var node = result.findNode.singleDotShorthandConstructorInvocation;
     assertResolvedNodeText(node, r'''
-DotShorthandConstructorInvocation
+DotShorthandConstructorInvocation2
+  period: .
+  name: named
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 1
+        correspondingParameter: <testLibrary>::@class::C::@constructor::named::@formalParameter::x
+        staticType: int
+    rightParenthesis: )
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
+  element: <testLibrary>::@class::C::@constructor::named
+  staticType: C
+V1: DotShorthandConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
     token: named
@@ -683,7 +1362,6 @@ DotShorthandConstructorInvocation
         correspondingParameter: <testLibrary>::@class::C::@constructor::named::@formalParameter::x
         staticType: int
     rightParenthesis: )
-  isDotShorthand: true
   staticType: C
 ''');
   }
@@ -705,7 +1383,27 @@ void main() async {
 
     var node = result.findNode.singleDotShorthandConstructorInvocation;
     assertResolvedNodeText(node, r'''
-DotShorthandConstructorInvocation
+DotShorthandConstructorInvocation2
+  period: .
+  name: id
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 2
+        correspondingParameter: SubstitutedFieldFormalParameterElementImpl
+          baseElement: <testLibrary>::@class::C::@constructor::id::@formalParameter::value
+          substitution: {T: dynamic}
+        staticType: int
+    rightParenthesis: )
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: FutureOr<C<dynamic>?>?
+    lookupType: C<dynamic>?
+  element: SubstitutedConstructorElementImpl
+    baseElement: <testLibrary>::@class::C::@constructor::id
+    substitution: {T: dynamic}
+  staticType: C<dynamic>
+V1: DotShorthandConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
     token: id
@@ -723,13 +1421,12 @@ DotShorthandConstructorInvocation
           substitution: {T: dynamic}
         staticType: int
     rightParenthesis: )
-  isDotShorthand: true
   staticType: C<dynamic>
 ''');
   }
 
   test_enum_constructor() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 enum E {
   v.named();
 
@@ -742,6 +1439,31 @@ void f() {
 // [diag.invalidReferenceToGenerativeEnumConstructor] Generative enum constructors can only be used to create an enum constant.
   print(e);
 }
+''');
+
+    var node = result.findNode.singleDotShorthandConstructorInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandConstructorInvocation2
+  period: .
+  name: named
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: E
+    lookupType: E
+  element: <testLibrary>::@enum::E::@constructor::named
+  staticType: E
+V1: DotShorthandConstructorInvocation
+  period: .
+  constructorName: SimpleIdentifier
+    token: named
+    element: <testLibrary>::@enum::E::@constructor::named
+    staticType: null
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: E
 ''');
   }
 
@@ -761,7 +1483,24 @@ void main() {
 
     var node = result.findNode.singleDotShorthandConstructorInvocation;
     assertResolvedNodeText(node, r'''
-DotShorthandConstructorInvocation
+DotShorthandConstructorInvocation2
+  period: .
+  name: named
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 1
+        correspondingParameter: <testLibrary>::@class::C::@constructor::named::@formalParameter::x
+        staticType: int
+    rightParenthesis: )
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
+  element: <testLibrary>::@class::C::@constructor::named
+  correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
+  staticType: C
+V1: DotShorthandConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
     token: named
@@ -775,9 +1514,94 @@ DotShorthandConstructorInvocation
         correspondingParameter: <testLibrary>::@class::C::@constructor::named::@formalParameter::x
         staticType: int
     rightParenthesis: )
-  isDotShorthand: true
   correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
   staticType: C
+''');
+  }
+
+  test_equality_extensionOverride() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+extension E on int {}
+
+void f() {
+  E(0) == .named();
+//     ^^
+// [diag.undefinedExtensionOperator] The operator '==' isn't defined for the extension 'E'.
+//        ^^^^^^^^
+// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
+}
+''');
+
+    var node = result.findNode.singleDotShorthandMethodInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandMethodInvocation
+  period: .
+  name: named
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  shorthandContext: InvalidDotShorthandContextResolution
+    contextType: null
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  correspondingParameter: <null>
+  staticType: InvalidType
+V1: DotShorthandInvocation
+  period: .
+  memberName: SimpleIdentifier
+    token: named
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  correspondingParameter: <null>
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_equality_extensionOverride_neq() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+extension E on int {}
+
+void f() {
+  E(0) != .named();
+//     ^^
+// [diag.undefinedExtensionOperator] The operator '==' isn't defined for the extension 'E'.
+//        ^^^^^^^^
+// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
+}
+''');
+
+    var node = result.findNode.singleDotShorthandMethodInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandMethodInvocation
+  period: .
+  name: named
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  shorthandContext: InvalidDotShorthandContextResolution
+    contextType: null
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  correspondingParameter: <null>
+  staticType: InvalidType
+V1: DotShorthandInvocation
+  period: .
+  memberName: SimpleIdentifier
+    token: named
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  correspondingParameter: <null>
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
   }
 
@@ -791,7 +1615,30 @@ void main() {
 
     var node = result.findNode.singleDotShorthandConstructorInvocation;
     assertResolvedNodeText(node, r'''
-DotShorthandConstructorInvocation
+DotShorthandConstructorInvocation2
+  period: .
+  name: filled
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 2
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: dart:core::@class::List::@constructor::filled::@formalParameter::length
+          substitution: {E: String}
+        staticType: int
+      SimpleStringLiteral
+        literal: '2'
+    rightParenthesis: )
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: List<int>
+    lookupType: List<int>
+  element: SubstitutedConstructorElementImpl
+    baseElement: dart:core::@class::List::@constructor::filled
+    substitution: {E: String}
+  correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
+  staticType: List<String>
+V1: DotShorthandConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
     token: filled
@@ -811,7 +1658,6 @@ DotShorthandConstructorInvocation
       SimpleStringLiteral
         literal: '2'
     rightParenthesis: )
-  isDotShorthand: true
   correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
   staticType: List<String>
 ''');
@@ -832,7 +1678,24 @@ void main() {
 
     var node = result.findNode.singleDotShorthandConstructorInvocation;
     assertResolvedNodeText(node, r'''
-DotShorthandConstructorInvocation
+DotShorthandConstructorInvocation2
+  constKeyword: const
+  period: .
+  name: named
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 2
+        correspondingParameter: <testLibrary>::@class::C::@constructor::named::@formalParameter::x
+        staticType: int
+    rightParenthesis: )
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
+  element: <testLibrary>::@class::C::@constructor::named
+  staticType: C
+V1: DotShorthandConstructorInvocation
   constKeyword: const
   period: .
   constructorName: SimpleIdentifier
@@ -847,8 +1710,95 @@ DotShorthandConstructorInvocation
         correspondingParameter: <testLibrary>::@class::C::@constructor::named::@formalParameter::x
         staticType: int
     rightParenthesis: )
-  isDotShorthand: true
   staticType: C
+''');
+  }
+
+  test_equality_super() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  const A();
+}
+
+class B extends A {
+  const B.named();
+  bool test() => super == .named();
+//                        ^^^^^^^^
+// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
+}
+''');
+
+    var node = result.findNode.singleDotShorthandMethodInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandMethodInvocation
+  period: .
+  name: named
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  shorthandContext: InvalidDotShorthandContextResolution
+    contextType: null
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
+  staticType: InvalidType
+V1: DotShorthandInvocation
+  period: .
+  memberName: SimpleIdentifier
+    token: named
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_equality_super_neq() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  const A();
+}
+
+class B extends A {
+  const B.named();
+  bool test() => super != .named();
+//                        ^^^^^^^^
+// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
+}
+''');
+
+    var node = result.findNode.singleDotShorthandMethodInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandMethodInvocation
+  period: .
+  name: named
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  shorthandContext: InvalidDotShorthandContextResolution
+    contextType: null
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
+  staticType: InvalidType
+V1: DotShorthandInvocation
+  period: .
+  memberName: SimpleIdentifier
+    token: named
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
   }
 
@@ -869,7 +1819,20 @@ Foo<T> bar<T>() => .a();
 
     var node = result.findNode.singleDotShorthandConstructorInvocation;
     assertResolvedNodeText(node, r'''
-DotShorthandConstructorInvocation
+DotShorthandConstructorInvocation2
+  period: .
+  name: a
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: Foo<T>
+    lookupType: Foo<T>
+  element: SubstitutedConstructorElementImpl
+    baseElement: <testLibrary>::@class::Foo::@constructor::a
+    substitution: {T: T}
+  staticType: Foo<T>
+V1: DotShorthandConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
     token: a
@@ -880,7 +1843,6 @@ DotShorthandConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  isDotShorthand: true
   staticType: Foo<T>
 ''');
   }
@@ -902,7 +1864,21 @@ Foo<T> bar<T>() => const .a();
 
     var node = result.findNode.singleDotShorthandConstructorInvocation;
     assertResolvedNodeText(node, r'''
-DotShorthandConstructorInvocation
+DotShorthandConstructorInvocation2
+  constKeyword: const
+  period: .
+  name: a
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: Foo<T>
+    lookupType: Foo<T>
+  element: SubstitutedConstructorElementImpl
+    baseElement: <testLibrary>::@class::Foo::@constructor::a
+    substitution: {T: Never}
+  staticType: Foo<Never>
+V1: DotShorthandConstructorInvocation
   constKeyword: const
   period: .
   constructorName: SimpleIdentifier
@@ -914,13 +1890,12 @@ DotShorthandConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  isDotShorthand: true
   staticType: Foo<Never>
 ''');
   }
 
   test_factory_const_typeArguments() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class Foo<T> {
   const factory Foo.a() = _Foo;
 
@@ -935,10 +1910,57 @@ Foo<int> bar<T>() => const .a<int>();
 //                           ^^^^^
 // [diag.wrongNumberOfTypeArgumentsDotShorthandConstructor] The dot shorthand resolves to the constructor 'Foo.a', and type parameters can't be applied to dot shorthand constructor invocations.
 ''');
+
+    var node = result.findNode.singleDotShorthandConstructorInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandConstructorInvocation2
+  constKeyword: const
+  period: .
+  name: a
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: Foo<int>
+    lookupType: Foo<int>
+  element: SubstitutedConstructorElementImpl
+    baseElement: <testLibrary>::@class::Foo::@constructor::a
+    substitution: {T: int}
+  staticType: Foo<int>
+V1: DotShorthandConstructorInvocation
+  constKeyword: const
+  period: .
+  constructorName: SimpleIdentifier
+    token: a
+    element: SubstitutedConstructorElementImpl
+      baseElement: <testLibrary>::@class::Foo::@constructor::a
+      substitution: {T: int}
+    staticType: null
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: Foo<int>
+''');
   }
 
   test_factory_typeArguments() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class Foo<T> {
   factory Foo.a() = _Foo;
 
@@ -953,10 +1975,55 @@ Foo<T> bar<T>() => .a<T>();
 //                   ^^^
 // [diag.wrongNumberOfTypeArgumentsDotShorthandConstructor] The dot shorthand resolves to the constructor 'Foo.a', and type parameters can't be applied to dot shorthand constructor invocations.
 ''');
+
+    var node = result.findNode.singleDotShorthandConstructorInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandConstructorInvocation2
+  period: .
+  name: a
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: T
+        element: #E0 T
+        type: T
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: Foo<T>
+    lookupType: Foo<T>
+  element: SubstitutedConstructorElementImpl
+    baseElement: <testLibrary>::@class::Foo::@constructor::a
+    substitution: {T: T}
+  staticType: Foo<T>
+V1: DotShorthandConstructorInvocation
+  period: .
+  constructorName: SimpleIdentifier
+    token: a
+    element: SubstitutedConstructorElementImpl
+      baseElement: <testLibrary>::@class::Foo::@constructor::a
+      substitution: {T: T}
+    staticType: null
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: T
+        element: #E0 T
+        type: T
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: Foo<T>
+''');
   }
 
   test_functionExpression() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {}
 
 void main() {
@@ -964,6 +2031,31 @@ void main() {
 //            ^^^^^^
 // [diag.invocationOfNonFunctionExpression] The expression doesn't evaluate to a function, so it can't be invoked.
 }
+''');
+
+    var node = result.findNode.singleDotShorthandConstructorInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandConstructorInvocation2
+  period: .
+  name: new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
+  element: <testLibrary>::@class::C::@constructor::new
+  staticType: C
+V1: DotShorthandConstructorInvocation
+  period: .
+  constructorName: SimpleIdentifier
+    token: new
+    element: <testLibrary>::@class::C::@constructor::new
+    staticType: null
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: C
 ''');
   }
 
@@ -978,9 +2070,29 @@ void main() {
 }
 ''');
 
-    var node = result.findNode.singleFunctionExpressionInvocation;
+    var node = result.findNode.singleCallInvocation;
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
+CallInvocation
+  receiver: DotShorthandConstructorInvocation2
+    period: .
+    name: new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    shorthandContext: ValidDotShorthandContextResolution
+      contextType: C
+      lookupType: C
+    element: <testLibrary>::@class::C::@constructor::new
+    staticType: C
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::C::@method::call
+    invokeType: C Function()
+    type: C
+  staticType: C
+V1: FunctionExpressionInvocation
   function: DotShorthandConstructorInvocation
     period: .
     constructorName: SimpleIdentifier
@@ -990,7 +2102,6 @@ FunctionExpressionInvocation
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
-    isDotShorthand: false
     staticType: C
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1012,9 +2123,34 @@ void main() {
 }
 ''');
 
-    var node = result.findNode.singleFunctionExpressionInvocation;
+    var node = result.findNode.singleCallInvocation;
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
+CallInvocation
+  receiver: DotShorthandConstructorInvocation2
+    period: .
+    name: new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    shorthandContext: ValidDotShorthandContextResolution
+      contextType: C
+      lookupType: C
+    element: <testLibrary>::@class::C::@constructor::new
+    staticType: C
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <testLibrary>::@class::C::@method::call::@formalParameter::x
+        staticType: int
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::C::@method::call
+    invokeType: C Function(int)
+    type: C
+  staticType: C
+V1: FunctionExpressionInvocation
   function: DotShorthandConstructorInvocation
     period: .
     constructorName: SimpleIdentifier
@@ -1024,7 +2160,6 @@ FunctionExpressionInvocation
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
-    isDotShorthand: false
     staticType: C
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1053,9 +2188,29 @@ void main() {
 }
 ''');
 
-    var node = result.findNode.singleFunctionExpressionInvocation;
+    var node = result.findNode.singleCallInvocation;
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
+CallInvocation
+  receiver: DotShorthandConstructorInvocation2
+    period: .
+    name: new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    shorthandContext: ValidDotShorthandContextResolution
+      contextType: C
+      lookupType: C
+    element: <testLibrary>::@class::C::@constructor::new
+    staticType: C
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@extension::CallC::@method::call
+    invokeType: C Function()
+    type: C
+  staticType: C
+V1: FunctionExpressionInvocation
   function: DotShorthandConstructorInvocation
     period: .
     constructorName: SimpleIdentifier
@@ -1065,7 +2220,6 @@ FunctionExpressionInvocation
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
-    isDotShorthand: false
     staticType: C
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1087,9 +2241,46 @@ void main() {
 }
 ''');
 
-    var node = result.findNode.singleFunctionExpressionInvocation;
+    var node = result.findNode.singleCallInvocation;
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
+CallInvocation
+  receiver: DotShorthandConstructorInvocation2
+    period: .
+    name: new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    shorthandContext: ValidDotShorthandContextResolution
+      contextType: C
+      lookupType: C
+    element: <testLibrary>::@class::C::@constructor::new
+    staticType: C
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: <testLibrary>::@class::C::@method::call::@formalParameter::t
+          substitution: {T: int}
+        staticType: int
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::C::@method::call
+    invokeType: C Function(int)
+    type: C
+  staticType: C
+  typeArgumentTypes
+    int
+V1: FunctionExpressionInvocation
   function: DotShorthandConstructorInvocation
     period: .
     constructorName: SimpleIdentifier
@@ -1099,7 +2290,6 @@ FunctionExpressionInvocation
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
-    isDotShorthand: false
     staticType: C
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -1139,9 +2329,29 @@ void main() {
 }
 ''');
 
-    var node = result.findNode.singleFunctionExpressionInvocation;
+    var node = result.findNode.singleCallInvocation;
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
+CallInvocation
+  receiver: DotShorthandConstructorInvocation2
+    period: .
+    name: named
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    shorthandContext: ValidDotShorthandContextResolution
+      contextType: C
+      lookupType: C
+    element: <testLibrary>::@class::C::@constructor::named
+    staticType: C
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::C::@method::call
+    invokeType: C Function()
+    type: C
+  staticType: C
+V1: FunctionExpressionInvocation
   function: DotShorthandConstructorInvocation
     period: .
     constructorName: SimpleIdentifier
@@ -1151,7 +2361,6 @@ FunctionExpressionInvocation
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
-    isDotShorthand: false
     staticType: C
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1175,9 +2384,42 @@ void main() {
 }
 ''');
 
-    var node = result.findNode.singleFunctionExpressionInvocation;
+    var node = result.findNode.singleCallInvocation;
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
+CallInvocation
+  receiver: DotShorthandConstructorInvocation2
+    period: .
+    name: new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        DotShorthandConstructorInvocation2
+          period: .
+          name: a
+          argumentList: ArgumentList
+            leftParenthesis: (
+            rightParenthesis: )
+          shorthandContext: ValidDotShorthandContextResolution
+            contextType: C
+            lookupType: C
+          element: <testLibrary>::@class::C::@constructor::a
+          correspondingParameter: <testLibrary>::@class::C::@constructor::new::@formalParameter::c
+          staticType: C
+      rightParenthesis: )
+    shorthandContext: ValidDotShorthandContextResolution
+      contextType: C
+      lookupType: C
+    element: <testLibrary>::@class::C::@constructor::new
+    staticType: C
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::C::@method::call
+    invokeType: C Function()
+    type: C
+  staticType: C
+V1: FunctionExpressionInvocation
   function: DotShorthandConstructorInvocation
     period: .
     constructorName: SimpleIdentifier
@@ -1196,11 +2438,9 @@ FunctionExpressionInvocation
           argumentList: ArgumentList
             leftParenthesis: (
             rightParenthesis: )
-          isDotShorthand: true
           correspondingParameter: <testLibrary>::@class::C::@constructor::new::@formalParameter::c
           staticType: C
       rightParenthesis: )
-    isDotShorthand: false
     staticType: C
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1212,7 +2452,7 @@ FunctionExpressionInvocation
   }
 
   test_functionExpression_nested() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   C(C c);
   C.a();
@@ -1223,6 +2463,56 @@ void main() {
 //      ^^^^^^^^^^
 // [diag.invocationOfNonFunctionExpression] The expression doesn't evaluate to a function, so it can't be invoked.
 }
+''');
+
+    var node = result.findNode.dotShorthandConstructorInvocation('.new');
+    assertResolvedNodeText(node, r'''
+DotShorthandConstructorInvocation2
+  period: .
+  name: new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      DotShorthandConstructorInvocation2
+        period: .
+        name: a
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        shorthandContext: ValidDotShorthandContextResolution
+          contextType: C
+          lookupType: C
+        element: <testLibrary>::@class::C::@constructor::a
+        correspondingParameter: <testLibrary>::@class::C::@constructor::new::@formalParameter::c
+        staticType: C
+    rightParenthesis: )
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
+  element: <testLibrary>::@class::C::@constructor::new
+  staticType: C
+V1: DotShorthandConstructorInvocation
+  period: .
+  constructorName: SimpleIdentifier
+    token: new
+    element: <testLibrary>::@class::C::@constructor::new
+    staticType: null
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      DotShorthandConstructorInvocation
+        period: .
+        constructorName: SimpleIdentifier
+          token: a
+          element: <testLibrary>::@class::C::@constructor::a
+          staticType: null
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        correspondingParameter: <testLibrary>::@class::C::@constructor::new::@formalParameter::c
+        staticType: C
+    rightParenthesis: )
+  staticType: C
 ''');
   }
 
@@ -1242,7 +2532,38 @@ void main() {
 
     var node = result.findNode.singleDotShorthandConstructorInvocation;
     assertResolvedNodeText(node, r'''
-DotShorthandConstructorInvocation
+DotShorthandConstructorInvocation2
+  period: .
+  name: new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      DotShorthandMethodInvocation
+        period: .
+        name: member
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        shorthandContext: ValidDotShorthandContextResolution
+          contextType: C<dynamic>
+          lookupType: C<dynamic>
+        resolution: ExecutableInvocationResolution
+          element: <testLibrary>::@class::C::@method::member
+          invokeType: C<dynamic> Function()
+          type: C<dynamic>
+        correspondingParameter: SubstitutedFieldFormalParameterElementImpl
+          baseElement: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
+          substitution: {T: C<dynamic>}
+        staticType: C<dynamic>
+    rightParenthesis: )
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C<C<dynamic>>
+    lookupType: C<C<dynamic>>
+  element: SubstitutedConstructorElementImpl
+    baseElement: <testLibrary>::@class::C::@constructor::new
+    substitution: {T: C<dynamic>}
+  staticType: C<C<dynamic>>
+V1: DotShorthandConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
     token: new
@@ -1262,14 +2583,12 @@ DotShorthandConstructorInvocation
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
-        isDotShorthand: true
         correspondingParameter: SubstitutedFieldFormalParameterElementImpl
           baseElement: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
           substitution: {T: C<dynamic>}
         staticInvokeType: C<dynamic> Function()
         staticType: C<dynamic>
     rightParenthesis: )
-  isDotShorthand: true
   staticType: C<C<dynamic>>
 ''');
   }
@@ -1290,7 +2609,35 @@ void main() {
 
     var node = result.findNode.singleDotShorthandConstructorInvocation;
     assertResolvedNodeText(node, r'''
-DotShorthandConstructorInvocation
+DotShorthandConstructorInvocation2
+  period: .
+  name: new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      DotShorthandNameExpression
+        period: .
+        name: member
+        shorthandContext: ValidDotShorthandContextResolution
+          contextType: C<dynamic>
+          lookupType: C<dynamic>
+        resolution: GetterInvocationResolution
+          element: <testLibrary>::@class::C::@getter::member
+          invokeType: C<dynamic> Function()
+          type: C<dynamic>
+        correspondingParameter: SubstitutedFieldFormalParameterElementImpl
+          baseElement: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
+          substitution: {T: C<dynamic>}
+        staticType: C<dynamic>
+    rightParenthesis: )
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C<C<dynamic>>
+    lookupType: C<C<dynamic>>
+  element: SubstitutedConstructorElementImpl
+    baseElement: <testLibrary>::@class::C::@constructor::new
+    substitution: {T: C<dynamic>}
+  staticType: C<C<dynamic>>
+V1: DotShorthandConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
     token: new
@@ -1307,13 +2654,11 @@ DotShorthandConstructorInvocation
           token: member
           element: <testLibrary>::@class::C::@getter::member
           staticType: C<dynamic>
-        isDotShorthand: true
         correspondingParameter: SubstitutedFieldFormalParameterElementImpl
           baseElement: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
           substitution: {T: C<dynamic>}
         staticType: C<dynamic>
     rightParenthesis: )
-  isDotShorthand: true
   staticType: C<C<dynamic>>
 ''');
   }
@@ -1333,7 +2678,23 @@ void main() {
 
     var node = result.findNode.singleDotShorthandConstructorInvocation;
     assertResolvedNodeText(node, r'''
-DotShorthandConstructorInvocation
+DotShorthandConstructorInvocation2
+  period: .
+  name: new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 1
+        correspondingParameter: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
+        staticType: int
+    rightParenthesis: )
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
+  element: <testLibrary>::@class::C::@constructor::new
+  staticType: C
+V1: DotShorthandConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
     token: new
@@ -1347,38 +2708,91 @@ DotShorthandConstructorInvocation
         correspondingParameter: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
         staticType: int
     rightParenthesis: )
-  isDotShorthand: true
   staticType: C
 ''');
   }
 
   test_postfixOperator() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {}
 
 void main() {
   C c = .new()++;
-//       ^^^
-// [diag.dotShorthandUndefinedInvocation] The static method or constructor 'new' isn't defined for the context type '_'.
+//      ^^^^^^
+// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
 //            ^^
 // [diag.illegalAssignmentToNonAssignable] Illegal assignment to non-assignable expression.
   print(c);
 }
 ''');
+
+    var node = result.findNode.singleDotShorthandMethodInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandMethodInvocation
+  period: .
+  name: new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  shorthandContext: InvalidDotShorthandContextResolution
+    contextType: null
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: DotShorthandInvocation
+  period: .
+  memberName: SimpleIdentifier
+    token: new
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
   }
 
   test_prefixOperator() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {}
 
 void main() {
   C c = ++.new();
-//         ^^^
-// [diag.dotShorthandUndefinedInvocation] The static method or constructor 'new' isn't defined for the context type '_'.
+//        ^^^^^^
+// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
 //             ^
 // [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
   print(c);
 }
+''');
+
+    var node = result.findNode.singleDotShorthandMethodInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandMethodInvocation
+  period: .
+  name: new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  shorthandContext: InvalidDotShorthandContextResolution
+    contextType: null
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: DotShorthandInvocation
+  period: .
+  memberName: SimpleIdentifier
+    token: new
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
   }
 
@@ -1392,7 +2806,7 @@ typedef Public = _Private;
 const Public p = _Private.named();
 ''');
 
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 void main() {
   var x = p;
@@ -1401,6 +2815,35 @@ void main() {
 // [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
   print(x);
 }
+''');
+
+    var node = result.findNode.singleDotShorthandConstructorInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandConstructorInvocation2
+  constKeyword: const
+  period: .
+  name: named
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  shorthandContext: InvalidDotShorthandContextResolution
+    contextType: _Private
+      alias: package:test/a.dart::@typeAlias::Public
+  element: <null>
+  correspondingParameter: <null>
+  staticType: dynamic
+V1: DotShorthandConstructorInvocation
+  constKeyword: const
+  period: .
+  constructorName: SimpleIdentifier
+    token: named
+    element: <null>
+    staticType: null
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  correspondingParameter: <null>
+  staticType: dynamic
 ''');
   }
 
@@ -1414,7 +2857,7 @@ typedef Public = _Private;
 const Public p = _Private.named(0);
 ''');
 
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 void main() {
   var x = p;
@@ -1425,6 +2868,48 @@ void main() {
 // [diag.undefinedIdentifier] Undefined name 'unknown'.
   print(x);
 }
+''');
+
+    var node = result.findNode.singleDotShorthandConstructorInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandConstructorInvocation2
+  constKeyword: const
+  period: .
+  name: named
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      UnqualifiedNameExpression
+        name: unknown
+        resolution: InvalidNamedReadResolution
+          recoveryElement: <null>
+        correspondingParameter: <null>
+        staticType: InvalidType
+    rightParenthesis: )
+  shorthandContext: InvalidDotShorthandContextResolution
+    contextType: _Private
+      alias: package:test/a.dart::@typeAlias::Public
+  element: <null>
+  correspondingParameter: <null>
+  staticType: dynamic
+V1: DotShorthandConstructorInvocation
+  constKeyword: const
+  period: .
+  constructorName: SimpleIdentifier
+    token: named
+    element: <null>
+    staticType: null
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: unknown
+        correspondingParameter: <null>
+        element: <null>
+        staticType: InvalidType
+    rightParenthesis: )
+  correspondingParameter: <null>
+  staticType: dynamic
 ''');
   }
 
@@ -1446,7 +2931,22 @@ void main() {
 
     var node = result.findNode.singleDotShorthandConstructorInvocation;
     assertResolvedNodeText(node, r'''
-DotShorthandConstructorInvocation
+DotShorthandConstructorInvocation2
+  constKeyword: const
+  period: .
+  name: named
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: _Private
+      alias: <testLibrary>::@typeAlias::Public
+    lookupType: _Private
+      alias: <testLibrary>::@typeAlias::Public
+  element: <testLibrary>::@class::_Private::@constructor::named
+  correspondingParameter: <null>
+  staticType: _Private
+V1: DotShorthandConstructorInvocation
   constKeyword: const
   period: .
   constructorName: SimpleIdentifier
@@ -1456,14 +2956,13 @@ DotShorthandConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  isDotShorthand: true
   correspondingParameter: <null>
   staticType: _Private
 ''');
   }
 
   test_requiredParameters_missing() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   int x;
   C({required this.x});
@@ -1476,10 +2975,35 @@ void main() {
   print(c);
 }
 ''');
+
+    var node = result.findNode.singleDotShorthandConstructorInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandConstructorInvocation2
+  period: .
+  name: new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
+  element: <testLibrary>::@class::C::@constructor::new
+  staticType: C
+V1: DotShorthandConstructorInvocation
+  period: .
+  constructorName: SimpleIdentifier
+    token: new
+    element: <testLibrary>::@class::C::@constructor::new
+    staticType: null
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: C
+''');
   }
 
   test_typeParameters() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   C();
 }
@@ -1491,10 +3015,51 @@ void main() {
   print(c);
 }
 ''');
+
+    var node = result.findNode.singleDotShorthandConstructorInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandConstructorInvocation2
+  period: .
+  name: new
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
+  element: <testLibrary>::@class::C::@constructor::new
+  staticType: C
+V1: DotShorthandConstructorInvocation
+  period: .
+  constructorName: SimpleIdentifier
+    token: new
+    element: <testLibrary>::@class::C::@constructor::new
+    staticType: null
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: C
+''');
   }
 
   test_typeParameters_const() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   const C();
 }
@@ -1506,10 +3071,53 @@ void main() {
   print(c);
 }
 ''');
+
+    var node = result.findNode.singleDotShorthandConstructorInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandConstructorInvocation2
+  constKeyword: const
+  period: .
+  name: new
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
+  element: <testLibrary>::@class::C::@constructor::new
+  staticType: C
+V1: DotShorthandConstructorInvocation
+  constKeyword: const
+  period: .
+  constructorName: SimpleIdentifier
+    token: new
+    element: <testLibrary>::@class::C::@constructor::new
+    staticType: null
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: C
+''');
   }
 
   test_typeParameters_missingContext() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void main() {
   var c = const .new<int>();
 //        ^^^^^^^^^^^^^^^^^
@@ -1517,43 +3125,225 @@ void main() {
   print(c);
 }
 ''');
+
+    var node = result.findNode.singleDotShorthandConstructorInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandConstructorInvocation2
+  constKeyword: const
+  period: .
+  name: new
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  shorthandContext: InvalidDotShorthandContextResolution
+    contextType: null
+  element: <null>
+  staticType: dynamic
+V1: DotShorthandConstructorInvocation
+  constKeyword: const
+  period: .
+  constructorName: SimpleIdentifier
+    token: new
+    element: <null>
+    staticType: null
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: dynamic
+''');
   }
 
   test_undefinedConstructor_message() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 int f() => const .foo();
 //                ^^^
 // [diag.constWithUndefinedConstructor] The class 'int' doesn't have a constant constructor 'foo'.
+''');
+
+    var node = result.findNode.singleDotShorthandConstructorInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandConstructorInvocation2
+  constKeyword: const
+  period: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: int
+    lookupType: int
+  element: <null>
+  staticType: dynamic
+V1: DotShorthandConstructorInvocation
+  constKeyword: const
+  period: .
+  constructorName: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: null
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: dynamic
 ''');
   }
 
   test_undefinedConstructor_message_equalityRhs() async {
     // Make sure the error message properly refers to the `int` class. See
     // https://github.com/dart-lang/sdk/issues/62352.
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 bool f(int x) => x == const .foo();
 //                           ^^^
 // [diag.constWithUndefinedConstructor] The class 'int' doesn't have a constant constructor 'foo'.
 ''');
+
+    var node = result.findNode.singleDotShorthandConstructorInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandConstructorInvocation2
+  constKeyword: const
+  period: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: int
+    lookupType: int
+  element: <null>
+  correspondingParameter: dart:core::@class::num::@method::==::@formalParameter::other
+  staticType: dynamic
+V1: DotShorthandConstructorInvocation
+  constKeyword: const
+  period: .
+  constructorName: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: null
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  correspondingParameter: dart:core::@class::num::@method::==::@formalParameter::other
+  staticType: dynamic
+''');
   }
 
   test_wrongNumberOfTypeArguments_message() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {}
 
 C f() => .new<int>();
 //           ^^^^^
 // [diag.wrongNumberOfTypeArgumentsDotShorthandConstructor] The dot shorthand resolves to the constructor 'C.new', and type parameters can't be applied to dot shorthand constructor invocations.
 ''');
+
+    var node = result.findNode.singleDotShorthandConstructorInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandConstructorInvocation2
+  period: .
+  name: new
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
+  element: <testLibrary>::@class::C::@constructor::new
+  staticType: C
+V1: DotShorthandConstructorInvocation
+  period: .
+  constructorName: SimpleIdentifier
+    token: new
+    element: <testLibrary>::@class::C::@constructor::new
+    staticType: null
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: C
+''');
   }
 
   test_wrongNumberOfTypeArguments_message_equalityRhs() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {}
 
 bool f(C c) => c == .new<int>();
 //                      ^^^^^
 // [diag.wrongNumberOfTypeArgumentsDotShorthandConstructor] The dot shorthand resolves to the constructor 'C.new', and type parameters can't be applied to dot shorthand constructor invocations.
+''');
+
+    var node = result.findNode.singleDotShorthandConstructorInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandConstructorInvocation2
+  period: .
+  name: new
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
+  element: <testLibrary>::@class::C::@constructor::new
+  correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
+  staticType: C
+V1: DotShorthandConstructorInvocation
+  period: .
+  constructorName: SimpleIdentifier
+    token: new
+    element: <testLibrary>::@class::C::@constructor::new
+    staticType: null
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
+  staticType: C
 ''');
   }
 }

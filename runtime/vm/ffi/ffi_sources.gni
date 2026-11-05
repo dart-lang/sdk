@@ -8,3 +8,11 @@ ffi_sources = [
   "native_assets.cc",
   "native_assets.h",
 ]
+
+# FFI sources shared between JIT and AOT builds.
+ffi_shared_sources = [
+  "../compiler/ffi/abi.cc",
+  "../compiler/ffi/abi.h",
+  "../compiler/ffi/native_type.cc",
+  "../compiler/ffi/native_type.h",
+]

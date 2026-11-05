@@ -71,6 +71,7 @@ ARCH_FAMILY = {
     'x64': 'ia32',
     'arm': 'arm',
     'arm64': 'arm',
+    'arm64e': 'arm',
     'arm_x64': 'arm',
     'arm_arm64': 'arm',
     'simarm': 'ia32',
@@ -266,7 +267,12 @@ def HostArchitectures():
     if platform.system() == 'Darwin':
         if m == 'arm64' or IsRosetta():
             # ARM64 Macs also support X64.
-            return ['arm64', 'x64']
+            # macOS 26 supports arm64e. Before this, we need to treat arm64e as a cross build.
+            major = int(platform.mac_ver()[0].split('.')[0])
+            if major >= 26:
+                return ['arm64', 'arm64e', 'x64']
+            else:
+                return ['arm64', 'x64']
         if m == 'x86_64':
             # X64 Macs no longer support IA32.
             return ['x64']

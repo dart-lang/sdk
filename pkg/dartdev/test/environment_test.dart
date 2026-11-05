@@ -125,7 +125,9 @@ void main() {
           Platform.resolvedExecutable,
           ['--suppress-analytics', 'run', p.relativeFilePath],
           workingDirectory: p.dir.path,
-          environment: {'PUB_CACHE': p.pubCachePath},
+          environment: {
+            'PUB_CACHE': p.pubCachePath,
+          },
         );
         expect(result.exitCode, 0);
         expect(result.stdout, contains('DASH__SUPPRESS_ANALYTICS: true'));
@@ -167,7 +169,9 @@ void main() {
           'pubspec.yaml',
           'name: ${p.name}\nenvironment:\n  sdk: ^3.0.0\nexecutables:\n  ${p.name}:\n',
         );
-        p.file('bin/${p.name}.dart', '''
+        p.file(
+          'bin/${p.name}.dart',
+          '''
 import 'dart:io';
 void main() {
   print('DASH__TOOL: \${Platform.environment['DASH__TOOL']}');
@@ -175,7 +179,8 @@ void main() {
       '\${Platform.environment['DASH__SUPPRESS_ANALYTICS']}');
   print('DART_ROOT: \${Platform.environment['DART_ROOT']}');
 }
-''');
+''',
+        );
 
         final result = await Process.run(
           Platform.resolvedExecutable,
@@ -219,12 +224,15 @@ void main() {
         'pubspec.yaml',
         'name: ${p.name}\nenvironment:\n  sdk: ^3.0.0\nexecutables:\n  ${p.name}:\n',
       );
-      p.file('bin/${p.name}.dart', '''
+      p.file(
+        'bin/${p.name}.dart',
+        '''
 import 'dart:io';
 void main() {
   print('DASH__TOOL: \${Platform.environment['DASH__TOOL']}');
 }
-''');
+''',
+      );
 
       final result = await Process.run(
         Platform.resolvedExecutable,
@@ -267,13 +275,16 @@ void main() {
           'pubspec.yaml',
           'name: ${p.name}\nenvironment:\n  sdk: ^3.0.0\nexecutables:\n  ${p.name}:\n',
         );
-        p.file('bin/${p.name}.dart', '''
+        p.file(
+          'bin/${p.name}.dart',
+          '''
 import 'dart:io';
 void main() {
   print('DASH__SUPPRESS_ANALYTICS: '
       '\${Platform.environment['DASH__SUPPRESS_ANALYTICS']}');
 }
-''');
+''',
+        );
 
         final result = await Process.run(
           Platform.resolvedExecutable,

@@ -7,7 +7,7 @@ via_await(int? i) {
     if (i == null) return;
     await null;
     // [error column 5, length 10]
-    // [context 1] Variable 'i' could not be promoted due to an 'await' or 'yield'.  See http://dart.dev/go/non-promo-suspension
+    // [context 1] Variable 'i' could not be promoted due to an 'await' or 'yield'.  See https://dart.dev/go/non-promo-suspension
     // [context 3] Variable 'i' could not be promoted due to an 'await' or 'yield'.
     i.isEven;
     //^^^^^^
@@ -23,7 +23,7 @@ via_yield(int? i) {
     if (i == null) return;
     yield 0;
     // [error column 5, length 8]
-    // [context 2] Variable 'i' could not be promoted due to an 'await' or 'yield'.  See http://dart.dev/go/non-promo-suspension
+    // [context 2] Variable 'i' could not be promoted due to an 'await' or 'yield'.  See https://dart.dev/go/non-promo-suspension
     // [context 4] Variable 'i' could not be promoted due to an 'await' or 'yield'.
     i.isEven;
     //^^^^^^

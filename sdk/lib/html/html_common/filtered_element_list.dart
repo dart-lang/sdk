@@ -29,7 +29,7 @@ class FilteredElementList extends ListBase<Element> implements NodeListWrapper {
   List<Element> get _filtered =>
       new List<Element>.from(_iterable, growable: false);
 
-  void forEach(void f(Element element)) {
+  void forEach(void Function(Element element) f) {
     // This cannot use the iterator, because operations during iteration might
     // modify the collection, e.g. addAll might append a node to another parent.
     _filtered.forEach(f);
@@ -68,7 +68,7 @@ class FilteredElementList extends ListBase<Element> implements NodeListWrapper {
 
   Iterable<Element> get reversed => _filtered.reversed;
 
-  void sort([int compare(Element a, Element b)?]) {
+  void sort([int Function(Element a, Element b)? compare]) {
     throw new UnsupportedError('Cannot sort filtered list');
   }
 

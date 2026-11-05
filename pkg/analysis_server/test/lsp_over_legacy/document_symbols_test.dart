@@ -22,6 +22,7 @@ class Aaa {}
 ''';
     var code = TestCode.parse(content);
     newFile(testFilePath, code.code);
+    await initializeServer();
     var results = await getDocumentSymbols(testFileUri);
     var names = results.map(
       (documentSymbols) =>

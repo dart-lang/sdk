@@ -15,15 +15,12 @@ void main() {
 }
 
 @reflectiveTest
-class FlutterConvertToChildrenTest extends AssistProcessorTest {
+class FlutterConvertToChildrenTest extends BuiltInAssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.flutterConvertToChildren;
+  bool get addFlutterPackageDep => true;
 
   @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(flutter: true);
-  }
+  AssistKind get kind => DartAssistKind.flutterConvertToChildren;
 
   Future<void> test_childUnresolved() async {
     verifyNoTestUnitErrors = false;

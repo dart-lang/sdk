@@ -78,12 +78,15 @@ ISOLATE_UNIT_TEST_CASE(Ffi_NativeType_Struct_FromAbstractType) {
   EXPECT_NULLPTR(error);
 
   EXPECT_EQ(2, native_type.members().length());
+  EXPECT_STREQ("MyStruct", native_type.name());
 
   const auto& int8_type = *new (Z) NativePrimitiveType(kInt8);
-  EXPECT(int8_type.Equals(*native_type.members()[0]));
+  EXPECT(int8_type.Equals(native_type.members()[0].type()));
+  EXPECT_STREQ("a0", native_type.members()[0].name());
 
   EXPECT_EQ(compiler::target::kWordSize,
-            native_type.members()[1]->SizeInBytes());
+            native_type.members()[1].type().SizeInBytes());
+  EXPECT_STREQ("a1", native_type.members()[1].name());
 }
 
 }  // namespace ffi

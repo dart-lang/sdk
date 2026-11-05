@@ -77,7 +77,7 @@ class A extends Object with int {}
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
+  @FailingTest() // TODO(scheglov): implement augmentation
   test_class_int_inAugmentation() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {}
@@ -202,7 +202,7 @@ enum E with int {
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
+  @FailingTest() // TODO(scheglov): implement augmentation
   test_enum_int_inAugmentation() async {
     await resolveTestCodeWithDiagnostics(r'''
 enum A {v}

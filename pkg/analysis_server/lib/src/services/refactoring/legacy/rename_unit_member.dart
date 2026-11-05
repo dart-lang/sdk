@@ -13,10 +13,10 @@ import 'package:analysis_server/src/services/search/element_visitors.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server_plugin/edit/correction_utils.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/ast/ast.dart' show Identifier;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/utilities/extensions/flutter.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
 /// Checks if creating a top-level function with the given [name] in [library]
@@ -82,22 +82,20 @@ class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
   }
 
   Future<void> buildChange({required ChangeBuilder builder}) async {
-    var elements = switch (element) {
-      PropertyInducingElement element when element.isOriginGetterSetter => [
-        ?element.getter,
-        ?element.setter,
-      ],
-      _ => [element],
-    };
-
-    // Rename each element and references to it.
     var processor = RenameProcessor2(
       workspace,
       sessionHelper,
       builder,
       newName,
     );
-    for (var element in elements) {
+
+    var element = this.element;
+    if (element is PropertyInducingElement && element.isOriginGetterSetter) {
+      await processor.addDeclarationEdit(element.getter);
+      await processor.addDeclarationEdit(element.setter);
+      var references = await workspace.searchEngine.searchReferences(element);
+      await processor.addReferenceEdits(references);
+    } else {
       await processor.renameElement(element);
     }
 
@@ -318,7 +316,7 @@ class _RenameUnitMemberValidator extends _BaseUnitMemberValidator {
 
   /// Validates if any usage of [element] renamed to [name] will be invisible.
   void _validateWillBeInvisible() {
-    if (!Identifier.isPrivateName(name)) {
+    if (!name.isPrivateName) {
       return;
     }
     for (var reference in references) {
@@ -337,6 +335,10 @@ class _RenameUnitMemberValidator extends _BaseUnitMemberValidator {
   /// Validates if any usage of [element] renamed to [name] will be shadowed.
   void _validateWillBeShadowed() {
     for (var reference in references) {
+      // cannot be shadowed if qualified
+      if (reference.isQualified) {
+        continue;
+      }
       var refElement = reference.element;
       var refClass = refElement.thisOrAncestorOfType<InterfaceElement>();
       if (refClass != null) {

@@ -62,8 +62,8 @@
   }
 #if defined(EVENTHANDLER_LOG_INFO)
 #define LOG_INFO(msg, ...)                                                     \
-  Syslog::Print("Dart EventHandler INFO: %s:%d: " msg, __FILE__, __LINE__,     \
-                ##__VA_ARGS__)
+  Syslog::Print("Dart EventHandler INFO: %s:%d: " msg, __FILE__,               \
+                __LINE__, ##__VA_ARGS__)
 #else
 #define LOG_INFO(msg, ...)
 #endif  // defined(EVENTHANDLER_LOG_INFO)

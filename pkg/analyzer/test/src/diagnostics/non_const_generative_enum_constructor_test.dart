@@ -71,9 +71,9 @@ enum E {
 ''');
   }
 
-  test_generative_nonConst_typeName_named_language310() async {
+  test_generative_nonConst_typeName_named_beforePrimaryConstructors() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 enum E {
   v.named();
   E.named();
@@ -92,9 +92,9 @@ enum E {
 ''');
   }
 
-  test_generative_nonConst_typeName_unnamed_language310() async {
+  test_generative_nonConst_typeName_unnamed_beforePrimaryConstructors() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 enum E {
   v;
   E();

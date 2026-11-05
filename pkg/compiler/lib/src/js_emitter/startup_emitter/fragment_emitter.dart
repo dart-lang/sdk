@@ -1101,16 +1101,14 @@ class FragmentEmitter {
     }
 
     for (var method in allMethods) {
-      emitInstanceMethod(method).forEach((
-        js.Expression name,
-        js.Expression code,
-      ) {
-        js.Property property = code is js.Fun
-            ? js.MethodDefinition(name, code)
-            : js.Property(name, code);
-        registerEntityAst(method.element, property);
-        properties.add(property);
-      });
+      emitInstanceMethod(method)
+          .forEach((js.Expression name, js.Expression code) {
+            js.Property property = code is js.Fun
+                ? js.MethodDefinition(name, code)
+                : js.Property(name, code);
+            registerEntityAst(method.element, property);
+            properties.add(property);
+          });
     }
 
     // Closures have metadata that is often the same. We avoid repeated metadata

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../dart/resolution/node_text_expectations.dart';
@@ -62,7 +63,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
       methods
-        hasEnclosingTypeParameterReference isOriginDeclaration X
+        hasEnclosingTypeParameterReference hasImplicitReturnType isOriginDeclaration X
           reference: <testLibrary>::@class::A::@method::X
           firstFragment: #F4
           formalParameters
@@ -109,10 +110,12 @@ library
                 #F5 optionalNamed hasImplicitType isFinal isOriginDeclaration this.f (nameOffset:90) (firstTokenOffset:85) (offset:90)
                   element: <testLibrary>::@class::X::@constructor::new::@formalParameter::f
                   initializer: expression_0
-                    FunctionReference
-                      function: SimpleIdentifier
-                        token: defaultF @93
-                        element: <testLibrary>::@function::defaultF
+                    ImplicitFunctionInstantiation
+                      operand: UnqualifiedNameExpression
+                        name: defaultF @93
+                        resolution: ExecutableTearOffResolution
+                          element: <testLibrary>::@function::defaultF
+                          type: void Function<T>(T)
                         staticType: void Function<T>(T)
                       staticType: void Function(dynamic)
                       typeArgumentTypes
@@ -236,10 +239,10 @@ library
                 #F7 optionalNamed hasImplicitType isOriginDeclaration a (nameOffset:51) (firstTokenOffset:51) (offset:51)
                   element: <testLibrary>::@class::B::@method::foo::@formalParameter::a
                   initializer: expression_0
-                    InstanceCreationExpression
+                    ConstructorInvocation
                       keyword: const @54
-                      constructorName: ConstructorName
-                        type: NamedType
+                      constructorReference: ConstructorReference2
+                        typeReference: ConstructorTypeReference
                           name: A @60
                           typeArguments: TypeArgumentList
                             leftBracket: < @61
@@ -342,17 +345,15 @@ library
             #F2 optionalPositional isOriginDeclaration compare (nameOffset:22) (firstTokenOffset:8) (offset:22)
               element: <testLibrary>::@function::f::@formalParameter::compare
               initializer: expression_0
-                PrefixedIdentifier
-                  prefix: SimpleIdentifier
-                    token: Comparable @32
+                ReceiverPropertyExtraction
+                  receiver: StaticQualifier
+                    name: Comparable @32
                     element: dart:core::@class::Comparable
-                    staticType: null
-                  period: . @42
-                  identifier: SimpleIdentifier
-                    token: compare @43
+                  operator: . @42
+                  name: compare @43
+                  resolution: ExecutableTearOffResolution
                     element: dart:core::@class::Comparable::@method::compare
-                    staticType: int Function(Comparable<dynamic>, Comparable<dynamic>)
-                  element: dart:core::@class::Comparable::@method::compare
+                    type: int Function(Comparable<dynamic>, Comparable<dynamic>)
                   staticType: int Function(Comparable<dynamic>, Comparable<dynamic>)
   functions
     isOriginDeclaration isStatic f
@@ -391,17 +392,17 @@ library
               initializer: expression_0
                 RecordLiteral
                   leftParenthesis: ( @32
-                  fields
+                  fields2
                     RecordLiteralNamedField
                       name: f1 @33
                       colon: : @35
-                      fieldExpression: IntegerLiteral
+                      fieldExpression2: IntegerLiteral
                         literal: 1 @37
                         staticType: int
                     RecordLiteralNamedField
                       name: f2 @40
                       colon: : @42
-                      fieldExpression: BooleanLiteral
+                      fieldExpression2: BooleanLiteral
                         literal: true @44
                         staticType: bool
                   rightParenthesis: ) @48
@@ -441,17 +442,17 @@ library
                 RecordLiteral
                   constKeyword: const @32
                   leftParenthesis: ( @38
-                  fields
+                  fields2
                     RecordLiteralNamedField
                       name: f1 @39
                       colon: : @41
-                      fieldExpression: IntegerLiteral
+                      fieldExpression2: IntegerLiteral
                         literal: 1 @43
                         staticType: int
                     RecordLiteralNamedField
                       name: f2 @46
                       colon: : @48
-                      fieldExpression: BooleanLiteral
+                      fieldExpression2: BooleanLiteral
                         literal: true @50
                         staticType: bool
                   rightParenthesis: ) @54
@@ -490,7 +491,7 @@ library
               initializer: expression_0
                 RecordLiteral
                   leftParenthesis: ( @24
-                  fields
+                  fields2
                     IntegerLiteral
                       literal: 1 @25
                       staticType: int
@@ -534,7 +535,7 @@ library
                 RecordLiteral
                   constKeyword: const @24
                   leftParenthesis: ( @30
-                  fields
+                  fields2
                     IntegerLiteral
                       literal: 1 @31
                       staticType: int
@@ -592,9 +593,11 @@ library
                 #F6 optionalPositional isOriginDeclaration p (nameOffset:76) (firstTokenOffset:69) (offset:76)
                   element: <testLibrary>::@extension::E::@method::g::@formalParameter::p
                   initializer: expression_0
-                    SimpleIdentifier
-                      token: f @80
-                      element: <testLibrary>::@extension::E::@method::f
+                    UnqualifiedNameExpression
+                      name: f @80
+                      resolution: ExecutableTearOffResolution
+                        element: <testLibrary>::@extension::E::@method::f
+                        type: void Function()
                       staticType: void Function()
   classes
     isSimplyBounded class A
@@ -671,10 +674,10 @@ library
                 #F8 optionalPositional isOriginDeclaration b (nameOffset:71) (firstTokenOffset:56) (offset:71)
                   element: <testLibrary>::@class::C::@method::foo::@formalParameter::b
                   initializer: expression_0
-                    InstanceCreationExpression
+                    ConstructorInvocation
                       keyword: const @75
-                      constructorName: ConstructorName
-                        type: NamedType
+                      constructorReference: ConstructorReference2
+                        typeReference: ConstructorTypeReference
                           name: B @81
                           element: <testLibrary>::@class::B
                           type: B<int, double>
@@ -761,10 +764,10 @@ library
                 #F7 optionalPositional isOriginDeclaration b (nameOffset:58) (firstTokenOffset:53) (offset:58)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::b
                   initializer: expression_0
-                    InstanceCreationExpression
+                    ConstructorInvocation
                       keyword: const @62
-                      constructorName: ConstructorName
-                        type: NamedType
+                      constructorReference: ConstructorReference2
+                        typeReference: ConstructorTypeReference
                           name: B @68
                           element: <testLibrary>::@class::B
                           type: B<Never>
@@ -858,10 +861,10 @@ library
                 #F10 optionalPositional isOriginDeclaration a (nameOffset:124) (firstTokenOffset:119) (offset:124)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::a
                   initializer: expression_0
-                    InstanceCreationExpression
+                    ConstructorInvocation
                       keyword: const @128
-                      constructorName: ConstructorName
-                        type: NamedType
+                      constructorReference: ConstructorReference2
+                        typeReference: ConstructorTypeReference
                           name: B @134
                           element: <testLibrary>::@class::B
                           type: B<Never>
@@ -952,10 +955,10 @@ library
             #F6 optionalPositional isOriginDeclaration b (nameOffset:47) (firstTokenOffset:42) (offset:47)
               element: <testLibrary>::@function::foo::@formalParameter::b
               initializer: expression_0
-                InstanceCreationExpression
+                ConstructorInvocation
                   keyword: const @51
-                  constructorName: ConstructorName
-                    type: NamedType
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: B @57
                       element: <testLibrary>::@class::B
                       type: B<Never>
@@ -1038,10 +1041,10 @@ library
                 #F8 optionalPositional isOriginDeclaration b (nameOffset:59) (firstTokenOffset:54) (offset:59)
                   element: <testLibrary>::@class::C::@method::foo::@formalParameter::b
                   initializer: expression_0
-                    InstanceCreationExpression
+                    ConstructorInvocation
                       keyword: const @63
-                      constructorName: ConstructorName
-                        type: NamedType
+                      constructorReference: ConstructorReference2
+                        typeReference: ConstructorTypeReference
                           name: B @69
                           element: <testLibrary>::@class::B
                           type: B<Never>
@@ -1136,10 +1139,10 @@ library
                 #F10 optionalPositional isOriginDeclaration b (nameOffset:74) (firstTokenOffset:64) (offset:74)
                   element: <testLibrary>::@class::C::@method::foo::@formalParameter::b
                   initializer: expression_0
-                    InstanceCreationExpression
+                    ConstructorInvocation
                       keyword: const @78
-                      constructorName: ConstructorName
-                        type: NamedType
+                      constructorReference: ConstructorReference2
+                        typeReference: ConstructorTypeReference
                           name: B @84
                           element: <testLibrary>::@class::B
                           type: B<Never, Never>
@@ -1234,10 +1237,10 @@ library
                 #F8 optionalPositional isOriginDeclaration b (nameOffset:59) (firstTokenOffset:54) (offset:59)
                   element: <testLibrary>::@class::C::@method::foo::@formalParameter::b
                   initializer: expression_0
-                    InstanceCreationExpression
+                    ConstructorInvocation
                       keyword: const @63
-                      constructorName: ConstructorName
-                        type: NamedType
+                      constructorReference: ConstructorReference2
+                        typeReference: ConstructorTypeReference
                           name: B @69
                           element: <testLibrary>::@class::B
                           type: B<Never>
@@ -1282,6 +1285,23 @@ library
                 expression: expression_0
           returnType: void
 ''');
+  }
+
+  test_defaultValue_topLevelConstant_declaredLater() async {
+    var library = await buildLibrary(r'''
+class A {
+  static void f([Object? value = sentinelValue]) {}
+}
+
+const Object sentinelValue = SentinelValue(0);
+
+class SentinelValue {
+  const SentinelValue(this.value);
+  final int value;
+}
+''');
+    var parameter = library.getClass('A')!.getMethod('f')!.formalParameters[0];
+    expect(parameter.computeConstantValue(), isNotNull);
   }
 }
 

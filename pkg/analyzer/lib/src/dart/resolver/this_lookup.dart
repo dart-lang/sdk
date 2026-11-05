@@ -14,17 +14,13 @@ class ThisLookup {
     assert(false, 'Do not construct instances of LexicalLookup');
   }
 
-  /// Attempts to resolve an identifier with name, `node.name`, via implicit
-  /// `this.`, assuming we are trying to look up a getter.
-  ///
-  /// If a matching element is found, a [LexicalLookupResult] is returned.
-  /// Otherwise `null` is returned.
-  static LexicalLookupResult? lookupGetter(
-    ResolverVisitor resolver,
-    SimpleIdentifier node,
-  ) {
-    var id = node.name;
-    var thisType = resolver.effectiveThisType;
+  /// Attempts to resolve [name] as a getter on an implicit `this` receiver.
+  static LexicalLookupResult? lookupGetter2(
+    ResolverVisitor resolver, {
+    required AstNode node,
+    required String name,
+  }) {
+    var thisType = resolver.thisType;
     if (thisType == null) {
       return null;
     }
@@ -32,7 +28,7 @@ class ThisLookup {
     var propertyResult = resolver.typePropertyResolver.resolve(
       receiver: null,
       receiverType: thisType,
-      name: id,
+      name: name,
       hasRead: true,
       hasWrite: false,
       propertyErrorEntity: node,
@@ -57,17 +53,13 @@ class ThisLookup {
     }
   }
 
-  /// Attempts to resolve an identifier with name, `node.name`, via implicit
-  /// `this.`, assuming we are trying to look up a setter.
-  ///
-  /// If a matching element is found, a [LexicalLookupResult] is returned.
-  /// Otherwise `null` is returned.
-  static LexicalLookupResult? lookupSetter(
-    ResolverVisitor resolver,
-    SimpleIdentifier node,
-  ) {
-    var id = node.name;
-    var thisType = resolver.effectiveThisType;
+  /// Attempts to resolve [name] as a setter on an implicit `this` receiver.
+  static LexicalLookupResult? lookupSetter2(
+    ResolverVisitor resolver, {
+    required AstNode node,
+    required String name,
+  }) {
+    var thisType = resolver.thisType;
     if (thisType == null) {
       return null;
     }
@@ -75,7 +67,7 @@ class ThisLookup {
     var propertyResult = resolver.typePropertyResolver.resolve(
       receiver: null,
       receiverType: thisType,
-      name: id,
+      name: name,
       hasRead: false,
       hasWrite: true,
       propertyErrorEntity: node,

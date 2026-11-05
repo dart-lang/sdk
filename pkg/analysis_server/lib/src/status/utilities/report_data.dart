@@ -99,14 +99,16 @@ void collectContextData(
     Set<LibraryCycle> cycles = {};
     var contextRoot = driver.analysisContext!.contextRoot;
     var pathContext = contextRoot.resourceProvider.pathContext;
-    for (var filePath in contextRoot.analyzedFiles()) {
-      if (!file_paths.isDart(pathContext, filePath)) continue;
-      var fileState = driver.fsState.getFileForPath(filePath);
-      var kind = fileState.kind;
-      if (kind is LibraryFileKind) {
-        cycles.add(kind.libraryCycle);
+    server.timingResourceProvider.withoutMeasuring(() {
+      for (var filePath in contextRoot.analyzedFiles()) {
+        if (!file_paths.isDart(pathContext, filePath)) continue;
+        var fileState = driver.fsState.getFileForPath(filePath);
+        var kind = fileState.kind;
+        if (kind is LibraryFileKind) {
+          cycles.add(kind.libraryCycle);
+        }
       }
-    }
+    });
     var cycleData = <int, int>{};
     for (var cycle in cycles) {
       cycleData[cycle.size] = (cycleData[cycle.size] ?? 0) + 1;

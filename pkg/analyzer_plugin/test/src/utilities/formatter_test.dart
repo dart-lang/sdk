@@ -22,13 +22,23 @@ class FormatterTest extends AbstractSingleUnitTest {
   Future<void> test_experiments() async {
     await resolveTestCode('');
     var formatter = createFormatter(result);
-    expect(formatter.experimentFlags, experimentsForTests);
+    expect(
+      formatter.experimentFlags,
+      unorderedEquals([
+        for (var feature in experimentalFeaturesForTests)
+          feature.experimentalFlag ??
+              (throw StateError(
+                '$feature no longer has an experimental flag; '
+                'remove it from experimentalFeaturesForTests.',
+              )),
+      ]),
+    );
   }
 
   Future<void> test_languageVersion_default() async {
     await resolveTestCode('');
     var formatter = createFormatter(result);
-    expect(formatter.languageVersion, defaultFormatterVersion);
+    expect(formatter.languageVersion, result.unit.languageVersion.effective);
   }
 
   Future<void> test_languageVersion_override() async {

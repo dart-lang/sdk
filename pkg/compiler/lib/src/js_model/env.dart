@@ -749,7 +749,7 @@ mixin FunctionDataForEachParameterMixin implements FunctionData {
       bool isOptional = true,
     }) {
       DartType type = elementMap.getDartType(parameter.type);
-      String? name = parameter.cosmeticName;
+      String name = parameter.parameterName;
       ConstantValue? defaultValue;
       if (parameter.isRequired) {
         defaultValue = elementMap.getRequiredSentinelConstantValue();

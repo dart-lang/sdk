@@ -177,12 +177,8 @@ class UnnecessaryNullChecks extends AnalysisRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final AnalysisRule rule;
-
-  final RuleContext context;
-  new(this.rule, this.context);
-
+class _Visitor(final AnalysisRule rule, final RuleContext context)
+    extends SimpleAstVisitor<void> {
   @override
   void visitNullAssertPattern(NullAssertPattern node) {
     var expectedType = node.matchedValueType;

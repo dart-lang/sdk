@@ -68,7 +68,7 @@ static method testPassEnum2() → void {
   core::print(#C8);
 }
 
-[@vm.inferred-return-type.metadata=dart.core::_ImmutableList (value: const <dart.core::int>[1, 2, 3])]
+[@vm.inferred-return-type.metadata=dart.core::_ImmutableList<dart.core::int> (value: const <dart.core::int>[1, 2, 3])]
 static method getList() → dynamic
   return #C11;
 
@@ -86,7 +86,7 @@ static method main() → dynamic {
   self::testDouble();
   self::testStrings(new self::A::•());
   self::testPassEnum();
-  let final dynamic #t1 = [@vm.inferred-type.metadata=dart.core::_ImmutableList (value: const <dart.core::int>[1, 2, 3])] self::getList() in self::testList();
+  let final dynamic #t1 = [@vm.inferred-type.metadata=dart.core::_ImmutableList<dart.core::int> (value: const <dart.core::int>[1, 2, 3])] self::getList() in self::testList();
 }
 constants  {
   #C1 = 40

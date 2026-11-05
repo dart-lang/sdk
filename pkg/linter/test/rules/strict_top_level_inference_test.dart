@@ -720,6 +720,22 @@ class C({final [!p1!]});
 ''');
   }
 
+  test_primaryConstructorParameter_named_declaring_final_typeFromDefaultValue() async {
+    await assertNoDiagnostics(r'''
+class C({final p1 = 0});
+''');
+  }
+
+  test_primaryConstructorParameter_named_declaring_final_typeFromOverride() async {
+    await assertNoDiagnostics(r'''
+abstract class A {
+  int get p1;
+}
+
+class C({required final p1}) implements A {}
+''');
+  }
+
   test_primaryConstructorParameter_named_declaring_typed() async {
     await assertNoDiagnostics(r'''
 class C({required int p1});

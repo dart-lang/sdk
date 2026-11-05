@@ -145,7 +145,7 @@ class LspAnalysisServerBenchmarkTest extends AbstractBenchmarkTest
   int _fileVersion = 1;
 
   @override
-  Future<void> get analysisFinished => _test.initialAnalysis;
+  Future<void> get analysisFinished => _test.workspaceAnalysisComplete();
 
   @override
   Future<void> closeFile(String filePath) {
@@ -198,7 +198,7 @@ class LspAnalysisServerBenchmarkTest extends AbstractBenchmarkTest
 
   @override
   Future<void> shutdown() async {
-    _test.tearDown();
+    await _test.tearDown();
     await _logger.shutdown();
   }
 
@@ -240,7 +240,7 @@ class LspAnalysisServerMemoryUsageTest
   }
 
   /// After every test, the server is stopped.
-  Future<void> shutdown() async => this.tearDown();
+  Future<void> shutdown() => this.tearDown();
 }
 
 mixin ServerMemoryUsageMixin {

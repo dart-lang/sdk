@@ -1,3 +1,6 @@
+## 0.7.0
+- Adjusts snapshot readers for the removal of the VM isolate.
+
 ## 0.6.1
 - Add handling for Mach-O UUID load commands.
 

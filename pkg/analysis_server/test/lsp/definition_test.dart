@@ -3,11 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart' as lsp;
-import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
-import 'package:analyzer_testing/experiments/experiments.dart';
+import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -22,13 +21,6 @@ void main() {
 
 @reflectiveTest
 class DefinitionTest extends AbstractLspAnalysisServerTest {
-  @override
-  AnalysisServerOptions get serverOptions => AnalysisServerOptions()
-    ..enabledExperiments = [
-      ...super.serverOptions.enabledExperiments,
-      ...experimentsForTests,
-    ];
-
   Future<void> test_acrossFiles() async {
     var mainContents = '''
 import 'referenced.dart';
@@ -69,6 +61,81 @@ void f() {
     var loc = res.single;
     expect(loc.range, equals(referencedCode.range.range));
     expect(loc.uri, equals(referencedFileUri));
+  }
+
+  Future<void> test_analysisOptions_include_locationLinks() async {
+    setLocationLinkSupport();
+
+    var otherFilePath = join(projectFolderPath, 'other.yaml');
+    newFile(otherFilePath, '');
+
+    var code = TestCode.parse('''
+include: [!oth^er.yaml!]
+''');
+    newFile(analysisOptionsPath, code.code);
+    await initialize();
+
+    var res = await getDefinitionAsLocationLinks(
+      toUri(analysisOptionsPath),
+      code.position.position,
+    );
+
+    expect(res, hasLength(1));
+    var loc = res.single;
+    expect(loc.targetUri, equals(toUri(otherFilePath)));
+    expect(loc.originSelectionRange, equals(code.range.range));
+    expect(loc.targetRange.start.line, equals(0));
+    expect(loc.targetRange.start.character, equals(0));
+  }
+
+  Future<void> test_analysisOptions_include_package() async {
+    var lintsPackagePath = join(packagesRootPath, 'lints');
+    var recommendedFilePath = join(lintsPackagePath, 'lib', 'recommended.yaml');
+    newFile(recommendedFilePath, '');
+    writePackageConfig2(
+      projectFolderPath,
+      config: PackageConfigFileBuilder()
+        ..add(name: 'lints', rootFolder: getFolder(lintsPackagePath)),
+    );
+
+    var code = TestCode.parse('''
+include: package:lints/recomm^ended.yaml
+''');
+    newFile(analysisOptionsPath, code.code);
+    await initialize();
+
+    var res = await getDefinitionAsLocation(
+      toUri(analysisOptionsPath),
+      code.position.position,
+    );
+
+    expect(res, hasLength(1));
+    var loc = res.single;
+    expect(loc.uri, equals(toUri(recommendedFilePath)));
+    expect(loc.range.start.line, equals(0));
+    expect(loc.range.start.character, equals(0));
+  }
+
+  Future<void> test_analysisOptions_include_relative() async {
+    var otherFilePath = join(projectFolderPath, 'other.yaml');
+    newFile(otherFilePath, '');
+
+    var code = TestCode.parse('''
+include: oth^er.yaml
+''');
+    newFile(analysisOptionsPath, code.code);
+    await initialize();
+
+    var res = await getDefinitionAsLocation(
+      toUri(analysisOptionsPath),
+      code.position.position,
+    );
+
+    expect(res, hasLength(1));
+    var loc = res.single;
+    expect(loc.uri, equals(toUri(otherFilePath)));
+    expect(loc.range.start.line, equals(0));
+    expect(loc.range.start.character, equals(0));
   }
 
   Future<void> test_atDeclaration_catchClauseParameter_error() async {
@@ -526,6 +593,30 @@ class A {
     await testContents(contents);
   }
 
+  Future<void> test_constructor_newImplicit() async {
+    var contents = '''
+class [!WithGeneric!]<T> {}
+
+void fn() {
+  final val = WithGeneric<String>.n^ew();
+}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_constructor_newImplicit_dotShorthands() async {
+    var contents = '''
+class [!WithGeneric!]<T> {}
+
+void fn() {
+  final WithGeneric<String> val = .n^ew();
+}
+''';
+
+    await testContents(contents);
+  }
+
   Future<void> test_constructor_redirectingSuper_wildcards() async {
     var contents = '''
 class A {
@@ -665,6 +756,26 @@ var _ = StringEx^tension('').x();
 
 extension [!StringExtension!] on String {
   void x() {}
+}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_extensionType_parameter() async {
+    var contents = '''
+extension type E(int [!it!]) {
+  int get value => it^;
+}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_extensionType_parameter_ofTypeParameter() async {
+    var contents = '''
+extension type E<T>(T [!it!]) {
+  T get value => it^;
 }
 ''';
 
@@ -1425,6 +1536,28 @@ void otherUnrelatedFunction() {}
     expect(loc.targetUri, equals(partFileUri));
     expect(loc.targetRange, equals(partCode.range.range));
     expect(loc.targetSelectionRange, equals(rangeOfString(partCode, 'add')));
+  }
+
+  Future<void> test_pattern_assignedVariable_multiple() async {
+    var contents = '''
+void f() {
+  int? left, [!right!];
+  (left, rig^ht) = (1, 1);
+}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_pattern_assignedVariable_single() async {
+    var contents = '''
+void f() {
+  int? [!left!];
+  (le^ft, ) = (1,);
+}
+''';
+
+    await testContents(contents);
   }
 
   Future<void> test_patternVariable_ifCase_logicalOr() async {

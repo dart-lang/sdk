@@ -295,6 +295,10 @@ const Code& StubCodeAllocateArray() {
   return dart::StubCode::AllocateArray();
 }
 
+const Code& StubCodeSubtype1TestCache() {
+  return dart::StubCode::Subtype1TestCache();
+}
+
 const Code& StubCodeSubtype2TestCache() {
   return dart::StubCode::Subtype2TestCache();
 }
@@ -392,8 +396,6 @@ const word UntaggedTypeParameter::kIsFunctionTypeParameterBit =
 bool IsTypedDataClassId(intptr_t cid) {
   return dart::IsTypedDataClassId(cid);
 }
-
-const word Class::kNoTypeArguments = dart::Class::kNoTypeArguments;
 
 classid_t Class::GetId(const dart::Class& handle) {
   return handle.id();
@@ -978,11 +980,6 @@ word RegExp::function_offset(classid_t cid, bool sticky) {
 #endif
 }
 
-const word Symbols::kNumberOfOneCharCodeSymbols =
-    dart::Symbols::kNumberOfOneCharCodeSymbols;
-const word Symbols::kNullCharCodeSymbolOffset =
-    dart::Symbols::kNullCharCodeSymbolOffset;
-
 const word String::kHashBits = dart::String::kHashBits;
 
 const uint8_t Nullability::kNullable =
@@ -1050,6 +1047,10 @@ word Number::NextFieldOffset() {
   return TranslateOffsetInWords(dart::Number::NextFieldOffset());
 }
 
+word LocalVarDescriptor::InstanceSize() {
+  return dart::LocalVarDescriptor::InstanceSize();
+}
+
 void UnboxFieldIfSupported(const dart::Field& field,
                            const dart::AbstractType& type) {
   if (field.is_static() || field.is_late()) {
@@ -1070,6 +1071,10 @@ void UnboxFieldIfSupported(const dart::Field& field,
   } else if (type.IsFloat64x2Type()) {
     if (FlowGraphCompiler::SupportsUnboxedSimd128()) {
       cid = kFloat64x2Cid;
+    }
+  } else if (type.IsInt32x4Type()) {
+    if (FlowGraphCompiler::SupportsUnboxedSimd128()) {
+      cid = kInt32x4Cid;
     }
   }
 

@@ -78,6 +78,223 @@ void _testI8x16() {
   _expectCmpTrue(vEq.extractLaneSigned(0).toIntSigned()); // True is -1 (all 1s)
   vEq = v1.eq(WasmI8x16.splat(WasmI32.fromInt(11))); // 10 != 11
   _expectCmpFalse(vEq.extractLaneSigned(0).toIntSigned()); // False is 0
+
+  // i8x16.bitmask
+  {
+    final _0 = WasmI8x16.splat(WasmI32.fromInt(0));
+    final _n1 = WasmI32.fromInt(-1);
+    final _n2 = WasmI32.fromInt(-2);
+    final _sign = WasmI32.fromInt(0x80);
+    final _max = WasmI32.fromInt(0x7F);
+    Expect.equals(_0.bitmask.toIntUnsigned(), 0x0);
+    // -1 has all bits set.
+    Expect.equals(WasmI8x16.splat(_n1).bitmask.toIntUnsigned(), 0xFFFF);
+    Expect.equals(_0.replaceLane(0, _n1).bitmask.toIntUnsigned(), 1 << 0);
+    Expect.equals(_0.replaceLane(1, _n1).bitmask.toIntUnsigned(), 1 << 1);
+    Expect.equals(_0.replaceLane(2, _n1).bitmask.toIntUnsigned(), 1 << 2);
+    Expect.equals(_0.replaceLane(3, _n1).bitmask.toIntUnsigned(), 1 << 3);
+    Expect.equals(_0.replaceLane(4, _n1).bitmask.toIntUnsigned(), 1 << 4);
+    Expect.equals(_0.replaceLane(5, _n1).bitmask.toIntUnsigned(), 1 << 5);
+    Expect.equals(_0.replaceLane(6, _n1).bitmask.toIntUnsigned(), 1 << 6);
+    Expect.equals(_0.replaceLane(7, _n1).bitmask.toIntUnsigned(), 1 << 7);
+    Expect.equals(_0.replaceLane(8, _n1).bitmask.toIntUnsigned(), 1 << 8);
+    Expect.equals(_0.replaceLane(9, _n1).bitmask.toIntUnsigned(), 1 << 9);
+    Expect.equals(_0.replaceLane(10, _n1).bitmask.toIntUnsigned(), 1 << 10);
+    Expect.equals(_0.replaceLane(11, _n1).bitmask.toIntUnsigned(), 1 << 11);
+    Expect.equals(_0.replaceLane(12, _n1).bitmask.toIntUnsigned(), 1 << 12);
+    Expect.equals(_0.replaceLane(13, _n1).bitmask.toIntUnsigned(), 1 << 13);
+    Expect.equals(_0.replaceLane(14, _n1).bitmask.toIntUnsigned(), 1 << 14);
+    Expect.equals(_0.replaceLane(15, _n1).bitmask.toIntUnsigned(), 1 << 15);
+    // -2 has every bit except the lowest set, including the sign bit.
+    Expect.equals(WasmI8x16.splat(_n2).bitmask.toIntUnsigned(), 0xFFFF);
+    Expect.equals(_0.replaceLane(0, _n2).bitmask.toIntUnsigned(), 1 << 0);
+    Expect.equals(_0.replaceLane(1, _n2).bitmask.toIntUnsigned(), 1 << 1);
+    Expect.equals(_0.replaceLane(2, _n2).bitmask.toIntUnsigned(), 1 << 2);
+    Expect.equals(_0.replaceLane(3, _n2).bitmask.toIntUnsigned(), 1 << 3);
+    Expect.equals(_0.replaceLane(4, _n2).bitmask.toIntUnsigned(), 1 << 4);
+    Expect.equals(_0.replaceLane(5, _n2).bitmask.toIntUnsigned(), 1 << 5);
+    Expect.equals(_0.replaceLane(6, _n2).bitmask.toIntUnsigned(), 1 << 6);
+    Expect.equals(_0.replaceLane(7, _n2).bitmask.toIntUnsigned(), 1 << 7);
+    Expect.equals(_0.replaceLane(8, _n2).bitmask.toIntUnsigned(), 1 << 8);
+    Expect.equals(_0.replaceLane(9, _n2).bitmask.toIntUnsigned(), 1 << 9);
+    Expect.equals(_0.replaceLane(10, _n2).bitmask.toIntUnsigned(), 1 << 10);
+    Expect.equals(_0.replaceLane(11, _n2).bitmask.toIntUnsigned(), 1 << 11);
+    Expect.equals(_0.replaceLane(12, _n2).bitmask.toIntUnsigned(), 1 << 12);
+    Expect.equals(_0.replaceLane(13, _n2).bitmask.toIntUnsigned(), 1 << 13);
+    Expect.equals(_0.replaceLane(14, _n2).bitmask.toIntUnsigned(), 1 << 14);
+    Expect.equals(_0.replaceLane(15, _n2).bitmask.toIntUnsigned(), 1 << 15);
+    // 0x7F has every bit except the sign bit set.
+    Expect.equals(WasmI8x16.splat(_max).bitmask.toIntUnsigned(), 0x0);
+    Expect.equals(_0.replaceLane(0, _max).bitmask.toIntUnsigned(), 0x0);
+    Expect.equals(_0.replaceLane(1, _max).bitmask.toIntUnsigned(), 0x0);
+    Expect.equals(_0.replaceLane(2, _max).bitmask.toIntUnsigned(), 0x0);
+    Expect.equals(_0.replaceLane(3, _max).bitmask.toIntUnsigned(), 0x0);
+    Expect.equals(_0.replaceLane(4, _max).bitmask.toIntUnsigned(), 0x0);
+    Expect.equals(_0.replaceLane(5, _max).bitmask.toIntUnsigned(), 0x0);
+    Expect.equals(_0.replaceLane(6, _max).bitmask.toIntUnsigned(), 0x0);
+    Expect.equals(_0.replaceLane(7, _max).bitmask.toIntUnsigned(), 0x0);
+    Expect.equals(_0.replaceLane(8, _max).bitmask.toIntUnsigned(), 0x0);
+    Expect.equals(_0.replaceLane(9, _max).bitmask.toIntUnsigned(), 0x0);
+    Expect.equals(_0.replaceLane(10, _max).bitmask.toIntUnsigned(), 0x0);
+    Expect.equals(_0.replaceLane(11, _max).bitmask.toIntUnsigned(), 0x0);
+    Expect.equals(_0.replaceLane(12, _max).bitmask.toIntUnsigned(), 0x0);
+    Expect.equals(_0.replaceLane(13, _max).bitmask.toIntUnsigned(), 0x0);
+    Expect.equals(_0.replaceLane(14, _max).bitmask.toIntUnsigned(), 0x0);
+    Expect.equals(_0.replaceLane(15, _max).bitmask.toIntUnsigned(), 0x0);
+    // 0x80 has only the sign bit set.
+    Expect.equals(WasmI8x16.splat(_sign).bitmask.toIntUnsigned(), 0xFFFF);
+    Expect.equals(_0.replaceLane(0, _sign).bitmask.toIntUnsigned(), 1 << 0);
+    Expect.equals(_0.replaceLane(1, _sign).bitmask.toIntUnsigned(), 1 << 1);
+    Expect.equals(_0.replaceLane(2, _sign).bitmask.toIntUnsigned(), 1 << 2);
+    Expect.equals(_0.replaceLane(3, _sign).bitmask.toIntUnsigned(), 1 << 3);
+    Expect.equals(_0.replaceLane(4, _sign).bitmask.toIntUnsigned(), 1 << 4);
+    Expect.equals(_0.replaceLane(5, _sign).bitmask.toIntUnsigned(), 1 << 5);
+    Expect.equals(_0.replaceLane(6, _sign).bitmask.toIntUnsigned(), 1 << 6);
+    Expect.equals(_0.replaceLane(7, _sign).bitmask.toIntUnsigned(), 1 << 7);
+    Expect.equals(_0.replaceLane(8, _sign).bitmask.toIntUnsigned(), 1 << 8);
+    Expect.equals(_0.replaceLane(9, _sign).bitmask.toIntUnsigned(), 1 << 9);
+    Expect.equals(_0.replaceLane(10, _sign).bitmask.toIntUnsigned(), 1 << 10);
+    Expect.equals(_0.replaceLane(11, _sign).bitmask.toIntUnsigned(), 1 << 11);
+    Expect.equals(_0.replaceLane(12, _sign).bitmask.toIntUnsigned(), 1 << 12);
+    Expect.equals(_0.replaceLane(13, _sign).bitmask.toIntUnsigned(), 1 << 13);
+    Expect.equals(_0.replaceLane(14, _sign).bitmask.toIntUnsigned(), 1 << 14);
+    Expect.equals(_0.replaceLane(15, _sign).bitmask.toIntUnsigned(), 1 << 15);
+  }
+
+  // i8x16.ne
+  {
+    final ten = WasmI8x16.splat(WasmI32.fromInt(10));
+    _expectCmpFalse(ten.ne(ten).extractLaneSigned(0).toIntSigned());
+    _expectCmpTrue(
+      ten
+          .ne(WasmI8x16.splat(WasmI32.fromInt(11)))
+          .extractLaneSigned(0)
+          .toIntSigned(),
+    );
+  }
+
+  // i8x16.lt/gt/le/ge, _s and _u
+  {
+    final ten = WasmI8x16.splat(WasmI32.fromInt(10));
+    final twenty = WasmI8x16.splat(WasmI32.fromInt(20));
+    _expectCmpTrue(ten.ltS(twenty).extractLaneSigned(0).toIntSigned());
+    _expectCmpTrue(twenty.gtS(ten).extractLaneSigned(0).toIntSigned());
+    _expectCmpTrue(ten.leS(ten).extractLaneSigned(0).toIntSigned());
+    _expectCmpTrue(ten.geS(ten).extractLaneSigned(0).toIntSigned());
+    // -1 is 255 as unsigned: below 1 signed, above it unsigned.
+    final neg = WasmI8x16.splat(WasmI32.fromInt(-1));
+    final one = WasmI8x16.splat(WasmI32.fromInt(1));
+    _expectCmpTrue(neg.ltS(one).extractLaneSigned(0).toIntSigned());
+    _expectCmpFalse(neg.ltU(one).extractLaneSigned(0).toIntSigned());
+    _expectCmpTrue(neg.gtU(one).extractLaneSigned(0).toIntSigned());
+    _expectCmpTrue(neg.geU(one).extractLaneSigned(0).toIntSigned());
+    _expectCmpTrue(one.leU(neg).extractLaneSigned(0).toIntSigned());
+  }
+
+  // i8x16.min_s/min_u and max_s/max_u
+  {
+    final ten = WasmI8x16.splat(WasmI32.fromInt(10));
+    final twenty = WasmI8x16.splat(WasmI32.fromInt(20));
+    Expect.equals(ten.minS(twenty).extractLaneSigned(0).toIntSigned(), 10);
+    Expect.equals(ten.maxS(twenty).extractLaneSigned(0).toIntSigned(), 20);
+    // -1 is 255 as unsigned.
+    final neg = WasmI8x16.splat(WasmI32.fromInt(-1));
+    final one = WasmI8x16.splat(WasmI32.fromInt(1));
+    Expect.equals(neg.minS(one).extractLaneSigned(0).toIntSigned(), -1);
+    Expect.equals(neg.minU(one).extractLaneUnsigned(0).toIntUnsigned(), 1);
+    Expect.equals(neg.maxU(one).extractLaneUnsigned(0).toIntUnsigned(), 255);
+  }
+
+  // i8x16.avgr_u
+  {
+    // Rounding average: (10 + 20 + 1) >> 1 == 15.
+    final a = WasmI8x16.splat(WasmI32.fromInt(10));
+    final b = WasmI8x16.splat(WasmI32.fromInt(20));
+    Expect.equals(a.avgrU(b).extractLaneUnsigned(0).toIntUnsigned(), 15);
+  }
+
+  // i8x16.sub_sat_s and sub_sat_u
+  {
+    // Signed underflow saturates to -128 (INT8_MIN).
+    final negA = WasmI8x16.splat(WasmI32.fromInt(-100));
+    final b = WasmI8x16.splat(WasmI32.fromInt(100));
+    Expect.equals(negA.subSatS(b).extractLaneSigned(0).toIntSigned(), -128);
+    // Unsigned underflow saturates to 0.
+    final ten = WasmI8x16.splat(WasmI32.fromInt(10));
+    final twenty = WasmI8x16.splat(WasmI32.fromInt(20));
+    Expect.equals(
+      ten.subSatU(twenty).extractLaneUnsigned(0).toIntUnsigned(),
+      0,
+    );
+  }
+
+  // i8x16.add_sat_s and add_sat_u
+  {
+    // Signed saturates to 127 (INT8_MAX).
+    final a = WasmI8x16.splat(WasmI32.fromInt(100));
+    Expect.equals(a.addSatS(a).extractLaneSigned(0).toIntSigned(), 127);
+    // Unsigned saturates to 255 (UINT8_MAX).
+    final b = WasmI8x16.splat(WasmI32.fromInt(200));
+    final c = WasmI8x16.splat(WasmI32.fromInt(100));
+    Expect.equals(b.addSatU(c).extractLaneUnsigned(0).toIntUnsigned(), 255);
+  }
+
+  // i8x16.shl, shr_s, shr_u
+  {
+    final one = WasmI8x16.splat(WasmI32.fromInt(1));
+    Expect.equals(
+      one.shl(WasmI32.fromInt(3)).extractLaneSigned(0).toIntSigned(),
+      8,
+    );
+    final neg8 = WasmI8x16.splat(WasmI32.fromInt(-8));
+    Expect.equals(
+      neg8.shrS(WasmI32.fromInt(1)).extractLaneSigned(0).toIntSigned(),
+      -4,
+    );
+    // -8 is 0xf8, so a logical >> 1 is 0x7c == 124.
+    Expect.equals(
+      neg8.shrU(WasmI32.fromInt(1)).extractLaneUnsigned(0).toIntUnsigned(),
+      124,
+    );
+  }
+
+  // i8x16.swizzle
+  {
+    // Selects lane indices[i] from a. An out-of-range index gives 0.
+    final a = WasmI8x16.splat(WasmI32.fromInt(0))
+        .replaceLane(3, WasmI32.fromInt(99));
+    Expect.equals(
+      a
+          .swizzle(WasmI8x16.splat(WasmI32.fromInt(3)))
+          .extractLaneUnsigned(0)
+          .toIntUnsigned(),
+      99,
+    );
+    Expect.equals(
+      a
+          .swizzle(WasmI8x16.splat(WasmI32.fromInt(16)))
+          .extractLaneUnsigned(0)
+          .toIntUnsigned(),
+      0,
+    );
+  }
+
+  // i8x16.popcnt
+  {
+    final all = WasmI8x16.splat(WasmI32.fromInt(255));
+    Expect.equals(all.popcnt().extractLaneUnsigned(0).toIntUnsigned(), 8);
+    final seven = WasmI8x16.splat(WasmI32.fromInt(7));
+    Expect.equals(seven.popcnt().extractLaneUnsigned(0).toIntUnsigned(), 3);
+  }
+
+  // i8x16.abs
+  {
+    final neg5 = WasmI8x16.splat(WasmI32.fromInt(-5));
+    Expect.equals(neg5.abs().extractLaneSigned(0).toIntSigned(), 5);
+    // abs(INT8_MIN) wraps back to INT8_MIN.
+    final min = WasmI8x16.splat(WasmI32.fromInt(-128));
+    Expect.equals(min.abs().extractLaneSigned(0).toIntSigned(), -128);
+  }
 }
 
 void _testI16x8() {
@@ -125,6 +342,178 @@ void _testI16x8() {
   _expectCmpTrue(vEq.extractLaneSigned(0).toIntSigned());
   vEq = v1.eq(WasmI16x8.splat(WasmI32.fromInt(11)));
   _expectCmpFalse(vEq.extractLaneSigned(0).toIntSigned());
+
+  // i16x8.bitmask
+  {
+    final _0 = WasmI16x8.splat(WasmI32.fromInt(0));
+    final _n1 = WasmI32.fromInt(-1);
+    final _n2 = WasmI32.fromInt(-2);
+    final _sign = WasmI32.fromInt(0x8000);
+    final _max = WasmI32.fromInt(0x7FFF);
+    Expect.equals(_0.bitmask.toIntUnsigned(), 0x0);
+    // -1 has all bits set.
+    Expect.equals(WasmI16x8.splat(_n1).bitmask.toIntUnsigned(), 0xFF);
+    Expect.equals(_0.replaceLane(0, _n1).bitmask.toIntUnsigned(), 1 << 0);
+    Expect.equals(_0.replaceLane(1, _n1).bitmask.toIntUnsigned(), 1 << 1);
+    Expect.equals(_0.replaceLane(2, _n1).bitmask.toIntUnsigned(), 1 << 2);
+    Expect.equals(_0.replaceLane(3, _n1).bitmask.toIntUnsigned(), 1 << 3);
+    Expect.equals(_0.replaceLane(4, _n1).bitmask.toIntUnsigned(), 1 << 4);
+    Expect.equals(_0.replaceLane(5, _n1).bitmask.toIntUnsigned(), 1 << 5);
+    Expect.equals(_0.replaceLane(6, _n1).bitmask.toIntUnsigned(), 1 << 6);
+    Expect.equals(_0.replaceLane(7, _n1).bitmask.toIntUnsigned(), 1 << 7);
+    // -2 has every bit except the lowest set, including the sign bit.
+    Expect.equals(WasmI16x8.splat(_n2).bitmask.toIntUnsigned(), 0xFF);
+    Expect.equals(_0.replaceLane(0, _n2).bitmask.toIntUnsigned(), 1 << 0);
+    Expect.equals(_0.replaceLane(1, _n2).bitmask.toIntUnsigned(), 1 << 1);
+    Expect.equals(_0.replaceLane(2, _n2).bitmask.toIntUnsigned(), 1 << 2);
+    Expect.equals(_0.replaceLane(3, _n2).bitmask.toIntUnsigned(), 1 << 3);
+    Expect.equals(_0.replaceLane(4, _n2).bitmask.toIntUnsigned(), 1 << 4);
+    Expect.equals(_0.replaceLane(5, _n2).bitmask.toIntUnsigned(), 1 << 5);
+    Expect.equals(_0.replaceLane(6, _n2).bitmask.toIntUnsigned(), 1 << 6);
+    Expect.equals(_0.replaceLane(7, _n2).bitmask.toIntUnsigned(), 1 << 7);
+    // 0x7FFF has every bit except the sign bit set.
+    Expect.equals(WasmI16x8.splat(_max).bitmask.toIntUnsigned(), 0x0);
+    Expect.equals(_0.replaceLane(0, _max).bitmask.toIntUnsigned(), 0x0);
+    Expect.equals(_0.replaceLane(1, _max).bitmask.toIntUnsigned(), 0x0);
+    Expect.equals(_0.replaceLane(2, _max).bitmask.toIntUnsigned(), 0x0);
+    Expect.equals(_0.replaceLane(3, _max).bitmask.toIntUnsigned(), 0x0);
+    Expect.equals(_0.replaceLane(4, _max).bitmask.toIntUnsigned(), 0x0);
+    Expect.equals(_0.replaceLane(5, _max).bitmask.toIntUnsigned(), 0x0);
+    Expect.equals(_0.replaceLane(6, _max).bitmask.toIntUnsigned(), 0x0);
+    Expect.equals(_0.replaceLane(7, _max).bitmask.toIntUnsigned(), 0x0);
+    // 0x8000 has only the sign bit set.
+    Expect.equals(WasmI16x8.splat(_sign).bitmask.toIntUnsigned(), 0xFF);
+    Expect.equals(_0.replaceLane(0, _sign).bitmask.toIntUnsigned(), 1 << 0);
+    Expect.equals(_0.replaceLane(1, _sign).bitmask.toIntUnsigned(), 1 << 1);
+    Expect.equals(_0.replaceLane(2, _sign).bitmask.toIntUnsigned(), 1 << 2);
+    Expect.equals(_0.replaceLane(3, _sign).bitmask.toIntUnsigned(), 1 << 3);
+    Expect.equals(_0.replaceLane(4, _sign).bitmask.toIntUnsigned(), 1 << 4);
+    Expect.equals(_0.replaceLane(5, _sign).bitmask.toIntUnsigned(), 1 << 5);
+    Expect.equals(_0.replaceLane(6, _sign).bitmask.toIntUnsigned(), 1 << 6);
+    Expect.equals(_0.replaceLane(7, _sign).bitmask.toIntUnsigned(), 1 << 7);
+  }
+
+  // i16x8.q15mulr_sat_s (Q15 fixed-point rounding multiply, saturating)
+  {
+    // 0.5 * 0.5 == 0.25 in Q15: 16384 * 16384 -> 8192.
+    final half = WasmI16x8.splat(WasmI32.fromInt(16384));
+    Expect.equals(
+      half.q15MulrSatS(half).extractLaneSigned(0).toIntSigned(),
+      8192,
+    );
+    // -1.0 * -1.0 == 1.0 is unrepresentable in Q15 and saturates to INT16_MAX.
+    final min = WasmI16x8.splat(WasmI32.fromInt(-32768));
+    Expect.equals(
+      min.q15MulrSatS(min).extractLaneSigned(0).toIntSigned(),
+      32767,
+    );
+  }
+
+  // i16x8.ne
+  {
+    final ten = WasmI16x8.splat(WasmI32.fromInt(10));
+    _expectCmpFalse(ten.ne(ten).extractLaneSigned(0).toIntSigned());
+    _expectCmpTrue(
+      ten
+          .ne(WasmI16x8.splat(WasmI32.fromInt(11)))
+          .extractLaneSigned(0)
+          .toIntSigned(),
+    );
+  }
+
+  // i16x8.lt/gt/le/ge, _s and _u
+  {
+    final ten = WasmI16x8.splat(WasmI32.fromInt(10));
+    final twenty = WasmI16x8.splat(WasmI32.fromInt(20));
+    _expectCmpTrue(ten.ltS(twenty).extractLaneSigned(0).toIntSigned());
+    _expectCmpTrue(twenty.gtS(ten).extractLaneSigned(0).toIntSigned());
+    _expectCmpTrue(ten.leS(ten).extractLaneSigned(0).toIntSigned());
+    _expectCmpTrue(ten.geS(ten).extractLaneSigned(0).toIntSigned());
+    // -1 is 65535 as unsigned: below 1 signed, above it unsigned.
+    final neg = WasmI16x8.splat(WasmI32.fromInt(-1));
+    final one = WasmI16x8.splat(WasmI32.fromInt(1));
+    _expectCmpTrue(neg.ltS(one).extractLaneSigned(0).toIntSigned());
+    _expectCmpFalse(neg.ltU(one).extractLaneSigned(0).toIntSigned());
+    _expectCmpTrue(neg.gtU(one).extractLaneSigned(0).toIntSigned());
+    _expectCmpTrue(neg.geU(one).extractLaneSigned(0).toIntSigned());
+    _expectCmpTrue(one.leU(neg).extractLaneSigned(0).toIntSigned());
+  }
+
+  // i16x8.min_s/min_u and max_s/max_u
+  {
+    final ten = WasmI16x8.splat(WasmI32.fromInt(10));
+    final twenty = WasmI16x8.splat(WasmI32.fromInt(20));
+    Expect.equals(ten.minS(twenty).extractLaneSigned(0).toIntSigned(), 10);
+    Expect.equals(ten.maxS(twenty).extractLaneSigned(0).toIntSigned(), 20);
+    // -1 is 65535 as unsigned.
+    final neg = WasmI16x8.splat(WasmI32.fromInt(-1));
+    final one = WasmI16x8.splat(WasmI32.fromInt(1));
+    Expect.equals(neg.minS(one).extractLaneSigned(0).toIntSigned(), -1);
+    Expect.equals(neg.minU(one).extractLaneUnsigned(0).toIntUnsigned(), 1);
+    Expect.equals(neg.maxU(one).extractLaneUnsigned(0).toIntUnsigned(), 65535);
+  }
+
+  // i16x8.avgr_u
+  {
+    // Rounding average: (10 + 20 + 1) >> 1 == 15.
+    final a = WasmI16x8.splat(WasmI32.fromInt(10));
+    final b = WasmI16x8.splat(WasmI32.fromInt(20));
+    Expect.equals(a.avgrU(b).extractLaneUnsigned(0).toIntUnsigned(), 15);
+  }
+
+  // i16x8.sub_sat_s and sub_sat_u
+  {
+    // Signed underflow saturates to -32768 (INT16_MIN).
+    final negA = WasmI16x8.splat(WasmI32.fromInt(-30000));
+    final b = WasmI16x8.splat(WasmI32.fromInt(30000));
+    Expect.equals(negA.subSatS(b).extractLaneSigned(0).toIntSigned(), -32768);
+    // Unsigned underflow saturates to 0.
+    final ten = WasmI16x8.splat(WasmI32.fromInt(10));
+    final twenty = WasmI16x8.splat(WasmI32.fromInt(20));
+    Expect.equals(
+      ten.subSatU(twenty).extractLaneUnsigned(0).toIntUnsigned(),
+      0,
+    );
+  }
+
+  // i16x8.add_sat_s and add_sat_u
+  {
+    // Signed saturates to 32767 (INT16_MAX).
+    final a = WasmI16x8.splat(WasmI32.fromInt(30000));
+    Expect.equals(a.addSatS(a).extractLaneSigned(0).toIntSigned(), 32767);
+    // Unsigned saturates to 65535 (UINT16_MAX).
+    final b = WasmI16x8.splat(WasmI32.fromInt(60000));
+    final c = WasmI16x8.splat(WasmI32.fromInt(10000));
+    Expect.equals(b.addSatU(c).extractLaneUnsigned(0).toIntUnsigned(), 65535);
+  }
+
+  // i16x8.shl, shr_s, shr_u
+  {
+    final one = WasmI16x8.splat(WasmI32.fromInt(1));
+    Expect.equals(
+      one.shl(WasmI32.fromInt(4)).extractLaneSigned(0).toIntSigned(),
+      16,
+    );
+    final neg16 = WasmI16x8.splat(WasmI32.fromInt(-16));
+    Expect.equals(
+      neg16.shrS(WasmI32.fromInt(1)).extractLaneSigned(0).toIntSigned(),
+      -8,
+    );
+    // -16 is 0xfff0, so a logical >> 1 is 0x7ff8 == 32760.
+    Expect.equals(
+      neg16.shrU(WasmI32.fromInt(1)).extractLaneUnsigned(0).toIntUnsigned(),
+      32760,
+    );
+  }
+
+  // i16x8.abs
+  {
+    final neg5 = WasmI16x8.splat(WasmI32.fromInt(-5));
+    Expect.equals(neg5.abs().extractLaneSigned(0).toIntSigned(), 5);
+    // abs(INT16_MIN) wraps back to INT16_MIN.
+    final min = WasmI16x8.splat(WasmI32.fromInt(-32768));
+    Expect.equals(min.abs().extractLaneSigned(0).toIntSigned(), -32768);
+  }
 }
 
 void _testI32x4() {
@@ -168,6 +557,172 @@ void _testI32x4() {
   var s11 = WasmI32x4.splat(WasmI32.fromInt(11));
   vEq = v1.eq(s11);
   _expectCmpFalse(vEq.extractLane(0).toIntSigned());
+
+  // ne
+  var vNe = v1.ne(s11);
+  _expectCmpTrue(vNe.extractLane(0).toIntSigned());
+  vNe = v1.ne(WasmI32x4.splat(WasmI32.fromInt(10)));
+  _expectCmpFalse(vNe.extractLane(0).toIntSigned());
+
+  // i32x4.bitmask
+  {
+    final _0 = WasmI32x4.splat(WasmI32.fromInt(0));
+    final _n1 = WasmI32.fromInt(-1);
+    final _n2 = WasmI32.fromInt(-2);
+    final _sign = WasmI32.fromInt(0x80000000);
+    final _max = WasmI32.fromInt(0x7FFFFFFF);
+    Expect.equals(_0.bitmask.toIntUnsigned(), 0x0);
+    // -1 has all bits set.
+    Expect.equals(WasmI32x4.splat(_n1).bitmask.toIntUnsigned(), 0xF);
+    Expect.equals(_0.replaceLane(0, _n1).bitmask.toIntUnsigned(), 1 << 0);
+    Expect.equals(_0.replaceLane(1, _n1).bitmask.toIntUnsigned(), 1 << 1);
+    Expect.equals(_0.replaceLane(2, _n1).bitmask.toIntUnsigned(), 1 << 2);
+    Expect.equals(_0.replaceLane(3, _n1).bitmask.toIntUnsigned(), 1 << 3);
+    // -2 has every bit except the lowest set, including the sign bit.
+    Expect.equals(WasmI32x4.splat(_n2).bitmask.toIntUnsigned(), 0xF);
+    Expect.equals(_0.replaceLane(0, _n2).bitmask.toIntUnsigned(), 1 << 0);
+    Expect.equals(_0.replaceLane(1, _n2).bitmask.toIntUnsigned(), 1 << 1);
+    Expect.equals(_0.replaceLane(2, _n2).bitmask.toIntUnsigned(), 1 << 2);
+    Expect.equals(_0.replaceLane(3, _n2).bitmask.toIntUnsigned(), 1 << 3);
+    // 0x7FFFFFFF has every bit except the sign bit set.
+    Expect.equals(WasmI32x4.splat(_max).bitmask.toIntUnsigned(), 0x0);
+    Expect.equals(_0.replaceLane(0, _max).bitmask.toIntUnsigned(), 0x0);
+    Expect.equals(_0.replaceLane(1, _max).bitmask.toIntUnsigned(), 0x0);
+    Expect.equals(_0.replaceLane(2, _max).bitmask.toIntUnsigned(), 0x0);
+    Expect.equals(_0.replaceLane(3, _max).bitmask.toIntUnsigned(), 0x0);
+    // 0x80000000 has only the sign bit set.
+    Expect.equals(WasmI32x4.splat(_sign).bitmask.toIntUnsigned(), 0xF);
+    Expect.equals(_0.replaceLane(0, _sign).bitmask.toIntUnsigned(), 1 << 0);
+    Expect.equals(_0.replaceLane(1, _sign).bitmask.toIntUnsigned(), 1 << 1);
+    Expect.equals(_0.replaceLane(2, _sign).bitmask.toIntUnsigned(), 1 << 2);
+    Expect.equals(_0.replaceLane(3, _sign).bitmask.toIntUnsigned(), 1 << 3);
+  }
+
+  // i32x4.abs
+  {
+    final neg5 = WasmI32x4.splat(WasmI32.fromInt(-5));
+    Expect.equals(neg5.abs().extractLane(0).toIntSigned(), 5);
+    // abs(INT_MIN) wraps back to INT_MIN, its magnitude is unrepresentable.
+    final min = WasmI32x4.splat(WasmI32.fromInt(-2147483648));
+    Expect.equals(min.abs().extractLane(0).toIntSigned(), -2147483648);
+  }
+
+  // i32x4.min_s and i32x4.min_u
+  {
+    final ten = WasmI32x4.splat(WasmI32.fromInt(10));
+    final twenty = WasmI32x4.splat(WasmI32.fromInt(20));
+    Expect.equals(ten.minS(twenty).extractLane(0).toIntSigned(), 10);
+
+    // Signed vs unsigned: -1 is 0xffffffff as unsigned, so it is the larger
+    // operand for min_u but the smaller for min_s.
+    final neg1 = WasmI32x4.splat(WasmI32.fromInt(-1));
+    final one = WasmI32x4.splat(WasmI32.fromInt(1));
+    Expect.equals(neg1.minS(one).extractLane(0).toIntSigned(), -1);
+    Expect.equals(neg1.minU(one).extractLane(0).toIntSigned(), 1);
+  }
+
+  // i32x4.max_s and i32x4.max_u
+  {
+    final ten = WasmI32x4.splat(WasmI32.fromInt(10));
+    final twenty = WasmI32x4.splat(WasmI32.fromInt(20));
+    Expect.equals(ten.maxS(twenty).extractLane(0).toIntSigned(), 20);
+
+    // Signed vs unsigned: -1 is 0xffffffff as unsigned, so it is the larger
+    // operand for max_u but the smaller for max_s.
+    final neg1 = WasmI32x4.splat(WasmI32.fromInt(-1));
+    final one = WasmI32x4.splat(WasmI32.fromInt(1));
+    Expect.equals(neg1.maxS(one).extractLane(0).toIntSigned(), 1);
+    Expect.equals(neg1.maxU(one).extractLane(0).toIntSigned(), -1);
+  }
+
+  // In each block, -1 is below 1 as signed but above it as unsigned
+  // (0xffffffff), which distinguishes the _s and _u forms.
+
+  // i32x4.lt_s and i32x4.lt_u
+  {
+    final neg = WasmI32x4.splat(WasmI32.fromInt(-1));
+    final one = WasmI32x4.splat(WasmI32.fromInt(1));
+    final ten = WasmI32x4.splat(WasmI32.fromInt(10));
+    final twenty = WasmI32x4.splat(WasmI32.fromInt(20));
+    _expectCmpTrue(ten.ltS(twenty).extractLane(0).toIntSigned());
+    _expectCmpFalse(twenty.ltS(ten).extractLane(0).toIntSigned());
+    _expectCmpFalse(ten.ltS(ten).extractLane(0).toIntSigned());
+    _expectCmpTrue(neg.ltS(one).extractLane(0).toIntSigned());
+    _expectCmpFalse(neg.ltU(one).extractLane(0).toIntSigned());
+  }
+
+  // i32x4.gt_s and i32x4.gt_u
+  {
+    final neg = WasmI32x4.splat(WasmI32.fromInt(-1));
+    final one = WasmI32x4.splat(WasmI32.fromInt(1));
+    final ten = WasmI32x4.splat(WasmI32.fromInt(10));
+    final twenty = WasmI32x4.splat(WasmI32.fromInt(20));
+    _expectCmpTrue(twenty.gtS(ten).extractLane(0).toIntSigned());
+    _expectCmpFalse(ten.gtS(twenty).extractLane(0).toIntSigned());
+    _expectCmpFalse(neg.gtS(one).extractLane(0).toIntSigned());
+    _expectCmpTrue(neg.gtU(one).extractLane(0).toIntSigned());
+  }
+
+  // i32x4.le_s and i32x4.le_u
+  {
+    final neg = WasmI32x4.splat(WasmI32.fromInt(-1));
+    final one = WasmI32x4.splat(WasmI32.fromInt(1));
+    final ten = WasmI32x4.splat(WasmI32.fromInt(10));
+    final twenty = WasmI32x4.splat(WasmI32.fromInt(20));
+    _expectCmpTrue(ten.leS(ten).extractLane(0).toIntSigned());
+    _expectCmpTrue(ten.leS(twenty).extractLane(0).toIntSigned());
+    _expectCmpFalse(twenty.leS(ten).extractLane(0).toIntSigned());
+    _expectCmpTrue(one.leU(neg).extractLane(0).toIntSigned());
+    _expectCmpFalse(neg.leU(one).extractLane(0).toIntSigned());
+  }
+
+  // i32x4.ge_s and i32x4.ge_u
+  {
+    final neg = WasmI32x4.splat(WasmI32.fromInt(-1));
+    final one = WasmI32x4.splat(WasmI32.fromInt(1));
+    final ten = WasmI32x4.splat(WasmI32.fromInt(10));
+    final twenty = WasmI32x4.splat(WasmI32.fromInt(20));
+    _expectCmpTrue(ten.geS(ten).extractLane(0).toIntSigned());
+    _expectCmpTrue(twenty.geS(ten).extractLane(0).toIntSigned());
+    _expectCmpFalse(ten.geS(twenty).extractLane(0).toIntSigned());
+    _expectCmpTrue(neg.geU(one).extractLane(0).toIntSigned());
+    _expectCmpFalse(one.geU(neg).extractLane(0).toIntSigned());
+  }
+
+  // i32x4.shl. The shift count is a scalar, taken modulo 32.
+  {
+    final one = WasmI32x4.splat(WasmI32.fromInt(1));
+    Expect.equals(one.shl(WasmI32.fromInt(4)).extractLane(0).toIntSigned(), 16);
+    // The shift count wraps modulo 32, so a shift by 32 is a shift by 0.
+    Expect.equals(one.shl(WasmI32.fromInt(32)).extractLane(0).toIntSigned(), 1);
+  }
+
+  // i32x4.shr_s (arithmetic, sign-extending).
+  {
+    final neg8 = WasmI32x4.splat(WasmI32.fromInt(-8));
+    Expect.equals(
+      neg8.shrS(WasmI32.fromInt(1)).extractLane(0).toIntSigned(),
+      -4,
+    );
+  }
+
+  // i32x4.shr_u (logical).
+  {
+    // -8 is 0xfffffff8, so a logical >> 1 is 0x7ffffffc.
+    final neg8 = WasmI32x4.splat(WasmI32.fromInt(-8));
+    Expect.equals(
+      neg8.shrU(WasmI32.fromInt(1)).extractLane(0).toIntSigned(),
+      0x7ffffffc,
+    );
+  }
+
+  // i32x4.all_true
+  {
+    final ones = WasmI32x4.splat(WasmI32.fromInt(1));
+    Expect.isTrue(ones.allTrue);
+    // A single zero lane makes it false.
+    Expect.isFalse(ones.replaceLane(2, WasmI32.fromInt(0)).allTrue);
+  }
 }
 
 void _testI64x2() {
@@ -218,6 +773,78 @@ void _testI64x2() {
   Expect.isFalse(vNotAllTrue.allTrue);
   var vZero = WasmI64x2.splat(WasmI64.fromInt(0));
   Expect.isFalse(vZero.allTrue);
+
+  // i64x2.bitmask
+  {
+    final _0 = WasmI64x2.splat(WasmI64.fromInt(0));
+    final _n1 = WasmI64.fromInt(-1);
+    final _n2 = WasmI64.fromInt(-2);
+    final _sign = WasmI64.fromInt(0x8000_0000_0000_0000);
+    final _max = WasmI64.fromInt(0x7FFF_FFFF_FFFF_FFFF);
+    Expect.equals(_0.bitmask.toIntUnsigned(), 0x0);
+    // -1 has all bits set.
+    Expect.equals(WasmI64x2.splat(_n1).bitmask.toIntUnsigned(), 0x3);
+    Expect.equals(_0.replaceLane(0, _n1).bitmask.toIntUnsigned(), 1 << 0);
+    Expect.equals(_0.replaceLane(1, _n1).bitmask.toIntUnsigned(), 1 << 1);
+    // -2 has every bit except the lowest set, including the sign bit.
+    Expect.equals(WasmI64x2.splat(_n2).bitmask.toIntUnsigned(), 0x3);
+    Expect.equals(_0.replaceLane(0, _n2).bitmask.toIntUnsigned(), 1 << 0);
+    Expect.equals(_0.replaceLane(1, _n2).bitmask.toIntUnsigned(), 1 << 1);
+    // 0x7FFF_FFFF_FFFF_FFFF has every bit except the sign bit set.
+    Expect.equals(WasmI64x2.splat(_max).bitmask.toIntUnsigned(), 0x0);
+    Expect.equals(_0.replaceLane(0, _max).bitmask.toIntUnsigned(), 0x0);
+    Expect.equals(_0.replaceLane(1, _max).bitmask.toIntUnsigned(), 0x0);
+    // 0x8000_0000_0000_0000 has only the sign bit set.
+    Expect.equals(WasmI64x2.splat(_sign).bitmask.toIntUnsigned(), 0x3);
+    Expect.equals(_0.replaceLane(0, _sign).bitmask.toIntUnsigned(), 1 << 0);
+    Expect.equals(_0.replaceLane(1, _sign).bitmask.toIntUnsigned(), 1 << 1);
+  }
+
+  // i64x2.ne
+  {
+    final ten = WasmI64x2.splat(WasmI64.fromInt(10));
+    _expectCmpFalse(ten.ne(ten).extractLane(0).toInt());
+    _expectCmpTrue(
+      ten.ne(WasmI64x2.splat(WasmI64.fromInt(11))).extractLane(0).toInt(),
+    );
+  }
+
+  // i64x2.lt_s/gt_s/le_s/ge_s (signed only)
+  {
+    final ten = WasmI64x2.splat(WasmI64.fromInt(10));
+    final twenty = WasmI64x2.splat(WasmI64.fromInt(20));
+    _expectCmpTrue(ten.ltS(twenty).extractLane(0).toInt());
+    _expectCmpFalse(twenty.ltS(ten).extractLane(0).toInt());
+    _expectCmpTrue(twenty.gtS(ten).extractLane(0).toInt());
+    _expectCmpTrue(ten.leS(ten).extractLane(0).toInt());
+    _expectCmpTrue(ten.geS(ten).extractLane(0).toInt());
+    // Signed: a large negative is below a small positive.
+    final neg = WasmI64x2.splat(WasmI64.fromInt(-5));
+    _expectCmpTrue(neg.ltS(ten).extractLane(0).toInt());
+    _expectCmpFalse(neg.gtS(ten).extractLane(0).toInt());
+  }
+
+  // i64x2.shl, shr_s, shr_u
+  {
+    final one = WasmI64x2.splat(WasmI64.fromInt(1));
+    Expect.equals(one.shl(WasmI32.fromInt(4)).extractLane(0).toInt(), 16);
+    final neg16 = WasmI64x2.splat(WasmI64.fromInt(-16));
+    Expect.equals(neg16.shrS(WasmI32.fromInt(1)).extractLane(0).toInt(), -8);
+    // -16 as u64 >> 1 == 2^63 - 8 == 9223372036854775800.
+    Expect.equals(
+      neg16.shrU(WasmI32.fromInt(1)).extractLane(0).toInt(),
+      9223372036854775800,
+    );
+  }
+
+  // i64x2.abs
+  {
+    final neg5 = WasmI64x2.splat(WasmI64.fromInt(-5));
+    Expect.equals(neg5.abs().extractLane(0).toInt(), 5);
+    // abs(INT64_MIN) wraps back to INT64_MIN.
+    final min = WasmI64x2.splat(WasmI64.fromInt(-9223372036854775808));
+    Expect.equals(min.abs().extractLane(0).toInt(), -9223372036854775808);
+  }
 }
 
 void _testF32x4() {
@@ -391,6 +1018,21 @@ void _testF32x4() {
   _expectCmpTrue(vGe.extractLane(1).toIntSigned());
   _expectCmpTrue(vGe.extractLane(2).toIntSigned());
   _expectCmpTrue(vGe.extractLane(3).toIntSigned());
+
+  // f32x4.ne
+  {
+    final a = WasmF32x4.splat(WasmF32.fromDouble(1.5));
+    _expectCmpFalse(a.ne(a).extractLane(0).toIntSigned());
+    _expectCmpTrue(
+      a
+          .ne(WasmF32x4.splat(WasmF32.fromDouble(2.5)))
+          .extractLane(0)
+          .toIntSigned(),
+    );
+    // NaN compares not-equal to itself.
+    final nan = WasmF32x4.splat(WasmF32.fromDouble(double.nan));
+    _expectCmpTrue(nan.ne(nan).extractLane(0).toIntSigned());
+  }
 }
 
 void _testF64x2() {
@@ -553,6 +1195,18 @@ void _testF64x2() {
   var vDup = vMixed.shuffle(vMixed, const [0, 0]);
   Expect.equals(vDup.extractLane(0).toDouble(), 1.0);
   Expect.equals(vDup.extractLane(1).toDouble(), 1.0);
+
+  // f64x2.ne
+  {
+    final a = WasmF64x2.splat(WasmF64.fromDouble(1.5));
+    _expectCmpFalse(a.ne(a).extractLane(0).toInt());
+    _expectCmpTrue(
+      a.ne(WasmF64x2.splat(WasmF64.fromDouble(2.5))).extractLane(0).toInt(),
+    );
+    // NaN compares not-equal to itself.
+    final nan = WasmF64x2.splat(WasmF64.fromDouble(double.nan));
+    _expectCmpTrue(nan.ne(nan).extractLane(0).toInt());
+  }
 }
 
 void _testV128() {

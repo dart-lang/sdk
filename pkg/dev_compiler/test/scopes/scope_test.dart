@@ -49,7 +49,7 @@ class ScopeDataComputer extends DdcDataComputer<Features> {
   void computeMemberData(
     DdcTestResultData testResultData,
     Member member,
-    Map<Id, ActualData<Features>> actualMap, {
+    ActualDataMap<Features> actualMap, {
     bool? verbose,
   }) {
     member.accept(
@@ -117,6 +117,6 @@ class ScopeDataExtractor extends DdcDataExtractor<Features> {
         return features;
       }
     }
-    return super.computeNodeValue(id, node);
+    return null;
   }
 }

@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// @docImport 'package:dartdev/src/lsp_analysis_server.dart';
+library;
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -29,7 +32,10 @@ void Function(
 )?
 preAnalysisServerStart;
 
-/// A class to provide an API wrapper around an analysis server process.
+/// A class to provide an API wrapper around a Legacy analysis server process.
+///
+/// [LspAnalysisServer] is a replacement for this class and this class will be
+/// removed once both 'dart analyze' and 'dart fix' have been moved over to it.
 class AnalysisServer {
   AnalysisServer(
     this._packagesFile,

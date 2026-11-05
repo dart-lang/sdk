@@ -1,0 +1,8 @@
+parseUnit(#!/usr/bin/env dart)
+  skipErrorTokens(#!/usr/bin/env dart)
+  listener: beginCompilationUnit(#!/usr/bin/env dart)
+  syntheticPreviousToken(#!/usr/bin/env dart)
+  parseScript()
+    listener: handleScript(#!/usr/bin/env dart)
+  reportAllErrorTokens(#!/usr/bin/env dart)
+  listener: endCompilationUnit(0, )

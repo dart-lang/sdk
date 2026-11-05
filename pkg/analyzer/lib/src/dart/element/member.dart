@@ -328,10 +328,15 @@ abstract class SubstitutedExecutableElementImpl extends SubstitutedElementImpl
   }
 
   @override
-  String displayString({bool multiline = false, bool preferTypeAlias = false}) {
+  String displayString({
+    bool multiline = false,
+    bool preferTypeAlias = false,
+    bool includePositionalParameterNames = false,
+  }) {
     var builder = ElementDisplayStringBuilder(
       multiline: multiline,
       preferTypeAlias: preferTypeAlias,
+      includePositionalParameterNames: includePositionalParameterNames,
     );
     appendTo(builder);
     return builder.toString();
@@ -891,9 +896,15 @@ abstract class SubstitutedVariableElementImpl extends SubstitutedElementImpl
   VariableElementImpl get baseElement =>
       super.baseElement as VariableElementImpl;
 
+  @ToBeDeprecated('Use constantInitializer2 instead.')
   @override
   ExpressionImpl? get constantInitializer {
     return baseElement.constantInitializer;
+  }
+
+  @override
+  ExpressionImpl? get constantInitializer2 {
+    return baseElement.constantInitializer2;
   }
 
   @override
@@ -931,10 +942,15 @@ abstract class SubstitutedVariableElementImpl extends SubstitutedElementImpl
   }
 
   @override
-  String displayString({bool multiline = false, bool preferTypeAlias = false}) {
+  String displayString({
+    bool multiline = false,
+    bool preferTypeAlias = false,
+    bool includePositionalParameterNames = false,
+  }) {
     return baseElement.displayString(
       multiline: multiline,
       preferTypeAlias: preferTypeAlias,
+      includePositionalParameterNames: includePositionalParameterNames,
     );
   }
 }

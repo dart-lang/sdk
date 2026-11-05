@@ -8,5 +8,5 @@ static method fn1<_#wc5#type extends core::Object? = dynamic, _#wc6#type extends
 static method test() → dynamic {
   function foo1(<_#wc0#type extends core::Object? = dynamic, _#wc1#type extends core::int>() → void x) → void {}
   function foo2<_#wc2#type extends core::Object? = dynamic, _#wc3#type extends core::int>() → void {}
-  function foo3(<_#wc0#type extends core::Object? = dynamic, _#wc1#type extends core::int = dynamic, _#wc2#type extends core::Object? = dynamic>() → void x) → void {}
+  function foo3(<_#wc0#type extends core::Object? = dynamic, _#wc1#type extends core::int = dynamic, _#wc2#type extends core::Object? = dynamic>() → void x##1) → void {}
 }

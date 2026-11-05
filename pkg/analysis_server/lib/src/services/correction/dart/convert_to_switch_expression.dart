@@ -453,8 +453,8 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
         canBeReturn = false;
       }
 
-      var statement = statements.first;
-      if (statement is ExpressionStatementImpl) {
+      Statement statement = statements.first;
+      if (statement is ExpressionStatement) {
         var expression = statement.expression;
         // Any type of switch can have a throw expression as a statement.
         if (expression is ThrowExpression) {
@@ -470,7 +470,7 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
         // A return switch case's statement can't be a non-throw expression.
         canBeReturn = false;
 
-        if (canBeArgument && expression is MethodInvocationImpl) {
+        if (canBeArgument && expression is MethodInvocation) {
           // An assignment switch case's statement can't be a method invocation.
           canBeAssignment = false;
 
@@ -482,12 +482,12 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
             // The function invoked in each case must be the same.
             return null;
           }
-        } else if (canBeAssignment && expression is AssignmentExpressionImpl) {
+        } else if (canBeAssignment && expression is AssignmentExpression) {
           // An argument switch case's statement can't be an assignment.
           canBeArgument = false;
 
           var leftHandSide = expression.leftHandSide;
-          if (leftHandSide is! SimpleIdentifierImpl) return null;
+          if (leftHandSide is! SimpleIdentifier) return null;
           if (writeElement == null) {
             var element = leftHandSide.element;
             if (element is! LocalVariableElement) return null;
@@ -508,7 +508,7 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
         // it must be a return statement with a
         // non-null expression as part of a return switch.
         if (!canBeReturn ||
-            statement is! ReturnStatementImpl ||
+            statement is! ReturnStatement ||
             statement.expression == null) {
           return null;
         }

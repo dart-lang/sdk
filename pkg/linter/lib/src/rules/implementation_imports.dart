@@ -38,12 +38,8 @@ class ImplementationImports extends AnalysisRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final AnalysisRule rule;
-  final Uri sourceUri;
-
-  new(this.rule, this.sourceUri);
-
+class _Visitor(final AnalysisRule rule, final Uri sourceUri)
+    extends SimpleAstVisitor<void> {
   @override
   void visitImportDirective(ImportDirective node) {
     if (node.libraryImport?.uri case DirectiveUriWithSource importedLibrary) {

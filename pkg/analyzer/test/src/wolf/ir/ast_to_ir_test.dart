@@ -72,9 +72,13 @@ class C {
 test(C c, int other) => c $op other;
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.binary('c $op other')]
-      ..containsSubrange(astNodes[result.findNode.simple('c $op')]!)
-      ..containsSubrange(astNodes[result.findNode.simple('other;')]!);
+    check(astNodes)[result.findNode.binaryOperatorInvocation('c $op other')]
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedNameExpression('c $op')]!,
+      )
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedNameExpression('other;')]!,
+      );
     var c = Instance(result.findElement.class_('C').thisType);
     _callHandlers['C.$op'] = binaryFunction<Instance, int>((this_, other) {
       check(this_).identicalTo(c);
@@ -92,10 +96,17 @@ class C {
 test(List<C> list, int other) => list.first $op= other;
 ''');
     analyze(unitResult, unitResult.findNode.singleFunctionDeclaration);
-    check(astNodes)[unitResult.findNode.assignment('list.first $op= other')]
-      ..containsSubrange(astNodes[unitResult.findNode.simple('list.first')]!)
-      ..containsSubrange(astNodes[unitResult.findNode.prefixed('list.first')]!)
-      ..containsSubrange(astNodes[unitResult.findNode.simple('other;')]!);
+    var assignment = unitResult.findNode.compoundAssignment(
+      'list.first $op= other',
+    );
+    check(astNodes)[assignment]
+      ..containsSubrange(
+        astNodes[unitResult.findNode.unqualifiedNameExpression('list.first')]!,
+      )
+      ..containsSubrange(astNodes[assignment.target]!)
+      ..containsSubrange(
+        astNodes[unitResult.findNode.unqualifiedNameExpression('other;')]!,
+      );
     var c = Instance(unitResult.findElement.class_('C').thisType);
     var result = Instance(unitResult.findElement.class_('C').thisType);
     _callHandlers['C.$op'] = binaryFunction<Instance, int>((this_, other) {
@@ -170,6 +181,180 @@ test() => 'foo' " " 'bar';
 
   test_assignmentExpression_divideEq() => checkBinaryOpEq('/');
 
+  test_assignmentExpression_index_compound() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+external int hook(int value, String label);
+class C {
+  external int operator [](int index);
+  external void operator []=(int index, int value);
+}
+test(C? c) => c?[hook(123, 'index')] += hook(789, 'value');
+''');
+    analyze(result, result.findNode.functionDeclaration('test'));
+    var assignment = result.findNode.compoundAssignment('?[');
+    check(astNodes)[assignment]
+      ..containsSubrange(astNodes[assignment.target]!)
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedFunctionInvocation(
+          "hook(123, 'index')",
+        )]!,
+      )
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedFunctionInvocation(
+          "hook(789, 'value')",
+        )]!,
+      );
+    var c = Instance(result.findElement.class_('C').thisType);
+    _callHandlers['C.[]'] = binaryFunction<Instance, int>((receiver, index) {
+      check(receiver).identicalTo(c);
+      check(index).equals(123);
+      return hook(456, 'C.[]');
+    });
+    _callHandlers['C.[]='] = ternaryFunction<Instance, int, int>((
+      receiver,
+      index,
+      value,
+    ) {
+      check(receiver).identicalTo(c);
+      check(index).equals(123);
+      check(value).equals(1245);
+      return hook(null, 'C.[]=1245');
+    });
+    expectHooks([], () => check(runInterpreter(result, [null])).equals(null));
+    expectHooks([
+      'index',
+      'C.[]',
+      'value',
+      'C.[]=1245',
+    ], () => check(runInterpreter(result, [c])).equals(1245));
+  }
+
+  test_assignmentExpression_index_ifNull() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+external int hook(int x, String s);
+class C {
+  external int? operator [](int index);
+  external void operator []=(int index, int value);
+}
+test(C? c) => c?[hook(123, 'index')] ??= hook(456, '456');
+''');
+    analyze(result, result.findNode.functionDeclaration('test'));
+    var assignment = result.findNode.ifNullAssignment('?[');
+    check(astNodes)[assignment]
+      ..containsSubrange(astNodes[assignment.target]!)
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedFunctionInvocation(
+          "hook(123, 'index')",
+        )]!,
+      )
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedFunctionInvocation(
+          "hook(456, '456')",
+        )]!,
+      );
+    Object? indexedValue;
+    var c = Instance(result.findElement.class_('C').thisType);
+    _callHandlers['C.[]'] = binaryFunction<Instance, int>((receiver, index) {
+      check(receiver).identicalTo(c);
+      check(index).equals(123);
+      return hook(indexedValue, 'C.[]');
+    });
+    _callHandlers['C.[]='] = ternaryFunction<Instance, int, int>((
+      receiver,
+      index,
+      value,
+    ) {
+      check(receiver).identicalTo(c);
+      check(index).equals(123);
+      return hook(indexedValue = value, 'C.[]=$value');
+    });
+    expectHooks([], () => check(runInterpreter(result, [null])).equals(null));
+    expectHooks([
+      'index',
+      'C.[]',
+      '456',
+      'C.[]=456',
+    ], () => check(runInterpreter(result, [c])).equals(456));
+    check(indexedValue).equals(456);
+    expectHooks([
+      'index',
+      'C.[]',
+    ], () => check(runInterpreter(result, [c])).equals(456));
+    check(indexedValue).equals(456);
+  }
+
+  test_assignmentExpression_index_simple() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {
+  external void operator []=(int index, int value);
+}
+test(C c, int index, int value) => c[index] = value;
+''');
+    analyze(result, result.findNode.singleFunctionDeclaration);
+    var assignment = result.findNode.directAssignment('[index] = value');
+    check(astNodes)[assignment]
+      ..containsSubrange(astNodes[assignment.target]!)
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedNameExpression('index]')]!,
+      )
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedNameExpression('value;')]!,
+      );
+    var c = Instance(result.findElement.class_('C').thisType);
+    _callHandlers['C.[]='] = ternaryFunction<Instance, int, int>((
+      receiver,
+      index,
+      value,
+    ) {
+      check(receiver).identicalTo(c);
+      check(index).equals(123);
+      check(value).equals(456);
+      return null;
+    });
+    check(runInterpreter(result, [c, 123, 456])).equals(456);
+  }
+
+  test_assignmentExpression_index_simple_nullShorting() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+external int hook(int value, String label);
+class C {
+  external void operator []=(int index, int value);
+}
+test(C? c) => c?[hook(123, 'index')] = hook(456, 'value');
+''');
+    analyze(result, result.findNode.functionDeclaration('test'));
+    var assignment = result.findNode.directAssignment('?[');
+    check(astNodes)[assignment]
+      ..containsSubrange(astNodes[assignment.target]!)
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedFunctionInvocation(
+          "hook(123, 'index')",
+        )]!,
+      )
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedFunctionInvocation(
+          "hook(456, 'value')",
+        )]!,
+      );
+    var c = Instance(result.findElement.class_('C').thisType);
+    _callHandlers['C.[]='] = ternaryFunction<Instance, int, int>((
+      receiver,
+      index,
+      value,
+    ) {
+      check(receiver).identicalTo(c);
+      check(index).equals(123);
+      check(value).equals(456);
+      return hook(null, 'C.[]=$value');
+    });
+    expectHooks([], () => check(runInterpreter(result, [null])).equals(null));
+    expectHooks([
+      'index',
+      'value',
+      'C.[]=456',
+    ], () => check(runInterpreter(result, [c])).equals(456));
+  }
+
   test_assignmentExpression_integerDivideEq() => checkBinaryOpEq('~/');
 
   test_assignmentExpression_leftShiftEq() => checkBinaryOpEq('<<');
@@ -183,8 +368,10 @@ test() {
 }
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.assignment('i +=')]
-      ..containsSubrange(astNodes[result.findNode.simple('i +=')]!)
+    check(astNodes)[result.findNode.compoundAssignment('i +=')]
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedNameAssignmentTarget('i +=')]!,
+      )
       ..containsSubrange(astNodes[result.findNode.integerLiteral('456')]!);
     check(runInterpreter(result, [])).equals(579);
   }
@@ -197,8 +384,10 @@ test() {
 }
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.assignment('i +=')]
-      ..containsSubrange(astNodes[result.findNode.simple('i +=')]!)
+    check(astNodes)[result.findNode.compoundAssignment('i +=')]
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedNameAssignmentTarget('i +=')]!,
+      )
       ..containsSubrange(astNodes[result.findNode.integerLiteral('456')]!);
     check(runInterpreter(result, [])).equals(579);
   }
@@ -213,10 +402,14 @@ test(int? i) {
 }
 ''');
     analyze(result, result.findNode.functionDeclaration('test'));
-    check(astNodes)[result.findNode.assignment('j ??=')]
-      ..containsSubrange(astNodes[result.findNode.simple('j ??=')]!)
+    check(astNodes)[result.findNode.ifNullAssignment('j ??=')]
       ..containsSubrange(
-        astNodes[result.findNode.methodInvocation("hook(123, '123')")]!,
+        astNodes[result.findNode.unqualifiedNameAssignmentTarget('j ??=')]!,
+      )
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedFunctionInvocation(
+          "hook(123, '123')",
+        )]!,
       );
     expectHooks([
       '123',
@@ -233,10 +426,14 @@ test(int? i) {
 }
 ''');
     analyze(result, result.findNode.functionDeclaration('test'));
-    check(astNodes)[result.findNode.assignment('j ??=')]
-      ..containsSubrange(astNodes[result.findNode.simple('j ??=')]!)
+    check(astNodes)[result.findNode.ifNullAssignment('j ??=')]
       ..containsSubrange(
-        astNodes[result.findNode.methodInvocation("hook(123, '123')")]!,
+        astNodes[result.findNode.unqualifiedNameAssignmentTarget('j ??=')]!,
+      )
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedFunctionInvocation(
+          "hook(123, '123')",
+        )]!,
       );
     expectHooks([
       '123',
@@ -253,8 +450,10 @@ test() {
 }
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.assignment('i =')]
-      ..containsSubrange(astNodes[result.findNode.simple('i =')]!)
+    check(astNodes)[result.findNode.directAssignment('i =')]
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedNameAssignmentTarget('i =')]!,
+      )
       ..containsSubrange(astNodes[result.findNode.integerLiteral('123')]!);
     check(runInterpreter(result, [])).equals(123);
   }
@@ -267,8 +466,10 @@ test() {
 }
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.assignment('i =')]
-      ..containsSubrange(astNodes[result.findNode.simple('i =')]!)
+    check(astNodes)[result.findNode.directAssignment('i =')]
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedNameAssignmentTarget('i =')]!,
+      )
       ..containsSubrange(astNodes[result.findNode.integerLiteral('123')]!);
     check(runInterpreter(result, [])).equals(123);
   }
@@ -285,8 +486,10 @@ test(int i) {
 }
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.assignment('i +=')]
-      ..containsSubrange(astNodes[result.findNode.simple('i +=')]!)
+    check(astNodes)[result.findNode.compoundAssignment('i +=')]
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedNameAssignmentTarget('i +=')]!,
+      )
       ..containsSubrange(astNodes[result.findNode.integerLiteral('456')]!);
     check(runInterpreter(result, [123])).equals(579);
   }
@@ -296,8 +499,10 @@ test(int i) {
 test(int i) => i += 456;
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.assignment('i +=')]
-      ..containsSubrange(astNodes[result.findNode.simple('i +=')]!)
+    check(astNodes)[result.findNode.compoundAssignment('i +=')]
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedNameAssignmentTarget('i +=')]!,
+      )
       ..containsSubrange(astNodes[result.findNode.integerLiteral('456')]!);
     check(runInterpreter(result, [123])).equals(579);
   }
@@ -311,10 +516,14 @@ test(int? i) {
 }
 ''');
     analyze(result, result.findNode.functionDeclaration('test'));
-    check(astNodes)[result.findNode.assignment('i ??=')]
-      ..containsSubrange(astNodes[result.findNode.simple('i ??=')]!)
+    check(astNodes)[result.findNode.ifNullAssignment('i ??=')]
       ..containsSubrange(
-        astNodes[result.findNode.methodInvocation("hook(123, '123')")]!,
+        astNodes[result.findNode.unqualifiedNameAssignmentTarget('i ??=')]!,
+      )
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedFunctionInvocation(
+          "hook(123, '123')",
+        )]!,
       );
     expectHooks([
       '123',
@@ -328,10 +537,14 @@ external int? hook(int? x, String s);
 test(int? i) => i ??= hook(123, '123');
 ''');
     analyze(result, result.findNode.functionDeclaration('test'));
-    check(astNodes)[result.findNode.assignment('i ??=')]
-      ..containsSubrange(astNodes[result.findNode.simple('i ??=')]!)
+    check(astNodes)[result.findNode.ifNullAssignment('i ??=')]
       ..containsSubrange(
-        astNodes[result.findNode.methodInvocation("hook(123, '123')")]!,
+        astNodes[result.findNode.unqualifiedNameAssignmentTarget('i ??=')]!,
+      )
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedFunctionInvocation(
+          "hook(123, '123')",
+        )]!,
       );
     expectHooks([
       '123',
@@ -347,8 +560,10 @@ test(int i) {
 }
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.assignment('i =')]
-      ..containsSubrange(astNodes[result.findNode.simple('i =')]!)
+    check(astNodes)[result.findNode.directAssignment('i =')]
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedNameAssignmentTarget('i =')]!,
+      )
       ..containsSubrange(astNodes[result.findNode.integerLiteral('123')]!);
     check(runInterpreter(result, [1])).equals(123);
   }
@@ -358,8 +573,10 @@ test(int i) {
 test(int i) => i = 123;
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.assignment('i =')]
-      ..containsSubrange(astNodes[result.findNode.simple('i =')]!)
+    check(astNodes)[result.findNode.directAssignment('i =')]
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedNameAssignmentTarget('i =')]!,
+      )
       ..containsSubrange(astNodes[result.findNode.integerLiteral('123')]!);
     check(runInterpreter(result, [1])).equals(123);
   }
@@ -371,9 +588,12 @@ test(int i) => i = 123;
 test(List? l) => l?.length -= 2;
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.assignment('l?.length -= 2')]
-      ..containsSubrange(astNodes[result.findNode.simple('l?.length')]!)
-      ..containsSubrange(astNodes[result.findNode.propertyAccess('l?.length')]!)
+    var assignment = result.findNode.compoundAssignment('l?.length -= 2');
+    check(astNodes)[assignment]
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedNameExpression('l?.length')]!,
+      )
+      ..containsSubrange(astNodes[assignment.target]!)
       ..containsSubrange(astNodes[result.findNode.integerLiteral('2')]!);
     check(runInterpreter(result, [null])).equals(null);
     var l = ['a', 'b', 'c', 'd', 'e'];
@@ -390,11 +610,18 @@ class C {
 test(C? c) => c?.p ??= hook(123, '123');
 ''');
     analyze(result, result.findNode.functionDeclaration('test'));
-    check(astNodes)[result.findNode.assignment("c?.p ??= hook(123, '123')")]
-      ..containsSubrange(astNodes[result.findNode.simple('c?.p')]!)
-      ..containsSubrange(astNodes[result.findNode.propertyAccess('c?.p')]!)
+    var assignment = result.findNode.ifNullAssignment(
+      "c?.p ??= hook(123, '123')",
+    );
+    check(astNodes)[assignment]
       ..containsSubrange(
-        astNodes[result.findNode.methodInvocation("hook(123, '123')")]!,
+        astNodes[result.findNode.unqualifiedNameExpression('c?.p')]!,
+      )
+      ..containsSubrange(astNodes[assignment.target]!)
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedFunctionInvocation(
+          "hook(123, '123')",
+        )]!,
       );
     Object? p;
     _callHandlers['C.p'] = unaryFunction<Instance>((c) => hook(p, 'c.p'));
@@ -419,9 +646,12 @@ test(C? c) => c?.p ??= hook(123, '123');
 test(List? l) => l?.length = 3;
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.assignment('l?.length = 3')]
-      ..containsSubrange(astNodes[result.findNode.simple('l?.length')]!)
-      ..containsSubrange(astNodes[result.findNode.propertyAccess('l?.length')]!)
+    var assignment = result.findNode.directAssignment('l?.length = 3');
+    check(astNodes)[assignment]
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedNameExpression('l?.length')]!,
+      )
+      ..containsSubrange(astNodes[assignment.target]!)
       ..containsSubrange(astNodes[result.findNode.integerLiteral('3')]!);
     check(runInterpreter(result, [null])).equals(null);
     var l = ['a', 'b', 'c', 'd', 'e'];
@@ -434,9 +664,12 @@ test(List? l) => l?.length = 3;
 test(List l) => l.length -= 2;
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.assignment('l.length -= 2')]
-      ..containsSubrange(astNodes[result.findNode.simple('l.length')]!)
-      ..containsSubrange(astNodes[result.findNode.prefixed('l.length')]!)
+    var assignment = result.findNode.compoundAssignment('l.length -= 2');
+    check(astNodes)[assignment]
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedNameExpression('l.length')]!,
+      )
+      ..containsSubrange(astNodes[assignment.target]!)
       ..containsSubrange(astNodes[result.findNode.integerLiteral('2')]!);
     var l = ['a', 'b', 'c', 'd', 'e'];
     check(runInterpreter(result, [makeList(result, l)])).equals(3);
@@ -452,11 +685,18 @@ class C {
 test(C c) => c.p ??= hook(123, '123');
 ''');
     analyze(result, result.findNode.functionDeclaration('test'));
-    check(astNodes)[result.findNode.assignment("c.p ??= hook(123, '123')")]
-      ..containsSubrange(astNodes[result.findNode.simple('c.p')]!)
-      ..containsSubrange(astNodes[result.findNode.prefixed('c.p')]!)
+    var assignment = result.findNode.ifNullAssignment(
+      "c.p ??= hook(123, '123')",
+    );
+    check(astNodes)[assignment]
       ..containsSubrange(
-        astNodes[result.findNode.methodInvocation("hook(123, '123')")]!,
+        astNodes[result.findNode.unqualifiedNameExpression('c.p')]!,
+      )
+      ..containsSubrange(astNodes[assignment.target]!)
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedFunctionInvocation(
+          "hook(123, '123')",
+        )]!,
       );
     Object? p;
     _callHandlers['C.p'] = unaryFunction<Instance>((c) => hook(p, 'c.p'));
@@ -480,9 +720,12 @@ test(C c) => c.p ??= hook(123, '123');
 test(List l) => l.length = 3;
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.assignment('l.length = 3')]
-      ..containsSubrange(astNodes[result.findNode.simple('l.length')]!)
-      ..containsSubrange(astNodes[result.findNode.prefixed('l.length')]!)
+    var assignment = result.findNode.directAssignment('l.length = 3');
+    check(astNodes)[assignment]
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedNameExpression('l.length')]!,
+      )
+      ..containsSubrange(astNodes[assignment.target]!)
       ..containsSubrange(astNodes[result.findNode.integerLiteral('3')]!);
     var l = ['a', 'b', 'c', 'd', 'e'];
     check(runInterpreter(result, [makeList(result, l)])).equals(3);
@@ -494,11 +737,10 @@ test(List l) => l.length = 3;
 test(List l) => (l).length -= 2;
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.assignment('(l).length -= 2')]
+    var assignment = result.findNode.compoundAssignment('(l).length -= 2');
+    check(astNodes)[assignment]
       ..containsSubrange(astNodes[result.findNode.parenthesized('(l)')]!)
-      ..containsSubrange(
-        astNodes[result.findNode.propertyAccess('(l).length')]!,
-      )
+      ..containsSubrange(astNodes[assignment.target]!)
       ..containsSubrange(astNodes[result.findNode.integerLiteral('2')]!);
     var l = ['a', 'b', 'c', 'd', 'e'];
     check(runInterpreter(result, [makeList(result, l)])).equals(3);
@@ -514,11 +756,16 @@ class C {
 test(C c) => (c).p ??= hook(123, '123');
 ''');
     analyze(result, result.findNode.functionDeclaration('test'));
-    check(astNodes)[result.findNode.assignment("(c).p ??= hook(123, '123')")]
+    var assignment = result.findNode.ifNullAssignment(
+      "(c).p ??= hook(123, '123')",
+    );
+    check(astNodes)[assignment]
       ..containsSubrange(astNodes[result.findNode.parenthesized('(c)')]!)
-      ..containsSubrange(astNodes[result.findNode.propertyAccess('(c).p')]!)
+      ..containsSubrange(astNodes[assignment.target]!)
       ..containsSubrange(
-        astNodes[result.findNode.methodInvocation("hook(123, '123')")]!,
+        astNodes[result.findNode.unqualifiedFunctionInvocation(
+          "hook(123, '123')",
+        )]!,
       );
     Object? p;
     _callHandlers['C.p'] = unaryFunction<Instance>((c) => hook(p, 'c.p'));
@@ -542,15 +789,89 @@ test(C c) => (c).p ??= hook(123, '123');
 test(List l) => (l).length = 3;
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.assignment('(l).length = 3')]
+    var assignment = result.findNode.directAssignment('(l).length = 3');
+    check(astNodes)[assignment]
       ..containsSubrange(astNodes[result.findNode.parenthesized('(l)')]!)
-      ..containsSubrange(
-        astNodes[result.findNode.propertyAccess('(l).length')]!,
-      )
+      ..containsSubrange(astNodes[assignment.target]!)
       ..containsSubrange(astNodes[result.findNode.integerLiteral('3')]!);
     var l = ['a', 'b', 'c', 'd', 'e'];
     check(runInterpreter(result, [makeList(result, l)])).equals(3);
     check(l).deepEquals(['a', 'b', 'c']);
+  }
+
+  test_assignmentExpression_property_propertyAssignmentTarget_nullAware_compound() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+external int hook(int x, String s);
+class C {
+  external int get p;
+  external set p(int value);
+}
+test(C? c) => (c)?.p += hook(2, 'rhs');
+''');
+    analyze(result, result.findNode.functionDeclaration('test'));
+    var value = 3;
+    _callHandlers['C.p'] = unaryFunction<Instance>((c) => hook(value, 'get'));
+    _callHandlers['C.p='] = binaryFunction<Instance, int>(
+      (c, newValue) => hook(value = newValue, 'set=$newValue'),
+    );
+    var c = Instance(result.findElement.class_('C').thisType);
+    expectHooks([
+      'get',
+      'rhs',
+      'set=5',
+    ], () => check(runInterpreter(result, [c])).equals(5));
+    check(value).equals(5);
+    expectHooks([], () => check(runInterpreter(result, [null])).equals(null));
+    check(value).equals(5);
+  }
+
+  test_assignmentExpression_property_propertyAssignmentTarget_nullAware_ifNull() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+external int hook(int x, String s);
+class C {
+  external int? get p;
+  external set p(int value);
+}
+test(C? c) => (c)?.p ??= hook(2, 'rhs');
+''');
+    analyze(result, result.findNode.functionDeclaration('test'));
+    int? value;
+    _callHandlers['C.p'] = unaryFunction<Instance>((c) => hook(value, 'get'));
+    _callHandlers['C.p='] = binaryFunction<Instance, int>(
+      (c, newValue) => hook(value = newValue, 'set=$newValue'),
+    );
+    var c = Instance(result.findElement.class_('C').thisType);
+    expectHooks([
+      'get',
+      'rhs',
+      'set=2',
+    ], () => check(runInterpreter(result, [c])).equals(2));
+    check(value).equals(2);
+    expectHooks(['get'], () => check(runInterpreter(result, [c])).equals(2));
+    expectHooks([], () => check(runInterpreter(result, [null])).equals(null));
+  }
+
+  test_assignmentExpression_property_propertyAssignmentTarget_nullAware_simple() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+external int hook(int x, String s);
+class C {
+  external set p(int value);
+}
+test(C? c) => (c)?.p = hook(2, 'rhs');
+''');
+    analyze(result, result.findNode.functionDeclaration('test'));
+    int? value;
+    _callHandlers['C.p='] = binaryFunction<Instance, int>(
+      (c, newValue) => hook(value = newValue, 'set=$newValue'),
+    );
+    var c = Instance(result.findElement.class_('C').thisType);
+    expectHooks([
+      'rhs',
+      'set=2',
+    ], () => check(runInterpreter(result, [c])).equals(2));
+    check(value).equals(2);
+    expectHooks([], () => check(runInterpreter(result, [null])).equals(null));
+    check(value).equals(2);
   }
 
   test_assignmentExpression_property_simpleIdentifier_compound() async {
@@ -560,8 +881,12 @@ extension E on List {
 }
 ''');
     analyze(result, result.findNode.singleMethodDeclaration);
-    check(astNodes)[result.findNode.assignment('length -= 2')]
-      ..containsSubrange(astNodes[result.findNode.simple('length')]!)
+    check(astNodes)[result.findNode.compoundAssignment('length -= 2')]
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedNameAssignmentTarget(
+          'length -= 2',
+        )]!,
+      )
       ..containsSubrange(astNodes[result.findNode.integerLiteral('2')]!);
     var l = ['a', 'b', 'c', 'd', 'e'];
     check(runInterpreter(result, [makeList(result, l)])).equals(3);
@@ -577,10 +902,14 @@ class C {
 }
 ''');
     analyze(result, result.findNode.methodDeclaration('test'));
-    check(astNodes)[result.findNode.assignment("p ??= hook(123, '123')")]
-      ..containsSubrange(astNodes[result.findNode.simple('p ??=')]!)
+    check(astNodes)[result.findNode.ifNullAssignment("p ??= hook(123, '123')")]
       ..containsSubrange(
-        astNodes[result.findNode.methodInvocation("hook(123, '123')")]!,
+        astNodes[result.findNode.unqualifiedNameAssignmentTarget('p ??=')]!,
+      )
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedFunctionInvocation(
+          "hook(123, '123')",
+        )]!,
       );
     Object? p;
     _callHandlers['C.p'] = unaryFunction<Instance>((c) => hook(p, 'c.p'));
@@ -606,8 +935,12 @@ extension E on List {
 }
 ''');
     analyze(result, result.findNode.singleMethodDeclaration);
-    check(astNodes)[result.findNode.assignment('length = 3')]
-      ..containsSubrange(astNodes[result.findNode.simple('length')]!)
+    check(astNodes)[result.findNode.directAssignment('length = 3')]
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedNameAssignmentTarget(
+          'length = 3',
+        )]!,
+      )
       ..containsSubrange(astNodes[result.findNode.integerLiteral('3')]!);
     var l = ['a', 'b', 'c', 'd', 'e'];
     check(runInterpreter(result, [makeList(result, l)])).equals(3);
@@ -626,7 +959,7 @@ test(Future f) async => await f;
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
     check(astNodes)[result.findNode.awaitExpression('await')].containsSubrange(
-      astNodes[result.findNode.simple('f;')]!,
+      astNodes[result.findNode.unqualifiedNameExpression('f;')]!,
     );
     var f = Instance(
       result.typeProvider.futureType(result.typeProvider.intType),
@@ -644,12 +977,16 @@ external bool hook(bool b, String s);
 test(bool x, bool y) => hook(x, 'x') && hook(y, 'y');
 ''');
     analyze(result, result.findNode.functionDeclaration('test'));
-    check(astNodes)[result.findNode.binary("hook(x, 'x') && hook(y, 'y')")]
+    check(astNodes)[result.findNode.logicalAnd("hook(x, 'x') && hook(y, 'y')")]
       ..containsSubrange(
-        astNodes[result.findNode.methodInvocation("hook(x, 'x')")]!,
+        astNodes[result.findNode.unqualifiedFunctionInvocation(
+          "hook(x, 'x')",
+        )]!,
       )
       ..containsSubrange(
-        astNodes[result.findNode.methodInvocation("hook(y, 'y')")]!,
+        astNodes[result.findNode.unqualifiedFunctionInvocation(
+          "hook(y, 'y')",
+        )]!,
       );
     expectHooks([
       'x',
@@ -680,9 +1017,13 @@ test(bool x, bool y) => hook(x, 'x') && hook(y, 'y');
 test(Object? x, Object? y) => x == y;
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.binary('x == y')]
-      ..containsSubrange(astNodes[result.findNode.simple('x ==')]!)
-      ..containsSubrange(astNodes[result.findNode.simple('y;')]!);
+    check(astNodes)[result.findNode.binaryOperatorInvocation('x == y')]
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedNameExpression('x ==')]!,
+      )
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedNameExpression('y;')]!,
+      );
     check(runInterpreter(result, [null, null])).equals(true);
     check(runInterpreter(result, [null, 1])).equals(false);
     check(runInterpreter(result, [1, null])).equals(false);
@@ -700,12 +1041,16 @@ external Object? hook(Object? x, String s);
 test(Object? x, Object? y) => hook(x, 'x') ?? hook(y, 'y');
 ''');
     analyze(result, result.findNode.functionDeclaration('test'));
-    check(astNodes)[result.findNode.binary("hook(x, 'x') ?? hook(y, 'y')")]
+    check(astNodes)[result.findNode.ifNull("hook(x, 'x') ?? hook(y, 'y')")]
       ..containsSubrange(
-        astNodes[result.findNode.methodInvocation("hook(x, 'x')")]!,
+        astNodes[result.findNode.unqualifiedFunctionInvocation(
+          "hook(x, 'x')",
+        )]!,
       )
       ..containsSubrange(
-        astNodes[result.findNode.methodInvocation("hook(y, 'y')")]!,
+        astNodes[result.findNode.unqualifiedFunctionInvocation(
+          "hook(y, 'y')",
+        )]!,
       );
     expectHooks([
       'x',
@@ -740,9 +1085,13 @@ test(Object? x, Object? y) => hook(x, 'x') ?? hook(y, 'y');
 test(Object? x, Object? y) => x != y;
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.binary('x != y')]
-      ..containsSubrange(astNodes[result.findNode.simple('x !=')]!)
-      ..containsSubrange(astNodes[result.findNode.simple('y;')]!);
+    check(astNodes)[result.findNode.binaryOperatorInvocation('x != y')]
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedNameExpression('x !=')]!,
+      )
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedNameExpression('y;')]!,
+      );
     check(runInterpreter(result, [null, null])).equals(false);
     check(runInterpreter(result, [null, 1])).equals(true);
     check(runInterpreter(result, [1, null])).equals(true);
@@ -756,12 +1105,16 @@ external bool hook(bool b, String s);
 test(bool x, bool y) => hook(x, 'x') || hook(y, 'y');
 ''');
     analyze(result, result.findNode.functionDeclaration('test'));
-    check(astNodes)[result.findNode.binary("hook(x, 'x') || hook(y, 'y')")]
+    check(astNodes)[result.findNode.logicalOr("hook(x, 'x') || hook(y, 'y')")]
       ..containsSubrange(
-        astNodes[result.findNode.methodInvocation("hook(x, 'x')")]!,
+        astNodes[result.findNode.unqualifiedFunctionInvocation(
+          "hook(x, 'x')",
+        )]!,
       )
       ..containsSubrange(
-        astNodes[result.findNode.methodInvocation("hook(y, 'y')")]!,
+        astNodes[result.findNode.unqualifiedFunctionInvocation(
+          "hook(y, 'y')",
+        )]!,
       );
     expectHooks([
       'x',
@@ -885,7 +1238,9 @@ test(bool b) => b ? 1 : 2;
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
     check(astNodes)[result.findNode.conditionalExpression('b ? 1 : 2')]
-      ..containsSubrange(astNodes[result.findNode.simple('b ?')]!)
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedNameExpression('b ?')]!,
+      )
       ..containsSubrange(astNodes[result.findNode.integerLiteral('1')]!)
       ..containsSubrange(astNodes[result.findNode.integerLiteral('2')]!);
     check(runInterpreter(result, [true])).equals(1);
@@ -951,7 +1306,9 @@ test(int count, List<int> result) {
     analyze(result, result.findNode.singleFunctionDeclaration);
     check(astNodes)[result.findNode.doStatement('do')]
       ..containsSubrange(astNodes[result.findNode.block('result.add')]!)
-      ..containsSubrange(astNodes[result.findNode.binary('count > 0')]!);
+      ..containsSubrange(
+        astNodes[result.findNode.binaryOperatorInvocation('count > 0')]!,
+      );
     var values = <int>[];
     check(runInterpreter(result, [5, makeList(result, values)])).equals(null);
     check(values).deepEquals([5, 4, 3, 2, 1]);
@@ -987,8 +1344,11 @@ test(int i) {
 }
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.expressionStatement('i = 123')]
-        .containsSubrange(astNodes[result.findNode.assignment('i = 123')]!);
+    check(
+      astNodes,
+    )[result.findNode.expressionStatement('i = 123')].containsSubrange(
+      astNodes[result.findNode.directAssignment('i = 123')]!,
+    );
     check(runInterpreter(result, [1])).equals(123);
   }
 
@@ -1005,8 +1365,10 @@ test(int count, List<int> result) {
       ..containsSubrange(
         astNodes[result.findNode.variableDeclarationList('var i = 0')]!,
       )
-      ..containsSubrange(astNodes[result.findNode.binary('i < count')]!)
-      ..containsSubrange(astNodes[result.findNode.postfix('i++')]!)
+      ..containsSubrange(
+        astNodes[result.findNode.binaryOperatorInvocation('i < count')]!,
+      )
+      ..containsSubrange(astNodes[result.findNode.incrementOrDecrement('i++')]!)
       ..containsSubrange(astNodes[result.findNode.block('result.add')]!);
     var values = <int>[];
     check(runInterpreter(result, [5, makeList(result, values)])).equals(null);
@@ -1025,7 +1387,9 @@ test(bool b) {
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
     check(astNodes)[result.findNode.ifStatement('if')]
-      ..containsSubrange(astNodes[result.findNode.simple('b /*test*/')]!)
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedNameExpression('b /*test*/')]!,
+      )
       ..containsSubrange(astNodes[result.findNode.block('result = 1')]!);
     check(runInterpreter(result, [true])).equals(1);
     check(runInterpreter(result, [false])).equals(null);
@@ -1041,7 +1405,9 @@ test(bool b) {
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
     check(astNodes)[result.findNode.ifStatement('if')]
-      ..containsSubrange(astNodes[result.findNode.simple('b /*test*/')]!)
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedNameExpression('b /*test*/')]!,
+      )
       ..containsSubrange(astNodes[result.findNode.block('return 1')]!);
     check(runInterpreter(result, [true])).equals(1);
     check(runInterpreter(result, [false])).equals(null);
@@ -1061,7 +1427,9 @@ test(bool b) {
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
     check(astNodes)[result.findNode.ifStatement('if')]
-      ..containsSubrange(astNodes[result.findNode.simple('b /*test*/')]!)
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedNameExpression('b /*test*/')]!,
+      )
       ..containsSubrange(astNodes[result.findNode.block('result = 1')]!)
       ..containsSubrange(astNodes[result.findNode.block('result = 2')]!);
     check(runInterpreter(result, [true])).equals(1);
@@ -1080,7 +1448,9 @@ test(bool b) {
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
     check(astNodes)[result.findNode.ifStatement('if')]
-      ..containsSubrange(astNodes[result.findNode.simple('b /*test*/')]!)
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedNameExpression('b /*test*/')]!,
+      )
       ..containsSubrange(astNodes[result.findNode.block('return 1')]!)
       ..containsSubrange(astNodes[result.findNode.block('return 2')]!);
     check(runInterpreter(result, [true])).equals(1);
@@ -1102,7 +1472,7 @@ test(Object? o) => o is! String;
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
     check(astNodes)[result.findNode.isExpression('is')].containsSubrange(
-      astNodes[result.findNode.simple('o is')]!,
+      astNodes[result.findNode.unqualifiedNameExpression('o is')]!,
     );
     check(runInterpreter(result, [123])).equals(true);
     check(runInterpreter(result, ['123'])).equals(false);
@@ -1114,7 +1484,7 @@ test(Object? o) => o is String;
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
     check(astNodes)[result.findNode.isExpression('is')].containsSubrange(
-      astNodes[result.findNode.simple('o is')]!,
+      astNodes[result.findNode.unqualifiedNameExpression('o is')]!,
     );
     check(runInterpreter(result, [123])).equals(false);
     check(runInterpreter(result, ['123'])).equals(true);
@@ -1125,9 +1495,15 @@ test(Object? o) => o is String;
 test(Object? x, Object? y) => identical(x, y);
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.methodInvocation('identical(x, y)')]
-      ..containsSubrange(astNodes[result.findNode.simple('x, y')]!)
-      ..containsSubrange(astNodes[result.findNode.simple('y);')]!);
+    check(astNodes)[result.findNode.unqualifiedFunctionInvocation(
+        'identical(x, y)',
+      )]
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedNameExpression('x, y')]!,
+      )
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedNameExpression('y);')]!,
+      );
     var s1 = 's';
     var s2 = String.fromCharCode(s1.codeUnitAt(0));
     assert(!identical(s1, s2));
@@ -1141,10 +1517,16 @@ external bool identical(Object? x, Object? y);
 test(Object? x, Object? y) => identical(x, y); // invocation
 ''');
     analyze(result, result.findNode.functionDeclaration('test'));
-    check(astNodes)[result.findNode.methodInvocation('identical(x, y)')]
-      ..containsSubrange(astNodes[result.findNode.simple('x, y')]!)
+    check(astNodes)[result.findNode.unqualifiedFunctionInvocation(
+        'identical(x, y)',
+      )]
       ..containsSubrange(
-        astNodes[result.findNode.simple('y); // invocation')]!,
+        astNodes[result.findNode.unqualifiedNameExpression('x, y')]!,
+      )
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedNameExpression(
+          'y); // invocation',
+        )]!,
       );
     var s1 = 's';
     var s2 = String.fromCharCode(s1.codeUnitAt(0));
@@ -1161,9 +1543,13 @@ test(Object? x, Object? y) => identical(x, y); // invocation
 test(String s1, String s2) => s1.contains(s2);
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.methodInvocation('s1.contains(s2)')]
-      ..containsSubrange(astNodes[result.findNode.simple('s1.contains')]!)
-      ..containsSubrange(astNodes[result.findNode.simple('s2);')]!);
+    check(astNodes)[result.findNode.receiverMethodInvocation('s1.contains(s2)')]
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedNameExpression('s1.contains')]!,
+      )
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedNameExpression('s2);')]!,
+      );
     check(runInterpreter(result, ['abcde', 'bcd'])).equals(true);
     check(runInterpreter(result, ['abc', 'abcde'])).equals(false);
   }
@@ -1176,8 +1562,10 @@ class C {
 }
 ''');
     analyze(result, result.findNode.methodDeclaration('test'));
-    check(astNodes)[result.findNode.methodInvocation('f(x)')].containsSubrange(
-      astNodes[result.findNode.simple('x); // invocation')]!,
+    check(
+      astNodes,
+    )[result.findNode.unqualifiedFunctionInvocation('f(x)')].containsSubrange(
+      astNodes[result.findNode.unqualifiedNameExpression('x); // invocation')]!,
     );
     var c = Instance(result.findElement.class_('C').thisType);
     _callHandlers['C.f'] = binaryFunction<Instance, int>((this_, x) {
@@ -1194,13 +1582,19 @@ external String f();
 test(String? s) => s?.contains(f());
 ''');
     analyze(result, result.findNode.functionDeclaration('test'));
-    check(astNodes)[result.findNode.methodInvocation('s?.contains(f())')]
-      ..containsSubrange(astNodes[result.findNode.simple('s?.contains')]!)
-      ..containsSubrange(astNodes[result.findNode.methodInvocation('f())')]!);
+    check(astNodes)[result.findNode.receiverMethodInvocation(
+        's?.contains(f())',
+      )]
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedNameExpression('s?.contains')]!,
+      )
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedFunctionInvocation('f())')]!,
+      );
     late bool fCalled;
     late String fValue;
     _callHandlers['f'] = nullaryFunction(() {
-      check(fCalled).isFalse();
+      check(fCalled).isFalse;
       fCalled = true;
       return fValue;
     });
@@ -1218,14 +1612,44 @@ test(String? s) => s?.contains(f());
     check(fCalled).isFalse;
   }
 
+  test_methodInvocation_nullAware_receiverMethod() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+external String f();
+test(String? s) => (s)?.contains(f());
+''');
+    analyze(result, result.findNode.functionDeclaration('test'));
+    check(astNodes)[result.findNode.singleReceiverMethodInvocation]
+      ..containsSubrange(astNodes[result.findNode.parenthesized('(s)')]!)
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedFunctionInvocation('f())')]!,
+      );
+    late bool fCalled;
+    _callHandlers['f'] = nullaryFunction(() {
+      check(fCalled).isFalse;
+      fCalled = true;
+      return 'bcd';
+    });
+    fCalled = false;
+    check(runInterpreter(result, ['abcde'])).equals(true);
+    check(fCalled).isTrue;
+    fCalled = false;
+    check(runInterpreter(result, [null])).equals(null);
+    check(fCalled).isFalse;
+  }
+
   test_methodInvocation_staticMethod() async {
     var result = await resolveTestCodeWithDiagnostics('''
 test(String s) => int.parse(s);
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.methodInvocation('int.parse(s)')]
-        .containsSubrange(astNodes[result.findNode.simple('s);')]!);
-    check(astNodes).not((s) => s.containsNode(result.findNode.simple('int')));
+    check(astNodes)[result.findNode.receiverMethodInvocation('int.parse(s)')]
+        .containsSubrange(
+          astNodes[result.findNode.unqualifiedNameExpression('s);')]!,
+        );
+    check(astNodes).not(
+      .it()
+        ..containsNode(result.findNode.singleReceiverMethodInvocation.receiver),
+    );
     check(runInterpreter(result, ['123'])).equals(123);
   }
 
@@ -1237,8 +1661,10 @@ class C {
   }
 ''');
     analyze(result, result.findNode.methodDeclaration('test'));
-    check(astNodes)[result.findNode.methodInvocation('f(x)')].containsSubrange(
-      astNodes[result.findNode.simple('x); // invocation')]!,
+    check(
+      astNodes,
+    )[result.findNode.unqualifiedFunctionInvocation('f(x)')].containsSubrange(
+      astNodes[result.findNode.unqualifiedNameExpression('x); // invocation')]!,
     );
     _callHandlers['C.f'] = unaryFunction<int>((x) {
       check(x).equals(123);
@@ -1254,9 +1680,9 @@ external int f();
 test() => f(); // invocation
 ''');
     analyze(result, result.findNode.functionDeclaration('test'));
-    check(
-      astNodes,
-    ).containsNode(result.findNode.methodInvocation('f(); // invocation'));
+    check(astNodes).containsNode(
+      result.findNode.unqualifiedFunctionInvocation('f(); // invocation'),
+    );
     _callHandlers['f'] = nullaryFunction(() => 123);
     check(runInterpreter(result, [])).equals(123);
   }
@@ -1267,10 +1693,14 @@ external int f(int x, {required int y});
 test(int x, int y) => f(x, y: y); // invocation
 ''');
     analyze(result, result.findNode.functionDeclaration('test'));
-    check(astNodes)[result.findNode.methodInvocation('f(x, y: y)')]
-      ..containsSubrange(astNodes[result.findNode.simple('x, y')]!)
+    check(astNodes)[result.findNode.unqualifiedFunctionInvocation('f(x, y: y)')]
       ..containsSubrange(
-        astNodes[result.findNode.simple('y); // invocation')]!,
+        astNodes[result.findNode.unqualifiedNameExpression('x, y')]!,
+      )
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedNameExpression(
+          'y); // invocation',
+        )]!,
       );
     _callHandlers['f'] = (callDescriptor, positionalArguments, namedArguments) {
       check(callDescriptor.typeArguments).isEmpty;
@@ -1289,10 +1719,14 @@ external int f(int x, int y);
 test(int x, int y) => f(x, y); // invocation
 ''');
     analyze(result, result.findNode.functionDeclaration('test'));
-    check(astNodes)[result.findNode.methodInvocation('f(x, y)')]
-      ..containsSubrange(astNodes[result.findNode.simple('x, y')]!)
+    check(astNodes)[result.findNode.unqualifiedFunctionInvocation('f(x, y)')]
       ..containsSubrange(
-        astNodes[result.findNode.simple('y); // invocation')]!,
+        astNodes[result.findNode.unqualifiedNameExpression('x, y')]!,
+      )
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedNameExpression(
+          'y); // invocation',
+        )]!,
       );
     _callHandlers['f'] = binaryFunction<int, int>((x, y) => 10 * x + y);
     check(runInterpreter(result, [1, 2])).equals(12);
@@ -1304,9 +1738,15 @@ external int f({required int x, required int y});
 test(int x, int y) => f(y: y, x: x);
 ''');
     analyze(result, result.findNode.functionDeclaration('test'));
-    check(astNodes)[result.findNode.methodInvocation('f(y: y, x: x)')]
-      ..containsSubrange(astNodes[result.findNode.simple('y, x')]!)
-      ..containsSubrange(astNodes[result.findNode.simple('x);')]!);
+    check(astNodes)[result.findNode.unqualifiedFunctionInvocation(
+        'f(y: y, x: x)',
+      )]
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedNameExpression('y, x')]!,
+      )
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedNameExpression('x);')]!,
+      );
     _callHandlers['f'] = (callDescriptor, positionalArguments, namedArguments) {
       check(callDescriptor.typeArguments).isEmpty;
       check(positionalArguments).isEmpty;
@@ -1324,9 +1764,9 @@ external f<T, U>();
 test() => f<int, String>();
 ''');
     analyze(result, result.findNode.functionDeclaration('test'));
-    check(
-      astNodes,
-    ).containsNode(result.findNode.methodInvocation('f<int, String>()'));
+    check(astNodes).containsNode(
+      result.findNode.unqualifiedFunctionInvocation('f<int, String>()'),
+    );
     _callHandlers['f'] = (callDescriptor, positinalArguments, namedArguments) {
       check(callDescriptor.typeArguments).length.equals(2);
       check(
@@ -1379,7 +1819,7 @@ test(int i) => (i);
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
     check(astNodes)[result.findNode.parenthesized('(i)')].containsSubrange(
-      astNodes[result.findNode.simple('i);')]!,
+      astNodes[result.findNode.unqualifiedNameExpression('i);')]!,
     );
     check(runInterpreter(result, [123])).equals(123);
   }
@@ -1402,10 +1842,11 @@ test(List<Object?>? list) => (list?.first).hashCode;
 test(List? l) => l?.length--;
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.postfix('l?.length--')]
-      ..containsSubrange(astNodes[result.findNode.simple('l?.length')]!)
+    var update = result.findNode.incrementOrDecrement('l?.length--');
+    check(astNodes)[update]
+      ..containsSubrange(astNodes[update.target]!)
       ..containsSubrange(
-        astNodes[result.findNode.propertyAccess('l?.length')]!,
+        astNodes[result.findNode.unqualifiedNameExpression('l?.length')]!,
       );
     check(runInterpreter(result, [null])).equals(null);
     var l = ['a', 'b', 'c', 'd', 'e'];
@@ -1418,9 +1859,12 @@ test(List? l) => l?.length--;
 test(List l) => l.length--;
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.postfix('l.length--')]
-      ..containsSubrange(astNodes[result.findNode.simple('l.length')]!)
-      ..containsSubrange(astNodes[result.findNode.prefixed('l.length')]!);
+    var update = result.findNode.incrementOrDecrement('l.length--');
+    check(astNodes)[update]
+      ..containsSubrange(astNodes[update.target]!)
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedNameExpression('l.length')]!,
+      );
     var l = ['a', 'b', 'c', 'd', 'e'];
     check(runInterpreter(result, [makeList(result, l)])).equals(5);
     check(l).deepEquals(['a', 'b', 'c', 'd']);
@@ -1431,11 +1875,10 @@ test(List l) => l.length--;
 test(List l) => (l).length--;
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.postfix('(l).length--')]
-      ..containsSubrange(astNodes[result.findNode.parenthesized('(l)')]!)
-      ..containsSubrange(
-        astNodes[result.findNode.propertyAccess('(l).length')]!,
-      );
+    var update = result.findNode.incrementOrDecrement('(l).length--');
+    check(astNodes)[update]
+      ..containsSubrange(astNodes[update.target]!)
+      ..containsSubrange(astNodes[result.findNode.parenthesized('(l)')]!);
     var l = ['a', 'b', 'c', 'd', 'e'];
     check(runInterpreter(result, [makeList(result, l)])).equals(5);
     check(l).deepEquals(['a', 'b', 'c', 'd']);
@@ -1448,9 +1891,8 @@ extension E on List {
 }
 ''');
     analyze(result, result.findNode.singleMethodDeclaration);
-    check(astNodes)[result.findNode.postfix('length--')].containsSubrange(
-      astNodes[result.findNode.simple('length')]!,
-    );
+    var update = result.findNode.incrementOrDecrement('length--');
+    check(astNodes)[update].containsSubrange(astNodes[update.target]!);
     var l = ['a', 'b', 'c', 'd', 'e'];
     check(runInterpreter(result, [makeList(result, l)])).equals(5);
     check(l).deepEquals(['a', 'b', 'c', 'd']);
@@ -1465,9 +1907,8 @@ test() {
 }
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.postfix('i++')].containsSubrange(
-      astNodes[result.findNode.simple('i++')]!,
-    );
+    var update = result.findNode.incrementOrDecrement('i++');
+    check(astNodes)[update].containsSubrange(astNodes[update.target]!);
     check(runInterpreter(result, [])).equals(124);
   }
 
@@ -1479,9 +1920,8 @@ test() {
 }
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.postfix('i++')].containsSubrange(
-      astNodes[result.findNode.simple('i++')]!,
-    );
+    var update = result.findNode.incrementOrDecrement('i++');
+    check(astNodes)[update].containsSubrange(astNodes[update.target]!);
     check(runInterpreter(result, [])).equals(123);
   }
 
@@ -1493,9 +1933,8 @@ test(int i) {
 }
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.postfix('i++')].containsSubrange(
-      astNodes[result.findNode.simple('i++')]!,
-    );
+    var update = result.findNode.incrementOrDecrement('i++');
+    check(astNodes)[update].containsSubrange(astNodes[update.target]!);
     check(runInterpreter(result, [123])).equals(124);
   }
 
@@ -1504,9 +1943,8 @@ test(int i) {
 test(int i) => i++;
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.postfix('i++')].containsSubrange(
-      astNodes[result.findNode.simple('i++')]!,
-    );
+    var update = result.findNode.incrementOrDecrement('i++');
+    check(astNodes)[update].containsSubrange(astNodes[update.target]!);
     check(runInterpreter(result, [123])).equals(123);
   }
 
@@ -1515,10 +1953,11 @@ test(int i) => i++;
 test(List? l) => --l?.length;
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.prefix('--l?.length')]
-      ..containsSubrange(astNodes[result.findNode.simple('l?.length')]!)
+    var update = result.findNode.incrementOrDecrement('--l?.length');
+    check(astNodes)[update]
+      ..containsSubrange(astNodes[update.target]!)
       ..containsSubrange(
-        astNodes[result.findNode.propertyAccess('l?.length')]!,
+        astNodes[result.findNode.unqualifiedNameExpression('l?.length')]!,
       );
     check(runInterpreter(result, [null])).equals(null);
     var l = ['a', 'b', 'c', 'd', 'e'];
@@ -1531,9 +1970,12 @@ test(List? l) => --l?.length;
 test(List l) => --l.length;
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.prefix('--l.length')]
-      ..containsSubrange(astNodes[result.findNode.simple('l.length')]!)
-      ..containsSubrange(astNodes[result.findNode.prefixed('l.length')]!);
+    var update = result.findNode.incrementOrDecrement('--l.length');
+    check(astNodes)[update]
+      ..containsSubrange(astNodes[update.target]!)
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedNameExpression('l.length')]!,
+      );
     var l = ['a', 'b', 'c', 'd', 'e'];
     check(runInterpreter(result, [makeList(result, l)])).equals(4);
     check(l).deepEquals(['a', 'b', 'c', 'd']);
@@ -1544,11 +1986,10 @@ test(List l) => --l.length;
 test(List l) => --(l).length;
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.prefix('--(l).length')]
-      ..containsSubrange(astNodes[result.findNode.parenthesized('(l)')]!)
-      ..containsSubrange(
-        astNodes[result.findNode.propertyAccess('(l).length')]!,
-      );
+    var update = result.findNode.incrementOrDecrement('--(l).length');
+    check(astNodes)[update]
+      ..containsSubrange(astNodes[update.target]!)
+      ..containsSubrange(astNodes[result.findNode.parenthesized('(l)')]!);
     var l = ['a', 'b', 'c', 'd', 'e'];
     check(runInterpreter(result, [makeList(result, l)])).equals(4);
     check(l).deepEquals(['a', 'b', 'c', 'd']);
@@ -1561,9 +2002,8 @@ extension E on List {
 }
 ''');
     analyze(result, result.findNode.singleMethodDeclaration);
-    check(astNodes)[result.findNode.prefix('--length')].containsSubrange(
-      astNodes[result.findNode.simple('length')]!,
-    );
+    var update = result.findNode.incrementOrDecrement('--length');
+    check(astNodes)[update].containsSubrange(astNodes[update.target]!);
     var l = ['a', 'b', 'c', 'd', 'e'];
     check(runInterpreter(result, [makeList(result, l)])).equals(4);
     check(l).deepEquals(['a', 'b', 'c', 'd']);
@@ -1578,9 +2018,8 @@ test() {
 }
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.prefix('++i')].containsSubrange(
-      astNodes[result.findNode.simple('i; // increment')]!,
-    );
+    var update = result.findNode.incrementOrDecrement('++i');
+    check(astNodes)[update].containsSubrange(astNodes[update.target]!);
     check(runInterpreter(result, [])).equals(124);
   }
 
@@ -1592,9 +2031,8 @@ test() {
 }
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.prefix('++i')].containsSubrange(
-      astNodes[result.findNode.simple('i;')]!,
-    );
+    var update = result.findNode.incrementOrDecrement('++i');
+    check(astNodes)[update].containsSubrange(astNodes[update.target]!);
     check(runInterpreter(result, [])).equals(124);
   }
 
@@ -1606,9 +2044,8 @@ test(int i) {
 }
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.prefix('++i')].containsSubrange(
-      astNodes[result.findNode.simple('i; // increment')]!,
-    );
+    var update = result.findNode.incrementOrDecrement('++i');
+    check(astNodes)[update].containsSubrange(astNodes[update.target]!);
     check(runInterpreter(result, [123])).equals(124);
   }
 
@@ -1617,9 +2054,8 @@ test(int i) {
 test(int i) => ++i;
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.prefix('++i')].containsSubrange(
-      astNodes[result.findNode.simple('i;')]!,
-    );
+    var update = result.findNode.incrementOrDecrement('++i');
+    check(astNodes)[update].containsSubrange(astNodes[update.target]!);
     check(runInterpreter(result, [123])).equals(124);
   }
 
@@ -1628,8 +2064,8 @@ test(int i) => ++i;
 test(bool b) => !b;
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.prefix('!b')].containsSubrange(
-      astNodes[result.findNode.simple('b;')]!,
+    check(astNodes)[result.findNode.logicalNot('!b')].containsSubrange(
+      astNodes[result.findNode.unqualifiedNameExpression('b;')]!,
     );
     check(runInterpreter(result, [true])).equals(false);
     check(runInterpreter(result, [false])).equals(true);
@@ -1667,13 +2103,27 @@ test(List<Object?>? list) => list?.first?.hashCode;
     ).equals(123.hashCode);
   }
 
+  test_propertyExtraction_nullAware() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+test(String? s) => (s)?.length;
+''');
+    analyze(result, result.findNode.singleFunctionDeclaration);
+    check(astNodes)[result.findNode.singleReceiverPropertyExtraction]
+        .containsSubrange(astNodes[result.findNode.parenthesized('(s)')]!);
+    check(runInterpreter(result, [null])).equals(null);
+    check(runInterpreter(result, ['foo'])).equals(3);
+  }
+
   test_propertyGet_nullShorting() async {
     var result = await resolveTestCodeWithDiagnostics('''
 test(String? s) => s?.length;
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.propertyAccess('s?.length')]
-        .containsSubrange(astNodes[result.findNode.simple('s?.length')]!);
+    check(
+      astNodes,
+    )[result.findNode.receiverPropertyExtraction('s?.length')].containsSubrange(
+      astNodes[result.findNode.unqualifiedNameExpression('s?.length')]!,
+    );
     check(runInterpreter(result, [null])).equals(null);
     check(runInterpreter(result, ['foo'])).equals(3);
   }
@@ -1683,19 +2133,21 @@ test(String? s) => s?.length;
 test(int i) => i.isEven;
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.prefixed('i.isEven')].containsSubrange(
-      astNodes[result.findNode.simple('i.')]!,
+    check(
+      astNodes,
+    )[result.findNode.receiverPropertyExtraction('i.isEven')].containsSubrange(
+      astNodes[result.findNode.unqualifiedNameExpression('i.')]!,
     );
     check(runInterpreter(result, [1])).equals(false);
     check(runInterpreter(result, [2])).equals(true);
   }
 
-  test_propertyGet_propertyAccess() async {
+  test_propertyGet_propertyExtraction() async {
     var result = await resolveTestCodeWithDiagnostics('''
 test() => 'foo'.length;
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.propertyAccess("'foo'.length")]
+    check(astNodes)[result.findNode.receiverPropertyExtraction("'foo'.length")]
         .containsSubrange(astNodes[result.findNode.stringLiteral("'foo'")]!);
     check(runInterpreter(result, [])).equals(3);
   }
@@ -1707,7 +2159,9 @@ extension E on String {
 }
 ''');
     analyze(result, result.findNode.singleMethodDeclaration);
-    check(astNodes).containsNode(result.findNode.simple('length'));
+    check(
+      astNodes,
+    ).containsNode(result.findNode.unqualifiedNameExpression('length'));
     check(runInterpreter(result, ['foo'])).equals(3);
   }
 
@@ -1744,7 +2198,9 @@ test() {
 }
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes).containsNode(result.findNode.simple('i;'));
+    check(
+      astNodes,
+    ).containsNode(result.findNode.unqualifiedNameExpression('i;'));
     check(runInterpreter(result, [])).equals(123);
   }
 
@@ -1753,7 +2209,9 @@ test() {
 test(int i) => i;
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes).containsNode(result.findNode.simple('i;'));
+    check(
+      astNodes,
+    ).containsNode(result.findNode.unqualifiedNameExpression('i;'));
     check(runInterpreter(result, [123])).equals(123);
   }
 
@@ -1826,7 +2284,7 @@ test() {
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
     check(astNodes)[result.findNode.variableDeclarationList('int i')].not(
-      (s) => s.instructions.any((s) => s.opcode.equals(Opcode.writeLocal)),
+      .it()..instructions.any(.it()..opcode.equals(Opcode.writeLocal)),
     );
     check(runInterpreter(result, [])).identicalTo(123);
   }
@@ -1856,10 +2314,13 @@ test() {
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
     check(astNodes)[result.findNode.variableDeclarationList('int i')].not(
-      (s) => s.instructions.any((s) => s.opcode.equals(Opcode.writeLocal)),
+      .it()..instructions.any(.it()..opcode.equals(Opcode.writeLocal)),
     );
     check(() => runInterpreter(result, [])).throws<SoundnessError>()
-      ..address.equals(astNodes[result.findNode.simple('i; // UNSOUND')]!.start)
+      ..address.equals(
+        astNodes[result.findNode.unqualifiedNameExpression('i; // UNSOUND')]!
+            .start,
+      )
       ..message.equals('Read of unset local');
   }
 
@@ -1915,7 +2376,9 @@ test(int count, List<int> result) {
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
     check(astNodes)[result.findNode.whileStatement('while')]
-      ..containsSubrange(astNodes[result.findNode.binary('count-- > 0')]!)
+      ..containsSubrange(
+        astNodes[result.findNode.binaryOperatorInvocation('count-- > 0')]!,
+      )
       ..containsSubrange(astNodes[result.findNode.block('result.add')]!);
     var values = <int>[];
     check(runInterpreter(result, [5, makeList(result, values)])).equals(null);
@@ -1930,7 +2393,7 @@ test(Object? o) sync* {
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
     check(astNodes)[result.findNode.yieldStatement('yield')].containsSubrange(
-      astNodes[result.findNode.simple('o;')]!,
+      astNodes[result.findNode.unqualifiedNameExpression('o;')]!,
     );
     _onYield = (value) {
       check(value).equals(123);
@@ -1945,23 +2408,35 @@ test(Object? o) sync* {
       (callDescriptor, positionalArguments, namedArguments) {
         check(callDescriptor.typeArguments).isEmpty;
         check(positionalArguments).length.equals(2);
-        check(namedArguments).isEmpty();
+        check(namedArguments).isEmpty;
         return f(positionalArguments[0] as T, positionalArguments[1] as U);
       };
 
   static CallHandler nullaryFunction(Object? Function() f) =>
       (callDescriptor, positionalArguments, namedArguments) {
         check(callDescriptor.typeArguments).isEmpty;
-        check(positionalArguments).isEmpty();
-        check(namedArguments).isEmpty();
+        check(positionalArguments).isEmpty;
+        check(namedArguments).isEmpty;
         return f();
+      };
+
+  static CallHandler ternaryFunction<T, U, V>(Object? Function(T, U, V) f) =>
+      (callDescriptor, positionalArguments, namedArguments) {
+        check(callDescriptor.typeArguments).isEmpty;
+        check(positionalArguments).length.equals(3);
+        check(namedArguments).isEmpty;
+        return f(
+          positionalArguments[0] as T,
+          positionalArguments[1] as U,
+          positionalArguments[2] as V,
+        );
       };
 
   static CallHandler unaryFunction<T>(Object? Function(T) f) =>
       (callDescriptor, positionalArguments, namedArguments) {
         check(callDescriptor.typeArguments).isEmpty;
         check(positionalArguments).length.equals(1);
-        check(namedArguments).isEmpty();
+        check(namedArguments).isEmpty;
         return f(positionalArguments[0] as T);
       };
 }

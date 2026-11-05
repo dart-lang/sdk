@@ -71,6 +71,29 @@ export 'dart:math';
 ''',
     });
   }
+
+  test_part_nested_duplicateExport() async {
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+    var c = getFile('$testPackageLibPath/c.dart');
+
+    await resolveFilesWithDiagnostics({
+      a: r'''
+part 'b.dart';
+''',
+      b: r'''
+part of 'a.dart';
+part 'c.dart';
+''',
+      c: r'''
+part of 'b.dart';
+export 'dart:math';
+export 'dart:math';
+//     ^^^^^^^^^^^
+// [diag.duplicateExport] Duplicate export.
+''',
+    });
+  }
 }
 
 @reflectiveTest
@@ -133,13 +156,13 @@ class B {}
     await resolveFileWithDiagnostics(lib2, r'''
 library L;
 import 'lib1.dart' as M show A hide B;
-//                      ^^^^^^^^^^^^^
-// [diag.multipleCombinators] Using multiple 'hide' or 'show' combinators is never necessary and often produces surprising results.
+//                             ^^^^
+// [diag.multipleCombinators] At most one 'show' or 'hide' combinator can be used on an import or export directive.
 import 'lib1.dart' as M show A hide B;
 //     ^^^^^^^^^^^
 // [diag.duplicateImport] Duplicate import.
-//                      ^^^^^^^^^^^^^
-// [diag.multipleCombinators] Using multiple 'hide' or 'show' combinators is never necessary and often produces surprising results.
+//                             ^^^^
+// [diag.multipleCombinators] At most one 'show' or 'hide' combinator can be used on an import or export directive.
 M.A a = M.A();
 ''');
   }
@@ -228,6 +251,30 @@ part 'b.dart';
 ''',
       b: r'''
 part of 'a.dart';
+import 'dart:math';
+import 'dart:math';
+//     ^^^^^^^^^^^
+// [diag.duplicateImport] Duplicate import.
+void f(Random _) {}
+''',
+    });
+  }
+
+  test_part_nested_duplicateImport() async {
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+    var c = getFile('$testPackageLibPath/c.dart');
+
+    await resolveFilesWithDiagnostics({
+      a: r'''
+part 'b.dart';
+''',
+      b: r'''
+part of 'a.dart';
+part 'c.dart';
+''',
+      c: r'''
+part of 'b.dart';
 import 'dart:math';
 import 'dart:math';
 //     ^^^^^^^^^^^

@@ -9,10 +9,10 @@ import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/source_edits.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
+import 'package:analyzer_testing/src/single_unit.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../abstract_single_unit.dart';
 import '../utils/lsp_protocol_extensions.dart';
 import 'request_helpers_mixin.dart';
 
@@ -23,7 +23,7 @@ void main() {
 }
 
 @reflectiveTest
-class SourceEditsTest extends AbstractSingleUnitTest with LspEditHelpersMixin {
+class SourceEditsTest extends SingleUnitTest with LspEditHelpersMixin {
   Future<void> test_format_version_defaultsToLatest() async {
     // Latest version should parse and format records.
     const startContent = '''
@@ -51,7 +51,7 @@ var    a = (1, 2);
 
   Future<void> test_format_version_packageConfig() async {
     // 2.19 will not parse/format records.
-    writeTestPackageConfig(languageVersion: '2.19');
+    writeTestPackageConfig2(languageVersion: '2.19');
     const content = '''
 var    a = (1, 2);
 ''';
@@ -61,7 +61,7 @@ var    a = (1, 2);
 
   Future<void> test_format_version_versionToken_overridesPackageConfig() async {
     // 2.19 will not parse/format records.
-    writeTestPackageConfig(languageVersion: '3.0');
+    writeTestPackageConfig2(languageVersion: '3.0');
     const content = '''
 // @dart = 2.19
 var    a = (1, 2);

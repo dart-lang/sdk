@@ -132,7 +132,7 @@ ir.LibraryDependency? getDeferredImport(ir.TreeNode node) {
   }
 
   if (parent is ir.Let) {
-    var initializer = parent.variable.initializer;
+    var initializer = parent.value;
     if (initializer is ir.CheckLibraryIsLoaded) {
       return initializer.import;
     }

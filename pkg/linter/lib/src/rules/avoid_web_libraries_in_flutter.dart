@@ -104,11 +104,7 @@ class AvoidWebLibrariesInFlutter extends AnalysisRule {
   static void clearCache() => _rootHasFlutterCache.clear();
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final AnalysisRule rule;
-
-  new(this.rule);
-
+class _Visitor(final AnalysisRule rule) extends SimpleAstVisitor<void> {
   bool isWebUri(String uri) {
     var uriLength = uri.length;
     return (uriLength == 9 && uri == 'dart:html') ||

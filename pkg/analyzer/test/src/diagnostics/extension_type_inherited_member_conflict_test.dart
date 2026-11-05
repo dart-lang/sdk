@@ -41,6 +41,35 @@ extension type B(int it) implements A1, A2 {}
 ''');
   }
 
+  test_conflict_inSummary() async {
+    enableIndex = false;
+    librarySummaryFiles = [
+      await buildPackageFooSummary(
+        files: {
+          'lib/foo.dart': r'''
+extension type A1(int it) {
+  void foo() {}
+}
+
+extension type A2(int it) {
+  void foo() {}
+}
+''',
+        },
+      ),
+    ];
+    sdkSummaryFile = await writeSdkSummary();
+
+    // No context messages, the locations in the summary are not known.
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:foo/foo.dart';
+
+extension type B(int it) implements A1, A2 {}
+//             ^
+// [diag.extensionTypeInheritedMemberConflict] The extension type 'B' has more than one distinct member named 'foo' from implemented types.
+''');
+  }
+
   test_conflict_representationField() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension type A(String bar) {}

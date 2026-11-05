@@ -93,6 +93,7 @@ class MicroAssembler : public AssemblerBase {
   void lui(Register rd, intptr_t imm);
   void lui_fixed(Register rd, intptr_t imm);
   void auipc(Register rd, intptr_t imm);
+  void lpad(intptr_t label = 0) { auipc(ZR, label); }
 
   void jal(Register rd, Label* label, JumpDistance d = kFarJump);
   void jal(Label* label, JumpDistance d = kFarJump) { jal(RA, label, d); }
@@ -209,7 +210,29 @@ class MicroAssembler : public AssemblerBase {
   }
 
   // ==== RV64I ====
-#if XLEN >= 64
+#if XLEN == 32
+  void lwu(Register rd, Address addr) { lw(rd, addr); }
+
+  void addiw(Register rd, Register rs1, intptr_t imm) { addi(rd, rs1, imm); }
+  void subiw(Register rd, Register rs1, intptr_t imm) { subi(rd, rs1, imm); }
+  void slliw(Register rd, Register rs1, intptr_t shamt) {
+    slli(rd, rs1, shamt);
+  }
+  void srliw(Register rd, Register rs1, intptr_t shamt) {
+    srli(rd, rs1, shamt);
+  }
+  void sraiw(Register rd, Register rs1, intptr_t shamt) {
+    srai(rd, rs1, shamt);
+  }
+
+  void addw(Register rd, Register rs1, Register rs2) { add(rd, rs1, rs2); }
+  void subw(Register rd, Register rs1, Register rs2) { sub(rd, rs1, rs2); }
+  void sllw(Register rd, Register rs1, Register rs2) { sll(rd, rs1, rs2); }
+  void srlw(Register rd, Register rs1, Register rs2) { srl(rd, rs1, rs2); }
+  void sraw(Register rd, Register rs1, Register rs2) { sra(rd, rs1, rs2); }
+
+  void negw(Register rd, Register rs) { neg(rd, rs); }
+#else
   void lwu(Register rd, Address addr);
   void ld(Register rd, Address addr);
 
@@ -245,7 +268,13 @@ class MicroAssembler : public AssemblerBase {
   void remu(Register rd, Register rs1, Register rs2);
 
   // ==== RV64M ====
-#if XLEN >= 64
+#if XLEN == 32
+  void mulw(Register rd, Register rs1, Register rs2) { mul(rd, rs1, rs2); }
+  void divw(Register rd, Register rs1, Register rs2) { div(rd, rs1, rs2); }
+  void divuw(Register rd, Register rs1, Register rs2) { divu(rd, rs1, rs2); }
+  void remw(Register rd, Register rs1, Register rs2) { rem(rd, rs1, rs2); }
+  void remuw(Register rd, Register rs1, Register rs2) { remu(rd, rs1, rs2); }
+#else
   void mulw(Register rd, Register rs1, Register rs2);
   void divw(Register rd, Register rs1, Register rs2);
   void divuw(Register rd, Register rs1, Register rs2);

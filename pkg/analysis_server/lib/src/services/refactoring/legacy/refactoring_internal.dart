@@ -78,6 +78,9 @@ class SourceReference {
     return hash;
   }
 
+  bool get isConstructorCommentReference =>
+      _match.kind == MatchKind.REFERENCE_BY_CONSTRUCTOR_COMMENT_REFERENCE;
+
   bool get isConstructorTearOff =>
       _match.kind == MatchKind.REFERENCE_BY_CONSTRUCTOR_TEAR_OFF;
 

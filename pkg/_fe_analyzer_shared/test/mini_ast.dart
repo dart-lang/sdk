@@ -16,11 +16,14 @@ import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart'
         FlowAnalysis,
         PropertyTarget,
         SuperPropertyTarget,
-        ThisPropertyTarget;
+        ThisPropertyTarget,
+        PromotionInfo;
+import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis_log.dart';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis_operations.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/body_inference_context.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/null_shorting.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/promotion_key_store.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart'
     as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
@@ -593,6 +596,16 @@ Statement switch_(
   bool? expectRequiresExhaustivenessValidation,
   String? expectScrutineeType,
 }) {
+  for (var i = 0; i < cases.length - 1; i++) {
+    var case_ = cases[i];
+    if (case_.body.statements.isEmpty) {
+      throw StateError(
+        'Only the last case in a switch statement may have an empty body. '
+        'Either add an explicit `break_()`, or use `switchStatementMember` to '
+        'group cases that share a body.\n${case_.body.location}',
+      );
+    }
+  }
   var location = computeLocation();
   return new SwitchStatement(
     expression.asExpression(location: location),
@@ -693,7 +706,7 @@ class As extends Expression {
   As._(this.target, this.type, {required super.location});
 
   @override
-  void preVisit(PreVisitor visitor) {
+  void preVisitInternal(PreVisitor visitor) {
     target.preVisit(visitor);
   }
 
@@ -709,12 +722,14 @@ class As extends Expression {
 class Assert extends Statement {
   final Expression condition;
   final Expression? message;
+  int? _syntheticAfterConditionOffset;
 
   Assert._(this.condition, this.message, {required super.location});
 
   @override
-  void preVisit(PreVisitor visitor) {
+  void preVisitInternal(PreVisitor visitor) {
     condition.preVisit(visitor);
+    _syntheticAfterConditionOffset = visitor.generateSyntheticOffset();
     message?.preVisit(visitor);
   }
 
@@ -724,7 +739,12 @@ class Assert extends Statement {
 
   @override
   StatementTypeAnalysisResult visit(Harness h) {
-    h.typeAnalyzer.analyzeAssertStatement(this, condition, message);
+    h.typeAnalyzer.analyzeAssertStatement(
+      this,
+      condition,
+      message,
+      afterConditionOffset: _syntheticAfterConditionOffset!,
+    );
     h.irBuilder.apply(
       'assert',
       [Kind.expression, Kind.expression],
@@ -741,7 +761,7 @@ class AwaitExpression extends Expression {
   AwaitExpression._(this.operand, {required super.location});
 
   @override
-  void preVisit(PreVisitor visitor) {
+  void preVisitInternal(PreVisitor visitor) {
     operand.preVisit(visitor);
   }
 
@@ -770,7 +790,7 @@ class Block extends Statement {
       ];
 
   @override
-  void preVisit(PreVisitor visitor) {
+  void preVisitInternal(PreVisitor visitor) {
     for (var statement in statements) {
       statement.preVisit(visitor);
     }
@@ -812,7 +832,7 @@ class BooleanLiteral extends Expression {
   BooleanLiteral._(this.value, {required super.location});
 
   @override
-  void preVisit(PreVisitor visitor) {}
+  void preVisitInternal(PreVisitor visitor) {}
 
   @override
   String toString() => '$value';
@@ -861,7 +881,7 @@ class Break extends Statement {
   Break(this.target, {required super.location});
 
   @override
-  void preVisit(PreVisitor visitor) {}
+  void preVisitInternal(PreVisitor visitor) {}
 
   @override
   String toString() => 'break;';
@@ -873,6 +893,7 @@ class Break extends Statement {
       target == null
           ? h.typeAnalyzer._currentBreakTarget
           : target._getBinding(),
+      offset: _syntheticEndOffset!,
     );
     h.irBuilder.apply('break', [], Kind.statement, location: location);
     return const StatementTypeAnalysisResult();
@@ -895,6 +916,8 @@ class Cascade extends Expression {
   /// preceded by `?..` instead of `..`).
   final bool isNullAware;
 
+  int? _syntheticAfterTargetOffset;
+
   Cascade._(
     this.target,
     this.sections, {
@@ -903,8 +926,9 @@ class Cascade extends Expression {
   });
 
   @override
-  void preVisit(PreVisitor visitor) {
+  void preVisitInternal(PreVisitor visitor) {
     target.preVisit(visitor);
+    _syntheticAfterTargetOffset = visitor.generateSyntheticOffset();
     for (var section in sections) {
       section.preVisit(visitor);
     }
@@ -930,6 +954,7 @@ class Cascade extends Expression {
           targetAnalysisResult.flowAnalysisInfo,
           targetType,
           isNullAware: isNullAware,
+          offset: _syntheticAfterTargetOffset!,
         );
     if (isNullAware) {
       // Push `targetTmp == null` and `targetTmp` on the IR builder stack,
@@ -968,7 +993,7 @@ class Cascade extends Expression {
         Kind.expression,
         location: location,
       );
-      h.flow.nullAwareAccess_end();
+      h.flow.nullAwareAccess_end(offset: _syntheticEndOffset!);
     }
     h.irBuilder.let(targetTmp, location: location);
     ExpressionInfo flowAnalysisInfo = h.flow.cascadeExpression_end();
@@ -991,7 +1016,7 @@ class CascadePlaceholder extends Expression {
   CascadePlaceholder._({required super.location});
 
   @override
-  void preVisit(PreVisitor visitor) {}
+  void preVisitInternal(PreVisitor visitor) {}
 
   @override
   String toString() {
@@ -1025,7 +1050,7 @@ class CastPattern extends Pattern {
       h.typeAnalyzer.analyzeCastPatternSchema();
 
   @override
-  void preVisit(
+  void preVisitInternal(
     PreVisitor visitor,
     VariableBinder<Node, Var> variableBinder, {
     required bool isInAssignment,
@@ -1067,6 +1092,7 @@ class CatchClause {
   final Type? exceptionType;
   final Var? exception;
   final Var? stackTrace;
+  int? _syntheticAfterOpenBraceOffset;
 
   CatchClause._(
     this.body,
@@ -1109,6 +1135,7 @@ class CatchClause {
     if (stackTrace case var stackTrace?) {
       visitor._assignedVariables.declare(stackTrace);
     }
+    _syntheticAfterOpenBraceOffset = visitor.generateSyntheticOffset();
     body.preVisit(visitor);
   }
 }
@@ -1124,7 +1151,7 @@ class CheckAssigned extends Expression {
   });
 
   @override
-  void preVisit(PreVisitor visitor) {}
+  void preVisitInternal(PreVisitor visitor) {}
 
   @override
   String toString() {
@@ -1157,7 +1184,7 @@ class CheckPromoted extends Expression {
   });
 
   @override
-  void preVisit(PreVisitor visitor) {
+  void preVisitInternal(PreVisitor visitor) {
     promotable.preVisit(visitor);
   }
 
@@ -1190,7 +1217,7 @@ class CheckPromotionChain extends Expression {
   });
 
   @override
-  void preVisit(PreVisitor visitor) {
+  void preVisitInternal(PreVisitor visitor) {
     promotable.preVisit(visitor);
   }
 
@@ -1221,7 +1248,7 @@ class CheckReachable extends Expression {
   CheckReachable(this.expectedReachable, {required super.location});
 
   @override
-  void preVisit(PreVisitor visitor) {}
+  void preVisitInternal(PreVisitor visitor) {}
 
   @override
   String toString() => 'check reachable';
@@ -1247,7 +1274,7 @@ class CheckUnassigned extends Expression {
   });
 
   @override
-  void preVisit(PreVisitor visitor) {}
+  void preVisitInternal(PreVisitor visitor) {}
 
   @override
   String toString() {
@@ -1288,7 +1315,13 @@ abstract class CollectionElement extends Node
     return this;
   }
 
-  void preVisit(PreVisitor visitor);
+  void preVisit(PreVisitor visitor) {
+    _syntheticStartOffset = visitor.generateSyntheticOffset();
+    preVisitInternal(visitor);
+    _syntheticEndOffset = visitor.generateSyntheticOffset();
+  }
+
+  void preVisitInternal(PreVisitor visitor);
 
   void visit(Harness h, CollectionElementContext context);
 }
@@ -1312,6 +1345,8 @@ class Conditional extends Expression {
   final Expression condition;
   final Expression ifTrue;
   final Expression ifFalse;
+  int? _syntheticAfterQuestionOffset;
+  int? _syntheticAfterColonOffset;
 
   Conditional._(
     this.condition,
@@ -1321,10 +1356,12 @@ class Conditional extends Expression {
   });
 
   @override
-  void preVisit(PreVisitor visitor) {
+  void preVisitInternal(PreVisitor visitor) {
     condition.preVisit(visitor);
+    _syntheticAfterQuestionOffset = visitor.generateSyntheticOffset();
     visitor._assignedVariables.beginNode();
     ifTrue.preVisit(visitor);
+    _syntheticAfterColonOffset = visitor.generateSyntheticOffset();
     visitor._assignedVariables.endNode(this);
     ifFalse.preVisit(visitor);
   }
@@ -1339,6 +1376,8 @@ class Conditional extends Expression {
       condition,
       ifTrue,
       ifFalse,
+      afterQuestionOffset: _syntheticAfterQuestionOffset!,
+      afterColonOffset: _syntheticAfterColonOffset!,
     );
     h.irBuilder.apply(
       'if',
@@ -1360,7 +1399,7 @@ class ConstantPattern extends Pattern {
       h.typeAnalyzer.analyzeConstantPatternSchema();
 
   @override
-  void preVisit(
+  void preVisitInternal(
     PreVisitor visitor,
     VariableBinder<Node, Var> variableBinder, {
     required bool isInAssignment,
@@ -1406,7 +1445,7 @@ class Continue extends Statement {
   Continue._(this.target, {required super.location});
 
   @override
-  void preVisit(PreVisitor visitor) {}
+  void preVisitInternal(PreVisitor visitor) {}
 
   @override
   String toString() => 'continue;';
@@ -1418,6 +1457,7 @@ class Continue extends Statement {
       target == null
           ? h.typeAnalyzer._currentContinueTarget
           : target._getBinding(),
+      offset: _syntheticEndOffset!,
     );
     h.irBuilder.apply('continue', [], Kind.statement, location: location);
     return const StatementTypeAnalysisResult();
@@ -1427,13 +1467,17 @@ class Continue extends Statement {
 class Do extends Statement {
   final Statement body;
   final Expression condition;
+  int? _syntheticBodyBeginOffset;
+  int? _syntheticConditionBeginOffset;
 
   Do._(this.body, this.condition, {required super.location});
 
   @override
-  void preVisit(PreVisitor visitor) {
+  void preVisitInternal(PreVisitor visitor) {
     visitor._assignedVariables.beginNode();
+    _syntheticBodyBeginOffset = visitor.generateSyntheticOffset();
     body.preVisit(visitor);
+    _syntheticConditionBeginOffset = visitor.generateSyntheticOffset();
     condition.preVisit(visitor);
     visitor._assignedVariables.endNode(this);
   }
@@ -1443,7 +1487,13 @@ class Do extends Statement {
 
   @override
   StatementTypeAnalysisResult visit(Harness h) {
-    h.typeAnalyzer.analyzeDoLoop(this, body, condition);
+    h.typeAnalyzer.analyzeDoLoop(
+      this,
+      body,
+      condition,
+      bodyBeginOffset: _syntheticBodyBeginOffset!,
+      conditionBeginOffset: _syntheticConditionBeginOffset!,
+    );
     h.irBuilder.apply(
       'do',
       [Kind.statement, Kind.expression],
@@ -1462,7 +1512,7 @@ class DotShorthand extends Expression {
   DotShorthand._(this.expr, {required super.location});
 
   @override
-  void preVisit(PreVisitor visitor) {
+  void preVisitInternal(PreVisitor visitor) {
     expr.preVisit(visitor);
   }
 
@@ -1483,7 +1533,7 @@ class DotShorthandHead extends Expression {
   DotShorthandHead._(this.name, {required super.location});
 
   @override
-  void preVisit(PreVisitor visitor) {}
+  void preVisitInternal(PreVisitor visitor) {}
 
   @override
   String toString() => '.$name';
@@ -1498,12 +1548,14 @@ class Equal extends Expression {
   final Expression lhs;
   final Expression rhs;
   final bool isInverted;
+  int? _syntheticAfterOperatorOffset;
 
   Equal._(this.lhs, this.rhs, this.isInverted, {required super.location});
 
   @override
-  void preVisit(PreVisitor visitor) {
+  void preVisitInternal(PreVisitor visitor) {
     lhs.preVisit(visitor);
+    _syntheticAfterOperatorOffset = visitor.generateSyntheticOffset();
     rhs.preVisit(visitor);
   }
 
@@ -1518,6 +1570,7 @@ class Equal extends Expression {
       lhs,
       operatorName,
       rhs,
+      afterOperatorOffset: _syntheticAfterOperatorOffset!,
     );
     h.irBuilder.apply(
       operatorName,
@@ -1560,17 +1613,25 @@ abstract class Expression extends Node
   @override
   Expression asExpression({required String location}) => this;
 
-  void preVisit(PreVisitor visitor);
+  void preVisit(PreVisitor visitor) {
+    _syntheticStartOffset = visitor.generateSyntheticOffset();
+    preVisitInternal(visitor);
+    _syntheticEndOffset = visitor.generateSyntheticOffset();
+  }
+
+  void preVisitInternal(PreVisitor visitor);
 
   ExpressionTypeAnalysisResult visit(Harness h, SharedTypeSchemaView schema);
 }
 
 /// Representation of a single case clause in a switch expression.  Use
-/// [PossiblyGuardedPattern.thenExpr] or [SwitchHead.thenExpr] to create
-/// instances of this class.
+/// [PossiblyGuardedPattern.thenExpr] to create instances of this class.
 class ExpressionCase extends Node {
-  final GuardedPattern? guardedPattern;
+  final GuardedPattern guardedPattern;
   final Expression expression;
+  int? _syntheticAfterKeywordOffset;
+  int? _syntheticFinishJoinedPatternVariablesOffset;
+  int? _syntheticEndAlternativeOffset;
 
   ExpressionCase._(
     this.guardedPattern,
@@ -1579,25 +1640,26 @@ class ExpressionCase extends Node {
   }) : super._();
 
   @override
-  String toString() => [
-    guardedPattern == null ? 'default' : 'case $guardedPattern',
-    ': $expression',
-  ].join('');
+  String toString() => '$guardedPattern => $expression';
 
   void _preVisit(PreVisitor visitor) {
-    final guardedPattern = this.guardedPattern;
-    if (guardedPattern != null) {
-      var variableBinder = _VariableBinder(visitor);
-      variableBinder.casePatternStart();
-      guardedPattern.pattern.preVisit(
-        visitor,
-        variableBinder,
-        isInAssignment: false,
-      );
-      guardedPattern.variables = variableBinder.casePatternFinish();
-      variableBinder.finish();
-    }
+    _syntheticStartOffset = visitor.generateSyntheticOffset();
+    _syntheticAfterKeywordOffset = visitor.generateSyntheticOffset();
+    var variableBinder = _VariableBinder(visitor);
+    variableBinder.casePatternStart();
+    guardedPattern.pattern.preVisit(
+      visitor,
+      variableBinder,
+      isInAssignment: false,
+    );
+    guardedPattern.variables = variableBinder.casePatternFinish();
+    variableBinder.finish();
+    _syntheticFinishJoinedPatternVariablesOffset = visitor
+        .generateSyntheticOffset();
+    guardedPattern.guard?.preVisit(visitor);
+    _syntheticEndAlternativeOffset = visitor.generateSyntheticOffset();
     expression.preVisit(visitor);
+    _syntheticEndOffset = visitor.generateSyntheticOffset();
   }
 }
 
@@ -1607,7 +1669,7 @@ class ExpressionCollectionElement extends CollectionElement {
   ExpressionCollectionElement(this.expression, {required super.location});
 
   @override
-  void preVisit(PreVisitor visitor) {
+  void preVisitInternal(PreVisitor visitor) {
     expression.preVisit(visitor);
   }
 
@@ -1641,7 +1703,7 @@ class ExpressionInTypeSchema extends Statement {
   });
 
   @override
-  void preVisit(PreVisitor visitor) {
+  void preVisitInternal(PreVisitor visitor) {
     expr.preVisit(visitor);
   }
 
@@ -1667,7 +1729,7 @@ class ExpressionStatement extends Statement {
   ExpressionStatement._(this.expr, {required super.location});
 
   @override
-  void preVisit(PreVisitor visitor) {
+  void preVisitInternal(PreVisitor visitor) {
     expr.preVisit(visitor);
   }
 
@@ -1693,6 +1755,9 @@ class For extends Statement {
   final Expression? updater;
   final Statement body;
   final bool forCollection;
+  int? _syntheticConditionBeginOffset;
+  int? _syntheticUpdaterBeginOffset;
+  int? _syntheticBodyBeginOffset;
 
   For._(
     this.initializer,
@@ -1704,12 +1769,15 @@ class For extends Statement {
   });
 
   @override
-  void preVisit(PreVisitor visitor) {
+  void preVisitInternal(PreVisitor visitor) {
     initializer?.preVisit(visitor);
     visitor._assignedVariables.beginNode();
+    _syntheticConditionBeginOffset = visitor.generateSyntheticOffset();
     condition?.preVisit(visitor);
-    body.preVisit(visitor);
+    _syntheticUpdaterBeginOffset = visitor.generateSyntheticOffset();
     updater?.preVisit(visitor);
+    _syntheticBodyBeginOffset = visitor.generateSyntheticOffset();
+    body.preVisit(visitor);
     visitor._assignedVariables.endNode(this);
   }
 
@@ -1740,7 +1808,7 @@ class For extends Statement {
     } else {
       h.typeAnalyzer.handleNoInitializer(this);
     }
-    h.flow.for_conditionBegin(this);
+    h.flow.for_conditionBegin(this, offset: _syntheticConditionBeginOffset!);
     ExpressionInfo? conditionFlowAnalysisInfo;
     if (condition != null) {
       conditionFlowAnalysisInfo = h.typeAnalyzer
@@ -1753,15 +1821,19 @@ class For extends Statement {
     h.flow.for_bodyBegin(
       forCollection ? null : this,
       conditionFlowAnalysisInfo,
+      offset: _syntheticBodyBeginOffset!,
     );
     h.typeAnalyzer._visitLoopBody(this, body);
-    h.flow.for_updaterBegin();
+    h.flow.for_updaterBegin(
+      offset: _syntheticUpdaterBeginOffset!,
+      updaterEndOffset: _syntheticBodyBeginOffset!,
+    );
     if (updater != null) {
       h.typeAnalyzer.analyzeExpression(updater!, h.operations.unknownType);
     } else {
       h.typeAnalyzer.handleNoCondition(this);
     }
-    h.flow.for_end();
+    h.flow.for_end(offset: _syntheticEndOffset!);
     h.irBuilder.apply(
       'for',
       [Kind.statement, Kind.expression, Kind.statement, Kind.expression],
@@ -1777,6 +1849,7 @@ class ForEach extends Statement {
   final Expression iterable;
   final Statement body;
   final bool declaresVariable;
+  int? _syntheticBodyBeginOffset;
 
   ForEach._(
     this.variable,
@@ -1787,7 +1860,7 @@ class ForEach extends Statement {
   });
 
   @override
-  void preVisit(PreVisitor visitor) {
+  void preVisitInternal(PreVisitor visitor) {
     iterable.preVisit(visitor);
     if (variable != null) {
       if (declaresVariable) {
@@ -1797,6 +1870,7 @@ class ForEach extends Statement {
       }
     }
     visitor._assignedVariables.beginNode();
+    _syntheticBodyBeginOffset = visitor.generateSyntheticOffset();
     body.preVisit(visitor);
     visitor._assignedVariables.endNode(this);
   }
@@ -1822,13 +1896,19 @@ class ForEach extends Statement {
           .type
           .unwrapTypeView<Type>(),
     );
-    h.flow.forEach_bodyBegin(this);
+    h.flow.forEach_bodyBegin(this, offset: _syntheticBodyBeginOffset!);
     var variable = this.variable;
     if (variable != null && !declaresVariable) {
-      h.flow.write(this, variable, SharedTypeView(iteratedType), null);
+      h.flow.write(
+        this,
+        variable,
+        SharedTypeView(iteratedType),
+        null,
+        offset: _syntheticBodyBeginOffset!,
+      );
     }
     h.typeAnalyzer._visitLoopBody(this, body);
-    h.flow.forEach_end();
+    h.flow.forEach_end(offset: _syntheticEndOffset!);
     h.irBuilder.apply(
       'forEach',
       [Kind.expression, Kind.statement],
@@ -1883,6 +1963,8 @@ class Harness {
 
   bool? _patternsEnabled;
 
+  bool? _promotionChainIntersectionJoinEnabled;
+
   Type? _thisType;
 
   late final Map<String, _PropertyElement?> _members = {
@@ -1901,13 +1983,16 @@ class Harness {
   );
 
   /// Indicates whether initializers of implicitly typed variables should be
-  /// accounted for by SSA analysis.  (In an ideal world, they always would be,
-  /// but due to https://github.com/dart-lang/language/issues/1785, they weren't
+  /// accounted for by value version tracking.  (In an ideal world, they always
+  /// would be, but due to
+  /// https://github.com/dart-lang/language/issues/1785, they weren't
   /// always, and we need to be able to replicate the old behavior when
   /// analyzing old language versions).
   bool _respectImplicitlyTypedVarInitializers = true;
 
   bool _fieldPromotionEnabled = true;
+
+  final List<_Checkpoint> _checkpoints = [];
 
   bool get inferenceUpdate3Enabled => _inferenceUpdate3Enabled ?? true;
 
@@ -1916,6 +2001,9 @@ class Harness {
   MiniIRBuilder get irBuilder => typeAnalyzer._irBuilder;
 
   bool get patternsEnabled => _patternsEnabled ?? true;
+
+  bool get promotionChainIntersectionJoinEnabled =>
+      _promotionChainIntersectionJoinEnabled ?? false;
 
   bool get soundFlowAnalysisEnabled => _soundFlowAnalysisEnabled ?? true;
 
@@ -2009,6 +2097,8 @@ class Harness {
         inferenceUpdate4Enabled: inferenceUpdate4Enabled,
         thisPromotionEnabled: thisPromotionEnabled,
         soundFlowAnalysisEnabled: soundFlowAnalysisEnabled,
+        promotionChainIntersectionJoinEnabled:
+            promotionChainIntersectionJoinEnabled,
       );
 
   void disableFieldPromotion() {
@@ -2031,6 +2121,11 @@ class Harness {
     _patternsEnabled = false;
   }
 
+  void disablePromotionChainIntersectionJoin() {
+    assert(!_started);
+    _promotionChainIntersectionJoinEnabled = false;
+  }
+
   void disableRespectImplicitlyTypedVarInitializers() {
     assert(!_started);
     _respectImplicitlyTypedVarInitializers = false;
@@ -2044,6 +2139,11 @@ class Harness {
   void disableThisPromotion() {
     assert(!_started);
     _thisPromotionEnabled = false;
+  }
+
+  void enablePromotionChainIntersectionJoin() {
+    assert(!_started);
+    _promotionChainIntersectionJoinEnabled = true;
   }
 
   /// Attempts to look up a member named [memberName] in the given [type].  If
@@ -2073,7 +2173,11 @@ class Harness {
         // if the unit test is deliberately trying to exercise a member lookup
         // that should find nothing, please use `addMember` to store an
         // explicit `null` value in the `_members` map.
-        fail('Unknown member query: $query');
+        fail(
+          'Unknown member query: $query. Either update '
+          'Harness._coreMemberTypes or call Harness.addMember from the top of '
+          'the test.',
+        );
     }
   }
 
@@ -2130,11 +2234,24 @@ class Harness {
         operations,
         visitor._assignedVariables,
         typeAnalyzerOptions: computeTypeAnalyzerOptions(),
+        enableLog: true,
       );
       typeAnalyzer.bodyContext =
           bodyContext ??
           BodyContext(isAsync: false, yieldContext: const UnknownType());
+      var thisType = _thisType;
+      var hasThisType = thisType != null;
+      if (hasThisType) {
+        flow.thisBinding_begin(
+          null,
+          thisType: SharedTypeView(thisType),
+          offset: 0,
+        );
+      }
       typeAnalyzer.dispatchStatement(b);
+      if (hasThisType) {
+        flow.thisBinding_end(offset: b._syntheticEndOffset! + 1);
+      }
       typeAnalyzer.finish();
       expect(typeAnalyzer.errors._accumulatedErrors, expectedErrors);
       var assertInErrorRecoveryStack =
@@ -2151,9 +2268,21 @@ class Harness {
         ].join(', ');
         fail('Unused error ids: $ids');
       }
+      _verifyCheckpoints(flow.getLog()!);
     } finally {
       Node._nodesWithUnusedErrorIds.clear();
     }
+  }
+
+  void _checkpoint({required int offset, required String location}) {
+    _checkpoints.add(
+      _Checkpoint(
+        offset: offset,
+        expectedPromotionInfo: flow.getCurrentPromotionInfo(),
+        expectedThisBinding: flow.getCurrentThisBinding(),
+        location: location,
+      ),
+    );
   }
 
   Type _getIteratedType(Type iterableType) {
@@ -2162,6 +2291,23 @@ class Harness {
       return Type(typeStr.substring(5, typeStr.length - 1));
     } else {
       throw UnimplementedError('TODO(paulberry): getIteratedType($typeStr)');
+    }
+  }
+
+  void _verifyCheckpoints(FlowAnalysisLog flowAnalysisLog) {
+    for (var checkpoint in _checkpoints) {
+      var promotionInfo = flowAnalysisLog.getPromotionInfo(checkpoint.offset);
+      expect(
+        promotionInfo,
+        same(checkpoint.expectedPromotionInfo),
+        reason: checkpoint.location,
+      );
+      var thisBinding = flowAnalysisLog.getThisBinding(checkpoint.offset);
+      expect(
+        thisBinding,
+        checkpoint.expectedThisBinding,
+        reason: checkpoint.location,
+      );
     }
   }
 }
@@ -2176,14 +2322,21 @@ class If extends IfBase {
   String get _conditionPartString => condition.toString();
 
   @override
-  void preVisit(PreVisitor visitor) {
+  void preVisitInternal(PreVisitor visitor) {
     condition.preVisit(visitor);
-    super.preVisit(visitor);
+    super.preVisitInternal(visitor);
   }
 
   @override
   StatementTypeAnalysisResult visit(Harness h) {
-    h.typeAnalyzer.analyzeIfStatement(this, condition, ifTrue, ifFalse);
+    h.typeAnalyzer.analyzeIfStatement(
+      this,
+      condition,
+      ifTrue,
+      ifFalse,
+      thenBeginOffset: _syntheticThenBeginOffset!,
+      elseBeginOffset: _syntheticElseBeginOffset,
+    );
     h.irBuilder.apply(
       'if',
       [Kind.expression, Kind.statement, Kind.statement],
@@ -2197,16 +2350,20 @@ class If extends IfBase {
 abstract class IfBase extends Statement {
   final Statement ifTrue;
   final Statement? ifFalse;
+  int? _syntheticThenBeginOffset;
+  int? _syntheticElseBeginOffset;
 
   IfBase._(this.ifTrue, this.ifFalse, {required super.location});
 
   String get _conditionPartString;
 
   @override
-  void preVisit(PreVisitor visitor) {
+  void preVisitInternal(PreVisitor visitor) {
     visitor._assignedVariables.beginNode();
+    _syntheticThenBeginOffset = visitor.generateSyntheticOffset();
     ifTrue.preVisit(visitor);
     visitor._assignedVariables.endNode(this);
+    _syntheticElseBeginOffset = visitor.generateSyntheticOffset();
     ifFalse?.preVisit(visitor);
   }
 
@@ -2220,6 +2377,7 @@ class IfCase extends IfBase {
   final Expression expression;
   final Pattern pattern;
   final Expression? guard;
+  int? _syntheticAfterExpressionOffset;
 
   /// These variables are set during pre-visit, and some of them are joins of
   /// pattern variable declarations. We don't know their types until we do
@@ -2239,15 +2397,16 @@ class IfCase extends IfBase {
   String get _conditionPartString => '$expression case $pattern';
 
   @override
-  void preVisit(PreVisitor visitor) {
+  void preVisitInternal(PreVisitor visitor) {
     expression.preVisit(visitor);
+    _syntheticAfterExpressionOffset = visitor.generateSyntheticOffset();
     var variableBinder = _VariableBinder(visitor);
     variableBinder.casePatternStart();
     pattern.preVisit(visitor, variableBinder, isInAssignment: false);
     _candidateVariables = variableBinder.casePatternFinish();
     variableBinder.finish();
     guard?.preVisit(visitor);
-    super.preVisit(visitor);
+    super.preVisitInternal(visitor);
   }
 
   @override
@@ -2260,6 +2419,9 @@ class IfCase extends IfBase {
       ifTrue,
       ifFalse,
       _candidateVariables,
+      afterExpressionOffset: _syntheticAfterExpressionOffset!,
+      thenBeginOffset: _syntheticThenBeginOffset!,
+      elseBeginOffset: _syntheticElseBeginOffset,
     );
     h.irBuilder.apply(
       'ifCase',
@@ -2283,6 +2445,7 @@ class IfCaseElement extends IfElementBase {
   final Pattern pattern;
   final Expression? guard;
   late final Map<String, Var> _variables;
+  int? _syntheticAfterExpressionOffset;
 
   IfCaseElement(
     this.expression,
@@ -2297,15 +2460,16 @@ class IfCaseElement extends IfElementBase {
   String get _conditionPartString => '$expression case $pattern';
 
   @override
-  void preVisit(PreVisitor visitor) {
+  void preVisitInternal(PreVisitor visitor) {
     expression.preVisit(visitor);
+    _syntheticAfterExpressionOffset = visitor.generateSyntheticOffset();
     var variableBinder = _VariableBinder(visitor);
     variableBinder.casePatternStart();
     pattern.preVisit(visitor, variableBinder, isInAssignment: false);
     _variables = variableBinder.casePatternFinish();
     variableBinder.finish();
     guard?.preVisit(visitor);
-    super.preVisit(visitor);
+    super.preVisitInternal(visitor);
   }
 
   @override
@@ -2319,6 +2483,10 @@ class IfCaseElement extends IfElementBase {
       ifTrue: ifTrue,
       ifFalse: ifFalse,
       context: context,
+      afterExpressionOffset: _syntheticAfterExpressionOffset!,
+      thenBeginOffset: _syntheticThenBeginOffset!,
+      elseBeginOffset: _syntheticElseBeginOffset,
+      endOffset: _syntheticEndOffset!,
     );
     h.irBuilder.apply(
       'if',
@@ -2350,9 +2518,9 @@ class IfElement extends IfElementBase {
   String get _conditionPartString => condition.toString();
 
   @override
-  void preVisit(PreVisitor visitor) {
+  void preVisitInternal(PreVisitor visitor) {
     condition.preVisit(visitor);
-    super.preVisit(visitor);
+    super.preVisitInternal(visitor);
   }
 
   @override
@@ -2363,6 +2531,9 @@ class IfElement extends IfElementBase {
       ifTrue: ifTrue,
       ifFalse: ifFalse,
       context: context,
+      thenBeginOffset: _syntheticThenBeginOffset!,
+      elseBeginOffset: _syntheticElseBeginOffset,
+      endOffset: _syntheticEndOffset!,
     );
     h.irBuilder.apply(
       'if',
@@ -2376,16 +2547,20 @@ class IfElement extends IfElementBase {
 abstract class IfElementBase extends CollectionElement {
   final CollectionElement ifTrue;
   final CollectionElement? ifFalse;
+  int? _syntheticThenBeginOffset;
+  int? _syntheticElseBeginOffset;
 
   IfElementBase._(this.ifTrue, this.ifFalse, {required super.location});
 
   String get _conditionPartString;
 
   @override
-  void preVisit(PreVisitor visitor) {
+  void preVisitInternal(PreVisitor visitor) {
     visitor._assignedVariables.beginNode();
+    _syntheticThenBeginOffset = visitor.generateSyntheticOffset();
     ifTrue.preVisit(visitor);
     visitor._assignedVariables.endNode(this);
+    _syntheticElseBeginOffset = visitor.generateSyntheticOffset();
     ifFalse?.preVisit(visitor);
   }
 
@@ -2398,12 +2573,14 @@ abstract class IfElementBase extends CollectionElement {
 class IfNull extends Expression {
   final Expression lhs;
   final Expression rhs;
+  int? _syntheticOperatorOffset;
 
   IfNull._(this.lhs, this.rhs, {required super.location});
 
   @override
-  void preVisit(PreVisitor visitor) {
+  void preVisitInternal(PreVisitor visitor) {
     lhs.preVisit(visitor);
+    _syntheticOperatorOffset = visitor.generateSyntheticOffset();
     rhs.preVisit(visitor);
   }
 
@@ -2412,7 +2589,12 @@ class IfNull extends Expression {
 
   @override
   ExpressionTypeAnalysisResult visit(Harness h, SharedTypeSchemaView schema) {
-    var result = h.typeAnalyzer.analyzeIfNullExpression(this, lhs, rhs);
+    var result = h.typeAnalyzer.analyzeIfNullExpression(
+      this,
+      lhs,
+      rhs,
+      operatorOffset: _syntheticOperatorOffset!,
+    );
     h.irBuilder.apply(
       'ifNull',
       [Kind.expression, Kind.expression],
@@ -2429,7 +2611,7 @@ class IntLiteral extends ConstExpression {
   IntLiteral(this.value, {required super.location}) : super._();
 
   @override
-  void preVisit(PreVisitor visitor) {}
+  void preVisitInternal(PreVisitor visitor) {}
 
   @override
   String toString() => '$value';
@@ -2467,6 +2649,10 @@ class InvokeAnonymousMethod extends Expression {
 
   final Var? parameter;
 
+  int? _syntheticOperatorOffset;
+
+  int? _syntheticOpenBraceOffset;
+
   InvokeAnonymousMethod._(
     this.target,
     this.body, {
@@ -2478,11 +2664,13 @@ class InvokeAnonymousMethod extends Expression {
   });
 
   @override
-  void preVisit(PreVisitor visitor) {
+  void preVisitInternal(PreVisitor visitor) {
     target.preVisit(visitor);
     if (parameter != null) {
       visitor._assignedVariables.declare(parameter!);
     }
+    _syntheticOperatorOffset = visitor.generateSyntheticOffset();
+    _syntheticOpenBraceOffset = visitor.generateSyntheticOffset();
     body.preVisit(visitor);
   }
 
@@ -2501,15 +2689,23 @@ class InvokeAnonymousMethod extends Expression {
       continueNullShorting: true,
     );
     if (isNullAware) {
-      targetResult = h.typeAnalyzer.createNullAwareGuard(target, targetResult);
+      targetResult = h.typeAnalyzer.createNullAwareGuard(
+        target,
+        targetResult,
+        offset: _syntheticOperatorOffset!,
+      );
     }
     var targetInfo = targetResult.flowAnalysisInfo;
     var previousThisType = h._thisType;
     if (isParameterless) {
-      h.flow.thisBinding_begin(targetInfo);
+      h.flow.thisBinding_begin(
+        targetInfo,
+        thisType: targetResult.type,
+        offset: _syntheticOpenBraceOffset!,
+      );
       h._thisType = targetResult.type.unwrapTypeView();
     }
-    h.flow.anonymousBlockBody_begin();
+    h.flow.anonymousBlockBody_begin(offset: _syntheticOpenBraceOffset!);
     if (parameter != null) {
       bool isImplicitlyTyped = parameter!._type == null;
       if (parameter!._type == null) {
@@ -2519,6 +2715,7 @@ class InvokeAnonymousMethod extends Expression {
         parameter!,
         SharedTypeView(parameter!.type),
         initialized: false,
+        offset: _syntheticOpenBraceOffset!,
       );
       h.flow.initialize(
         parameter!,
@@ -2528,14 +2725,15 @@ class InvokeAnonymousMethod extends Expression {
         isLate: false,
         isImplicitlyTyped: isImplicitlyTyped,
         inheritPromotableProperties: isParameterless,
+        offset: _syntheticOpenBraceOffset!,
       );
     }
     // Analyze the block, and generate its IR.
-    body.visit(h);
-    h.flow.anonymousBlockBody_end();
+    h.typeAnalyzer.dispatchStatement(body);
+    h.flow.anonymousBlockBody_end(offset: _syntheticEndOffset!);
     if (isParameterless) {
       h._thisType = previousThisType;
-      h.flow.thisBinding_end();
+      h.flow.thisBinding_end(offset: _syntheticEndOffset!);
     }
     // Form the IR for the anonymous method invocation.
     h.irBuilder.apply(
@@ -2562,19 +2760,31 @@ class InvokeMethod extends Expression {
 
   final bool isNullAware;
 
+  final List<int> argumentVisitOrder;
+
+  int? _syntheticAfterOperatorOffset;
+
+  List<int>? _syntheticBetweenArgumentOffsets;
+
   InvokeMethod._(
     this.target,
     this.methodName,
     this.arguments, {
     required this.isNullAware,
+    required this.argumentVisitOrder,
     required super.location,
   });
 
   @override
-  void preVisit(PreVisitor visitor) {
+  void preVisitInternal(PreVisitor visitor) {
     target.preVisit(visitor);
+    _syntheticAfterOperatorOffset = visitor.generateSyntheticOffset();
+    var syntheticBetweenArgumentOffsets = _syntheticBetweenArgumentOffsets = [
+      visitor.generateSyntheticOffset(),
+    ];
     for (var argument in arguments) {
       argument.preVisit(visitor);
+      syntheticBetweenArgumentOffsets.add(visitor.generateSyntheticOffset());
     }
   }
 
@@ -2593,6 +2803,9 @@ class InvokeMethod extends Expression {
       methodName,
       arguments,
       isNullAware: isNullAware,
+      afterOperatorOffset: _syntheticAfterOperatorOffset!,
+      argumentVisitOrder: argumentVisitOrder,
+      betweenArgumentOffsets: _syntheticBetweenArgumentOffsets!,
     );
   }
 }
@@ -2605,7 +2818,7 @@ class Is extends Expression {
   Is._(this.target, this.type, this.isInverted, {required super.location});
 
   @override
-  void preVisit(PreVisitor visitor) {
+  void preVisitInternal(PreVisitor visitor) {
     target.preVisit(visitor);
   }
 
@@ -2645,7 +2858,7 @@ class LabeledStatement extends Statement {
   LabeledStatement._(this.body, {required super.location});
 
   @override
-  void preVisit(PreVisitor visitor) {
+  void preVisitInternal(PreVisitor visitor) {
     body.preVisit(visitor);
   }
 
@@ -2668,7 +2881,7 @@ class ListLiteral extends Expression {
   ListLiteral._(this.elements, this.elementType, {required super.location});
 
   @override
-  void preVisit(PreVisitor visitor) {
+  void preVisitInternal(PreVisitor visitor) {
     for (var element in elements) {
       element.preVisit(visitor);
     }
@@ -2694,10 +2907,18 @@ class ListLiteral extends Expression {
   }
 }
 
-abstract class ListOrMapPatternElement implements Node {
-  ListOrMapPatternElement._();
-
+mixin ListOrMapPatternElement on Node {
   void preVisit(
+    PreVisitor visitor,
+    VariableBinder<Node, Var> variableBinder, {
+    required bool isInAssignment,
+  }) {
+    _syntheticStartOffset = visitor.generateSyntheticOffset();
+    preVisitInternal(visitor, variableBinder, isInAssignment: isInAssignment);
+    _syntheticEndOffset = visitor.generateSyntheticOffset();
+  }
+
+  void preVisitInternal(
     PreVisitor visitor,
     VariableBinder<Node, Var> variableBinder, {
     required bool isInAssignment,
@@ -2711,6 +2932,8 @@ class ListPattern extends Pattern {
 
   final List<ListPatternElement> elements;
 
+  int? _syntheticPromoteForPatternOffset;
+
   ListPattern._(this.elementType, this.elements, {required super.location})
     : super._();
 
@@ -2722,11 +2945,12 @@ class ListPattern extends Pattern {
       );
 
   @override
-  void preVisit(
+  void preVisitInternal(
     PreVisitor visitor,
     VariableBinder<Node, Var> variableBinder, {
     required bool isInAssignment,
   }) {
+    _syntheticPromoteForPatternOffset = visitor.generateSyntheticOffset();
     for (var element in elements) {
       element.preVisit(visitor, variableBinder, isInAssignment: isInAssignment);
     }
@@ -2739,6 +2963,7 @@ class ListPattern extends Pattern {
       this,
       elementType: elementType?.wrapSharedTypeView(),
       elements: elements,
+      promoteForPatternOffset: _syntheticPromoteForPatternOffset!,
     );
     var matchedType = listPatternResult.matchedValueType.unwrapTypeView<Type>();
     var requiredType = listPatternResult.requiredType.unwrapTypeView<Type>();
@@ -2769,13 +2994,15 @@ abstract class ListPatternElement implements ListOrMapPatternElement {}
 class LocalFunction extends Expression {
   final Statement body;
   final Type type;
+  int? _syntheticAfterOpenBraceOffset;
 
   LocalFunction._(this.body, {String? type, required super.location})
     : type = Type(type ?? 'void Function()');
 
   @override
-  void preVisit(PreVisitor visitor) {
+  void preVisitInternal(PreVisitor visitor) {
     visitor._assignedVariables.beginNode();
+    _syntheticAfterOpenBraceOffset = visitor.generateSyntheticOffset();
     body.preVisit(visitor);
     visitor._assignedVariables.endNode(
       this,
@@ -2788,9 +3015,12 @@ class LocalFunction extends Expression {
 
   @override
   ExpressionTypeAnalysisResult visit(Harness h, SharedTypeSchemaView schema) {
-    h.flow.functionExpression_begin(this);
+    h.flow.functionExpression_begin(
+      this,
+      offset: _syntheticAfterOpenBraceOffset!,
+    );
     h.typeAnalyzer.dispatchStatement(body);
-    h.flow.functionExpression_end();
+    h.flow.functionExpression_end(offset: _syntheticEndOffset!);
     h.irBuilder.apply(
       'localFunction',
       [Kind.statement],
@@ -2805,12 +3035,14 @@ class Logical extends Expression {
   final Expression lhs;
   final Expression rhs;
   final bool isAnd;
+  int? _syntheticAfterOperatorOffset;
 
   Logical._(this.lhs, this.rhs, {required this.isAnd, required super.location});
 
   @override
-  void preVisit(PreVisitor visitor) {
+  void preVisitInternal(PreVisitor visitor) {
     lhs.preVisit(visitor);
+    _syntheticAfterOperatorOffset = visitor.generateSyntheticOffset();
     visitor._assignedVariables.beginNode();
     rhs.preVisit(visitor);
     visitor._assignedVariables.endNode(this);
@@ -2827,6 +3059,7 @@ class Logical extends Expression {
       lhs,
       operatorName,
       rhs,
+      afterOperatorOffset: _syntheticAfterOperatorOffset!,
     );
     h.irBuilder.apply(
       operatorName,
@@ -2851,7 +3084,7 @@ class LogicalAndPattern extends Pattern {
       h.typeAnalyzer.analyzeLogicalAndPatternSchema(lhs, rhs);
 
   @override
-  void preVisit(
+  void preVisitInternal(
     PreVisitor visitor,
     VariableBinder<Node, Var> variableBinder, {
     required bool isInAssignment,
@@ -2893,6 +3126,8 @@ class LogicalOrPattern extends Pattern {
 
   final Pattern rhs;
 
+  int? _syntheticAfterLhsOffset;
+
   LogicalOrPattern(this.lhs, this.rhs, {required super.location}) : super._();
 
   @override
@@ -2900,7 +3135,7 @@ class LogicalOrPattern extends Pattern {
       h.typeAnalyzer.analyzeLogicalOrPatternSchema(lhs, rhs);
 
   @override
-  void preVisit(
+  void preVisitInternal(
     PreVisitor visitor,
     VariableBinder<Node, Var> variableBinder, {
     required bool isInAssignment,
@@ -2908,6 +3143,7 @@ class LogicalOrPattern extends Pattern {
     variableBinder.logicalOrPatternStart();
     lhs.preVisit(visitor, variableBinder, isInAssignment: isInAssignment);
     variableBinder.logicalOrPatternFinishLeft();
+    _syntheticAfterLhsOffset = visitor.generateSyntheticOffset();
     rhs.preVisit(visitor, variableBinder, isInAssignment: isInAssignment);
     variableBinder.logicalOrPatternFinish(this);
   }
@@ -2919,6 +3155,7 @@ class LogicalOrPattern extends Pattern {
       this,
       lhs,
       rhs,
+      afterLhsOffset: _syntheticAfterLhsOffset!,
     );
     var matchedType = analysisResult.matchedValueType.unwrapTypeView<Type>();
     h.irBuilder.atom(matchedType.type, Kind.type, location: location);
@@ -2947,7 +3184,17 @@ abstract class LValue extends Expression {
   LValue._({required super.location});
 
   @override
-  void preVisit(PreVisitor visitor, {_LValueDisposition disposition});
+  void preVisit(
+    PreVisitor visitor, {
+    _LValueDisposition disposition = _LValueDisposition.read,
+  }) {
+    _syntheticStartOffset = visitor.generateSyntheticOffset();
+    preVisitInternal(visitor, disposition: disposition);
+    _syntheticEndOffset = visitor.generateSyntheticOffset();
+  }
+
+  @override
+  void preVisitInternal(PreVisitor visitor, {_LValueDisposition disposition});
 
   /// Creates an expression representing a write to this L-value.
   Expression write(ProtoExpression value) {
@@ -2979,6 +3226,7 @@ class MapEntry extends CollectionElement {
   final Expression key;
   final Expression value;
   final bool isKeyNullAware;
+  int? _syntheticAfterColonOffset;
 
   MapEntry._(
     this.key,
@@ -2988,8 +3236,9 @@ class MapEntry extends CollectionElement {
   });
 
   @override
-  void preVisit(PreVisitor visitor) {
+  void preVisitInternal(PreVisitor visitor) {
     key.preVisit(visitor);
+    _syntheticAfterColonOffset = visitor.generateSyntheticOffset();
     value.preVisit(visitor);
   }
 
@@ -3013,9 +3262,13 @@ class MapEntry extends CollectionElement {
       keyAnalysisResult.flowAnalysisInfo,
       keyType,
       isKeyNullAware: isKeyNullAware,
+      offset: _syntheticAfterColonOffset!,
     );
     h.typeAnalyzer.analyzeExpression(value, valueSchema);
-    h.flow.nullAwareMapEntry_end(isKeyNullAware: isKeyNullAware);
+    h.flow.nullAwareMapEntry_end(
+      isKeyNullAware: isKeyNullAware,
+      offset: _syntheticEndOffset!,
+    );
     h.irBuilder.apply(
       'mapEntry',
       [Kind.expression, Kind.expression],
@@ -3040,7 +3293,7 @@ class MapLiteral extends Expression {
   });
 
   @override
-  void preVisit(PreVisitor visitor) {
+  void preVisitInternal(PreVisitor visitor) {
     for (var element in elements) {
       element.preVisit(visitor);
     }
@@ -3072,6 +3325,8 @@ class MapPattern extends Pattern {
 
   final List<MapPatternElement> elements;
 
+  int? _syntheticPromoteForPatternOffset;
+
   MapPattern._(this.typeArguments, this.elements, {required super.location})
     : super._();
 
@@ -3083,11 +3338,12 @@ class MapPattern extends Pattern {
       );
 
   @override
-  void preVisit(
+  void preVisitInternal(
     PreVisitor visitor,
     VariableBinder<Node, Var> variableBinder, {
     required bool isInAssignment,
   }) {
+    _syntheticPromoteForPatternOffset = visitor.generateSyntheticOffset();
     for (var element in elements) {
       element.preVisit(visitor, variableBinder, isInAssignment: isInAssignment);
     }
@@ -3100,6 +3356,7 @@ class MapPattern extends Pattern {
       this,
       typeArguments: typeArguments?.wrapSharedTypeMapEntryView(),
       elements: elements,
+      promoteForPatternOffset: _syntheticPromoteForPatternOffset!,
     );
     var matchedType = mapPatternResult.matchedValueType.unwrapTypeView<Type>();
     var requiredType = mapPatternResult.requiredType.unwrapTypeView<Type>();
@@ -3131,7 +3388,9 @@ class MapPattern extends Pattern {
 
 abstract class MapPatternElement implements ListOrMapPatternElement {}
 
-class MapPatternEntry extends Node implements MapPatternElement {
+class MapPatternEntry extends Node
+    with ListOrMapPatternElement
+    implements MapPatternElement {
   final Expression key;
   final Pattern value;
 
@@ -3139,11 +3398,12 @@ class MapPatternEntry extends Node implements MapPatternElement {
     : super._();
 
   @override
-  void preVisit(
+  void preVisitInternal(
     PreVisitor visitor,
     VariableBinder<Node, Var> variableBinder, {
     required bool isInAssignment,
   }) {
+    key.preVisit(visitor);
     value.preVisit(visitor, variableBinder, isInAssignment: isInAssignment);
   }
 
@@ -3729,6 +3989,15 @@ class MiniAstOperations
   }
 
   @override
+  SharedType? lookupMemberTypeInternal(
+    covariant SharedType type,
+    String lookupName,
+  ) {
+    // TODO(cstefantsova): implement lookupMemberTypeInternal
+    throw UnimplementedError();
+  }
+
+  @override
   Type lubInternal(Type type1, Type type2) {
     if (type1 == type2) {
       return type1;
@@ -3960,15 +4229,6 @@ class MiniAstOperations
   PropertyNonPromotabilityReason? whyPropertyIsNotPromotable(
     covariant _PropertyElement property,
   ) => property.whyNotPromotable;
-
-  @override
-  SharedType? lookupMemberTypeInternal(
-    covariant SharedType type,
-    String lookupName,
-  ) {
-    // TODO(cstefantsova): implement lookupMemberTypeInternal
-    throw UnimplementedError();
-  }
 }
 
 /// Representation of an expression or statement in the pseudo-Dart language
@@ -3986,6 +4246,10 @@ class Node {
   final String location;
 
   String? _errorId;
+
+  int? _syntheticStartOffset;
+
+  int? _syntheticEndOffset;
 
   factory Node.placeholder() => Node._(location: computeLocation());
 
@@ -4016,7 +4280,7 @@ class NonNullAssert extends Expression {
   NonNullAssert._(this.operand, {required super.location});
 
   @override
-  void preVisit(PreVisitor visitor) {
+  void preVisitInternal(PreVisitor visitor) {
     operand.preVisit(visitor);
   }
 
@@ -4035,7 +4299,7 @@ class Not extends Expression {
   Not._(this.operand, {required super.location});
 
   @override
-  void preVisit(PreVisitor visitor) {
+  void preVisitInternal(PreVisitor visitor) {
     operand.preVisit(visitor);
   }
 
@@ -4064,7 +4328,7 @@ class NullCheckOrAssertPattern extends Pattern {
       .analyzeNullCheckOrAssertPatternSchema(inner, isAssert: isAssert);
 
   @override
-  void preVisit(
+  void preVisitInternal(
     PreVisitor visitor,
     VariableBinder<Node, Var> variableBinder, {
     required bool isInAssignment,
@@ -4101,7 +4365,7 @@ class NullLiteral extends ConstExpression {
   NullLiteral._({required super.location}) : super._();
 
   @override
-  void preVisit(PreVisitor visitor) {}
+  void preVisitInternal(PreVisitor visitor) {}
 
   @override
   String toString() => 'null';
@@ -4117,6 +4381,7 @@ class NullLiteral extends ConstExpression {
 class ObjectPattern extends Pattern {
   final PrimaryType requiredType;
   final List<RecordPatternField> fields;
+  int? _syntheticPromoteForPatternOffset;
 
   ObjectPattern._({
     required this.requiredType,
@@ -4132,11 +4397,12 @@ class ObjectPattern extends Pattern {
   }
 
   @override
-  void preVisit(
+  void preVisitInternal(
     PreVisitor visitor,
     VariableBinder<Node, Var> variableBinder, {
     required bool isInAssignment,
   }) {
+    _syntheticPromoteForPatternOffset = visitor.generateSyntheticOffset();
     for (var field in fields) {
       field.pattern.preVisit(
         visitor,
@@ -4152,6 +4418,7 @@ class ObjectPattern extends Pattern {
       context,
       this,
       fields: fields,
+      promoteForPatternOffset: _syntheticPromoteForPatternOffset!,
     );
     var matchedType = objectPatternResult.matchedValueType
         .unwrapTypeView<Type>();
@@ -4185,7 +4452,7 @@ class ParenthesizedExpression extends Expression {
   ParenthesizedExpression._(this.expr, {required super.location});
 
   @override
-  void preVisit(PreVisitor visitor) {
+  void preVisitInternal(PreVisitor visitor) {
     expr.preVisit(visitor);
   }
 
@@ -4207,7 +4474,7 @@ class ParenthesizedPattern extends Pattern {
   SharedTypeSchemaView computeSchema(Harness h) => inner.computeSchema(h);
 
   @override
-  void preVisit(
+  void preVisitInternal(
     PreVisitor visitor,
     VariableBinder<Node, Var> variableBinder, {
     required bool isInAssignment,
@@ -4224,7 +4491,7 @@ class ParenthesizedPattern extends Pattern {
 }
 
 abstract class Pattern extends Node
-    with PossiblyGuardedPattern
+    with PossiblyGuardedPattern, ListOrMapPatternElement
     implements ListPatternElement {
   Pattern._({required super.location}) : super._();
 
@@ -4288,22 +4555,29 @@ abstract class Pattern extends Node
 class PatternAssignment extends Expression {
   final Pattern lhs;
   final Expression rhs;
+  int? _syntheticBeforeRhsOffset;
 
   PatternAssignment._(this.lhs, this.rhs, {required super.location});
 
   @override
-  void preVisit(PreVisitor visitor) {
+  void preVisitInternal(PreVisitor visitor) {
     var variableBinder = _VariableBinder(visitor);
     variableBinder.casePatternStart();
     lhs.preVisit(visitor, variableBinder, isInAssignment: true);
     variableBinder.casePatternFinish();
     variableBinder.finish();
+    _syntheticBeforeRhsOffset = visitor.generateSyntheticOffset();
     rhs.preVisit(visitor);
   }
 
   @override
   ExpressionTypeAnalysisResult visit(Harness h, SharedTypeSchemaView schema) {
-    var result = h.typeAnalyzer.analyzePatternAssignment(this, lhs, rhs);
+    var result = h.typeAnalyzer.analyzePatternAssignment(
+      this,
+      lhs,
+      rhs,
+      beforeRhsOffset: _syntheticBeforeRhsOffset!,
+    );
     h.irBuilder.apply(
       'patternAssignment',
       [Kind.expression, Kind.pattern],
@@ -4319,6 +4593,9 @@ class PatternForIn extends Statement {
   final Pattern pattern;
   final Expression expression;
   final Statement body;
+  int? _syntheticBeforePatternOffset;
+  int? _syntheticBeforeExpressionOffset;
+  int? _syntheticBodyBeginOffset;
 
   PatternForIn(
     this.pattern,
@@ -4329,16 +4606,19 @@ class PatternForIn extends Statement {
   });
 
   @override
-  void preVisit(PreVisitor visitor) {
-    expression.preVisit(visitor);
+  void preVisitInternal(PreVisitor visitor) {
+    _syntheticBeforePatternOffset = visitor.generateSyntheticOffset();
 
     var variableBinder = _VariableBinder(visitor);
     variableBinder.casePatternStart();
     pattern.preVisit(visitor, variableBinder, isInAssignment: false);
     variableBinder.casePatternFinish();
     variableBinder.finish();
+    _syntheticBeforeExpressionOffset = visitor.generateSyntheticOffset();
+    expression.preVisit(visitor);
 
     visitor._assignedVariables.beginNode();
+    _syntheticBodyBeginOffset = visitor.generateSyntheticOffset();
     body.preVisit(visitor);
     visitor._assignedVariables.endNode(this);
   }
@@ -4358,6 +4638,10 @@ class PatternForIn extends Statement {
       dispatchBody: () {
         h.typeAnalyzer.dispatchStatement(body);
       },
+      beforePatternOffset: _syntheticBeforePatternOffset!,
+      bodyBeginOffset: _syntheticBodyBeginOffset!,
+      endOffset: _syntheticEndOffset!,
+      beforeExpressionOffset: _syntheticBeforeExpressionOffset!,
     );
     h.irBuilder.apply(
       'forEach',
@@ -4374,6 +4658,9 @@ class PatternForInElement extends CollectionElement {
   final Pattern pattern;
   final Expression expression;
   final CollectionElement body;
+  int? _syntheticBeforePatternOffset;
+  int? _syntheticBeforeExpressionOffset;
+  int? _syntheticBodyBeginOffset;
 
   PatternForInElement(
     this.pattern,
@@ -4384,16 +4671,19 @@ class PatternForInElement extends CollectionElement {
   });
 
   @override
-  void preVisit(PreVisitor visitor) {
-    expression.preVisit(visitor);
+  void preVisitInternal(PreVisitor visitor) {
+    _syntheticBeforePatternOffset = visitor.generateSyntheticOffset();
 
     var variableBinder = _VariableBinder(visitor);
     variableBinder.casePatternStart();
     pattern.preVisit(visitor, variableBinder, isInAssignment: false);
     variableBinder.casePatternFinish();
     variableBinder.finish();
+    _syntheticBeforeExpressionOffset = visitor.generateSyntheticOffset();
+    expression.preVisit(visitor);
 
     visitor._assignedVariables.beginNode();
+    _syntheticBodyBeginOffset = visitor.generateSyntheticOffset();
     body.preVisit(visitor);
     visitor._assignedVariables.endNode(this);
   }
@@ -4408,6 +4698,10 @@ class PatternForInElement extends CollectionElement {
       dispatchBody: () {
         h.typeAnalyzer.dispatchCollectionElement(body, context);
       },
+      beforePatternOffset: _syntheticBeforePatternOffset!,
+      bodyBeginOffset: _syntheticBodyBeginOffset!,
+      endOffset: _syntheticEndOffset!,
+      beforeExpressionOffset: _syntheticBeforeExpressionOffset!,
     );
     h.irBuilder.apply(
       'forEach',
@@ -4422,6 +4716,8 @@ class PatternVariableDeclaration extends Statement {
   final bool isFinal;
   final Pattern pattern;
   final Expression initializer;
+  int? _syntheticBeforePatternOffset;
+  int? _syntheticBeforeInitializerOffset;
 
   PatternVariableDeclaration._(
     this.pattern,
@@ -4431,12 +4727,14 @@ class PatternVariableDeclaration extends Statement {
   });
 
   @override
-  void preVisit(PreVisitor visitor) {
+  void preVisitInternal(PreVisitor visitor) {
+    _syntheticBeforePatternOffset = visitor.generateSyntheticOffset();
     var variableBinder = _VariableBinder(visitor);
     variableBinder.casePatternStart();
     pattern.preVisit(visitor, variableBinder, isInAssignment: false);
     variableBinder.casePatternFinish();
     variableBinder.finish();
+    _syntheticBeforeInitializerOffset = visitor.generateSyntheticOffset();
     initializer.preVisit(visitor);
   }
 
@@ -4457,6 +4755,9 @@ class PatternVariableDeclaration extends Statement {
       pattern,
       initializer,
       isFinal: isFinal,
+      beforePatternOffset: _syntheticBeforePatternOffset!,
+      beforeInitializerOffset: _syntheticBeforeInitializerOffset!,
+      endOffset: _syntheticEndOffset!,
     );
     h.irBuilder.apply(
       ['match', if (isFinal) 'final'].join('_'),
@@ -4549,7 +4850,7 @@ class PlaceholderExpression extends ConstExpression {
   PlaceholderExpression._(this.type, {required super.location}) : super._();
 
   @override
-  void preVisit(PreVisitor visitor) {}
+  void preVisitInternal(PreVisitor visitor) {}
 
   @override
   String toString() => '(expr with type $type)';
@@ -4600,7 +4901,7 @@ class PostIncDec extends Expression {
   PostIncDec(this.lhs, {required super.location});
 
   @override
-  void preVisit(PreVisitor visitor) {
+  void preVisitInternal(PreVisitor visitor) {
     lhs.preVisit(visitor, disposition: _LValueDisposition.readWrite);
   }
 
@@ -4634,7 +4935,7 @@ class PreIncDec extends Expression {
   PreIncDec(this.lhs, {required super.location});
 
   @override
-  void preVisit(PreVisitor visitor) {
+  void preVisitInternal(PreVisitor visitor) {
     lhs.preVisit(visitor, disposition: _LValueDisposition.readWrite);
   }
 
@@ -4672,15 +4973,25 @@ class PreVisitor {
 
   final VariableBinderErrors<Node, Var>? errors;
 
+  int _nextSyntheticOffset = 1;
+
   PreVisitor(this.errors);
+
+  int generateSyntheticOffset() => _nextSyntheticOffset++;
 }
 
 /// Base class for language constructs that, at a given point in flow analysis,
 /// might or might not be promoted.
-abstract class Promotable {
+mixin Promotable on Node {
+  void preVisit(PreVisitor visitor) {
+    _syntheticStartOffset = visitor.generateSyntheticOffset();
+    preVisitInternal(visitor);
+    _syntheticEndOffset = visitor.generateSyntheticOffset();
+  }
+
   /// Makes the appropriate calls to [AssignedVariables] and [VariableBinder]
   /// for this syntactic construct.
-  void preVisit(PreVisitor visitor);
+  void preVisitInternal(PreVisitor visitor);
 
   /// Queries the current promotion status of `this`.  Return value is either a
   /// type (if `this` is promoted), or `null` (if it isn't).
@@ -4705,6 +5016,8 @@ class Property extends PromotableLValue {
 
   final bool isNullAware;
 
+  int? _syntheticAfterOperatorOffset;
+
   Property._(
     this.target,
     this.propertyName, {
@@ -4713,11 +5026,12 @@ class Property extends PromotableLValue {
   }) : super._();
 
   @override
-  void preVisit(
+  void preVisitInternal(
     PreVisitor visitor, {
     _LValueDisposition disposition = _LValueDisposition.read,
   }) {
     target.preVisit(visitor);
+    _syntheticAfterOperatorOffset = visitor.generateSyntheticOffset();
   }
 
   @override
@@ -4733,6 +5047,7 @@ class Property extends PromotableLValue {
       target is CascadePlaceholder ? null : target,
       propertyName,
       isNullAware: isNullAware,
+      afterOperatorOffset: _syntheticAfterOperatorOffset!,
     );
   }
 
@@ -5047,11 +5362,24 @@ mixin ProtoExpression
   /// If `this` is an expression `x`, creates a method invocation with `x` as
   /// the target, [name] as the method name, and [arguments] as the method
   /// arguments. Named arguments are not supported.
+  ///
+  /// [argumentVisitOrder], if given, should be a permutation of the numbers 0
+  /// through `arguments.length - 1` indicating the order in which the arguments
+  /// should be visited by flow analysis. This allows the flow analysis effects
+  /// of horizontal inference to be tested without having to add a lot of test
+  /// boilerplace code.
   Expression invokeMethod(
     String name,
     List<ProtoExpression> arguments, {
     bool isNullAware = false,
+    List<int>? argumentVisitOrder,
   }) {
+    argumentVisitOrder ??= [for (var i = 0; i < arguments.length; i++) i];
+    assert(
+      argumentVisitOrder.isPermutation(arguments.length),
+      'arguentVisitOrder ($argumentVisitOrder) is not a permutation of the '
+      'numbers from 0 to ${arguments.length - 1})',
+    );
     var location = computeLocation();
     return new InvokeMethod._(
       asExpression(location: location),
@@ -5061,6 +5389,7 @@ mixin ProtoExpression
           argument.asExpression(location: location),
       ],
       isNullAware: isNullAware,
+      argumentVisitOrder: argumentVisitOrder,
       location: location,
     );
   }
@@ -5197,7 +5526,7 @@ class RecordPattern extends Pattern {
   }
 
   @override
-  void preVisit(
+  void preVisitInternal(
     PreVisitor visitor,
     VariableBinder<Node, Var> variableBinder, {
     required bool isInAssignment,
@@ -5273,7 +5602,7 @@ class RelationalPattern extends Pattern {
       h.typeAnalyzer.analyzeRelationalPatternSchema();
 
   @override
-  void preVisit(
+  void preVisitInternal(
     PreVisitor visitor,
     VariableBinder<Node, Var> variableBinder, {
     required bool isInAssignment,
@@ -5305,13 +5634,14 @@ class RelationalPattern extends Pattern {
 }
 
 class RestPattern extends Node
+    with ListOrMapPatternElement
     implements ListPatternElement, MapPatternElement {
   final Pattern? subPattern;
 
   RestPattern._(this.subPattern, {required super.location}) : super._();
 
   @override
-  void preVisit(
+  void preVisitInternal(
     PreVisitor visitor,
     VariableBinder<Node, Var> variableBinder, {
     required bool isInAssignment,
@@ -5338,14 +5668,14 @@ class Return extends Statement {
   Return._({required super.location});
 
   @override
-  void preVisit(PreVisitor visitor) {}
+  void preVisitInternal(PreVisitor visitor) {}
 
   @override
   String toString() => 'return;';
 
   @override
   StatementTypeAnalysisResult visit(Harness h) {
-    h.typeAnalyzer.analyzeReturnStatement();
+    h.typeAnalyzer.analyzeReturnStatement(offset: _syntheticEndOffset!);
     h.irBuilder.apply('return', [], Kind.statement, location: location);
     return const StatementTypeAnalysisResult();
   }
@@ -5361,7 +5691,7 @@ class Second extends Expression {
   Second._(this.first, this.second, {required super.location});
 
   @override
-  void preVisit(PreVisitor visitor) {
+  void preVisitInternal(PreVisitor visitor) {
     first.preVisit(visitor);
     second.preVisit(visitor);
   }
@@ -5406,7 +5736,13 @@ abstract class Statement extends Node with ProtoStatement<Statement> {
     return asStatement(location: location).._expectedIR = expectedIR;
   }
 
-  void preVisit(PreVisitor visitor);
+  void preVisit(PreVisitor visitor) {
+    _syntheticStartOffset = visitor.generateSyntheticOffset();
+    preVisitInternal(visitor);
+    _syntheticEndOffset = visitor.generateSyntheticOffset();
+  }
+
+  void preVisitInternal(PreVisitor visitor);
 
   StatementTypeAnalysisResult visit(Harness h);
 }
@@ -5416,11 +5752,14 @@ class SwitchExpression extends Expression {
 
   final List<ExpressionCase> cases;
 
+  int? _syntheticScrutineeEndOffset;
+
   SwitchExpression._(this.scrutinee, this.cases, {required super.location});
 
   @override
-  void preVisit(PreVisitor visitor) {
+  void preVisitInternal(PreVisitor visitor) {
     scrutinee.preVisit(visitor);
+    _syntheticScrutineeEndOffset = visitor.generateSyntheticOffset();
     for (var case_ in cases) {
       case_._preVisit(visitor);
     }
@@ -5445,6 +5784,7 @@ class SwitchExpression extends Expression {
       scrutinee,
       cases.length,
       schema,
+      scrutineeEndOffset: _syntheticScrutineeEndOffset!,
     );
     h.irBuilder.apply(
       'switchExpr',
@@ -5457,6 +5797,8 @@ class SwitchExpression extends Expression {
 }
 
 abstract class SwitchHead extends Node implements ProtoSwitchHead {
+  int? _syntheticBeginAlternativeOffset;
+
   SwitchHead._({required super.location}) : super._();
 
   @override
@@ -5470,19 +5812,11 @@ abstract class SwitchHead extends Node implements ProtoSwitchHead {
       location: location,
     );
   }
-
-  ExpressionCase thenExpr(ProtoExpression body) {
-    var location = computeLocation();
-    return ExpressionCase._(
-      null,
-      body.asExpression(location: location),
-      location: location,
-    );
-  }
 }
 
 class SwitchHeadCase extends SwitchHead {
   final GuardedPattern guardedPattern;
+  int? _syntheticFinishJoinedPatternVariablesOffset;
 
   SwitchHeadCase._(this.guardedPattern, {required super.location}) : super._();
 }
@@ -5508,6 +5842,8 @@ class SwitchStatement extends Statement {
 
   final String? expectScrutineeType;
 
+  int? _syntheticScrutineeEndOffset;
+
   SwitchStatement(
     this.scrutinee,
     this.cases,
@@ -5521,8 +5857,9 @@ class SwitchStatement extends Statement {
   });
 
   @override
-  void preVisit(PreVisitor visitor) {
+  void preVisitInternal(PreVisitor visitor) {
     scrutinee.preVisit(visitor);
+    _syntheticScrutineeEndOffset = visitor.generateSyntheticOffset();
     visitor._assignedVariables.beginNode();
     for (var case_ in cases) {
       case_._preVisit(visitor);
@@ -5564,6 +5901,7 @@ class SwitchStatement extends Statement {
       this,
       scrutinee,
       cases.length,
+      scrutineeEndOffset: _syntheticScrutineeEndOffset!,
     );
     expect(analysisResult.hasDefault, expectHasDefault ?? anything);
     expect(analysisResult.isExhaustive, expectIsExhaustive ?? anything);
@@ -5612,9 +5950,13 @@ class SwitchStatementMember extends Node {
   }) : super._();
 
   void _preVisit(PreVisitor visitor) {
+    _syntheticStartOffset = visitor.generateSyntheticOffset();
     var variableBinder = _VariableBinder(visitor);
     variableBinder.switchStatementSharedCaseScopeStart(this);
     for (SwitchHead element in elements) {
+      element._syntheticStartOffset = visitor.generateSyntheticOffset();
+      element._syntheticBeginAlternativeOffset = visitor
+          .generateSyntheticOffset();
       if (element is SwitchHeadCase) {
         variableBinder.casePatternStart();
         element.guardedPattern.pattern.preVisit(
@@ -5622,6 +5964,8 @@ class SwitchStatementMember extends Node {
           variableBinder,
           isInAssignment: false,
         );
+        element._syntheticFinishJoinedPatternVariablesOffset = visitor
+            .generateSyntheticOffset();
         element.guardedPattern.guard?.preVisit(visitor);
         element.guardedPattern.variables = variableBinder.casePatternFinish(
           sharedCaseScopeKey: this,
@@ -5629,6 +5973,7 @@ class SwitchStatementMember extends Node {
       } else {
         variableBinder.switchStatementSharedCaseScopeEmpty(this);
       }
+      element._syntheticEndOffset = visitor.generateSyntheticOffset();
     }
     if (hasLabels) {
       variableBinder.switchStatementSharedCaseScopeEmpty(this);
@@ -5637,6 +5982,7 @@ class SwitchStatementMember extends Node {
       this,
     );
     body.preVisit(visitor);
+    _syntheticEndOffset = visitor.generateSyntheticOffset();
   }
 }
 
@@ -5644,7 +5990,7 @@ class This extends Expression implements Promotable {
   This._({required super.location});
 
   @override
-  void preVisit(PreVisitor visitor) {}
+  void preVisitInternal(PreVisitor visitor) {}
 
   @override
   String toString() => 'this';
@@ -5682,7 +6028,7 @@ class ThisOrSuperProperty extends PromotableLValue {
   }) : super._();
 
   @override
-  void preVisit(
+  void preVisitInternal(
     PreVisitor visitor, {
     _LValueDisposition disposition = _LValueDisposition.read,
   }) {}
@@ -5771,7 +6117,7 @@ class Throw extends Expression {
   Throw._(this.operand, {required super.location});
 
   @override
-  void preVisit(PreVisitor visitor) {
+  void preVisitInternal(PreVisitor visitor) {
     operand.preVisit(visitor);
   }
 
@@ -5803,6 +6149,8 @@ class TryStatementImpl extends TryStatement {
   final Statement body;
   final List<CatchClause> catches;
   final Statement? finallyStatement;
+  int? _syntheticAfterCatchesOffset;
+  int? _syntheticAfterFinallyKeywordOffset;
 
   TryStatementImpl(
     this.body,
@@ -5847,7 +6195,7 @@ class TryStatementImpl extends TryStatement {
   }
 
   @override
-  void preVisit(PreVisitor visitor) {
+  void preVisitInternal(PreVisitor visitor) {
     if (finallyStatement != null) {
       visitor._assignedVariables.beginNode();
     }
@@ -5859,6 +6207,8 @@ class TryStatementImpl extends TryStatement {
     for (var catch_ in catches) {
       catch_._preVisit(visitor);
     }
+    _syntheticAfterCatchesOffset = visitor.generateSyntheticOffset();
+    _syntheticAfterFinallyKeywordOffset = visitor.generateSyntheticOffset();
     if (finallyStatement != null) {
       if (catches.isNotEmpty) {
         visitor._assignedVariables.endNode(this);
@@ -5869,7 +6219,14 @@ class TryStatementImpl extends TryStatement {
 
   @override
   StatementTypeAnalysisResult visit(Harness h) {
-    h.typeAnalyzer.analyzeTryStatement(this, body, catches, finallyStatement);
+    h.typeAnalyzer.analyzeTryStatement(
+      this,
+      body,
+      catches,
+      finallyStatement,
+      afterCatchesOffset: _syntheticAfterCatchesOffset!,
+      afterFinallyKeywordOffset: _syntheticAfterFinallyKeywordOffset!,
+    );
     h.irBuilder.apply(
       'try',
       [
@@ -5907,8 +6264,8 @@ class Var extends Node
     with
         ProtoStatement<Expression>,
         ProtoCollectionElement<Expression>,
-        ProtoExpression
-    implements Promotable {
+        ProtoExpression,
+        Promotable {
   final String name;
   bool isFinal;
 
@@ -5982,7 +6339,7 @@ class Var extends Node
   }
 
   @override
-  void preVisit(PreVisitor visitor) {}
+  void preVisitInternal(PreVisitor visitor) {}
 
   /// Creates an expression representing a read of this variable, which as a
   /// side effect will call the given callback with the returned promoted type.
@@ -6025,6 +6382,7 @@ class VariableDeclaration extends Statement {
   final Type? declaredType;
   final Expression? initializer;
   final String? expectInferredType;
+  int? _syntheticOperatorOffset;
 
   VariableDeclaration._({
     required super.location,
@@ -6037,11 +6395,12 @@ class VariableDeclaration extends Statement {
   });
 
   @override
-  void preVisit(PreVisitor visitor) {
+  void preVisitInternal(PreVisitor visitor) {
     visitor._assignedVariables.declare(variable);
     if (isLate) {
       visitor._assignedVariables.beginNode();
     }
+    _syntheticOperatorOffset = visitor.generateSyntheticOffset();
     initializer?.preVisit(visitor);
     if (isLate) {
       visitor._assignedVariables.endNode(this);
@@ -6070,16 +6429,18 @@ class VariableDeclaration extends Statement {
     h.irBuilder.atom(variable.name, Kind.variable, location: location);
     Type staticType;
     if (initializer == null) {
+      // There's no shared logic for analyzing uninitialized variable
+      // declarations, so analyze the declaration directly.
       // Use the shared logic for analyzing uninitialized variable
       // declarations.
-      staticType = h.typeAnalyzer
-          .analyzeUninitializedVariableDeclaration(
-            this,
-            variable,
-            declaredType?.wrapSharedTypeView(),
-            isFinal: isFinal,
-          )
-          .unwrapTypeView();
+      staticType = declaredType ?? Type('dynamic');
+      variable.type = staticType;
+      h.flow.declare(
+        variable,
+        staticType.wrapSharedTypeView(),
+        initialized: false,
+        offset: _syntheticEndOffset!,
+      );
       h.irBuilder.atom(staticType.type, Kind.type, location: location);
       irName = 'declare';
       argKinds = [Kind.variable, Kind.type];
@@ -6087,14 +6448,16 @@ class VariableDeclaration extends Statement {
     } else {
       // There's no shared logic for analyzing initialized variable
       // declarations, so analyze the declaration directly.
-      if (isLate) h.flow.lateInitializer_begin(this);
+      if (isLate) {
+        h.flow.lateInitializer_begin(this, offset: _syntheticOperatorOffset!);
+      }
       var initializerAnalysisResult = h.typeAnalyzer.analyzeExpression(
         initializer,
         declaredType?.wrapSharedTypeSchemaView() ?? h.operations.unknownType,
       );
       var initializerType = initializerAnalysisResult.type
           .unwrapTypeView<Type>();
-      if (isLate) h.flow.lateInitializer_end();
+      if (isLate) h.flow.lateInitializer_end(offset: _syntheticEndOffset!);
       staticType = variable.type =
           declaredType ??
           h.typeAnalyzer
@@ -6102,7 +6465,12 @@ class VariableDeclaration extends Statement {
                 initializerType.wrapSharedTypeView(),
               )
               .unwrapTypeView();
-      h.flow.declare(variable, SharedTypeView(staticType), initialized: true);
+      h.flow.declare(
+        variable,
+        SharedTypeView(staticType),
+        initialized: true,
+        offset: _syntheticEndOffset!,
+      );
       h.flow.initialize(
         variable,
         SharedTypeView(initializerType),
@@ -6110,6 +6478,7 @@ class VariableDeclaration extends Statement {
         isFinal: isFinal,
         isLate: isLate,
         isImplicitlyTyped: declaredType == null,
+        offset: _syntheticEndOffset!,
       );
       h.irBuilder.atom(initializerType.type, Kind.type, location: location);
       h.irBuilder.atom(staticType.type, Kind.type, location: location);
@@ -6162,7 +6531,7 @@ class VariablePattern extends Pattern {
   }
 
   @override
-  void preVisit(
+  void preVisitInternal(
     PreVisitor visitor,
     VariableBinder<Node, Var> variableBinder, {
     required bool isInAssignment,
@@ -6232,7 +6601,7 @@ class VariableReference extends LValue {
     : super._();
 
   @override
-  void preVisit(
+  void preVisitInternal(
     PreVisitor visitor, {
     _LValueDisposition disposition = _LValueDisposition.read,
   }) {
@@ -6264,6 +6633,7 @@ class VariableReference extends LValue {
       postIncDecExpression,
       variable,
       SharedTypeView(writtenType),
+      offset: postIncDecExpression._syntheticEndOffset!,
     );
   }
 
@@ -6279,6 +6649,7 @@ class VariableReference extends LValue {
       variable,
       SharedTypeView(writtenType),
       rhsInfo,
+      offset: assignmentExpression._syntheticEndOffset!,
     );
   }
 }
@@ -6286,13 +6657,17 @@ class VariableReference extends LValue {
 class While extends Statement {
   final Expression condition;
   final Statement body;
+  int? _syntheticBodyBeginOffset;
+  int? _syntheticConditionBeginOffset;
 
   While._(this.condition, this.body, {required super.location});
 
   @override
-  void preVisit(PreVisitor visitor) {
+  void preVisitInternal(PreVisitor visitor) {
     visitor._assignedVariables.beginNode();
+    _syntheticConditionBeginOffset = visitor.generateSyntheticOffset();
     condition.preVisit(visitor);
+    _syntheticBodyBeginOffset = visitor.generateSyntheticOffset();
     body.preVisit(visitor);
     visitor._assignedVariables.endNode(this);
   }
@@ -6302,7 +6677,13 @@ class While extends Statement {
 
   @override
   StatementTypeAnalysisResult visit(Harness h) {
-    h.typeAnalyzer.analyzeWhileLoop(this, condition, body);
+    h.typeAnalyzer.analyzeWhileLoop(
+      this,
+      condition,
+      body,
+      conditionBeginOffset: _syntheticConditionBeginOffset!,
+      bodyBeginOffset: _syntheticBodyBeginOffset!,
+    );
     h.irBuilder.apply(
       'while',
       [Kind.expression, Kind.statement],
@@ -6332,7 +6713,7 @@ class WildcardPattern extends Pattern {
   }
 
   @override
-  void preVisit(
+  void preVisitInternal(
     PreVisitor visitor,
     VariableBinder<Node, Var> variableBinder, {
     required bool isInAssignment,
@@ -6382,7 +6763,7 @@ class WrappedExpression extends Expression {
   });
 
   @override
-  void preVisit(PreVisitor visitor) {
+  void preVisitInternal(PreVisitor visitor) {
     before?.preVisit(visitor);
     expr.preVisit(visitor);
     after?.preVisit(visitor);
@@ -6447,7 +6828,7 @@ class Write extends Expression {
   Write(this.lhs, this.rhs, {required super.location});
 
   @override
-  void preVisit(PreVisitor visitor) {
+  void preVisitInternal(PreVisitor visitor) {
     lhs.preVisit(visitor, disposition: _LValueDisposition.write);
     rhs.preVisit(visitor);
   }
@@ -6479,6 +6860,7 @@ class Write extends Expression {
 class YieldStatement extends Statement {
   final Expression operand;
   final bool isYieldStar;
+  int? _syntheticSuspensionOffset;
 
   YieldStatement._(
     this.operand, {
@@ -6487,8 +6869,9 @@ class YieldStatement extends Statement {
   });
 
   @override
-  void preVisit(PreVisitor visitor) {
+  void preVisitInternal(PreVisitor visitor) {
     operand.preVisit(visitor);
+    _syntheticSuspensionOffset = visitor.generateSyntheticOffset();
   }
 
   @override
@@ -6503,6 +6886,7 @@ class YieldStatement extends Statement {
       this,
       operand,
       isYieldStar: isYieldStar,
+      suspensionOffset: _syntheticSuspensionOffset!,
     );
     h.irBuilder.apply(
       'yieldStmt',
@@ -6512,6 +6896,21 @@ class YieldStatement extends Statement {
     );
     return result;
   }
+}
+
+class _Checkpoint {
+  final int offset;
+  final PromotionInfo? expectedPromotionInfo;
+  final ({PromotionKey promotionKey, SharedTypeView unpromotedType})?
+  expectedThisBinding;
+  final String location;
+
+  _Checkpoint({
+    required this.offset,
+    required this.expectedPromotionInfo,
+    required this.expectedThisBinding,
+    required this.location,
+  });
 }
 
 /// Enum representing the different ways an [LValue] might be used.
@@ -6855,28 +7254,33 @@ class _MiniAstTypeAnalyzer
   void analyzeAssertStatement(
     Statement node,
     Expression condition,
-    Expression? message,
-  ) {
-    flow.assert_begin();
+    Expression? message, {
+    required int afterConditionOffset,
+  }) {
+    flow.assert_begin(offset: node._syntheticStartOffset!);
     var conditionAnalysisResult = analyzeExpression(
       condition,
       operations.unknownType,
     );
-    flow.assert_afterCondition(conditionAnalysisResult.flowAnalysisInfo);
+    flow.assert_afterCondition(
+      conditionAnalysisResult.flowAnalysisInfo,
+      offset: afterConditionOffset,
+    );
     if (message != null) {
       analyzeExpression(message, operations.unknownType);
     } else {
       handleNoMessage(node);
     }
-    flow.assert_end();
+    flow.assert_end(offset: node._syntheticEndOffset!);
   }
 
   ExpressionTypeAnalysisResult analyzeBinaryExpression(
     Expression node,
     Expression lhs,
     String operatorName,
-    Expression rhs,
-  ) {
+    Expression rhs, {
+    required int afterOperatorOffset,
+  }) {
     bool isEquals = false;
     bool isNot = false;
     bool isLogical = false;
@@ -6906,7 +7310,7 @@ class _MiniAstTypeAnalyzer
       operatorName = '==';
     }
     if (isLogical) {
-      flow.logicalBinaryOp_begin();
+      flow.logicalBinaryOp_begin(offset: node._syntheticStartOffset!);
     }
     var leftAnalysisResult = analyzeExpression(lhs, operations.unknownType);
     var leftType = leftAnalysisResult.type;
@@ -6918,6 +7322,7 @@ class _MiniAstTypeAnalyzer
         leftAnalysisResult.flowAnalysisInfo,
         node,
         isAnd: isAnd,
+        offset: afterOperatorOffset,
       );
     }
     var rightAnalysisResult = analyzeExpression(rhs, operations.unknownType);
@@ -6935,6 +7340,7 @@ class _MiniAstTypeAnalyzer
       flowAnalysisInfo = flow.logicalBinaryOp_end(
         rightAnalysisResult.flowAnalysisInfo,
         isAnd: isAnd,
+        offset: node._syntheticEndOffset!,
       );
     }
     return new ExpressionTypeAnalysisResult(
@@ -6956,22 +7362,28 @@ class _MiniAstTypeAnalyzer
     );
   }
 
-  void analyzeBreakStatement(Statement? target) {
-    flow.handleBreak(target);
+  void analyzeBreakStatement(Statement? target, {required int offset}) {
+    flow.handleBreak(target, offset: offset);
   }
 
   ExpressionTypeAnalysisResult analyzeConditionalExpression(
     Expression node,
     Expression condition,
     Expression ifTrue,
-    Expression ifFalse,
-  ) {
-    flow.conditional_conditionBegin();
+    Expression ifFalse, {
+    required int afterQuestionOffset,
+    required int afterColonOffset,
+  }) {
+    flow.conditional_conditionBegin(offset: node._syntheticStartOffset!);
     var conditionAnalysisResult = analyzeExpression(
       condition,
       operations.unknownType,
     );
-    flow.conditional_thenBegin(conditionAnalysisResult.flowAnalysisInfo, node);
+    flow.conditional_thenBegin(
+      conditionAnalysisResult.flowAnalysisInfo,
+      node,
+      offset: afterQuestionOffset,
+    );
     var ifTrueAnalysisResult = analyzeExpression(
       ifTrue,
       operations.unknownType,
@@ -6980,6 +7392,7 @@ class _MiniAstTypeAnalyzer
     flow.conditional_elseBegin(
       ifTrueAnalysisResult.flowAnalysisInfo,
       ifTrueType,
+      offset: afterColonOffset,
     );
     var ifFalseAnalysisResult = analyzeExpression(
       ifFalse,
@@ -6991,6 +7404,7 @@ class _MiniAstTypeAnalyzer
       lubType,
       ifFalseAnalysisResult.flowAnalysisInfo,
       ifFalseType,
+      offset: node._syntheticEndOffset!,
     );
     return new ExpressionTypeAnalysisResult(
       type: lubType,
@@ -6998,19 +7412,28 @@ class _MiniAstTypeAnalyzer
     );
   }
 
-  void analyzeContinueStatement(Statement? target) {
-    flow.handleContinue(target);
+  void analyzeContinueStatement(Statement? target, {required int offset}) {
+    flow.handleContinue(target, offset: offset);
   }
 
-  void analyzeDoLoop(Statement node, Statement body, Expression condition) {
-    flow.doStatement_bodyBegin(node);
+  void analyzeDoLoop(
+    Statement node,
+    Statement body,
+    Expression condition, {
+    required int bodyBeginOffset,
+    required int conditionBeginOffset,
+  }) {
+    flow.doStatement_bodyBegin(node, offset: bodyBeginOffset);
     _visitLoopBody(node, body);
-    flow.doStatement_conditionBegin();
+    flow.doStatement_conditionBegin(offset: conditionBeginOffset);
     var conditionAnalysisResult = analyzeExpression(
       condition,
       operations.unknownType,
     );
-    flow.doStatement_end(conditionAnalysisResult.flowAnalysisInfo);
+    flow.doStatement_end(
+      conditionAnalysisResult.flowAnalysisInfo,
+      offset: node._syntheticEndOffset!,
+    );
   }
 
   ExpressionTypeAnalysisResult analyzeDotShorthandExpression(
@@ -7032,6 +7455,32 @@ class _MiniAstTypeAnalyzer
     );
   }
 
+  @override
+  shared.ExpressionTypeAnalysisResult analyzeExpression(
+    Expression node,
+    SharedTypeSchemaView schema, {
+    bool continueNullShorting = false,
+    bool isVoidAllowed = false,
+    bool needsCoercion = false,
+  }) {
+    _harness._checkpoint(
+      offset: node._syntheticStartOffset!,
+      location: node.location,
+    );
+    var result = super.analyzeExpression(
+      node,
+      schema,
+      continueNullShorting: continueNullShorting,
+      isVoidAllowed: isVoidAllowed,
+      needsCoercion: needsCoercion,
+    );
+    _harness._checkpoint(
+      offset: node._syntheticEndOffset! + 1,
+      location: node.location,
+    );
+    return result;
+  }
+
   void analyzeExpressionStatement(Expression expression) {
     analyzeExpression(expression, operations.unknownType);
   }
@@ -7039,16 +7488,18 @@ class _MiniAstTypeAnalyzer
   ExpressionTypeAnalysisResult analyzeIfNullExpression(
     Expression node,
     Expression lhs,
-    Expression rhs,
-  ) {
+    Expression rhs, {
+    required int operatorOffset,
+  }) {
     var leftAnalysisResult = analyzeExpression(lhs, operations.unknownType);
     var leftType = leftAnalysisResult.type;
     flow.ifNullExpression_rightBegin(
       leftAnalysisResult.flowAnalysisInfo,
       leftType,
+      offset: operatorOffset,
     );
     var rightType = analyzeExpression(rhs, operations.unknownType).type;
-    flow.ifNullExpression_end();
+    flow.ifNullExpression_end(offset: node._syntheticEndOffset!);
     return new ExpressionTypeAnalysisResult(
       type: operations.lub(
         flow.operations.promoteToNonNull(leftType),
@@ -7058,9 +7509,9 @@ class _MiniAstTypeAnalyzer
   }
 
   void analyzeLabeledStatement(Statement node, Statement body) {
-    flow.labeledStatement_begin(node);
+    flow.labeledStatement_begin(node, offset: node._syntheticStartOffset!);
     dispatchStatement(body);
-    flow.labeledStatement_end();
+    flow.labeledStatement_end(offset: node._syntheticEndOffset!);
   }
 
   ExpressionTypeAnalysisResult analyzeLogicalNot(
@@ -7087,6 +7538,21 @@ class _MiniAstTypeAnalyzer
   /// of the method being invoked, and [arguments] is the list of argument
   /// expressions.
   ///
+  /// [argumentVisitOrder] should be a permutation of the numbers 0 through
+  /// `arguments.length - 1` indicating the order in which the arguments should
+  /// be visited by flow analysis. This allows the flow analysis effects of
+  /// horizontal inference to be tested without having to add a lot of test
+  /// boilerplace code.
+  ///
+  /// [betweenArgumentOffsets] should be a list of length
+  /// `arguments.length + 1`, whose `i`th element is the offset just before the
+  /// `i`th argument, and whose last element is the offset just after the last
+  /// argument. This determines the offsets that will be passed to
+  /// [FlowAnalysis.argumentVisitOrderException_begin],
+  /// [FlowAnalysis.argumentVisitOrderException_end], and
+  /// [FlowAnalysis.recordArgumentVisitOrderException] when [argumentVisitOrder]
+  /// indicates that arguments should be visited out of order.
+  ///
   /// Named arguments are not supported.
   ExpressionTypeAnalysisResult analyzeMethodInvocation(
     Expression node,
@@ -7094,6 +7560,9 @@ class _MiniAstTypeAnalyzer
     String methodName,
     List<Expression> arguments, {
     required bool isNullAware,
+    required int afterOperatorOffset,
+    required List<int> argumentVisitOrder,
+    required List<int> betweenArgumentOffsets,
   }) {
     // Analyze the target, generate its IR, and look up the method's type.
     var methodType = _handlePropertyTargetAndMemberLookup(
@@ -7102,6 +7571,7 @@ class _MiniAstTypeAnalyzer
       methodName,
       location: node.location,
       isNullAware: isNullAware,
+      afterOperatorOffset: afterOperatorOffset,
     ).type.unwrapTypeView();
     var returnType = operations.dynamicType.unwrapTypeView();
     if (methodType is FunctionType) {
@@ -7117,15 +7587,47 @@ class _MiniAstTypeAnalyzer
     }
     // Recursively analyze each argument.
     var inputKinds = [Kind.expression];
+    var lastVisitedArgument = -1;
+    var maxVisitedArgument = -1;
     for (var i = 0; i < arguments.length; i++) {
+      var j = argumentVisitOrder[i];
       inputKinds.add(Kind.expression);
+      // If any argument that follows this one has already been visited, then
+      // this argument is being visited out of order.
+      var isOutOfOrder = maxVisitedArgument > j;
+      if (isOutOfOrder) {
+        flow.argumentVisitOrderException_begin(
+          offset: betweenArgumentOffsets[j],
+        );
+      } else if (lastVisitedArgument != j - 1) {
+        // This argument is being visited in its natural source position, but
+        // the argument that precedes it in the source code wasn't the argument
+        // that was visited most recently, so an argument was visited out of
+        // order in the meantime. Account for the state changes it made before
+        // visiting this argument.
+        flow.recordArgumentVisitOrderException(
+          offset: betweenArgumentOffsets[j],
+        );
+      }
       analyzeExpression(
-        arguments[i],
+        arguments[j],
         methodType is FunctionType && !methodType.isQuestionType
             ? operations.typeToSchema(
-                SharedTypeView(methodType.positionalParameters[i]),
+                SharedTypeView(methodType.positionalParameters[j]),
               )
             : operations.unknownType,
+      );
+      if (isOutOfOrder) {
+        flow.argumentVisitOrderException_end(
+          offset: betweenArgumentOffsets[j + 1],
+        );
+      }
+      lastVisitedArgument = j;
+      if (j > maxVisitedArgument) maxVisitedArgument = j;
+    }
+    if (lastVisitedArgument != arguments.length - 1) {
+      flow.recordArgumentVisitOrderException(
+        offset: betweenArgumentOffsets[arguments.length],
       );
     }
     // Form the IR for the member invocation.
@@ -7148,7 +7650,10 @@ class _MiniAstTypeAnalyzer
       continueNullShorting: true,
     );
     var type = expressionAnalysisResult.type;
-    flow.nonNullAssert_end(expressionAnalysisResult.flowAnalysisInfo);
+    flow.nonNullAssert_end(
+      expressionAnalysisResult.flowAnalysisInfo,
+      offset: node._syntheticEndOffset!,
+    );
     return new ExpressionTypeAnalysisResult(
       type: flow.operations.promoteToNonNull(type),
     );
@@ -7182,6 +7687,7 @@ class _MiniAstTypeAnalyzer
     Expression? target,
     String propertyName, {
     required bool isNullAware,
+    required int afterOperatorOffset,
   }) {
     // Analyze the target, generate its IR, and look up the property's type.
     var analysisResult = _handlePropertyTargetAndMemberLookup(
@@ -7190,23 +7696,26 @@ class _MiniAstTypeAnalyzer
       propertyName,
       location: node.location,
       isNullAware: isNullAware,
+      afterOperatorOffset: afterOperatorOffset,
     );
     // Build the property get IR.
     _harness.irBuilder.propertyGet(propertyName, location: node.location);
     return analysisResult;
   }
 
-  void analyzeReturnStatement() {
-    flow.handleReturn();
+  void analyzeReturnStatement({required int offset}) {
+    flow.handleReturn(offset: offset);
   }
 
   ExpressionTypeAnalysisResult analyzeThis(Expression node) {
-    var promotedTypeOfThis = flow.promotedTypeOfThis?.unwrapTypeView() as Type?;
+    var (
+      promotedType: wrappedPromotedTypeOfThis,
+      expressionInfo: flowAnalysisInfo,
+    ) = flow
+        .thisExpression();
+    var promotedTypeOfThis =
+        wrappedPromotedTypeOfThis?.unwrapTypeView() as Type?;
     var thisType = promotedTypeOfThis ?? this.thisType;
-    var flowAnalysisInfo = flow.thisOrSuper(
-      SharedTypeView(thisType),
-      isSuper: false,
-    );
     return new ExpressionTypeAnalysisResult(
       type: SharedTypeView(thisType),
       flowAnalysisInfo: flowAnalysisInfo,
@@ -7220,7 +7729,10 @@ class _MiniAstTypeAnalyzer
   }) {
     var member = _lookupMember(thisType, propertyName);
     var memberType = member?._type ?? operations.dynamicType.unwrapTypeView();
-    var (wrappedPromotedType, flowAnalysisInfo) = flow.propertyGet(
+    var (
+      promotedType: wrappedPromotedType,
+      expressionInfo: flowAnalysisInfo,
+    ) = flow.propertyGet(
       isSuperAccess
           ? SuperPropertyTarget.singleton
           : ThisPropertyTarget.singleton,
@@ -7240,7 +7752,7 @@ class _MiniAstTypeAnalyzer
     Expression expression,
   ) {
     analyzeExpression(expression, operations.unknownType);
-    flow.handleExit();
+    flow.handleExit(offset: node._syntheticEndOffset!);
     return new ExpressionTypeAnalysisResult(type: operations.neverType);
   }
 
@@ -7248,13 +7760,15 @@ class _MiniAstTypeAnalyzer
     Statement node,
     Statement body,
     Iterable<CatchClause> catchClauses,
-    Statement? finallyBlock,
-  ) {
+    Statement? finallyBlock, {
+    required int afterCatchesOffset,
+    required int afterFinallyKeywordOffset,
+  }) {
     if (finallyBlock != null) {
       flow.tryFinallyStatement_bodyBegin();
     }
     if (catchClauses.isNotEmpty) {
-      flow.tryCatchStatement_bodyBegin();
+      flow.tryCatchStatement_bodyBegin(offset: node._syntheticStartOffset!);
     }
     dispatchStatement(body);
     if (catchClauses.isNotEmpty) {
@@ -7262,18 +7776,23 @@ class _MiniAstTypeAnalyzer
       for (var catch_ in catchClauses) {
         catch_.exception?._type = catch_.exceptionType ?? Type('dynamic');
         catch_.stackTrace?._type = Type('StackTrace');
-        flow.tryCatchStatement_catchBegin(catch_.exception, catch_.stackTrace);
+        flow.tryCatchStatement_catchBegin(
+          catch_.exception,
+          catch_.stackTrace,
+          offset: catch_._syntheticAfterOpenBraceOffset!,
+        );
         dispatchStatement(catch_.body);
         flow.tryCatchStatement_catchEnd();
       }
-      flow.tryCatchStatement_end();
+      flow.tryCatchStatement_end(offset: afterCatchesOffset);
     }
     if (finallyBlock != null) {
       flow.tryFinallyStatement_finallyBegin(
         catchClauses.isNotEmpty ? node : body,
+        offset: afterFinallyKeywordOffset,
       );
       dispatchStatement(finallyBlock);
-      flow.tryFinallyStatement_end();
+      flow.tryFinallyStatement_end(offset: node._syntheticEndOffset!);
     } else {
       handleNoStatement(node);
     }
@@ -7293,6 +7812,7 @@ class _MiniAstTypeAnalyzer
       subExpressionAnalysisResult.flowAnalysisInfo,
       subExpressionType: subExpressionType,
       castType: SharedTypeView(type),
+      offset: node._syntheticEndOffset!,
     );
     return new ExpressionTypeAnalysisResult(type: SharedTypeView(type));
   }
@@ -7325,7 +7845,10 @@ class _MiniAstTypeAnalyzer
     Var variable,
     void Function(Type?)? callback,
   ) {
-    var (promotedType, flowAnalysisInfo) = flow.variableRead(variable);
+    var (:promotedType, expressionInfo: flowAnalysisInfo) = flow.variableRead(
+      variable,
+      offset: node._syntheticEndOffset!,
+    );
     callback?.call(promotedType?.unwrapTypeView());
     return new ExpressionTypeAnalysisResult(
       type: promotedType ?? SharedTypeView(variable.type),
@@ -7333,8 +7856,14 @@ class _MiniAstTypeAnalyzer
     );
   }
 
-  void analyzeWhileLoop(Statement node, Expression condition, Statement body) {
-    flow.whileStatement_conditionBegin(node);
+  void analyzeWhileLoop(
+    Statement node,
+    Expression condition,
+    Statement body, {
+    required int conditionBeginOffset,
+    required int bodyBeginOffset,
+  }) {
+    flow.whileStatement_conditionBegin(node, offset: conditionBeginOffset);
     var conditionAnalysisResult = analyzeExpression(
       condition,
       operations.unknownType,
@@ -7342,20 +7871,23 @@ class _MiniAstTypeAnalyzer
     flow.whileStatement_bodyBegin(
       node,
       conditionAnalysisResult.flowAnalysisInfo,
+      offset: bodyBeginOffset,
     );
     _visitLoopBody(node, body);
-    flow.whileStatement_end();
+    flow.whileStatement_end(offset: node._syntheticEndOffset!);
   }
 
   ExpressionTypeAnalysisResult createNullAwareGuard(
     Expression target,
-    ExpressionTypeAnalysisResult targetAnalysisResult,
-  ) {
+    ExpressionTypeAnalysisResult targetAnalysisResult, {
+    required int offset,
+  }) {
     var tmp = _harness.irBuilder.allocateTmp(location: target.location);
     var flowAnalysisInfo = startNullShorting(
       tmp,
       targetAnalysisResult.flowAnalysisInfo,
       targetAnalysisResult.type,
+      offset: offset,
     );
     _harness.irBuilder.readTmp(tmp, location: target.location);
     return ExpressionTypeAnalysisResult(
@@ -7369,7 +7901,16 @@ class _MiniAstTypeAnalyzer
     covariant CollectionElement element,
     covariant CollectionElementContext context,
   ) {
+    flow.checkOffset(element._syntheticStartOffset!);
+    _harness._checkpoint(
+      offset: element._syntheticStartOffset!,
+      location: element.location,
+    );
     _irBuilder.guard(element, () => element.visit(_harness, context));
+    _harness._checkpoint(
+      offset: element._syntheticEndOffset! + 1,
+      location: element.location,
+    );
     if (element._expectedIR case var expectedIR?) {
       _irBuilder.check(
         expectedIR,
@@ -7377,6 +7918,7 @@ class _MiniAstTypeAnalyzer
         location: element.location,
       );
     }
+    flow.checkOffset(element._syntheticEndOffset!);
   }
 
   @override
@@ -7386,6 +7928,7 @@ class _MiniAstTypeAnalyzer
     bool isVoidAllowed = false,
     bool needsCoercion = false,
   }) {
+    flow.checkOffset(expression._syntheticStartOffset!);
     if (expression._expectedSchema case var expectedSchema?) {
       expect(schema.unwrapTypeSchemaView<Type>().type, expectedSchema);
     }
@@ -7408,6 +7951,7 @@ class _MiniAstTypeAnalyzer
         location: expression.location,
       );
     }
+    flow.checkOffset(expression._syntheticEndOffset!);
     return result;
   }
 
@@ -7416,7 +7960,10 @@ class _MiniAstTypeAnalyzer
     SharedMatchContext context,
     covariant Pattern node,
   ) {
-    return node.visit(_harness, context);
+    flow.checkOffset(node._syntheticStartOffset!);
+    var result = node.visit(_harness, context);
+    flow.checkOffset(node._syntheticEndOffset!);
+    return result;
   }
 
   @override
@@ -7426,7 +7973,16 @@ class _MiniAstTypeAnalyzer
 
   @override
   StatementTypeAnalysisResult dispatchStatement(Statement statement) {
+    flow.checkOffset(statement._syntheticStartOffset!);
+    _harness._checkpoint(
+      offset: statement._syntheticStartOffset!,
+      location: statement.location,
+    );
     var result = _irBuilder.guard(statement, () => statement.visit(_harness));
+    _harness._checkpoint(
+      offset: statement._syntheticEndOffset! + 1,
+      location: statement.location,
+    );
     statement._checkStatementTypeAnalysisResult?.call(result);
     if (statement._expectedIR case var expectedIR?) {
       _irBuilder.check(
@@ -7435,6 +7991,7 @@ class _MiniAstTypeAnalyzer
         location: statement.location,
       );
     }
+    flow.checkOffset(statement._syntheticEndOffset!);
     return result;
   }
 
@@ -7454,6 +8011,16 @@ class _MiniAstTypeAnalyzer
         ),
       );
     }
+  }
+
+  @override
+  int expressionEndOffset(Expression expression) {
+    return expression._syntheticEndOffset!;
+  }
+
+  @override
+  int expressionStartOffset(Expression expression) {
+    return expression._syntheticStartOffset!;
   }
 
   void finish() {
@@ -7520,12 +8087,18 @@ class _MiniAstTypeAnalyzer
   getSwitchExpressionMemberInfo(covariant SwitchExpression node, int index) {
     var case_ = node.cases[index];
     return SwitchExpressionMemberInfo(
-      head: CaseHeadOrDefaultInfo(
-        pattern: case_.guardedPattern?.pattern,
-        variables: case_.guardedPattern?.variables ?? {},
-        guard: case_.guardedPattern?.guard,
+      head: CaseHeadInfo(
+        pattern: case_.guardedPattern.pattern,
+        variables: case_.guardedPattern.variables,
+        guard: case_.guardedPattern.guard,
+        beginAlternativeOffset: case_._syntheticAfterKeywordOffset!,
+        finishJoinedPatternVariablesOffset:
+            case_._syntheticFinishJoinedPatternVariablesOffset!,
+        endAlternativeOffset: case_._syntheticEndOffset!,
       ),
       expression: case_.expression,
+      beginAlternativeOffset: case_._syntheticStartOffset!,
+      endAlternativeOffset: case_._syntheticEndAlternativeOffset!,
     );
   }
 
@@ -7537,17 +8110,25 @@ class _MiniAstTypeAnalyzer
       heads: [
         for (var element in case_.elements)
           if (element is SwitchHeadCase)
-            CaseHeadOrDefaultInfo(
+            CaseHeadInfo(
               pattern: element.guardedPattern.pattern,
               variables: element.guardedPattern.variables,
               guard: element.guardedPattern.guard,
+              beginAlternativeOffset: element._syntheticBeginAlternativeOffset!,
+              finishJoinedPatternVariablesOffset:
+                  element._syntheticFinishJoinedPatternVariablesOffset!,
+              endAlternativeOffset: element._syntheticEndOffset!,
             )
           else
-            CaseHeadOrDefaultInfo(pattern: null, variables: {}, guard: null),
+            CaseDefaultInfo(
+              beginAlternativeOffset: element._syntheticBeginAlternativeOffset!,
+              endAlternativeOffset: element._syntheticEndOffset!,
+            ),
       ],
       body: case_.body.statements,
       variables: case_._candidateVariables,
       hasLabels: case_.hasLabels,
+      endOffset: case_._syntheticEndOffset!,
     );
   }
 
@@ -7594,10 +8175,7 @@ class _MiniAstTypeAnalyzer
   }) {
     Iterable<Var> variables = [];
     if (node is SwitchExpression) {
-      var guardedPattern = node.cases[caseIndex].guardedPattern;
-      if (guardedPattern != null) {
-        variables = guardedPattern.variables.values;
-      }
+      variables = node.cases[caseIndex].guardedPattern.variables.values;
     } else if (node is SwitchStatement) {
       var head = node.cases[caseIndex].elements[subIndex];
       if (head is SwitchHeadCase) {
@@ -7808,6 +8386,16 @@ class _MiniAstTypeAnalyzer
   }
 
   @override
+  int patternEndOffset(Pattern pattern) {
+    return pattern._syntheticEndOffset!;
+  }
+
+  @override
+  int patternStartOffset(Pattern pattern) {
+    return pattern._syntheticStartOffset!;
+  }
+
+  @override
   (_PropertyElement?, SharedTypeView) resolveObjectPatternPropertyGet({
     required Pattern objectPattern,
     required SharedTypeView receiverType,
@@ -7839,6 +8427,11 @@ class _MiniAstTypeAnalyzer
   @override
   void setVariableType(Var variable, SharedTypeView type) {
     variable.type = type.unwrapTypeView();
+  }
+
+  @override
+  int statementEndOffset(Statement statement) {
+    return statement._syntheticEndOffset!;
   }
 
   @override
@@ -7879,6 +8472,7 @@ class _MiniAstTypeAnalyzer
     String propertyName, {
     required String location,
     required bool isNullAware,
+    required int afterOperatorOffset,
   }) {
     // Analyze the target, and generate its IR.
     PropertyTarget<Expression> propertyTarget;
@@ -7905,6 +8499,7 @@ class _MiniAstTypeAnalyzer
         targetAnalysisResult = createNullAwareGuard(
           target,
           targetAnalysisResult,
+          offset: afterOperatorOffset,
         );
       }
       targetType = targetAnalysisResult.type;
@@ -7916,7 +8511,10 @@ class _MiniAstTypeAnalyzer
     var member = _lookupMember(targetType.unwrapTypeView(), propertyName);
     var memberType =
         member?._type ?? operations.dynamicType.unwrapTypeView<Type>();
-    var (wrappedPromotedType, flowAnalysisInfo) = flow.propertyGet(
+    var (
+      promotedType: wrappedPromotedType,
+      expressionInfo: flowAnalysisInfo,
+    ) = flow.propertyGet(
       propertyTarget,
       propertyName,
       member,
@@ -8019,5 +8617,20 @@ class _VariableBinder extends VariableBinder<Node, Var> {
       visitor: visitor,
     );
     return joinedVariable;
+  }
+}
+
+extension on List<int> {
+  /// Determines whether this list is a permutation of the numbers from 0 to
+  /// `expectedLength - 1`.
+  bool isPermutation(int expectedLength) {
+    if (length != expectedLength) return false;
+    List<bool> seen = List.filled(expectedLength, false);
+    for (var i in this) {
+      if (i < 0 || i >= expectedLength) return false;
+      if (seen[i]) return false;
+      seen[i] = true;
+    }
+    return true;
   }
 }

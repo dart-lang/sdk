@@ -169,7 +169,7 @@ class DevAnalysisServer {
 }
 
 class DevChannel implements ServerCommunicationChannel {
-  final StreamController<RequestOrResponse> _requestController =
+  final StreamController<ClientMessage> _requestController =
       StreamController.broadcast();
 
   final StreamController<Notification> _notificationController =
@@ -180,7 +180,7 @@ class DevChannel implements ServerCommunicationChannel {
   Stream<Notification> get onNotification => _notificationController.stream;
 
   @override
-  Stream<RequestOrResponse> get requests => _requestController.stream;
+  Stream<ClientMessage> get requests => _requestController.stream;
 
   @override
   void close() {

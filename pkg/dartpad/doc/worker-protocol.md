@@ -1,31 +1,115 @@
-# DartPad Worker Protocol
+# DartPad SDK Protocol
 
-The `bin/shared_worker.dart` program is intended to run as a [SharedWorker][1]
-in the browser. The client can communicate with the worker over the
-[MessagePort][2] created when connecting to the [SharedWorker][1]. This document
-describes the protocol for communication over this port.
+This document specifies version `1.0` of what a "DartPad SDK" is, how it is
+instantiated, and how one interacts with it. `package:dartpad` is the official
+client for this protocol.
 
-In the description below the _worker_ is `bin/shared_worker.dart` and _client_
-is the web page that connected to the [SharedWorker][1].
+At a high-level a _DartPad SDK_ provides a worker that a dartpad-like
+environment can use to fetch dependencies, analyze, compile and run Dart code.
 
 **Concepts:**
  * _Session_, when a client connects to the worker, a session is created.
   Sessions do share the same file-system and thread. But are otherwise
   independent, and should be using differnet parts of the virtual file-system.
  * _Workspace_, a workspace is a folder and associated resources for
-   running language-servers and compiling source code.
+   running language-servers, compiling source code and running Dart code.
  * _Language-server_, a process running within a workspace that provides a
    language-server-protocol server for Dart.
- * _Hot-reload compiler_, a process running with a workspace that faciliates
-   incremental compilation of a single entry-point.
+ * _Sandbox_, a sandboxed iframe within which compiled Dart code is executed.
 
-## JSON-RPC 2.0
 
-Communication with the worker uses [JSON-RPC 2.0][3]. Communication over the
-[MessagePort][2] takes place using raw JSON objects (utilizing the browser's
-structured clone algorithm), not JSON-encoded strings.
+## DartPad SDK
 
-The following sections outline which methods are offered by the worker...
+A _DartPad SDK_ is an `assetBaseUrl` that points to a directory that hosts:
+ * `worker.js`, script for running a dartpad environment in the browser.
+ * `sandbox.js`, script for running compiled code in a sandboxed iframe.
+ * `devtools.html`, page for running Dart DevTools in an iframe.
+ * `version.json`, protocol version, SDK versions and capabilities.
+ * SDK specific assets referenced by `worker.js`, `sandbox.js`, and `devtools.html`.
+
+The `worker.js` script must export a `Worker` class that can be instantiated as
+follows:
+
+```js
+import {Worker} from 'worker.js';
+const worker = await Worker.create();
+
+// Create a session communicating over workerMessagePort
+worker.session(workerMessagePort);
+```
+
+Once instantiated, one or more sessions can be created using `worker.session()`,
+which will communicate over the given [MessagePort][2] using the protocol
+specified in this document.
+
+The `sandbox.js` script is to be injected into a _sandboxed iframe_ as follows:
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="sandbox.js"></script>
+</head>
+<body></body>
+</html>
+```
+
+The `sandbox.js` script must use [window.postMessage][4] to send:
+ * `{action: 'error', message: '...'}`, if loading failed, and,
+ * `{action: 'connect', port: <MessagePort>}` with a [MessagePort][2] attached,
+   if loading succeeded.
+
+The attached [MessagePort][2] must be forwarded to the worker as outline in the
+protocol below. The communication protocol between `sandbox.js` and `worker.js`
+is internal, though messages will never carry a `MessagePort`, thus, they can
+be serialized (with care taken to wrap `Uint8Array` instances).
+
+The `devtools.html` page can be loaded in an `<iframe>` as follows:
+```html
+<iframe src="devtools.html"></iframe>
+```
+
+Additional query parameters may also be passed to `devtools.html`, but these
+are not covered by this protocol.
+
+The `devtools.html` page must use [window.postMessage][4] to send
+`{action: 'connect', port: <MessagePort>}` with a [MessagePort][2] attached.
+The attached [MessagePort][2] must be forwarded to the worker via
+`workspace/sandbox/connectServiceProtocol`.
+
+The `version.json` file contains the same metadata JSON object as returned by
+the `version` RPC method (see below).
+
+
+
+## JSON-RPC 2.0 over `MessagePort`
+
+Communication with the worker is conducted over a [MessagePort][2] using an
+extension of the [JSON-RPC 2.0][3] protocol.
+
+While the official JSON-RPC 2.0 specification mandates that messages be JSON,
+we want to leverage the browser's [Structured Clone][5] to transfer
+`MessagePort` and `Uint8Array` along with messages. To do this, we encode
+messages as follows:
+
+```js
+{
+  "payload": JSON.stringify(message),
+  "port": port, /* [Optional] MessagePort instance */
+  "bytes": bytes, /* [Optional] Uint8Array instance */
+}
+```
+
+Once the `message` has been decoded as JSON, `port` is inserted into
+`params.port` (for requests) and `result.port` (for responses).
+Similarly, `bytes`, is inserted into `params.bytes` (for requests) and
+`result.bytes` (for responses).
+
+Consequently, when reading this protocol `port`/`bytes` in `params`/`result`
+should be treated as special properties that are send alongside the encoded
+JSON message.
+
+The use of `port` and `bytes` is not allowed when making batch requests.
 
 [JSON-RPC 2.0][3] requests are usually on the form:
 ```js
@@ -34,6 +118,7 @@ The following sections outline which methods are offered by the worker...
   "method": "<name-of-method>",
   "params": {
     // parameters for the method
+    "port": /* [Optional] MessagePort instance */
   },
   "id": 42 // unique ID per request, omitted for notifications!
 }
@@ -49,6 +134,7 @@ Response objects are usually on the form:
   "jsonrpc": "2.0",
   "result": {
     // result values from the method
+    "port": /* [Optional] MessagePort instance */
   },
   "id": 42 // ID from the request
 }
@@ -76,7 +162,19 @@ Errors are usually on the form:
 When sending requests and notifications is possible to batch multiple messages
 into a single message by sending an array of requests and notifications.
 
+Sending `null` over the `MessagePort` signals the end of communication and
+closes the JSON-RPC 2.0 channel.
+
 For further details about JSON-RPC 2.0, refer to the [specification][3].
+
+
+## Worker session life-cycle
+
+The worker may close a session and destroy its workspaces if no requests are
+received on the session channel for 5 minutes. Clients can call
+[`ping`](#method-ping) periodically (for example, every 30 seconds) to keep an
+otherwise idle session alive.
+
 
 ## Server Methods and Notifications
 
@@ -88,8 +186,53 @@ prefixed `workspace/` require a `workspaceId` parameter.
 | :--- | :--- |
 | `workspace/` | `workspaceId` |
 | `workspace/languageServer/` | `workspaceId` and `languageServerId` |
-| `workspace/hotReloadCompiler/` | `workspaceId` and `hotReloadCompilerId` |
+| `workspace/watcher/` | `workspaceId` and `watcherId` |
+| `workspace/sandbox/` | `workspaceId` and `sandboxId` |
 
+
+### Method `version`
+
+Returns version and capability metadata for the worker.
+
+**Params:**
+```js
+{}
+```
+
+**Result:**
+```js
+{
+  // Major and minor version of this worker protocol.
+  "workerProtocolMajor": 1,
+  "workerProtocolMinor": 0,
+  // Run modes supported by this DartPad SDK.
+  "modes": ["console", "flutter"],
+  // Version and git commit revision of the Dart SDK.
+  "dartVersion": "3.14.0-241.0.dev",
+  "dartRevision": "de21baa35ba96c5fd5ab7b98b3b22c175f805363",
+  // Additional key-value metadata properties for this DartPad SDK.
+  "properties": {
+    "flutterVersion": "3.48.0-1.0.pre-827",
+    "flutterRevision": "12384f9e87f79205076ce1990e8b7cd31cffb397",
+    "engineRevision": "c3edad8766a937c49d66380894017cad401aab51",
+  },
+}
+```
+
+
+### Method `ping`
+
+Keep-alive request for the session.
+
+**Params:**
+```js
+{}
+```
+
+**Result:**
+```js
+{}
+```
 
 ### Method `createWorkspace`
 
@@ -106,11 +249,11 @@ Creates workspace with a dedicated `workspaceFolder`.
   // The workspaceId is a unique number identifying the workspace created
   "workspaceId": 42,
   // Folder on the shared file-system dedicated to this workspace
-  "workspaceFolder": "file:///workspace/pad_42/",
+  "workspaceFolder": "/workspace/pad_42",
 }
 ```
 
-### Method `workspace/dispose`
+### Method `workspace/close`
 Deletes the workspace and all associated resources.
 
 **Params:**
@@ -133,9 +276,9 @@ Parent directories will be automatically created.
 ```js
 {
   "workspaceId": 42,
-  // URI of the file that you want to write.
-  // Can be absolute file:// or relative to workspaceFolder
-  "uri": "bin/hello.dart",
+  // Path of the file that you want to write.
+  // Can be absolute or relative to workspaceFolder
+  "path": "bin/hello.dart",
   // Text that should be written to the file.
   // This will be written as UTF-8.
   "text": "void main() => print('hello world');",
@@ -153,9 +296,9 @@ Parent directories will be automatically created.
 ```js
 {
   "workspaceId": 42,
-  "uri": "bin/hello.dart",
-  // Bytes that should be written to the file as base64
-  "base64": "<base64-encoded bytes>",
+  "path": "bin/hello.dart",
+  // Bytes that should be written to the file as a special `bytes` parameter.
+  "bytes": /* Uint8Array instance */,
 }
 ```
 
@@ -170,7 +313,7 @@ Parent directories will be automatically created.
 ```js
 {
   "workspaceId": 42,
-  "uri": "bin/hello.dart",
+  "path": "bin/hello.dart",
 }
 ```
 
@@ -187,25 +330,26 @@ Parent directories will be automatically created.
 ```js
 {
   "workspaceId": 42,
-  "uri": "bin/hello.dart",
+  "path": "bin/hello.dart",
 }
 ```
 
 **Result:**
 ```js
 {
-  "base64": "<bytes from the file encoded as base64>"
+  "bytes": /* Uint8Array instance from the file */
 }
 ```
 
 ### Method `workspace/deleteFileSystemEntity`
+Deletes a file or folder. Does nothing if there is nothing to delete.
 
 **Params:**
 ```js
 {
   "workspaceId": 42,
-  // URI of the file or folder that you want to delete.
-  "uri": "bin/hello.dart",
+  // Path of the file or folder that you want to delete.
+  "path": "bin/hello.dart",
 }
 ```
 
@@ -221,7 +365,7 @@ Get information about a file or folder.
 ```js
 {
   "workspaceId": 42,
-  "uri": "bin/hello.dart",
+  "path": "bin/hello.dart",
 }
 ```
 
@@ -241,7 +385,7 @@ Get information about a file or folder.
 ```js
 {
   "workspaceId": 42,
-  "uri": "lib",
+  "path": "lib",
 }
 ```
 
@@ -256,7 +400,7 @@ Get information about a file or folder.
 ```js
 {
   "workspaceId": 42,
-  "uri": "lib",
+  "path": "lib",
   // Whether to list recursively (default: false)
   "recursive": true,
   // Whether to ignore hidden files (starting with .) (default: false)
@@ -267,7 +411,7 @@ Get information about a file or folder.
 **Result:**
 ```js
 {
-  // List of entries. Paths are relative to the uri listed.
+  // List of entries. Paths are relative to the path listed.
   "entries": [
     {"path": "main.dart", "type": "file"},
     {"path": "src", "type": "folder"}
@@ -283,9 +427,9 @@ Import a tar archive (uncompressed) into the workspace.
 {
   "workspaceId": 42,
   // Path where to extract the archive.
-  "uri": ".",
-  // Base64 encoded tar archive.
-  "base64": "<base64-encoded-tar>"
+  "path": ".",
+  // Tar archive as a special `bytes` parameter.
+  "bytes": /* Uint8Array instance */
 }
 ```
 
@@ -302,15 +446,15 @@ Export a directory as a tar archive (uncompressed).
 {
   "workspaceId": 42,
   // Directory to export.
-  "uri": "."
+  "path": "."
 }
 ```
 
 **Result:**
 ```js
 {
-  // Base64 encoded tar archive.
-  "base64": "<base64-encoded-tar>"
+  // Tar archive as a special `bytes` parameter.
+  "bytes": /* Uint8Array instance */
 }
 ```
 
@@ -322,7 +466,7 @@ Runs `pub` in the specified directory.
 {
   "workspaceId": 42,
   // Directory to run pub in.
-  "uri": ".",
+  "path": ".",
   // Command to run.
   "command": "get" | "add" | "downgrade" | "outdated" | "upgrade" | "remove" | "unpack",
   // Arguments to pass to the pub command (optional)
@@ -335,64 +479,6 @@ Runs `pub` in the specified directory.
 {
   "log": "<output from pub get>",
 }
-```
-
-### Method `workspace/startHotReloadCompiler`
-Start a hot-reload compiler for `uri`.
-
-**Params:**
-```js
-{
-  "workspaceId": 42,
-  "uri": "bin/hello.dart",
-}
-```
-
-**Result:**
-```js
-{
-  // identifier for the hot-reload compiler just started
-  "hotReloadCompilerId": 67,
-}
-```
-
-### Method `workspace/hotReloadCompiler/compile`
-Run the hot-reload compiler for the `uri` it was started with.
-Returns `code` and `compiledLibraryUris`, which must be supplied to the
-hot-reload method as `librariesToReload` when hot-reloading.
-
-**Params:**
-```js
-{
-  "workspaceId": 42,
-  "hotReloadCompilerId": 67,
-}
-```
-
-**Result:**
-```js
-{
-  // Code is `null` if compilation failed!
-  "code": "<javascript code>" || null,
-  "compiledLibraryUris": ["package:myapp/myapp.dart", ...],
-  "log": "<log lines>",
-}
-```
-
-### Method `workspace/hotReloadCompiler/close`
-Close the hot-reload compiler, releasing resources (memory) held.
-
-**Params:**
-```js
-{
-  "workspaceId": 42,
-  "hotReloadCompilerId": 67,
-}
-```
-
-**Result:**
-```js
-{} // empty result
 ```
 
 ### Method `workspace/startLanguageServer`
@@ -435,7 +521,7 @@ Sends an LSP message to a running language server.
 {} // empty result
 ```
 
-### Method `workspace/languageServer/stop`
+### Method `workspace/languageServer/close`
 
 **Params:**
 ```js
@@ -451,7 +537,179 @@ Sends an LSP message to a running language server.
 ```
 
 
+### Method `workspace/startWatcher`
+
+Initiates a file system watcher for a given path.
+
+**Params:**
+```js
+{
+  "workspaceId": 42,
+  "path": ".",
+}
+```
+
+**Result:**
+```js
+{
+  "watcherId": 1
+}
+```
+
+### Method `workspace/watcher/close`
+
+Terminates an active watcher.
+
+**Params:**
+```js
+{
+  "workspaceId": 42,
+  "watcherId": 1
+}
+```
+
+**Result:**
+```js
+{} // empty result
+```
+
+### Method `workspace/connectSandbox`
+Connects a `MessagePort` from `sandbox.js` to the workspace, returning
+a `sandboxId` used to control the sandbox and the available run modes.
+
+A _DartPad SDK_ defines its own modes, typical modes include `'console'`.
+
+**Params:**
+```js
+{
+  "workspaceId": 42,
+  "port": /* MessagePort instance */
+}
+```
+
+**Result:**
+```js
+{
+  "sandboxId": 1,
+  "modes": ["console", "app"]
+}
+```
+
+### Method `workspace/sandbox/run`
+Compiles and runs a Dart or Flutter entrypoint in the sandbox using the
+specified mode.
+
+**Params:**
+```js
+{
+  "workspaceId": 42,
+  "sandboxId": 1,
+  "path": "bin/hello.dart",
+  "mode": "console"
+}
+```
+
+**Result:**
+```js
+{
+  "log": "<output log string>"
+}
+```
+
+### Method `workspace/sandbox/hotReload`
+Hot-reloads the currently running application in the sandbox.
+
+**Params:**
+```js
+{
+  "workspaceId": 42,
+  "sandboxId": 1
+}
+```
+
+**Result:**
+```js
+{
+  "log": "<output log string>"
+}
+```
+
+### Method `workspace/sandbox/hotRestart`
+Hot-restarts the currently running application in the sandbox.
+
+**Params:**
+```js
+{
+  "workspaceId": 42,
+  "sandboxId": 1
+}
+```
+
+**Result:**
+```js
+{
+  "log": "<output log string>"
+}
+```
+
+### Method `workspace/sandbox/connectServiceProtocol`
+Connects a [`MessagePort`][2] for [Dart VM Service Protocol][6] communication
+with the sandbox.
+
+Messages sent or received over `port` must be:
+* [Dart VM Service Protocol][6] [JSON-RPC 2.0][3] strings,
+* binary frames as `Uint8Array`, or,
+* `null` to close the connection.
+
+**Params:**
+```js
+{
+  "workspaceId": 42,
+  "sandboxId": 1,
+  "port": /* MessagePort instance (transferred) */
+}
+```
+
+**Result:**
+```js
+{} // empty result
+```
+
+### Method `workspace/sandbox/close`
+Closes the sandbox, severing its `MessagePort` and releasing resources.
+
+**Params:**
+```js
+{
+  "workspaceId": 42,
+  "sandboxId": 1
+}
+```
+
+**Result:**
+```js
+{} // empty result
+```
+
 ## Client Notifications
+
+### Notification `workspace/watcher/events`
+
+Sent when changes occur within the watched paths.
+
+**Params:**
+```js
+{
+  "workspaceId": 42,
+  "watcherId": 1,
+  "events": [
+    {
+      "type": "add" | "modify" | "remove",
+      "path": "/workspace/pad_42/lib/main.dart"
+    }
+  ]
+}
+```
 
 ### Notification `workspace/languageServer/message`
 Sent by the worker when the language server produces a message.
@@ -478,6 +736,21 @@ Sent by the worker when a language server process terminates.
 }
 ```
 
+### Notification `workspace/sandbox/console`
+Sent by the worker when the sandbox produces a console message (including
+uncaught errors and unhandled promise rejections, which are reported with
+`"level": "error"`).
+
+**Params:**
+```js
+{
+  "workspaceId": 42,
+  "sandboxId": 1,
+  "level": "debug" | "log" | "info" | "warn" | "error",
+  "message": "Hello world"
+}
+```
+
 ## Error codes
 Errors returned by the worker use the following codes.
 
@@ -489,35 +762,35 @@ Errors returned by the worker use the following codes.
 | 4002 | `fileWriteConflict` | Could not write file (e.g. parent is a file). |
 | 4003 | `fileDeletionFailed` | Could not delete the requested entity. |
 | 5001 | `languageServerNotFound` | The `languageServerId` does not exist in this workspace. |
-| 6001 | `compilationFailed` | Failed to compile code, usually due to an issue in the code being compiled. |
-| 6020 | `packageConfigNotFound` | Unable to find `.dart_tool/package_config.json` in any parent directory. |
-| 6100 | `hotReloadCompilerNotFound` | The `hotReloadCompilerId` does not exist in this workspace. |
-| 6101 | `hotReloadRejected` | The hot reload request was rejected by the compiler. |
-| 7001 | `pubCommandFailed` | The pub command failed to execute successfully. |
-| 7064 | `pubUsage` | The command was used incorrectly. |
-| 7065 | `pubData` | The input data was incorrect. |
-| 7066 | `pubNoInput` | An input file did not exist or was unreadable. |
-| 7067 | `pubNoUser` | The user specified did not exist. |
-| 7068 | `pubNoHost` | The host specified did not exist. |
-| 7069 | `pubUnavailable` | A service is unavailable. |
-| 7070 | `pubSoftware` | An internal software error has been detected. |
-| 7071 | `pubOs` | An operating system error has been detected. |
-| 7072 | `pubOsFile` | Some system file did not exist or was unreadable. |
-| 7073 | `pubCantCreate` | A user-specified output file cannot be created. |
-| 7074 | `pubIo` | An error occurred while doing I/O on some file. |
-| 7075 | `pubTempFail` | Temporary failure, indicating something that is not really an error. |
-| 7076 | `pubProtocol` | The remote system returned something invalid during a protocol exchange. |
-| 7077 | `pubNoPerm` | The user did not have sufficient permissions. |
-| 7078 | `pubConfig` | Something was unconfigured or mis-configured. |
-| 8001 | `moduleLoaderNotAvailable` | The DDC module loader is has not been loaded into the sandbox. |
-| 8002 | `flutterLoaderNotAvailable` | The flutter loader has not been loaded into the sandbox. |
-| 8100 | `moduleLoadingFailed` | Failed to load module into the sandbox. |
-| 8200 | `executionFailed` | Error happened when running `main()` from user-code. |
-| 8300 | `hotRestartFailed` | Hot-restart failed. |
-| 8400 | `hotReloadFailed` | Hot-reload failed. |
+| 6001 | `pubCommandFailed` | The pub command failed to execute successfully. |
+| 6064 | `pubUsage` | The command was used incorrectly. |
+| 6065 | `pubData` | The input data was incorrect. |
+| 6066 | `pubNoInput` | An input file did not exist or was unreadable. |
+| 6067 | `pubNoUser` | The user specified did not exist. |
+| 6068 | `pubNoHost` | The host specified did not exist. |
+| 6069 | `pubUnavailable` | A service is unavailable. |
+| 6070 | `pubSoftware` | An internal software error has been detected. |
+| 6071 | `pubOs` | An operating system error has been detected. |
+| 6072 | `pubOsFile` | Some system file did not exist or was unreadable. |
+| 6073 | `pubCantCreate` | A user-specified output file cannot be created. |
+| 6074 | `pubIo` | An error occurred while doing I/O on some file. |
+| 6075 | `pubTempFail` | Temporary failure, indicating something that is not really an error. |
+| 6076 | `pubProtocol` | The remote system returned something invalid during a protocol exchange. |
+| 6077 | `pubNoPerm` | The user did not have sufficient permissions. |
+| 6078 | `pubConfig` | Something was unconfigured or mis-configured. |
+| 7001 | `sandboxNotFound` | Sandbox with the given `sandboxId` was not found. |
+| 7002 | `invalidSandboxState` | Sandbox methods have not been called in correct order. |
+| 7101 | `compilationFailed` | Failed to compile code, usually due to an issue in the code being compiled. |
+| 7102 | `packageConfigNotFound` | Unable to find `.dart_tool/package_config.json` in any parent directory. |
+| 7103 | `hotReloadRejected` | The hot reload request was rejected by the compiler. |
+| 7104 | `moduleLoadingFailed` | A compiled module failed to load in the sandboxed iframe. |
+| 7201 | `executionFailed` | Error happened when running `main()` from user-code. |
 
 <!-- END GENERATED ERROR CODE TABLE -->
 
 [1]: https://developer.mozilla.org/en-US/docs/Web/API/SharedWorker
 [2]: https://developer.mozilla.org/en-US/docs/Web/API/MessagePort
 [3]: https://www.jsonrpc.org/specification
+[4]: https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage
+[5]: https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Structured_clone_algorithm
+[6]: https://github.com/dart-lang/sdk/blob/main/runtime/vm/service/service.md

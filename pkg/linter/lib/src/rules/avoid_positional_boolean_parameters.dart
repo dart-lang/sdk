@@ -10,7 +10,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:collection/collection.dart';
 
 import '../analyzer.dart';
 import '../diagnostic.dart' as diag;
@@ -33,7 +32,7 @@ class AvoidPositionalBooleanParameters extends AnalysisRule {
     RuleVisitorRegistry registry,
     RuleContext context,
   ) {
-    var visitor = _Visitor(this, context);
+    var visitor = _Visitor(this);
     registry.addConstructorDeclaration(this, visitor);
     registry.addFunctionDeclaration(this, visitor);
     registry.addGenericFunctionType(this, visitor);
@@ -42,19 +41,7 @@ class AvoidPositionalBooleanParameters extends AnalysisRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final AnalysisRule rule;
-  final RuleContext context;
-
-  new(this.rule, this.context);
-
-  void checkParams(List<FormalParameter>? parameters) {
-    var parameterToLint = parameters?.firstWhereOrNull(_isBoolean);
-    if (parameterToLint != null) {
-      rule.reportAtNode(parameterToLint);
-    }
-  }
-
+class _Visitor(final AnalysisRule _rule) extends SimpleAstVisitor<void> {
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     // Don't lint augmentations.
@@ -62,7 +49,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     var declaredElement = node.declaredFragment?.element;
     if (declaredElement != null && !declaredElement.isPrivate) {
-      checkParams(node.parameters.parameters);
+      _checkParams(node.parameters.parameters);
     }
   }
 
@@ -73,28 +60,27 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     var element = node.declaredFragment?.element;
     if (element != null && !element.isPrivate) {
-      checkParams(node.functionExpression.parameters?.parameters);
+      _checkParams(node.functionExpression.parameters?.parameters);
     }
   }
 
   @override
   void visitGenericFunctionType(GenericFunctionType node) {
-    checkParams(node.parameters.parameters);
+    if (_isInFixedSignature(node)) return;
+
+    _checkParams(node.parameters.parameters);
   }
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    // Don't lint augmentations.
-    if (node.isAugmentation) return;
+    if (node.isGetter) return;
+    if (node.isSetter) return;
+    if (node.isOperator) return;
+    if (node.hasFixedSignature) return;
 
     var declaredElement = node.declaredFragment?.element;
-    if (declaredElement != null &&
-        !node.isSetter &&
-        !declaredElement.isPrivate &&
-        !node.isOperator &&
-        !node.hasInheritedMethod &&
-        !_isOverridingMember(declaredElement)) {
-      checkParams(node.parameters?.parameters);
+    if (declaredElement != null && !declaredElement.isPrivate) {
+      _checkParams(node.parameters?.parameters);
     }
   }
 
@@ -105,23 +91,61 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     var declaredElement = node.declaredFragment?.element;
     if (declaredElement != null && !declaredElement.isPrivate) {
-      checkParams(node.formalParameters.parameters);
+      _checkParams(node.formalParameters.parameters);
     }
   }
 
-  bool _isOverridingMember(Element member) {
-    var classElement = member.thisOrAncestorOfType<ClassElement>();
-    if (classElement == null) return false;
+  void _checkParams(List<FormalParameter>? parameters) {
+    if (parameters == null) return;
+    var positionalBooleanParameters = parameters.where((p) {
+      var type = p.declaredFragment?.element.type;
+      return p.isPositional && type is InterfaceType && type.isDartCoreBool;
+    }).toList();
 
-    var name = member.name;
-    if (name == null) return false;
-
-    var libraryUri = classElement.library.uri;
-    return classElement.getInheritedMember(Name(libraryUri, name)) != null;
+    // Only report if there are at least two positional bool parameters.
+    if (positionalBooleanParameters case [_, var second, ...]) {
+      _rule.reportAtNode(second);
+    }
   }
 
-  static bool _isBoolean(FormalParameter node) {
-    var type = node.declaredFragment?.element.type;
-    return !node.isNamed && type is InterfaceType && type.isDartCoreBool;
+  /// Whether [node] is written in the signature of a method with a fixed
+  /// signature.
+  ///
+  /// A function type in such a signature cannot be changed to take named
+  /// parameters, but one in a method body can.
+  bool _isInFixedSignature(GenericFunctionType node) {
+    for (
+      var ancestor = node.parent;
+      ancestor != null;
+      ancestor = ancestor.parent
+    ) {
+      if (ancestor is FunctionBody) return false;
+      if (ancestor is MethodDeclaration) return ancestor.hasFixedSignature;
+    }
+    return false;
+  }
+}
+
+extension on MethodDeclaration {
+  /// Whether the signature of this method is fixed by the declaration it
+  /// augments or by a member it overrides.
+  bool get hasFixedSignature {
+    if (isAugmentation) return true;
+    if (hasInheritedMethod) return true;
+    var element = declaredFragment?.element;
+    return element != null && element.isOverridingMember;
+  }
+}
+
+extension on Element {
+  bool get isOverridingMember {
+    if (name case var name?) {
+      var classElement = thisOrAncestorOfType<ClassElement>();
+      if (classElement == null) return false;
+
+      var libraryUri = classElement.library.uri;
+      return classElement.getInheritedMember(Name(libraryUri, name)) != null;
+    }
+    return false;
   }
 }
