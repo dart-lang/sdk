@@ -82,6 +82,7 @@ void main() {
         Event.dartCliCommandExecuted(
           name: 'help',
           enabledExperiments: '',
+          exitCode: 0,
         ),
       ]);
     });
@@ -98,6 +99,7 @@ void main() {
         Event.dartCliCommandExecuted(
           name: 'create',
           enabledExperiments: '',
+          exitCode: 0,
           pubspecHasFlutterSdk: false,
           pubspecEnvironmentSdk: '^3.0.0',
         ),
@@ -121,6 +123,7 @@ void main() {
             Event.dartCliCommandExecuted(
               name: 'pub/get',
               enabledExperiments: '',
+              exitCode: 0,
               pubspecHasFlutterSdk: false,
               pubspecDependencies: const {'lints'},
               pubspecEnvironmentSdk: '^3.0.0',
@@ -144,6 +147,28 @@ void main() {
         Event.dartCliCommandExecuted(
           name: 'format',
           enabledExperiments: '',
+          exitCode: 0,
+        ),
+      ]);
+    });
+
+    test('format with a non-zero exit code', () async {
+      // dart format also sets the global `exitCode`, which would otherwise
+      // make this test process exit with 1.
+      final previousExitCode = io.exitCode;
+      addTearDown(() => io.exitCode = previousExitCode);
+      final p = project(mainSrc: 'void main( ) {}');
+      final analytics = await p.runLocalWithFakeAnalytics([
+        'format',
+        '--output=none',
+        '--set-exit-if-changed',
+        '.',
+      ]);
+      expect(analytics.sentEvents, [
+        Event.dartCliCommandExecuted(
+          name: 'format',
+          enabledExperiments: '',
+          exitCode: 1,
         ),
       ]);
     });
@@ -155,6 +180,7 @@ void main() {
         Event.dartCliCommandExecuted(
           name: 'info/dump',
           enabledExperiments: '',
+          exitCode: 0,
         ),
       ]);
     });
@@ -173,6 +199,7 @@ void main() {
           Event.dartCliCommandExecuted(
             name: 'run',
             enabledExperiments: '',
+            exitCode: 0,
             pubspecHasFlutterSdk: false,
             pubspecEnvironmentSdk: '^3.0.0',
           ),
@@ -196,6 +223,7 @@ void main() {
                   Event.dartCliCommandExecuted(
                     name: 'run',
                     enabledExperiments: '$no${experiment.name}',
+                    exitCode: 0,
                     pubspecHasFlutterSdk: false,
                     pubspecEnvironmentSdk: '^3.0.0',
                   ),
@@ -222,6 +250,7 @@ void main() {
         Event.dartCliCommandExecuted(
           name: 'compile/kernel',
           enabledExperiments: '',
+          exitCode: 0,
           pubspecHasFlutterSdk: false,
           pubspecEnvironmentSdk: '^3.0.0',
         ),
