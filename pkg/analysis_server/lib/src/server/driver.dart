@@ -267,25 +267,22 @@ class Driver implements ServerStarter {
 
     // Create the analytics manager.
 
-    var tool =
-        env.topLevelTool ??
-        switch (clientId) {
-          'VS-Code' || 'VS-Code-Remote' => DashTool.vscodePlugins,
-          'IntelliJ-IDEA' => DashTool.intellijPlugins,
-          'Android-Studio' => DashTool.androidStudioPlugins,
-          _ => null,
-        };
+    // The analysis server is a shared component, so it is reported as the
+    // leaf tool. unified_analytics resolves the root tool (the IDE) from
+    // `DASH__TOOL`, falling back to the tool identified by the client id for
+    // IDE plugins that don't set `DASH__TOOL`. If no root tool can be
+    // resolved, `Analytics` returns a `NoOpAnalytics`.
+    var fallbackRootTool = env.fallbackRootToolForClientId(clientId);
 
     // Analytics (legacy, and unified).
     var disableAnalyticsForSession =
-        tool == null ||
         areAnalyticsSuppressed() ||
         results.flag(suppressAnalyticsFlag) ||
         results.wasParsed(trainUsingOption);
 
     var analytics = disableAnalyticsForSession
         ? NoOpAnalytics()
-        : _createAnalytics(defaultSdk, defaultSdkPath, tool);
+        : _createAnalytics(defaultSdk, defaultSdkPath, fallbackRootTool);
     var analyticsManager = AnalyticsManager(analytics);
 
     bool shouldSendCallback() {
@@ -406,9 +403,9 @@ class Driver implements ServerStarter {
     // implement the debouncing when it hasn't been disabled.
     // var disableDebouncing = results[DISABLE_STATUS_NOTIFICATION_DEBOUNCING] as bool;
 
-    var environment = env.map(
-      tool: tool,
-      suppressAnalytics: disableAnalyticsForSession,
+    var environment = getEnvironment(
+      currentTool: DashTool.analysisServer,
+      suppressAnalytics: analytics is NoOpAnalytics,
     );
 
     if (analysisServerOptions.useLanguageServerProtocol) {
@@ -676,10 +673,13 @@ class Driver implements ServerStarter {
   }
 
   /// Create the `Analytics` instance to be used to report analytics.
+  ///
+  /// The analysis server is reported as the leaf tool. The [fallbackRootTool]
+  /// is used as the root tool when `DASH__TOOL` doesn't name a valid tool.
   Analytics _createAnalytics(
     DartSdk dartSdk,
     String dartSdkPath,
-    DashTool tool,
+    DashTool? fallbackRootTool,
   ) {
     // TODO(brianwilkerson): Find out whether there's a way to get the channel
     //  without running `flutter channel`.
@@ -697,7 +697,8 @@ class Driver implements ServerStarter {
       // If we can't read the file, ignore it.
     }
     return Analytics(
-      tool: tool,
+      tool: DashTool.analysisServer,
+      fallbackRootTool: fallbackRootTool,
       dartVersion: dartSdk.sdkVersion,
       // flutterChannel: '',
       flutterVersion: flutterVersion,
