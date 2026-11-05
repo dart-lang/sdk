@@ -8652,6 +8652,135 @@ void useOperator(A a) {
     );
   }
 
+  test_searchReferences_MethodElement_operator_ofClass_relationalPattern() async {
+    var result = await resolveTestCode('''
+class A {
+  bool operator <(int other) => true;
+  bool operator ==(Object other) => true;
+}
+void useOperator(A a) {
+  if (a case < 0) {}
+  if (a case == 0) {}
+  if (a case != 0) {}
+  switch (a) {
+    case < 0:
+  }
+}
+''');
+    await assertElementsReferencesText(
+      {
+        'less': result.findElement.method('<'),
+        'equal': result.findElement.method('=='),
+      },
+      r'''
+class A {
+  bool operator <(int other) => true;
+  bool operator ==(Object other) => true;
+}
+void useOperator(A a) {
+  if (a case < 0) {}
+             ^ less INVOCATION qualified
+  if (a case == 0) {}
+             ^^ equal INVOCATION qualified
+  if (a case != 0) {}
+             ^^ equal INVOCATION qualified
+  switch (a) {
+    case < 0:
+         ^ less INVOCATION qualified
+  }
+}
+''',
+    );
+  }
+
+  test_searchReferences_MethodElement_operator_ofClass_relationalPattern_equal_otherFile() async {
+    newFile('$testPackageLibPath/other.dart', '''
+import 'test.dart';
+
+void useOperator(A a) {
+  if (a case == 0) {}
+}
+''');
+    var result = await resolveTestCode('''
+class A {
+  bool operator ==(Object other) => true;
+}
+''');
+    var element = result.findElement.method('==');
+
+    await assertElementReferencesText(element, r'''
+package:test/other.dart
+-----------------------
+import 'test.dart';
+
+void useOperator(A a) {
+  if (a case == 0) {}
+             ^^ INVOCATION qualified
+}
+''');
+  }
+
+  test_searchReferences_MethodElement_operator_ofClass_relationalPattern_notEqual_otherFile() async {
+    newFile('$testPackageLibPath/other.dart', '''
+import 'test.dart';
+
+void useOperator(A a) {
+  if (a case != 0) {}
+}
+''');
+    var result = await resolveTestCode('''
+class A {
+  bool operator ==(Object other) => true;
+}
+''');
+    var element = result.findElement.method('==');
+
+    await assertElementReferencesText(element, r'''
+package:test/other.dart
+-----------------------
+import 'test.dart';
+
+void useOperator(A a) {
+  if (a case != 0) {}
+             ^^ INVOCATION qualified
+}
+''');
+  }
+
+  test_searchReferences_MethodElement_operator_ofClass_relationalPattern_otherFile() async {
+    newFile('$testPackageLibPath/other.dart', '''
+import 'test.dart';
+
+void useOperator(A a) {
+  if (a case < 0) {}
+  switch (a) {
+    case < 0:
+  }
+}
+''');
+    var result = await resolveTestCode('''
+class A {
+  bool operator <(int other) => true;
+}
+''');
+    var element = result.findElement.method('<');
+
+    await assertElementReferencesText(element, r'''
+package:test/other.dart
+-----------------------
+import 'test.dart';
+
+void useOperator(A a) {
+  if (a case < 0) {}
+             ^ INVOCATION qualified
+  switch (a) {
+    case < 0:
+         ^ INVOCATION qualified
+  }
+}
+''');
+  }
+
   test_searchReferences_MethodElement_operator_ofEnum_binary() async {
     var result = await resolveTestCode('''
 /// [operator +] and [E.operator +]

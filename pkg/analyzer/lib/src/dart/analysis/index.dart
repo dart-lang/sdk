@@ -1251,6 +1251,12 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   }
 
   @override
+  void visitRelationalPattern(RelationalPattern node) {
+    recordOperatorReference(node.operator, node.element);
+    super.visitRelationalPattern(node);
+  }
+
+  @override
   void visitSimpleStringLiteral(SimpleStringLiteral node) {
     // Index analyzer diagnostic expectations inside string literals.
     if (_analyzerDiagnosticLibrary case var diagnosticLibrary?) {

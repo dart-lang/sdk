@@ -274,6 +274,11 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
   }
 
   @override
+  Element? visitRelationalPattern(RelationalPattern node) {
+    return node.element;
+  }
+
+  @override
   Element? visitStringLiteral(StringLiteral node) {
     var parent = node.parent;
     if (parent is ExportDirective) {
@@ -572,6 +577,11 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
     ReceiverPropertyAssignmentTarget node,
   ) {
     return node.write?.element;
+  }
+
+  @override
+  Element? visitRelationalPattern(RelationalPattern node) {
+    return node.element;
   }
 
   @override
