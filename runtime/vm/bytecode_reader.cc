@@ -2526,8 +2526,6 @@ void BytecodeReaderHelper::ReadLibraryDeclaration(const Library& library,
   ASSERT(!library.Loaded());
   ASSERT(library.toplevel_class() == Object::null());
 
-  // TODO(alexmarkov): fill in library.used_scripts.
-
   reader_.ReadUInt();  // Flags.
 
   auto& name = String::CheckedHandle(Z, ReadObject());

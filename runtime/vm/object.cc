@@ -14462,11 +14462,36 @@ ArrayPtr Library::LoadedScripts() const {
     Object& entry = Object::Handle();
     Class& cls = Class::Handle();
     Script& owner_script = Script::Handle();
+    Array& members = Array::Handle();
+    Function& func = Function::Handle();
+    Field& field = Field::Handle();
+    Script& member_script = Script::Handle();
     DictionaryIterator it(*this);
     while (it.HasNext()) {
       entry = it.GetNext();
       if (entry.IsClass()) {
-        owner_script = Class::Cast(entry).script();
+        cls ^= entry.ptr();
+        owner_script = cls.script();
+        AddScriptIfUnique(scripts, owner_script);
+        // Members can have a different script than their class, such as
+        // members mixed in from another script.
+        members = cls.current_functions();
+        for (intptr_t i = 0; i < members.Length(); i++) {
+          func ^= members.At(i);
+          member_script = func.script();
+          if (member_script.ptr() != owner_script.ptr()) {
+            AddScriptIfUnique(scripts, member_script);
+          }
+        }
+        members = cls.fields();
+        for (intptr_t i = 0; i < members.Length(); i++) {
+          field ^= members.At(i);
+          member_script = field.Script();
+          if (member_script.ptr() != owner_script.ptr()) {
+            AddScriptIfUnique(scripts, member_script);
+          }
+        }
+        continue;
       } else if (entry.IsFunction()) {
         owner_script = Function::Cast(entry).script();
       } else if (entry.IsField()) {
