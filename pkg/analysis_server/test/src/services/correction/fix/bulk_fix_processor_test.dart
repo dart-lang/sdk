@@ -12,14 +12,16 @@ import 'package:analyzer_testing/src/test_instrumentation_service.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'data_driven/data_driven_test_support.dart';
 import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AdditionalEnabledCodesTest);
     defineReflectiveTests(CannotBeAppliedAutomaticallyTest);
-    defineReflectiveTests(HasFixesTest);
     defineReflectiveTests(ChangeMapTest);
+    defineReflectiveTests(DataDrivenInstanceMemberBulkFixTest);
+    defineReflectiveTests(HasFixesTest);
     defineReflectiveTests(NoFixTest);
     defineReflectiveTests(PubspecFixTest);
   });
@@ -332,6 +334,114 @@ var a = new A();
     // (because we exited early).
     await fixErrorsFuture;
     expect(processor.changeMap.libraryMap, isEmpty);
+  }
+}
+
+@reflectiveTest
+class DataDrivenInstanceMemberBulkFixTest
+    extends DataDrivenBulkFixProcessorTest {
+  Future<void> test_replacedBy_instanceAndExtensionMembers() async {
+    setPackageContent('''
+class Window {
+  Navigator get navigator => Navigator();
+}
+class Navigator {
+  @deprecated
+  String get oldId => '';
+}
+extension OldNavigatorExt on Navigator {}
+''');
+    newFile('$workspaceRootPath/p/lib/sub.dart', '''
+import 'package:p/lib.dart';
+
+extension NewNavigatorExt on Navigator {
+  String get id => '';
+  String get gpu => '';
+  set badge(String v) {}
+  void doWork(int x) {}
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Move oldId'
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      getter: 'oldId'
+      inClass: 'Navigator'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/sub.dart']
+          getter: 'id'
+          inExtension: 'NewNavigatorExt'
+  - title: 'Move gpu'
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      getter: 'gpu'
+      inExtension: 'OldNavigatorExt'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/sub.dart']
+          getter: 'gpu'
+          inExtension: 'NewNavigatorExt'
+  - title: 'Move badge'
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      setter: 'badge'
+      inExtension: 'OldNavigatorExt'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/sub.dart']
+          setter: 'badge'
+          inExtension: 'NewNavigatorExt'
+  - title: 'Move doWork'
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      method: 'doWork'
+      inExtension: 'OldNavigatorExt'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/sub.dart']
+          method: 'doWork'
+          inExtension: 'NewNavigatorExt'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+void f(Window w, Navigator nav, Navigator? maybeNav) {
+  nav.oldId;
+  w.navigator.gpu;
+  nav.badge = '1';
+  nav
+    ..gpu
+    ..badge = '2'
+    ..doWork(1);
+  maybeNav?.doWork(2);
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+import 'package:p/sub.dart';
+
+void f(Window w, Navigator nav, Navigator? maybeNav) {
+  nav.id;
+  w.navigator.gpu;
+  nav.badge = '1';
+  nav
+    ..gpu
+    ..badge = '2'
+    ..doWork(1);
+  maybeNav?.doWork(2);
+}
+''');
   }
 }
 

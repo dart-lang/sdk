@@ -8,7 +8,10 @@ import 'package:analysis_server/src/services/correction/fix/data_driven/element_
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_kind.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart' hide ElementKind;
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source_range.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -76,33 +79,39 @@ class ReplacedBy extends Change<_Data> {
     // Replaces all targets of static accesses, including prefixes.
     // If [replaceTarget] is `true`, also replace targets of instance
     // accesses.
-    if (node is SimpleIdentifier) {
-      // Include prefix if prefixed.
-      var element = node.element;
-      if (element is ExecutableElement &&
-          !element.isStatic &&
-          element is! ConstructorElement) {
-        var result = _instanceInvocation(fix, node, element, replaceTarget);
-        return result;
-      }
+    if (node is SimpleIdentifier && _isInstanceAccess(node, fix)) {
+      return _instanceInvocation(fix, node);
     }
     if (node is NamespaceDirective) {
-      if (node.uri is! SimpleStringLiteral) {
-        return null;
+      if (node.uri case SimpleStringLiteral uri) {
+        return _Data(
+          range.startOffsetEndOffset(uri.contentsOffset, uri.contentsEnd),
+        );
       }
-      var uri = node.uri as SimpleStringLiteral;
-      return _Data(
-        range.startOffsetEndOffset(uri.contentsOffset, uri.contentsEnd),
-      );
+      return null;
     }
     if (node is Comment) {
       return _docImportUri(node, fix);
     }
     var sourceRange = _rangeWithTarget(node, fix);
-    if (sourceRange != null) {
-      return _Data(sourceRange);
+    return sourceRange == null ? null : _Data(sourceRange);
+  }
+
+  bool _canKeepInstanceTarget(DataDrivenFix fix, SimpleIdentifier node) {
+    var kind = newElement.kind;
+    if (newElement.isStatic ||
+        (kind != ElementKind.fieldKind &&
+            kind != ElementKind.getterKind &&
+            kind != ElementKind.methodKind &&
+            kind != ElementKind.setterKind)) {
+      return false;
     }
-    return null;
+    if (_realTargetOf(node) case ExtensionOverride(:var name)) {
+      return newElement.components.length == 2 &&
+          name.lexeme == newElement.components[1] &&
+          newElement.libraryUris.any(fix.element.libraryUris.contains);
+    }
+    return true;
   }
 
   /// Replacement range for the `@docImport` URI selected by [fix] in [node].
@@ -143,64 +152,96 @@ class ReplacedBy extends Change<_Data> {
     return builder.importLibraryElement(libraryUri, prefix: prefix);
   }
 
-  /// Replacement range of a function, getter or setter invocation.
+  /// Replacement range of an instance or extension member access.
   ///
   /// If [replaceTarget] is true, the target is also replaced.
-  /// That should always be the case for static functions, and is true
-  /// for instance functions if the fix is set to replace the target.
-  ///
   // TODO(brianwilkinson): Maybe also handle setters<->one parameter functions
   // switching between `(target.)setter = e` and `(target.)method(e)`.
-  _Data? _instanceInvocation(
-    DataDrivenFix fix,
-    SimpleIdentifier node,
-    ExecutableElement element,
-    bool replaceTarget,
-  ) {
-    var newKind = newElement.kind;
-    String? suffix;
-    SourceRange? referenceRange;
-    if (newKind == ElementKind.methodKind && element is GetterElement) {
-      // Convert from getter to method with no type arguments or arguments.
-      suffix = '()';
-      AstNode rangeStart;
-      if (replaceTarget) {
-        rangeStart = _simpleIdentifierRangeStartWithTarget(node);
-      } else {
-        rangeStart = node;
-      }
-      referenceRange = range.startEnd(rangeStart, node);
-    } else if (newKind == ElementKind.getterKind) {
-      // Convert from function call to getter,
-      // only if no arguments or type arguments.
-      var parent = node.parent;
-      if (parent is MethodInvocation) {
-        var argumentList = parent.argumentList;
-        if (argumentList.arguments.isNotEmpty) {
-          return null;
-        }
-        var argumentTypes = parent.typeArgumentTypes;
-        if (argumentTypes != null && argumentTypes.isNotEmpty) {
-          return null;
-        }
-        if (replaceTarget) {
-          var rangeStart = _simpleIdentifierRangeStartWithTarget(node);
-          referenceRange = range.startEnd(rangeStart, argumentList);
-        } else {
-          referenceRange = range.startEnd(node, argumentList);
-        }
-      }
+  _Data? _instanceInvocation(DataDrivenFix fix, SimpleIdentifier node) {
+    var oldComponents = fix.element.components;
+    if (oldComponents.isEmpty || node.name != oldComponents.first) {
+      return null;
     }
+    if (!replaceTarget && !_canKeepInstanceTarget(fix, node)) {
+      return null;
+    }
+    if (!_matchesAccessKind(fix.element.kind, node)) {
+      return null;
+    }
+    if (replaceTarget && _isCascadedAccess(node)) {
+      return null;
+    }
+    var rangeStart = replaceTarget
+        ? _simpleIdentifierRangeStartWithTarget(node)
+        : node;
+    var isGetter = switch (node.writeOrReadElement) {
+      GetterElement() => true,
+      MethodElement() => false,
+      _ =>
+        fix.element.kind == ElementKind.getterKind ||
+            fix.element.kind == ElementKind.fieldKind,
+    };
+    return switch ((isGetter, newElement.kind)) {
+      (true, ElementKind.methodKind) => _Data(
+        range.startEnd(rangeStart, node),
+        suffix: '()',
+        isInstanceMember: true,
+      ),
+      (false, ElementKind.getterKind) => _methodToGetterData(node, rangeStart),
+      _ => _Data(range.startEnd(rangeStart, node), isInstanceMember: true),
+    };
+  }
 
-    if (referenceRange == null) {
-      if (replaceTarget) {
-        var rangeStart = _simpleIdentifierRangeStartWithTarget(node);
-        referenceRange = range.startEnd(rangeStart, node);
-      } else {
-        return null;
-      }
+  bool _isInstanceAccess(SimpleIdentifier node, DataDrivenFix fix) {
+    if (node.writeOrReadElement case var element?) {
+      return element is ExecutableElement &&
+          !element.isStatic &&
+          element is! ConstructorElement;
     }
-    return _Data(referenceRange, suffix: suffix, isInstanceMember: true);
+    var oldElement = fix.element;
+    if (oldElement.isStatic ||
+        oldElement.components.length != 2 ||
+        oldElement.kind == ElementKind.constructorKind ||
+        oldElement.kind == ElementKind.constantKind) {
+      return false;
+    }
+    return _isInstanceTarget(_realTargetOf(node));
+  }
+
+  bool _matchesAccessKind(ElementKind oldKind, SimpleIdentifier node) {
+    var newKind = newElement.kind;
+    if (_isWriteAccess(node)) {
+      return (oldKind == ElementKind.setterKind ||
+              oldKind == ElementKind.fieldKind) &&
+          (newKind == ElementKind.setterKind ||
+              newKind == ElementKind.fieldKind ||
+              newKind == ElementKind.variableKind);
+    }
+    if (oldKind == ElementKind.setterKind ||
+        newKind == ElementKind.setterKind) {
+      return false;
+    }
+    return node.writeOrReadElement is! MethodElement ||
+        oldKind == ElementKind.methodKind;
+  }
+
+  _Data? _methodToGetterData(SimpleIdentifier node, AstNode rangeStart) {
+    var parent = node.parent;
+    if (parent is! MethodInvocation || node != parent.methodName) {
+      return null;
+    }
+    var argumentList = parent.argumentList;
+    if (argumentList.arguments.isNotEmpty || parent.typeArguments != null) {
+      return null;
+    }
+    var argumentTypes = parent.typeArgumentTypes;
+    if (argumentTypes != null && argumentTypes.isNotEmpty) {
+      return null;
+    }
+    return _Data(
+      range.startEnd(rangeStart, argumentList),
+      isInstanceMember: true,
+    );
   }
 
   /// Finds a range for a node that includes its target.
@@ -210,58 +251,181 @@ class ReplacedBy extends Change<_Data> {
     var elements = fix.element.components;
     if (elements.isEmpty) return null;
     var simpleName = elements[0];
-    if (node is SimpleStringLiteral && node.stringValue == simpleName) {
-      return range.startOffsetEndOffset(node.contentsOffset, node.contentsEnd);
-    } else if (node is SimpleIdentifier) {
-      if (node.name != (simpleName.isNotEmpty ? simpleName : elements[1])) {
-        return null;
-      }
-      var rangeStart = _simpleIdentifierRangeStartWithTarget(node);
-      return range.startEnd(rangeStart, node);
-    } else if (node is PrefixedIdentifier) {
-      return range.startEnd(node.prefix, node);
-    } else if (node is ConstructorName) {
-      // TODO(brianwilkinson): Remember the type arguments, so they can be retained when
-      // replacing a named constructor, or placed correctly if replacing with
-      // a named constructor.
-      if (node.name != null) {
-        return range.node(node);
-      } else {
-        // Return the type's names only (omit/retain type arguments).
-        return range.node(node.type);
-      }
-    } else if (node is NamedType) {
-      var typeName = node.name.lexeme;
-      if (elements.length == 1 && simpleName == typeName ||
-          elements.length == 2 &&
-              simpleName.isEmpty &&
-              elements[1] == typeName) {
-        // Omit trailing type parameters and/or `?`,
-        // only include import prefix and type name.
-        return range.startEnd(node, node.name);
-      } else {
-        // Check if it's a static member or constructor of a deprecated type.
-        if (elements.length == 2 && elements[1] == typeName) {
-          // And elements[0] is not empty.
+    return switch (node) {
+      SimpleStringLiteral(:var stringValue) when stringValue == simpleName =>
+        range.startOffsetEndOffset(node.contentsOffset, node.contentsEnd),
+      SimpleIdentifier() when _matchesStaticSimpleIdentifier(node, elements) =>
+        range.startEnd(_simpleIdentifierRangeStartWithTarget(node), node),
+      PrefixedIdentifier(:var prefix) => range.startEnd(prefix, node),
+      ConstructorName(:var name, :var type) => range.node(
+        name != null ? node : type,
+      ),
+      NamedType() => _namedTypeRange(node, elements),
+      _ => null,
+    };
+  }
 
-          // Static accesses on a deprecated type.
-          var parent = node.parent;
-          if (parent is ConstructorName && parent.name?.name == simpleName) {
-            // TODO(brianwilkinson): Retain type arguments.
-            return range.node(parent);
-          }
-          if (parent is MethodInvocation &&
-              parent.methodName.name == simpleName) {
-            return range.startEnd(node, parent.methodName);
-          }
-          if (parent is PropertyAccess &&
-              parent.propertyName.name == simpleName) {
-            return range.startEnd(node, parent.propertyName);
-          }
-        }
+  void _writeArguments(DartEditBuilder builder, DataDrivenFix fix, _Data data) {
+    if (arguments.isNotEmpty) {
+      var templateContext = TemplateContext(fix.node, fix.utils);
+      builder.write('(');
+      arguments.first.writeOn(builder, templateContext);
+      for (var i = 1; i < arguments.length; i++) {
+        builder.write(',');
+        arguments[i].writeOn(builder, templateContext);
+      }
+      builder.write(')');
+    } else if (data.suffix case var suffix?) {
+      builder.write(suffix);
+    }
+  }
+
+  static String? _importPrefix(AstNode node) => switch (node) {
+    NamedType(:var importPrefix) ||
+    ConstructorName(type: NamedType(:var importPrefix)) ||
+    ExtensionOverride(
+      :var importPrefix,
+    ) => _prefixElementName(importPrefix?.element),
+    PrefixedIdentifier(:var prefix) => _prefixElementName(prefix.element),
+    SimpleIdentifier(:var parent) => _parentImportPrefix(parent),
+    _ => null,
+  };
+
+  static bool _isCascadedAccess(SimpleIdentifier node) => switch (node.parent) {
+    PropertyAccess(:var isCascaded, :var propertyName)
+        when node == propertyName =>
+      isCascaded,
+    MethodInvocation(:var isCascaded, :var methodName)
+        when node == methodName =>
+      isCascaded,
+    _ => false,
+  };
+
+  static bool _isInstanceTarget(Expression? target) {
+    if (target == null) return false;
+    if (target is ExtensionOverride) return true;
+    if (target is Identifier) {
+      var element = target.element;
+      if (element == null ||
+          element is ExtensionElement ||
+          element is InterfaceElement ||
+          element is PrefixElement ||
+          element is TypeAliasElement) {
+        return false;
       }
     }
-    return null;
+    var type = target.staticType;
+    return type != null && type is! InvalidType;
+  }
+
+  static bool _isWriteAccess(SimpleIdentifier node) {
+    AstNode expr = switch (node.parent) {
+      PrefixedIdentifier parent when node == parent.identifier => parent,
+      PropertyAccess parent when node == parent.propertyName => parent,
+      _ => node,
+    };
+    return switch (expr.parent) {
+      AssignmentExpression(:var leftHandSide) => leftHandSide == expr,
+      PrefixExpression(:var operand, :var operator) =>
+        operand == expr && operator.type.isIncrementOperator,
+      PostfixExpression(:var operand, :var operator) =>
+        operand == expr && operator.type.isIncrementOperator,
+      _ => false,
+    };
+  }
+
+  static bool _matchesStaticSimpleIdentifier(
+    SimpleIdentifier node,
+    List<String> elements,
+  ) {
+    var simpleName = elements[0];
+    if (node.name != (simpleName.isNotEmpty ? simpleName : elements[1])) {
+      return false;
+    }
+    if (elements.length == 2 &&
+        simpleName.isNotEmpty &&
+        _realTargetOf(node) == null &&
+        _simpleIdentifierRangeStartWithTarget(node) == node) {
+      return node.enclosingInstanceElement?.name == elements[1];
+    }
+    return true;
+  }
+
+  static SourceRange? _namedTypeRange(NamedType node, List<String> elements) {
+    var simpleName = elements[0];
+    var typeName = node.name.lexeme;
+    var isDirectType =
+        elements.length == 1 && simpleName == typeName ||
+        elements.length == 2 && simpleName.isEmpty && elements[1] == typeName;
+    if (isDirectType) {
+      // Omit trailing type parameters and/or `?`,
+      // only include import prefix and type name.
+      return range.startEnd(node, node.name);
+    }
+    if (elements.length != 2 || elements[1] != typeName) {
+      return null;
+    }
+    // Static accesses or named constructors on a deprecated type.
+    return switch (node.parent) {
+      ConstructorName parent when parent.name?.name == simpleName => range.node(
+        parent,
+      ),
+      MethodInvocation parent when parent.methodName.name == simpleName =>
+        range.startEnd(node, parent.methodName),
+      PropertyAccess parent when parent.propertyName.name == simpleName =>
+        range.startEnd(node, parent.propertyName),
+      _ => null,
+    };
+  }
+
+  static String? _parentImportPrefix(AstNode? parent) => switch (parent) {
+    NamedType(:var importPrefix) ||
+    ConstructorName(type: NamedType(:var importPrefix)) ||
+    ExtensionOverride(:var importPrefix) ||
+    MethodInvocation(target: ExtensionOverride(:var importPrefix)) ||
+    PropertyAccess(
+      target: ExtensionOverride(:var importPrefix),
+    ) => _prefixElementName(importPrefix?.element),
+    PrefixedIdentifier(:var prefix) ||
+    Annotation(name: PrefixedIdentifier(:var prefix)) ||
+    MethodInvocation(target: SimpleIdentifier prefix) ||
+    MethodInvocation(target: PrefixedIdentifier(:var prefix)) ||
+    PropertyAccess(target: SimpleIdentifier prefix) ||
+    PropertyAccess(
+      target: PrefixedIdentifier(:var prefix),
+    ) => _prefixElementName(prefix.element),
+    _ => null,
+  };
+
+  static String? _prefixElementName(Element? element) =>
+      element is PrefixElement && !element.fragments.any((f) => f.isDeferred)
+      ? element.name
+      : null;
+
+  static Expression? _realTargetOf(SimpleIdentifier node) =>
+      switch (node.parent) {
+        PrefixedIdentifier(:var prefix, :var identifier)
+            when node == identifier =>
+          prefix,
+        PropertyAccess(:var realTarget, :var propertyName)
+            when node == propertyName =>
+          realTarget,
+        MethodInvocation(:var realTarget, :var methodName)
+            when node == methodName =>
+          realTarget,
+        _ => null,
+      };
+
+  // Find the import element of `libraryUri`.
+  static Uri _selectImportUri(
+    DartFileEditBuilder builder,
+    List<Uri> libraryUris,
+  ) {
+    assert(libraryUris.isNotEmpty);
+    for (var uri in libraryUris) {
+      if (builder.importsLibrary(uri)) return uri;
+    }
+    return libraryUris.first;
   }
 
   /// The start of any target of a static name, or the name itself.
@@ -276,7 +440,7 @@ class ReplacedBy extends Change<_Data> {
   /// (Can't just use the start of the parent node, since that can include
   /// metadata.)
   ///
-  AstNode _simpleIdentifierRangeStartWithTarget(SimpleIdentifier node) {
+  static AstNode _simpleIdentifierRangeStartWithTarget(SimpleIdentifier node) {
     var parent = node.parent;
     if (parent is MethodInvocation) {
       // Correct whether `node` is `parent.target` or `parent.methodName`.
@@ -307,68 +471,6 @@ class ReplacedBy extends Change<_Data> {
     }
     // Nothing before the node.
     return node;
-  }
-
-  void _writeArguments(DartEditBuilder builder, DataDrivenFix fix, _Data data) {
-    if (arguments.isNotEmpty) {
-      var templateContext = TemplateContext(fix.node, fix.utils);
-      builder.write('(');
-      arguments.first.writeOn(builder, templateContext);
-      for (var i = 1; i < arguments.length; i++) {
-        builder.write(',');
-        arguments[i].writeOn(builder, templateContext);
-      }
-      builder.write(')');
-    } else if (data.suffix case var suffix?) {
-      builder.write(suffix);
-    }
-  }
-
-  static String? _importPrefix(AstNode node) => switch (node) {
-    NamedType(:var importPrefix) ||
-    ConstructorName(type: NamedType(:var importPrefix)) ||
-    ExtensionOverride(
-      :var importPrefix,
-    ) => _prefixElementName(importPrefix?.element),
-    PrefixedIdentifier(:var prefix) => _prefixElementName(prefix.element),
-    SimpleIdentifier(:var parent) => _parentImportPrefix(parent),
-    _ => null,
-  };
-
-  static String? _parentImportPrefix(AstNode? parent) => switch (parent) {
-    NamedType(:var importPrefix) ||
-    ConstructorName(type: NamedType(:var importPrefix)) ||
-    ExtensionOverride(:var importPrefix) ||
-    MethodInvocation(target: ExtensionOverride(:var importPrefix)) ||
-    PropertyAccess(
-      target: ExtensionOverride(:var importPrefix),
-    ) => _prefixElementName(importPrefix?.element),
-    PrefixedIdentifier(:var prefix) ||
-    Annotation(name: PrefixedIdentifier(:var prefix)) ||
-    MethodInvocation(target: SimpleIdentifier prefix) ||
-    MethodInvocation(target: PrefixedIdentifier(:var prefix)) ||
-    PropertyAccess(target: SimpleIdentifier prefix) ||
-    PropertyAccess(
-      target: PrefixedIdentifier(:var prefix),
-    ) => _prefixElementName(prefix.element),
-    _ => null,
-  };
-
-  static String? _prefixElementName(Element? element) =>
-      element is PrefixElement && !element.fragments.any((f) => f.isDeferred)
-      ? element.name
-      : null;
-
-  // Find the import element of `libraryUri`.
-  static Uri _selectImportUri(
-    DartFileEditBuilder builder,
-    List<Uri> libraryUris,
-  ) {
-    assert(libraryUris.isNotEmpty);
-    for (var uri in libraryUris) {
-      if (builder.importsLibrary(uri)) return uri;
-    }
-    return libraryUris.first;
   }
 
   static String? _sourceImportPrefix(DataDrivenFix fix) {

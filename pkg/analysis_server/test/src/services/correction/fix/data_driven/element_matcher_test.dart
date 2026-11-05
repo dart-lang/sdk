@@ -31,11 +31,7 @@ abstract class AbstractElementMatcherTest extends DataDrivenFixProcessorTest
     List<String>? expectedUris,
   }) {
     var node = findNode.any(search);
-    var matchers = ElementMatcher.matchersForNode(
-      node,
-      node.beginToken,
-      testUnit.declaredFragment!.element,
-    );
+    var matchers = ElementMatcher.matchersForNode(node, node.beginToken);
     var matchedMatchers = <ElementMatcher>[];
     for (var matcher in matchers) {
       if (expectedUris != null) {
@@ -74,11 +70,7 @@ abstract class AbstractElementMatcherTest extends DataDrivenFixProcessorTest
     List<String>? expectedUris,
   }) {
     var node = findNode.any(search);
-    var matchers = ElementMatcher.matchersForNode(
-      node,
-      node.beginToken,
-      testUnit.declaredFragment!.element,
-    );
+    var matchers = ElementMatcher.matchersForNode(node, node.beginToken);
     expect(matchers, hasLength(1));
     var matcher = matchers[0];
     if (expectedUris != null) {
@@ -396,6 +388,27 @@ class C {
     _assertMatcher('foo', expectedComponents: ['foo']);
   }
 
+  Future<void> test_getter_withTarget_extension_applicable() async {
+    await resolveTestCode('''
+class C {}
+extension E on C {}
+void f(C c, C? nullableC) {
+  c.foo;
+  nullableC?.bar;
+}
+''');
+    _assertHasMatcher(
+      'foo',
+      expectedComponents: ['foo', 'E'],
+      expectedKinds: accessorKinds,
+    );
+    _assertHasMatcher(
+      'bar',
+      expectedComponents: ['bar', 'E'],
+      expectedKinds: accessorKinds,
+    );
+  }
+
   Future<void> test_getter_withTarget_extensionOverride_unresolved() async {
     await resolveTestCode('''
 extension E on String {}
@@ -670,6 +683,27 @@ class C {
       'foo',
       expectedComponents: ['foo'],
       expectedKinds: invocationKinds,
+    );
+  }
+
+  Future<void> test_method_withTarget_extension_applicable() async {
+    await resolveTestCode('''
+class C {}
+extension E on C {}
+void f(C c, C? nullableC) {
+  c.foo();
+  nullableC?.bar();
+}
+''');
+    _assertHasMatcher(
+      'foo',
+      expectedComponents: ['foo', 'E'],
+      expectedKinds: [.methodKind],
+    );
+    _assertHasMatcher(
+      'bar',
+      expectedComponents: ['bar', 'E'],
+      expectedKinds: [.methodKind],
     );
   }
 
