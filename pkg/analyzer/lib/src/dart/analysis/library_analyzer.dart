@@ -869,6 +869,7 @@ class LibraryAnalyzer {
 
       var import = LibraryImportImpl(
         isSynthetic: false,
+        isConditional: state.unlinked.configurations.isNotEmpty,
         combinators: buildNamespaceCombinators(state.unlinked.combinators),
         importKeywordOffset: state.unlinked.importKeywordOffset,
         prefix: prefixFragment,

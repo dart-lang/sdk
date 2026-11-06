@@ -888,6 +888,7 @@ class LibraryReader {
   List<LibraryExportImpl> _readLibraryExports() {
     return _reader.readTypedList(() {
       return LibraryExportImpl(
+        isConditional: _reader.readBool(),
         combinators: _reader.readTypedList(_readNamespaceCombinator),
         exportKeywordOffset: -1,
         uri: _readDirectiveUri(),
@@ -983,6 +984,7 @@ class LibraryReader {
     return _reader.readTypedList(() {
       return LibraryImportImpl(
         isSynthetic: _reader.readBool(),
+        isConditional: _reader.readBool(),
         combinators: _reader.readTypedList(_readNamespaceCombinator),
         importKeywordOffset: -1,
         prefix: _readLibraryImportPrefixFragment(libraryFragment),

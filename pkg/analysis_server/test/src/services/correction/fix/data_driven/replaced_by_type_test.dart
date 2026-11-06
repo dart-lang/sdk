@@ -352,15 +352,17 @@ extension type const $name${generic(typeParameters)}._(int _) implements Object 
     var lib1Import =
         '''import '$importUri'${lib1Prefix.isNotEmpty(' as $lib1Prefix')};\n''';
     var lib1PrefixDot = lib1Prefix.isEmpty ? '' : '$lib1Prefix.';
+    var effectiveLib2Prefix = lib2Prefix ?? lib1Prefix;
     // Lib2 import in post-fix library.
     var lib2Import =
-        '''import 'package:p/lib2.dart'${(lib2Prefix != null && lib2Prefix.isNotEmpty)(' as $lib2Prefix')};\n''';
-    var lib2PrefixDot = '';
+        '''import 'package:p/lib2.dart'${effectiveLib2Prefix.isNotEmpty(' as $effectiveLib2Prefix')};\n''';
+    var lib2PrefixDot = effectiveLib2Prefix.isEmpty
+        ? ''
+        : '$effectiveLib2Prefix.';
     var lib2Usage = '';
     var lib2OldImport = ''; // Import in pre-fix library.
     if (lib2Prefix != null) {
       // Lib2 was imported in original.
-      if (lib2Prefix.isNotEmpty) lib2PrefixDot = '$lib2Prefix.';
       lib2OldImport = lib2Import;
       // Inserted to avoid a pre-imported lib 2 being unused.
       lib2Usage = '${lib2PrefixDot}Lib2Use? dummyDeclaration;\n';

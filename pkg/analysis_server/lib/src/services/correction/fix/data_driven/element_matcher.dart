@@ -16,6 +16,7 @@ import 'package:analyzer/dart/element/element.dart'
         PropertyAccessorElement;
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/resolver/applicable_extensions.dart';
 
 /// An object that can be used to determine whether an element is appropriate
 /// for a given reference.
@@ -144,11 +145,7 @@ class ElementMatcher {
   ///
   /// The list will be empty if there are no appropriate matchers for the
   /// [node].
-  static List<ElementMatcher> matchersForNode(
-    AstNode? node,
-    Token? nameToken,
-    LibraryElement libraryElement,
-  ) {
+  static List<ElementMatcher> matchersForNode(AstNode? node, Token? nameToken) {
     if (node == null) {
       return const [];
     }
@@ -156,7 +153,8 @@ class ElementMatcher {
     if (importedUris == null) {
       return const [];
     }
-    var builder = _MatcherBuilder(importedUris, libraryElement);
+    var libraryFragment = (node.root as CompilationUnit).declaredFragment!;
+    var builder = _MatcherBuilder(importedUris, libraryFragment);
     builder.buildMatchersForNode(node, nameToken);
     return builder.matchers.toList();
   }
@@ -196,9 +194,9 @@ class _MatcherBuilder {
 
   final List<Uri> importedUris;
 
-  final LibraryElement libraryElement;
+  final LibraryFragment libraryFragment;
 
-  new(this.importedUris, this.libraryElement);
+  new(this.importedUris, this.libraryFragment);
 
   void buildMatchersForNode(AstNode? node, Token? nameToken) {
     if (node is ArgumentList) {
@@ -266,21 +264,18 @@ class _MatcherBuilder {
     );
   }
 
-  /// Adds matchers for a member named [memberName] accessed on [targetType] or
-  /// any of its supertypes.
+  /// Adds matchers for a member named [memberName] accessed on [targetType],
+  /// any of its supertypes, or any applicable extension in scope.
   void _addMatchersForTargetType({
     required String memberName,
     required InterfaceType targetType,
   }) {
-    var elements = [
-      targetType.element,
-      ...targetType.allSupertypes.map((t) => t.element),
-    ];
-    for (var element in elements) {
-      var name = element.name;
-      if (name == null) {
-        continue;
-      }
+    var names = <String>{
+      ?targetType.element.name,
+      for (var supertype in targetType.allSupertypes) ?supertype.element.name,
+      ..._applicableExtensionNames(targetType),
+    };
+    for (var name in names) {
       _addMatcher(
         components: [memberName, name],
         kinds: const [
@@ -293,6 +288,15 @@ class _MatcherBuilder {
         ],
       );
     }
+  }
+
+  Iterable<String> _applicableExtensionNames(InterfaceType targetType) {
+    var libraryElement = libraryFragment.element;
+    var nonNullType = libraryElement.typeSystem.promoteToNonNull(targetType);
+    return libraryFragment.accessibleExtensions
+        .applicableTo(targetLibrary: libraryElement, targetType: nonNullType)
+        .map((e) => e.extension.name)
+        .nonNulls;
   }
 
   /// Build a matcher for the element being invoked.
@@ -390,7 +394,7 @@ class _MatcherBuilder {
   ) {
     var typeElement = computeDotShorthandContextTypeElement(
       node,
-      libraryElement,
+      libraryFragment.element,
     );
     var typeName = typeElement?.displayName;
     if (typeName != null) {
@@ -444,13 +448,14 @@ class _MatcherBuilder {
         components: [methodName.name, targetType.element.name!],
         kinds: const [ElementKind.constructorKind, ElementKind.methodKind],
       );
-      // We can invoke methods of supertypes of the target type.
-      var superElements = targetType.allSupertypes
-          .map((superType) => superType.element)
-          .toList();
-      for (var element in superElements) {
+      // We can invoke methods of supertypes and applicable extensions.
+      var names = <String>{
+        for (var superType in targetType.allSupertypes) superType.element.name!,
+        ..._applicableExtensionNames(targetType),
+      };
+      for (var name in names) {
         _addMatcher(
-          components: [methodName.name, element.name!],
+          components: [methodName.name, name],
           kinds: const [ElementKind.methodKind],
         );
       }

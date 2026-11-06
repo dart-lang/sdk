@@ -437,6 +437,26 @@ f(A a) {
     expect(names, unorderedEquals(['A', '[]']));
   }
 
+  test_operator_relationalPattern() {
+    var names = _computeReferencedNames('''
+f(A a) {
+  if (a case < 0) {}
+  if (a case >= 0) {}
+  if (a case == 0) {}
+}
+''');
+    expect(names, unorderedEquals(['A', '<', '>=', '==']));
+  }
+
+  test_operator_relationalPattern_equality() {
+    var names = _computeReferencedNames('''
+f(A a) {
+  if (a case != 0) {}
+}
+''');
+    expect(names, unorderedEquals(['A', '==']));
+  }
+
   test_operator_unary() {
     var names = _computeReferencedNames('''
 f(A a) {

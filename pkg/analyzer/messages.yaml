@@ -28194,8 +28194,9 @@ WarningCode:
       #### Description
 
       The analyzer produces this diagnostic when an import directive is found
-      that is the same as an import before it in the file. The second import
-      doesn't add value and should be removed.
+      that is the same as an import before it in the file, or in an enclosing
+      file in the part hierarchy. The second import doesn't add value and should
+      be removed.
 
       #### Example
 
@@ -28219,6 +28220,16 @@ WarningCode:
       @sealed
       class C {}
       ```
+  duplicateImportInPart:
+    type: staticWarning
+    parameters:
+      String fileName: the name of the file containing the duplicated import
+    sharedName: duplicateImport
+    problemMessage: "Duplicate of import in '#fileName'."
+    correctionMessage: Try removing all but one import of the library.
+    hasPublishedDocs: true
+    comment: |-
+      Duplicate imports.
   duplicateShownName:
     type: staticWarning
     parameters: none

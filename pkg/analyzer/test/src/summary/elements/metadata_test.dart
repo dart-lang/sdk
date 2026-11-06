@@ -6112,6 +6112,361 @@ library
 ''');
   }
 
+  test_metadata_libraryDirective_afterAnnotatedExportDirective() async {
+    var library = await buildLibrary(r'''
+@a
+export 'dart:math';
+@b
+library;
+
+const a = 0;
+const b = 1;
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  metadata
+    annotation_0: Annotation
+      atSign: @ @23
+      expression: UnqualifiedNameExpression
+        name: b @24
+        resolution: GetterInvocationResolution
+          element: <testLibrary>::@getter::b
+          type: int
+        staticType: int
+      name: SimpleIdentifier
+        token: b @24
+        element: <testLibrary>::@getter::b
+        staticType: null
+      element: <testLibrary>::@getter::b
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      libraryExports
+        dart:math
+          metadata
+            annotation_1: Annotation
+              atSign: @ @0
+              expression: UnqualifiedNameExpression
+                name: a @1
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::a
+                  type: int
+                staticType: int
+              name: SimpleIdentifier
+                token: a @1
+                element: <testLibrary>::@getter::a
+                staticType: null
+              element: <testLibrary>::@getter::a
+      topLevelVariables
+        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:42) (firstTokenOffset:42) (offset:42)
+          element: <testLibrary>::@topLevelVariable::a
+          constantInitializer2: expression_0
+            IntegerLiteral
+              literal: 0 @46
+              staticType: int
+          inducedGetter: #F2
+        #F3 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic b (nameOffset:55) (firstTokenOffset:55) (offset:55)
+          element: <testLibrary>::@topLevelVariable::b
+          constantInitializer2: expression_1
+            IntegerLiteral
+              literal: 1 @59
+              staticType: int
+          inducedGetter: #F4
+      getters
+        #F2 isComplete isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
+          element: <testLibrary>::@getter::a
+          inducingVariable: #F1
+        #F4 isComplete isOriginVariable isStatic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:55)
+          element: <testLibrary>::@getter::b
+          inducingVariable: #F3
+  topLevelVariables
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer a
+      reference: <testLibrary>::@topLevelVariable::a
+      firstFragment: #F1
+      type: int
+      constantInitializer2: expression_0
+      getter: <testLibrary>::@getter::a
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer b
+      reference: <testLibrary>::@topLevelVariable::b
+      firstFragment: #F3
+      type: int
+      constantInitializer2: expression_1
+      getter: <testLibrary>::@getter::b
+  getters
+    isOriginVariable isStatic a
+      reference: <testLibrary>::@getter::a
+      firstFragment: #F2
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::a
+    isOriginVariable isStatic b
+      reference: <testLibrary>::@getter::b
+      firstFragment: #F4
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::b
+''');
+  }
+
+  test_metadata_libraryDirective_afterAnnotatedImportDirective() async {
+    var library = await buildLibrary(r'''
+@a
+import 'dart:math';
+@b
+library;
+
+const a = 0;
+const b = 1;
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  metadata
+    annotation_0: Annotation
+      atSign: @ @23
+      expression: UnqualifiedNameExpression
+        name: b @24
+        resolution: GetterInvocationResolution
+          element: <testLibrary>::@getter::b
+          type: int
+        staticType: int
+      name: SimpleIdentifier
+        token: b @24
+        element: <testLibrary>::@getter::b
+        staticType: null
+      element: <testLibrary>::@getter::b
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      libraryImports
+        dart:math
+          metadata
+            annotation_1: Annotation
+              atSign: @ @0
+              expression: UnqualifiedNameExpression
+                name: a @1
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::a
+                  type: int
+                staticType: int
+              name: SimpleIdentifier
+                token: a @1
+                element: <testLibrary>::@getter::a
+                staticType: null
+              element: <testLibrary>::@getter::a
+      topLevelVariables
+        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:42) (firstTokenOffset:42) (offset:42)
+          element: <testLibrary>::@topLevelVariable::a
+          constantInitializer2: expression_0
+            IntegerLiteral
+              literal: 0 @46
+              staticType: int
+          inducedGetter: #F2
+        #F3 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic b (nameOffset:55) (firstTokenOffset:55) (offset:55)
+          element: <testLibrary>::@topLevelVariable::b
+          constantInitializer2: expression_1
+            IntegerLiteral
+              literal: 1 @59
+              staticType: int
+          inducedGetter: #F4
+      getters
+        #F2 isComplete isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
+          element: <testLibrary>::@getter::a
+          inducingVariable: #F1
+        #F4 isComplete isOriginVariable isStatic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:55)
+          element: <testLibrary>::@getter::b
+          inducingVariable: #F3
+  topLevelVariables
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer a
+      reference: <testLibrary>::@topLevelVariable::a
+      firstFragment: #F1
+      type: int
+      constantInitializer2: expression_0
+      getter: <testLibrary>::@getter::a
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer b
+      reference: <testLibrary>::@topLevelVariable::b
+      firstFragment: #F3
+      type: int
+      constantInitializer2: expression_1
+      getter: <testLibrary>::@getter::b
+  getters
+    isOriginVariable isStatic a
+      reference: <testLibrary>::@getter::a
+      firstFragment: #F2
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::a
+    isOriginVariable isStatic b
+      reference: <testLibrary>::@getter::b
+      firstFragment: #F4
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::b
+''');
+  }
+
+  test_metadata_libraryDirective_afterAnnotatedPartDirective() async {
+    newFile('$testPackageLibPath/part.dart', r'''
+part of 'test.dart';
+''');
+
+    var library = await buildLibrary(r'''
+@a
+part 'part.dart';
+@b
+library;
+
+const a = 0;
+const b = 1;
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  metadata
+    annotation_0: Annotation
+      atSign: @ @21
+      expression: UnqualifiedNameExpression
+        name: b @22
+        resolution: GetterInvocationResolution
+          element: <testLibrary>::@getter::b
+          type: int
+        staticType: int
+      name: SimpleIdentifier
+        token: b @22
+        element: <testLibrary>::@getter::b
+        staticType: null
+      element: <testLibrary>::@getter::b
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      nextFragment: #F1
+      parts
+        part_0
+          uri: package:test/part.dart
+          partKeywordOffset: 3
+          metadata
+            annotation_1: Annotation
+              atSign: @ @0
+              expression: UnqualifiedNameExpression
+                name: a @1
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::a
+                  type: int
+                staticType: int
+              name: SimpleIdentifier
+                token: a @1
+                element: <testLibrary>::@getter::a
+                staticType: null
+              element: <testLibrary>::@getter::a
+          unit: #F1
+      topLevelVariables
+        #F2 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:40) (firstTokenOffset:40) (offset:40)
+          element: <testLibrary>::@topLevelVariable::a
+          constantInitializer2: expression_0
+            IntegerLiteral
+              literal: 0 @44
+              staticType: int
+          inducedGetter: #F3
+        #F4 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic b (nameOffset:53) (firstTokenOffset:53) (offset:53)
+          element: <testLibrary>::@topLevelVariable::b
+          constantInitializer2: expression_1
+            IntegerLiteral
+              literal: 1 @57
+              staticType: int
+          inducedGetter: #F5
+      getters
+        #F3 isComplete isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+          element: <testLibrary>::@getter::a
+          inducingVariable: #F2
+        #F5 isComplete isOriginVariable isStatic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
+          element: <testLibrary>::@getter::b
+          inducingVariable: #F4
+    #F1 package:test/part.dart
+      element: <testLibrary>
+      enclosingFragment: #F0
+      previousFragment: #F0
+  topLevelVariables
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer a
+      reference: <testLibrary>::@topLevelVariable::a
+      firstFragment: #F2
+      type: int
+      constantInitializer2: expression_0
+      getter: <testLibrary>::@getter::a
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer b
+      reference: <testLibrary>::@topLevelVariable::b
+      firstFragment: #F4
+      type: int
+      constantInitializer2: expression_1
+      getter: <testLibrary>::@getter::b
+  getters
+    isOriginVariable isStatic a
+      reference: <testLibrary>::@getter::a
+      firstFragment: #F3
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::a
+    isOriginVariable isStatic b
+      reference: <testLibrary>::@getter::b
+      firstFragment: #F5
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::b
+''');
+  }
+
+  test_metadata_libraryDirective_afterImportDirective() async {
+    var library = await buildLibrary(r'''
+import 'dart:math';
+@a
+library;
+
+const a = 0;
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  metadata
+    annotation_0: Annotation
+      atSign: @ @20
+      expression: UnqualifiedNameExpression
+        name: a @21
+        resolution: GetterInvocationResolution
+          element: <testLibrary>::@getter::a
+          type: int
+        staticType: int
+      name: SimpleIdentifier
+        token: a @21
+        element: <testLibrary>::@getter::a
+        staticType: null
+      element: <testLibrary>::@getter::a
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      libraryImports
+        dart:math
+      topLevelVariables
+        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:39) (firstTokenOffset:39) (offset:39)
+          element: <testLibrary>::@topLevelVariable::a
+          constantInitializer2: expression_0
+            IntegerLiteral
+              literal: 0 @43
+              staticType: int
+          inducedGetter: #F2
+      getters
+        #F2 isComplete isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
+          element: <testLibrary>::@getter::a
+          inducingVariable: #F1
+  topLevelVariables
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer a
+      reference: <testLibrary>::@topLevelVariable::a
+      firstFragment: #F1
+      type: int
+      constantInitializer2: expression_0
+      getter: <testLibrary>::@getter::a
+  getters
+    isOriginVariable isStatic a
+      reference: <testLibrary>::@getter::a
+      firstFragment: #F2
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
   test_metadata_methodDeclaration_getter() async {
     var library = await buildLibrary(r'''
 const a = null;

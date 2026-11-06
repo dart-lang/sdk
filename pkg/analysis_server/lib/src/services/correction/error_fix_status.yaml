@@ -3865,6 +3865,10 @@ duplicate_ignore:
     One fix is to remove the duplicated error code.
 duplicate_import:
   status: hasFix
+duplicate_import_in_part:
+  status: needsFix
+  notes: |-
+    One fix is to remove the duplicated import.
 duplicate_shown_name:
   status: hasFix
 equal_elements_in_set:

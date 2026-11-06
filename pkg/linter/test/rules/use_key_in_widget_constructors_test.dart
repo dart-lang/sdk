@@ -105,8 +105,6 @@ class W extends StatelessWidget {
     await assertDiagnosticsFromMarkup(r'''
 part of 'a.dart';
 
-import 'package:flutter/widgets.dart';
-
 augment class W { }
 
 augment class W {

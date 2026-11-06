@@ -1319,6 +1319,7 @@ final _builtInNonLintMultiGenerators = {
     ImportLibrary.forExtension,
     ImportLibrary.forExtensionType,
     ImportLibrary.forFunction,
+    ImportLibrary.forTopLevelVariable,
     ImportLibrary.forTypeOrMember,
   ],
   diag.undefinedPrefixedNameReadNotFoundAnnotation: [
@@ -1331,6 +1332,7 @@ final _builtInNonLintMultiGenerators = {
     ImportLibrary.forExtension,
     ImportLibrary.forExtensionType,
     ImportLibrary.forFunction,
+    ImportLibrary.forTopLevelVariable,
     ImportLibrary.forTypeOrMember,
   ],
   diag.undefinedPrefixedNameWriteNotFound: [DataDriven.new],

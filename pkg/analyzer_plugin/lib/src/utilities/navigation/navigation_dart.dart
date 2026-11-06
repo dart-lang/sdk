@@ -698,6 +698,12 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitRelationalPattern(RelationalPattern node) {
+    computer._addRegionForElement(node.operator, node.element);
+    super.visitRelationalPattern(node);
+  }
+
+  @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     var element = node.writeOrReadElement?.baseElement;
     if (element case PrefixElement(:var fragments, :var name)) {

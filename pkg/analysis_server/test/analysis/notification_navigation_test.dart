@@ -1784,6 +1784,24 @@ void f() {
     assertHasOperatorRegion('+= 2;', 2, '+(other)', 1);
   }
 
+  Future<void> test_operator_relationalPattern() async {
+    addTestFile('''
+class A {
+  bool operator <(int other) => true;
+  bool operator ==(Object other) => true;
+}
+void f(A a) {
+  if (a case < 0) {}
+  if (a case == 0) {}
+  if (a case != 0) {}
+}
+''');
+    await prepareNavigation();
+    assertHasOperatorRegion('< 0', 1, '<(int other)', 1);
+    assertHasOperatorRegion('== 0', 2, '==(Object other)', 2);
+    assertHasOperatorRegion('!= 0', 2, '==(Object other)', 2);
+  }
+
   Future<void> test_partOf() async {
     var libCode = 'library lib; part "test.dart";';
     var libFile = newFile('$testPackageLibPath/lib.dart', libCode).path;

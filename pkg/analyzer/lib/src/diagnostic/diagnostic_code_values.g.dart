@@ -282,6 +282,7 @@ const List<DiagnosticCode> diagnosticCodeValues = [
   diag.duplicateHiddenName,
   diag.duplicateIgnore,
   diag.duplicateImport,
+  diag.duplicateImportInPart,
   diag.duplicateLabelInSwitchStatement,
   diag.duplicateNamedArgument,
   diag.duplicatePart,

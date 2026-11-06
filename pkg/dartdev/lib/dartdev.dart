@@ -406,6 +406,8 @@ class DartdevRunner extends CommandRunner<int> {
               Event.dartCliCommandExecuted(
                 name: path,
                 enabledExperiments: experiments.join(','),
+                // Commands that return null (such as help) exit with 0.
+                exitCode: exitCode ?? 0,
                 pubspecHasFlutterSdk: pubspecTelemetry?.hasFlutterSdk,
                 pubspecDependencies: pubspecTelemetry?.publicDependencies,
                 pubspecEnvironmentSdk: pubspecTelemetry?.environmentSdk,

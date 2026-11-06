@@ -642,7 +642,8 @@ class _InfoBuilder {
       lineStarts: unit.lineInfo.lineStarts,
       libraryName: _buildLibraryName(firstLibraryDirective),
       libraryConstantOffsets: _buildConstantOffsets(
-        metadata: unit.directives.firstOrNull?.metadata,
+        metadata:
+            (firstLibraryDirective ?? unit.directives.firstOrNull)?.metadata,
       ),
       directiveConstantOffsets: _buildConstantOffsets(
         importDirectives: rawImports,
@@ -1659,8 +1660,9 @@ class _InfoUnit {
   final List<int> lineStarts;
   final _InfoLibraryName libraryName;
 
-  /// The offsets of the tokens of the annotations of the first directive,
-  /// which are the annotations of the library.
+  /// The offsets of the tokens of the annotations of the library, which are
+  /// the annotations of the first `library` directive, or of the first
+  /// directive when there is no `library` directive.
   final Uint32List libraryConstantOffsets;
 
   /// The offsets of the tokens of the annotations of imports, exports, and

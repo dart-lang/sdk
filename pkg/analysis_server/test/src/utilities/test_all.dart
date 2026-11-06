@@ -4,6 +4,7 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'env_test.dart' as env;
 import 'extensions/test_all.dart' as extensions;
 import 'flutter_test.dart' as flutter;
 import 'import_analyzer_test.dart' as import_analyzer;
@@ -20,6 +21,7 @@ import 'strings_test.dart' as strings;
 void main() {
   defineReflectiveSuite(() {
     extensions.main();
+    env.main();
     flutter.main();
     json.main();
     import_analyzer.main();

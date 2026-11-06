@@ -1392,15 +1392,15 @@ bool check(Object x) => x is! p.MovedType<int>;
 ''');
     await assertHasFix('''
 import '$importUri' as p;
-import 'package:p/sub.dart';
+import 'package:p/sub.dart' as p;
 
-bool check(Object x) => x is! NewType<int>;
+bool check(Object x) => x is! p.NewType<int>;
 ''');
 
     await assertSecondPassFix('''
-import 'package:p/sub.dart';
+import 'package:p/sub.dart' as p;
 
-bool check(Object x) => x is! NewType<int>;
+bool check(Object x) => x is! p.NewType<int>;
 ''');
   }
 

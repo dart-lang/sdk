@@ -804,6 +804,23 @@ class A.named() {}
 ''');
   }
 
+  test_locate_RelationalPattern() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  bool operator <(int other) => true;
+}
+
+void f(A a) {
+  if (a case < 0) {}
+}
+''');
+    var node = result.findNode.relationalPattern('< 0');
+    var element = ElementLocator.locate(node);
+    _assertElement(element, r'''
+<testLibrary>::@class::A::@method::<
+''');
+  }
+
   test_locate_SimpleIdentifier_ConstructorSelector() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 enum E {
@@ -1974,6 +1991,23 @@ void f(A a) {
     var node = result.findNode.singleReceiverPropertyExtraction;
     _assertElement(ElementLocatorV2.locate(node), r'''
 <testLibrary>::@class::A::@method::foo
+''');
+  }
+
+  test_locate_RelationalPattern() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  bool operator <(int other) => true;
+}
+
+void f(A a) {
+  if (a case < 0) {}
+}
+''');
+    var node = result.findNode.relationalPattern('< 0');
+    var element = ElementLocatorV2.locate(node);
+    _assertElement(element, r'''
+<testLibrary>::@class::A::@method::<
 ''');
   }
 

@@ -6176,6 +6176,42 @@ void useOperator(A a, A? nullableA, B b, B? nullableB) {
     );
   }
 
+  test_MethodElement_operator_ofClass_relationalPattern() async {
+    var result = await _indexTestCode('''
+class A {
+  bool operator <(int other) => true;
+  bool operator ==(Object other) => true;
+}
+void useOperator(A a) {
+  if (a case < 0) {}
+  if (a case == 0) {}
+  if (a case != 0) {}
+}
+''');
+
+    assertElementsIndexText(
+      result,
+      {
+        'less': result.findElement.method('<'),
+        'equal': result.findElement.method('=='),
+      },
+      r'''
+class A {
+  bool operator <(int other) => true;
+  bool operator ==(Object other) => true;
+}
+void useOperator(A a) {
+  if (a case < 0) {}
+             ^ less IS_INVOKED_BY qualified
+  if (a case == 0) {}
+             ^^ equal IS_INVOKED_BY qualified
+  if (a case != 0) {}
+             ^^ equal IS_INVOKED_BY qualified
+}
+''',
+    );
+  }
+
   test_MethodElement_operator_ofEnum_binary() async {
     var result = await _indexTestCode('''
 /// [operator +] and [E.operator +]
