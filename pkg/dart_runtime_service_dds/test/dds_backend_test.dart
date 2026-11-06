@@ -539,6 +539,25 @@ void main() {
       final body = await response.transform(utf8.decoder).join();
       expect(body, '<html><body>DevTools</body></html>');
 
+      // Cross-site iframe navigation to /devtools/ should succeed (200 OK),
+      // while cross-site no-Origin GET to /devtools/api/ping should be rejected
+      // (403 Forbidden).
+      final iframeDocRequest = await client.getUrl(devToolsUri);
+      iframeDocRequest.headers.set('Sec-Fetch-Site', 'cross-site');
+      iframeDocRequest.headers.set('Sec-Fetch-Dest', 'iframe');
+      final iframeDocResponse = await iframeDocRequest.close();
+      expect(iframeDocResponse.statusCode, HttpStatus.ok);
+      await iframeDocResponse.drain<void>();
+
+      final iframeApiRequest = await client.getUrl(
+        devToolsUri.resolve('api/ping'),
+      );
+      iframeApiRequest.headers.set('Sec-Fetch-Site', 'cross-site');
+      iframeApiRequest.headers.set('Sec-Fetch-Dest', 'iframe');
+      final iframeApiResponse = await iframeApiRequest.close();
+      expect(iframeApiResponse.statusCode, HttpStatus.forbidden);
+      await iframeApiResponse.drain<void>();
+
       client.close();
       await service.shutdown();
     });

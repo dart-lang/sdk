@@ -189,8 +189,17 @@ FutureOr<Handler> defaultHandler({
       // to, even though such a request's Host header legitimately matches
       // this server (Host reflects the request's destination, not the page
       // that issued it, so the check above does not protect against this).
+      // Browsers omit Origin on no-CORS GET requests (e.g. <img>, <script>,
+      // fetch(mode: 'no-cors')), so fall back to Sec-Fetch-Site when Origin
+      // is absent.
       final origin = request.headers['Origin'];
-      if (origin != null && !isAllowedOrigin(origin)) {
+      if (origin != null) {
+        if (!isAllowedOrigin(origin)) {
+          return Response.forbidden('forbidden origin');
+        }
+      } else if (!validation.isAllowedSecFetchSite(
+        request.headers[validation.secFetchSiteHeader],
+      )) {
         return Response.forbidden('forbidden origin');
       }
     }
