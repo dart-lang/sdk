@@ -222,7 +222,7 @@ def main():
         'env': test_dart2js_env,
     })
 
-    if platform == 'macos':
+    if platform in ['linux', 'macos']:
         for bot in ['integration_dart2js', 'integration_dart2wasm']:
             for device in ['flutter', 'flutter-web', 'dart-cli']:
                 jobs.append({
