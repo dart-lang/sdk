@@ -27823,6 +27823,66 @@ WarningCode:
       ```dart
       class D {}
       ```
+  deprecatedWebConfiguration:
+    type: staticWarning
+    parameters:
+      String libraryName: the name of the deprecated web library
+    problemMessage: "'dart:#libraryName' is deprecated and shouldn't be used as an import/export configuration."
+    correctionMessage: Try using 'dart.library.js_interop' instead.
+    hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a deprecated library is used in
+      an import configuration. The following web libraries are deprecated:
+      'dart:html', 'dart:indexed_db', 'dart:js', 'dart:js_util', 'dart:svg',
+      'dart:web_audio', 'dart:web_gl'.
+
+      #### Example
+
+      Given a package containing a file named `a.dart`:
+
+      ```dart
+      %uri="lib/src/a.dart"
+      class C {}
+      ```
+
+      a file named `a_io.dart`:
+
+      ```dart
+      %uri="lib/src/a_io.dart"
+      class C {}
+      ```
+
+      and a file named `a_web.dart`:
+
+      ```dart
+      %uri="lib/src/a_web.dart"
+      class C {}
+      ```
+
+      The following code produces this diagnostic because the configuration uses
+      the dotted identifier `dart.library.html`:
+
+      ```dart
+      import 'src/a.dart'
+          if (dart.library.io) 'src/a_io.dart'
+          if ([!dart.library.html!]) 'src/a_web.dart';
+
+      var c = C();
+      ```
+
+      #### Common fixes
+
+      The typical fix is to use the `dart.library.js_interop` configuration:
+
+      ```dart
+      import 'src/a.dart'
+          if (dart.library.io) 'src/a_io.dart'
+          if (dart.library.js_interop) 'src/a_web.dart';
+
+      var c = C();
+      ```
   docDirectiveHasExtraArguments:
     type: staticWarning
     parameters:

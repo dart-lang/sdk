@@ -3812,6 +3812,8 @@ deprecated_optional:
   status: needsEvaluation
 deprecated_subclass:
   status: hasFix
+deprecated_web_configuration:
+  status: hasFix
 doc_directive_argument_wrong_format:
   status: noFix
 doc_directive_has_extra_arguments:

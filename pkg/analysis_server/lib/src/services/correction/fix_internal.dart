@@ -216,6 +216,7 @@ import 'package:analysis_server/src/services/correction/dart/replace_boolean_wit
 import 'package:analysis_server/src/services/correction/dart/replace_cascade_with_dot.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_colon_with_equals.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_colon_with_in.dart';
+import 'package:analysis_server/src/services/correction/dart/replace_configuration_with_js_interop.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_container_with_colored_box.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_container_with_sized_box.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_empty_map_pattern.dart';
@@ -566,6 +567,7 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
     RemoveRequired.new,
   ],
   diag.deprecatedFactoryMethod: [AddReturnType.new],
+  diag.deprecatedWebConfiguration: [ReplaceConfigurationWithJsInterop.new],
   diag.emptyMapPattern: [
     ReplaceEmptyMapPattern.any,
     ReplaceEmptyMapPattern.empty,

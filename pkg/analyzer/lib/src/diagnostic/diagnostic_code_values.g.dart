@@ -254,6 +254,7 @@ const List<DiagnosticCode> diagnosticCodeValues = [
   diag.deprecatedMixinFunction,
   diag.deprecatedOptional,
   diag.deprecatedSubclass,
+  diag.deprecatedWebConfiguration,
   diag.differentInheritedGetterAndSetterTypes,
   diag.directiveAfterDeclaration,
   diag.disallowedTypeInstantiationExpression,

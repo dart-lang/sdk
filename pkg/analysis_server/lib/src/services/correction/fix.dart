@@ -2117,6 +2117,16 @@ abstract final class DartFixKind {
     DartFixKindPriority.inFile,
     "Replace ':' with 'in' in file",
   );
+  static const replaceConfigurationWithJsInterop = FixKind(
+    'dart.fix.replace.configurationWithJsInterop',
+    DartFixKindPriority.standard,
+    "Replace configuration with 'dart.library.js_interop'",
+  );
+  static const replaceConfigurationWithJsInteropMulti = FixKind(
+    'dart.fix.replace.configurationWithJsInterop.multi',
+    DartFixKindPriority.inFile,
+    "Replace configuration with 'dart.library.js_interop' in file",
+  );
   static const replaceContainerWithColoredBox = FixKind(
     'dart.fix.replace.containerWithColoredBox',
     DartFixKindPriority.standard,
