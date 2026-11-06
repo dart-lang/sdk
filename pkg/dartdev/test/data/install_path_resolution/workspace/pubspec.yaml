@@ -1,0 +1,13 @@
+name: my_workspace
+publish_to: none
+
+environment:
+  sdk: ^3.8.0
+
+workspace:
+  - pkgs/test_app
+  - pkgs/ws_sibling
+
+dependency_overrides:
+  my_dep:
+    path: ../dep_v2

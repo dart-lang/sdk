@@ -45,9 +45,10 @@ class InstantiatedExtensionWithoutMember {
 
 class _ExtensionWithMemberWithName {
   final ExtensionElementImpl extension;
-  final InternalExecutableElement member;
+  final InternalExecutableElement? getter2;
+  final InternalExecutableElement? setter2;
 
-  new({required this.extension, required this.member});
+  new({required this.extension, required this.getter2, required this.setter2});
 }
 
 abstract class _NotInstantiatedExtension<R> {
@@ -184,24 +185,29 @@ extension ExtensionsExtensions on Iterable<ExtensionElement> {
         continue;
       }
 
-      var getter = extension.getGetter(name.name);
-      if (getter != null && getter.isStatic) {
-        result.add(
-          _ExtensionWithMemberWithName(extension: extension, member: getter),
-        );
+      ExecutableElementImpl? lookedUpGetter;
+      ExecutableElementImpl? lookedUpSetter;
+
+      if (extension.getGetter(name.name) case var getter2?
+          when getter2.isStatic) {
+        lookedUpGetter = getter2;
+      } else if (extension.getMethod(name.name) case var method2?
+          when method2.isStatic) {
+        lookedUpGetter = method2;
       }
 
-      var setter = extension.getSetter(name.name);
-      if (setter != null && setter.isStatic) {
-        result.add(
-          _ExtensionWithMemberWithName(extension: extension, member: setter),
-        );
+      if (extension.getSetter(name.name) case var setter2?
+          when setter2.isStatic) {
+        lookedUpSetter = setter2;
       }
 
-      var method = extension.getMethod(name.name);
-      if (method != null && method.isStatic) {
+      if (lookedUpGetter != null || lookedUpSetter != null) {
         result.add(
-          _ExtensionWithMemberWithName(extension: extension, member: method),
+          _ExtensionWithMemberWithName(
+            extension: extension,
+            getter2: lookedUpGetter,
+            setter2: lookedUpSetter,
+          ),
         );
       }
     }

@@ -9,8 +9,6 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:dartdev/src/commands/compile.dart';
 import 'package:dartdev/src/commands/install.dart';
-import 'package:dartdev/src/install/file_system.dart';
-import 'package:dartdev/src/install/pub_formats.dart';
 import 'package:dartdev/src/progress.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show Verbosity;
@@ -780,57 +778,26 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
     }
     return await InstallCommand.inTempDir((tempDirectory) async {
       try {
-        // Create a helper package for running a pub-resolve and pulling in the
-        // wanted package and its dependencies.
-        final helperPackageDirectory = Directory.fromUri(
-          tempDirectory.uri.resolve('helperPackage/'),
-        );
-        helperPackageDirectory.createSync();
-        InstallCommand.createHelperPackagePubspec(
-          helperPackageDir: helperPackageDirectory,
-          packageName: packageName,
+        final resolved = await InstallCommand.resolvePackageToInstall(
           parsedArgs: DescriptorInstallCommandParsedArguments(
             packageName: packageName,
             descriptor: descriptor,
             overwrite: false,
           ),
+          packageName: packageName,
+          tempDirectory: tempDirectory,
         );
-        await InstallCommand.resolveHelperPackage(helperPackageDirectory);
-        final helperPackageLockFile = File.fromUri(
-          helperPackageDirectory.uri.resolve('pubspec.lock'),
-        );
+        final appBundleDirectory = resolved.appBundleDirectory;
 
-        final appBundleDirectory = InstallCommand.selectAppBundleDirectory(
-          packageName,
-          helperPackageDirectory,
-          helperPackageLockFile,
-        );
-
-        // If the pubspec lock file changed, re-build the executable.
-        if (!appBundleDirectory.pubspecLockIsIdenticalTo(
-          helperPackageLockFile,
-        )) {
-          final helperPackageConfigFile = File.fromUri(
-            helperPackageDirectory.uri.resolve(
-              '.dart_tool/package_config.json',
-            ),
-          );
-
-          final sourcePackageRootDirectory = Directory(
-            Uri.parse(
-              PackageConfigFile.loadSync(
-                helperPackageConfigFile,
-              ).packages.firstWhere((e) => e.name == packageName).rootUri,
-            ).toFilePath(),
-          ).ensureEndWithSeparator;
-
-          final sourcePackagePubspecFile = File.fromUri(
-            sourcePackageRootDirectory.uri.resolve('pubspec.yaml'),
-          );
-
+        // If the pubspec lock file changed (or if installing from a mutable
+        // local path), re-build the executable.
+        if (resolved.isLocalPath ||
+            !appBundleDirectory.pubspecLockIsIdenticalTo(
+              resolved.lockFileForBundle,
+            )) {
           final executables = InstallCommand.loadDeclaredExecutables(
-            sourcePackagePubspecFile,
-            sourcePackageRootDirectory,
+            resolved.sourcePackagePubspecFile,
+            resolved.sourcePackageRootDirectory,
           );
 
           final buildDirectory = Directory.fromUri(
@@ -840,8 +807,8 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
           await InstallCommand.doBuild(
             executables,
             buildDirectory,
-            helperPackageConfigFile,
-            sourcePackagePubspecFile,
+            resolved.packageConfigFile,
+            resolved.workspacePubspecFile,
             verbose,
             verbosity,
             logGenerated: verbose,
@@ -850,8 +817,8 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
           await InstallCommand.createAppBundleDirectory(
             appBundleDirectory,
             buildDirectory,
-            helperPackageLockFile,
-            sourcePackagePubspecFile,
+            resolved.lockFileForBundle,
+            resolved.sourcePackagePubspecFile,
           );
         }
 

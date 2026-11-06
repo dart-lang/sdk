@@ -4030,6 +4030,46 @@ V1: PrefixedIdentifier
 ''');
   }
 
+  test_static_getter_success_functionTyped() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A {}
+
+extension E on A {
+  static int Function(int) get foo => (x) => x;
+}
+
+void f() {
+  A.foo(0);
+}
+''');
+
+    var node = result.findNode.receiverPropertyExtraction('A.foo');
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@class::A
+  operator: .
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@extension::E::@getter::foo
+    type: int Function(int)
+  staticType: int Function(int)
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@class::A
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@extension::E::@getter::foo
+    staticType: int Function(int)
+  element: <testLibrary>::@extension::E::@getter::foo
+  staticType: int Function(int)
+''');
+  }
+
   test_static_getter_success_onClass_noTypeArguments() async {
     var result = await resolveTestCodeWithDiagnostics('''
 class A {}
@@ -4511,6 +4551,140 @@ V1: PrefixedIdentifier
 ''');
   }
 
+  test_static_getter_success_withAnotherExtension() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A {}
+
+extension E on A {
+  static int get foo => 0;
+}
+
+extension Other on A {
+  static void bar() {}
+}
+
+int f() => A.foo;
+''');
+
+    var node = result.findNode.receiverPropertyExtraction('A.foo');
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@class::A
+  operator: .
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@extension::E::@getter::foo
+    type: int
+  staticType: int
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@class::A
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@extension::E::@getter::foo
+    staticType: int
+  element: <testLibrary>::@extension::E::@getter::foo
+  staticType: int
+''');
+  }
+
+  test_static_method_failure_conflictWithStaticSetterInClass() async {
+    await resolveTestCodeWithDiagnostics('''
+class A {
+  static set foo(int _) {}
+}
+
+extension E on A {
+  static int foo() => 0;
+}
+
+void f() {
+  A.foo();
+//  ^^^
+// [diag.undefinedStaticMemberReadSetterOnly] There's a static setter 'foo' in the class 'A', but no getter.
+}
+''');
+  }
+
+  test_static_method_failure_onDynamic() async {
+    await resolveTestCodeWithDiagnostics('''
+extension E on dynamic {
+  static void foo() {}
+}
+
+void f() {
+  dynamic.foo();
+//        ^^^
+// [diag.undefinedInstanceMemberReadNotFound] The member 'foo' isn't defined for the type 'Type'.
+}
+''');
+  }
+
+  test_static_method_failure_onFutureOr() async {
+    await resolveTestCodeWithDiagnostics('''
+import 'dart:async';
+
+extension E on FutureOr<int> {
+  static void foo() {}
+}
+
+void f() {
+  FutureOr.foo();
+//         ^^^
+// [diag.undefinedStaticMemberReadNotFound] The class 'FutureOr' doesn't have a static member or constructor named 'foo'.
+}
+''');
+  }
+
+  test_static_method_failure_onNever() async {
+    await resolveTestCodeWithDiagnostics('''
+extension E on Never {
+  static void foo() {}
+}
+
+void f() {
+  Never.foo();
+//      ^^^
+// [diag.undefinedInstanceMemberReadNotFound] The member 'foo' isn't defined for the type 'Type'.
+}
+''');
+  }
+
+  test_static_method_failure_onTypeVariable() async {
+    await resolveTestCodeWithDiagnostics('''
+extension E<X extends String> on X {
+  static void foo() {}
+}
+
+void f() {
+  String.foo();
+//       ^^^
+// [diag.undefinedStaticMemberReadNotFound] The class 'String' doesn't have a static member or constructor named 'foo'.
+}
+''');
+  }
+
+  test_static_method_failure_withWrongName() async {
+    await resolveTestCodeWithDiagnostics('''
+class A {}
+
+extension E on A {
+  static void bar() {}
+}
+
+void f() {
+  A.foo();
+//  ^^^
+// [diag.undefinedStaticMemberReadNotFound] The class 'A' doesn't have a static member or constructor named 'foo'.
+}
+''');
+  }
+
   test_static_method_importedWithPrefix() async {
     newFile('$testPackageLibPath/lib.dart', '''
 class C {}
@@ -4618,6 +4792,571 @@ V1: MethodInvocation
 ''');
   }
 
+  test_static_method_success_onClass_noTypeArguments() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A {}
+
+extension E on A {
+  static void foo() {}
+}
+
+void f() {
+  A.foo();
+}
+''');
+
+    var node = result.findNode.receiverMethodInvocation('A.foo');
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@class::A
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@extension::E::@method::foo
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@class::A
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@extension::E::@method::foo
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
+  }
+
+  test_static_method_success_onClass_typeArguments() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A<X> {}
+
+extension E on A<String> {
+  static void foo() {}
+}
+
+void f() {
+  A.foo();
+}
+''');
+    var node = result.findNode.receiverMethodInvocation('A.foo');
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@class::A
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@extension::E::@method::foo
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@class::A
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@extension::E::@method::foo
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
+  }
+
+  test_static_method_success_onClass_viaTypedef_noTypeArguments() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A {}
+
+typedef T = A;
+
+extension E on T {
+  static void foo() {}
+}
+
+void f() {
+  A.foo();
+}
+''');
+
+    var node = result.findNode.receiverMethodInvocation('A.foo');
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@class::A
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@extension::E::@method::foo
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@class::A
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@extension::E::@method::foo
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
+  }
+
+  test_static_method_success_onClass_viaTypedef_typeArguments() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A<X> {}
+
+typedef T<Y> = A<Y>;
+
+extension E on T<String> {
+  static void foo() {}
+}
+
+void f() {
+  A.foo();
+}
+''');
+
+    var node = result.findNode.receiverMethodInvocation('A.foo');
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@class::A
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@extension::E::@method::foo
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@class::A
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@extension::E::@method::foo
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
+  }
+
+  test_static_method_success_onEnum_noTypeArguments() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+enum A { element; }
+
+extension E on A {
+  static void foo() {}
+}
+
+void f() {
+  A.foo();
+}
+''');
+    var node = result.findNode.receiverMethodInvocation('A.foo');
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@enum::A
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@extension::E::@method::foo
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@enum::A
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@extension::E::@method::foo
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
+  }
+
+  test_static_method_success_onEnum_typeArguments() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+enum A<X> { element; }
+
+extension E on A<String> {
+  static void foo() {}
+}
+
+void f() {
+  A.foo();
+}
+''');
+    var node = result.findNode.receiverMethodInvocation('A.foo');
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@enum::A
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@extension::E::@method::foo
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@enum::A
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@extension::E::@method::foo
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
+  }
+
+  test_static_method_success_onExtensionType_noTypeArguments() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+extension type A(Object? it) {}
+
+extension E on A {
+  static void foo() {}
+}
+
+void f() {
+  A.foo();
+}
+''');
+    var node = result.findNode.receiverMethodInvocation('A.foo');
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@extensionType::A
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@extension::E::@method::foo
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@extensionType::A
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@extension::E::@method::foo
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
+  }
+
+  test_static_method_success_onExtensionType_typeArguments() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+extension type A<X>(Object? it) {}
+
+extension E on A<String> {
+  static void foo() {}
+}
+
+void f() {
+  A.foo();
+}
+''');
+    var node = result.findNode.receiverMethodInvocation('A.foo');
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@extensionType::A
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@extension::E::@method::foo
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@extensionType::A
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@extension::E::@method::foo
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
+  }
+
+  test_static_method_success_onMixin_noTypeArguments() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+mixin A {}
+
+extension E on A {
+  static void foo() {}
+}
+
+void f() {
+  A.foo();
+}
+''');
+    var node = result.findNode.receiverMethodInvocation('A.foo');
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@mixin::A
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@extension::E::@method::foo
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@mixin::A
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@extension::E::@method::foo
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
+  }
+
+  test_static_method_success_onMixin_typeArguments() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+mixin A<X> {}
+
+extension E on A<String> {
+  static void foo() {}
+}
+
+void f() {
+  A.foo();
+}
+''');
+    var node = result.findNode.receiverMethodInvocation('A.foo');
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@mixin::A
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@extension::E::@method::foo
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@mixin::A
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@extension::E::@method::foo
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
+  }
+
+  test_static_method_success_onTypedef_noTypeArguments() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A {}
+
+typedef T = A;
+
+extension E on T {
+  static void foo() {}
+}
+
+void f() {
+  T.foo();
+}
+''');
+
+    var node = result.findNode.receiverMethodInvocation('T.foo');
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: StaticQualifier
+    name: T
+    element: <testLibrary>::@typeAlias::T
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@extension::E::@method::foo
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: T
+    element: <testLibrary>::@typeAlias::T
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@extension::E::@method::foo
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
+  }
+
+  test_static_method_success_onTypedef_typeArguments() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A<X> {}
+
+typedef T<Y> = A<Y>;
+
+extension E on T<String> {
+  static void foo() {}
+}
+
+void f() {
+  T.foo();
+}
+''');
+
+    var node = result.findNode.receiverMethodInvocation('T.foo');
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: StaticQualifier
+    name: T
+    element: <testLibrary>::@typeAlias::T
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@extension::E::@method::foo
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: T
+    element: <testLibrary>::@typeAlias::T
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@extension::E::@method::foo
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
+  }
+
   test_static_setter_failure_onDynamic() async {
     await resolveTestCodeWithDiagnostics('''
 extension E on dynamic {
@@ -4672,6 +5411,22 @@ void f() {
   String.foo = 0;
 //       ^^^
 // [diag.undefinedStaticMemberWriteNotFound] The class 'String' doesn't have a static setter named 'foo'.
+}
+''');
+  }
+
+  test_static_setter_failure_setterLookupAsMethod() async {
+    await resolveTestCodeWithDiagnostics('''
+class A {}
+
+extension E on A {
+  static set foo(int _) {}
+}
+
+void f() {
+  A.foo(0);
+//  ^^^
+// [diag.undefinedStaticMemberReadNotFound] The class 'A' doesn't have a static member or constructor named 'foo'.
 }
 ''');
   }
