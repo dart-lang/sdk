@@ -309,16 +309,15 @@ class TypePropertyResolver {
       _reportedOutcome = LookupOutcome.ambiguousExtensions;
     }
 
-    var outcome = LookupOutcome.of(result.member);
-    _getterOutcome = outcome;
-    _setterOutcome = outcome;
+    _getterOutcome = LookupOutcome.of(result.getter2);
+    _setterOutcome = LookupOutcome.of(result.setter2);
 
-    if (result.member != null && hasRead) {
-      _getterRequested = result.member;
+    if (result.getter2 != null && hasRead) {
+      _getterRequested = result.getter2;
     }
 
-    if (result.member != null && hasWrite) {
-      _setterRequested = result.member;
+    if (result.setter2 != null && hasWrite) {
+      _setterRequested = result.setter2;
     }
 
     return _toResult();

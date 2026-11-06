@@ -19357,6 +19357,7 @@ void f() {
           A
             requestedConstructors
               c2: <null>
+        exportedExtensions: []
 [status] idle
 [future] getErrors T1
   ErrorsResult #0
@@ -20899,6 +20900,7 @@ class A {
           A
             requestedConstructors
               c2: <null>
+        exportedExtensions: []
 [status] idle
 [future] getErrors T2
   ErrorsResult #1

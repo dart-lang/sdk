@@ -71,11 +71,11 @@ class SimpleResolutionResult {
 }
 
 class SimpleStaticExtensionResolutionResult {
-  /// Returns the single element with the given name.
-  ///
-  /// Note that the resolution is performed on the name of the member, not on
-  /// its basename. Hence, the result is a single member.
-  final InternalExecutableElement? member;
+  /// Return the element that is invoked for reading.
+  final InternalExecutableElement? getter2;
 
-  const new({this.member});
+  /// Return the element that is invoked for writing.
+  final InternalExecutableElement? setter2;
+
+  const new({this.getter2, this.setter2});
 }

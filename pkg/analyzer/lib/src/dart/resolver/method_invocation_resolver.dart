@@ -4,6 +4,7 @@
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -845,6 +846,25 @@ class MethodInvocationResolver with ScopeHelpers {
     } else if (namespace is ExtensionElementImpl) {
       element =
           namespace.getGetter(name.lexeme) ?? namespace.getMethod(name.lexeme);
+    }
+    if (_definingLibrary.featureSet.isEnabled(Feature.static_extensions)) {
+      if (element == null && interface != null) {
+        var interfaceSetter = interface.getSetter(name.lexeme);
+        if (interfaceSetter == null || !interfaceSetter.isStatic) {
+          var result = _typeAnalyzer.typePropertyResolver
+              .resolveStaticExtension(
+                declaration: interface,
+                name: name.lexeme,
+                hasRead: true,
+                hasWrite: false,
+                propertyErrorEntity: name,
+                nameErrorEntity: name,
+              );
+          if (result.getter2 != null) {
+            element = result.getter2;
+          }
+        }
+      }
     }
     if (element != null && !element.isAccessibleIn(_definingLibrary)) {
       element = null;

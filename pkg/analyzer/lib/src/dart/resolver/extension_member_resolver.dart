@@ -32,7 +32,10 @@ class AmbiguousStaticExtensionResolutionError
   const new();
 
   @override
-  InternalExecutableElement? get member => null;
+  InternalExecutableElement? get getter2 => null;
+
+  @override
+  InternalExecutableElement? get setter2 => null;
 }
 
 class ExtensionMemberResolver {
@@ -184,7 +187,10 @@ class ExtensionMemberResolver {
       _typeAnalyzer.libraryFragment.scope.notifyExtensionUsed(
         extension.extension,
       );
-      return SingleStaticExtensionResolutionResult(member: extension.member);
+      return SingleStaticExtensionResolutionResult(
+        getter2: extension.getter2,
+        setter2: extension.setter2,
+      );
     }
 
     return const AmbiguousStaticExtensionResolutionError();
@@ -608,7 +614,10 @@ class NoneStaticExtensionResolutionError
   const new();
 
   @override
-  InternalExecutableElement? get member => null;
+  InternalExecutableElement? get getter2 => null;
+
+  @override
+  InternalExecutableElement? get setter2 => null;
 }
 
 /// The result of a successful attempt to resolve an identifier to elements,
@@ -625,10 +634,8 @@ class SingleExtensionResolutionResult extends SimpleResolutionResult
 class SingleStaticExtensionResolutionResult
     extends SimpleStaticExtensionResolutionResult
     implements StaticExtensionResolutionResult {
-  new({required InternalExecutableElement member}) : super(member: member);
-
-  @override
-  InternalExecutableElement get member => super.member!;
+  new({required super.getter2, required super.setter2})
+    : assert(getter2 != null || setter2 != null);
 }
 
 /// The result of attempting to resolve an identifier to the single element with
@@ -636,5 +643,5 @@ class SingleStaticExtensionResolutionResult
 /// extension.
 sealed class StaticExtensionResolutionResult
     extends SimpleStaticExtensionResolutionResult {
-  const new({super.member});
+  const new({super.getter2, super.setter2});
 }
