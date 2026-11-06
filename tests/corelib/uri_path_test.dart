@@ -94,8 +94,9 @@ void testPathSegments() {
   }
   var encodedStr = encoded.toString();
   var unencodedStr = unencoded.toString();
-  test(encodedStr, [unencodedStr]);
-  test(encodedStr + "/" + encodedStr, [unencodedStr, unencodedStr]);
+  var firstSegment = encodedStr.replaceAll(":", "%3A");
+  test(firstSegment, [unencodedStr]);
+  test(firstSegment + "/" + encodedStr, [unencodedStr, unencodedStr]);
 
   Uri uri;
   var pathSegments = ["xxx", "yyy", "zzz"];
@@ -131,6 +132,25 @@ void testPathSegments() {
     pathSegments: new DoubleLinkedQueue.from(pathSegments),
   );
   Expect.equals(3, uri.pathSegments.length);
+}
+
+void testRelativePathColonRegression() {
+  const paths = [
+    ("./1:2", "1%3A2"),
+    ("./2026-10-14T01:02:03.json", "2026-10-14T01%3A02%3A03.json"),
+    ("a/../1:2", "1%3A2"),
+    ("./_:2", "_%3A2"),
+    ("./:2", "%3A2"),
+    ("./a:b:c", "a%3Ab%3Ac"),
+    ("./1:2?x:y#z:w", "1%3A2?x:y#z:w"),
+    ("./1:2/3:4", "1%3A2/3:4"),
+    ("./a/1:2", "a/1:2"),
+  ];
+  for (var (input, expected) in paths) {
+    var uri = Uri.parse(input);
+    Expect.stringEquals(expected, uri.toString(), input);
+    Expect.equals(uri, Uri.parse(uri.toString()), input);
+  }
 }
 
 void testPathCompare() {
@@ -206,6 +226,7 @@ main() {
   testInvalidArguments();
   testPath();
   testPathSegments();
+  testRelativePathColonRegression();
   testPathCompare();
   testPathSegmentsUnmodifiableList();
 }
