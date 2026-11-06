@@ -405,6 +405,7 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
   void visitExportDirective(covariant ExportDirectiveImpl node) {
     _elementUsageFrontierDetector.exportDirective(node);
     _checkForInternalExport(node);
+    _checkDeprecatedConfigurations(node);
     super.visitExportDirective(node);
   }
 
@@ -577,6 +578,8 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
       _checkForLoadLibraryFunction(node, import);
     }
     _invalidAccessVerifier.verifyImport(node);
+    _checkDeprecatedConfigurations(node);
+
     super.visitImportDirective(node);
   }
 
@@ -1003,6 +1006,32 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
     }
 
     return false;
+  }
+
+  void _checkDeprecatedConfigurations(NamespaceDirective node) {
+    for (var configuration in node.configurations) {
+      var nameComponents = [
+        for (var component in configuration.name.tokens) component.lexeme,
+      ];
+      if (nameComponents case ['dart', '.', 'library', '.', var libraryName]) {
+        const deprecatedLibraries = [
+          'html',
+          'indexed_db',
+          'js',
+          'js_util',
+          'svg',
+          'web_audio',
+          'web_gl',
+        ];
+        if (deprecatedLibraries.contains(libraryName)) {
+          _diagnosticReporter.atNode(
+            configuration.name,
+            diag.deprecatedWebConfiguration,
+            arguments: [libraryName],
+          );
+        }
+      }
+    }
   }
 
   void _checkFinalParameter(FormalParameter node) {

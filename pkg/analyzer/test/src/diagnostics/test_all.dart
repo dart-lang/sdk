@@ -197,6 +197,7 @@ import 'deprecated_mixin_function_test.dart' as deprecated_mixin_function;
 import 'deprecated_mixin_test.dart' as deprecated_mixin;
 import 'deprecated_optional_test.dart' as deprecated_optional;
 import 'deprecated_subclass_test.dart' as deprecated_subclass;
+import 'deprecated_web_configuration_test.dart' as deprecated_web_configuration;
 import 'different_inherited_getter_and_setter_types_test.dart'
     as different_inherited_getter_and_setter_types;
 import 'doc_directive_argument_wrong_format_test.dart'
@@ -1086,6 +1087,7 @@ main() {
     deprecated_mixin.main();
     deprecated_optional.main();
     deprecated_subclass.main();
+    deprecated_web_configuration.main();
     different_inherited_getter_and_setter_types.main();
     doc_directive_argument_wrong_format.main();
     doc_directive_has_extra_arguments.main();

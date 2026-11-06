@@ -4011,6 +4011,23 @@ deprecatedSubclass = DiagnosticWithArguments(
 );
 
 /// Parameters:
+/// String libraryName: the name of the deprecated web library
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String libraryName})
+>
+deprecatedWebConfiguration = DiagnosticWithArguments(
+  name: 'deprecated_web_configuration',
+  problemMessage:
+      "'dart:{0}' is deprecated and shouldn't be used as an import/export "
+      "configuration.",
+  correctionMessage: "Try using 'dart.library.js_interop' instead.",
+  type: DiagnosticType.STATIC_WARNING,
+  uniqueName: 'deprecated_web_configuration',
+  withArguments: _withArgumentsDeprecatedWebConfiguration,
+  expectedTypes: [ExpectedType.string],
+);
+
+/// Parameters:
 /// String fieldName: the name of the field whose type can't be inferred
 /// String getterType: the return type of the combined getter signature
 /// String setterType: the parameter type of the combined setter signature
@@ -20638,6 +20655,14 @@ LocatableDiagnostic _withArgumentsDeprecatedSubclass({
   required String typeName,
 }) {
   return LocatableDiagnosticImpl(diag.deprecatedSubclass, [typeName]);
+}
+
+LocatableDiagnostic _withArgumentsDeprecatedWebConfiguration({
+  required String libraryName,
+}) {
+  return LocatableDiagnosticImpl(diag.deprecatedWebConfiguration, [
+    libraryName,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsDifferentInheritedGetterAndSetterTypes({
