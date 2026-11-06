@@ -2911,7 +2911,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     _visitWithoutResult(node.finalizer);
     if (outerJumpHandlers != null && _currentCondition is! EmptyType) {
       for (final target in takenJumps) {
-        outerJumpHandlers[target]!.call(_variableValues);
+        outerJumpHandlers[target]!.call(_cloneVariableValues(_variableValues));
       }
     }
 
