@@ -34,10 +34,45 @@ void main() {}
       '${tempDir.path}/out.wasm',
     ]);
 
-    Expect.notEquals(
-      252,
-      result.exitCode,
-      'Expected dry-run not to crash on untranslatable URI:\n${result.stdout}',
+    Expect.equals(254, result.exitCode);
+    Expect.isTrue(
+      result.stderr.toString().contains(
+        "Error: Couldn't resolve the package 'does_not_exist'",
+      ),
+      'Expected unresolved package error on stderr, got:\n${result.stderr}',
+    );
+    Expect.isTrue(
+      result.stdout.toString().isEmpty,
+      'Expected empty stdout without false-positive dry-run findings, got:\n'
+      '${result.stdout}',
+    );
+
+    final pureCfeErrorFile = File('${tempDir.path}/pure_cfe_error.dart');
+    pureCfeErrorFile.writeAsStringSync('''
+void main() {
+  final int x = 'not an int';
+  print(x);
+}
+''');
+
+    final pureCfeResult = await Process.run(dartAotExecutable, [
+      dart2wasmSnapshot,
+      pureCfeErrorFile.path,
+      '--platform=$platformDill',
+      '--dry-run',
+      '${tempDir.path}/out_pure_cfe.wasm',
+    ]);
+
+    Expect.equals(254, pureCfeResult.exitCode);
+    Expect.isTrue(
+      pureCfeResult.stderr.toString().contains(
+        "A value of type 'String' can't be assigned to a variable of type 'int'",
+      ),
+      'Expected CFE type error on stderr, got:\n${pureCfeResult.stderr}',
+    );
+    Expect.isTrue(
+      pureCfeResult.stdout.toString().isEmpty,
+      'Expected empty stdout for pure CFE error, got:\n${pureCfeResult.stdout}',
     );
   } finally {
     tempDir.deleteSync(recursive: true);

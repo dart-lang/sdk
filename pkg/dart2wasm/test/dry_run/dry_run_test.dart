@@ -9,15 +9,15 @@ import 'package:args/args.dart';
 import 'package:collection/collection.dart';
 import 'package:expect/expect.dart';
 
-final dartAotExecutable = Uri.parse(
-  Platform.resolvedExecutable,
-).resolve('dartaotruntime').toFilePath();
-final dart2wasmSnapshot = Uri.parse(
-  Platform.resolvedExecutable,
-).resolve('snapshots/dart2wasm_product.snapshot').toFilePath();
-final platformDill = Uri.parse(
-  Platform.resolvedExecutable,
-).resolve('../lib/_internal/dart2wasm_platform.dill').toFilePath();
+final dartAotExecutable = Uri.parse(Platform.resolvedExecutable)
+    .resolve('dartaotruntime')
+    .toFilePath();
+final dart2wasmSnapshot = Uri.parse(Platform.resolvedExecutable)
+    .resolve('snapshots/dart2wasm_product.snapshot')
+    .toFilePath();
+final platformDill = Uri.parse(Platform.resolvedExecutable)
+    .resolve('../lib/_internal/dart2wasm_platform.dill')
+    .toFilePath();
 
 class TestExpectation {
   final int expectedErrorCode;
@@ -164,6 +164,10 @@ Future<TestResults> runTest(TestCase testCase) async {
     } else {
       Expect.equals(254, exitCode, 'Expected findings but found none.');
     }
+    Expect.isTrue(
+      result.stderr.toString().isEmpty,
+      'Unexpected stderr:\n${result.stderr}',
+    );
     final findings = _parseTestFindings(result.stdout);
     _checkFindings(findings, testCase.expectations);
   } catch (e, s) {
