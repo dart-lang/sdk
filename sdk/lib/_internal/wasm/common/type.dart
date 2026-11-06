@@ -1431,8 +1431,8 @@ abstract class _TypeUniverse {
     // Left Promoted Variable does not apply at runtime.
 
     // Function Type / Function:
-    if (s.isFunction && t.isAbstractFunction) {
-      return true;
+    if (t.isAbstractFunction) {
+      return s.isFunction || s.isAbstractFunction;
     }
 
     if (s.isFunction && t.isFunction) {
@@ -1455,8 +1455,8 @@ abstract class _TypeUniverse {
     }
 
     // Records are subtypes of the `Record` type:
-    if (s.isRecord && t.isAbstractRecord) {
-      return true;
+    if (t.isAbstractRecord) {
+      return s.isRecord || s.isAbstractRecord;
     }
 
     // Interface Compositionality + Super-Interface:
