@@ -8,6 +8,7 @@ import 'dart:io';
 import 'package:dartdev/src/commands/build.dart';
 import 'package:dartdev/src/install/file_system.dart';
 import 'package:dartdev/src/install/pub_formats.dart';
+import 'package:dartdev/src/native_assets.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show Verbosity;
 import 'package:path/path.dart' as p;
@@ -268,6 +269,167 @@ See https://dart.dev/to/package-descriptors for more details.''';
     } on ResolutionFailedException catch (e) {
       installException(e.message);
     }
+  }
+
+  /// Writes a redirecting `pubspec.lock` for a local path package into
+  /// [targetLockFile], recording only the root [packageName] entry pointing to
+  /// [sourcePath] (matching `pub global activate --source path`).
+  static void createLocalRedirectingLockFile({
+    required String packageName,
+    required String sourcePath,
+    required PubspecYamlFileSyntax pubspecYaml,
+    required File targetLockFile,
+  }) {
+    final lockFileSyntax = PubspecLockFileSyntax(
+      packages: {
+        packageName: PackageSyntax(
+          dependency: .directMain,
+          description: PathPackageDescriptionSyntax(
+            path$: Directory(sourcePath).absolute.path,
+            relative: false,
+          ),
+          source: .path$,
+          version: pubspecYaml.version ?? '0.0.0',
+        ),
+      },
+      sdks: SDKsSyntax(dart: '^${Platform.version.split(' ').first}'),
+    );
+    targetLockFile.writeAsStringSync(
+      JsonEncoder.withIndent('  ').convert(lockFileSyntax.json),
+    );
+  }
+
+  /// Resolves the package to install.
+  ///
+  /// Resolves either in-place for a local path package, or via a temporary
+  /// helper package for hosted and git packages.
+  static Future<ResolvedInstallPackage> resolvePackageToInstall({
+    required InstallCommandParsedArguments parsedArgs,
+    required String packageName,
+    required Directory tempDirectory,
+  }) async {
+    if (parsedArgs.sourcePath case final sourcePath?) {
+      return await _resolveLocalPackage(
+        packageName: packageName,
+        sourcePath: sourcePath,
+        tempDirectory: tempDirectory,
+      );
+    }
+    return await _resolveRemotePackage(
+      parsedArgs: parsedArgs,
+      packageName: packageName,
+      tempDirectory: tempDirectory,
+    );
+  }
+
+  static Future<ResolvedInstallPackage> _resolveLocalPackage({
+    required String packageName,
+    required String sourcePath,
+    required Directory tempDirectory,
+  }) async {
+    final sourcePackageRootDirectory = Directory.fromUri(
+      Directory(sourcePath).absolute.uri.normalizePath(),
+    ).ensureEndWithSeparator;
+    final sourcePackagePubspecFile = File.fromUri(
+      sourcePackageRootDirectory.uri.resolve('pubspec.yaml'),
+    );
+    if (!await sourcePackagePubspecFile.exists()) {
+      installException(
+        'No pubspec found in ${sourcePackagePubspecFile.path}.',
+      );
+    }
+    final pubspecYaml = PubspecYamlFile.loadSync(sourcePackagePubspecFile);
+    if (pubspecYaml.name != packageName) {
+      installException(
+        'Package name "$packageName" does not match '
+        '"${pubspecYaml.name}" in ${sourcePackagePubspecFile.path}.',
+      );
+    }
+    await resolveHelperPackage(sourcePackageRootDirectory);
+    final packageConfigUri = await DartNativeAssetsBuilder.ensurePackageConfig(
+      sourcePackageRootDirectory.uri,
+    );
+    if (packageConfigUri == null) {
+      installException(
+        'Could not find package config for ${sourcePackageRootDirectory.path}.',
+      );
+    }
+    final packageConfigFile = File.fromUri(packageConfigUri);
+    final workspacePubspecUri =
+        await DartNativeAssetsBuilder.findWorkspacePubspec(
+          packageConfigUri,
+        ) ??
+        sourcePackagePubspecFile.uri;
+    final workspacePubspecFile = File.fromUri(workspacePubspecUri);
+    final lockFileForBundle = File.fromUri(
+      tempDirectory.uri.resolve('pubspec.lock'),
+    );
+    createLocalRedirectingLockFile(
+      packageName: packageName,
+      sourcePath: sourcePath,
+      pubspecYaml: pubspecYaml,
+      targetLockFile: lockFileForBundle,
+    );
+    return (
+      sourcePackageRootDirectory: sourcePackageRootDirectory,
+      sourcePackagePubspecFile: sourcePackagePubspecFile,
+      workspacePubspecFile: workspacePubspecFile,
+      packageConfigFile: packageConfigFile,
+      lockFileForBundle: lockFileForBundle,
+      appBundleDirectory: DartInstallDirectory().localAppBundle(packageName),
+      isLocalPath: true,
+    );
+  }
+
+  static Future<ResolvedInstallPackage> _resolveRemotePackage({
+    required InstallCommandParsedArguments parsedArgs,
+    required String packageName,
+    required Directory tempDirectory,
+  }) async {
+    final helperPackageDirectory = Directory.fromUri(
+      tempDirectory.uri.resolve('helperPackage/'),
+    );
+    helperPackageDirectory.createSync();
+    createHelperPackagePubspec(
+      helperPackageDir: helperPackageDirectory,
+      packageName: packageName,
+      parsedArgs: parsedArgs,
+    );
+    await resolveHelperPackage(helperPackageDirectory);
+
+    final helperPackageLockFile = File.fromUri(
+      helperPackageDirectory.uri.resolve('pubspec.lock'),
+    );
+    final helperPackageConfigFile = File.fromUri(
+      helperPackageDirectory.uri.resolve('.dart_tool/package_config.json'),
+    );
+
+    final sourcePackageRootDirectory = Directory(
+      Uri.parse(
+        PackageConfigFile.loadSync(
+          helperPackageConfigFile,
+        ).packages.firstWhere((e) => e.name == packageName).rootUri,
+      ).toFilePath(),
+    ).ensureEndWithSeparator;
+
+    final sourcePackagePubspecFile = File.fromUri(
+      sourcePackageRootDirectory.uri.resolve('pubspec.yaml'),
+    );
+    final appBundleDirectory = selectAppBundleDirectory(
+      packageName,
+      helperPackageDirectory,
+      helperPackageLockFile,
+    );
+
+    return (
+      sourcePackageRootDirectory: sourcePackageRootDirectory,
+      sourcePackagePubspecFile: sourcePackagePubspecFile,
+      workspacePubspecFile: sourcePackagePubspecFile,
+      packageConfigFile: helperPackageConfigFile,
+      lockFileForBundle: helperPackageLockFile,
+      appBundleDirectory: appBundleDirectory,
+      isLocalPath: false,
+    );
   }
 
   /// The executables that should be placed on the user's PATH when this
@@ -558,39 +720,15 @@ See https://dart.dev/to/package-descriptors for more details.''';
     final packageName = await _findPackageName(parsedArgs);
     return await inTempDir((tempDirectory) async {
       try {
-        final helperPackageDirectory = Directory.fromUri(
-          tempDirectory.uri.resolve('helperPackage/'),
-        );
-        helperPackageDirectory.createSync();
-        createHelperPackagePubspec(
-          helperPackageDir: helperPackageDirectory,
-          packageName: packageName,
+        final resolved = await resolvePackageToInstall(
           parsedArgs: parsedArgs,
-        );
-        await resolveHelperPackage(helperPackageDirectory);
-
-        final helperPackageLockFile = File.fromUri(
-          helperPackageDirectory.uri.resolve('pubspec.lock'),
-        );
-        final helperPackageConfigFile = File.fromUri(
-          helperPackageDirectory.uri.resolve('.dart_tool/package_config.json'),
-        );
-
-        final sourcePackageRootDirectory = Directory(
-          Uri.parse(
-            PackageConfigFile.loadSync(
-              helperPackageConfigFile,
-            ).packages.firstWhere((e) => e.name == packageName).rootUri,
-          ).toFilePath(),
-        ).ensureEndWithSeparator;
-
-        final sourcePackagePubspecFile = File.fromUri(
-          sourcePackageRootDirectory.uri.resolve('pubspec.yaml'),
+          packageName: packageName,
+          tempDirectory: tempDirectory,
         );
 
         final executables = loadDeclaredExecutables(
-          sourcePackagePubspecFile,
-          sourcePackageRootDirectory,
+          resolved.sourcePackagePubspecFile,
+          resolved.sourcePackageRootDirectory,
         );
 
         final buildDirectory = Directory.fromUri(
@@ -600,8 +738,8 @@ See https://dart.dev/to/package-descriptors for more details.''';
         await doBuild(
           executables,
           buildDirectory,
-          helperPackageConfigFile,
-          sourcePackagePubspecFile,
+          resolved.packageConfigFile,
+          resolved.workspacePubspecFile,
           verbose,
           Verbosity.all.name,
           logGenerated: true,
@@ -609,21 +747,16 @@ See https://dart.dev/to/package-descriptors for more details.''';
 
         _uniinstallAllPackageVersions(packageName);
 
-        AppBundleDirectory appBundleDirectory = selectAppBundleDirectory(
-          packageName,
-          helperPackageDirectory,
-          helperPackageLockFile,
-        );
         await createAppBundleDirectory(
-          appBundleDirectory,
+          resolved.appBundleDirectory,
           buildDirectory,
-          helperPackageLockFile,
-          sourcePackagePubspecFile,
+          resolved.lockFileForBundle,
+          resolved.sourcePackagePubspecFile,
         );
 
         _installExecutablesOnPath(
           executables,
-          appBundleDirectory,
+          resolved.appBundleDirectory,
           packageName,
           parsedArgs,
         );
@@ -667,9 +800,33 @@ See https://dart.dev/to/package-descriptors for more details.''';
   }
 }
 
+typedef ResolvedInstallPackage = ({
+  Directory sourcePackageRootDirectory,
+  File sourcePackagePubspecFile,
+  File workspacePubspecFile,
+  File packageConfigFile,
+  File lockFileForBundle,
+  AppBundleDirectory appBundleDirectory,
+  bool isLocalPath,
+});
+
 sealed class InstallCommandParsedArguments {
   final bool overwrite;
   InstallCommandParsedArguments({required this.overwrite});
+
+  /// The local directory path, if this install targets a local path package.
+  String? get sourcePath => switch (this) {
+    DescriptorInstallCommandParsedArguments(
+      descriptor: {'path': final String path},
+    ) =>
+      path,
+    NonDescriptorInstallCommandParsedArguments(
+      sourceKind: RemoteSourceKind.path,
+      :final source,
+    ) =>
+      source,
+    _ => null,
+  };
 }
 
 class DescriptorInstallCommandParsedArguments
