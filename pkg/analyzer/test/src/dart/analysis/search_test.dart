@@ -7663,6 +7663,44 @@ void useFoo(A a) {
 ''');
   }
 
+  test_searchReferences_MethodElement_normal_ofClass_instance_combinedSignature() async {
+    var result = await resolveTestCode('''
+abstract class A {
+  void foo(covariant int x);
+}
+
+class B {
+  void foo(num x) {}
+}
+
+class C extends B implements A {}
+
+void useFoo(C c) {
+  c.foo(0);
+  c.foo;
+}
+''');
+    var element = result.findElement.method('foo', of: 'B');
+    await assertElementReferencesText(element, r'''
+abstract class A {
+  void foo(covariant int x);
+}
+
+class B {
+  void foo(num x) {}
+}
+
+class C extends B implements A {}
+
+void useFoo(C c) {
+  c.foo(0);
+    ^^^ INVOCATION qualified
+  c.foo;
+    ^^^ REFERENCE qualified
+}
+''');
+  }
+
   test_searchReferences_MethodElement_normal_ofClass_instance_generic() async {
     var result = await resolveTestCode('''
 /// [foo] and [A.foo]

@@ -258,6 +258,71 @@ void main() {
     });
   });
 
+  group('Tool user properties:', () {
+    /// Runs `dart help` with a consented fake whose environment is
+    /// [environment], and returns the fake.
+    Future<FakeAnalytics> runHelp(Map<String, String> environment) async {
+      final fs = MemoryFileSystem.test(style: FileSystemStyle.posix);
+      FakeAnalytics createFake() => Analytics.fake(
+        tool: DashTool.dartTool,
+        homeDirectory: fs.directory('/'),
+        dartVersion: 'dartVersion',
+        fs: fs,
+        environment: environment,
+      );
+      createFake().clientShowedMessage();
+      final analytics = createFake();
+
+      final runner = DartdevRunner(['help'], analyticsOverride: analytics);
+      await runner.runCommand(runner.parse(['help']));
+      return analytics;
+    }
+
+    Map<String, Object?> toolProperties(FakeAnalytics analytics) {
+      final payload = analytics.userProperty.preparePayload();
+      return {
+        for (final key in ['tool', 'root_tool', 'leaf_tool'])
+          key: payload[key]?['value'],
+      };
+    }
+
+    test('no inherited DASH__TOOL', () async {
+      final analytics = await runHelp(const {});
+      expect(analytics.sentEvents, isNotEmpty);
+      expect(toolProperties(analytics), {
+        'tool': 'dart-tool',
+        'root_tool': 'dart-tool',
+        'leaf_tool': 'dart-tool',
+      });
+    });
+
+    test('inherited DASH__TOOL', () async {
+      // For example, `dart pub outdated` started by the analysis server from
+      // VS Code. See https://github.com/dart-lang/sdk/issues/64576.
+      final analytics = await runHelp({
+        DashEnvVar.tool.name: DashTool.vscodePlugins.label,
+      });
+      expect(analytics.sentEvents, isNotEmpty);
+      expect(toolProperties(analytics), {
+        'tool': 'dart-tool',
+        'root_tool': 'vscode-plugins',
+        'leaf_tool': 'dart-tool',
+      });
+    });
+
+    test('inherited DASH__TOOL naming a shared component', () async {
+      // Shared components can't be the root tool, so dartdev is.
+      final analytics = await runHelp({
+        DashEnvVar.tool.name: DashTool.analysisServer.label,
+      });
+      expect(toolProperties(analytics), {
+        'tool': 'dart-tool',
+        'root_tool': 'dart-tool',
+        'leaf_tool': 'dart-tool',
+      });
+    });
+  });
+
   group('Analytics hang test', () {
     test('close hangs but runner finishes quickly', () async {
       final fs = MemoryFileSystem.test(style: FileSystemStyle.posix);

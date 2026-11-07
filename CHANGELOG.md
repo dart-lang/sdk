@@ -117,6 +117,16 @@ of 3.15 or greater. For more details, see
 
 [#64491]: https://github.com/dart-lang/sdk/issues/64491
 
+#### `dart:js_interop`
+
+- Added `leftShift`, `rightShift`, `bitwiseAnd`, `bitwiseOr`, `bitwiseXor`, and
+  `bitwiseNot` to `JSAnyOperatorExtension` for the JavaScript `<<`, `>>`, `&`,
+  `|`, `^`, and `~` operators. These support both JavaScript numbers and
+  bigints.
+  For more details, see SDK issue [#64558][].
+
+[#64558]: https://github.com/dart-lang/sdk/issues/64558
+
 ### Tools
 
 #### Analyzer

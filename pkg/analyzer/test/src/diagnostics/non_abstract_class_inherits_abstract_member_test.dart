@@ -184,7 +184,7 @@ abstract class B {
 
 class C implements A, B {}
 //    ^
-// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'getter C.foo'.
+// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'getter A.foo'.
 ''');
   }
 
@@ -212,7 +212,7 @@ abstract class B {
 
 class C implements A, B {}
 //    ^
-// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'C.foo'.
+// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'B.foo'.
 ''');
   }
 
@@ -228,7 +228,7 @@ abstract class B {
 
 class C implements A, B {}
 //    ^
-// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'C.foo'.
+// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'A.foo'.
 ''');
   }
 
@@ -244,7 +244,7 @@ abstract class B {
 
 class C implements A, B {}
 //    ^
-// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'C.foo'.
+// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'A.foo'.
 ''');
   }
 
@@ -288,7 +288,7 @@ abstract class B {
 
 class C implements A, B {}
 //    ^
-// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'setter C.foo'.
+// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'setter B.foo'.
 ''');
   }
 
@@ -322,7 +322,7 @@ mixin M {}
 
 class C = Object with M implements A, B;
 //    ^
-// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'C.foo'.
+// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'B.foo'.
 ''');
   }
 
@@ -340,7 +340,7 @@ mixin M {}
 
 class C = Object with M implements A, B;
 //    ^
-// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'C.foo'.
+// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'A.foo'.
 ''');
   }
 
@@ -435,7 +435,7 @@ abstract class B {
 
 enum E implements A, B {
 //   ^
-// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'E.foo'.
+// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'B.foo'.
   v;
 }
 ''');
@@ -453,7 +453,7 @@ abstract class B {
 
 enum E implements A, B {
 //   ^
-// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'E.foo'.
+// [diag.nonAbstractClassInheritsAbstractMemberOne] Missing concrete implementation of 'A.foo'.
   v;
 }
 ''');

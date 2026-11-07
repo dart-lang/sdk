@@ -41,8 +41,6 @@
 /// representation of the statements in a method body, but if one of those
 /// statements declares a local variable then the local variable will be
 /// represented by an element.
-///
-/// @docImport 'package:analyzer/src/dart/element/member.dart';
 library;
 
 import 'package:analyzer/dart/analysis/features.dart';
@@ -437,15 +435,19 @@ abstract class DirectiveUriWithUnit extends DirectiveUriWithSource {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class Element {
-  /// The non-[SubstitutedElementImpl] version of this element.
+  /// The element that this element is a view on, or this element itself.
   ///
   /// If the receiver is a view on an element, such as a method from an
   /// interface type with substituted type parameters, this getter will return
   /// the corresponding element from the class, without any substitutions.
   ///
-  /// If the receiver is already a non-[SubstitutedElementImpl] element (or a
-  /// synthetic element, such as a synthetic property accessor), this getter
-  /// will return the receiver.
+  /// A member of an interface, whose combined member signature is not the
+  /// signature of any inherited member, is a view on the first most specific
+  /// inherited member. Its type is the combined member signature, and its
+  /// other properties, such as metadata, are those of the returned element.
+  ///
+  /// If the receiver is not a view (or is a synthetic element, such as a
+  /// synthetic property accessor), this getter will return the receiver.
   Element get baseElement;
 
   /// The children of this element.

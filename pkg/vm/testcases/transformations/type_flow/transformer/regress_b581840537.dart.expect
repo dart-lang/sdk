@@ -1,0 +1,44 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+
+
+[@vm.inferred-return-type.metadata=int]
+[@vm.unboxing-info.metadata=(b)->i]
+@#C3
+static method init([@vm.inferred-arg-type.metadata=!] core::List<core::String> a) → core::Object
+  return [@vm.inferred-type.metadata=int] core::int::parse([@vm.inferred-type.metadata=dart.core::_StringBase (inexact)] a.{core::List::[]}(0){(core::int) → core::String});
+
+[@vm.inferred-return-type.metadata=dart.core::bool]
+@#C3
+static method flag([@vm.inferred-arg-type.metadata=!] core::List<core::String> a) → core::bool
+  return [@vm.direct-call.metadata=dart.core::_IntegerImplementation.>] [@vm.inferred-type.metadata=dart.core::bool (skip check)] [@vm.inferred-type.metadata=dart.core::_Smi] a.{core::List::length}{core::int}.{core::num::>}(1){(core::num) → core::bool};
+
+[@vm.inferred-return-type.metadata=dart.core::_Smi]
+[@vm.unboxing-info.metadata=(b)->i]
+@#C3
+static method probe([@vm.inferred-arg-type.metadata=!] core::List<core::String> a) → core::int {
+  core::Object x = [@vm.inferred-type.metadata=int] self::init(a);
+  #L1:
+  {
+    try {
+      if([@vm.inferred-type.metadata=dart.core::bool] self::flag(a))
+        break #L1;
+    }
+    finally {
+      core::print("cleanup");
+    }
+    x = "ok";
+  }
+  return [@vm.direct-call.metadata=dart.core::_StringBase.length] [@vm.inferred-type.metadata=dart.core::_Smi](x as core::String).{core::String::length}{core::int};
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method main(core::List<core::String> a) → void {
+  core::print([@vm.inferred-type.metadata=dart.core::_Smi] self::probe(a));
+}
+constants  {
+  #C1 = "vm:never-inline"
+  #C2 = null
+  #C3 = core::pragma {name:#C1, options:#C2}
+}

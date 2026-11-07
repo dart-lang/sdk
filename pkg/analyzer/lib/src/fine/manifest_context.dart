@@ -6,6 +6,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/binary/binary_reader.dart';
 import 'package:analyzer/src/binary/binary_writer.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/fine/library_manifest_ids.dart';
 import 'package:analyzer/src/fine/lookup_name.dart';
 import 'package:analyzer/src/fine/manifest_id.dart';
@@ -173,16 +174,16 @@ final class ManifestElement {
   /// If [element] matches this description, records the reference and id.
   /// If not, returns `false`, it is a mismatch anyway.
   bool match(MatchContext context, Element element) {
-    var enclosingElement = element.enclosingElement!;
     Element givenTopLevelElement;
     Element? givenMemberElement;
-    if (enclosingElement is LibraryElement) {
+    var manifestEnclosingElement = element.manifestEnclosingElement;
+    if (manifestEnclosingElement is LibraryElement) {
       givenTopLevelElement = element;
     } else {
-      givenTopLevelElement = enclosingElement;
+      givenTopLevelElement = manifestEnclosingElement;
       givenMemberElement = element;
     }
-    var givenLibraryUri = enclosingElement.library!.uri;
+    var givenLibraryUri = manifestEnclosingElement.library!.uri;
 
     if (givenLibraryUri != libraryUri) {
       return false;
@@ -215,11 +216,11 @@ final class ManifestElement {
   static ManifestElement encode(EncodeContext context, Element element) {
     Element topLevelElement;
     Element? memberElement;
-    var enclosingElement = element.enclosingElement!;
-    if (enclosingElement is LibraryElement) {
+    var manifestEnclosingElement = element.manifestEnclosingElement;
+    if (manifestEnclosingElement is LibraryElement) {
       topLevelElement = element;
     } else {
-      topLevelElement = enclosingElement;
+      topLevelElement = manifestEnclosingElement;
       assert(topLevelElement.enclosingElement is LibraryElement);
       memberElement = element;
     }
@@ -396,15 +397,30 @@ class MatchContext {
   }
 }
 
+extension on Element {
+  /// The enclosing element of this element, as used by manifests.
+  ///
+  /// This is [enclosingElement], except for a member for a combined member
+  /// signature. Such a member is not declared anywhere, so manifests identify
+  /// it by the interface element whose interface has it, and its name.
+  Element get manifestEnclosingElement {
+    if (this case CombinedExecutableElementImpl self) {
+      return self.owner;
+    }
+    return enclosingElement!;
+  }
+}
+
 extension LinkedElementFactoryExtension on LinkedElementFactory {
   /// Returns the id of [element], or `null` if from this bundle.
   ManifestItemId? getElementId(Element element) {
     Element topLevelElement;
     Element? memberElement;
-    if (element.enclosingElement is LibraryElement) {
+    var manifestEnclosingElement = element.manifestEnclosingElement;
+    if (manifestEnclosingElement is LibraryElement) {
       topLevelElement = element;
     } else {
-      topLevelElement = element.enclosingElement!;
+      topLevelElement = manifestEnclosingElement;
       memberElement = element;
     }
 

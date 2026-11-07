@@ -1552,9 +1552,17 @@ class ResolutionReader {
         var interfaceElement = readElement() as InterfaceElementImpl;
         var libraryUri = _reader.readOptionalObject(_reader.readUri);
         var name = Name(libraryUri, _reader.readStringReference());
-        return _elementFactory.analysisSession.inheritanceManager.getMember(
-          interfaceElement,
-          name,
+        var typeArguments = _readTypeList();
+        var member = _elementFactory.analysisSession.inheritanceManager
+            .getMember(interfaceElement, name);
+        if (member == null || typeArguments.isEmpty) {
+          return member;
+        }
+        return member.substitute(
+          Substitution.fromPairs2(
+            interfaceElement.typeParameters,
+            typeArguments,
+          ),
         );
     }
   }

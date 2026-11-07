@@ -13139,7 +13139,9 @@ library
                   rightParenthesis: ) @119
                 staticType: C
               binaryOperator: equal
-              element: <testLibrary>::@class::C::@method::==
+              element: CombinedMethodElementImpl
+                baseElement: dart:core::@class::Object::@method::==
+                owner: <testLibrary>::@class::C
               staticType: bool
           constantInitializer: expression_1
             BinaryExpression
@@ -13166,7 +13168,9 @@ library
                   leftParenthesis: ( @118
                   rightParenthesis: ) @119
                 staticType: C
-              element: <testLibrary>::@class::C::@method::==
+              element: CombinedMethodElementImpl
+                baseElement: dart:core::@class::Object::@method::==
+                owner: <testLibrary>::@class::C
               staticInvokeType: bool Function(Object)
               staticType: bool
           inducedGetter: #F8
@@ -13212,6 +13216,209 @@ library
     isOriginVariable isStatic v
       reference: <testLibrary>::@getter::v
       firstFragment: #F8
+      returnType: bool
+      variable: <testLibrary>::@topLevelVariable::v
+''');
+  }
+
+  test_const_topLevel_binary_equal_combinedSignature_generic() async {
+    var library = await buildLibrary(r'''
+abstract class I<T> {
+  bool operator ==(covariant I<T> other);
+}
+
+class C<T> implements I<T> {
+  const C();
+}
+
+const v = C<int>() == C<int>();
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 isAbstract class I (nameOffset:15) (firstTokenOffset:0) (offset:15)
+          element: <testLibrary>::@class::I
+          typeParameters
+            #F2 T (nameOffset:17) (firstTokenOffset:17) (offset:17)
+              element: #E0 T
+          constructors
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+              element: <testLibrary>::@class::I::@constructor::new
+              typeName: I
+          methods
+            #F4 isAbstract isOriginDeclaration == (nameOffset:38) (firstTokenOffset:24) (offset:38)
+              element: <testLibrary>::@class::I::@method::==
+              formalParameters
+                #F5 requiredPositional isExplicitlyCovariant isOriginDeclaration other (nameOffset:56) (firstTokenOffset:41) (offset:56)
+                  element: <testLibrary>::@class::I::@method::==::@formalParameter::other
+        #F6 class C (nameOffset:73) (firstTokenOffset:67) (offset:73)
+          element: <testLibrary>::@class::C
+          typeParameters
+            #F7 T (nameOffset:75) (firstTokenOffset:75) (offset:75)
+              element: #E1 T
+          constructors
+            #F8 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:98) (offset:104)
+              element: <testLibrary>::@class::C::@constructor::new
+              typeName: C
+              typeNameOffset: 104
+      topLevelVariables
+        #F9 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic v (nameOffset:118) (firstTokenOffset:118) (offset:118)
+          element: <testLibrary>::@topLevelVariable::v
+          constantInitializer2: expression_0
+            BinaryOperatorInvocation
+              leftOperand: ConstructorInvocation
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    name: C @122
+                    typeArguments: TypeArgumentList
+                      leftBracket: < @123
+                      arguments
+                        NamedType
+                          name: int @124
+                          element: dart:core::@class::int
+                          type: int
+                      rightBracket: > @127
+                    element: <testLibrary>::@class::C
+                    type: C<int>
+                  element: SubstitutedConstructorElementImpl
+                    baseElement: <testLibrary>::@class::C::@constructor::new
+                    substitution: {T: int}
+                argumentList: ArgumentList
+                  leftParenthesis: ( @128
+                  rightParenthesis: ) @129
+                staticType: C<int>
+              operator: == @131
+              rightOperand: ConstructorInvocation
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    name: C @134
+                    typeArguments: TypeArgumentList
+                      leftBracket: < @135
+                      arguments
+                        NamedType
+                          name: int @136
+                          element: dart:core::@class::int
+                          type: int
+                      rightBracket: > @139
+                    element: <testLibrary>::@class::C
+                    type: C<int>
+                  element: SubstitutedConstructorElementImpl
+                    baseElement: <testLibrary>::@class::C::@constructor::new
+                    substitution: {T: int}
+                argumentList: ArgumentList
+                  leftParenthesis: ( @140
+                  rightParenthesis: ) @141
+                staticType: C<int>
+              binaryOperator: equal
+              element: CombinedMethodElementImpl
+                baseElement: dart:core::@class::Object::@method::==
+                owner: <testLibrary>::@class::C
+                substitution: {T: int}
+              staticType: bool
+          constantInitializer: expression_1
+            BinaryExpression
+              leftOperand: InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: C @122
+                    typeArguments: TypeArgumentList
+                      leftBracket: < @123
+                      arguments
+                        NamedType
+                          name: int @124
+                          element: dart:core::@class::int
+                          type: int
+                      rightBracket: > @127
+                    element: <testLibrary>::@class::C
+                    type: C<int>
+                  element: SubstitutedConstructorElementImpl
+                    baseElement: <testLibrary>::@class::C::@constructor::new
+                    substitution: {T: int}
+                argumentList: ArgumentList
+                  leftParenthesis: ( @128
+                  rightParenthesis: ) @129
+                staticType: C<int>
+              operator: == @131
+              rightOperand: InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: C @134
+                    typeArguments: TypeArgumentList
+                      leftBracket: < @135
+                      arguments
+                        NamedType
+                          name: int @136
+                          element: dart:core::@class::int
+                          type: int
+                      rightBracket: > @139
+                    element: <testLibrary>::@class::C
+                    type: C<int>
+                  element: SubstitutedConstructorElementImpl
+                    baseElement: <testLibrary>::@class::C::@constructor::new
+                    substitution: {T: int}
+                argumentList: ArgumentList
+                  leftParenthesis: ( @140
+                  rightParenthesis: ) @141
+                staticType: C<int>
+              element: CombinedMethodElementImpl
+                baseElement: dart:core::@class::Object::@method::==
+                owner: <testLibrary>::@class::C
+                substitution: {T: int}
+              staticInvokeType: bool Function(Object)
+              staticType: bool
+          inducedGetter: #F10
+      getters
+        #F10 isComplete isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:118)
+          element: <testLibrary>::@getter::v
+          inducingVariable: #F9
+  classes
+    isAbstract isSimplyBounded class I
+      reference: <testLibrary>::@class::I
+      firstFragment: #F1
+      typeParameters
+        #E0 T
+          firstFragment: #F2
+      constructors
+        hasEnclosingTypeParameterReference isOriginImplicitDefault new
+          reference: <testLibrary>::@class::I::@constructor::new
+          firstFragment: #F3
+      methods
+        hasEnclosingTypeParameterReference isOriginDeclaration ==
+          reference: <testLibrary>::@class::I::@method::==
+          firstFragment: #F4
+          formalParameters
+            #E2 requiredPositional isCovariant other
+              firstFragment: #F5
+              type: I<T>
+          returnType: bool
+    isSimplyBounded class C
+      reference: <testLibrary>::@class::C
+      firstFragment: #F6
+      typeParameters
+        #E1 T
+          firstFragment: #F7
+      interfaces
+        I<T>
+      constructors
+        hasEnclosingTypeParameterReference isConst isOriginDeclaration new
+          reference: <testLibrary>::@class::C::@constructor::new
+          firstFragment: #F8
+  topLevelVariables
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer v
+      reference: <testLibrary>::@topLevelVariable::v
+      firstFragment: #F9
+      type: bool
+      constantInitializer2: expression_0
+      constantInitializer: expression_1
+      getter: <testLibrary>::@getter::v
+  getters
+    isOriginVariable isStatic v
+      reference: <testLibrary>::@getter::v
+      firstFragment: #F10
       returnType: bool
       variable: <testLibrary>::@topLevelVariable::v
 ''');
@@ -13675,7 +13882,9 @@ library
               operator: . @237
               name: foo @238
               resolution: GetterInvocationResolution
-                element: <testLibrary>::@class::X::@getter::foo
+                element: CombinedGetterElementImpl
+                  baseElement: <testLibrary>::@class::A::@getter::foo
+                  owner: <testLibrary>::@class::X
                 type: Future<Object?>
               staticType: Future<Object?>
           constantInitializer: expression_3
@@ -13687,9 +13896,13 @@ library
               period: . @237
               identifier: SimpleIdentifier
                 token: foo @238
-                element: <testLibrary>::@class::X::@getter::foo
+                element: CombinedGetterElementImpl
+                  baseElement: <testLibrary>::@class::A::@getter::foo
+                  owner: <testLibrary>::@class::X
                 staticType: Future<Object?>
-              element: <testLibrary>::@class::X::@getter::foo
+              element: CombinedGetterElementImpl
+                baseElement: <testLibrary>::@class::A::@getter::foo
+                owner: <testLibrary>::@class::X
               staticType: Future<Object?>
           inducedGetter: #F18
       getters

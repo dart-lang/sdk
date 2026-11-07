@@ -241,6 +241,7 @@ import 'package:analysis_server/src/services/correction/dart/replace_with_identi
 import 'package:analysis_server/src/services/correction/dart/replace_with_interpolation.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_is.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_is_empty.dart';
+import 'package:analysis_server/src/services/correction/dart/replace_with_is_even.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_is_nan.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_named_constant.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_not_null_aware.dart';
@@ -503,6 +504,7 @@ final _builtInLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   diag.useIfNullToConvertNullsToBools: [
     ConvertToIfNull.useToConvertNullsToBools,
   ],
+  diag.useIsEvenRatherThanModulo: [ReplaceWithIsEven.new],
   diag.useKeyInWidgetConstructors: [AddKeyToConstructors.new],
   diag.useNamedConstants: [ReplaceWithNamedConstant.new],
   diag.useNullAwareElements: [ConvertNullCheckToNullAwareElementOrEntry.new],

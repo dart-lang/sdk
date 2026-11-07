@@ -2563,10 +2563,14 @@ extension JSAnyOperatorExtension on JSAny? {
   // Bitwise operators.
 
   /// The result of <code>`this` << [any]</code> in JavaScript.
+  ///
+  /// The result is either a [JSNumber] or a [JSBigInt].
   @Since('3.15')
   external JSAny leftShift(JSAny? any);
 
   /// The result of <code>`this` >> [any]</code> in JavaScript.
+  ///
+  /// The result is either a [JSNumber] or a [JSBigInt].
   @Since('3.15')
   external JSAny rightShift(JSAny? any);
 
@@ -2575,18 +2579,26 @@ extension JSAnyOperatorExtension on JSAny? {
   external JSNumber unsignedRightShift(JSAny? any);
 
   /// The result of <code>`this` & [any]</code> in JavaScript.
+  ///
+  /// The result is either a [JSNumber] or a [JSBigInt].
   @Since('3.15')
   external JSAny bitwiseAnd(JSAny? any);
 
   /// The result of <code>`this` | [any]</code> in JavaScript.
+  ///
+  /// The result is either a [JSNumber] or a [JSBigInt].
   @Since('3.15')
   external JSAny bitwiseOr(JSAny? any);
 
   /// The result of <code>`this` ^ [any]</code> in JavaScript.
+  ///
+  /// The result is either a [JSNumber] or a [JSBigInt].
   @Since('3.15')
   external JSAny bitwiseXor(JSAny? any);
 
   /// The result of <code>`~this`</code> in JavaScript.
+  ///
+  /// The result is either a [JSNumber] or a [JSBigInt].
   @Since('3.15')
   external JSAny get bitwiseNot;
 

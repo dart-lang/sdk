@@ -308,6 +308,7 @@ import 'replace_with_extension_name_test.dart' as replace_with_extension_name;
 import 'replace_with_identifier_test.dart' as replace_with_identifier;
 import 'replace_with_interpolation_test.dart' as replace_with_interpolation;
 import 'replace_with_is_empty_test.dart' as replace_with_is_empty;
+import 'replace_with_is_even_test.dart' as replace_with_is_even;
 import 'replace_with_is_nan_test.dart' as replace_with_is_nan;
 import 'replace_with_is_not_empty_test.dart' as replace_with_is_not_empty;
 import 'replace_with_is_test.dart' as replace_with_is;
@@ -603,6 +604,7 @@ void main() {
     replace_with_interpolation.main();
     replace_with_is.main();
     replace_with_is_empty.main();
+    replace_with_is_even.main();
     replace_with_is_nan.main();
     replace_with_is_not_empty.main();
     replace_with_named_constant.main();

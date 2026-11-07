@@ -76,8 +76,9 @@ class ElementUsageDetector<TagInfo extends Object> {
     if (element == null) {
       return;
     }
-    // Implicit getters/setters.
-    if (element is PropertyAccessorElement && element.isOriginVariable) {
+    // Implicit getters/setters, also through combined member signatures.
+    if (element is PropertyAccessorElement &&
+        element.baseElement.isOriginVariable) {
       element = element.variable;
     }
 
@@ -553,8 +554,9 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
     if (element == null) {
       return;
     }
-    // Implicit getters/setters.
-    if (element is PropertyAccessorElement && element.isOriginVariable) {
+    // Implicit getters/setters, also through combined member signatures.
+    if (element is PropertyAccessorElement &&
+        element.baseElement.isOriginVariable) {
       element = element.variable;
     }
 

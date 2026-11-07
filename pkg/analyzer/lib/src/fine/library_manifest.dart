@@ -10,6 +10,7 @@ import 'package:analyzer/src/binary/binary_writer.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/fine/library_manifest_ids.dart';
 import 'package:analyzer/src/fine/lookup_name.dart';
 import 'package:analyzer/src/fine/manifest_context.dart';
@@ -1340,7 +1341,7 @@ class LibraryManifestBuilder {
     var interface = inheritance.getInterface(element);
 
     for (var entry in interface.map.entries) {
-      var executable = entry.value.baseElement;
+      var executable = entry.value;
 
       var lookupName = executable.lookupName?.asLookupName;
       if (lookupName == null) {
@@ -1354,32 +1355,14 @@ class LibraryManifestBuilder {
       }
 
       var combinedCandidates = interface.combinedSignatures[entry.key];
-      if (combinedCandidates != null) {
-        var candidateElements = combinedCandidates
-            .map((candidate) => candidate.baseElement)
-            .toSet()
-            .toList();
-        if (candidateElements.length == 1) {
-          executable = candidateElements[0];
-        } else {
-          var candidateIds = candidateElements.map((candidate) {
-            return _getInterfaceElementMemberId(candidate);
-          }).toList();
-          var idList = ManifestItemIdList(candidateIds);
-          var id = item.interface.combinedIdsTemp[idList];
-          id ??= ManifestItemId.generate();
-          item.interface.map[lookupName] = id;
-          item.interface.combinedIds[idList] = id;
-          continue;
-        }
-      }
-
-      var id = _getInterfaceElementMemberId(executable);
+      var id = combinedCandidates != null
+          ? _getCombinedMemberId(item.interface, combinedCandidates)
+          : _getInterfaceElementMemberId(executable);
       item.interface.map[lookupName] = id;
     }
 
     for (var entry in interface.implemented.entries) {
-      var executable = entry.value.baseElement;
+      var executable = entry.value;
       var lookupName = executable.lookupName?.asLookupName;
       if (lookupName != null && !lookupName.isPrivate) {
         var id = _getInterfaceElementMemberId(executable);
@@ -1390,7 +1373,7 @@ class LibraryManifestBuilder {
     for (var superImplemented in interface.superImplemented) {
       var layer = <LookupName, ManifestItemId>{};
       for (var entry in superImplemented.entries) {
-        var executable = entry.value.baseElement;
+        var executable = entry.value;
         var lookupName = executable.lookupName?.asLookupName;
         if (lookupName != null && !lookupName.isPrivate) {
           layer[lookupName] = _getInterfaceElementMemberId(executable);
@@ -1400,7 +1383,7 @@ class LibraryManifestBuilder {
     }
 
     for (var entry in inheritance.getInheritedMap(element).entries) {
-      var executable = entry.value.baseElement;
+      var executable = entry.value;
       var lookupName = executable.lookupName?.asLookupName;
       if (lookupName != null && !lookupName.isPrivate) {
         var id = _getInterfaceElementMemberId(executable);
@@ -1443,9 +1426,8 @@ class LibraryManifestBuilder {
     }
 
     // Fill interfaces of supertypes before interfaces of subtypes.
-    // So that if there are synthetic top-merged members in interfaces of
-    // supertypes (these members are not included into declared), we can
-    // get corresponding IDs.
+    // So that we can get IDs of members for combined member signatures in
+    // interfaces of supertypes, which are not declared.
     for (var element in interfaceList) {
       _fillInterfaceElementInterface(element);
     }
@@ -1515,6 +1497,27 @@ class LibraryManifestBuilder {
       ..getDataInt('transitiveAffectedCount').add(affectedElements.length);
   }
 
+  /// Returns the ID of the interface member combined from [candidates].
+  ///
+  /// If all candidates have the same ID, returns it. Otherwise, the ID
+  /// depends on the IDs of all candidates, and stays the same while they do.
+  ManifestItemId _getCombinedMemberId(
+    ManifestInterface interface,
+    List<InternalExecutableElement> candidates,
+  ) {
+    var candidateIds = candidates
+        .map(_getInterfaceElementMemberId)
+        .toSet()
+        .toList();
+    if (candidateIds.length == 1) {
+      return candidateIds[0];
+    }
+    var idList = ManifestItemIdList(candidateIds);
+    var id = interface.combinedIdsTemp[idList] ?? ManifestItemId.generate();
+    interface.combinedIds[idList] = id;
+    return id;
+  }
+
   /// Returns the manifest from [inputManifests], empty if absent.
   LibraryManifest _getInputManifest(Uri uri) {
     return inputManifests[uri] ??
@@ -1546,9 +1549,19 @@ class LibraryManifestBuilder {
         );
   }
 
-  ManifestItemId _getInterfaceElementMemberId(ExecutableElementImpl element) {
-    var enclosingElement = element.enclosingElement;
-    enclosingElement as InterfaceElementImpl;
+  ManifestItemId _getInterfaceElementMemberId(
+    InternalExecutableElement member,
+  ) {
+    InternalExecutableElement element;
+    InterfaceElementImpl enclosingElement;
+    if (member is CombinedExecutableElementImpl) {
+      // Not declared, so identified by the interface that has it.
+      element = member;
+      enclosingElement = member.owner;
+    } else {
+      element = member.baseElement;
+      enclosingElement = element.enclosingElement as InterfaceElementImpl;
+    }
 
     var enclosingItem = declaredItems[enclosingElement];
     if (enclosingItem != null) {
@@ -1565,25 +1578,25 @@ class LibraryManifestBuilder {
 
       // SAFETY: null asserts are safe, because element is in this library.
       switch (element) {
-        case GetterElementImpl():
+        case InternalGetterElement():
           var declaredGetter = enclosingItem.declaredGetters[lookupName];
           if (declaredGetter != null) {
             return declaredGetter.id;
           }
           return enclosingItem.interface.map[lookupName]!;
-        case SetterElementImpl():
+        case InternalSetterElement():
           var declaredSetter = enclosingItem.declaredSetters[lookupName];
           if (declaredSetter != null) {
             return declaredSetter.id;
           }
           return enclosingItem.interface.map[lookupName]!;
-        case MethodElementImpl():
+        case InternalMethodElement():
           var declaredMethod = enclosingItem.declaredMethods[lookupName];
           if (declaredMethod != null) {
             return declaredMethod.id;
           }
           return enclosingItem.interface.map[lookupName]!;
-        case ConstructorElementImpl():
+        case InternalConstructorElement():
           if (enclosingItem.declaredConstructors[lookupName] case var item?) {
             return item.id;
           }

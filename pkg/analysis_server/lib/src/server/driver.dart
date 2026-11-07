@@ -5,7 +5,6 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
-import 'dart:math';
 
 import 'package:analysis_server/protocol/protocol_constants.dart'
     show PROTOCOL_VERSION;
@@ -364,10 +363,11 @@ class Driver implements ServerStarter {
     );
 
     // Log the command-line.
+    //
+    // Note that we used to pass in a uuid as the first argument, but it isn't
+    // used anywhere and doesn't appear to have any value.
     _instrumentationService.logVersion(
-      results.option(trainUsingOption) != null
-          ? 'training-0'
-          : _readUuid(_instrumentationService, _sessionLogger),
+      '',
       analysisServerOptions.clientId ?? '',
       analysisServerOptions.clientVersion ?? '',
       PROTOCOL_VERSION,
@@ -714,13 +714,6 @@ class Driver implements ServerStarter {
     );
   }
 
-  /// Constructs a uuid combining the current date and a random integer.
-  String _generateUuidString() {
-    var millisecondsSinceEpoch = DateTime.now().millisecondsSinceEpoch;
-    var random = Random().nextInt(0x3fffffff);
-    return '$millisecondsSinceEpoch$random';
-  }
-
   /// Return a list of the known command-line arguments that were parsed when
   /// creating the given [results]. We return only the names of the arguments,
   /// not the values of the arguments, in order to prevent the collection of any
@@ -798,41 +791,6 @@ class Driver implements ServerStarter {
     print('');
     print('Supported flags are:');
     print(parser.usage);
-  }
-
-  /// Read the UUID from disk, generating and storing a new one if necessary.
-  String _readUuid(
-    InstrumentationService service,
-    SessionLogger sessionLogger,
-  ) {
-    var instrumentationLocation = PhysicalResourceProvider.INSTANCE
-        .getStateLocation('.instrumentation');
-    if (instrumentationLocation == null) {
-      return _generateUuidString();
-    }
-    var uuidFile = File(instrumentationLocation.getChild('uuid.txt').path);
-    try {
-      if (uuidFile.existsSync()) {
-        var uuid = uuidFile.readAsStringSync();
-        if (uuid.length > 5) {
-          return uuid;
-        }
-      }
-    } catch (exception, stackTrace) {
-      service.logException(exception, stackTrace);
-      sessionLogger.logException(exception: exception, stackTrace: stackTrace);
-    }
-    var uuid = _generateUuidString();
-    try {
-      uuidFile.parent.createSync(recursive: true);
-      uuidFile.writeAsStringSync(uuid);
-    } catch (exception, stackTrace) {
-      service.logException(exception, stackTrace);
-      sessionLogger.logException(exception: exception, stackTrace: stackTrace);
-      // Slightly alter the uuid to indicate it was not persisted
-      uuid = 'temp-$uuid';
-    }
-    return uuid;
   }
 
   /// Create and return the parser used to parse the command-line arguments.
