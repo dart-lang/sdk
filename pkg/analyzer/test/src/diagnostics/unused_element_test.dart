@@ -2724,6 +2724,46 @@ main() {
 ''');
   }
 
+  test_method_isUsed_invocation_combinedSignature_covariance() async {
+    await resolveTestCodeWithDiagnostics(r'''
+abstract class A {
+  void _foo(covariant int x);
+//     ^^^^
+// [diag.unusedElement] The declaration '_foo' isn't referenced.
+}
+
+class B {
+  void _foo(num x) {}
+}
+
+class C extends B implements A {}
+
+void f(C c) {
+  c._foo(0);
+}
+''');
+  }
+
+  test_method_isUsed_invocation_combinedSignature_mergedType() async {
+    await resolveTestCodeWithDiagnostics(r'''
+abstract class A {
+  Future<dynamic> _foo();
+//                ^^^^
+// [diag.unusedElement] The declaration '_foo' isn't referenced.
+}
+
+class B {
+  Future<void> _foo() async {}
+}
+
+class C extends B implements A {}
+
+void f(C c) {
+  c._foo();
+}
+''');
+  }
+
   test_method_isUsed_invocation_fromMixinApplication() async {
     await resolveTestCodeWithDiagnostics(r'''
 mixin A {

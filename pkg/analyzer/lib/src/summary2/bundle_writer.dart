@@ -24,7 +24,6 @@ import 'package:analyzer/src/summary2/ast_binary_tag.dart';
 import 'package:analyzer/src/summary2/ast_binary_writer.dart';
 import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer/src/summary2/reference.dart';
-import 'package:collection/collection.dart';
 
 class BundleWriter {
   late final ReferenceTableWriter _references;
@@ -956,11 +955,21 @@ class ResolutionSink extends BinaryWriter {
         var baseElement = element.baseElement;
         writeElement(baseElement);
 
-        var typeArguments = _enclosingClassTypeArguments(
-          baseElement,
+        var typeArguments = _instanceTypeArguments(
+          baseElement.enclosingElement,
           element.substitution.map,
         );
         _writeTypeList(typeArguments);
+      case CombinedExecutableElementImpl element:
+        // Views are not declared, so they have no reference to read back. The
+        // reader looks them up in the interface of the owner.
+        writeEnum(ElementTag.interfaceMember);
+        var owner = element.owner;
+        writeElement(owner);
+        var name = Name.forElement(element)!;
+        writeOptionalObject(name.libraryUri, writeUri);
+        writeStringReference(name.name);
+        _writeTypeList(_instanceTypeArguments(owner, element.substitution.map));
       case TypeParameterElementImpl():
         writeEnum(ElementTag.typeParameter);
         var localIndex = localElements[element];
@@ -979,10 +988,6 @@ class ResolutionSink extends BinaryWriter {
         writeEnum(ElementTag.libraryImportPrefix);
         writeUri(element.firstFragment.enclosingFragment.source.uri);
         writeStringReference(element.localId);
-      case MethodElementImpl(isOriginInterface: true):
-        _writeInterfaceMember(element);
-      case PropertyAccessorElementImpl(isOriginInterface: true):
-        _writeInterfaceMember(element);
       case ElementImpl():
         writeEnum(ElementTag.elementImpl);
         var reference = element.reference!;
@@ -1087,29 +1092,6 @@ class ResolutionSink extends BinaryWriter {
     _writeNullabilitySuffix(type.nullabilitySuffix);
   }
 
-  /// Writes [element], which is synthesized for the interface of a class.
-  ///
-  /// It is not declared, so it cannot be read back by its reference. Instead,
-  /// we write the class and the name of the member in its interface, and the
-  /// reader looks it up there.
-  void _writeInterfaceMember(ExecutableElementImpl element) {
-    var interfaceElement = element.enclosingElement as InterfaceElementImpl;
-    var interface = interfaceElement.inheritanceManager.getInterface(
-      interfaceElement,
-    );
-    // The name of a private member might be from another library.
-    var name =
-        interface.map.keys.firstWhereOrNull(
-          (name) => identical(interface.map[name], element),
-        ) ??
-        Name.forElement(element)!;
-
-    writeEnum(ElementTag.interfaceMember);
-    writeElement(interfaceElement);
-    writeOptionalObject(name.libraryUri, writeUri);
-    writeStringReference(name.name);
-  }
-
   void _writeMetadata(MetadataImpl metadata) {
     writeList(metadata.annotations, (annotation) {
       _writeNode(annotation.annotationAst);
@@ -1179,8 +1161,10 @@ class ResolutionSink extends BinaryWriter {
     });
   }
 
-  static List<DartType> _enclosingClassTypeArguments(
-    Element declaration,
+  /// Returns the values of the type parameters of [element] in
+  /// [substitution], if it is an [InstanceElement].
+  static List<DartType> _instanceTypeArguments(
+    Element? element,
     Map<TypeParameterElement, DartType> substitution,
   ) {
     // TODO(scheglov): Just keep it null in class Member?
@@ -1188,9 +1172,8 @@ class ResolutionSink extends BinaryWriter {
       return const [];
     }
 
-    var enclosing = declaration.enclosingElement;
-    if (enclosing is InstanceElement) {
-      var typeParameters = enclosing.typeParameters;
+    if (element is InstanceElement) {
+      var typeParameters = element.typeParameters;
       if (typeParameters.isEmpty) {
         return const <DartType>[];
       }

@@ -322,6 +322,31 @@ void f(A a) {
 ''');
   }
 
+  test_assignmentExpression_simple_deprecatedField_combinedSignature_covariance() async {
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
+abstract class A {
+  set foo(covariant int _);
+}
+
+class B {
+  @deprecated
+  num foo = 0;
+}
+
+class C extends B implements A {}
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
+void f(C c) {
+  c.foo = 0;
+//  ^^^
+// [diag.deprecatedMemberUse] 'foo' is deprecated and shouldn't be used.
+}
+''');
+  }
+
   test_assignmentExpression_simple_deprecatedGetter() async {
     newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
@@ -1655,6 +1680,56 @@ void f(A a) {
 ''');
   }
 
+  test_methodInvocation_combinedSignature_covariance() async {
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
+abstract class A {
+  void foo(covariant int x);
+}
+
+class B {
+  @deprecated
+  void foo(num x) {}
+}
+
+class C extends B implements A {}
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
+void f(C c) {
+  c.foo(0);
+//  ^^^
+// [diag.deprecatedMemberUse] 'foo' is deprecated and shouldn't be used.
+}
+''');
+  }
+
+  test_methodInvocation_combinedSignature_mergedType() async {
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
+abstract class A {
+  Future<dynamic> foo();
+}
+
+class B {
+  @deprecated
+  Future<void> foo() async {}
+}
+
+class C extends B implements A {}
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
+void f(C c) {
+  c.foo();
+//  ^^^
+// [diag.deprecatedMemberUse] 'foo' is deprecated and shouldn't be used.
+}
+''');
+  }
+
   test_methodInvocation_constantAnnotation() async {
     newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
@@ -2097,6 +2172,30 @@ void f(A a) {
 ''');
   }
 
+  test_parameter_named_ofMethod_combinedSignature_covariance() async {
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
+abstract class A {
+  void foo({covariant int? a});
+}
+
+class B {
+  void foo({@deprecated num? a}) {}
+}
+
+class C extends B implements A {}
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
+void f(C c) {
+  c.foo(a: 0);
+//      ^
+// [diag.deprecatedMemberUse] 'a' is deprecated and shouldn't be used.
+}
+''');
+  }
+
   test_parameter_namedInPrimaryConstructor() async {
     newFile('$aaaPackageRootPath/lib/a.dart', r'''
 class A({@deprecated int x = 0});
@@ -2456,6 +2555,31 @@ import 'package:aaa/a.dart';
 
 void f() {
   A.foo;
+//  ^^^
+// [diag.deprecatedMemberUse] 'foo' is deprecated and shouldn't be used.
+}
+''');
+  }
+
+  test_prefixedIdentifier_identifier_combinedSignature_mergedType() async {
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
+abstract class A {
+  Future<dynamic> get foo;
+}
+
+class B {
+  @deprecated
+  final Future<void> foo = Future.value();
+}
+
+class C extends B implements A {}
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
+void f(C c) {
+  c.foo;
 //  ^^^
 // [diag.deprecatedMemberUse] 'foo' is deprecated and shouldn't be used.
 }

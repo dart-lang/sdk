@@ -72,6 +72,12 @@ class ElementPrinter {
         _sink.writeln('$idStr ${element.name ?? '<null-name>'}');
       case SubstitutedElementImpl element:
         _writeSubstitutedElement(element);
+      case CombinedExecutableElementImpl element:
+        _writeCombinedExecutableElement(element);
+      case CombinedFieldElementImpl element:
+        _writeCombinedFieldElement(element);
+      case CombinedFormalParameterElementImpl element:
+        _writeCombinedFormalParameterElement(element);
       case TypeAliasElementImpl element:
         writelnReference(element.reference);
       case TopLevelVariableElementImpl element:
@@ -395,6 +401,40 @@ class ElementPrinter {
 
   String _typeStr(DartType type) {
     return type.getDisplayString();
+  }
+
+  void _writeCombinedExecutableElement(CombinedExecutableElementImpl element) {
+    _sink.writeln('${element.runtimeType}');
+    _sink.withIndent(() {
+      writeNamedElement2('baseElement', element.baseElement);
+      writeNamedElement2('owner', element.owner);
+      var map = element.substitution.map;
+      if (map.isNotEmpty) {
+        var mapStr = _substitutionMapStr(map);
+        _sink.writelnWithIndent('substitution: $mapStr');
+      }
+    });
+  }
+
+  void _writeCombinedFieldElement(CombinedFieldElementImpl element) {
+    _sink.writeln('${element.runtimeType}');
+    _sink.withIndent(() {
+      writeNamedElement2('baseElement', element.baseElement);
+      writeNamedElement2('accessor', element.accessor);
+    });
+  }
+
+  void _writeCombinedFormalParameterElement(
+    CombinedFormalParameterElementImpl element,
+  ) {
+    _sink.writeln('${element.runtimeType}');
+    _sink.withIndent(() {
+      writeNamedElement2('baseElement', element.baseElement);
+      writeNamedType('type', element.type);
+      if (element.isCovariant) {
+        _sink.writelnWithIndent('isCovariant: true');
+      }
+    });
   }
 
   void _writeSubstitutedElement(SubstitutedElementImpl element) {

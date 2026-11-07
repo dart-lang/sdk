@@ -4,10 +4,10 @@
 
 import 'package:_fe_analyzer_shared/src/base/analyzer_public_api.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
+import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
@@ -96,15 +96,6 @@ class InheritanceManager3 {
   /// The set of classes that are currently being processed, used to detect
   /// self-referencing cycles.
   final Set<InterfaceElementImpl> _processingClasses = {};
-
-  /// Members synthesized for combined member signatures, by class and name.
-  ///
-  /// There can be several with the same name, because signatures are combined
-  /// for each layer, for example for the superclass with a mixin applied, and
-  /// then for the class itself. A synthesized member is reused only for the
-  /// same kind and signature.
-  final Map<InterfaceElementImpl, Map<Name, List<InternalExecutableElement>>>
-  _synthesizedMembers = {};
 
   /// Combine types of [candidates] into a single most specific type.
   ///
@@ -403,9 +394,6 @@ class InheritanceManager3 {
     _interfaces.removeWhere((element, _) {
       return uriSet.contains(element.library.uri);
     });
-    _synthesizedMembers.removeWhere((element, _) {
-      return uriSet.contains(element.library.uri);
-    });
   }
 
   void _addCandidates({
@@ -555,10 +543,10 @@ class InheritanceManager3 {
     // https://github.com/flutter/flutter/issues/178925#issuecomment-3573399510
     // TODO(scheglov): Consider having only one merge pass of candidates.
     var expandedCandidates = candidates;
-    if (candidates.any((c) => c.enclosingElement == targetClass)) {
+    if (candidates.any((c) => _isCombinedFor(c, targetClass))) {
       expandedCandidates = [];
       for (var candidate in candidates) {
-        if (candidate.enclosingElement == targetClass) {
+        if (_isCombinedFor(candidate, targetClass)) {
           if (_combinedSignatures[targetClass]?[name] case var previous?) {
             expandedCandidates.addAll(previous);
             continue;
@@ -570,7 +558,7 @@ class InheritanceManager3 {
 
     (_combinedSignatures[targetClass] ??= {})[name] = expandedCandidates;
 
-    return _topMerge(typeSystem, targetClass, name, candidates, validOverrides);
+    return _topMerge(typeSystem, targetClass, candidates, validOverrides);
   }
 
   /// The given [namedCandidates] maps names to candidates from direct
@@ -1154,12 +1142,12 @@ class InheritanceManager3 {
   /// [candidates], so a parameter of the result is covariant if the
   /// corresponding parameter of any of them is covariant.
   ///
-  /// Returns one of [validOverrides] if it has this signature, otherwise a
-  /// member of [targetClass] synthesized with it.
+  /// Returns one of [validOverrides] if it has this signature. Otherwise,
+  /// returns a view of the first of them with this signature, in the
+  /// interface of [targetClass].
   InternalExecutableElement _topMerge(
     TypeSystemImpl typeSystem,
     InterfaceElementImpl targetClass,
-    Name name,
     List<InternalExecutableElement> candidates,
     List<InternalExecutableElement> validOverrides,
   ) {
@@ -1183,17 +1171,11 @@ class InheritanceManager3 {
       }
     }
 
-    var synthesized = (_synthesizedMembers[targetClass] ??= {})[name] ??= [];
-    for (var executable in synthesized) {
-      if (executable.kind == firstElement.kind &&
-          _isSameSignature(executable.type, resultType)) {
-        return executable;
-      }
-    }
-
-    var result = _synthesizeMember(targetClass, firstElement, resultType);
-    synthesized.add(result);
-    return result;
+    return CombinedExecutableElementImpl.forCandidate(
+      owner: targetClass,
+      candidate: firstElement,
+      signature: resultType,
+    );
   }
 
   /// Returns [type], with formal parameters made covariant if the
@@ -1211,7 +1193,8 @@ class InheritanceManager3 {
         continue;
       }
       var isCovariant = candidates.any((candidate) {
-        var corresponding = candidate.correspondingParameter(parameter, i);
+        var corresponding = candidate.formalParameters
+            .correspondingFormalParameter(parameter, i);
         return corresponding != null && corresponding.isCovariant;
       });
       if (isCovariant) {
@@ -1276,6 +1259,16 @@ class InheritanceManager3 {
     return validOverrides;
   }
 
+  /// Whether [executable] is the result of combining signatures for
+  /// [targetClass], for example of a mixin layer.
+  static bool _isCombinedFor(
+    InternalExecutableElement executable,
+    InterfaceElementImpl targetClass,
+  ) {
+    return executable is CombinedExecutableElementImpl &&
+        executable.owner == targetClass;
+  }
+
   static bool _isDeclaredInObject(InternalExecutableElement element) {
     var enclosing = element.enclosingElement;
     return enclosing is ClassElement && enclosing.isDartCoreObject;
@@ -1296,101 +1289,6 @@ class InheritanceManager3 {
       }
     }
     return true;
-  }
-
-  /// Returns a new member of [targetClass], with the kind and name of
-  /// [firstElement], and [resultType].
-  static InternalExecutableElement _synthesizeMember(
-    InterfaceElementImpl targetClass,
-    InternalExecutableElement firstElement,
-    FunctionTypeImpl resultType,
-  ) {
-    if (firstElement is InternalMethodElement) {
-      var fragmentName = firstElement.firstFragment.name!;
-
-      var resultFragment = MethodFragmentImpl(name: fragmentName);
-      resultFragment.enclosingFragment = targetClass.firstFragment;
-      resultFragment.isOriginInterface = true;
-      var freshTypeParameters = _FreshExecutableTypeParameters(
-        resultType.typeParameters,
-      );
-      resultFragment.typeParameters = freshTypeParameters.fragments;
-
-      var elementName = firstElement.name!;
-      var result = MethodElementImpl(
-        name: elementName,
-        reference: targetClass.reference.createUnregisteredMethod(fragmentName),
-        firstFragment: resultFragment,
-      );
-      freshTypeParameters.initializeElements(result.typeParameters);
-
-      var freshFormalParameterElements = freshTypeParameters
-          .freshFormalParameterElements(resultType.formalParameters);
-      resultFragment.formalParameters = freshFormalParameterElements
-          .map((e) => e.firstFragment)
-          .toFixedList();
-      result.returnType = freshTypeParameters.substitute(resultType.returnType);
-
-      return result;
-    } else {
-      firstElement as InternalPropertyAccessorElement;
-      var fragmentName = firstElement.name!;
-      var field = FieldFragmentImpl(name: fragmentName);
-      field.isOriginGetterSetter = true;
-
-      PropertyAccessorFragmentImpl resultFragment;
-      PropertyAccessorElementImpl resultElement;
-      if (firstElement is InternalGetterElement) {
-        var fragment = GetterFragmentImpl(name: fragmentName);
-        resultFragment = fragment;
-        resultFragment.isOriginInterface = true;
-
-        var result = GetterElementImpl(
-          targetClass.reference.createUnregisteredGetter(fragmentName),
-          fragment,
-        );
-        resultElement = result;
-      } else {
-        var fragment = SetterFragmentImpl(name: fragmentName);
-        resultFragment = fragment;
-        resultFragment.isOriginInterface = true;
-
-        var result = SetterElementImpl(
-          targetClass.reference.createUnregisteredSetter(fragmentName),
-          fragment,
-        );
-        resultElement = result;
-      }
-      resultFragment.enclosingFragment = targetClass.firstFragment;
-      var freshTypeParameters = _FreshExecutableTypeParameters(const []);
-      freshTypeParameters.initializeElements(const []);
-      var freshFormalParameterElements = freshTypeParameters
-          .freshFormalParameterElements(resultType.formalParameters);
-      resultFragment.formalParameters = freshFormalParameterElements
-          .map((e) => e.firstFragment)
-          .toFixedList();
-      resultElement.returnType = freshTypeParameters.substitute(
-        resultType.returnType,
-      );
-
-      field.enclosingFragment = targetClass.firstFragment;
-
-      var elementName = firstElement.name!;
-      var fieldElement = FieldElementImpl(
-        reference: targetClass.reference.createUnregisteredField(elementName),
-        firstFragment: field,
-      );
-      resultFragment.element.variable = fieldElement;
-
-      if (firstElement is GetterElement) {
-        fieldElement.type = resultType.returnType;
-      } else {
-        var type = freshFormalParameterElements[0].type;
-        fieldElement.type = type;
-      }
-
-      return resultElement;
-    }
   }
 
   static FunctionTypeImpl _topMergeSignatureTypes({
@@ -1627,59 +1525,4 @@ class _ExtensionTypeCandidates {
       if (!precludedSetters.contains(name)) ...setters,
     ];
   }
-}
-
-/// Owns the fresh type parameters used while synthesizing an executable.
-///
-/// The caller creates [fragments] first, attaches them to a fragment, and only
-/// then calls [initializeElements] with the element-owned type parameters that
-/// were materialized from those fragments.
-final class _FreshExecutableTypeParameters {
-  final List<TypeParameterElementImpl> _source;
-  final List<TypeParameterFragmentImpl> fragments;
-  late final MapSubstitution _substitution;
-
-  new(this._source)
-    : fragments = [
-        for (var typeParameter in _source)
-          TypeParameterFragmentImpl.synthetic(name: typeParameter.name ?? ''),
-      ];
-
-  List<FormalParameterElementImpl> freshFormalParameterElements(
-    List<InternalFormalParameterElement> formalParameters,
-  ) {
-    return [
-      for (var formalParameter in formalParameters)
-        formalParameter.copyWith(type: substitute(formalParameter.type)),
-    ];
-  }
-
-  void initializeElements(List<TypeParameterElementImpl> target) {
-    _substitution = Substitution.fromPairs2(_source, [
-      for (var element in target)
-        TypeParameterTypeImpl(
-          element: element,
-          nullabilitySuffix: NullabilitySuffix.none,
-        ),
-    ]);
-
-    for (var i = 0; i < _source.length; i++) {
-      var sourceTypeParameter = _source[i];
-      var targetTypeParameter = target[i];
-      if (!sourceTypeParameter.isLegacyCovariant) {
-        targetTypeParameter.variance = sourceTypeParameter.variance;
-      }
-      var defaultType = sourceTypeParameter.defaultType;
-      if (defaultType != null) {
-        targetTypeParameter.defaultType = substitute(defaultType);
-      }
-
-      var bound = sourceTypeParameter.bound;
-      if (bound != null) {
-        targetTypeParameter.bound = substitute(bound);
-      }
-    }
-  }
-
-  TypeImpl substitute(DartType type) => _substitution.substituteType(type);
 }

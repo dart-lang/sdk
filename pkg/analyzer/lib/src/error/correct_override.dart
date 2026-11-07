@@ -82,7 +82,8 @@ class CorrectOverrideHelper {
       var isCovariant =
           parameter.isCovariant ||
           addCovarianceFrom.any((member) {
-            var corresponding = member.correspondingParameter(parameter, i);
+            var corresponding = member.formalParameters
+                .correspondingFormalParameter(parameter, i);
             return corresponding != null && corresponding.isCovariant;
           });
       if (isCovariant) {
@@ -175,10 +176,8 @@ class CovariantParametersVerifier {
       if (parameter.isCovariant) {
         superMembers ??= _superMembers();
         for (var superMember in superMembers) {
-          var superParameter = superMember.rawElement.correspondingParameter(
-            parameter,
-            i,
-          );
+          var superParameter = superMember.rawElement.formalParameters
+              .correspondingFormalParameter(parameter, i);
           if (superParameter != null) {
             var parameterSuperList = result[parameter] ??= [];
             var superType = _superSubstitution(superMember)

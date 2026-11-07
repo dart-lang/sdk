@@ -134,7 +134,7 @@ class C implements A, B {
       result: result,
       className: 'C',
       name: 'foo',
-      expected: 'C.foo: void Function(num)',
+      expected: 'B.foo: void Function(num)',
     );
   }
 
@@ -1127,7 +1127,7 @@ class C {
       result: result,
       className: 'B',
       name: 'foo',
-      expected: 'B.foo: void Function<U>(Object, U, Object)',
+      expected: 'C.foo: void Function<U>(Object, U, Object)',
     );
     var interfaceMember = manager.getMember(
       result.findElement.classOrMixin('B'),
@@ -1170,7 +1170,7 @@ abstract class C implements B, A {}
       result: result,
       className: 'C',
       name: 'foo',
-      expected: 'C.foo: void Function(Object?, Object?)',
+      expected: 'B.foo: void Function(Object?, Object?)',
     );
     var member = manager.getMember(
       result.findElement.classOrMixin('C'),
@@ -1201,7 +1201,7 @@ abstract class C extends S with M implements I {}
       result: result,
       className: 'C',
       name: 'foo',
-      expected: 'C.foo: void Function(Object?)',
+      expected: 'I.foo: void Function(Object?)',
     );
   }
 
@@ -1225,7 +1225,7 @@ mixin M on S1, S2 implements I {}
       result: result,
       className: 'M',
       name: 'foo',
-      expected: 'M.foo: void Function(Object?)',
+      expected: 'I.foo: void Function(Object?)',
     );
   }
 
@@ -1245,7 +1245,7 @@ abstract class C implements B, A {}
       result: result,
       className: 'C',
       name: 'foo',
-      expected: 'C.foo: void Function(Object)',
+      expected: 'B.foo: void Function(Object)',
     );
     var member = manager.getMember(
       result.findElement.classOrMixin('C'),
@@ -1297,8 +1297,42 @@ abstract class C implements A, B {
       result: result,
       className: 'C',
       name: 'foo',
-      expected: 'C.foo: void Function(num)',
+      expected: 'B.foo: void Function(num)',
     );
+  }
+
+  test_getMember_method_covariantByDeclaration_combined_view() async {
+    var result = await resolveTestCode('''
+abstract class A {
+  void foo(covariant int x);
+}
+
+class B {
+  /// Documentation.
+  @deprecated
+  void foo(num x) {}
+}
+
+class C extends B implements A {}
+''');
+    var foo = result.findElement.method('foo', of: 'B');
+    var member =
+        manager.getMember(
+              result.findElement.classOrMixin('C'),
+              Name(null, 'foo'),
+            )!
+            as MethodElement;
+    expect(member.baseElement, same(foo));
+    expect(member.enclosingElement, same(foo.enclosingElement));
+    expect(member.isOriginInterface, isTrue);
+    expect(member.isOriginDeclaration, isFalse);
+    expect(member.documentationComment, '/// Documentation.');
+    expect(member.metadata.hasDeprecated, isTrue);
+
+    var x = member.formalParameters.single;
+    expect(x.baseElement, same(foo.formalParameters.single));
+    expect(x.isCovariant, isTrue);
+    expect(member.type.formalParameters.single, same(x));
   }
 
   test_getMember_method_covariantByDeclaration_inherited() async {
@@ -1473,7 +1507,7 @@ class X extends A implements B {}
     );
   }
 
-  test_getMember_optIn_topMerge_getter_synthetic() async {
+  test_getMember_optIn_topMerge_getter_view() async {
     var result = await resolveTestCode('''
 abstract class A {
   Future<void> get foo;
@@ -1490,11 +1524,11 @@ abstract class X extends A implements B {}
       result: result,
       className: 'X',
       name: 'foo',
-      expected: 'X.foo: Future<Object?> Function()',
+      expected: 'A.foo: Future<Object?> Function()',
     );
   }
 
-  test_getMember_optIn_topMerge_getterAndSetter_synthetic() async {
+  test_getMember_optIn_topMerge_getterAndSetter_view() async {
     var result = await resolveTestCode('''
 abstract class A {
   Future<void> get foo;
@@ -1513,14 +1547,31 @@ abstract class X implements A, B {}
       result: result,
       className: 'X',
       name: 'foo',
-      expected: 'X.foo: Future<Object?> Function()',
+      expected: 'A.foo: Future<Object?> Function()',
     );
     _assertGetMember(
       result: result,
       className: 'X',
       name: 'foo=',
-      expected: 'X.foo=: void Function(Future<Object?>)',
+      expected: 'A.foo=: void Function(Future<Object?>)',
     );
+
+    var X = result.findElement.classOrMixin('X');
+    var getter = manager.getMember(X, Name(null, 'foo'))! as GetterElement;
+    var setter = manager.getMember(X, Name(null, 'foo='))! as SetterElement;
+    var field = result.findElement.field('foo', of: 'A');
+
+    var getterField = getter.variable;
+    expect(getterField.baseElement, same(field));
+    expect(getterField.type.getDisplayString(), 'Future<Object?>');
+    expect(getterField.getter, same(getter));
+
+    var setterField = setter.variable;
+    expect(setterField.baseElement, same(field));
+    expect(setterField.type.getDisplayString(), 'Future<Object?>');
+    expect(setterField.setter, same(setter));
+
+    expect(getterField, isNot(same(setterField)));
   }
 
   test_getMember_optIn_topMerge_method_existing() async {
@@ -1544,7 +1595,7 @@ class X extends A implements B {}
     );
   }
 
-  test_getMember_optIn_topMerge_method_synthetic() async {
+  test_getMember_optIn_topMerge_method_view() async {
     var result = await resolveTestCode('''
 class A {
   Object? foo(dynamic x) {}
@@ -1561,7 +1612,7 @@ class X extends A implements B {}
       result: result,
       className: 'X',
       name: 'foo',
-      expected: 'X.foo: Object? Function(Object?)',
+      expected: 'A.foo: Object? Function(Object?)',
     );
   }
 
@@ -1586,7 +1637,7 @@ class X extends A implements B {}
     );
   }
 
-  test_getMember_optIn_topMerge_setter_synthetic() async {
+  test_getMember_optIn_topMerge_setter_view() async {
     var result = await resolveTestCode('''
 abstract class A {
   set foo(Future<void> _);
@@ -1603,7 +1654,7 @@ abstract class X extends A implements B {}
       result: result,
       className: 'X',
       name: 'foo=',
-      expected: 'X.foo=: void Function(Future<Object?>)',
+      expected: 'A.foo=: void Function(Future<Object?>)',
     );
   }
 
@@ -1699,7 +1750,7 @@ abstract class C implements A, B {
       result: result,
       className: 'C',
       name: 'foo=',
-      expected: 'C.foo=: void Function(num)',
+      expected: 'B.foo=: void Function(num)',
     );
   }
 
@@ -1719,7 +1770,7 @@ abstract class C implements B, A {}
       result: result,
       className: 'C',
       name: 'foo=',
-      expected: 'C.foo=: void Function(Object)',
+      expected: 'B.foo=: void Function(Object)',
     );
     var member = manager.getMember(
       result.findElement.classOrMixin('C'),
@@ -3115,7 +3166,9 @@ extension type E(C it) implements A, B {}
     var element = library.getExtensionType('E')!;
     assertInterfaceText(element, r'''
 map
-  foo=: <testLibrary>::@extensionType::E::@setter::foo
+  foo=: CombinedSetterElementImpl
+    baseElement: <testLibrary>::@class::A::@setter::foo
+    owner: <testLibrary>::@extensionType::E
   it: <testLibrary>::@extensionType::E::@getter::it
 declared
   it: <testLibrary>::@extensionType::E::@getter::it
@@ -3124,7 +3177,9 @@ redeclared
     <testLibrary>::@class::A::@setter::foo
     <testLibrary>::@class::B::@setter::foo
 inheritedMap
-  foo=: <testLibrary>::@extensionType::E::@setter::foo
+  foo=: CombinedSetterElementImpl
+    baseElement: <testLibrary>::@class::A::@setter::foo
+    owner: <testLibrary>::@extensionType::E
 ''');
   }
 

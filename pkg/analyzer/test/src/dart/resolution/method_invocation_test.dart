@@ -7608,6 +7608,168 @@ V1: MethodInvocation
 ''');
   }
 
+  test_hasReceiver_interfaceType_inheritedMethod_combinedSignature_covariance() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+abstract class A {
+  void foo(covariant int x);
+}
+
+class B {
+  void foo(num x) {}
+}
+
+class C extends B implements A {}
+
+void f(C c) {
+  c.foo(0);
+}
+''');
+
+    var node = result.findNode.singleReceiverMethodInvocation;
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: c
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      type: C
+    staticType: C
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: CombinedFormalParameterElementImpl
+          baseElement: <testLibrary>::@class::B::@method::foo::@formalParameter::x
+          type: num
+          isCovariant: true
+        staticType: int
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: CombinedMethodElementImpl
+      baseElement: <testLibrary>::@class::B::@method::foo
+      owner: <testLibrary>::@class::C
+    invokeType: void Function(num)
+    type: void
+  staticType: void
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: c
+    element: <testLibrary>::@function::f::@formalParameter::c
+    staticType: C
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    element: CombinedMethodElementImpl
+      baseElement: <testLibrary>::@class::B::@method::foo
+      owner: <testLibrary>::@class::C
+    staticType: void Function(num)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: CombinedFormalParameterElementImpl
+          baseElement: <testLibrary>::@class::B::@method::foo::@formalParameter::x
+          type: num
+          isCovariant: true
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: void Function(num)
+  staticType: void
+''');
+  }
+
+  test_hasReceiver_interfaceType_inheritedMethod_combinedSignature_covariance_generic() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+abstract class A<T> {
+  void foo(covariant T x, T y);
+}
+
+class B<T> {
+  void foo(Object? x, T y) {}
+}
+
+class C<T> extends B<T> implements A<T> {}
+
+void f(C<int> c) {
+  c.foo(0, 1);
+}
+''');
+
+    var node = result.findNode.singleReceiverMethodInvocation;
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: c
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      type: C<int>
+    staticType: C<int>
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: CombinedFormalParameterElementImpl
+          baseElement: <testLibrary>::@class::B::@method::foo::@formalParameter::x
+          type: Object?
+          isCovariant: true
+        staticType: int
+      IntegerLiteral
+        literal: 1
+        correspondingParameter: CombinedFormalParameterElementImpl
+          baseElement: <testLibrary>::@class::B::@method::foo::@formalParameter::y
+          type: int
+        staticType: int
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: CombinedMethodElementImpl
+      baseElement: <testLibrary>::@class::B::@method::foo
+      owner: <testLibrary>::@class::C
+      substitution: {T: int}
+    invokeType: void Function(Object?, int)
+    type: void
+  staticType: void
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: c
+    element: <testLibrary>::@function::f::@formalParameter::c
+    staticType: C<int>
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    element: CombinedMethodElementImpl
+      baseElement: <testLibrary>::@class::B::@method::foo
+      owner: <testLibrary>::@class::C
+      substitution: {T: int}
+    staticType: void Function(Object?, int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: CombinedFormalParameterElementImpl
+          baseElement: <testLibrary>::@class::B::@method::foo::@formalParameter::x
+          type: Object?
+          isCovariant: true
+        staticType: int
+      IntegerLiteral
+        literal: 1
+        correspondingParameter: CombinedFormalParameterElementImpl
+          baseElement: <testLibrary>::@class::B::@method::foo::@formalParameter::y
+          type: int
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: void Function(Object?, int)
+  staticType: void
+''');
+  }
+
   test_hasReceiver_interfaceType_inheritedMethod_ofGenericClass_usesTypeParameter() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T> {
