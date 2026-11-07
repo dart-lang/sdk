@@ -243,6 +243,11 @@ Handler sseClientHandler({
 
   final logger = Logger('SSEClientHandler');
 
+  handler.connections.rest.listen((sseConnection) {
+    logger.info('New SSE connection. Creating $Client.');
+    clientManager.addClient(connection: sseConnection);
+  });
+
   return (request) {
     if (!clientManager.acceptNewConnections && request.isSSEConnectionRequest) {
       logger.info('New connections not accepted. Rejecting SSE connection.');
@@ -254,11 +259,6 @@ Handler sseClientHandler({
         'New connections not accepted. Rejecting SSE connection.',
       );
     }
-
-    handler.connections.rest.listen((sseConnection) {
-      logger.info('New SSE connection. Creating $Client.');
-      clientManager.addClient(connection: sseConnection);
-    });
 
     return handler.handler(request);
   };

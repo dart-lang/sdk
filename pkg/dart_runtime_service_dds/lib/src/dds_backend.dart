@@ -54,6 +54,9 @@ class DartRuntimeServiceDdsBackend
   /// The [Uri] of the target VM Service.
   final Uri remoteVmServiceUri;
 
+  /// The path segment for SSE connections handled by DDS.
+  static const kSseHandlerPath = r'$debugHandler';
+
   /// The path segment for DevTools requests (e.g., 'devtools').
   static const _devtoolsPath = 'devtools';
 

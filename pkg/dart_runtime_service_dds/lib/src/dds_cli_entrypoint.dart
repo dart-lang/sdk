@@ -219,6 +219,7 @@ ${parser.usage}''');
         host: bindAddress,
         port: bindPort,
         serveDevTools: serveDevTools,
+        sseHandlerPath: DartRuntimeServiceDdsBackend.kSseHandlerPath,
       ),
     );
 
