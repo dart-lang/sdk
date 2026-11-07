@@ -58,12 +58,16 @@ class DartRuntimeServiceDdsBackend
   static const _devtoolsPath = 'devtools';
 
   static const _ddsUriKey = 'ddsUri';
+  static const _uriQueryParameter = 'uri';
+  static const _wsPathSegment = 'ws';
 
-  /// Whether DevTools is served directly by this service or redirected to an
-  /// external instance.
+  /// Whether DDS provides DevTools, either by serving static assets directly
+  /// or, if [devtoolsServerAddress] is set, by redirecting to that server.
   final bool serveDevTools;
 
   /// The address of an existing DevTools server to redirect to.
+  ///
+  /// Ignored unless [serveDevTools] is `true`.
   final Uri? devtoolsServerAddress;
 
   /// A custom path to DevTools assets, overriding the default SDK location.
@@ -78,8 +82,6 @@ class DartRuntimeServiceDdsBackend
 
   HostedDtdInfo? _hostedDartToolingDaemon;
   DtdInfo? get hostedDartToolingDaemon => _hostedDartToolingDaemon;
-
-  Uri? _externalDevtoolsUri;
 
   late final shelf.Handler _httpHandler;
 
@@ -113,50 +115,48 @@ class DartRuntimeServiceDdsBackend
     );
   }
 
-  /// Sets the external DevTools URI to redirect DevTools requests to.
-  void setExternalDevToolsUri(Uri uri) {
-    if (serveDevTools && devtoolsServerAddress == null) {
-      throw StateError('A hosted DevTools instance is already being served.');
-    }
-    _externalDevtoolsUri = uri;
-  }
-
-  /// The URI of the hosted DevTools instance, or null if not available.
-  ///
-  /// This is computed dynamically because it depends on the frontend URI
-  /// (which is assigned when the HTTP server starts) and [_externalDevtoolsUri]
-  /// (which can be set dynamically via [setExternalDevToolsUri]).
+  /// The URI of the DevTools instance (hosted by DDS or redirected to
+  /// [devtoolsServerAddress]), or `null` if [serveDevTools] is `false`.
   Uri? get devToolsUri {
-    Uri? baseUri;
-    if (serveDevTools) {
-      if (devtoolsServerAddress != null) {
-        baseUri = devtoolsServerAddress;
-      } else {
-        final frontendUri = frontend.uri;
-        final pathSegments = [
-          ...frontendUri.pathSegments.where((e) => e.isNotEmpty),
-          _devtoolsPath,
-          '',
-        ];
-        baseUri = frontendUri.replace(
-          scheme: frontendUri.isScheme('wss') ? 'https' : 'http',
-          pathSegments: pathSegments,
-        );
-      }
-    } else {
-      baseUri = _externalDevtoolsUri;
-    }
-    if (baseUri == null) {
+    if (!serveDevTools) {
       return null;
     }
-    final ddsUri = frontend.uri;
-    final ddsWsPathSegments = [
-      ...ddsUri.pathSegments.where((e) => e.isNotEmpty),
-      'ws',
-    ];
-    final ddsWsUri = ddsUri.replace(pathSegments: ddsWsPathSegments);
+    final Uri baseUri;
+    if (devtoolsServerAddress case final address?) {
+      baseUri = address;
+    } else {
+      final frontendUri = frontend.uri;
+      final pathSegments = [
+        ...frontendUri.pathSegments.where((e) => e.isNotEmpty),
+        _devtoolsPath,
+        '',
+      ];
+      baseUri = frontendUri.replace(
+        scheme: frontendUri.isScheme('wss') ? 'https' : 'http',
+        pathSegments: pathSegments,
+      );
+    }
+    return _buildDevToolsUri(baseUri);
+  }
 
-    return baseUri.replace(query: 'uri=$ddsWsUri');
+  Uri _ddsWsUri() => _convertToWebSocketUri(frontend.uri);
+
+  Uri _buildDevToolsUri(
+    Uri baseUri, {
+    Map<String, String> queryParameters = const <String, String>{},
+  }) {
+    final ddsWsUri = _ddsWsUri();
+    final mergedQueryParameters = <String, String>{
+      ...baseUri.queryParameters,
+      ...queryParameters,
+      _uriQueryParameter: ddsWsUri.toString(),
+    };
+    if (mergedQueryParameters.length == 1) {
+      // Use `query` rather than `queryParameters` when `uri` is the only
+      // parameter to avoid percent-encoding `:` and `/` in the WebSocket URI.
+      return baseUri.replace(query: '$_uriQueryParameter=$ddsWsUri');
+    }
+    return baseUri.replace(queryParameters: mergedQueryParameters);
   }
 
   @override
@@ -190,7 +190,7 @@ class DartRuntimeServiceDdsBackend
           return notFoundHandler(request);
         }
 
-        final redirectUri = devtoolsServerAddress ?? _externalDevtoolsUri;
+        final redirectUri = serveDevTools ? devtoolsServerAddress : null;
         if (redirectUri == null) {
           return shelf.Response.notFound(
             'No DevTools instance is registered with the Dart Development '
@@ -200,7 +200,8 @@ class DartRuntimeServiceDdsBackend
 
         // Redirect to the external DevTools server.
         return shelf.Response.seeOther(
-          redirectUri.replace(
+          _buildDevToolsUri(
+            redirectUri,
             queryParameters: request.requestedUri.queryParameters,
           ),
         );
@@ -328,9 +329,8 @@ class DartRuntimeServiceDdsBackend
 
   @override
   Future<void> onServerStarted() async {
-    final DartRuntimeService(:httpUri, uri: wsUri) = frontend;
     try {
-      await vmServiceClient.yieldControlToDds(uri: httpUri);
+      await vmServiceClient.yieldControlToDds(uri: frontend.httpUri);
     } on vm.RPCError catch (e, st) {
       _logger.severe('Failed to yield control to DDS', e, st);
       await shutdown();
@@ -358,13 +358,8 @@ class DartRuntimeServiceDdsBackend
       DartToolingDaemon? dtdClient;
       try {
         dtdClient = await DartToolingDaemon.connect(hostedDtd.localUri);
-        final ddsWsPathSegments = [
-          ...wsUri.pathSegments.where((e) => e.isNotEmpty),
-          'ws',
-        ];
-        final ddsWsUri = wsUri.replace(pathSegments: ddsWsPathSegments);
         await dtdClient.registerVmService(
-          uri: ddsWsUri.toString(),
+          uri: _ddsWsUri().toString(),
           secret: secret,
           name: appName,
         );
@@ -397,21 +392,19 @@ class DartRuntimeServiceDdsBackend
       streamManager.onStreamCancel(streamId: streamId);
 
   Uri _convertToWebSocketUri(Uri uri) {
-    var scheme = uri.scheme;
-    if (uri.isScheme('http')) {
-      scheme = 'ws';
-    } else if (uri.isScheme('https')) {
-      scheme = 'wss';
+    final scheme = switch (uri.scheme) {
+      'http' => 'ws',
+      'https' => 'wss',
+      final other => other,
+    };
+    final pathSegments = [
+      for (final segment in uri.pathSegments)
+        if (segment.isNotEmpty) segment,
+    ];
+    if (pathSegments.lastOrNull != _wsPathSegment) {
+      pathSegments.add(_wsPathSegment);
     }
-    var path = uri.path;
-    if (!path.endsWith('/ws')) {
-      if (path.endsWith('/')) {
-        path = '${path}ws';
-      } else {
-        path = '$path/ws';
-      }
-    }
-    return uri.replace(scheme: scheme, path: path);
+    return uri.replace(scheme: scheme, pathSegments: pathSegments);
   }
 
   /// Returns the fallback location of DevTools static assets bundled in the

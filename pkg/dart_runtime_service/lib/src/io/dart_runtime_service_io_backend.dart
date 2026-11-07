@@ -20,6 +20,9 @@ import 'handlers.dart';
 /// fall through to the default handler cascade.
 typedef OptionalHandler = FutureOr<shelf.Response?> Function(shelf.Request);
 
+const _xFrameOptionsHeader = 'x-frame-options';
+const _sameOriginHeaderValue = 'SAMEORIGIN';
+
 FutureOr<shelf.Response?> _defaultHttpHandler(shelf.Request _) => null;
 
 /// Mixin for [DartRuntimeServiceBackend] implementations running on `dart:io`
@@ -98,6 +101,12 @@ mixin DartRuntimeServiceIoBackend<IM extends IsolateManager>
     }
 
     _server = server;
+    // Allow DevTools (served or redirected by the HTTP server) to be embedded
+    // in IDE iframes.
+    server.defaultResponseHeaders.remove(
+      _xFrameOptionsHeader,
+      _sameOriginHeaderValue,
+    );
     return Uri(
       scheme: 'ws',
       host: host.address,

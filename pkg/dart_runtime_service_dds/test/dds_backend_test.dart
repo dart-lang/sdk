@@ -535,6 +535,7 @@ void main() {
       final request = await client.getUrl(devToolsUri!);
       final response = await request.close();
       expect(response.statusCode, HttpStatus.ok);
+      expect(response.headers.value('x-frame-options'), isNull);
 
       final body = await response.transform(utf8.decoder).join();
       expect(body, '<html><body>DevTools</body></html>');
@@ -563,16 +564,46 @@ void main() {
     });
 
     test('redirect to external DevTools', () async {
-      late DartRuntimeServiceDdsBackend backend;
-      final service = await DartRuntimeService.initialize(
+      final externalUri = Uri.parse('http://localhost:1234/custom');
+      late DartRuntimeServiceDdsBackend disabledBackend;
+      final disabledService = await DartRuntimeService.initialize(
         config: const DartRuntimeServiceOptions(),
-        backendBuilder: (frontend) => backend = DartRuntimeServiceDdsBackend(
-          mockVmService.uri,
-          frontend: frontend,
-        ),
+        backendBuilder: (frontend) =>
+            disabledBackend = DartRuntimeServiceDdsBackend(
+              mockVmService.uri,
+              devtoolsServerAddress: externalUri,
+              frontend: frontend,
+            ),
       );
 
       final client = HttpClient();
+
+      expect(disabledBackend.devToolsUri, isNull);
+      final disabledDdsHttpUri = disabledService.httpUri;
+      final disabledDevtoolsReqUri = disabledDdsHttpUri.replace(
+        pathSegments: [
+          ...disabledDdsHttpUri.pathSegments.where((e) => e.isNotEmpty),
+          'devtools',
+        ],
+      );
+
+      final request1 = await client.getUrl(disabledDevtoolsReqUri);
+      request1.followRedirects = false;
+      final response1 = await request1.close();
+      expect(response1.statusCode, HttpStatus.notFound);
+      await response1.drain<void>();
+      await disabledService.shutdown();
+
+      late DartRuntimeServiceDdsBackend backend;
+      final service = await DartRuntimeService.initialize(
+        config: const DartRuntimeServiceOptions(serveDevTools: true),
+        backendBuilder: (frontend) => backend = DartRuntimeServiceDdsBackend(
+          mockVmService.uri,
+          devtoolsServerAddress: externalUri,
+          frontend: frontend,
+          serveDevTools: true,
+        ),
+      );
 
       final ddsHttpUri = service.httpUri;
       final devtoolsReqUri = ddsHttpUri.replace(
@@ -581,15 +612,6 @@ void main() {
           'devtools',
         ],
       );
-
-      final request1 = await client.getUrl(devtoolsReqUri);
-      request1.followRedirects = false;
-      final response1 = await request1.close();
-      expect(response1.statusCode, HttpStatus.notFound);
-      await response1.drain<void>();
-
-      final externalUri = Uri.parse('http://localhost:1234/custom');
-      backend.setExternalDevToolsUri(externalUri);
 
       expect(backend.devToolsUri, isNotNull);
       expect(
@@ -603,9 +625,27 @@ void main() {
       expect(response2.statusCode, HttpStatus.seeOther);
       expect(
         response2.headers.value(HttpHeaders.locationHeader),
-        startsWith(externalUri.toString()),
+        equals(backend.devToolsUri.toString()),
       );
       await response2.drain<void>();
+
+      final requestWithParams = await client.getUrl(
+        devtoolsReqUri.replace(
+          queryParameters: const <String, String>{'page': 'memory'},
+        ),
+      );
+      requestWithParams.followRedirects = false;
+      final responseWithParams = await requestWithParams.close();
+      expect(responseWithParams.statusCode, HttpStatus.seeOther);
+      final locationUri = Uri.parse(
+        responseWithParams.headers.value(HttpHeaders.locationHeader)!,
+      );
+      expect(locationUri.queryParameters['page'], equals('memory'));
+      expect(
+        locationUri.queryParameters['uri'],
+        equals(backend.devToolsUri!.queryParameters['uri']),
+      );
+      await responseWithParams.drain<void>();
 
       client.close();
       await service.shutdown();
