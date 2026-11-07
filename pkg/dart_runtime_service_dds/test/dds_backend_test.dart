@@ -563,6 +563,39 @@ void main() {
       await service.shutdown();
     });
 
+    test('DevTools server API exposes hosted DTD URI', () async {
+      const getDtdUriEndpointPath = 'devtools/api/getDtdUri';
+      const dtdUriKey = 'dtdUri';
+
+      late DartRuntimeServiceDdsBackend backend;
+      final service = await DartRuntimeService.initialize(
+        config: const DartRuntimeServiceOptions(serveDevTools: true),
+        backendBuilder: (frontend) => backend = DartRuntimeServiceDdsBackend(
+          mockVmService.uri,
+          frontend: frontend,
+          customDevToolsPath: tempDir.uri,
+          serveDevTools: true,
+        ),
+      );
+      addTearDown(service.shutdown);
+
+      final hostedDtd = backend.hostedDartToolingDaemon;
+      expect(hostedDtd, isNotNull);
+
+      final client = HttpClient();
+      addTearDown(client.close);
+
+      final request = await client.postUrl(
+        service.httpUri.resolve(getDtdUriEndpointPath),
+      );
+      final response = await request.close();
+      expect(response.statusCode, HttpStatus.ok);
+
+      final body = await response.transform(utf8.decoder).join();
+      final decoded = json.decode(body) as Map<String, Object?>;
+      expect(decoded[dtdUriKey], hostedDtd!.exposedUri.toString());
+    });
+
     test('redirect to external DevTools', () async {
       final externalUri = Uri.parse('http://localhost:1234/custom');
       late DartRuntimeServiceDdsBackend disabledBackend;

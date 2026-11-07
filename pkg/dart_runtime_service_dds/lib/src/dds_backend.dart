@@ -14,6 +14,7 @@ import 'package:devtools_shared/devtools_shared.dart' show DtdInfo;
 import 'package:dtd/dtd.dart';
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
 import 'package:logging/logging.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf_proxy/shelf_proxy.dart';
@@ -60,7 +61,10 @@ class DartRuntimeServiceDdsBackend
   /// The path segment for DevTools requests (e.g., 'devtools').
   static const _devtoolsPath = 'devtools';
 
-  static const _ddsUriKey = 'ddsUri';
+  /// The JSON key used to encode a DDS instance URI.
+  @internal
+  static const ddsUriKey = 'ddsUri';
+
   static const _uriQueryParameter = 'uri';
   static const _wsPathSegment = 'ws';
 
@@ -172,7 +176,15 @@ class DartRuntimeServiceDdsBackend
         ? '/${frontend.authCode}/$_devtoolsPath/'
         : '/$_devtoolsPath/';
 
-    // 2. Configure DevTools HTTP routing: either serve static assets if hosted,
+    // 2. Start the Dart Tooling Daemon (DTD) if DevTools is enabled.
+    if (serveDevTools) {
+      _hostedDartToolingDaemon = await startDtd(
+        machineMode: false,
+        printDtdUri: false,
+      );
+    }
+
+    // 3. Configure DevTools HTTP routing: either serve static assets if hosted,
     // or redirect to an external DevTools server if provided.
     if (serveDevTools && devtoolsServerAddress == null) {
       final buildDir = (customDevToolsPath ?? _getDevToolsAssetPath())
@@ -182,6 +194,7 @@ class DartRuntimeServiceDdsBackend
         appRoot: appRoot,
         buildDir: buildDir,
         disableServiceOriginCheck: frontend.config.disableOriginCheck,
+        dtd: _hostedDartToolingDaemon,
         enableLogging: frontend.config.enableLogging,
         notFoundHandler: notFoundHandler,
         serviceUriGetter: () => frontend.isServerRunning ? frontend.uri : null,
@@ -209,14 +222,6 @@ class DartRuntimeServiceDdsBackend
           ),
         );
       };
-    }
-
-    // 3. Start the Dart Tooling Daemon (DTD) if DevTools is enabled.
-    if (serveDevTools) {
-      _hostedDartToolingDaemon = await startDtd(
-        machineMode: false,
-        printDtdUri: false,
-      );
     }
 
     try {
@@ -345,7 +350,7 @@ class DartRuntimeServiceDdsBackend
       Uri? ddsUri;
       if (data != null) {
         message += ' data: $data';
-        if (data[_ddsUriKey] case final String uri) {
+        if (data[ddsUriKey] case final String uri) {
           ddsUri = Uri.tryParse(uri);
         }
       }
