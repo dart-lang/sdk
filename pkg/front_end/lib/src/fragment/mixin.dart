@@ -5,10 +5,7 @@
 part of 'fragment.dart';
 
 class MixinFragment extends DeclarationFragmentImpl implements Fragment {
-  @override
-  final String name;
-
-  final int nameOffset;
+  final UriOffsetName _uriOffsetName;
 
   SourceClassBuilder? _builder;
 
@@ -19,23 +16,25 @@ class MixinFragment extends DeclarationFragmentImpl implements Fragment {
   late final int startOffset;
   late final int endOffset;
 
-  @override
-  late final UriOffsetLength uriOffset = new UriOffsetLength(
-    fileUri,
-    nameOffset,
-    name.length,
-  );
-
   new({
-    required this.name,
-    required super.fileUri,
-    required this.nameOffset,
+    required this._uriOffsetName,
     required super.typeParameters,
     required super.enclosingScope,
     required super.typeParameterScope,
     required super.nominalParameterNameSpace,
     required super.enclosingCompilationUnit,
   });
+
+  @override
+  Uri get fileUri => _uriOffsetName.fileUri;
+
+  @override
+  String get name => _uriOffsetName.name;
+
+  int get nameOffset => _uriOffsetName.nameOffset;
+
+  @override
+  UriOffsetLength get uriOffset => _uriOffsetName;
 
   @override
   // Coverage-ignore(suite): Not run.

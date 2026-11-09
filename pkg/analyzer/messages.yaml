@@ -27823,6 +27823,66 @@ WarningCode:
       ```dart
       class D {}
       ```
+  deprecatedWebConfiguration:
+    type: staticWarning
+    parameters:
+      String libraryName: the name of the deprecated web library
+    problemMessage: "'dart:#libraryName' is deprecated and shouldn't be used as an import/export configuration."
+    correctionMessage: Try using 'dart.library.js_interop' instead.
+    hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a deprecated library is used in
+      an import configuration. The following web libraries are deprecated:
+      'dart:html', 'dart:indexed_db', 'dart:js', 'dart:js_util', 'dart:svg',
+      'dart:web_audio', 'dart:web_gl'.
+
+      #### Example
+
+      Given a package containing a file named `a.dart`:
+
+      ```dart
+      %uri="lib/src/a.dart"
+      class C {}
+      ```
+
+      a file named `a_io.dart`:
+
+      ```dart
+      %uri="lib/src/a_io.dart"
+      class C {}
+      ```
+
+      and a file named `a_web.dart`:
+
+      ```dart
+      %uri="lib/src/a_web.dart"
+      class C {}
+      ```
+
+      The following code produces this diagnostic because the configuration uses
+      the dotted identifier `dart.library.html`:
+
+      ```dart
+      import 'src/a.dart'
+          if (dart.library.io) 'src/a_io.dart'
+          if ([!dart.library.html!]) 'src/a_web.dart';
+
+      var c = C();
+      ```
+
+      #### Common fixes
+
+      The typical fix is to use the `dart.library.js_interop` configuration:
+
+      ```dart
+      import 'src/a.dart'
+          if (dart.library.io) 'src/a_io.dart'
+          if (dart.library.js_interop) 'src/a_web.dart';
+
+      var c = C();
+      ```
   docDirectiveHasExtraArguments:
     type: staticWarning
     parameters:
@@ -28059,8 +28119,9 @@ WarningCode:
       #### Description
 
       The analyzer produces this diagnostic when an export directive is found
-      that is the same as an export before it in the file. The second export
-      doesn't add value and should be removed.
+      that is the same as an export before it in the file, or in an enclosing
+      file in the part hierarchy. The second export doesn't add value and should
+      be removed.
 
       #### Example
 
@@ -28079,6 +28140,16 @@ WarningCode:
       ```dart
       export 'package:meta/meta.dart';
       ```
+  duplicateExportInPart:
+    type: staticWarning
+    parameters:
+      String fileName: the name of the file containing the duplicated export
+    sharedName: duplicateExport
+    problemMessage: "Duplicate of export in '#fileName'."
+    correctionMessage: Try removing all but one export of the library.
+    hasPublishedDocs: true
+    comment: |-
+      Duplicate exports.
   duplicateHiddenName:
     type: staticWarning
     parameters: none
@@ -28183,8 +28254,9 @@ WarningCode:
       #### Description
 
       The analyzer produces this diagnostic when an import directive is found
-      that is the same as an import before it in the file. The second import
-      doesn't add value and should be removed.
+      that is the same as an import before it in the file, or in an enclosing
+      file in the part hierarchy. The second import doesn't add value and should
+      be removed.
 
       #### Example
 
@@ -28208,6 +28280,16 @@ WarningCode:
       @sealed
       class C {}
       ```
+  duplicateImportInPart:
+    type: staticWarning
+    parameters:
+      String fileName: the name of the file containing the duplicated import
+    sharedName: duplicateImport
+    problemMessage: "Duplicate of import in '#fileName'."
+    correctionMessage: Try removing all but one import of the library.
+    hasPublishedDocs: true
+    comment: |-
+      Duplicate imports.
   duplicateShownName:
     type: staticWarning
     parameters: none
@@ -32985,6 +33067,7 @@ WarningCode:
       combinator hides `List` and `int`:
 
       ```dart
+      // @dart = 3.14
       import 'dart:core' [!show Future, List, int show Future!];
 
       var x = Future.value(1);
@@ -32994,6 +33077,7 @@ WarningCode:
       the second `hide` combinator is redundant:
 
       ```dart
+      // @dart = 3.14
       import 'dart:math' [!hide Random, max, min hide min!];
 
       var x = pi;
@@ -33003,6 +33087,7 @@ WarningCode:
       the `hide` combinator is redundant:
 
       ```dart
+      // @dart = 3.14
       import 'dart:math' [!show Random, max hide min!];
 
       var x = max(0, 1);
@@ -33014,6 +33099,7 @@ WarningCode:
       so the `hide` combinator is redundant:
 
       ```dart
+      // @dart = 3.14
       import 'dart:math' [!hide Random, max show min!];
 
       var x = min(0, 1);

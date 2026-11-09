@@ -171,9 +171,6 @@ features:
   receiver-type-inference:
     help: "Type inference of generic receivers in non-empty contexts."
 
-  single-combinators:
-    help: "Allow at most one `show` or `hide` combinator per import or export directive."
-
 # Experiment flag only used for testing.
   test-experiment:
     help: >-
@@ -209,6 +206,10 @@ features:
         }
         print(o.message);
       }
+
+  single-combinators:
+    enabledIn: '3.15.0'
+    help: "Allow at most one `show` or `hide` combinator per import or export directive."
 
   this-promotion:
     enabledIn: '3.15.0'

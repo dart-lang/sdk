@@ -6,6 +6,7 @@ import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart'
     show CfeSeverity;
+import 'package:front_end/src/base/uris.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart';
@@ -96,24 +97,28 @@ class KernelTarget {
     const PredefinedTypeName("dynamic"),
     const NullabilityBuilder.inherent(),
     instanceTypeParameterAccess: InstanceTypeParameterAccessState.Unexpected,
+    uriOffset: dartCoreUriOffset,
   );
 
   final NamedTypeBuilder intType = new NamedTypeBuilderImpl(
     const PredefinedTypeName("int"),
     const NullabilityBuilder.omitted(),
     instanceTypeParameterAccess: InstanceTypeParameterAccessState.Unexpected,
+    uriOffset: dartCoreUriOffset,
   );
 
   final NamedTypeBuilder stringType = new NamedTypeBuilderImpl(
     const PredefinedTypeName("String"),
     const NullabilityBuilder.omitted(),
     instanceTypeParameterAccess: InstanceTypeParameterAccessState.Unexpected,
+    uriOffset: dartCoreUriOffset,
   );
 
   final NamedTypeBuilder objectType = new NamedTypeBuilderImpl(
     const PredefinedTypeName("Object"),
     const NullabilityBuilder.omitted(),
     instanceTypeParameterAccess: InstanceTypeParameterAccessState.Unexpected,
+    uriOffset: dartCoreUriOffset,
   );
 
   // Null is always nullable.
@@ -123,6 +128,7 @@ class KernelTarget {
     const PredefinedTypeName("Null"),
     const NullabilityBuilder.inherent(),
     instanceTypeParameterAccess: InstanceTypeParameterAccessState.Unexpected,
+    uriOffset: dartCoreUriOffset,
   );
 
   // TODO(johnniwinther): Why isn't this using a FixedTypeBuilder?
@@ -130,18 +136,21 @@ class KernelTarget {
     const PredefinedTypeName("Never"),
     const NullabilityBuilder.omitted(),
     instanceTypeParameterAccess: InstanceTypeParameterAccessState.Unexpected,
+    uriOffset: dartCoreUriOffset,
   );
 
   final NamedTypeBuilder enumType = new NamedTypeBuilderImpl(
     const PredefinedTypeName("Enum"),
     const NullabilityBuilder.omitted(),
     instanceTypeParameterAccess: InstanceTypeParameterAccessState.Unexpected,
+    uriOffset: dartCoreUriOffset,
   );
 
   final NamedTypeBuilder underscoreEnumType = new NamedTypeBuilderImpl(
     const PredefinedTypeName("_Enum"),
     const NullabilityBuilder.omitted(),
     instanceTypeParameterAccess: InstanceTypeParameterAccessState.Unexpected,
+    uriOffset: dartCoreUriOffset,
   );
 
   bool get excludeSource => !context.options.embedSourceText;

@@ -24,6 +24,7 @@ import '../base/configuration.dart';
 import '../base/extension_scope.dart';
 import '../base/identifiers.dart';
 import '../base/modifiers.dart';
+import '../base/uri_offset.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/fixed_type_builder.dart';
 import '../builder/formal_parameter_builder.dart';
@@ -295,45 +296,39 @@ final MetadataBuilder dummyMetadataBuilder = new MetadataBuilder(
 );
 final TypeBuilder dummyTypeBuilder = new FixedTypeBuilderImpl(
   dummyDartType,
-  dummyUri,
-  -1,
+  dummyUriOffset,
 );
 final CatchParameterBuilder dummyCatchParameterBuilder =
     new CatchParameterBuilder(
       modifiers: Modifiers.empty,
-      type: const ImplicitTypeBuilder(),
+      type: new ImplicitTypeBuilder(dummyUriOffset),
       name: '',
-      fileOffset: -1,
-      nameOffset: null,
-      fileUri: dummyUri,
+      uriOffset: dummyUriOffset,
     );
 final AnonymousMethodParameterBuilder dummyAnonymousMethodParameterBuilder =
     new AnonymousMethodParameterBuilder(
       modifiers: Modifiers.empty,
-      type: const ImplicitTypeBuilder(),
+      type: new ImplicitTypeBuilder(dummyUriOffset),
       name: '',
-      fileOffset: -1,
-      nameOffset: null,
-      fileUri: dummyUri,
+      uriOffset: dummyUriOffset,
       kind: FormalParameterKind.requiredPositional,
     );
 final FormalParameterBuilder dummyFormalParameterBuilder =
     new FormalParameterBuilder(
       kind: FormalParameterKind.requiredPositional,
       modifiers: Modifiers.empty,
-      type: const ImplicitTypeBuilder(),
+      type: new ImplicitTypeBuilder(dummyUriOffset),
       name: '',
-      fileOffset: -1,
+      uriOffset: dummyUriOffset,
       nameOffset: null,
-      fileUri: dummyUri,
       hasImmediatelyDeclaredDefaultValue: false,
     );
 final FunctionTypeParameterBuilder dummyFunctionTypeParameterBuilder =
     new FunctionTypeParameterBuilder(
       kind: FormalParameterKind.requiredPositional,
-      type: const ImplicitTypeBuilder(),
+      type: new ImplicitTypeBuilder(dummyUriOffset),
       name: '',
-      fileOffset: -1,
+      uriOffset: dummyUriOffset,
       isWildcard: false,
     );
 final NominalParameterBuilder dummyNominalVariableBuilder =
@@ -342,16 +337,13 @@ final NominalParameterBuilder dummyNominalVariableBuilder =
         name: NominalParameterBuilder.noNameSentinel,
         kind: TypeParameterKind.function,
         isWildcard: false,
-        fileOffset: -1,
-        fileUri: dummyUri,
+        uriOffset: dummyUriOffset,
       ),
     );
 final TypeParameterFragment dummyTypeParameterFragment =
     new TypeParameterFragment(
       metadata: null,
-      name: '',
-      nameOffset: -1,
-      fileUri: dummyUri,
+      uriOffsetName: dummyUriOffsetName,
       kind: TypeParameterKind.function,
       isWildcard: false,
       variableName: '',
@@ -363,8 +355,7 @@ final SourceStructuralParameterBuilder dummyStructuralVariableBuilder =
       new RegularStructuralParameterDeclaration(
         metadata: null,
         name: StructuralParameterBuilder.noNameSentinel,
-        fileOffset: -1,
-        fileUri: dummyUri,
+        uriOffset: dummyUriOffset,
         isWildcard: false,
       ),
     );
@@ -380,6 +371,8 @@ final FieldInfo dummyFieldInfo = new FieldInfo(
 final Configuration dummyConfiguration = new Configuration(-1, '', '', '');
 final LookupScope dummyLookupScope = new _DummyLookupScope();
 final ExtensionScope dummyExtensionScope = new _DummyExtensionScope();
+final UriOffsetLength dummyUriOffset = new UriOffset(dummyUri, -1);
+final UriOffsetName dummyUriOffsetName = new UriOffsetName(dummyUri, '', -1);
 
 // Coverage-ignore(suite): Not run.
 class _DummyLookupScope implements LookupScope {

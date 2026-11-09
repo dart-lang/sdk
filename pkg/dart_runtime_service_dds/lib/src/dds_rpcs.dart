@@ -52,6 +52,10 @@ class DdsRpcHandlers {
   static const _kSendDapRequest = 'sendDapRequest';
   static const _kSetLogHistorySize = 'setLogHistorySize';
 
+  static const _kHistoryKey = 'history';
+  static const _kStreamHistoryType = 'StreamHistory';
+  static const _kTypeKey = 'type';
+
   /// Returns the unmodifiable list of RPC handlers provided by DDS.
   UnmodifiableListView<ServiceRpcHandler> get rpcs => UnmodifiableListView([
     (_kCreateIdZone, createIdZone),
@@ -191,9 +195,12 @@ class DdsRpcHandlers {
         "Event history is not collected for stream '$stream'",
       );
     }
-    return StreamHistory(
-      history: history.map(vm.Event.parse).whereType<vm.Event>().toList(),
-    ).toJson();
+    // Return the raw event maps directly rather than parsing each map into a
+    // [vm.Event] just to pass into [StreamHistory.toJson].
+    return <String, Object?>{
+      _kTypeKey: _kStreamHistoryType,
+      _kHistoryKey: history,
+    };
   }
 
   /// Handles the `getSupportedProtocols` RPC.

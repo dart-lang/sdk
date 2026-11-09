@@ -5,6 +5,8 @@
 #include <setjmp.h>  // NOLINT
 #include <stdlib.h>
 
+#include <cmath>
+
 #include "vm/globals.h"
 #if defined(TARGET_ARCH_ARM)
 
@@ -2925,6 +2927,10 @@ static void simd_value_swap(simd_value_t* s1,
   s2->u32[i2] = tmp;
 }
 
+static float NeonFlushToZero(float f) {
+  return std::fpclassify(f) == FP_SUBNORMAL ? std::copysign(0.0f, f) : f;
+}
+
 static float vminf(float f1, float f2) {
   // VMIN.F32 propagates a NaN when either operand is a NaN.
   if (isnan(f1)) return f1;
@@ -3156,13 +3162,15 @@ void Simulator::DecodeSIMDDataProcessing(Instr* instr) {
                (instr->Bits(20, 2) == 2) && (instr->Bits(23, 2) == 0)) {
       // Format(instr, "vminqs 'qd, 'qn, 'qm");
       for (int i = 0; i < 4; i++) {
-        s8d.f32[i] = vminf(s8n.f32[i], s8m.f32[i]);
+        s8d.f32[i] =
+            vminf(NeonFlushToZero(s8n.f32[i]), NeonFlushToZero(s8m.f32[i]));
       }
     } else if ((instr->Bits(8, 4) == 15) && (instr->Bit(4) == 0) &&
                (instr->Bits(20, 2) == 0) && (instr->Bits(23, 2) == 0)) {
       // Format(instr, "vmaxqs 'qd, 'qn, 'qm");
       for (int i = 0; i < 4; i++) {
-        s8d.f32[i] = vmaxf(s8n.f32[i], s8m.f32[i]);
+        s8d.f32[i] =
+            vmaxf(NeonFlushToZero(s8n.f32[i]), NeonFlushToZero(s8m.f32[i]));
       }
     } else if ((instr->Bits(8, 4) == 7) && (instr->Bit(4) == 0) &&
                (instr->Bits(20, 2) == 3) && (instr->Bits(23, 2) == 3) &&

@@ -7,6 +7,7 @@ import 'package:kernel/ast.dart';
 import '../base/lookup_result.dart';
 import '../base/name_space.dart';
 import '../base/scope.dart';
+import '../base/uri_offset.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/member_builder.dart';
 import '../builder/type_builder.dart';
@@ -203,6 +204,9 @@ class DillExtensionBuilder extends ExtensionBuilderImpl
   }
 
   @override
+  UriOffsetLength get uriOffset => new UriOffset(fileUri, fileOffset);
+
+  @override
   DillLibraryBuilder get parent => libraryBuilder;
 
   @override
@@ -254,6 +258,7 @@ class DillExtensionBuilder extends ExtensionBuilderImpl
       _typeParameters = computeTypeParameterBuilders(
         extension.typeParameters,
         libraryBuilder.loader,
+        fileUri: fileUri,
       );
     }
     return _typeParameters;
@@ -262,7 +267,8 @@ class DillExtensionBuilder extends ExtensionBuilderImpl
   @override
   TypeBuilder get onType {
     return _onType ??= libraryBuilder.loader.computeTypeBuilder(
-      extension.onType,
+      type: extension.onType,
+      uriOffset: uriOffset,
     );
   }
 

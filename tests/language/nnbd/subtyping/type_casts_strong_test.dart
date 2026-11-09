@@ -97,6 +97,70 @@ doTests() {
   Expect.throwsTypeError(() {
     wny.asXT(new X<dynamic>());
   });
+
+  // Testing 'arg as X<T>', T = Function
+  final wf = new W<Function>();
+  wf.asXT(new X<Function>());
+  wf.asXT(new X<void Function()>());
+  Expect.throwsTypeError(() => wf.asXT(new X<Function?>()));
+  Expect.throwsTypeError(() => wf.asXT(new X<void Function()?>()));
+  Expect.throwsTypeError(() => wf.asXT(new X<Record>()));
+  Expect.throwsTypeError(() => wf.asXT(new X<(int,)>()));
+
+  // Testing 'arg as X<T>', T = Function?
+  final wnf = new W<Function?>();
+  wnf.asXT(new X<Function>());
+  wnf.asXT(new X<Function?>());
+  wnf.asXT(new X<void Function()>());
+  wnf.asXT(new X<void Function()?>());
+  Expect.throwsTypeError(() => wnf.asXT(new X<Record>()));
+  Expect.throwsTypeError(() => wnf.asXT(new X<(int,)>()));
+
+  // Testing 'arg as X<T>', T = void Function()
+  final wft = new W<void Function()>();
+  wft.asXT(new X<void Function()>());
+  Expect.throwsTypeError(() => wft.asXT(new X<void Function()?>()));
+  Expect.throwsTypeError(() => wft.asXT(new X<Function>()));
+  Expect.throwsTypeError(() => wft.asXT(new X<Function?>()));
+
+  // Testing 'arg as X<T>', T = void Function()?
+  final wnft = new W<void Function()?>();
+  wnft.asXT(new X<void Function()>());
+  wnft.asXT(new X<void Function()?>());
+  Expect.throwsTypeError(() => wnft.asXT(new X<Function>()));
+  Expect.throwsTypeError(() => wnft.asXT(new X<Function?>()));
+
+  // Testing 'arg as X<T>', T = Record
+  final wr = new W<Record>();
+  wr.asXT(new X<Record>());
+  wr.asXT(new X<(int,)>());
+  Expect.throwsTypeError(() => wr.asXT(new X<Record?>()));
+  Expect.throwsTypeError(() => wr.asXT(new X<(int,)?>()));
+  Expect.throwsTypeError(() => wr.asXT(new X<Function>()));
+  Expect.throwsTypeError(() => wr.asXT(new X<void Function()>()));
+
+  // Testing 'arg as X<T>', T = Record?
+  final wnr = new W<Record?>();
+  wnr.asXT(new X<Record>());
+  wnr.asXT(new X<Record?>());
+  wnr.asXT(new X<(int,)>());
+  wnr.asXT(new X<(int,)?>());
+  Expect.throwsTypeError(() => wnr.asXT(new X<Function>()));
+  Expect.throwsTypeError(() => wnr.asXT(new X<void Function()>()));
+
+  // Testing 'arg as X<T>', T = (int,)
+  final wrt = new W<(int,)>();
+  wrt.asXT(new X<(int,)>());
+  Expect.throwsTypeError(() => wrt.asXT(new X<(int,)?>()));
+  Expect.throwsTypeError(() => wrt.asXT(new X<Record>()));
+  Expect.throwsTypeError(() => wrt.asXT(new X<Record?>()));
+
+  // Testing 'arg as X<T>', T = (int,)?
+  final wnrt = new W<(int,)?>();
+  wnrt.asXT(new X<(int,)>());
+  wnrt.asXT(new X<(int,)?>());
+  Expect.throwsTypeError(() => wnrt.asXT(new X<Record>()));
+  Expect.throwsTypeError(() => wnrt.asXT(new X<Record?>()));
 }
 
 main() {

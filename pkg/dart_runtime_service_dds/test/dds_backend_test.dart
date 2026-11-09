@@ -23,6 +23,7 @@ class MockVmService {
   final HttpServer server;
   final int port;
   final clients = <json_rpc.Peer>[];
+  final unsupportedStreams = <String>{};
   Uri? existingDdsUri;
   int? yieldControlErrorCode;
 
@@ -77,6 +78,12 @@ class MockVmService {
       });
 
       peer.registerMethod('streamListen', (json_rpc.Parameters params) {
+        final streamId = params['streamId'].asString;
+        if (mock.unsupportedStreams.contains(streamId)) {
+          throw json_rpc.RpcException.invalidParams(
+            "streamListen: invalid 'streamId' parameter: $streamId",
+          );
+        }
         return vm.Success().toJson();
       });
 
@@ -123,6 +130,15 @@ class MockVmService {
     for (final client in clients) {
       client.registerMethod(method, (json_rpc.Parameters params) {
         return Completer<Object?>().future;
+      });
+    }
+  }
+
+  void sendStreamNotify(String streamId, Map<String, Object?> event) {
+    for (final client in clients) {
+      client.sendNotification('streamNotify', <String, Object?>{
+        'streamId': streamId,
+        'event': event,
       });
     }
   }
@@ -230,6 +246,133 @@ void main() {
       expect(timeline.timeOriginMicros, 1);
       expect(timeline.timeExtentMicros, 1000);
       expect(utf8.decode(base64Decode(timeline.trace!)), 'vm-timeline');
+    });
+
+    test(
+      'getAvailableCachedCpuSamples and getCachedCpuSamples return deprecated '
+      'placeholder values',
+      () async {
+        final serialized = CachedCpuSamples(
+          userTag: 'customTag',
+          truncated: false,
+          samplePeriod: -1,
+          maxStackDepth: -1,
+          sampleCount: -1,
+          timeOriginMicros: -1,
+          timeExtentMicros: -1,
+          pid: -1,
+          functions: <vm.ProfileFunction>[],
+          samples: <vm.CpuSample>[],
+        ).toJson();
+        final parsed = CachedCpuSamples.parse(serialized);
+        expect(parsed, isNotNull);
+        expect(parsed!.type, 'CachedCpuSamples');
+        expect(parsed.userTag, 'customTag');
+        expect(parsed.truncated, isFalse);
+
+        // ignore: deprecated_member_use
+        final available = await ddsClient!.getAvailableCachedCpuSamples();
+        expect(available.cacheNames, isEmpty);
+
+        // ignore: deprecated_member_use
+        final samples = await ddsClient!.getCachedCpuSamples(
+          'isolates/1',
+          'fakeTag',
+        );
+        expect(samples.type, 'CachedCpuSamples');
+        expect(samples.userTag, '');
+        expect(samples.truncated, isNull);
+        expect(samples.toJson().containsKey('truncated'), isFalse);
+        expect(samples.samplePeriod, -1);
+        expect(samples.maxStackDepth, -1);
+        expect(samples.sampleCount, -1);
+        expect(samples.timeOriginMicros, -1);
+        expect(samples.timeExtentMicros, -1);
+        expect(samples.pid, -1);
+        expect(samples.functions, isEmpty);
+        expect(samples.samples, isEmpty);
+      },
+    );
+
+    test('getStreamHistory returns buffered raw events and rejects unsupported '
+        'streams', () async {
+      final nullInstanceRef = vm.InstanceRef(
+        kind: vm.InstanceKind.kNull,
+        id: 'objects/null',
+        valueAsString: 'null',
+      );
+      final messageRef = vm.InstanceRef(
+        kind: vm.InstanceKind.kString,
+        id: 'objects/1',
+        valueAsString: 'hello history',
+      );
+      final event = vm.Event(
+        kind: vm.EventKind.kLogging,
+        timestamp: 123456,
+        logRecord: vm.LogRecord(
+          sequenceNumber: 1,
+          time: 123456,
+          level: 800,
+          loggerName: nullInstanceRef,
+          message: messageRef,
+          zone: nullInstanceRef,
+          error: nullInstanceRef,
+          stackTrace: nullInstanceRef,
+        ),
+      );
+      final eventFuture = ddsClient!.onLoggingEvent.first;
+      await ddsClient!.streamListen(vm.EventStreams.kLogging);
+      mockVmService!.sendStreamNotify(vm.EventStreams.kLogging, event.toJson());
+      await eventFuture;
+
+      final streamHistory = await ddsClient!.getStreamHistory(
+        vm.EventStreams.kLogging,
+      );
+      expect(streamHistory.history, hasLength(1));
+      final recordedEvent = streamHistory.history.single;
+      expect(recordedEvent.kind, vm.EventKind.kLogging);
+      expect(recordedEvent.timestamp, 123456);
+      final recordedLog = recordedEvent.logRecord!;
+      expect(recordedLog.sequenceNumber, 1);
+      expect(recordedLog.time, 123456);
+      expect(recordedLog.level, 800);
+      expect(recordedLog.message, messageRef);
+      expect(recordedLog.loggerName, nullInstanceRef);
+      expect(recordedLog.zone, nullInstanceRef);
+      expect(recordedLog.error, nullInstanceRef);
+      expect(recordedLog.stackTrace, nullInstanceRef);
+
+      await expectLater(
+        ddsClient!.getStreamHistory(vm.EventStreams.kIsolate),
+        throwsA(
+          isA<vm.RPCError>().having(
+            (e) => e.code,
+            'code',
+            vm.RPCErrorKind.kInvalidParams.code,
+          ),
+        ),
+      );
+    });
+
+    test('getStreamHistory returns empty history when target VM rejects Timer '
+        'streamListen', () async {
+      mockVmService!.unsupportedStreams.add(vm.EventStreams.kTimer);
+      final service = await DartRuntimeService.initialize(
+        config: const DartRuntimeServiceOptions(),
+        backendBuilder: (frontend) => DartRuntimeServiceDdsBackend(
+          mockVmService!.uri,
+          frontend: frontend,
+        ),
+      );
+      addTearDown(service.shutdown);
+
+      final client = await vmServiceConnectUri(service.uri.toString());
+      addTearDown(client.dispose);
+
+      final timerHistory = await client.getStreamHistory(
+        vm.EventStreams.kTimer,
+      );
+      expect(timerHistory.history, isEmpty);
     });
 
     test('does not start DTD when serveDevTools is false', () async {
@@ -392,25 +535,108 @@ void main() {
       final request = await client.getUrl(devToolsUri!);
       final response = await request.close();
       expect(response.statusCode, HttpStatus.ok);
+      expect(response.headers.value('x-frame-options'), isNull);
 
       final body = await response.transform(utf8.decoder).join();
       expect(body, '<html><body>DevTools</body></html>');
+
+      // Cross-site iframe navigation to /devtools/ should succeed (200 OK),
+      // while cross-site no-Origin GET to /devtools/api/ping should be rejected
+      // (403 Forbidden).
+      final iframeDocRequest = await client.getUrl(devToolsUri);
+      iframeDocRequest.headers.set('Sec-Fetch-Site', 'cross-site');
+      iframeDocRequest.headers.set('Sec-Fetch-Dest', 'iframe');
+      final iframeDocResponse = await iframeDocRequest.close();
+      expect(iframeDocResponse.statusCode, HttpStatus.ok);
+      await iframeDocResponse.drain<void>();
+
+      final iframeApiRequest = await client.getUrl(
+        devToolsUri.resolve('api/ping'),
+      );
+      iframeApiRequest.headers.set('Sec-Fetch-Site', 'cross-site');
+      iframeApiRequest.headers.set('Sec-Fetch-Dest', 'iframe');
+      final iframeApiResponse = await iframeApiRequest.close();
+      expect(iframeApiResponse.statusCode, HttpStatus.forbidden);
+      await iframeApiResponse.drain<void>();
 
       client.close();
       await service.shutdown();
     });
 
-    test('redirect to external DevTools', () async {
+    test('DevTools server API exposes hosted DTD URI', () async {
+      const getDtdUriEndpointPath = 'devtools/api/getDtdUri';
+      const dtdUriKey = 'dtdUri';
+
       late DartRuntimeServiceDdsBackend backend;
       final service = await DartRuntimeService.initialize(
-        config: const DartRuntimeServiceOptions(),
+        config: const DartRuntimeServiceOptions(serveDevTools: true),
         backendBuilder: (frontend) => backend = DartRuntimeServiceDdsBackend(
           mockVmService.uri,
           frontend: frontend,
+          customDevToolsPath: tempDir.uri,
+          serveDevTools: true,
         ),
+      );
+      addTearDown(service.shutdown);
+
+      final hostedDtd = backend.hostedDartToolingDaemon;
+      expect(hostedDtd, isNotNull);
+
+      final client = HttpClient();
+      addTearDown(client.close);
+
+      final request = await client.postUrl(
+        service.httpUri.resolve(getDtdUriEndpointPath),
+      );
+      final response = await request.close();
+      expect(response.statusCode, HttpStatus.ok);
+
+      final body = await response.transform(utf8.decoder).join();
+      final decoded = json.decode(body) as Map<String, Object?>;
+      expect(decoded[dtdUriKey], hostedDtd!.exposedUri.toString());
+    });
+
+    test('redirect to external DevTools', () async {
+      final externalUri = Uri.parse('http://localhost:1234/custom');
+      late DartRuntimeServiceDdsBackend disabledBackend;
+      final disabledService = await DartRuntimeService.initialize(
+        config: const DartRuntimeServiceOptions(),
+        backendBuilder: (frontend) =>
+            disabledBackend = DartRuntimeServiceDdsBackend(
+              mockVmService.uri,
+              devtoolsServerAddress: externalUri,
+              frontend: frontend,
+            ),
       );
 
       final client = HttpClient();
+
+      expect(disabledBackend.devToolsUri, isNull);
+      final disabledDdsHttpUri = disabledService.httpUri;
+      final disabledDevtoolsReqUri = disabledDdsHttpUri.replace(
+        pathSegments: [
+          ...disabledDdsHttpUri.pathSegments.where((e) => e.isNotEmpty),
+          'devtools',
+        ],
+      );
+
+      final request1 = await client.getUrl(disabledDevtoolsReqUri);
+      request1.followRedirects = false;
+      final response1 = await request1.close();
+      expect(response1.statusCode, HttpStatus.notFound);
+      await response1.drain<void>();
+      await disabledService.shutdown();
+
+      late DartRuntimeServiceDdsBackend backend;
+      final service = await DartRuntimeService.initialize(
+        config: const DartRuntimeServiceOptions(serveDevTools: true),
+        backendBuilder: (frontend) => backend = DartRuntimeServiceDdsBackend(
+          mockVmService.uri,
+          devtoolsServerAddress: externalUri,
+          frontend: frontend,
+          serveDevTools: true,
+        ),
+      );
 
       final ddsHttpUri = service.httpUri;
       final devtoolsReqUri = ddsHttpUri.replace(
@@ -419,15 +645,6 @@ void main() {
           'devtools',
         ],
       );
-
-      final request1 = await client.getUrl(devtoolsReqUri);
-      request1.followRedirects = false;
-      final response1 = await request1.close();
-      expect(response1.statusCode, HttpStatus.notFound);
-      await response1.drain<void>();
-
-      final externalUri = Uri.parse('http://localhost:1234/custom');
-      backend.setExternalDevToolsUri(externalUri);
 
       expect(backend.devToolsUri, isNotNull);
       expect(
@@ -441,9 +658,27 @@ void main() {
       expect(response2.statusCode, HttpStatus.seeOther);
       expect(
         response2.headers.value(HttpHeaders.locationHeader),
-        startsWith(externalUri.toString()),
+        equals(backend.devToolsUri.toString()),
       );
       await response2.drain<void>();
+
+      final requestWithParams = await client.getUrl(
+        devtoolsReqUri.replace(
+          queryParameters: const <String, String>{'page': 'memory'},
+        ),
+      );
+      requestWithParams.followRedirects = false;
+      final responseWithParams = await requestWithParams.close();
+      expect(responseWithParams.statusCode, HttpStatus.seeOther);
+      final locationUri = Uri.parse(
+        responseWithParams.headers.value(HttpHeaders.locationHeader)!,
+      );
+      expect(locationUri.queryParameters['page'], equals('memory'));
+      expect(
+        locationUri.queryParameters['uri'],
+        equals(backend.devToolsUri!.queryParameters['uri']),
+      );
+      await responseWithParams.drain<void>();
 
       client.close();
       await service.shutdown();

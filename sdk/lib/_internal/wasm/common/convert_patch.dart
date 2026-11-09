@@ -1882,6 +1882,11 @@ class _JsonStringDecoderSink extends StringConversionSinkBase {
   }
 
   void addSlice(String chunk, int start, int end, bool isLast) {
+    if (start != 0) {
+      chunk = chunk.substring(start, end);
+      end -= start;
+      start = 0;
+    }
     final parser = _stringParser;
     parser.setNewChunk(chunk, end);
     parser.parse(start);
@@ -2268,6 +2273,7 @@ class _Utf8Decoder {
       );
     }
 
+    _bomIndex = -1;
     String result = '';
     const maxBytes = _maxChunkSizeInBytes;
     final int chunks = length ~/ maxBytes;
@@ -2296,6 +2302,17 @@ class _Utf8Decoder {
       start += remaining;
     }
     assert(start == end);
+    if (_state > afterBom) {
+      _state = initial;
+      if (!allowMalformed) {
+        throw FormatException(
+          errorDescription(errorUnfinished),
+          codeUnits,
+          errorOffset + end,
+        );
+      }
+      result += String.fromCharCode(unicodeReplacementCharacterRune);
+    }
     return result;
   }
 
@@ -2658,7 +2675,7 @@ class _Utf8Decoder {
 
   String decode16(WasmArray<WasmI8> bytes, int start, int end, int size) {
     assert(start < end);
-    assert(size <= _characterArraySize);
+    assert(end - start <= _maxChunkSizeInBytes);
 
     int i = start;
     int j = 0;

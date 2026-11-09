@@ -204,6 +204,37 @@ int f() {
     ]);
   }
 
+  Future<void> test_enum_privateEnumInSameLibrary() async {
+    await resolveTestCode('''
+enum _E {
+  _first, _second, _third
+}
+
+int f(_E x) {
+  return switch (x) {
+    _E._first => 0,
+  };
+}
+''');
+    await assertHasFixes([
+      '''
+enum _E {
+  _first, _second, _third
+}
+
+int f(_E x) {
+  return switch (x) {
+    _E._first => 0,
+    // TODO: Handle this case.
+    _E._second => throw UnimplementedError(),
+    // TODO: Handle this case.
+    _E._third => throw UnimplementedError(),
+  };
+}
+''',
+    ], filter: (e) => e.diagnosticCode == diag.nonExhaustiveSwitchExpression);
+  }
+
   Future<void> test_enum_privateMemberInOtherLibrary() async {
     newFile('$testPackageLibPath/a.dart', r'''
 enum E {
@@ -931,6 +962,39 @@ int f(S x) {
 }
 ''',
     ]);
+  }
+
+  Future<void> test_sealed_privateSealedInSameLibrary() async {
+    await resolveTestCode('''
+sealed class _S;
+class _A extends _S;
+class _B extends _S;
+class _C extends _S;
+
+int f(_S x) {
+  return switch (x) {
+    _A() => 0,
+  };
+}
+''');
+    await assertHasFixes([
+      '''
+sealed class _S;
+class _A extends _S;
+class _B extends _S;
+class _C extends _S;
+
+int f(_S x) {
+  return switch (x) {
+    _A() => 0,
+    // TODO: Handle this case.
+    _B() => throw UnimplementedError(),
+    // TODO: Handle this case.
+    _C() => throw UnimplementedError(),
+  };
+}
+''',
+    ], filter: (e) => e.diagnosticCode == diag.nonExhaustiveSwitchExpression);
   }
 }
 

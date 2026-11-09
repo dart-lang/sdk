@@ -328,7 +328,7 @@ abstract class AnalysisServer {
     PluginManager? pluginManager,
     MessageSchedulerListener? messageSchedulerListener,
     this.performanceLogger,
-    required bool usePlugins,
+    required bool? usePlugins,
     Map<String, String>? environment,
   }) : resourceProvider = OverlayResourceProvider(
          TimingResourceProvider(baseResourceProvider),
@@ -365,6 +365,13 @@ abstract class AnalysisServer {
       resourceProvider,
       pluginManager,
       pluginsAreEnabled: usePlugins,
+      trust: options.trustPlugins,
+      alwaysTrust: options.alwaysTrustPlugins,
+      neverTrust: options.neverTrustPlugins,
+      includedPaths: () => contextManager.includedPaths,
+      onUnseenUntrustedPluginDirectory: (message) {
+        showMessageToUser(MessageType.warning, message);
+      },
     );
 
     var logName = options.newAnalysisDriverLog;
@@ -796,7 +803,7 @@ abstract class AnalysisServer {
   ///
   /// Configuration is requested for the whole workspace and additionally for
   /// each of [configurationWorkspaceFolders].
-  Future<void> fetchClientConfiguration() async {
+  Future<void> fetchClientConfiguration(String reason) async {
     if (!(editorClientCapabilities?.configuration ?? false)) {
       return;
     }
@@ -851,13 +858,13 @@ abstract class AnalysisServer {
       // affect the roots (such as excluded folders) have no effect either, so
       // skipping the re-analysis only matters for a change that affects both.
       if (lspClientConfiguration.affectsAnalysisRoots(oldGlobalConfig)) {
-        await refreshAnalysisRoots();
+        await refreshAnalysisRoots(reason);
       } else if (lspClientConfiguration.affectsAnalysisResults(
         oldGlobalConfig,
       )) {
         // Some settings affect analysis results and require re-analysis
         // (such as showTodos).
-        await reanalyze();
+        await reanalyze(reason);
       }
     }
   }
@@ -1193,8 +1200,8 @@ abstract class AnalysisServer {
 
   /// Read all files, resolve all URIs, and perform required analysis in
   /// all current analysis drivers.
-  Future<void> reanalyze() async {
-    await contextManager.refresh();
+  Future<void> reanalyze(String reason) async {
+    await contextManager.refresh(reason);
   }
 
   /// Recomputes the analysis roots because client configuration that affects
@@ -1204,7 +1211,7 @@ abstract class AnalysisServer {
   /// server. Other clients set their roots explicitly (for the legacy protocol
   /// with `analysis.setAnalysisRoots`) so there is nothing to do here.
   @protected
-  Future<void> refreshAnalysisRoots() async {}
+  Future<void> refreshAnalysisRoots(String reason) async {}
 
   /// Report analytics data related to the number and size of files that were
   /// analyzed.
@@ -1387,6 +1394,17 @@ abstract class AnalysisServer {
     StackTrace? stackTrace, {
     bool fatal = false,
   });
+
+  /// Sends a `window/showMessage` notification to the client.
+  void showMessageToUser(MessageType type, String message) {
+    sendLspNotification(
+      lsp.NotificationMessage(
+        method: lsp.Method.window_showMessage,
+        params: lsp.ShowMessageParams(type: type.forLsp, message: message),
+        jsonrpc: lsp.jsonRpcVersion,
+      ),
+    );
+  }
 
   /// Shows the user a prompt with some actions to select from using
   /// 'window/showMessageRequest'.

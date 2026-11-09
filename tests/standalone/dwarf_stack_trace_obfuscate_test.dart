@@ -8,7 +8,6 @@ import 'dart:io';
 
 import 'package:expect/config.dart';
 import 'package:native_stack_traces/native_stack_traces.dart';
-import 'package:path/path.dart' as path;
 
 import 'dwarf_stack_trace_test.dart' as base;
 
@@ -40,16 +39,7 @@ Future<void> main() async {
     return; // Generated dwarf.so not available on the test device.
   }
 
-  if (Platform.script.toString().endsWith(".dll")) {
-    return; // DWARF not available in DLLs.
-  }
-
-  final dwarf = Dwarf.fromFile(
-    path.join(
-      Platform.environment['TEST_COMPILATION_DIR']!,
-      "dwarf_obfuscate.so",
-    ),
-  )!;
+  final dwarf = base.debugInfo("dwarf_obfuscate.so");
 
   await base.checkStackTrace(rawStack, dwarf, expectedCallsInfo);
 }
@@ -61,14 +51,14 @@ final expectedCallsInfo = <List<DartCallInfo>>[
     DartCallInfo(
       function: "bar",
       filename: "dwarf_stack_trace_obfuscate_test.dart",
-      line: 18,
+      line: 17,
       column: 3,
       inlined: true,
     ),
     DartCallInfo(
       function: "foo",
       filename: "dwarf_stack_trace_obfuscate_test.dart",
-      line: 24,
+      line: 23,
       column: 3,
       inlined: false,
     ),
@@ -78,7 +68,7 @@ final expectedCallsInfo = <List<DartCallInfo>>[
     DartCallInfo(
       function: "main",
       filename: "dwarf_stack_trace_obfuscate_test.dart",
-      line: 30,
+      line: 29,
       column: 5,
       inlined: false,
     ),

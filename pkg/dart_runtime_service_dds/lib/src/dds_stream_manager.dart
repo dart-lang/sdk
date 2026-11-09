@@ -40,6 +40,13 @@ final class DdsStreamManager {
   static const _kStderrStream = vm.EventStreams.kStderr;
   static const _kExtensionStream = vm.EventStreams.kExtension;
 
+  static const _kDestinationStreamKey = '__destinationStream';
+  static const _kIncludePrivateMembersKey = '_includePrivateMembers';
+  static const _kIncludePrivateMembersParam = 'includePrivateMembers';
+  static const _kSetStreamIncludePrivateMembersRpc =
+      '_setStreamIncludePrivateMembers';
+  static const _kStreamIdParam = 'streamId';
+
   static const _isolateManagerStreams = <String>{
     vm.EventStreams.kDebug,
     vm.EventStreams.kIsolate,
@@ -56,18 +63,18 @@ final class DdsStreamManager {
   static final _ddsCoreStreams = <String>{
     ..._isolateManagerStreams,
     ..._loggingRepositoryStreams,
-    vm.EventStreams.kGC,
-    vm.EventStreams.kHeapSnapshot,
-    vm.EventStreams.kTimeline,
-    vm.EventStreams.kVM,
   };
 
   /// Core VM service streams that cannot be targeted by [postEvent].
   static final _coreStreams = <String>{
     ..._ddsCoreStreams,
     _kEchoStream,
+    vm.EventStreams.kGC,
+    vm.EventStreams.kHeapSnapshot,
     vm.EventStreams.kProfiler,
     vm.EventStreams.kService,
+    vm.EventStreams.kTimeline,
+    vm.EventStreams.kVM,
   };
 
   final loggingRepositories = <String, LoggingRepository>{};
@@ -75,44 +82,55 @@ final class DdsStreamManager {
 
   /// Initializes core stream subscriptions with the target VM service.
   Future<void> initialize() async {
+    for (final stream in _loggingRepositoryStreams) {
+      loggingRepositories[stream] = LoggingRepository();
+    }
     for (final stream in _ddsCoreStreams) {
+      _streamSubscriptions[stream] = backend.vmServiceClient
+          .onEvent(stream)
+          .listen((vm.Event event) => _handleVmServiceEvent(stream, event));
       try {
         await backend.vmServiceClient.streamListen(stream);
-        if (_loggingRepositoryStreams.contains(stream)) {
-          loggingRepositories[stream] = LoggingRepository();
-        }
-        _streamSubscriptions[stream] = backend.vmServiceClient
-            .onEvent(stream)
-            .listen((vm.Event event) => _handleVmServiceEvent(stream, event));
-      } catch (_) {}
+      } on Object {
+        await _streamSubscriptions.remove(stream)?.cancel();
+      }
     }
   }
 
-  static const _kDestinationStreamKey = '__destinationStream';
-
   void _handleVmServiceEvent(String streamId, vm.Event event) {
-    var targetStreamId = streamId;
-
     if (event.extensionData?.data.remove(_kDestinationStreamKey)
         case final String destinationStream) {
-      targetStreamId = destinationStream;
+      if (destinationStream != _kExtensionStream) {
+        if (_coreStreams.contains(destinationStream) ||
+            !backend.frontend.eventStreams.hasListeners(destinationStream)) {
+          // __destinationStream is only used by developer.postEvent, which is
+          // only permitted to post events to the Extension stream or to custom
+          // streams with active listeners.
+          return;
+        }
+        backend.frontend.eventStreams.streamNotify(
+          data: VmServiceStreamEvent(event: event, streamId: destinationStream),
+          streamId: destinationStream,
+        );
+        return;
+      }
     }
 
     if (_isolateManagerStreams.contains(streamId)) {
       backend.isolateManager.handleIsolateEvent(event);
     }
 
-    if (loggingRepositories[targetStreamId] case final loggingRepo?) {
+    if (loggingRepositories[streamId] case final loggingRepo?) {
       if (event.json case final Map<String, Object?> eventJson) {
         loggingRepo.add(<String, Object?>{
-          'event': eventJson,
-          'streamId': targetStreamId,
+          StreamEvent.kEvent: eventJson,
+          StreamEvent.kStreamId: streamId,
         });
       }
     }
     backend.frontend.eventStreams.streamNotify(
-      data: VmServiceStreamEvent(event: event, streamId: targetStreamId),
-      streamId: targetStreamId,
+      data: VmServiceStreamEvent(event: event, streamId: streamId),
+      streamId: streamId,
     );
   }
 
@@ -122,9 +140,9 @@ final class DdsStreamManager {
     if (repo == null) {
       return null;
     }
-    return [
+    return <Map<String, Object?>>[
       for (final event in repo())
-        (event['event'] as Map<String, Object?>?) ?? event,
+        (event[StreamEvent.kEvent] as Map<String, Object?>?) ?? event,
     ];
   }
 
@@ -194,53 +212,61 @@ final class DdsStreamManager {
   }
 
   /// Handles when a new client subscribes to [streamId].
-  void onClientSubscribe(Client client, String streamId) {
+  ///
+  /// Sends any historical logs for [streamId] to [client] and forwards
+  /// `_includePrivateMembers` updates to the VM service.
+  Future<void> onClientSubscribe(
+    Client client,
+    String streamId, {
+    required Map<String, Object?> params,
+  }) async {
+    // Send historical logs before awaiting so events delivered while the
+    // VM service request is in flight are not duplicated in the replay.
     loggingRepositories[streamId]?.sendHistoricalLogs(client);
+    if (params[_kIncludePrivateMembersKey] case final bool includePrivates) {
+      try {
+        await backend.vmServiceClient.callMethod(
+          _kSetStreamIncludePrivateMembersRpc,
+          args: <String, Object?>{
+            _kIncludePrivateMembersParam: includePrivates,
+            _kStreamIdParam: streamId,
+          },
+        );
+      } on vm.RPCError catch (e, st) {
+        // _setStreamIncludePrivateMembers is an optional private RPC not
+        // implemented by all VM service backends (e.g. web/DWDS).
+        _logger.fine(
+          'Failed to invoke $_kSetStreamIncludePrivateMembersRpc on '
+          '$streamId',
+          e,
+          st,
+        );
+      }
+    }
   }
 
-  /// Subscribes DDS to [streamId] on the remote VM service when a client
-  /// listens to a non-core stream.
+  /// Subscribes DDS to [streamId] on the remote VM service when the first
+  /// client listens to a non-core stream.
   Future<bool> onStreamListen({
     required Map<String, Object?> params,
     required String streamId,
   }) async {
     try {
-      final includePrivateMembers = params['_includePrivateMembers'] as bool?;
       if (!_streamSubscriptions.containsKey(streamId)) {
+        _streamSubscriptions[streamId] = backend.vmServiceClient
+            .onEvent(streamId)
+            .listen((vm.Event event) => _handleVmServiceEvent(streamId, event));
         try {
           await backend.vmServiceClient.streamListen(streamId);
         } on vm.RPCError catch (e) {
           if (e.code != vm.RPCErrorKind.kStreamAlreadySubscribed.code) {
+            await _streamSubscriptions.remove(streamId)?.cancel();
             rethrow;
           }
+        } on Object {
+          await _streamSubscriptions.remove(streamId)?.cancel();
+          rethrow;
         }
-        if (includePrivateMembers != null) {
-          try {
-            await backend.vmServiceClient.callMethod(
-              '_setStreamIncludePrivateMembers',
-              args: <String, Object?>{
-                'includePrivateMembers': includePrivateMembers,
-                'streamId': streamId,
-              },
-            );
-          } on vm.RPCError catch (e, st) {
-            // _setStreamIncludePrivateMembers is an optional private RPC not
-            // implemented by all VM service backends (e.g. web/DWDS).
-            _logger.fine(
-              'Failed to invoke _setStreamIncludePrivateMembers on $streamId',
-              e,
-              st,
-            );
-          }
-        }
-        _streamSubscriptions.putIfAbsent(
-          streamId,
-          () => backend.vmServiceClient
-              .onEvent(streamId)
-              .listen(
-                (vm.Event event) => _handleVmServiceEvent(streamId, event),
-              ),
-        );
       }
       return true;
     } on vm.RPCError catch (e, st) {
@@ -275,10 +301,11 @@ final class DdsStreamManager {
 
   /// Cancels all subscriptions and clears logging history upon shutdown.
   Future<void> shutdown() async {
-    for (final sub in _streamSubscriptions.values) {
-      await sub.cancel();
-    }
+    final subscriptions = _streamSubscriptions.values.toList();
     _streamSubscriptions.clear();
     loggingRepositories.clear();
+    for (final sub in subscriptions) {
+      await sub.cancel();
+    }
   }
 }

@@ -430,7 +430,10 @@ class VoidType implements TypeInfo {
   @override
   Token ensureTypeNotVoid(Token token, Parser parser) {
     // Report an error, then parse `void` as if it were a type name.
-    parser.reportRecoverableError(token.next!, diag.invalidVoid);
+    parser.reportRecoverableError(
+      token.next!,
+      token.isA(Keyword.AS) ? diag.invalidVoidAfterAs : diag.invalidVoid,
+    );
     return simpleType.parseTypeNotVoid(token, parser);
   }
 
@@ -1437,7 +1440,13 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
         // Recovery
         while (typeInfo == noType && next.next!.isA(TokenType.AT)) {
           Token atToken = next.next!;
-          next = skipMetadata(next);
+          // Parsing continues after the annotation, so the token stream must
+          // be properly modified, but ensure that parser events are ignored
+          // by replacing the listener.
+          final Listener originalListener = parser.listener;
+          parser.listener = new ForwardingListener();
+          next = skipMetadata(next, parser: parser);
+          parser.listener = originalListener;
           parser.reportRecoverableErrorWithEnd(
             atToken,
             next,
@@ -1714,6 +1723,19 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
         token = token.next!;
       }
     } else {
+      // The scanner pairs `<` only with `>`, `>>`, and `>>>`, so `endGroup` is
+      // `null` if the closer is `>=`, `>>=`, or `>>>=`. [skipEnd] is a split
+      // copy that is not in the token stream, and [compute] ran before any
+      // rewriting, so use its offset to find the closer, and recover `<a b>=`
+      // the same way as `<a b> =`.
+      Token beforeCloser = token;
+      while (!beforeCloser.next!.isEof &&
+          beforeCloser.next!.charOffset < skipEnd!.charOffset) {
+        beforeCloser = beforeCloser.next!;
+      }
+      if (parseCloser(beforeCloser)) {
+        return beforeCloser;
+      }
       endGroup = syntheticGt(next);
       endGroup.setNext(next);
       token.setNext(endGroup);

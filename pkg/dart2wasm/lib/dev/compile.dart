@@ -20,11 +20,22 @@ import 'package:kernel/library_index.dart';
 import 'package:kernel/type_environment.dart';
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
+import '../cfg/passes/lower_irreducible_control_flow.dart';
 import '../target.dart';
 import 'cfg/to_wasm.dart';
+import 'names.dart';
 import 'runtime.dart';
 
 const w.ValueType _jsString = w.RefType.extern(nullable: false);
+
+/// Maps a boxed Wasm type to its boxed class's label.
+// TODO(dart2wasm): Remove once dart:core is compiled.
+final Map<w.ValueType, String> _boxLabels = {
+  w.NumType.i64: 'dart:_boxed_int::BoxedInt',
+  w.NumType.f64: 'dart:_boxed_double::BoxedDouble',
+  w.NumType.i32: 'dart:_boxed_bool::BoxedBool',
+  _jsString: 'dart:_string::JSStringImpl',
+};
 
 /// Compiles a Dart file into a Wasm dev module.
 ///
@@ -89,6 +100,43 @@ class ModuleCompiler {
     brand: false,
   );
 
+  /// The Wasm type of parameters and return types.
+  late final w.RefType topType = w.RefType.def(objectStruct, nullable: true);
+
+  /// The Wasm type of `this` in instance members and constructors.
+  late final w.RefType receiverType = w.RefType.def(
+    objectStruct,
+    nullable: false,
+  );
+
+  static const int sentinelClassId = -1;
+
+  /// A placeholder for omitted optional parameters.
+  ///
+  /// Replaced on startup with the runtime's shared defaultValueSentinel.
+  // TODO(dart2wasm): Replace with a shared object once dart:core is compiled.
+  late final w.Global defaultValueSentinel = () {
+    final type = w.RefType.def(objectStruct, nullable: false);
+    final globalBuilder = module.globals.define(
+      w.GlobalType(type, mutable: true),
+      'defaultValueSentinel',
+    );
+    globalBuilder.initializer
+      ..i32_const(sentinelClassId)
+      ..struct_new(objectStruct)
+      ..end();
+    final global = globalBuilder.build();
+    _start
+      ..global_get(global)
+      ..call(runtime.defaultValueSentinel)
+      ..ref_cast(type)
+      ..global_set(global);
+    return global;
+  }();
+
+  /// Maps a boxed Wasm type to its box struct.
+  final Map<w.ValueType, w.StructType> _boxStructs = {};
+
   /// Maps a static's label to the global holding its ID.
   final Map<String, w.Global> _staticIds = {};
 
@@ -97,6 +145,9 @@ class ModuleCompiler {
 
   /// Maps an instance member name to the global holding its ID.
   final Map<String, w.Global> _instanceMemberIds = {};
+
+  /// Maps a shape's label to the global holding its ID.
+  final Map<String, w.Global> _shapeIds = {};
 
   ModuleCompiler(this.module, this.runtime);
 
@@ -131,9 +182,17 @@ class ModuleCompiler {
     if (procedure.isInstanceMember) {
       defineInstanceMember(procedure, function);
     } else {
-      if (isMain) module.exports.export('main', function);
+      if (isMain) _exportMain(function);
       defineStatic(memberLabel(procedure), function);
     }
+  }
+
+  // TODO(dart2wasm): Remove once dart:core is compiled.
+  void _exportMain(w.BaseFunction main) {
+    if (main.type.inputs.isNotEmpty) {
+      throw UnimplementedError('Unsupported parameters in main');
+    }
+    module.exports.export('main', main);
   }
 
   /// Compiles [constructor] as a static that takes the new object.
@@ -159,7 +218,7 @@ class ModuleCompiler {
       typeParametersStyle: .separateFunctionAndClassTypeParameters,
       scopes: ComputedScopes(cFunction.member, enableAsserts: false),
     ).buildFlowGraph();
-    Pipeline([SSAComputation()]).run(graph);
+    Pipeline([SSAComputation(), LowerIrreducibleControlFlow()]).run(graph);
     return graph;
   }
 
@@ -171,34 +230,81 @@ class ModuleCompiler {
     // TODO(dart2wasm): Lower String to a Dart object (Wasm struct).
     StringType() => _jsString,
     NullType() || NeverType() => const w.RefType.none(nullable: true),
-    StaticType(dartType: ast.InterfaceType()) => w.RefType.def(
-      objectStruct,
-      nullable: type.isNullable,
-    ),
+    TopType() || ObjectType() || StaticType(dartType: ast.InterfaceType()) =>
+      w.RefType.def(objectStruct, nullable: type.isNullable),
     _ => throw UnimplementedError('Unsupported type: $type'),
   };
 
+  /// Returns [cFunction]'s Wasm type.
   w.FunctionType functionTypeFor(CFunction cFunction) {
     final functionNode = cFunction.functionNode!;
-    // TODO(dart2wasm): Support optional, named, and type parameters.
-    if (functionNode.requiredParameterCount !=
-            functionNode.positionalParameters.length ||
-        functionNode.namedParameters.isNotEmpty ||
-        functionNode.typeParameters.isNotEmpty) {
-      throw UnimplementedError('Unsupported parameters in ${cFunction.member}');
+    // TODO(dart2wasm): Support type parameters.
+    if (functionNode.typeParameters.isNotEmpty) {
+      throw UnimplementedError(
+        'Unsupported type parameters in ${cFunction.member}',
+      );
     }
-    final inputs = <w.ValueType>[
-      if (cFunction.hasReceiverParameter)
-        w.RefType.def(objectStruct, nullable: false),
-      for (final param in functionNode.positionalParameters)
-        translateType(CType.fromStaticType(param.type)),
-    ];
-    final returnType = cFunction.returnType;
-    final outputs =
-        (returnType.dartType is ast.VoidType || returnType is NeverType)
-        ? const <w.ValueType>[]
-        : <w.ValueType>[translateType(returnType)];
-    return module.types.defineFunction(inputs, outputs);
+    final parameterCount =
+        functionNode.positionalParameters.length +
+        functionNode.namedParameters.length;
+    return module.types.defineFunction(
+      [
+        if (cFunction.hasReceiverParameter) receiverType,
+        for (var i = 0; i < parameterCount; i++) topType,
+      ],
+      [topType],
+    );
+  }
+
+  /// Returns the Wasm parameter index of [cFunction]'s [index]th parameter.
+  ///
+  /// Wasm functions take named parameters sorted by name, but CFG IR indexes
+  /// them in declaration order.
+  int wasmParameterIndex(CFunction cFunction, int index) {
+    final functionNode = cFunction.functionNode!;
+    final namedStart =
+        (cFunction.hasReceiverParameter ? 1 : 0) +
+        functionNode.positionalParameters.length;
+    if (index < namedStart) return index;
+    final parameter = functionNode.namedParameters[index - namedStart];
+    return namedStart + sortedNamedParameters(functionNode).indexOf(parameter);
+  }
+
+  /// Returns [function]'s named parameters sorted by name.
+  List<ast.NamedParameter> sortedNamedParameters(ast.FunctionNode function) =>
+      function.namedParameters.toList()
+        ..sort((a, b) => a.parameterName.compareTo(b.parameterName));
+
+  /// Converts the value on the stack from [from] to [to].
+  ///
+  /// ints, doubles, bools, and strings are boxed/unboxed if needed.
+  void convertType(w.InstructionsBuilder b, w.ValueType from, w.ValueType to) {
+    if (from.isSubtypeOf(to)) return;
+    final nonNullFrom = from.withNullability(false);
+    final nonNullTo = to.withNullability(false);
+    final fromIsUnboxed = _boxLabels.containsKey(nonNullFrom);
+    final toIsUnboxed = _boxLabels.containsKey(nonNullTo);
+    final onlyNullabilityDiffers = !to.nullable && nonNullFrom.isSubtypeOf(to);
+    switch ((fromIsUnboxed, toIsUnboxed)) {
+      case (true, true):
+        if (!onlyNullabilityDiffers) {
+          throw UnimplementedError(
+            'Unsupported type conversion from $from to $to',
+          );
+        }
+        b.ref_as_non_null();
+      case (true, false):
+        if (from.nullable) b.ref_as_non_null();
+        _box(b, nonNullFrom);
+      case (false, true):
+        _unbox(b, nonNullTo);
+      case (false, false):
+        if (onlyNullabilityDiffers) {
+          b.ref_as_non_null();
+        } else {
+          b.ref_cast(to as w.RefType);
+        }
+    }
   }
 
   /// Defines static [label] as [function] in the runtime.
@@ -243,8 +349,10 @@ class ModuleCompiler {
   void defineInstanceMember(ast.Member member, w.BaseFunction function) {
     final classId = _classId(classLabel(member.enclosingClass!));
     final instanceMemberId = _instanceMemberId(instanceMemberName(member));
+    final shapeId = _shapeId(shapeLabel(member.function!));
     _start.global_get(classId);
     _start.global_get(instanceMemberId);
+    _start.global_get(shapeId);
     _start.ref_func(function);
     _start.call(runtime.defineInstanceMember);
   }
@@ -255,18 +363,20 @@ class ModuleCompiler {
     b.struct_new(objectStruct);
   }
 
-  /// Emits a call to [receiver.name] with [type].
+  /// Emits a call to [receiver.name] with [shape] and [type].
   ///
   /// Expects the arguments on the stack (including [receiver]).
   void callInstance(
     w.InstructionsBuilder b,
     w.Local receiver,
     String name,
+    String shape,
     w.FunctionType type,
   ) {
     b.local_get(receiver);
     b.struct_get(objectStruct, 0);
     b.global_get(_instanceMemberId(name));
+    b.global_get(_shapeId(shape));
     b.call(runtime.findTarget);
     b.ref_cast(w.RefType.def(type, nullable: false));
     b.call_ref(type);
@@ -286,6 +396,31 @@ class ModuleCompiler {
     return function;
   }
 
+  /// Boxes the [type] value on the stack.
+  void _box(w.InstructionsBuilder b, w.ValueType type) {
+    final value = b.addLocal(type);
+    b.local_set(value);
+    b.global_get(_classId(_boxLabels[type]!));
+    b.local_get(value);
+    b.struct_new(_boxStructFor(type));
+  }
+
+  /// Unboxes the [type] value from the box on the stack.
+  void _unbox(w.InstructionsBuilder b, w.ValueType type) {
+    final struct = _boxStructFor(type);
+    b.ref_cast(w.RefType.def(struct, nullable: false));
+    b.struct_get(struct, 1);
+  }
+
+  /// Returns [type]'s box struct.
+  w.StructType _boxStructFor(w.ValueType type) =>
+      _boxStructs[type] ??= module.types.defineStruct(
+        _boxLabels[type]!.split('::').last,
+        fields: [objectStruct.fields.single, w.FieldType(type, mutable: false)],
+        superType: objectStruct,
+        brand: false,
+      );
+
   /// Returns the global holding static [label]'s ID.
   w.Global _staticId(String label) => _id(_staticIds, label, runtime.staticId);
 
@@ -295,6 +430,9 @@ class ModuleCompiler {
   /// Returns the global holding instance member [name]'s ID.
   w.Global _instanceMemberId(String name) =>
       _id(_instanceMemberIds, name, runtime.instanceMemberId);
+
+  /// Returns the global holding shape [label]'s ID.
+  w.Global _shapeId(String label) => _id(_shapeIds, label, runtime.shapeId);
 
   /// Returns the global in [ids[label]].
   ///
@@ -318,35 +456,6 @@ class ModuleCompiler {
     _start.global_set(globalBuilder.global);
     return globalBuilder.build();
   });
-}
-
-/// Returns [member]'s label.
-///
-/// Example: `package:foo/foo.dart::Foo.bar`
-String memberLabel(ast.Member member) {
-  final libraryUri = member.enclosingLibrary.importUri;
-  final className = member.enclosingClass?.name;
-  final isUnnamedConstructor =
-      member is ast.Constructor && member.name.text.isEmpty;
-  final name = isUnnamedConstructor ? 'new' : member.name.text;
-  if (className != null) {
-    return '$libraryUri::$className.$name';
-  }
-  return '$libraryUri::$name';
-}
-
-/// Returns [cls]'s label.
-///
-/// Example: `package:foo/foo.dart::Foo`
-String classLabel(ast.Class cls) =>
-    '${cls.enclosingLibrary.importUri}::${cls.name}';
-
-/// Returns instance [member]'s name.
-///
-/// Example: `mem` or `_mem@package:foo/foo.dart` if private.
-String instanceMemberName(ast.Member member) {
-  final name = member.name;
-  return name.isPrivate ? '${name.text}@${name.library!.importUri}' : name.text;
 }
 
 /// Pushes [value] as a JS string.

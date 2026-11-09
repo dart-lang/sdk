@@ -888,6 +888,7 @@ class LibraryReader {
   List<LibraryExportImpl> _readLibraryExports() {
     return _reader.readTypedList(() {
       return LibraryExportImpl(
+        isConditional: _reader.readBool(),
         combinators: _reader.readTypedList(_readNamespaceCombinator),
         exportKeywordOffset: -1,
         uri: _readDirectiveUri(),
@@ -983,6 +984,7 @@ class LibraryReader {
     return _reader.readTypedList(() {
       return LibraryImportImpl(
         isSynthetic: _reader.readBool(),
+        isConditional: _reader.readBool(),
         combinators: _reader.readTypedList(_readNamespaceCombinator),
         importKeywordOffset: -1,
         prefix: _readLibraryImportPrefixFragment(libraryFragment),
@@ -1546,6 +1548,22 @@ class ResolutionReader {
         var enclosing = readElement() as ExecutableElementImpl;
         var index = _reader.readUint30();
         return enclosing.formalParametersIncludingRecovery[index];
+      case ElementTag.interfaceMember:
+        var interfaceElement = readElement() as InterfaceElementImpl;
+        var libraryUri = _reader.readOptionalObject(_reader.readUri);
+        var name = Name(libraryUri, _reader.readStringReference());
+        var typeArguments = _readTypeList();
+        var member = _elementFactory.analysisSession.inheritanceManager
+            .getMember(interfaceElement, name);
+        if (member == null || typeArguments.isEmpty) {
+          return member;
+        }
+        return member.substitute(
+          Substitution.fromPairs2(
+            interfaceElement.typeParameters,
+            typeArguments,
+          ),
+        );
     }
   }
 

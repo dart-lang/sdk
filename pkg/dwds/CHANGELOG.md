@@ -1,3 +1,10 @@
+## 27.2.1
+
+- Fix connecting to large apps failing when Chrome takes more than 20 seconds
+  to respond to `Debugger.enable`. DWDS now waits up to 3 minutes, and resends
+  the request every 5 seconds without abandoning earlier requests.
+  [#2883](https://github.com/dart-lang/webdev/issues/2883)
+
 ## 27.2.0
 
 - `package:dwds` is now developed in and published from the Dart SDK

@@ -502,6 +502,24 @@ import 'dart:math';
 const x = pi;
 ''');
   }
+
+  Future<void> test_withTopLevelVariable_inPart() async {
+    var libFile = newFile('$testPackageLibPath/a.dart', '''
+part 'test.dart';
+''');
+    await resolveTestCode('''
+part of 'a.dart';
+
+void f() {
+  print(pi);
+}
+''');
+    await assertHasFix('''
+import 'dart:math';
+
+part 'test.dart';
+''', target: libFile.path);
+  }
 }
 
 @reflectiveTest

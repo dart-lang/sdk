@@ -981,30 +981,151 @@ library
       classes
         #F1 class BeforeMeta (nameOffset:48) (firstTokenOffset:0) (offset:48)
           element: <testLibrary>::@class::BeforeMeta
+          metadata
+            annotation_0: Annotation
+              atSign: @ @28
+              expression: ConstructorInvocation
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    name: Annotation @29
+                    element: <testLibrary>::@class::Annotation
+                    type: Annotation
+                  element: <testLibrary>::@class::Annotation::@constructor::new
+                argumentList: ArgumentList
+                  leftParenthesis: ( @39
+                  rightParenthesis: ) @40
+                staticType: Annotation
+              name: SimpleIdentifier
+                token: Annotation @29
+                element: <testLibrary>::@class::Annotation
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @39
+                rightParenthesis: ) @40
+              element: <testLibrary>::@class::Annotation::@constructor::new
           constructors
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:48)
               element: <testLibrary>::@class::BeforeMeta::@constructor::new
               typeName: BeforeMeta
         #F3 class BeforeMetaNamed (nameOffset:117) (firstTokenOffset:63) (offset:117)
           element: <testLibrary>::@class::BeforeMetaNamed
+          metadata
+            annotation_1: Annotation
+              atSign: @ @91
+              expression: ConstructorInvocation
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    name: Annotation @92
+                    element: <testLibrary>::@class::Annotation
+                    type: Annotation
+                  selector: ConstructorSelector
+                    period: . @102
+                    name2: named @103
+                  element: <testLibrary>::@class::Annotation::@constructor::named
+                argumentList: ArgumentList
+                  leftParenthesis: ( @108
+                  rightParenthesis: ) @109
+                staticType: Annotation
+              name: PrefixedIdentifier
+                prefix: SimpleIdentifier
+                  token: Annotation @92
+                  element: <testLibrary>::@class::Annotation
+                  staticType: null
+                period: . @102
+                identifier: SimpleIdentifier
+                  token: named @103
+                  element: <testLibrary>::@class::Annotation::@constructor::named
+                  staticType: null
+                element: <testLibrary>::@class::Annotation::@constructor::named
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @108
+                rightParenthesis: ) @109
+              element: <testLibrary>::@class::Annotation::@constructor::named
           constructors
             #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:117)
               element: <testLibrary>::@class::BeforeMetaNamed::@constructor::new
               typeName: BeforeMetaNamed
         #F5 class AfterMeta (nameOffset:185) (firstTokenOffset:137) (offset:185)
           element: <testLibrary>::@class::AfterMeta
+          metadata
+            annotation_2: Annotation
+              atSign: @ @137
+              expression: ConstructorInvocation
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    name: Annotation @138
+                    element: <testLibrary>::@class::Annotation
+                    type: Annotation
+                  element: <testLibrary>::@class::Annotation::@constructor::new
+                argumentList: ArgumentList
+                  leftParenthesis: ( @148
+                  rightParenthesis: ) @149
+                staticType: Annotation
+              name: SimpleIdentifier
+                token: Annotation @138
+                element: <testLibrary>::@class::Annotation
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @148
+                rightParenthesis: ) @149
+              element: <testLibrary>::@class::Annotation::@constructor::new
           constructors
             #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:185)
               element: <testLibrary>::@class::AfterMeta::@constructor::new
               typeName: AfterMeta
         #F7 class AroundMeta (nameOffset:247) (firstTokenOffset:213) (offset:247)
           element: <testLibrary>::@class::AroundMeta
+          metadata
+            annotation_3: Annotation
+              atSign: @ @213
+              expression: ConstructorInvocation
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    name: Annotation @214
+                    element: <testLibrary>::@class::Annotation
+                    type: Annotation
+                  element: <testLibrary>::@class::Annotation::@constructor::new
+                argumentList: ArgumentList
+                  leftParenthesis: ( @224
+                  rightParenthesis: ) @225
+                staticType: Annotation
+              name: SimpleIdentifier
+                token: Annotation @214
+                element: <testLibrary>::@class::Annotation
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @224
+                rightParenthesis: ) @225
+              element: <testLibrary>::@class::Annotation::@constructor::new
           constructors
             #F8 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:247)
               element: <testLibrary>::@class::AroundMeta::@constructor::new
               typeName: AroundMeta
         #F9 class DocBeforeMetaNotDocAfter (nameOffset:319) (firstTokenOffset:262) (offset:319)
           element: <testLibrary>::@class::DocBeforeMetaNotDocAfter
+          metadata
+            annotation_4: Annotation
+              atSign: @ @279
+              expression: ConstructorInvocation
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    name: Annotation @280
+                    element: <testLibrary>::@class::Annotation
+                    type: Annotation
+                  element: <testLibrary>::@class::Annotation::@constructor::new
+                argumentList: ArgumentList
+                  leftParenthesis: ( @290
+                  rightParenthesis: ) @291
+                staticType: Annotation
+              name: SimpleIdentifier
+                token: Annotation @280
+                element: <testLibrary>::@class::Annotation
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @290
+                rightParenthesis: ) @291
+              element: <testLibrary>::@class::Annotation::@constructor::new
           constructors
             #F10 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:319)
               element: <testLibrary>::@class::DocBeforeMetaNotDocAfter::@constructor::new
@@ -1026,6 +1147,8 @@ library
       reference: <testLibrary>::@class::BeforeMeta
       firstFragment: #F1
       documentationComment: /// Comment 1\n/// Comment 2
+      metadata
+        annotation_0
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::BeforeMeta::@constructor::new
@@ -1034,6 +1157,8 @@ library
       reference: <testLibrary>::@class::BeforeMetaNamed
       firstFragment: #F3
       documentationComment: /// Comment 1\n/// Comment 2
+      metadata
+        annotation_1
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::BeforeMetaNamed::@constructor::new
@@ -1042,6 +1167,8 @@ library
       reference: <testLibrary>::@class::AfterMeta
       firstFragment: #F5
       documentationComment: /// Comment 1\n/// Comment 2
+      metadata
+        annotation_2
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::AfterMeta::@constructor::new
@@ -1050,6 +1177,8 @@ library
       reference: <testLibrary>::@class::AroundMeta
       firstFragment: #F7
       documentationComment: /// Comment 2
+      metadata
+        annotation_3
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::AroundMeta::@constructor::new
@@ -1058,6 +1187,8 @@ library
       reference: <testLibrary>::@class::DocBeforeMetaNotDocAfter
       firstFragment: #F9
       documentationComment: /// Doc comment.
+      metadata
+        annotation_4
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::DocBeforeMetaNotDocAfter::@constructor::new
@@ -7151,7 +7282,7 @@ library
                   element: <testLibrary>::@class::A::@constructor::c2::@formalParameter::b
                 #F7 optionalPositional isOriginDeclaration c (nameOffset:52) (firstTokenOffset:48) (offset:52)
                   element: <testLibrary>::@class::A::@constructor::c2::@formalParameter::c
-                  initializer: expression_0
+                  constantInitializer2: expression_0
                     IntegerLiteral
                       literal: 0 @56
                       staticType: int
@@ -7167,7 +7298,7 @@ library
                   element: <testLibrary>::@class::A::@constructor::c3::@formalParameter::b
                 #F11 optionalNamed isOriginDeclaration c (nameOffset:88) (firstTokenOffset:84) (offset:88)
                   element: <testLibrary>::@class::A::@constructor::c3::@formalParameter::c
-                  initializer: expression_1
+                  constantInitializer2: expression_1
                     IntegerLiteral
                       literal: 0 @92
                       staticType: int
@@ -7190,7 +7321,7 @@ library
                   element: <testLibrary>::@class::C::@constructor::c2::@formalParameter::b
                 #F18 optionalPositional isOriginMixinApplicationClassConstructor c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:118)
                   element: <testLibrary>::@class::C::@constructor::c2::@formalParameter::c
-                  initializer: expression_0
+                  constantInitializer2: expression_0
             #F19 isOriginMixinApplication c3 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:118)
               element: <testLibrary>::@class::C::@constructor::c3
               typeName: C
@@ -7201,7 +7332,7 @@ library
                   element: <testLibrary>::@class::C::@constructor::c3::@formalParameter::b
                 #F22 optionalNamed isOriginMixinApplicationClassConstructor c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:118)
                   element: <testLibrary>::@class::C::@constructor::c3::@formalParameter::c
-                  initializer: expression_1
+                  constantInitializer2: expression_1
       mixins
         #F23 mixin M (nameOffset:106) (firstTokenOffset:100) (offset:106)
           element: <testLibrary>::@mixin::M
@@ -7230,9 +7361,7 @@ library
             #E3 optionalPositional hasDefaultValue c
               firstFragment: #F7
               type: int
-              constantInitializer
-                fragment: #F7
-                expression: expression_0
+              constantInitializer2: expression_0
         isOriginDeclaration c3
           reference: <testLibrary>::@class::A::@constructor::c3
           firstFragment: #F8
@@ -7246,9 +7375,7 @@ library
             #E6 optionalNamed hasDefaultValue c
               firstFragment: #F11
               type: int
-              constantInitializer
-                fragment: #F11
-                expression: expression_1
+              constantInitializer2: expression_1
     isMixinApplication isSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: #F12
@@ -7304,9 +7431,7 @@ library
             #E10 optionalPositional hasDefaultValue c
               firstFragment: #F18
               type: int
-              constantInitializer
-                fragment: #F18
-                expression: expression_0
+              constantInitializer2: expression_0
           constantInitializers
             SuperConstructorInvocation
               superKeyword: super @0
@@ -7368,9 +7493,7 @@ library
             #E13 optionalNamed hasDefaultValue c
               firstFragment: #F22
               type: int
-              constantInitializer
-                fragment: #F22
-                expression: expression_1
+              constantInitializer2: expression_1
           constantInitializers
             SuperConstructorInvocation
               superKeyword: super @0
@@ -7455,7 +7578,7 @@ library
       topLevelVariables
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic x (nameOffset:24) (firstTokenOffset:24) (offset:24)
           element: <testLibrary>::@topLevelVariable::x
-          initializer: expression_0
+          constantInitializer2: expression_0
             ConstructorInvocation
               constructorReference: ConstructorReference2
                 typeReference: ConstructorTypeReference
@@ -7465,6 +7588,23 @@ library
                 selector: ConstructorSelector
                   period: . @29
                   name2: named @30
+                element: package:test/a.dart::@class::B::@constructor::named
+              argumentList: ArgumentList
+                leftParenthesis: ( @35
+                rightParenthesis: ) @36
+              staticType: B
+          constantInitializer: expression_1
+            InstanceCreationExpression
+              constructorName: ConstructorName
+                type: NamedType
+                  name: B @28
+                  element: package:test/a.dart::@class::B
+                  type: B
+                period: . @29
+                name: SimpleIdentifier
+                  token: named @30
+                  element: package:test/a.dart::@class::B::@constructor::named
+                  staticType: null
                 element: package:test/a.dart::@class::B::@constructor::named
               argumentList: ArgumentList
                 leftParenthesis: ( @35
@@ -7480,9 +7620,8 @@ library
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F1
       type: B
-      constantInitializer
-        fragment: #F1
-        expression: expression_0
+      constantInitializer2: expression_0
+      constantInitializer: expression_1
       getter: <testLibrary>::@getter::x
   getters
     isOriginVariable isStatic x
@@ -8865,7 +9004,7 @@ library
               formalParameters
                 #F9 optionalPositional isOriginMixinApplicationClassConstructor x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
                   element: <testLibrary>::@class::MixinApp::@constructor::positionalArg::@formalParameter::x
-                  initializer: expression_0
+                  constantInitializer2: expression_0
                     BooleanLiteral
                       literal: true @127
                       staticType: bool
@@ -8875,7 +9014,7 @@ library
               formalParameters
                 #F11 optionalPositional isFinal isOriginMixinApplicationClassConstructor x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
                   element: <testLibrary>::@class::MixinApp::@constructor::positionalArg2::@formalParameter::x
-                  initializer: expression_1
+                  constantInitializer2: expression_1
                     BooleanLiteral
                       literal: true @167
                       staticType: bool
@@ -8885,7 +9024,7 @@ library
               formalParameters
                 #F13 optionalNamed isOriginMixinApplicationClassConstructor x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
                   element: <testLibrary>::@class::MixinApp::@constructor::namedArg::@formalParameter::x
-                  initializer: expression_2
+                  constantInitializer2: expression_2
                     IntegerLiteral
                       literal: 42 @200
                       staticType: int
@@ -8895,7 +9034,7 @@ library
               formalParameters
                 #F15 optionalNamed isFinal isOriginMixinApplicationClassConstructor x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
                   element: <testLibrary>::@class::MixinApp::@constructor::namedArg2::@formalParameter::x
-                  initializer: expression_3
+                  constantInitializer2: expression_3
                     BooleanLiteral
                       literal: true @233
                       staticType: bool
@@ -8986,9 +9125,7 @@ library
             #E1 optionalPositional hasDefaultValue x
               firstFragment: #F9
               type: bool
-              constantInitializer
-                fragment: #F9
-                expression: expression_0
+              constantInitializer2: expression_0
           constantInitializers
             SuperConstructorInvocation
               superKeyword: super @0
@@ -9024,9 +9161,7 @@ library
             #E2 optionalPositional hasDefaultValue isFinal x
               firstFragment: #F11
               type: bool
-              constantInitializer
-                fragment: #F11
-                expression: expression_1
+              constantInitializer2: expression_1
           constantInitializers
             SuperConstructorInvocation
               superKeyword: super @0
@@ -9062,9 +9197,7 @@ library
             #E3 optionalNamed hasDefaultValue x
               firstFragment: #F13
               type: int
-              constantInitializer
-                fragment: #F13
-                expression: expression_2
+              constantInitializer2: expression_2
           constantInitializers
             SuperConstructorInvocation
               superKeyword: super @0
@@ -9100,9 +9233,7 @@ library
             #E4 optionalNamed hasDefaultValue isFinal x
               firstFragment: #F15
               type: bool
-              constantInitializer
-                fragment: #F15
-                expression: expression_3
+              constantInitializer2: expression_3
           constantInitializers
             SuperConstructorInvocation
               superKeyword: super @0
@@ -9961,7 +10092,7 @@ library
             #F4 isComplete isConst isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:12)
               element: <testLibrary>::@class::A::@constructor::new
               metadata
-                Annotation
+                annotation_0: Annotation
                   atSign: @ @35
                   expression: ConstructorInvocation
                     constructorReference: ConstructorReference2
@@ -10012,33 +10143,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F4
           metadata
-            Annotation
-              atSign: @ @35
-              expression: ConstructorInvocation
-                constructorReference: ConstructorReference2
-                  typeReference: ConstructorTypeReference
-                    name: Deprecated @36
-                    element: dart:core::@class::Deprecated
-                    type: Deprecated
-                  element: dart:core::@class::Deprecated::@constructor::new
-                argumentList: ArgumentList
-                  leftParenthesis: ( @46
-                  arguments2
-                    SimpleStringLiteral
-                      literal: '0' @47
-                  rightParenthesis: ) @50
-                staticType: Deprecated
-              name: SimpleIdentifier
-                token: Deprecated @36
-                element: dart:core::@class::Deprecated
-                staticType: null
-              arguments: ArgumentList
-                leftParenthesis: ( @46
-                arguments
-                  SimpleStringLiteral
-                    literal: '0' @47
-                rightParenthesis: ) @50
-              element: dart:core::@class::Deprecated::@constructor::new
+            annotation_0
           constantInitializers
             ConstructorFieldInitializer
               fieldName2: x @61
@@ -10084,7 +10189,7 @@ library
             #F4 isComplete isConst isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:12)
               element: <testLibrary>::@class::A::@constructor::new
               metadata
-                Annotation
+                annotation_0: Annotation
                   atSign: @ @31
                   expression: UnqualifiedNameExpression
                     name: deprecated @32
@@ -10125,19 +10230,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F4
           metadata
-            Annotation
-              atSign: @ @31
-              expression: UnqualifiedNameExpression
-                name: deprecated @32
-                resolution: GetterInvocationResolution
-                  element: dart:core::@getter::deprecated
-                  type: Deprecated
-                staticType: Deprecated
-              name: SimpleIdentifier
-                token: deprecated @32
-                element: dart:core::@getter::deprecated
-                staticType: null
-              element: dart:core::@getter::deprecated
+            annotation_0
           formalParameters
             #E0 requiredPositional isDeclaring isFinal this.x
               firstFragment: #F5
@@ -11030,7 +11123,7 @@ library
               formalParameters
                 #F5 optionalNamed hasImplicitType isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:15) (firstTokenOffset:9) (offset:15)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
-                  initializer: expression_0
+                  constantInitializer2: expression_0
                     IntegerLiteral
                       literal: 0 @21
                       staticType: int
@@ -11057,9 +11150,7 @@ library
             #E0 optionalNamed hasDefaultValue hasImplicitType isDeclaring isFinal this.foo
               firstFragment: #F5
               type: int
-              constantInitializer
-                fragment: #F5
-                expression: expression_0
+              constantInitializer2: expression_0
               field: <testLibrary>::@class::A::@field::foo
       getters
         isOriginVariable foo
@@ -11096,7 +11187,7 @@ library
               formalParameters
                 #F5 optionalNamed hasImplicitType isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:15) (firstTokenOffset:9) (offset:15)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
-                  initializer: expression_0
+                  constantInitializer2: expression_0
                     NullLiteral
                       literal: null @21
                       staticType: Null
@@ -11123,9 +11214,7 @@ library
             #E0 optionalNamed hasDefaultValue hasImplicitType isDeclaring isFinal this.foo
               firstFragment: #F5
               type: Object?
-              constantInitializer
-                fragment: #F5
-                expression: expression_0
+              constantInitializer2: expression_0
               field: <testLibrary>::@class::A::@field::foo
       getters
         isOriginVariable foo
@@ -11274,7 +11363,7 @@ library
               formalParameters
                 #F9 optionalNamed hasImplicitType isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:48) (firstTokenOffset:42) (offset:48)
                   element: <testLibrary>::@class::B::@constructor::new::@formalParameter::foo
-                  initializer: expression_0
+                  constantInitializer2: expression_0
                     IntegerLiteral
                       literal: 0 @54
                       staticType: int
@@ -11322,9 +11411,7 @@ library
             #E0 optionalNamed hasDefaultValue hasImplicitType isDeclaring isFinal this.foo
               firstFragment: #F9
               type: num
-              constantInitializer
-                fragment: #F9
-                expression: expression_0
+              constantInitializer2: expression_0
               field: <testLibrary>::@class::B::@field::foo
       getters
         isOriginVariable foo
@@ -11367,7 +11454,7 @@ library
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
                   documentationComment: /// first\n/// second
                   metadata
-                    Annotation
+                    annotation_0: Annotation
                       atSign: @ @36
                       expression: UnqualifiedNameExpression
                         name: deprecated @37
@@ -11394,7 +11481,7 @@ library
           firstFragment: #F2
           documentationComment: /// first\n/// second
           metadata
-            Annotation
+            annotation_1: Annotation
               atSign: @ @36
               expression: UnqualifiedNameExpression
                 name: deprecated @37
@@ -11420,19 +11507,7 @@ library
               type: int Function()
               documentationComment: /// first\n/// second
               metadata
-                Annotation
-                  atSign: @ @36
-                  expression: UnqualifiedNameExpression
-                    name: deprecated @37
-                    resolution: GetterInvocationResolution
-                      element: dart:core::@getter::deprecated
-                      type: Deprecated
-                    staticType: Deprecated
-                  name: SimpleIdentifier
-                    token: deprecated @37
-                    element: dart:core::@getter::deprecated
-                    staticType: null
-                  element: dart:core::@getter::deprecated
+                annotation_0
               field: <testLibrary>::@class::A::@field::foo
       getters
         isOriginVariable foo
@@ -11631,7 +11706,7 @@ library
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
                   documentationComment: /// first\n/// second
                   metadata
-                    Annotation
+                    annotation_0: Annotation
                       atSign: @ @36
                       expression: UnqualifiedNameExpression
                         name: deprecated @37
@@ -11658,7 +11733,7 @@ library
           firstFragment: #F2
           documentationComment: /// first\n/// second
           metadata
-            Annotation
+            annotation_1: Annotation
               atSign: @ @36
               expression: UnqualifiedNameExpression
                 name: deprecated @37
@@ -11684,19 +11759,7 @@ library
               type: int
               documentationComment: /// first\n/// second
               metadata
-                Annotation
-                  atSign: @ @36
-                  expression: UnqualifiedNameExpression
-                    name: deprecated @37
-                    resolution: GetterInvocationResolution
-                      element: dart:core::@getter::deprecated
-                      type: Deprecated
-                    staticType: Deprecated
-                  name: SimpleIdentifier
-                    token: deprecated @37
-                    element: dart:core::@getter::deprecated
-                    staticType: null
-                  element: dart:core::@getter::deprecated
+                annotation_0
               field: <testLibrary>::@class::A::@field::foo
       getters
         isOriginVariable foo
@@ -12977,7 +13040,7 @@ library
             #F2 T (nameOffset:29) (firstTokenOffset:24) (offset:29)
               element: #E0 T
               metadata
-                Annotation
+                annotation_0: Annotation
                   atSign: @ @24
                   expression: UnqualifiedNameExpression
                     name: foo @25
@@ -12993,7 +13056,7 @@ library
           fields
             #F3 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic foo (nameOffset:69) (firstTokenOffset:69) (offset:69)
               element: <testLibrary>::@class::A::@field::foo
-              initializer: expression_0
+              constantInitializer2: expression_0
                 IntegerLiteral
                   literal: 1 @75
                   staticType: int
@@ -13008,7 +13071,7 @@ library
                 #F6 optionalPositional isOriginDeclaration x (nameOffset:42) (firstTokenOffset:33) (offset:42)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
                   metadata
-                    Annotation
+                    annotation_1: Annotation
                       atSign: @ @33
                       expression: UnqualifiedNameExpression
                         name: foo @34
@@ -13021,12 +13084,17 @@ library
                         element: <testLibrary>::@class::A::@getter::foo
                         staticType: null
                       element: <testLibrary>::@class::A::@getter::foo
-                  initializer: expression_1
+                  constantInitializer2: expression_1
                     UnqualifiedNameExpression
                       name: foo @46
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@class::A::@getter::foo
                         type: int
+                      staticType: int
+                  constantInitializer: expression_2
+                    SimpleIdentifier
+                      token: foo @46
+                      element: <testLibrary>::@class::A::@getter::foo
                       staticType: int
           getters
             #F4 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:69)
@@ -13035,7 +13103,7 @@ library
       topLevelVariables
         #F7 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic foo (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::foo
-          initializer: expression_2
+          constantInitializer2: expression_3
             IntegerLiteral
               literal: 0 @12
               staticType: int
@@ -13052,27 +13120,13 @@ library
         #E0 T
           firstFragment: #F2
           metadata
-            Annotation
-              atSign: @ @24
-              expression: UnqualifiedNameExpression
-                name: foo @25
-                resolution: GetterInvocationResolution
-                  element: <testLibrary>::@getter::foo
-                  type: int
-                staticType: int
-              name: SimpleIdentifier
-                token: foo @25
-                element: <testLibrary>::@getter::foo
-                staticType: null
-              element: <testLibrary>::@getter::foo
+            annotation_0
       fields
         hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F3
           type: int
-          constantInitializer
-            fragment: #F3
-            expression: expression_0
+          constantInitializer2: expression_0
           getter: <testLibrary>::@class::A::@getter::foo
       constructors
         hasEnclosingTypeParameterReference isOriginDeclaration isPrimary new
@@ -13083,22 +13137,9 @@ library
               firstFragment: #F6
               type: int
               metadata
-                Annotation
-                  atSign: @ @33
-                  expression: UnqualifiedNameExpression
-                    name: foo @34
-                    resolution: GetterInvocationResolution
-                      element: <testLibrary>::@class::A::@getter::foo
-                      type: int
-                    staticType: int
-                  name: SimpleIdentifier
-                    token: foo @34
-                    element: <testLibrary>::@class::A::@getter::foo
-                    staticType: null
-                  element: <testLibrary>::@class::A::@getter::foo
-              constantInitializer
-                fragment: #F6
-                expression: expression_1
+                annotation_1
+              constantInitializer2: expression_1
+              constantInitializer: expression_2
       getters
         isOriginVariable isStatic foo
           reference: <testLibrary>::@class::A::@getter::foo
@@ -13110,9 +13151,7 @@ library
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: #F7
       type: int
-      constantInitializer
-        fragment: #F7
-        expression: expression_2
+      constantInitializer2: expression_3
       getter: <testLibrary>::@getter::foo
   getters
     isOriginVariable isStatic foo
@@ -19344,7 +19383,7 @@ library
               formalParameters
                 #F3 optionalNamed isOriginDeclaration n1 (nameOffset:19) (firstTokenOffset:15) (offset:19)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::n1
-                  initializer: expression_0
+                  constantInitializer2: expression_0
                     IntegerLiteral
                       literal: 0 @24
                       staticType: int
@@ -19402,9 +19441,7 @@ library
             #E0 optionalNamed hasDefaultValue n1
               firstFragment: #F3
               type: int
-              constantInitializer
-                fragment: #F3
-                expression: expression_0
+              constantInitializer2: expression_0
     isSimplyBounded class B
       reference: <testLibrary>::@class::B
       firstFragment: #F4
@@ -21628,7 +21665,7 @@ library
               formalParameters
                 #F6 optionalNamed hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:29) (firstTokenOffset:24) (offset:29)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
-                  initializer: expression_0
+                  constantInitializer2: expression_0
                     IntegerLiteral
                       literal: 42 @32
                       staticType: int
@@ -21662,9 +21699,7 @@ library
             #E0 optionalNamed hasDefaultValue hasImplicitType isFinal this.x
               firstFragment: #F6
               type: int
-              constantInitializer
-                fragment: #F6
-                expression: expression_0
+              constantInitializer2: expression_0
               field: <testLibrary>::@class::C::@field::x
       getters
         isOriginVariable x
@@ -21793,7 +21828,7 @@ library
               formalParameters
                 #F6 optionalPositional hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:29) (firstTokenOffset:24) (offset:29)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
-                  initializer: expression_0
+                  constantInitializer2: expression_0
                     IntegerLiteral
                       literal: 42 @33
                       staticType: int
@@ -21827,9 +21862,7 @@ library
             #E0 optionalPositional hasDefaultValue hasImplicitType isFinal this.x
               firstFragment: #F6
               type: int
-              constantInitializer
-                fragment: #F6
-                expression: expression_0
+              constantInitializer2: expression_0
               field: <testLibrary>::@class::C::@field::x
       getters
         isOriginVariable x
@@ -23235,7 +23268,7 @@ library
               formalParameters
                 #F3 optionalNamed isOriginDeclaration a (nameOffset:19) (firstTokenOffset:15) (offset:19)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
-                  initializer: expression_0
+                  constantInitializer2: expression_0
                     IntegerLiteral
                       literal: 0 @23
                       staticType: int
@@ -23261,9 +23294,7 @@ library
             #E0 optionalNamed hasDefaultValue a
               firstFragment: #F3
               type: int
-              constantInitializer
-                fragment: #F3
-                expression: expression_0
+              constantInitializer2: expression_0
     isSimplyBounded class B
       reference: <testLibrary>::@class::B
       firstFragment: #F4
@@ -23620,7 +23651,7 @@ library
               formalParameters
                 #F3 optionalNamed isOriginDeclaration a (nameOffset:19) (firstTokenOffset:15) (offset:19)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
-                  initializer: expression_0
+                  constantInitializer2: expression_0
                     IntegerLiteral
                       literal: 0 @23
                       staticType: int
@@ -23646,9 +23677,7 @@ library
             #E0 optionalNamed hasDefaultValue a
               firstFragment: #F3
               type: int
-              constantInitializer
-                fragment: #F3
-                expression: expression_0
+              constantInitializer2: expression_0
     isSimplyBounded class B
       reference: <testLibrary>::@class::B
       firstFragment: #F4
@@ -24710,7 +24739,7 @@ library
               formalParameters
                 #F5 optionalPositional isOriginDeclaration f (nameOffset:41) (firstTokenOffset:37) (offset:41)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::f
-                  initializer: expression_0
+                  constantInitializer2: expression_0
                     IntegerLiteral
                       literal: 0 @45
                       staticType: int
@@ -24736,9 +24765,7 @@ library
             #E0 optionalPositional hasDefaultValue f
               firstFragment: #F5
               type: int
-              constantInitializer
-                fragment: #F5
-                expression: expression_0
+              constantInitializer2: expression_0
           constantInitializers
             ConstructorFieldInitializer
               fieldName2: _f @51
@@ -29183,7 +29210,7 @@ library
           fields
             #F4 hasInitializer isConst isOriginDeclaration isStatic foo (nameOffset:63) (firstTokenOffset:63) (offset:63)
               element: <testLibrary>::@class::A::@field::foo
-              initializer: expression_0
+              constantInitializer2: expression_0
                 IntegerLiteral
                   literal: 0 @69
                   staticType: int
@@ -29201,9 +29228,7 @@ library
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F4
           type: int
-          constantInitializer
-            fragment: #F4
-            expression: expression_0
+          constantInitializer2: expression_0
           getter: <testLibrary>::@class::A::@getter::foo
       constructors
         isConst isOriginDeclaration new
@@ -29247,7 +29272,7 @@ library
           fields
             #F4 hasInitializer isConst isOriginDeclaration isStatic foo (nameOffset:49) (firstTokenOffset:49) (offset:49)
               element: <testLibrary>::@class::A::@field::foo
-              initializer: expression_0
+              constantInitializer2: expression_0
                 IntegerLiteral
                   literal: 0 @55
                   staticType: int
@@ -29265,9 +29290,7 @@ library
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F4
           type: int
-          constantInitializer
-            fragment: #F4
-            expression: expression_0
+          constantInitializer2: expression_0
           getter: <testLibrary>::@class::A::@getter::foo
       constructors
         isOriginImplicitDefault new
@@ -29314,7 +29337,7 @@ library
           fields
             #F4 hasInitializer isFinal isOriginDeclaration foo (nameOffset:56) (firstTokenOffset:56) (offset:56)
               element: <testLibrary>::@class::A::@field::foo
-              initializer: expression_0
+              constantInitializer2: expression_0
                 IntegerLiteral
                   literal: 0 @62
                   staticType: int
@@ -29332,9 +29355,7 @@ library
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F4
           type: int
-          constantInitializer
-            fragment: #F4
-            expression: expression_0
+          constantInitializer2: expression_0
           getter: <testLibrary>::@class::A::@getter::foo
       constructors
         isConst isOriginDeclaration new
@@ -29908,7 +29929,7 @@ library
           fields
             #F3 hasInitializer isConst isOriginDeclaration isStatic foo (nameOffset:29) (firstTokenOffset:29) (offset:29)
               element: <testLibrary>::@class::A::@field::foo
-              initializer: expression_0
+              constantInitializer2: expression_0
                 IntegerLiteral
                   literal: 0 @35
                   staticType: int
@@ -29929,7 +29950,7 @@ library
           fields
             #F5 hasInitializer isAugmentation isConst isOriginDeclaration isStatic foo (nameOffset:87) (firstTokenOffset:87) (offset:87)
               element: <testLibrary>::@class::A::@field::foo
-              initializer: expression_1
+              constantInitializer2: expression_1
                 UnqualifiedFunctionInvocation
                   name: augmented @93
                   argumentList: ArgumentList
@@ -29938,6 +29959,17 @@ library
                   resolution: InvalidInvocationResolution
                     type: InvalidType
                     recovery: <null>
+                  staticType: InvalidType
+              constantInitializer: expression_2
+                MethodInvocation
+                  methodName: SimpleIdentifier
+                    token: augmented @93
+                    element: <null>
+                    staticType: InvalidType
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @102
+                    rightParenthesis: ) @103
+                  staticInvokeType: InvalidType
                   staticType: InvalidType
               inducedGetter: #F7
               previousFragment: #F3
@@ -29955,9 +29987,8 @@ library
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F3
           type: int
-          constantInitializer
-            fragment: #F5
-            expression: expression_1
+          constantInitializer2: expression_1
+          constantInitializer: expression_2
           getter: <testLibrary>::@class::A::@getter::foo
       constructors
         isOriginImplicitDefault new
@@ -29997,7 +30028,7 @@ library
           fields
             #F3 hasInitializer isFinal isOriginDeclaration foo (nameOffset:22) (firstTokenOffset:22) (offset:22)
               element: <testLibrary>::@class::A::@field::foo
-              initializer: expression_0
+              constantInitializer2: expression_0
                 IntegerLiteral
                   literal: 0 @28
                   staticType: int
@@ -30019,7 +30050,7 @@ library
           fields
             #F5 hasInitializer isAugmentation isFinal isOriginDeclaration foo (nameOffset:85) (firstTokenOffset:85) (offset:85)
               element: <testLibrary>::@class::A::@field::foo
-              initializer: expression_1
+              constantInitializer2: expression_1
                 BinaryOperatorInvocation
                   leftOperand: UnqualifiedNameExpression
                     name: augmented @91
@@ -30032,6 +30063,19 @@ library
                     staticType: int
                   binaryOperator: add
                   element: <null>
+                  staticType: InvalidType
+              constantInitializer: expression_2
+                BinaryExpression
+                  leftOperand: SimpleIdentifier
+                    token: augmented @91
+                    element: <null>
+                    staticType: InvalidType
+                  operator: + @101
+                  rightOperand: IntegerLiteral
+                    literal: 1 @103
+                    staticType: int
+                  element: <null>
+                  staticInvokeType: null
                   staticType: InvalidType
               inducedGetter: #F7
               previousFragment: #F3
@@ -30049,9 +30093,8 @@ library
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F3
           type: int
-          constantInitializer
-            fragment: #F5
-            expression: expression_1
+          constantInitializer2: expression_1
+          constantInitializer: expression_2
           getter: <testLibrary>::@class::A::@getter::foo
       constructors
         isConst isOriginDeclaration new
@@ -30293,7 +30336,7 @@ library
               formalParameters
                 #F7 optionalPositional isOriginDeclaration x (nameOffset:29) (firstTokenOffset:25) (offset:29)
                   element: x@29
-                  initializer: expression_0
+                  constantInitializer2: expression_0
                     IntegerLiteral
                       literal: 1 @33
                       staticType: int
@@ -30338,9 +30381,7 @@ library
             #E0 optionalPositional hasDefaultValue x
               firstFragment: #F7
               type: int
-              constantInitializer
-                fragment: #F7
-                expression: expression_0
+              constantInitializer2: expression_0
           returnType: int
           variable: <testLibrary>::@class::A::@field::foo
 ''');
@@ -30578,12 +30619,17 @@ library
           fields
             #F3 hasImplicitType hasInitializer isFinal isOriginDeclaration foo (nameOffset:50) (firstTokenOffset:50) (offset:50)
               element: <testLibrary>::@class::A::@field::foo
-              initializer: expression_0
+              constantInitializer2: expression_0
                 UnqualifiedNameExpression
                   name: zero @56
                   resolution: GetterInvocationResolution
                     element: <testLibrary>::@getter::zero
                     type: int
+                  staticType: int
+              constantInitializer: expression_1
+                SimpleIdentifier
+                  token: zero @56
+                  element: <testLibrary>::@getter::zero
                   staticType: int
               inducedGetter: #F4
               nextFragment: #F5
@@ -30603,12 +30649,17 @@ library
           fields
             #F5 hasImplicitType hasInitializer isAugmentation isFinal isOriginDeclaration foo (nameOffset:112) (firstTokenOffset:112) (offset:112)
               element: <testLibrary>::@class::A::@field::foo
-              initializer: expression_1
+              constantInitializer2: expression_2
                 UnqualifiedNameExpression
                   name: one @118
                   resolution: GetterInvocationResolution
                     element: <testLibrary>::@getter::one
                     type: int
+                  staticType: int
+              constantInitializer: expression_3
+                SimpleIdentifier
+                  token: one @118
+                  element: <testLibrary>::@getter::one
                   staticType: int
               inducedGetter: #F7
               previousFragment: #F3
@@ -30620,14 +30671,14 @@ library
       topLevelVariables
         #F8 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic zero (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::zero
-          initializer: expression_2
+          constantInitializer2: expression_4
             IntegerLiteral
               literal: 0 @13
               staticType: int
           inducedGetter: #F9
         #F10 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic one (nameOffset:22) (firstTokenOffset:22) (offset:22)
           element: <testLibrary>::@topLevelVariable::one
-          initializer: expression_3
+          constantInitializer2: expression_5
             IntegerLiteral
               literal: 1 @28
               staticType: int
@@ -30648,9 +30699,8 @@ library
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F3
           type: int
-          constantInitializer
-            fragment: #F5
-            expression: expression_1
+          constantInitializer2: expression_2
+          constantInitializer: expression_3
           getter: <testLibrary>::@class::A::@getter::foo
       constructors
         isConst isOriginDeclaration new
@@ -30667,17 +30717,13 @@ library
       reference: <testLibrary>::@topLevelVariable::zero
       firstFragment: #F8
       type: int
-      constantInitializer
-        fragment: #F8
-        expression: expression_2
+      constantInitializer2: expression_4
       getter: <testLibrary>::@getter::zero
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer one
       reference: <testLibrary>::@topLevelVariable::one
       firstFragment: #F10
       type: int
-      constantInitializer
-        fragment: #F10
-        expression: expression_3
+      constantInitializer2: expression_5
       getter: <testLibrary>::@getter::one
   getters
     isOriginVariable isStatic zero
@@ -30718,7 +30764,7 @@ library
           fields
             #F3 hasImplicitType hasInitializer isFinal isLate isOriginDeclaration foo (nameOffset:23) (firstTokenOffset:23) (offset:23)
               element: <testLibrary>::@class::A::@field::foo
-              initializer: expression_0
+              constantInitializer2: expression_0
                 ThisExpression
                   thisKeyword: this @29
                   staticType: A
@@ -30740,7 +30786,7 @@ library
           fields
             #F5 hasImplicitType hasInitializer isAugmentation isFinal isLate isOriginDeclaration foo (nameOffset:90) (firstTokenOffset:90) (offset:90)
               element: <testLibrary>::@class::A::@field::foo
-              initializer: expression_1
+              constantInitializer2: expression_1
                 ThisExpression
                   thisKeyword: this @96
                   staticType: A
@@ -30760,9 +30806,7 @@ library
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F3
           type: A
-          constantInitializer
-            fragment: #F5
-            expression: expression_1
+          constantInitializer2: expression_1
           getter: <testLibrary>::@class::A::@getter::foo
       constructors
         isConst isOriginDeclaration new
@@ -30802,7 +30846,7 @@ library
           fields
             #F3 hasInitializer isFinal isLate isOriginDeclaration foo (nameOffset:25) (firstTokenOffset:25) (offset:25)
               element: <testLibrary>::@class::A::@field::foo
-              initializer: expression_0
+              constantInitializer2: expression_0
                 ThisExpression
                   thisKeyword: this @31
                   staticType: A
@@ -30824,7 +30868,7 @@ library
           fields
             #F5 hasInitializer isAugmentation isFinal isLate isOriginDeclaration foo (nameOffset:94) (firstTokenOffset:94) (offset:94)
               element: <testLibrary>::@class::A::@field::foo
-              initializer: expression_1
+              constantInitializer2: expression_1
                 ThisExpression
                   thisKeyword: this @100
                   staticType: A
@@ -30844,9 +30888,7 @@ library
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F3
           type: A
-          constantInitializer
-            fragment: #F5
-            expression: expression_1
+          constantInitializer2: expression_1
           getter: <testLibrary>::@class::A::@getter::foo
       constructors
         isConst isOriginDeclaration new
@@ -30963,21 +31005,21 @@ library
           fields
             #F3 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic zero (nameOffset:25) (firstTokenOffset:25) (offset:25)
               element: <testLibrary>::@class::A::@field::zero
-              initializer: expression_0
+              constantInitializer2: expression_0
                 IntegerLiteral
                   literal: 0 @32
                   staticType: int
               inducedGetter: #F4
             #F5 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic one (nameOffset:50) (firstTokenOffset:50) (offset:50)
               element: <testLibrary>::@class::A::@field::one
-              initializer: expression_1
+              constantInitializer2: expression_1
                 IntegerLiteral
                   literal: 1 @56
                   staticType: int
               inducedGetter: #F6
             #F7 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic foo (nameOffset:74) (firstTokenOffset:74) (offset:74)
               element: <testLibrary>::@class::A::@field::foo
-              initializer: expression_2
+              constantInitializer2: expression_2
                 ReceiverPropertyExtraction
                   receiver: StaticQualifier
                     name: A @80
@@ -30987,6 +31029,19 @@ library
                   resolution: GetterInvocationResolution
                     element: <testLibrary>::@class::A::@getter::zero
                     type: int
+                  staticType: int
+              constantInitializer: expression_3
+                PrefixedIdentifier
+                  prefix: SimpleIdentifier
+                    token: A @80
+                    element: <testLibrary>::@class::A
+                    staticType: null
+                  period: . @81
+                  identifier: SimpleIdentifier
+                    token: zero @82
+                    element: <testLibrary>::@class::A::@getter::zero
+                    staticType: int
+                  element: <testLibrary>::@class::A::@getter::zero
                   staticType: int
               inducedGetter: #F8
               nextFragment: #F9
@@ -31011,7 +31066,7 @@ library
           fields
             #F9 hasImplicitType hasInitializer isAugmentation isConst isOriginDeclaration isStatic foo (nameOffset:132) (firstTokenOffset:132) (offset:132)
               element: <testLibrary>::@class::A::@field::foo
-              initializer: expression_3
+              constantInitializer2: expression_4
                 ReceiverPropertyExtraction
                   receiver: StaticQualifier
                     name: A @138
@@ -31021,6 +31076,19 @@ library
                   resolution: GetterInvocationResolution
                     element: <testLibrary>::@class::A::@getter::one
                     type: int
+                  staticType: int
+              constantInitializer: expression_5
+                PrefixedIdentifier
+                  prefix: SimpleIdentifier
+                    token: A @138
+                    element: <testLibrary>::@class::A
+                    staticType: null
+                  period: . @139
+                  identifier: SimpleIdentifier
+                    token: one @140
+                    element: <testLibrary>::@class::A::@getter::one
+                    staticType: int
+                  element: <testLibrary>::@class::A::@getter::one
                   staticType: int
               inducedGetter: #F11
               previousFragment: #F7
@@ -31038,25 +31106,20 @@ library
           reference: <testLibrary>::@class::A::@field::zero
           firstFragment: #F3
           type: int
-          constantInitializer
-            fragment: #F3
-            expression: expression_0
+          constantInitializer2: expression_0
           getter: <testLibrary>::@class::A::@getter::zero
         hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer one
           reference: <testLibrary>::@class::A::@field::one
           firstFragment: #F5
           type: int
-          constantInitializer
-            fragment: #F5
-            expression: expression_1
+          constantInitializer2: expression_1
           getter: <testLibrary>::@class::A::@getter::one
         hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F7
           type: int
-          constantInitializer
-            fragment: #F9
-            expression: expression_3
+          constantInitializer2: expression_4
+          constantInitializer: expression_5
           getter: <testLibrary>::@class::A::@getter::foo
       constructors
         isOriginImplicitDefault new
@@ -31970,7 +32033,7 @@ library
           fields
             #F2 hasInitializer isConst isOriginDeclaration isStatic i (nameOffset:29) (firstTokenOffset:29) (offset:29)
               element: <testLibrary>::@class::C::@field::i
-              initializer: expression_0
+              constantInitializer2: expression_0
                 IntegerLiteral
                   literal: 0 @33
                   staticType: int
@@ -31992,9 +32055,7 @@ library
           reference: <testLibrary>::@class::C::@field::i
           firstFragment: #F2
           type: int
-          constantInitializer
-            fragment: #F2
-            expression: expression_0
+          constantInitializer2: expression_0
           getter: <testLibrary>::@class::C::@getter::i
       constructors
         isOriginImplicitDefault new
@@ -32027,7 +32088,7 @@ library
           fields
             #F2 hasInitializer isConst isLate isOriginDeclaration isStatic i (nameOffset:34) (firstTokenOffset:34) (offset:34)
               element: <testLibrary>::@class::C::@field::i
-              initializer: expression_0
+              constantInitializer2: expression_0
                 IntegerLiteral
                   literal: 0 @38
                   staticType: int
@@ -32049,9 +32110,7 @@ library
           reference: <testLibrary>::@class::C::@field::i
           firstFragment: #F2
           type: int
-          constantInitializer
-            fragment: #F2
-            expression: expression_0
+          constantInitializer2: expression_0
           getter: <testLibrary>::@class::C::@getter::i
       constructors
         isOriginImplicitDefault new
@@ -32472,7 +32531,7 @@ library
           fields
             #F2 hasImplicitType hasInitializer isFinal isOriginDeclaration x (nameOffset:18) (firstTokenOffset:18) (offset:18)
               element: <testLibrary>::@class::C::@field::x
-              initializer: expression_0
+              constantInitializer2: expression_0
                 IntegerLiteral
                   literal: 42 @22
                   staticType: int
@@ -32495,9 +32554,7 @@ library
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           type: int
-          constantInitializer
-            fragment: #F2
-            expression: expression_0
+          constantInitializer2: expression_0
           getter: <testLibrary>::@class::C::@getter::x
       constructors
         isConst isOriginDeclaration new
@@ -32545,7 +32602,7 @@ library
           fields
             #F5 hasImplicitType hasInitializer isFinal isOriginDeclaration f (nameOffset:47) (firstTokenOffset:47) (offset:47)
               element: <testLibrary>::@class::B::@field::f
-              initializer: expression_0
+              constantInitializer2: expression_0
                 ConstructorInvocation
                   keyword: const @51
                   constructorReference: ConstructorReference2
@@ -32573,7 +32630,41 @@ library
                                     element: isPublic
                                       type: double
                               rightParenthesis: ) @80
-                            parameters(v1): FormalParameterList
+                            declaredFragment: GenericFunctionTypeElement
+                              parameters
+                                a
+                                  kind: required positional
+                                  element:
+                                    type: double
+                              returnType: int
+                              type: int Function(double)
+                            type: int Function(double)
+                        rightBracket: > @81
+                      element: <testLibrary>::@class::A
+                      type: A<int Function(double)>
+                    element: SubstitutedConstructorElementImpl
+                      baseElement: <testLibrary>::@class::A::@constructor::new
+                      substitution: {T: int Function(double)}
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @82
+                    rightParenthesis: ) @83
+                  staticType: A<int Function(double)>
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  keyword: const @51
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @57
+                      typeArguments: TypeArgumentList
+                        leftBracket: < @58
+                        arguments
+                          GenericFunctionType
+                            returnType: NamedType
+                              name: int @59
+                              element: dart:core::@class::int
+                              type: int
+                            functionKeyword: Function @63
+                            parameters: FormalParameterList
                               leftParenthesis: ( @71
                               parameter: RegularFormalParameter
                                 type: NamedType
@@ -32633,9 +32724,8 @@ library
           reference: <testLibrary>::@class::B::@field::f
           firstFragment: #F5
           type: A<int Function(double)>
-          constantInitializer
-            fragment: #F5
-            expression: expression_0
+          constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@class::B::@getter::f
       constructors
         isConst isOriginDeclaration new
@@ -32669,12 +32759,17 @@ library
           fields
             #F2 hasInitializer isFinal isOriginDeclaration foo (nameOffset:35) (firstTokenOffset:35) (offset:35)
               element: <testLibrary>::@class::A::@field::foo
-              initializer: expression_0
+              constantInitializer2: expression_0
                 UnqualifiedNameExpression
                   name: x @41
                   resolution: VariableReadResolution
                     element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
                     type: int
+                  staticType: int
+              constantInitializer: expression_1
+                SimpleIdentifier
+                  token: x @41
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
                   staticType: int
               inducedGetter: #F3
           constructors
@@ -32699,9 +32794,8 @@ library
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F2
           type: int
-          constantInitializer
-            fragment: #F2
-            expression: expression_0
+          constantInitializer2: expression_0
+          constantInitializer: expression_1
           getter: <testLibrary>::@class::A::@getter::foo
       constructors
         isConst isOriginDeclaration isPrimary new
@@ -33385,7 +33479,7 @@ library
           fields
             #F6 hasImplicitType hasInitializer isFinal isOriginDeclaration f (nameOffset:109) (firstTokenOffset:109) (offset:109)
               element: <testLibrary>::@class::B::@field::f
-              initializer: expression_0
+              constantInitializer2: expression_0
                 ListLiteral
                   leftBracket: [ @113
                   elements2
@@ -33415,7 +33509,7 @@ library
       topLevelVariables
         #F9 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::a
-          initializer: expression_1
+          constantInitializer2: expression_1
             IntegerLiteral
               literal: 0 @10
               staticType: int
@@ -33453,9 +33547,7 @@ library
           reference: <testLibrary>::@class::B::@field::f
           firstFragment: #F6
           type: List<int>
-          constantInitializer
-            fragment: #F6
-            expression: expression_0
+          constantInitializer2: expression_0
           getter: <testLibrary>::@class::B::@getter::f
       constructors
         isConst isOriginDeclaration new
@@ -33473,9 +33565,7 @@ library
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F9
       type: int
-      constantInitializer
-        fragment: #F9
-        expression: expression_1
+      constantInitializer2: expression_1
       getter: <testLibrary>::@getter::a
   getters
     isOriginVariable isStatic a
@@ -33592,7 +33682,7 @@ library
           fields
             #F6 hasImplicitType hasInitializer isFinal isOriginDeclaration foo (nameOffset:94) (firstTokenOffset:94) (offset:94)
               element: <testLibrary>::@class::B::@field::foo
-              initializer: expression_0
+              constantInitializer2: expression_0
                 IntegerLiteral
                   literal: 2 @100
                   staticType: double
@@ -33635,9 +33725,7 @@ library
           reference: <testLibrary>::@class::B::@field::foo
           firstFragment: #F6
           type: double
-          constantInitializer
-            fragment: #F6
-            expression: expression_0
+          constantInitializer2: expression_0
           getter: <testLibrary>::@class::B::@getter::foo
       constructors
         isConst isOriginDeclaration new
@@ -34727,7 +34815,7 @@ library
           fields
             #F2 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic x (nameOffset:25) (firstTokenOffset:25) (offset:25)
               element: <testLibrary>::@class::C::@field::x
-              initializer: expression_0
+              constantInitializer2: expression_0
                 IntegerLiteral
                   literal: 0 @29
                   staticType: int
@@ -34749,9 +34837,7 @@ library
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           type: int
-          constantInitializer
-            fragment: #F2
-            expression: expression_0
+          constantInitializer2: expression_0
           getter: <testLibrary>::@class::C::@getter::x
       constructors
         isOriginImplicitDefault new
@@ -39531,7 +39617,7 @@ library
       topLevelVariables
         #F6 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic x (nameOffset:62) (firstTokenOffset:62) (offset:62)
           element: <testLibrary>::@topLevelVariable::x
-          initializer: expression_0
+          constantInitializer2: expression_0
             ConstructorInvocation
               constructorReference: ConstructorReference2
                 typeReference: ConstructorTypeReference
@@ -39545,6 +39631,27 @@ library
               argumentList: ArgumentList
                 leftParenthesis: ( @73
                 arguments2
+                  IntegerLiteral
+                    literal: 42 @74
+                    staticType: int
+                rightParenthesis: ) @76
+              staticType: C
+          constantInitializer: expression_1
+            InstanceCreationExpression
+              constructorName: ConstructorName
+                type: NamedType
+                  name: C @66
+                  element: <testLibrary>::@class::C
+                  type: C
+                period: . @67
+                name: SimpleIdentifier
+                  token: named @68
+                  element: <testLibrary>::@class::C::@constructor::named
+                  staticType: null
+                element: <testLibrary>::@class::C::@constructor::named
+              argumentList: ArgumentList
+                leftParenthesis: ( @73
+                arguments
                   IntegerLiteral
                     literal: 42 @74
                     staticType: int
@@ -39585,9 +39692,8 @@ library
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F6
       type: C
-      constantInitializer
-        fragment: #F6
-        expression: expression_0
+      constantInitializer2: expression_0
+      constantInitializer: expression_1
       getter: <testLibrary>::@getter::x
   getters
     isOriginVariable isStatic x
@@ -40258,7 +40364,7 @@ library
               formalParameters
                 #F5 optionalPositional isOriginDeclaration x (nameOffset:46) (firstTokenOffset:42) (offset:46)
                   element: <testLibrary>::@class::A::@method::foo::@formalParameter::x
-                  initializer: expression_0
+                  constantInitializer2: expression_0
                     IntegerLiteral
                       literal: 42 @50
                       staticType: int
@@ -40278,9 +40384,7 @@ library
             #E0 optionalPositional hasDefaultValue x
               firstFragment: #F5
               type: int
-              constantInitializer
-                fragment: #F5
-                expression: expression_0
+              constantInitializer2: expression_0
           returnType: void
 ''');
   }

@@ -47,7 +47,7 @@ which reside in different sections such as libraries, classes, members, code, et
 ```
 type BytecodeFile {
   UInt32 magic = 0x44424333; // 'DBC3'
-  UInt32 formatVersion = 3;
+  UInt32 formatVersion = 4;
 
   // Descriptors of the sections below.
   // Each section has a fixed index in the descriptors array.
@@ -653,7 +653,7 @@ type Code {
 type ClosureDeclaration {
   UInt flags = (hasOptionalPositionalParams, hasOptionalNamedParams,
                 hasTypeParams, hasSourcePositions,
-                isAsync, isAsyncStar, isSyncStar, isDebuggable,
+                isAsync, isAsyncStar, isSyncStar,
                 hasParameterFlags, hasAnnotations, hasPragma, isInvisible)
 
   // Member or Closure.

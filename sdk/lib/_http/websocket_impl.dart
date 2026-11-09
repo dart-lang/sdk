@@ -10,6 +10,24 @@ const String _serverNoContextTakeover = "server_no_context_takeover";
 const String _clientMaxWindowBits = "client_max_window_bits";
 const String _serverMaxWindowBits = "server_max_window_bits";
 
+/// Parses the value of a `client_max_window_bits` or `server_max_window_bits`
+/// extension parameter received from the peer.
+///
+/// Returns `null` if [value] is absent, is not an integer, or is outside the
+/// 8..15 range permitted by RFC 7692, so that the caller falls back to a
+/// default instead of passing an invalid window size on to zlib, which would
+/// fail to initialise and tear down the connection with an opaque error.
+int? _parseWindowBits(String? value) {
+  if (value == null) return null;
+  var bits = int.tryParse(value);
+  if (bits == null ||
+      bits < ZLibOption.minWindowBits ||
+      bits > ZLibOption.maxWindowBits) {
+    return null;
+  }
+  return bits;
+}
+
 // 0x7fffffffffffffff defined in a JS-friendly way to work around a warning
 // issued when compiling this code. Note that this code is never actually
 // used on the Web, so it is safe to simply work around the warning.
@@ -1433,30 +1451,39 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
           }
 
           var connectionHeader = response.headers[HttpHeaders.connectionHeader];
+          var upgradeHeader = response.headers[HttpHeaders.upgradeHeader];
           if (response.statusCode != HttpStatus.switchingProtocols ||
               connectionHeader == null ||
               !connectionHeader.any(
                 (value) => value.toLowerCase() == "upgrade",
               ) ||
-              response.headers
-                      .value(HttpHeaders.upgradeHeader)!
-                      .toLowerCase() !=
-                  "websocket") {
+              upgradeHeader == null ||
+              upgradeHeader.length != 1 ||
+              upgradeHeader.first.toLowerCase() != "websocket") {
             return error(
               "Connection to '$uri' was not upgraded to websocket",
               response.statusCode,
             );
           }
-          String? accept = response.headers.value("Sec-WebSocket-Accept");
-          if (accept == null) {
+          var acceptHeader = response.headers["Sec-WebSocket-Accept"];
+          if (acceptHeader == null) {
             return error(
               "Response did not contain a 'Sec-WebSocket-Accept' header",
             );
           }
+          if (acceptHeader.length != 1) {
+            return error("Bad response 'Sec-WebSocket-Accept' header");
+          }
+          String accept = acceptHeader.first;
           _SHA1 sha1 = _SHA1();
           sha1.add("$nonce$_webSocketGUID".codeUnits);
           List<int> expectedAccept = sha1.close();
-          List<int> receivedAccept = base64Decode(accept);
+          List<int> receivedAccept;
+          try {
+            receivedAccept = base64Decode(accept);
+          } on FormatException {
+            return error("Bad response 'Sec-WebSocket-Accept' header");
+          }
           if (expectedAccept.length != receivedAccept.length) {
             return error(
               "Response header 'Sec-WebSocket-Accept' is the wrong length",
@@ -1516,14 +1543,8 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
         _clientNoContextTakeover,
       );
 
-      int getWindowBits(String type) {
-        var o = hv.parameters[type];
-        if (o == null) {
-          return DEFAULT_WINDOW_BITS;
-        }
-
-        return int.tryParse(o) ?? DEFAULT_WINDOW_BITS;
-      }
+      int getWindowBits(String type) =>
+          _parseWindowBits(hv.parameters[type]) ?? DEFAULT_WINDOW_BITS;
 
       return _WebSocketPerMessageDeflate(
         clientMaxWindowBits: getWindowBits(_clientMaxWindowBits),

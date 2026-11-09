@@ -488,6 +488,31 @@ static BytecodePtr CreateVMInternalBytecode(KernelBytecode::Opcode opcode) {
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   return bytecode.ptr();
 }
+
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+// Sets the variable descriptors of shared VM internal [bytecode] to describe
+// the parameters with the given names, in order. Parameter i of n has index
+// n - i. The bytecode is shared, so the parameters are in scope throughout.
+static void SetVMInternalBytecodeLocalVarDescriptors(
+    const Bytecode& bytecode,
+    std::initializer_list<const String*> names) {
+  LocalVarDescriptorsBuilder vars;
+  const intptr_t num_params = names.size();
+  intptr_t i = 0;
+  for (const String* name : names) {
+    LocalVarDescriptorsBuilder::VarDesc desc;
+    desc.name = name;
+    desc.info.set_kind(UntaggedLocalVarDescriptors::kStackVar);
+    desc.info.scope_id = 0;
+    desc.info.set_index(num_params - i++);
+    desc.info.declaration_pos = TokenPosition::kNoSource;
+    desc.info.begin_pos = TokenPosition::kNoSource;
+    desc.info.end_pos = TokenPosition::kMaxSource;
+    vars.Add(desc);
+  }
+  bytecode.set_var_descriptors(LocalVarDescriptors::Handle(vars.Done()));
+}
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 #endif  // defined(DART_DYNAMIC_MODULES)
 
 void Object::InitNullAndBool(IsolateGroup* isolate_group) {
@@ -1287,6 +1312,17 @@ void Object::FinishInit(IsolateGroup* isolate_group) {
   // Finish initialization of synthetic_getter_parameter_names_ which was
   // Started in Object::InitOnce()
   Roots::synthetic_getter_parameter_names().SetAt(0, Symbols::This());
+
+#if defined(DART_DYNAMIC_MODULES) && !defined(PRODUCT) &&                      \
+    !defined(DART_PRECOMPILED_RUNTIME)
+  // The shared bytecode stubs for implicit instance field accessors are created
+  // before symbols are available, so add their LocalVarDescriptors here.
+  SetVMInternalBytecodeLocalVarDescriptors(Object::implicit_getter_bytecode(),
+                                           {&Symbols::This()});
+  SetVMInternalBytecodeLocalVarDescriptors(
+      Object::implicit_setter_bytecode(),
+      {&Symbols::This(), &Symbols::Value()});
+#endif
 
   // Set up names for all VM singleton classes.
   Class& cls = Class::Handle();
@@ -14426,11 +14462,36 @@ ArrayPtr Library::LoadedScripts() const {
     Object& entry = Object::Handle();
     Class& cls = Class::Handle();
     Script& owner_script = Script::Handle();
+    Array& members = Array::Handle();
+    Function& func = Function::Handle();
+    Field& field = Field::Handle();
+    Script& member_script = Script::Handle();
     DictionaryIterator it(*this);
     while (it.HasNext()) {
       entry = it.GetNext();
       if (entry.IsClass()) {
-        owner_script = Class::Cast(entry).script();
+        cls ^= entry.ptr();
+        owner_script = cls.script();
+        AddScriptIfUnique(scripts, owner_script);
+        // Members can have a different script than their class, such as
+        // members mixed in from another script.
+        members = cls.current_functions();
+        for (intptr_t i = 0; i < members.Length(); i++) {
+          func ^= members.At(i);
+          member_script = func.script();
+          if (member_script.ptr() != owner_script.ptr()) {
+            AddScriptIfUnique(scripts, member_script);
+          }
+        }
+        members = cls.fields();
+        for (intptr_t i = 0; i < members.Length(); i++) {
+          field ^= members.At(i);
+          member_script = field.Script();
+          if (member_script.ptr() != owner_script.ptr()) {
+            AddScriptIfUnique(scripts, member_script);
+          }
+        }
+        continue;
       } else if (entry.IsFunction()) {
         owner_script = Function::Cast(entry).script();
       } else if (entry.IsField()) {
@@ -26054,14 +26115,6 @@ Float64x2Ptr Float64x2::New(simd128_value_t value, Heap::Space space) {
   return result.ptr();
 }
 
-double Float64x2::x() const {
-  return untag()->value_[0];
-}
-
-double Float64x2::y() const {
-  return untag()->value_[1];
-}
-
 void Float64x2::set_x(double x) const {
   StoreNonPointer(&untag()->value_[0], x);
 }
@@ -26836,9 +26889,7 @@ static void WriteImageBuildId(BaseTextBuffer* buffer,
     ASSERT(build_id.len > 0);
     buffer->AddString(prefix);
     buffer->AddString("'");
-    for (intptr_t i = 0; i < build_id.len; i++) {
-      buffer->Printf("%2.2x", build_id.data[i]);
-    }
+    build_id.PrintTo(buffer);
     buffer->AddString("'");
   }
 }

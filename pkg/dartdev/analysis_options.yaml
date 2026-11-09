@@ -4,6 +4,8 @@ analyzer:
   errors:
     # Disable implementation_imports.
     implementation_imports: ignore
+  exclude:
+    - test/data/**
   language:
     strict-raw-types: true
 

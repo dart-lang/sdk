@@ -46,6 +46,9 @@ template("aot_snapshot") {
   }
 
   dill = "$target_out_dir/$name.aot.dill"
+  if (defined(invoker.dill)) {
+    dill = invoker.dill
+  }
   unsigned_snapshot = "$target_out_dir/$name.dart.snapshot.unsigned"
   signed_snapshot = output
 

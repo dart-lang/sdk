@@ -13,7 +13,7 @@ library;
 // pkg/front_end/testcases/dart2js/tear_off_patch/patch_lib.dart:28:31: Error: 'Class' can only be implemented once.
 // Try removing 1 of the occurrences.
 // class ClassImpl<T> implements Class<T> {
-//                               ^
+//                               ^^^^^
 //
 import self as self2;
 import "dart:core" as core;

@@ -13,9 +13,1795 @@ import 'data_driven_test_support.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(ReplacedByBulkTest);
+    defineReflectiveTests(ReplacedByInstanceMemberTest);
+    defineReflectiveTests(ReplacedByPrefixBulkTest);
     defineReflectiveTests(ReplacedByTest);
     defineReflectiveTests(ReplacedByUriSemanticsTest);
   });
+}
+
+@reflectiveTest
+class ReplacedByBulkTest extends DataDrivenBulkFixProcessorTest {
+  Future<void> test_crossLibraryExtensionMove_allShapes_prefixedImport() async {
+    setPackageContent('''
+class Window {
+  Navigator get navigator => Navigator();
+}
+class Navigator {}
+extension OldNavExt on Navigator {
+  @deprecated
+  int get deprecatedProp => 0;
+}
+''');
+    newFile('$workspaceRootPath/p/lib/sub.dart', '''
+import 'package:p/lib.dart';
+
+extension NewNavExt on Navigator {
+  String get gpu => '';
+  set badge(String v) {}
+  void doWork(int x) {}
+  int get count => 0;
+  set count(int v) {}
+  int get newProp => 0;
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Move gpu'
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      getter: 'gpu'
+      inExtension: 'OldNavExt'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/sub.dart']
+          getter: 'gpu'
+          inExtension: 'NewNavExt'
+  - title: 'Move badge'
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      setter: 'badge'
+      inExtension: 'OldNavExt'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/sub.dart']
+          setter: 'badge'
+          inExtension: 'NewNavExt'
+  - title: 'Move doWork'
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      method: 'doWork'
+      inExtension: 'OldNavExt'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/sub.dart']
+          method: 'doWork'
+          inExtension: 'NewNavExt'
+  - title: 'Move count getter'
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      getter: 'count'
+      inExtension: 'OldNavExt'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/sub.dart']
+          getter: 'count'
+          inExtension: 'NewNavExt'
+  - title: 'Move count setter'
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      setter: 'count'
+      inExtension: 'OldNavExt'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/sub.dart']
+          setter: 'count'
+          inExtension: 'NewNavExt'
+  - title: 'Replace deprecatedProp'
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      getter: 'deprecatedProp'
+      inExtension: 'OldNavExt'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/sub.dart']
+          getter: 'newProp'
+          inExtension: 'NewNavExt'
+''');
+    await resolveTestCode('''
+import '$importUri' as web;
+
+void f(web.Window w, web.Navigator nav, web.Navigator? maybeNav) {
+  var a = nav.gpu;
+  var b = w.navigator.gpu;
+  nav.badge = '1';
+  w.navigator.badge = '2';
+  nav.doWork(1);
+  nav
+    ..gpu
+    ..badge = '3'
+    ..doWork(2);
+  maybeNav?.gpu;
+  maybeNav?.badge = '4';
+  maybeNav?.doWork(3);
+  nav.count += 1;
+  var c = nav.deprecatedProp;
+  print([a, b, c]);
+}
+''');
+    await assertHasFix('''
+import '$importUri' as web;
+import 'package:p/sub.dart' as web;
+
+void f(web.Window w, web.Navigator nav, web.Navigator? maybeNav) {
+  var a = nav.gpu;
+  var b = w.navigator.gpu;
+  nav.badge = '1';
+  w.navigator.badge = '2';
+  nav.doWork(1);
+  nav
+    ..gpu
+    ..badge = '3'
+    ..doWork(2);
+  maybeNav?.gpu;
+  maybeNav?.badge = '4';
+  maybeNav?.doWork(3);
+  nav.count += 1;
+  var c = nav.newProp;
+  print([a, b, c]);
+}
+''');
+  }
+}
+
+@reflectiveTest
+class ReplacedByInstanceMemberTest extends DataDrivenFixProcessorTest {
+  Future<void> test_alreadyImportedWithPrefix_extensionInScope() async {
+    setPackageContent('''
+class Nav {}
+extension OldNavExt on Nav {}
+''');
+    newFile('$workspaceRootPath/p/lib/sub.dart', '''
+import 'package:p/lib.dart';
+
+extension NewNavExt on Nav {
+  String get gpu => '';
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Move oldGpu to NewNavExt.gpu'
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      getter: 'oldGpu'
+      inExtension: 'OldNavExt'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/sub.dart']
+          getter: 'gpu'
+          inExtension: 'NewNavExt'
+''');
+    await resolveTestCode('''
+import '$importUri';
+import 'package:p/sub.dart' as sub; // ignore: unused_import
+
+void f(Nav nav) {
+  nav.oldGpu;
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+import 'package:p/sub.dart' as sub; // ignore: unused_import
+
+void f(Nav nav) {
+  nav.gpu;
+}
+''');
+  }
+
+  Future<void> test_cascade_deprecated() async {
+    setPackageContent('''
+class Nav {
+  @deprecated
+  String get oldGpu => '';
+  @deprecated
+  set oldBadge(String v) {}
+  @deprecated
+  void oldWork() {}
+}
+''');
+    newFile('$workspaceRootPath/p/lib/sub.dart', '''
+import 'package:p/lib.dart';
+
+extension NavSub on Nav {
+  String get gpu => '';
+  set badge(String v) {}
+  void doWork() {}
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Move oldGpu'
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      getter: 'oldGpu'
+      inClass: 'Nav'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/sub.dart']
+          getter: 'gpu'
+          inExtension: 'NavSub'
+  - title: 'Move oldBadge'
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      setter: 'oldBadge'
+      inClass: 'Nav'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/sub.dart']
+          setter: 'badge'
+          inExtension: 'NavSub'
+  - title: 'Move oldWork'
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      method: 'oldWork'
+      inClass: 'Nav'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/sub.dart']
+          method: 'doWork'
+          inExtension: 'NavSub'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+void f(Nav nav) {
+  nav
+    ..oldGpu
+    ..oldBadge = '2'
+    ..oldWork();
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+import 'package:p/sub.dart';
+
+void f(Nav nav) {
+  nav
+    ..gpu
+    ..oldBadge = '2'
+    ..oldWork();
+}
+''', filter: (d) => d.offset == testCode.indexOf('oldGpu'));
+    await assertHasFix('''
+import '$importUri';
+import 'package:p/sub.dart';
+
+void f(Nav nav) {
+  nav
+    ..oldGpu
+    ..badge = '2'
+    ..oldWork();
+}
+''', filter: (d) => d.offset == testCode.indexOf('oldBadge'));
+    await assertHasFix('''
+import '$importUri';
+import 'package:p/sub.dart';
+
+void f(Nav nav) {
+  nav
+    ..oldGpu
+    ..oldBadge = '2'
+    ..doWork();
+}
+''', filter: (d) => d.offset == testCode.indexOf('oldWork'));
+  }
+
+  Future<void> test_cascade_replaceTarget_noFix() async {
+    setPackageContent('''
+class Nav {}
+''');
+    newFile('$workspaceRootPath/p/lib/sub.dart', '''
+class Helper {
+  static void doWork() {}
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Replace doWork with static Helper.doWork'
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      method: 'doWork'
+      inClass: 'Nav'
+    changes:
+      - kind: 'replacedBy'
+        replaceTarget: true
+        newElement:
+          uris: ['package:p/sub.dart']
+          method: 'doWork'
+          inClass: 'Helper'
+          static: true
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+void f(Nav nav) {
+  nav..doWork();
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_chainedPropertyAccess_removed() async {
+    setPackageContent('''
+class Window {
+  Nav get navigator => Nav();
+}
+extension type Nav(Object _) {}
+extension OldNavExt on Nav {}
+''');
+    newFile('$workspaceRootPath/p/lib/sub.dart', '''
+import 'package:p/lib.dart';
+
+extension NewNavExt on Nav {
+  String get gpu => '';
+  set badge(String v) {}
+  void doWork(int x) {}
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Move gpu'
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      getter: 'gpu'
+      inExtension: 'OldNavExt'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/sub.dart']
+          getter: 'gpu'
+          inExtension: 'NewNavExt'
+  - title: 'Move badge'
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      setter: 'badge'
+      inExtension: 'OldNavExt'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/sub.dart']
+          setter: 'badge'
+          inExtension: 'NewNavExt'
+  - title: 'Move doWork'
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      method: 'doWork'
+      inExtension: 'OldNavExt'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/sub.dart']
+          method: 'doWork'
+          inExtension: 'NewNavExt'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+void f(Window window) {
+  window.navigator.gpu;
+  window.navigator.badge = '1';
+  window.navigator.doWork(1);
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+import 'package:p/sub.dart';
+
+void f(Window window) {
+  window.navigator.gpu;
+  window.navigator.badge = '1';
+  window.navigator.doWork(1);
+}
+''', filter: (d) => d.offset == testCode.indexOf('gpu'));
+    await assertHasFix('''
+import '$importUri';
+import 'package:p/sub.dart';
+
+void f(Window window) {
+  window.navigator.gpu;
+  window.navigator.badge = '1';
+  window.navigator.doWork(1);
+}
+''', filter: (d) => d.offset == testCode.indexOf('badge'));
+    await assertHasFix('''
+import '$importUri';
+import 'package:p/sub.dart';
+
+void f(Window window) {
+  window.navigator.gpu;
+  window.navigator.badge = '1';
+  window.navigator.doWork(1);
+}
+''', filter: (d) => d.offset == testCode.indexOf('doWork'));
+  }
+
+  Future<void> test_extensionOverride_crossExtension_noFix() async {
+    setPackageContent('''
+class Nav {}
+extension OldExt on Nav {}
+''');
+    newFile('$workspaceRootPath/p/lib/sub.dart', '''
+import 'package:p/lib.dart';
+
+extension NewExt on Nav {
+  String get gpu => '';
+  set badge(String v) {}
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Move gpu'
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      getter: 'gpu'
+      inExtension: 'OldExt'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/sub.dart']
+          getter: 'gpu'
+          inExtension: 'NewExt'
+  - title: 'Move badge'
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      setter: 'badge'
+      inExtension: 'OldExt'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/sub.dart']
+          setter: 'badge'
+          inExtension: 'NewExt'
+''');
+    await resolveTestCode('''
+import '$importUri';
+import '$importUri' as p;
+
+void f(Nav nav) {
+  OldExt(nav).gpu;
+  p.OldExt(nav).gpu;
+  OldExt(nav).badge = '1';
+}
+''');
+    await assertNoFix(filter: (d) => d.offset == testCode.indexOf('gpu;'));
+    await assertNoFix(filter: (d) => d.offset == testCode.lastIndexOf('gpu;'));
+    await assertNoFix(filter: (d) => d.offset == testCode.indexOf('badge'));
+  }
+
+  Future<void> test_extensionOverride_sameExtension_renamed() async {
+    setPackageContent('''
+class Nav {}
+extension Ext on Nav {
+  String get newGpu => '';
+  set newBadge(String v) {}
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Rename oldGpu'
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      getter: 'oldGpu'
+      inExtension: 'Ext'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['$importUri']
+          getter: 'newGpu'
+          inExtension: 'Ext'
+  - title: 'Rename oldBadge'
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      setter: 'oldBadge'
+      inExtension: 'Ext'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['$importUri']
+          setter: 'newBadge'
+          inExtension: 'Ext'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+void f(Nav nav) {
+  Ext(nav).oldGpu;
+  Ext(nav).oldBadge = '1';
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f(Nav nav) {
+  Ext(nav).newGpu;
+  Ext(nav).oldBadge = '1';
+}
+''', filter: (d) => d.offset == testCode.indexOf('oldGpu'));
+    await assertHasFix('''
+import '$importUri';
+
+void f(Nav nav) {
+  Ext(nav).oldGpu;
+  Ext(nav).newBadge = '1';
+}
+''', filter: (d) => d.offset == testCode.indexOf('oldBadge'));
+  }
+
+  Future<void> test_getterAndSetterDisambiguation_removed() async {
+    setPackageContent('''
+class Nav {}
+''');
+    newFile('$workspaceRootPath/p/lib/sub.dart', '''
+import 'package:p/lib.dart';
+
+extension NavExt on Nav {
+  String get readBadge => '';
+  set writeBadge(String v) {}
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Replace badge getter'
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      getter: 'badge'
+      inClass: 'Nav'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/sub.dart']
+          getter: 'readBadge'
+          inExtension: 'NavExt'
+  - title: 'Replace badge setter'
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      setter: 'badge'
+      inClass: 'Nav'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/sub.dart']
+          setter: 'writeBadge'
+          inExtension: 'NavExt'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+void f(Nav nav) {
+  var x = nav.badge;
+  nav.badge = x;
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+import 'package:p/sub.dart';
+
+void f(Nav nav) {
+  var x = nav.readBadge;
+  nav.badge = x;
+}
+''', filter: (d) => d.offset == testCode.indexOf('badge;'));
+    await assertHasFix('''
+import '$importUri';
+import 'package:p/sub.dart';
+
+void f(Nav nav) {
+  var x = nav.badge;
+  nav.writeBadge = x;
+}
+''', filter: (d) => d.offset == testCode.indexOf('badge ='));
+  }
+
+  Future<void> test_getterDeclaredAsMethodInTransform_deprecated() async {
+    setPackageContent('''
+class Color {
+  @deprecated
+  int get value => 0;
+  @deprecated
+  double get opacity => 1.0;
+
+  int toARGB32() => 0;
+  double get a => 1.0;
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: "Replace 'value' with 'toARGB32()'"
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      method: 'value'
+      inClass: 'Color'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['$importUri']
+          method: 'toARGB32'
+          inClass: 'Color'
+  - title: "Replace 'opacity' with 'a'"
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      method: 'opacity'
+      inClass: 'Color'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['$importUri']
+          getter: 'a'
+          inClass: 'Color'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+void f(Color color) {
+  print(color.value);
+  print(color.opacity);
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f(Color color) {
+  print(color.toARGB32());
+  print(color.opacity);
+}
+''', filter: (d) => d.offset == testCode.indexOf('value'));
+    await assertHasFix('''
+import '$importUri';
+
+void f(Color color) {
+  print(color.value);
+  print(color.a);
+}
+''', filter: (d) => d.offset == testCode.indexOf('opacity'));
+  }
+
+  Future<void> test_getterToMethod_and_methodToGetter_removed() async {
+    setPackageContent('''
+class Nav {}
+extension OldNavExt on Nav {}
+''');
+    newFile('$workspaceRootPath/p/lib/sub.dart', '''
+import 'package:p/lib.dart';
+
+extension NewNavExt on Nav {
+  int newMethod() => 0;
+  int get newGetter => 0;
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Getter to method'
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      getter: 'oldGetter'
+      inExtension: 'OldNavExt'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/sub.dart']
+          method: 'newMethod'
+          inExtension: 'NewNavExt'
+  - title: 'Method to getter'
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      method: 'oldMethod'
+      inExtension: 'OldNavExt'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/sub.dart']
+          getter: 'newGetter'
+          inExtension: 'NewNavExt'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+void f(Nav nav) {
+  var a = nav.oldGetter;
+  var b = nav.oldMethod();
+  var c = nav.oldMethod(1);
+  var d = nav.oldMethod<int>();
+  print([a, b, c, d]);
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+import 'package:p/sub.dart';
+
+void f(Nav nav) {
+  var a = nav.newMethod();
+  var b = nav.oldMethod();
+  var c = nav.oldMethod(1);
+  var d = nav.oldMethod<int>();
+  print([a, b, c, d]);
+}
+''', filter: (d) => d.offset == testCode.indexOf('oldGetter'));
+    await assertHasFix('''
+import '$importUri';
+import 'package:p/sub.dart';
+
+void f(Nav nav) {
+  var a = nav.oldGetter;
+  var b = nav.newGetter;
+  var c = nav.oldMethod(1);
+  var d = nav.oldMethod<int>();
+  print([a, b, c, d]);
+}
+''', filter: (d) => d.offset == testCode.indexOf('oldMethod();'));
+    await assertNoFix(
+      filter: (d) => d.offset == testCode.indexOf('oldMethod(1)'),
+    );
+    await assertNoFix(
+      filter: (d) => d.offset == testCode.indexOf('oldMethod<int>'),
+    );
+  }
+
+  Future<void> test_implicitThis_deprecated() async {
+    setPackageContent('''
+class Nav {
+  @deprecated
+  String get oldGpu => '';
+  @deprecated
+  set oldBadge(String v) {}
+  @deprecated
+  void oldWork() {}
+}
+''');
+    newFile('$workspaceRootPath/p/lib/sub.dart', '''
+import 'package:p/lib.dart';
+
+extension NewNavExt on Nav {
+  String get gpu => '';
+  set badge(String v) {}
+  void doWork() {}
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Move gpu'
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      getter: 'oldGpu'
+      inClass: 'Nav'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/sub.dart']
+          getter: 'gpu'
+          inExtension: 'NewNavExt'
+  - title: 'Move badge'
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      setter: 'oldBadge'
+      inClass: 'Nav'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/sub.dart']
+          setter: 'badge'
+          inExtension: 'NewNavExt'
+  - title: 'Move doWork'
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      method: 'oldWork'
+      inClass: 'Nav'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/sub.dart']
+          method: 'doWork'
+          inExtension: 'NewNavExt'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+class SubNav extends Nav {
+  void m() {
+    oldGpu;
+    oldBadge = '1';
+    oldWork();
+  }
+}
+
+extension CustomNavExt on Nav {
+  void m2() {
+    oldGpu;
+    oldBadge = '2';
+    oldWork();
+  }
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+import 'package:p/sub.dart';
+
+class SubNav extends Nav {
+  void m() {
+    gpu;
+    oldBadge = '1';
+    oldWork();
+  }
+}
+
+extension CustomNavExt on Nav {
+  void m2() {
+    oldGpu;
+    oldBadge = '2';
+    oldWork();
+  }
+}
+''', filter: (d) => d.offset == testCode.indexOf('oldGpu;'));
+    await assertHasFix('''
+import '$importUri';
+import 'package:p/sub.dart';
+
+class SubNav extends Nav {
+  void m() {
+    oldGpu;
+    oldBadge = '1';
+    oldWork();
+  }
+}
+
+extension CustomNavExt on Nav {
+  void m2() {
+    gpu;
+    oldBadge = '2';
+    oldWork();
+  }
+}
+''', filter: (d) => d.offset == testCode.lastIndexOf('oldGpu;'));
+    await assertHasFix('''
+import '$importUri';
+import 'package:p/sub.dart';
+
+class SubNav extends Nav {
+  void m() {
+    oldGpu;
+    oldBadge = '1';
+    oldWork();
+  }
+}
+
+extension CustomNavExt on Nav {
+  void m2() {
+    oldGpu;
+    badge = '2';
+    oldWork();
+  }
+}
+''', filter: (d) => d.offset == testCode.lastIndexOf('oldBadge'));
+    await assertHasFix('''
+import '$importUri';
+import 'package:p/sub.dart';
+
+class SubNav extends Nav {
+  void m() {
+    oldGpu;
+    oldBadge = '1';
+    oldWork();
+  }
+}
+
+extension CustomNavExt on Nav {
+  void m2() {
+    oldGpu;
+    oldBadge = '2';
+    doWork();
+  }
+}
+''', filter: (d) => d.offset == testCode.lastIndexOf('oldWork'));
+  }
+
+  Future<void> test_implicitThis_topLevelAndStaticGuard_noFix() async {
+    setPackageContent('''
+class Nav {}
+extension OldNavExt on Nav {}
+''');
+    newFile('$workspaceRootPath/p/lib/sub.dart', '''
+import 'package:p/lib.dart';
+
+extension NewNavExt on Nav {
+  String get gpu => '';
+  set badge(String v) {}
+  void doWork() {}
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Move gpu'
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      getter: 'oldGpu'
+      inExtension: 'OldNavExt'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/sub.dart']
+          getter: 'gpu'
+          inExtension: 'NewNavExt'
+  - title: 'Move badge'
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      setter: 'oldBadge'
+      inExtension: 'OldNavExt'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/sub.dart']
+          setter: 'badge'
+          inExtension: 'NewNavExt'
+  - title: 'Move doWork'
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      method: 'oldWork'
+      inExtension: 'OldNavExt'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/sub.dart']
+          method: 'doWork'
+          inExtension: 'NewNavExt'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+void topLevel() {
+  oldGpu;
+  oldBadge = '1';
+  oldWork();
+}
+
+class SubNav extends Nav {
+  static void staticMethod() {
+    void localFn() {
+      oldGpu;
+      oldBadge = '1';
+      oldWork();
+    }
+    localFn();
+  }
+}
+''');
+    await assertNoFix(filter: (d) => d.offset == testCode.indexOf('oldGpu;'));
+    await assertNoFix(filter: (d) => d.offset == testCode.indexOf('oldBadge'));
+    await assertNoFix(filter: (d) => d.offset == testCode.indexOf('oldWork'));
+    await assertNoFix(
+      filter: (d) => d.offset == testCode.lastIndexOf('oldGpu;'),
+    );
+    await assertNoFix(
+      filter: (d) => d.offset == testCode.lastIndexOf('oldBadge'),
+    );
+    await assertNoFix(
+      filter: (d) => d.offset == testCode.lastIndexOf('oldWork'),
+    );
+  }
+
+  Future<void>
+  test_staticMember_unresolvedAndExistingTarget_replacesTarget() async {
+    setPackageContent('''
+class ExistingClass {}
+extension ExistingExt on int {}
+''');
+    newFile('$workspaceRootPath/p/lib/sub.dart', '''
+class NewClass {
+  static int get g => 0;
+  static set s(int v) {}
+  static void m() {}
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Replace DeletedClass'
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      class: 'DeletedClass'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/sub.dart']
+          class: 'NewClass'
+  - title: 'ExistingClass.g'
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      getter: 'g'
+      inClass: 'ExistingClass'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/sub.dart']
+          getter: 'g'
+          inClass: 'NewClass'
+  - title: 'ExistingClass.s'
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      setter: 's'
+      inClass: 'ExistingClass'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/sub.dart']
+          setter: 's'
+          inClass: 'NewClass'
+  - title: 'ExistingClass.m'
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      method: 'm'
+      inClass: 'ExistingClass'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/sub.dart']
+          method: 'm'
+          inClass: 'NewClass'
+  - title: 'ExistingExt.g'
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      getter: 'g'
+      inExtension: 'ExistingExt'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/sub.dart']
+          getter: 'g'
+          inClass: 'NewClass'
+''');
+    await resolveTestCode('''
+import '$importUri';
+import '$importUri' as p;
+
+void f() {
+  DeletedClass.g;
+  DeletedClass.s = 1;
+  DeletedClass.m();
+  p.DeletedClass.g;
+  ExistingClass.g;
+  ExistingClass.s = 1;
+  ExistingClass.m();
+  p.ExistingClass.g;
+  ExistingExt.g;
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+import '$importUri' as p;
+import 'package:p/sub.dart';
+
+void f() {
+  NewClass.g;
+  DeletedClass.s = 1;
+  DeletedClass.m();
+  p.DeletedClass.g;
+  ExistingClass.g;
+  ExistingClass.s = 1;
+  ExistingClass.m();
+  p.ExistingClass.g;
+  ExistingExt.g;
+}
+''', filter: (d) => d.offset == testCode.indexOf('DeletedClass.g'));
+    await assertHasFix('''
+import '$importUri';
+import '$importUri' as p;
+import 'package:p/sub.dart';
+
+void f() {
+  DeletedClass.g;
+  NewClass.s = 1;
+  DeletedClass.m();
+  p.DeletedClass.g;
+  ExistingClass.g;
+  ExistingClass.s = 1;
+  ExistingClass.m();
+  p.ExistingClass.g;
+  ExistingExt.g;
+}
+''', filter: (d) => d.offset == testCode.indexOf('DeletedClass.s'));
+    await assertHasFix('''
+import '$importUri';
+import '$importUri' as p;
+import 'package:p/sub.dart';
+
+void f() {
+  DeletedClass.g;
+  DeletedClass.s = 1;
+  NewClass.m();
+  p.DeletedClass.g;
+  ExistingClass.g;
+  ExistingClass.s = 1;
+  ExistingClass.m();
+  p.ExistingClass.g;
+  ExistingExt.g;
+}
+''', filter: (d) => d.offset == testCode.indexOf('DeletedClass.m'));
+    await assertHasFix('''
+import '$importUri';
+import '$importUri' as p;
+import 'package:p/sub.dart' as p;
+
+void f() {
+  DeletedClass.g;
+  DeletedClass.s = 1;
+  DeletedClass.m();
+  p.NewClass.g;
+  ExistingClass.g;
+  ExistingClass.s = 1;
+  ExistingClass.m();
+  p.ExistingClass.g;
+  ExistingExt.g;
+}
+''', filter: (d) => d.offset == testCode.indexOf('p.DeletedClass.g') + 2);
+    await assertHasFix('''
+import '$importUri';
+import '$importUri' as p;
+import 'package:p/sub.dart';
+
+void f() {
+  DeletedClass.g;
+  DeletedClass.s = 1;
+  DeletedClass.m();
+  p.DeletedClass.g;
+  NewClass.g;
+  ExistingClass.s = 1;
+  ExistingClass.m();
+  p.ExistingClass.g;
+  ExistingExt.g;
+}
+''', filter: (d) => d.offset == testCode.indexOf('ExistingClass.g') + 14);
+    await assertHasFix('''
+import '$importUri';
+import '$importUri' as p;
+import 'package:p/sub.dart';
+
+void f() {
+  DeletedClass.g;
+  DeletedClass.s = 1;
+  DeletedClass.m();
+  p.DeletedClass.g;
+  ExistingClass.g;
+  NewClass.s = 1;
+  ExistingClass.m();
+  p.ExistingClass.g;
+  ExistingExt.g;
+}
+''', filter: (d) => d.offset == testCode.indexOf('ExistingClass.s') + 14);
+    await assertHasFix('''
+import '$importUri';
+import '$importUri' as p;
+import 'package:p/sub.dart';
+
+void f() {
+  DeletedClass.g;
+  DeletedClass.s = 1;
+  DeletedClass.m();
+  p.DeletedClass.g;
+  ExistingClass.g;
+  ExistingClass.s = 1;
+  NewClass.m();
+  p.ExistingClass.g;
+  ExistingExt.g;
+}
+''', filter: (d) => d.offset == testCode.indexOf('ExistingClass.m') + 14);
+    await assertHasFix('''
+import '$importUri';
+import '$importUri' as p;
+import 'package:p/sub.dart' as p;
+
+void f() {
+  DeletedClass.g;
+  DeletedClass.s = 1;
+  DeletedClass.m();
+  p.DeletedClass.g;
+  ExistingClass.g;
+  ExistingClass.s = 1;
+  ExistingClass.m();
+  p.NewClass.g;
+  ExistingExt.g;
+}
+''', filter: (d) => d.offset == testCode.indexOf('p.ExistingClass.g') + 16);
+    await assertHasFix('''
+import '$importUri';
+import '$importUri' as p;
+import 'package:p/sub.dart';
+
+void f() {
+  DeletedClass.g;
+  DeletedClass.s = 1;
+  DeletedClass.m();
+  p.DeletedClass.g;
+  ExistingClass.g;
+  ExistingClass.s = 1;
+  ExistingClass.m();
+  p.ExistingClass.g;
+  NewClass.g;
+}
+''', filter: (d) => d.offset == testCode.indexOf('ExistingExt.g') + 12);
+  }
+
+  Future<void> test_tearoff_deprecatedAndRemoved() async {
+    setPackageContent('''
+class Nav {
+  @deprecated
+  void oldDeprecatedMethod(int x) {}
+}
+''');
+    newFile('$workspaceRootPath/p/lib/sub.dart', '''
+import 'package:p/lib.dart';
+
+extension NavExt on Nav {
+  void newDeprecatedMethod(int x) {}
+  void newRemovedMethod(int x) {}
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Move deprecated method'
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      method: 'oldDeprecatedMethod'
+      inClass: 'Nav'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/sub.dart']
+          method: 'newDeprecatedMethod'
+          inExtension: 'NavExt'
+  - title: 'Move removed method'
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      method: 'oldRemovedMethod'
+      inClass: 'Nav'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/sub.dart']
+          method: 'newRemovedMethod'
+          inExtension: 'NavExt'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+void f(Nav nav) {
+  var a = nav.oldDeprecatedMethod;
+  var b = nav.oldRemovedMethod;
+  print([a, b]);
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+import 'package:p/sub.dart';
+
+void f(Nav nav) {
+  var a = nav.newDeprecatedMethod;
+  var b = nav.oldRemovedMethod;
+  print([a, b]);
+}
+''', filter: (d) => d.offset == testCode.indexOf('oldDeprecatedMethod'));
+    await assertHasFix('''
+import '$importUri';
+import 'package:p/sub.dart';
+
+void f(Nav nav) {
+  var a = nav.oldDeprecatedMethod;
+  var b = nav.newRemovedMethod;
+  print([a, b]);
+}
+''', filter: (d) => d.offset == testCode.indexOf('oldRemovedMethod'));
+  }
+}
+
+@reflectiveTest
+class ReplacedByPrefixBulkTest extends DataDrivenBulkFixProcessorTest {
+  Future<void> test_deferredPrefix_notReused() async {
+    setPackageContent('''
+class C {
+  @deprecated
+  int get oldGetter => 0;
+}
+
+@deprecated
+class MovedType {}
+''');
+    newFile('$workspaceRootPath/p/lib/lib2.dart', '''
+import 'lib.dart';
+
+extension NewExt on C {
+  int newMethod() => 0;
+}
+
+class MovedType {}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Move oldGetter'
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      getter: 'oldGetter'
+      inClass: 'C'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/lib2.dart']
+          method: 'newMethod'
+          inExtension: 'NewExt'
+  - title: 'Move MovedType'
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      class: 'MovedType'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/lib2.dart']
+          class: 'MovedType'
+''');
+    await resolveTestCode('''
+import '$importUri' deferred as web;
+
+Future<void> f(Object x) async {
+  await web.loadLibrary();
+  if (x is web.C) {
+    x.oldGetter;
+  }
+  web.MovedType();
+}
+''');
+    await assertHasFix('''
+import '$importUri' deferred as web;
+import 'package:p/lib2.dart';
+
+Future<void> f(Object x) async {
+  await web.loadLibrary();
+  if (x is web.C) {
+    x.newMethod();
+  }
+  MovedType();
+}
+''');
+  }
+
+  Future<void>
+  test_extensionMove_mixedSourceImports_unprefixedAndPrefixed() async {
+    setPackageContent('''
+class C {
+  @deprecated
+  int get oldGetter => 0;
+}
+''');
+    newFile('$workspaceRootPath/p/lib/ext.dart', '''
+import 'lib.dart';
+
+extension NewExt on C {
+  int newMethod() => 0;
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Move oldGetter'
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      getter: 'oldGetter'
+      inClass: 'C'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/ext.dart']
+          method: 'newMethod'
+          inExtension: 'NewExt'
+''');
+    await resolveTestCode('''
+import '$importUri';
+import '$importUri' as web;
+
+void f(C a, web.C b) {
+  a.oldGetter;
+  b.oldGetter;
+}
+''');
+    await assertHasFix('''
+import 'package:p/ext.dart';
+import '$importUri';
+import '$importUri' as web;
+
+void f(C a, web.C b) {
+  a.newMethod();
+  b.newMethod();
+}
+''');
+  }
+
+  Future<void> test_extensionMove_preservesSourceImportPrefix() async {
+    setPackageContent('''
+class C {
+  @deprecated
+  int get oldGetter => 0;
+}
+
+class Notification {}
+
+@deprecated
+class MovedType {}
+''');
+    newFile('$workspaceRootPath/p/lib/ext.dart', '''
+import 'lib.dart';
+
+class Notification {}
+
+class MovedType {}
+
+extension NewExt on C {
+  int newMethod() => 0;
+}
+''');
+    newFile('$workspaceRootPath/p/lib/widgets.dart', '''
+class Notification {}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Move oldGetter'
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      getter: 'oldGetter'
+      inClass: 'C'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/ext.dart']
+          method: 'newMethod'
+          inExtension: 'NewExt'
+  - title: 'Move MovedType'
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      class: 'MovedType'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/ext.dart']
+          class: 'MovedType'
+''');
+    await resolveTestCode('''
+import '$importUri' as web;
+import 'package:p/widgets.dart';
+
+void f(web.C c) {
+  c.oldGetter;
+  final n = Notification();
+  final m = web.MovedType();
+  print((n, m));
+}
+''');
+    await assertHasFix('''
+import 'package:p/ext.dart' as web;
+import '$importUri' as web;
+import 'package:p/widgets.dart';
+
+void f(web.C c) {
+  c.newMethod();
+  final n = Notification();
+  final m = web.MovedType();
+  print((n, m));
+}
+''');
+  }
+
+  Future<void>
+  test_multiplePrefixedSites_differentSourcePrefixes_sameTargetLibrary() async {
+    setPackageContent('''
+@deprecated
+void firstFn() {}
+@deprecated
+void secondFn() {}
+''');
+    newFile('$workspaceRootPath/p/lib/lib2.dart', '''
+void firstFn() {}
+void secondFn() {}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Move firstFn'
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      function: 'firstFn'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/lib2.dart']
+          function: 'firstFn'
+  - title: 'Move secondFn'
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      function: 'secondFn'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/lib2.dart']
+          function: 'secondFn'
+''');
+    await resolveTestCode('''
+import '$importUri' as p1;
+import '$importUri' as p2;
+
+void f() {
+  p1.firstFn();
+  p2.secondFn();
+}
+''');
+    await assertHasFix('''
+import '$importUri' as p1;
+import '$importUri' as p2;
+import 'package:p/lib2.dart' as p1;
+
+void f() {
+  p1.firstFn();
+  p1.secondFn();
+}
+''');
+  }
+
+  Future<void> test_multiplePrefixedSites_sameTargetLibrary() async {
+    setPackageContent('''
+class MovedAnnotation {
+  @deprecated
+  const MovedAnnotation.named();
+}
+
+class MovedClass {
+  @deprecated
+  static int staticField = 0;
+
+  @deprecated
+  static void staticMethod() {}
+
+  const MovedClass();
+
+  @deprecated
+  const MovedClass.named();
+}
+
+@deprecated
+class MovedType {
+  const MovedType();
+}
+
+@deprecated
+int get topGetter => 0;
+
+@deprecated
+set topSetter(int value) {}
+
+@deprecated
+void topFn() {}
+''');
+    newFile('$workspaceRootPath/p/lib/lib2.dart', '''
+class MovedAnnotation {
+  const MovedAnnotation.named();
+}
+
+class MovedClass {
+  static int staticField = 0;
+  static void staticMethod() {}
+  const MovedClass();
+  const MovedClass.named();
+}
+
+class MovedType {
+  const MovedType();
+}
+
+int get topGetter => 0;
+set topSetter(int value) {}
+void topFn() {}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Move MovedAnnotation.named'
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      constructor: 'named'
+      inClass: 'MovedAnnotation'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/lib2.dart']
+          constructor: 'named'
+          inClass: 'MovedAnnotation'
+  - title: 'Move MovedClass.named'
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      constructor: 'named'
+      inClass: 'MovedClass'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/lib2.dart']
+          constructor: 'named'
+          inClass: 'MovedClass'
+  - title: 'Move MovedClass.staticField'
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      field: 'staticField'
+      inClass: 'MovedClass'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/lib2.dart']
+          field: 'staticField'
+          inClass: 'MovedClass'
+  - title: 'Move MovedClass.staticMethod'
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      method: 'staticMethod'
+      inClass: 'MovedClass'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/lib2.dart']
+          method: 'staticMethod'
+          inClass: 'MovedClass'
+  - title: 'Move MovedType'
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      class: 'MovedType'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/lib2.dart']
+          class: 'MovedType'
+  - title: 'Move topGetter'
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      getter: 'topGetter'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/lib2.dart']
+          getter: 'topGetter'
+  - title: 'Move topSetter'
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      setter: 'topSetter'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/lib2.dart']
+          setter: 'topSetter'
+  - title: 'Move topFn'
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      function: 'topFn'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/lib2.dart']
+          function: 'topFn'
+''');
+    await resolveTestCode('''
+import '$importUri' as web;
+
+class MovedType {}
+
+@web.MovedAnnotation.named()
+void f(web.MovedType? arg) {
+  final a = web.MovedType();
+  final b = web.MovedClass.named();
+  final c = web.MovedClass.staticField;
+  web.MovedClass.staticMethod();
+  final d = web.topGetter;
+  web.topSetter = c + d;
+  web.topFn();
+  print((arg, a, b));
+}
+''');
+    await assertHasFix('''
+import '$importUri' as web;
+import 'package:p/lib2.dart' as web;
+
+class MovedType {}
+
+@web.MovedAnnotation.named()
+void f(web.MovedType? arg) {
+  final a = web.MovedType();
+  final b = web.MovedClass.named();
+  final c = web.MovedClass.staticField;
+  web.MovedClass.staticMethod();
+  final d = web.topGetter;
+  web.topSetter = c + d;
+  web.topFn();
+  print((arg, a, b));
+}
+''');
+  }
 }
 
 @reflectiveTest
@@ -1400,7 +3186,7 @@ transforms:
           function: 'expect'
 ''');
 
-    /// Uses the unprefixed name from the new unprefixed import.
+    /// Preserves the call-site prefix on the newly added import.
     await resolveTestCode('''
 import '$importUri' as prefix;
 
@@ -1410,7 +3196,250 @@ main() {
 ''');
     await assertHasFix('''
 import '$importUri' as prefix;
-import 'package:p/lib2.dart';
+import 'package:p/lib2.dart' as prefix;
+
+main() {
+  prefix.expect(true, true);
+}
+''');
+  }
+
+  Future<void> test_new_element_uris_prefixed_avoidsAmbiguousImport() async {
+    setPackageContent('''
+@deprecated
+class AudioContext {
+  AudioContext();
+}
+''');
+    newFile('$workspaceRootPath/p/lib/other_audio.dart', '''
+class AudioContext {}
+''');
+    newFile('$workspaceRootPath/p/lib/webaudio.dart', '''
+class AudioContext {
+  AudioContext();
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Move AudioContext'
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      class: 'AudioContext'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/webaudio.dart']
+          class: 'AudioContext'
+''');
+    await resolveTestCode('''
+import '$importUri' as web;
+import 'package:p/other_audio.dart';
+
+AudioContext? other;
+final ctx = web.AudioContext();
+''');
+    await assertHasFix('''
+import '$importUri' as web;
+import 'package:p/other_audio.dart';
+import 'package:p/webaudio.dart' as web;
+
+AudioContext? other;
+final ctx = web.AudioContext();
+''');
+  }
+
+  Future<void> test_new_element_uris_prefixed_removedClass() async {
+    setPackageContent('');
+    newFile('$workspaceRootPath/p/lib/webaudio.dart', '''
+class AudioContext {
+  AudioContext();
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Move AudioContext'
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      class: 'AudioContext'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/webaudio.dart']
+          class: 'AudioContext'
+''');
+    await resolveTestCode('''
+import '$importUri' as web;
+
+void f() {
+  web.AudioContext();
+}
+''');
+    await assertHasFix('''
+import '$importUri' as web;
+import 'package:p/webaudio.dart' as web;
+
+void f() {
+  web.AudioContext();
+}
+''');
+  }
+
+  Future<void> test_new_element_uris_prefixed_removedTopLevelFunction() async {
+    setPackageContent('');
+    newFile('$workspaceRootPath/p/lib/lib2.dart', '''
+void topFn() {}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Move topFn'
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      function: 'topFn'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/lib2.dart']
+          function: 'topFn'
+''');
+    await resolveTestCode('''
+import '$importUri' as web;
+
+void f() {
+  web.topFn();
+}
+''');
+    await assertHasFix('''
+import '$importUri' as web;
+import 'package:p/lib2.dart' as web;
+
+void f() {
+  web.topFn();
+}
+''');
+  }
+
+  Future<void> test_new_element_uris_prefixed_to_other_prefix() async {
+    setPackageContent('''
+@deprecated
+void expect(Object? v1, Object? v2) {}
+''');
+    newFile('$workspaceRootPath/p/lib/lib2.dart', '''
+void expect(Object? v1, Object? v2) {}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Replace expect'
+    date: 2022-05-12
+    bulkApply: false
+    element:
+      uris: ['$importUri']
+      function: 'expect'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/lib2.dart']
+          function: 'expect'
+''');
+    await resolveTestCode('''
+import '$importUri' as prefix;
+import 'package:p/lib2.dart' as other; // ignore: unused_import
+
+main() {
+  prefix.expect(true, true);
+}
+''');
+    await assertHasFix('''
+import '$importUri' as prefix;
+import 'package:p/lib2.dart' as other; // ignore: unused_import
+
+main() {
+  other.expect(true, true);
+}
+''');
+  }
+
+  Future<void> test_new_element_uris_prefixed_to_same_prefix() async {
+    setPackageContent('''
+@deprecated
+void oldExpect(Object? v1, Object? v2) {}
+''');
+    newFile('$workspaceRootPath/p/lib/lib2.dart', '''
+void expect(Object? v1, Object? v2) {}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Replace oldExpect'
+    date: 2022-05-12
+    bulkApply: false
+    element:
+      uris: ['$importUri']
+      function: 'oldExpect'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/lib2.dart']
+          function: 'expect'
+''');
+    await resolveTestCode('''
+import '$importUri' as prefix;
+import 'package:p/lib2.dart' as prefix; // ignore: unused_import
+
+main() {
+  prefix.oldExpect(true, true);
+}
+''');
+    await assertHasFix('''
+import '$importUri' as prefix;
+import 'package:p/lib2.dart' as prefix; // ignore: unused_import
+
+main() {
+  prefix.expect(true, true);
+}
+''');
+  }
+
+  Future<void> test_new_element_uris_prefixed_to_unprefixed() async {
+    setPackageContent('''
+@deprecated
+void expect(Object? v1, Object? v2) {}
+''');
+    newFile('$workspaceRootPath/p/lib/lib2.dart', '''
+void expect(Object? v1, Object? v2) {}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Replace expect'
+    date: 2022-05-12
+    bulkApply: false
+    element:
+      uris: ['$importUri']
+      function: 'expect'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/lib2.dart']
+          function: 'expect'
+''');
+    await resolveTestCode('''
+import '$importUri' as prefix;
+import 'package:p/lib2.dart'; // ignore: unused_import
+
+main() {
+  prefix.expect(true, true);
+}
+''');
+    await assertHasFix('''
+import '$importUri' as prefix;
+import 'package:p/lib2.dart'; // ignore: unused_import
 
 main() {
   expect(true, true);
@@ -1492,6 +3521,428 @@ main() {
   prefix.expect(true, true);
 }
 ''');
+  }
+
+  Future<void> test_removed_annotation_constructor_uris_prefixed() async {
+    setPackageContent('');
+    newFile('$workspaceRootPath/p/lib/lib2.dart', '''
+class New {
+  const New.named();
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Replace Old with New'
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      class: 'Old'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/lib2.dart']
+          class: 'New'
+''');
+    await resolveTestCode('''
+import '$importUri' as prefix;
+
+@prefix.Old.named()
+void f() {}
+''');
+    await assertHasFix('''
+import '$importUri' as prefix;
+import 'package:p/lib2.dart' as prefix;
+
+@prefix.New.named()
+void f() {}
+''');
+  }
+
+  Future<void> test_removed_annotation_constructor_uris_single() async {
+    setPackageContent('');
+    newFile('$workspaceRootPath/p/lib/lib2.dart', '''
+class New {
+  const New();
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Replace Old with New'
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      class: 'Old'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/lib2.dart']
+          class: 'New'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+@Old()
+void f() {}
+''');
+    await assertHasFix('''
+import '$importUri';
+import 'package:p/lib2.dart';
+
+@New()
+void f() {}
+''');
+  }
+
+  Future<void> test_removed_catchClause_uris_prefixed() async {
+    setPackageContent('');
+    newFile('$workspaceRootPath/p/lib/lib2.dart', '''
+class NewError implements Exception {}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Replace OldError with NewError'
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      class: 'OldError'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/lib2.dart']
+          class: 'NewError'
+''');
+    await resolveTestCode('''
+import '$importUri' as prefix;
+
+void f() {
+  try {} on prefix.OldError catch (e) {
+    print(e);
+  }
+}
+''');
+    await assertHasFix('''
+import '$importUri' as prefix;
+import 'package:p/lib2.dart' as prefix;
+
+void f() {
+  try {} on prefix.NewError catch (e) {
+    print(e);
+  }
+}
+''', filter: ignoreUnusedImport);
+  }
+
+  Future<void> test_removed_catchClause_uris_single() async {
+    setPackageContent('');
+    newFile('$workspaceRootPath/p/lib/lib2.dart', '''
+class NewError implements Exception {}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Replace OldError with NewError'
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      class: 'OldError'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/lib2.dart']
+          class: 'NewError'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+void f() {
+  try {} on OldError catch (e) {
+    print(e);
+  }
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+import 'package:p/lib2.dart';
+
+void f() {
+  try {} on NewError catch (e) {
+    print(e);
+  }
+}
+''', filter: ignoreUnusedImport);
+  }
+
+  Future<void> test_removed_classTypeAlias_uris_single() async {
+    setPackageContent('''
+mixin M {}
+''');
+    newFile('$workspaceRootPath/p/lib/lib2.dart', '''
+class New {}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Replace Old with New'
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      class: 'Old'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/lib2.dart']
+          class: 'New'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+class C = Old with M;
+''');
+    await assertHasFix('''
+import '$importUri';
+import 'package:p/lib2.dart';
+
+class C = New with M;
+''');
+  }
+
+  Future<void> test_removed_constCreation_uris_prefixed() async {
+    setPackageContent('');
+    newFile('$workspaceRootPath/p/lib/lib2.dart', '''
+class New {
+  const New.named();
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Replace Old with New'
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      class: 'Old'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/lib2.dart']
+          class: 'New'
+''');
+    await resolveTestCode('''
+import '$importUri' as prefix;
+
+var x = const prefix.Old.named();
+''');
+    await assertHasFix('''
+import '$importUri' as prefix;
+import 'package:p/lib2.dart' as prefix;
+
+var x = const prefix.New.named();
+''');
+  }
+
+  Future<void> test_removed_constCreation_uris_single() async {
+    setPackageContent('');
+    newFile('$workspaceRootPath/p/lib/lib2.dart', '''
+class New<T> {
+  const New();
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Replace Old with New'
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      class: 'Old'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/lib2.dart']
+          class: 'New'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+var x = const Old<int>();
+''');
+    await assertHasFix('''
+import '$importUri';
+import 'package:p/lib2.dart';
+
+var x = const New<int>();
+''');
+  }
+
+  Future<void> test_removed_extendsWithMixin_uris_prefixed() async {
+    setPackageContent('''
+mixin M {}
+''');
+    newFile('$workspaceRootPath/p/lib/lib2.dart', '''
+class New {}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Replace Old with New'
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      class: 'Old'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/lib2.dart']
+          class: 'New'
+''');
+    await resolveTestCode('''
+import '$importUri';
+import '$importUri' as prefix;
+
+class C extends prefix.Old with M {}
+''');
+    await assertHasFix('''
+import '$importUri';
+import '$importUri' as prefix;
+import 'package:p/lib2.dart' as prefix;
+
+class C extends prefix.New with M {}
+''', filter: ignoreUnusedImport);
+  }
+
+  Future<void> test_removed_newCreation_uris_prefixed() async {
+    setPackageContent('');
+    newFile('$workspaceRootPath/p/lib/lib2.dart', '''
+class New {
+  New.named();
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Replace Old with New'
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      class: 'Old'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/lib2.dart']
+          class: 'New'
+''');
+    await resolveTestCode('''
+import '$importUri' as prefix;
+
+var x = new prefix.Old.named();
+''');
+    await assertHasFix('''
+import '$importUri' as prefix;
+import 'package:p/lib2.dart' as prefix;
+
+var x = new prefix.New.named();
+''');
+  }
+
+  Future<void> test_removed_newCreation_uris_single() async {
+    setPackageContent('');
+    newFile('$workspaceRootPath/p/lib/lib2.dart', '''
+class New<T> {
+  New();
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Replace Old with New'
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      class: 'Old'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/lib2.dart']
+          class: 'New'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+var x = new Old<int>();
+''');
+    await assertHasFix('''
+import '$importUri';
+import 'package:p/lib2.dart';
+
+var x = new New<int>();
+''');
+  }
+
+  Future<void> test_removed_typeTest_uris_prefixed() async {
+    setPackageContent('');
+    newFile('$workspaceRootPath/p/lib/lib2.dart', '''
+class New<T> {}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Replace Old with New'
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      class: 'Old'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/lib2.dart']
+          class: 'New'
+''');
+    await resolveTestCode('''
+import '$importUri' as prefix;
+
+bool f(Object x) => x is! prefix.Old<int>;
+''');
+    await assertHasFix('''
+import '$importUri' as prefix;
+import 'package:p/lib2.dart' as prefix;
+
+bool f(Object x) => x is! prefix.New<int>;
+''', filter: ignoreUnusedImport);
+  }
+
+  Future<void> test_removed_typeTest_uris_single() async {
+    setPackageContent('');
+    newFile('$workspaceRootPath/p/lib/lib2.dart', '''
+class New {}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Replace Old with New'
+    date: 2026-01-01
+    element:
+      uris: ['$importUri']
+      class: 'Old'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/lib2.dart']
+          class: 'New'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+bool f(Object x) => x is Old;
+''');
+    await assertHasFix('''
+import '$importUri';
+import 'package:p/lib2.dart';
+
+bool f(Object x) => x is New;
+''', filter: ignoreUnusedImport);
   }
 }
 

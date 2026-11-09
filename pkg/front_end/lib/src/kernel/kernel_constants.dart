@@ -35,7 +35,7 @@ class KernelConstantErrorReporter extends ErrorReporter {
         context: context,
       );
     } else {
-      compilationUnit.addProblem(
+      compilationUnit.problemReporting.addProblem(
         message.messageObject,
         message.charOffset,
         message.length,

@@ -10,6 +10,8 @@ abstract class ITypeDeclarationBuilder
   @override
   String get name;
 
+  UriOffsetLength get uriOffset;
+
   bool get isNamedMixinApplication;
 
   int get typeParametersCount => 0;

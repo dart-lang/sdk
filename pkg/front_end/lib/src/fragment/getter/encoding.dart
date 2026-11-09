@@ -11,7 +11,6 @@ import '../../api_prototype/experimental_flags.dart';
 import '../../base/local_scope.dart';
 import '../../base/messages.dart';
 import '../../base/scope.dart';
-import '../../base/uri_offset.dart';
 import '../../builder/declaration_builders.dart';
 import '../../builder/formal_parameter_builder.dart';
 import '../../builder/omitted_type_builder.dart';
@@ -360,11 +359,7 @@ mixin _DirectGetterEncodingMixin implements GetterEncoding {
         typeEnvironment: typeEnvironment,
         getterType: getterType,
         getterName: _fragment.name,
-        getterUriOffset: new UriOffsetLength(
-          _fragment.fileUri,
-          _fragment.nameOffset,
-          _fragment.name.length,
-        ),
+        getterUriOffset: _fragment.uriOffset,
         setterType: setterType,
         setterName: setterBuilder.name,
         setterUriOffset: setterBuilder.setterUriOffset!,
@@ -388,6 +383,7 @@ mixin _DirectGetterEncodingMixin implements GetterEncoding {
     sourceClassBuilder.checkVarianceInReturnType(
       typeEnvironment,
       function.returnType,
+      uriOffset: _fragment.uriOffset,
       fileOffset: _fragment.nameOffset,
       fileUri: _fragment.fileUri,
     );
@@ -663,11 +659,7 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
         typeEnvironment: typeEnvironment,
         getterType: getterType,
         getterName: _fragment.name,
-        getterUriOffset: new UriOffsetLength(
-          _fragment.fileUri,
-          _fragment.nameOffset,
-          _fragment.name.length,
-        ),
+        getterUriOffset: _fragment.uriOffset,
         setterType: setterType,
         setterName: setterBuilder.name,
         setterUriOffset: setterBuilder.setterUriOffset!,
@@ -692,6 +684,7 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
     sourceClassBuilder.checkVarianceInReturnType(
       typeEnvironment,
       function.returnType,
+      uriOffset: _fragment.uriOffset,
       fileOffset: _fragment.nameOffset,
       fileUri: _fragment.fileUri,
     );

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/base/uri_offset.dart';
 import 'package:kernel/ast.dart';
 
 import '../base/lookup_result.dart';
@@ -366,14 +367,16 @@ class DillExtensionTypeDeclarationBuilder
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
+  UriOffsetLength get uriOffset =>
+      new UriOffsetLength(fileUri, fileOffset, name.length);
+
+  @override
   int get fileOffset => _extensionTypeDeclaration.fileOffset;
 
   @override
   String get name => _extensionTypeDeclaration.name;
 
   @override
-  // Coverage-ignore(suite): Not run.
   Uri get fileUri => _extensionTypeDeclaration.fileUri;
 
   @override
@@ -386,7 +389,8 @@ class DillExtensionTypeDeclarationBuilder
   TypeBuilder? get declaredRepresentationTypeBuilder =>
       _declaredRepresentationTypeBuilder ??= libraryBuilder.loader
           .computeTypeBuilder(
-            _extensionTypeDeclaration.declaredRepresentationType,
+            type: _extensionTypeDeclaration.declaredRepresentationType,
+            uriOffset: uriOffset,
           );
 
   @override
@@ -427,6 +431,7 @@ class DillExtensionTypeDeclarationBuilder
       typeParameters = _typeParameters = computeTypeParameterBuilders(
         _extensionTypeDeclaration.typeParameters,
         libraryBuilder.loader,
+        fileUri: _extensionTypeDeclaration.fileUri,
       );
     }
     return typeParameters;
@@ -440,7 +445,8 @@ class DillExtensionTypeDeclarationBuilder
       interfaceBuilders = _interfaceBuilders = new List<TypeBuilder>.generate(
         _extensionTypeDeclaration.implements.length,
         (int i) => libraryBuilder.loader.computeTypeBuilder(
-          _extensionTypeDeclaration.implements[i],
+          type: _extensionTypeDeclaration.implements[i],
+          uriOffset: uriOffset,
         ),
         growable: false,
       );

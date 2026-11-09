@@ -703,6 +703,29 @@ void main() {
 ''');
   }
 
+  test_field_result_unassigned_combinedSignature_mergedType() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+abstract class A {
+  Future<dynamic> get foo;
+}
+
+class B {
+  @useResult
+  final Future<void> foo = Future.value();
+}
+
+class C extends B implements A {}
+
+void f(C c) {
+  c.foo;
+//  ^^^
+// [diag.unusedResult] The value of 'foo' should be used.
+}
+''');
+  }
+
   test_field_result_unassigned_conditional_if() async {
     await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';

@@ -111,10 +111,10 @@ class AstNodeImplGenerator {
 
     // V1-only nodes delegate to their canonical V2 source nodes.
     if (api == _AstNodeApi.v1 &&
-        classElement.getGetter('_v1ProjectionSource') == null) {
+        classElement.getGetter('_v1ProjectionOrigin') == null) {
       throw StateError(
         '${classElement.name}: V1-only nodes are projections and must '
-        'override _v1ProjectionSource.',
+        'override _v1ProjectionOrigin.',
       );
     }
 
@@ -357,7 +357,7 @@ Token get beginToken {
           }
           var names = groupProperties.map((p) => p.name).join(', ');
           buffer.write('''
-if (Token.lexicallyFirst($names) case var result?) {
+if (AstNodeImpl._lexicallyFirst($names) case var result?) {
   return result;
 }''');
           continue;

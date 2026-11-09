@@ -72,6 +72,9 @@ void main() {
     expect(IntType().isSubtypeOf(DoubleType()), isFalse);
     expect(IntType().isSubtypeOf(BoolType()), isFalse);
     expect(IntType().isSubtypeOf(StringType()), isFalse);
+    expect(IntType().isSubtypeOf(Float32x4Type()), isFalse);
+    expect(IntType().isSubtypeOf(Float64x2Type()), isFalse);
+    expect(IntType().isSubtypeOf(Int32x4Type()), isFalse);
     expect(IntType().isSubtypeOf(ObjectType()), isTrue);
     expect(IntType().isSubtypeOf(TopType()), isTrue);
     expect(IntType().isSubtypeOf(NullType()), isFalse);
@@ -105,6 +108,9 @@ void main() {
     expect(DoubleType().isSubtypeOf(DoubleType()), isTrue);
     expect(DoubleType().isSubtypeOf(BoolType()), isFalse);
     expect(DoubleType().isSubtypeOf(StringType()), isFalse);
+    expect(DoubleType().isSubtypeOf(Float32x4Type()), isFalse);
+    expect(DoubleType().isSubtypeOf(Float64x2Type()), isFalse);
+    expect(DoubleType().isSubtypeOf(Int32x4Type()), isFalse);
     expect(DoubleType().isSubtypeOf(ObjectType()), isTrue);
     expect(DoubleType().isSubtypeOf(TopType()), isTrue);
     expect(DoubleType().isSubtypeOf(NullType()), isFalse);
@@ -138,6 +144,9 @@ void main() {
     expect(BoolType().isSubtypeOf(DoubleType()), isFalse);
     expect(BoolType().isSubtypeOf(BoolType()), isTrue);
     expect(BoolType().isSubtypeOf(StringType()), isFalse);
+    expect(BoolType().isSubtypeOf(Float32x4Type()), isFalse);
+    expect(BoolType().isSubtypeOf(Float64x2Type()), isFalse);
+    expect(BoolType().isSubtypeOf(Int32x4Type()), isFalse);
     expect(BoolType().isSubtypeOf(ObjectType()), isTrue);
     expect(BoolType().isSubtypeOf(TopType()), isTrue);
     expect(BoolType().isSubtypeOf(NullType()), isFalse);
@@ -171,6 +180,9 @@ void main() {
     expect(StringType().isSubtypeOf(DoubleType()), isFalse);
     expect(StringType().isSubtypeOf(BoolType()), isFalse);
     expect(StringType().isSubtypeOf(StringType()), isTrue);
+    expect(StringType().isSubtypeOf(Float32x4Type()), isFalse);
+    expect(StringType().isSubtypeOf(Float64x2Type()), isFalse);
+    expect(StringType().isSubtypeOf(Int32x4Type()), isFalse);
     expect(StringType().isSubtypeOf(ObjectType()), isTrue);
     expect(StringType().isSubtypeOf(TopType()), isTrue);
     expect(StringType().isSubtypeOf(NullType()), isFalse);
@@ -186,6 +198,141 @@ void main() {
       ast.DartTypeList.dynamic1,
     );
     expect(StringType().isSubtypeOf(StaticType(comparableType)), isTrue);
+  });
+
+  test('float32x4', () {
+    final float32x4DartType = coreTypes.nonNullableRawType(
+      coreTypes.index.getClass('dart:typed_data', 'Float32x4'),
+    );
+    expect(Float32x4Type(), equals(Float32x4Type(float32x4DartType)));
+    expect(Float32x4Type(), equals(CType.fromStaticType(float32x4DartType)));
+
+    expect(Float32x4Type().kind, equals(TypeKind.float32x4Type));
+    expect(Float32x4Type().dartType, equals(float32x4DartType));
+    expect(
+      Float32x4Type().hashCode,
+      equals(Float32x4Type(float32x4DartType).hashCode),
+    );
+    expect(Float32x4Type().canBeNull, isFalse);
+    expect(Float32x4Type().isNullable, isFalse);
+    expect(Float32x4Type().toNonNullableType, equals(Float32x4Type()));
+    expect(Float32x4Type().canBeInt, isFalse);
+    expect(Float32x4Type().canBeDouble, isFalse);
+    expect(Float32x4Type().canBeNum, isFalse);
+    expect(Float32x4Type().canBeFuture, isFalse);
+
+    expect(
+      Float32x4Type(float32x4DartType).kind,
+      equals(TypeKind.float32x4Type),
+    );
+    expect(
+      Float32x4Type(float32x4DartType).dartType,
+      equals(float32x4DartType),
+    );
+
+    expect(Float32x4Type().isSubtypeOf(IntType()), isFalse);
+    expect(Float32x4Type().isSubtypeOf(DoubleType()), isFalse);
+    expect(Float32x4Type().isSubtypeOf(BoolType()), isFalse);
+    expect(Float32x4Type().isSubtypeOf(StringType()), isFalse);
+    expect(Float32x4Type().isSubtypeOf(Float32x4Type()), isTrue);
+    expect(Float32x4Type().isSubtypeOf(Float64x2Type()), isFalse);
+    expect(Float32x4Type().isSubtypeOf(Int32x4Type()), isFalse);
+    expect(Float32x4Type().isSubtypeOf(ObjectType()), isTrue);
+    expect(Float32x4Type().isSubtypeOf(TopType()), isTrue);
+    expect(Float32x4Type().isSubtypeOf(NullType()), isFalse);
+    expect(Float32x4Type().isSubtypeOf(NeverType()), isFalse);
+    expect(
+      Float32x4Type().isSubtypeOf(StaticType(coreTypes.listNonNullableRawType)),
+      isFalse,
+    );
+  });
+
+  test('float64x2', () {
+    final float64x2DartType = coreTypes.nonNullableRawType(
+      coreTypes.index.getClass('dart:typed_data', 'Float64x2'),
+    );
+    expect(Float64x2Type(), equals(Float64x2Type(float64x2DartType)));
+    expect(Float64x2Type(), equals(CType.fromStaticType(float64x2DartType)));
+
+    expect(Float64x2Type().kind, equals(TypeKind.float64x2Type));
+    expect(Float64x2Type().dartType, equals(float64x2DartType));
+    expect(
+      Float64x2Type().hashCode,
+      equals(Float64x2Type(float64x2DartType).hashCode),
+    );
+    expect(Float64x2Type().canBeNull, isFalse);
+    expect(Float64x2Type().isNullable, isFalse);
+    expect(Float64x2Type().toNonNullableType, equals(Float64x2Type()));
+    expect(Float64x2Type().canBeInt, isFalse);
+    expect(Float64x2Type().canBeDouble, isFalse);
+    expect(Float64x2Type().canBeNum, isFalse);
+    expect(Float64x2Type().canBeFuture, isFalse);
+
+    expect(
+      Float64x2Type(float64x2DartType).kind,
+      equals(TypeKind.float64x2Type),
+    );
+    expect(
+      Float64x2Type(float64x2DartType).dartType,
+      equals(float64x2DartType),
+    );
+
+    expect(Float64x2Type().isSubtypeOf(IntType()), isFalse);
+    expect(Float64x2Type().isSubtypeOf(DoubleType()), isFalse);
+    expect(Float64x2Type().isSubtypeOf(BoolType()), isFalse);
+    expect(Float64x2Type().isSubtypeOf(StringType()), isFalse);
+    expect(Float64x2Type().isSubtypeOf(Float32x4Type()), isFalse);
+    expect(Float64x2Type().isSubtypeOf(Float64x2Type()), isTrue);
+    expect(Float64x2Type().isSubtypeOf(Int32x4Type()), isFalse);
+    expect(Float64x2Type().isSubtypeOf(ObjectType()), isTrue);
+    expect(Float64x2Type().isSubtypeOf(TopType()), isTrue);
+    expect(Float64x2Type().isSubtypeOf(NullType()), isFalse);
+    expect(Float64x2Type().isSubtypeOf(NeverType()), isFalse);
+    expect(
+      Float64x2Type().isSubtypeOf(StaticType(coreTypes.listNonNullableRawType)),
+      isFalse,
+    );
+  });
+
+  test('int32x4', () {
+    final int32x4DartType = coreTypes.nonNullableRawType(
+      coreTypes.index.getClass('dart:typed_data', 'Int32x4'),
+    );
+    expect(Int32x4Type(), equals(Int32x4Type(int32x4DartType)));
+    expect(Int32x4Type(), equals(CType.fromStaticType(int32x4DartType)));
+
+    expect(Int32x4Type().kind, equals(TypeKind.int32x4Type));
+    expect(Int32x4Type().dartType, equals(int32x4DartType));
+    expect(
+      Int32x4Type().hashCode,
+      equals(Int32x4Type(int32x4DartType).hashCode),
+    );
+    expect(Int32x4Type().canBeNull, isFalse);
+    expect(Int32x4Type().isNullable, isFalse);
+    expect(Int32x4Type().toNonNullableType, equals(Int32x4Type()));
+    expect(Int32x4Type().canBeInt, isFalse);
+    expect(Int32x4Type().canBeDouble, isFalse);
+    expect(Int32x4Type().canBeNum, isFalse);
+    expect(Int32x4Type().canBeFuture, isFalse);
+
+    expect(Int32x4Type(int32x4DartType).kind, equals(TypeKind.int32x4Type));
+    expect(Int32x4Type(int32x4DartType).dartType, equals(int32x4DartType));
+
+    expect(Int32x4Type().isSubtypeOf(IntType()), isFalse);
+    expect(Int32x4Type().isSubtypeOf(DoubleType()), isFalse);
+    expect(Int32x4Type().isSubtypeOf(BoolType()), isFalse);
+    expect(Int32x4Type().isSubtypeOf(StringType()), isFalse);
+    expect(Int32x4Type().isSubtypeOf(Float32x4Type()), isFalse);
+    expect(Int32x4Type().isSubtypeOf(Float64x2Type()), isFalse);
+    expect(Int32x4Type().isSubtypeOf(Int32x4Type()), isTrue);
+    expect(Int32x4Type().isSubtypeOf(ObjectType()), isTrue);
+    expect(Int32x4Type().isSubtypeOf(TopType()), isTrue);
+    expect(Int32x4Type().isSubtypeOf(NullType()), isFalse);
+    expect(Int32x4Type().isSubtypeOf(NeverType()), isFalse);
+    expect(
+      Int32x4Type().isSubtypeOf(StaticType(coreTypes.listNonNullableRawType)),
+      isFalse,
+    );
   });
 
   test('record', () {
@@ -232,6 +379,9 @@ void main() {
     expect(recordType1.isSubtypeOf(DoubleType()), isFalse);
     expect(recordType1.isSubtypeOf(BoolType()), isFalse);
     expect(recordType1.isSubtypeOf(StringType()), isFalse);
+    expect(recordType1.isSubtypeOf(Float32x4Type()), isFalse);
+    expect(recordType1.isSubtypeOf(Float64x2Type()), isFalse);
+    expect(recordType1.isSubtypeOf(Int32x4Type()), isFalse);
     expect(recordType1.isSubtypeOf(ObjectType()), isTrue);
     expect(recordType1.isSubtypeOf(TopType()), isTrue);
     expect(recordType1.isSubtypeOf(NullType()), isFalse);
@@ -278,6 +428,9 @@ void main() {
     expect(ObjectType().isSubtypeOf(DoubleType()), isFalse);
     expect(ObjectType().isSubtypeOf(BoolType()), isFalse);
     expect(ObjectType().isSubtypeOf(StringType()), isFalse);
+    expect(ObjectType().isSubtypeOf(Float32x4Type()), isFalse);
+    expect(ObjectType().isSubtypeOf(Float64x2Type()), isFalse);
+    expect(ObjectType().isSubtypeOf(Int32x4Type()), isFalse);
     expect(ObjectType().isSubtypeOf(ObjectType()), isTrue);
     expect(ObjectType().isSubtypeOf(TopType()), isTrue);
     expect(ObjectType().isSubtypeOf(NullType()), isFalse);
@@ -307,6 +460,9 @@ void main() {
     expect(NullType().isSubtypeOf(DoubleType()), isFalse);
     expect(NullType().isSubtypeOf(BoolType()), isFalse);
     expect(NullType().isSubtypeOf(StringType()), isFalse);
+    expect(NullType().isSubtypeOf(Float32x4Type()), isFalse);
+    expect(NullType().isSubtypeOf(Float64x2Type()), isFalse);
+    expect(NullType().isSubtypeOf(Int32x4Type()), isFalse);
     expect(NullType().isSubtypeOf(ObjectType()), isFalse);
     expect(NullType().isSubtypeOf(TopType()), isTrue);
     expect(NullType().isSubtypeOf(NullType()), isTrue);
@@ -339,6 +495,9 @@ void main() {
     expect(NeverType().isSubtypeOf(DoubleType()), isTrue);
     expect(NeverType().isSubtypeOf(BoolType()), isTrue);
     expect(NeverType().isSubtypeOf(StringType()), isTrue);
+    expect(NeverType().isSubtypeOf(Float32x4Type()), isTrue);
+    expect(NeverType().isSubtypeOf(Float64x2Type()), isTrue);
+    expect(NeverType().isSubtypeOf(Int32x4Type()), isTrue);
     expect(NeverType().isSubtypeOf(ObjectType()), isTrue);
     expect(NeverType().isSubtypeOf(TopType()), isTrue);
     expect(NeverType().isSubtypeOf(NullType()), isTrue);
@@ -386,6 +545,9 @@ void main() {
     expect(TopType().isSubtypeOf(DoubleType()), isFalse);
     expect(TopType().isSubtypeOf(BoolType()), isFalse);
     expect(TopType().isSubtypeOf(StringType()), isFalse);
+    expect(TopType().isSubtypeOf(Float32x4Type()), isFalse);
+    expect(TopType().isSubtypeOf(Float64x2Type()), isFalse);
+    expect(TopType().isSubtypeOf(Int32x4Type()), isFalse);
     expect(TopType().isSubtypeOf(ObjectType()), isFalse);
     expect(TopType().isSubtypeOf(TopType()), isTrue);
     expect(TopType().isSubtypeOf(NullType()), isFalse);
@@ -415,6 +577,9 @@ void main() {
     expect(listType.isSubtypeOf(DoubleType()), isFalse);
     expect(listType.isSubtypeOf(BoolType()), isFalse);
     expect(listType.isSubtypeOf(StringType()), isFalse);
+    expect(listType.isSubtypeOf(Float32x4Type()), isFalse);
+    expect(listType.isSubtypeOf(Float64x2Type()), isFalse);
+    expect(listType.isSubtypeOf(Int32x4Type()), isFalse);
     expect(listType.isSubtypeOf(ObjectType()), isTrue);
     expect(listType.isSubtypeOf(TopType()), isTrue);
     expect(listType.isSubtypeOf(NullType()), isFalse);
@@ -487,6 +652,9 @@ void main() {
     expect(NothingType().isSubtypeOf(DoubleType()), isFalse);
     expect(NothingType().isSubtypeOf(BoolType()), isFalse);
     expect(NothingType().isSubtypeOf(StringType()), isFalse);
+    expect(NothingType().isSubtypeOf(Float32x4Type()), isFalse);
+    expect(NothingType().isSubtypeOf(Float64x2Type()), isFalse);
+    expect(NothingType().isSubtypeOf(Int32x4Type()), isFalse);
     expect(NothingType().isSubtypeOf(ObjectType()), isFalse);
     expect(NothingType().isSubtypeOf(TopType()), isFalse);
     expect(NothingType().isSubtypeOf(NullType()), isFalse);
@@ -513,6 +681,9 @@ void main() {
     expect(LateValueType().isSubtypeOf(DoubleType()), isFalse);
     expect(LateValueType().isSubtypeOf(BoolType()), isFalse);
     expect(LateValueType().isSubtypeOf(StringType()), isFalse);
+    expect(LateValueType().isSubtypeOf(Float32x4Type()), isFalse);
+    expect(LateValueType().isSubtypeOf(Float64x2Type()), isFalse);
+    expect(LateValueType().isSubtypeOf(Int32x4Type()), isFalse);
     expect(LateValueType().isSubtypeOf(ObjectType()), isFalse);
     expect(LateValueType().isSubtypeOf(TopType()), isFalse);
     expect(LateValueType().isSubtypeOf(NullType()), isFalse);
@@ -539,6 +710,9 @@ void main() {
     expect(TypeParametersType().isSubtypeOf(DoubleType()), isFalse);
     expect(TypeParametersType().isSubtypeOf(BoolType()), isFalse);
     expect(TypeParametersType().isSubtypeOf(StringType()), isFalse);
+    expect(TypeParametersType().isSubtypeOf(Float32x4Type()), isFalse);
+    expect(TypeParametersType().isSubtypeOf(Float64x2Type()), isFalse);
+    expect(TypeParametersType().isSubtypeOf(Int32x4Type()), isFalse);
     expect(TypeParametersType().isSubtypeOf(ObjectType()), isFalse);
     expect(TypeParametersType().isSubtypeOf(TopType()), isFalse);
     expect(TypeParametersType().isSubtypeOf(NullType()), isFalse);
@@ -567,6 +741,9 @@ void main() {
     expect(TypeArgumentsType().isSubtypeOf(DoubleType()), isFalse);
     expect(TypeArgumentsType().isSubtypeOf(BoolType()), isFalse);
     expect(TypeArgumentsType().isSubtypeOf(StringType()), isFalse);
+    expect(TypeArgumentsType().isSubtypeOf(Float32x4Type()), isFalse);
+    expect(TypeArgumentsType().isSubtypeOf(Float64x2Type()), isFalse);
+    expect(TypeArgumentsType().isSubtypeOf(Int32x4Type()), isFalse);
     expect(TypeArgumentsType().isSubtypeOf(ObjectType()), isFalse);
     expect(TypeArgumentsType().isSubtypeOf(TopType()), isFalse);
     expect(TypeArgumentsType().isSubtypeOf(NullType()), isFalse);
@@ -595,6 +772,9 @@ void main() {
     expect(ContextType().isSubtypeOf(DoubleType()), isFalse);
     expect(ContextType().isSubtypeOf(BoolType()), isFalse);
     expect(ContextType().isSubtypeOf(StringType()), isFalse);
+    expect(ContextType().isSubtypeOf(Float32x4Type()), isFalse);
+    expect(ContextType().isSubtypeOf(Float64x2Type()), isFalse);
+    expect(ContextType().isSubtypeOf(Int32x4Type()), isFalse);
     expect(ContextType().isSubtypeOf(ObjectType()), isFalse);
     expect(ContextType().isSubtypeOf(TopType()), isFalse);
     expect(ContextType().isSubtypeOf(NullType()), isFalse);

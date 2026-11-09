@@ -4124,6 +4124,82 @@ V1: AssignmentExpression
 ''');
   }
 
+  test_prefixedIdentifier_instance_combinedSignature_covariance() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+abstract class A {
+  set x(covariant int _);
+}
+
+class B {
+  set x(num _) {}
+}
+
+class C extends B implements A {}
+
+void f(C c) {
+  c.x = 2;
+}
+''');
+
+    var node = result.findNode.directAssignment('x = 2');
+    assertResolvedNodeText(node, r'''
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: UnqualifiedNameExpression
+      name: c
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::c
+        type: C
+      staticType: C
+    operator: .
+    name: x
+    read: <null>
+    write: SetterInvocationResolution
+      element: CombinedSetterElementImpl
+        baseElement: <testLibrary>::@class::B::@setter::x
+        owner: <testLibrary>::@class::C
+      acceptedType: num
+  operator: =
+  value: IntegerLiteral
+    literal: 2
+    correspondingParameter: CombinedFormalParameterElementImpl
+      baseElement: <testLibrary>::@class::B::@setter::x::@formalParameter::_
+      type: num
+      isCovariant: true
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: c
+      element: <testLibrary>::@function::f::@formalParameter::c
+      staticType: C
+    period: .
+    identifier: SimpleIdentifier
+      token: x
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 2
+    correspondingParameter: CombinedFormalParameterElementImpl
+      baseElement: <testLibrary>::@class::B::@setter::x::@formalParameter::_
+      type: num
+      isCovariant: true
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: CombinedSetterElementImpl
+    baseElement: <testLibrary>::@class::B::@setter::x
+    owner: <testLibrary>::@class::C
+  writeType: num
+  element: <null>
+  staticType: int
+''');
+  }
+
   test_prefixedIdentifier_instance_compound() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
@@ -8578,6 +8654,68 @@ V1: AssignmentExpression
   writeElement: <testLibrary>::@class::C::@setter::y
   writeType: int
   element: dart:core::@class::num::@method::+
+  staticType: int
+''');
+  }
+
+  test_propertyAccess_super_simple_covariantInInterface() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  set foo(int x) {}
+}
+
+abstract class I {
+  set foo(covariant num x);
+}
+
+class B extends A implements I {}
+
+class C extends B {
+  set foo(int x) {
+    super.foo = 0;
+  }
+}
+''');
+
+    var node = result.findNode.directAssignment('foo = 0');
+    assertResolvedNodeText(node, r'''
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: SuperReference
+      superKeyword: super
+    operator: .
+    name: foo
+    read: <null>
+    write: SetterInvocationResolution
+      element: <testLibrary>::@class::A::@setter::foo
+      acceptedType: int
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <testLibrary>::@class::A::@setter::foo::@formalParameter::x
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: SuperExpression
+      superKeyword: super
+      staticType: C
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <testLibrary>::@class::A::@setter::foo::@formalParameter::x
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <testLibrary>::@class::A::@setter::foo
+  writeType: int
+  element: <null>
   staticType: int
 ''');
   }

@@ -981,6 +981,62 @@ V1: PrefixedIdentifier
 ''');
   }
 
+  test_read_interfaceType_combinedSignature_mergedType_generic() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+abstract class A<T> {
+  (T, void) get foo;
+}
+
+abstract class B<T> {
+  (T, dynamic) get foo;
+}
+
+abstract class C<T> implements A<T>, B<T> {}
+
+void f(C<int> c) {
+  c.foo;
+}
+''');
+
+    var node = result.findNode.singleReceiverPropertyExtraction;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: c
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      type: C<int>
+    staticType: C<int>
+  operator: .
+  name: foo
+  resolution: GetterInvocationResolution
+    element: CombinedGetterElementImpl
+      baseElement: <testLibrary>::@class::A::@getter::foo
+      owner: <testLibrary>::@class::C
+      substitution: {T: int}
+    type: (int, Object?)
+  staticType: (int, Object?)
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: c
+    element: <testLibrary>::@function::f::@formalParameter::c
+    staticType: C<int>
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    element: CombinedGetterElementImpl
+      baseElement: <testLibrary>::@class::A::@getter::foo
+      owner: <testLibrary>::@class::C
+      substitution: {T: int}
+    staticType: (int, Object?)
+  element: CombinedGetterElementImpl
+    baseElement: <testLibrary>::@class::A::@getter::foo
+    owner: <testLibrary>::@class::C
+    substitution: {T: int}
+  staticType: (int, Object?)
+''');
+  }
+
   test_read_interfaceType_unresolved() async {
     var result = await resolveTestCodeWithDiagnostics('''
 void f(int a) {

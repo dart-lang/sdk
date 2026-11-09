@@ -12,6 +12,7 @@ import '../base/configuration.dart' show Configuration;
 import '../base/identifiers.dart' show Identifier;
 import '../base/modifiers.dart';
 import '../base/scope.dart';
+import '../base/uri_offset.dart';
 import '../builder/constructor_reference_builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
@@ -201,11 +202,10 @@ abstract class FragmentFactory {
     required List<MetadataBuilder>? metadata,
     required String uri,
     required List<Configuration>? configurations,
-    required String? prefix,
     required List<CombinatorBuilder>? combinators,
     required bool deferred,
-    required int charOffset,
-    required int prefixCharOffset,
+    required UriOffsetLength importUriOffset,
+    required UriOffsetName? prefixUriOffsetName,
     required int uriOffset,
   });
 
@@ -370,6 +370,7 @@ abstract class FragmentFactory {
   void addPrimaryConstructorBody({
     required OffsetMap offsetMap,
     required Token beginToken,
+    required Token thisToken,
     required List<MetadataBuilder>? metadata,
     required int endOffset,
     required Token? initializersStartToken,
@@ -493,12 +494,14 @@ abstract class FragmentFactory {
     required bool hasSuper,
     required int nameOffset,
     required Token? initializerToken,
+    required UriOffsetLength uriOffset,
   });
 
   FunctionTypeParameterBuilder addFunctionTypeParameter({
     required FormalParameterKind kind,
     required TypeBuilder type,
     required String? name,
+    required UriOffsetLength uriOffset,
     required int fileOffset,
   });
 
@@ -519,7 +522,7 @@ abstract class FragmentFactory {
     TypeName typeName,
     NullabilityBuilder nullabilityBuilder,
     List<TypeBuilder>? arguments,
-    int charOffset, {
+    UriOffsetLength uriOffset, {
     required InstanceTypeParameterAccessState instanceTypeParameterAccess,
   });
 
@@ -528,30 +531,26 @@ abstract class FragmentFactory {
     List<SourceStructuralParameterBuilder>? structuralParameterBuilders,
     List<FunctionTypeParameterBuilder>? formals,
     NullabilityBuilder nullabilityBuilder,
-    Uri fileUri,
-    int charOffset, {
+    UriOffsetLength uriOffset, {
     required bool hasFunctionFormalParameterSyntax,
   });
 
-  TypeBuilder addVoidType(int charOffset);
+  TypeBuilder addVoidType(UriOffsetLength uriOffset);
 
-  InferableTypeBuilder addInferableType(
-    InferenceDefaultType inferenceDefaultType,
-  );
+  InferableTypeBuilder addInferableType({
+    required InferenceDefaultType inferenceDefaultType,
+    required UriOffsetLength uriOffset,
+  });
 
   TypeParameterFragment addNominalParameter({
     required List<MetadataBuilder>? metadata,
-    required String name,
-    required int nameOffset,
-    required Uri fileUri,
+    required UriOffsetName uriOffsetName,
     required TypeParameterKind kind,
   });
 
   StructuralParameterBuilder addStructuralParameter({
     required List<MetadataBuilder>? metadata,
-    required String name,
-    required int nameOffset,
-    required Uri fileUri,
+    required UriOffsetName uriOffsetName,
   });
 }
 
@@ -568,8 +567,7 @@ class SynthesizedExtensionSignature {
     required List<TypeParameterFragment>? extensionTypeParameterFragments,
     required TypeBuilder onTypeBuilder,
     required TypeParameterFactory typeParameterFactory,
-    required Uri fileUri,
-    required int fileOffset,
+    required UriOffsetLength uriOffset,
     required bool isClosureContextLoweringEnabled,
   }) {
     NominalParameterCopy? nominalVariableCopy = typeParameterFactory
@@ -594,8 +592,7 @@ class SynthesizedExtensionSignature {
       type: thisType,
       name: syntheticThisName,
       nameOffset: null,
-      fileOffset: fileOffset,
-      fileUri: fileUri,
+      uriOffset: uriOffset,
       isExtensionThis: true,
       hasImmediatelyDeclaredDefaultValue: false,
     );
@@ -618,8 +615,7 @@ class SynthesizedExtensionTypeSignature {
     required ExtensionTypeDeclarationBuilder extensionTypeDeclarationBuilder,
     required List<TypeParameterFragment>? extensionTypeTypeParameters,
     required TypeParameterFactory typeParameterFactory,
-    required Uri fileUri,
-    required int fileOffset,
+    required UriOffsetLength uriOffset,
     required bool isClosureContextLoweringEnabled,
   }) {
     NominalParameterCopy? nominalVariableCopy = typeParameterFactory
@@ -645,10 +641,12 @@ class SynthesizedExtensionTypeSignature {
                     const NullabilityBuilder.omitted(),
                     instanceTypeParameterAccess:
                         InstanceTypeParameterAccessState.Allowed,
+                    uriOffset: clonedDeclarationTypeParameters[index].uriOffset,
                   ),
             )
           : null,
       instanceTypeParameterAccess: InstanceTypeParameterAccessState.Allowed,
+      uriOffset: uriOffset,
     );
 
     if (nominalVariableCopy != null) {
@@ -661,8 +659,7 @@ class SynthesizedExtensionTypeSignature {
       type: thisType,
       name: syntheticThisName,
       nameOffset: null,
-      fileOffset: fileOffset,
-      fileUri: fileUri,
+      uriOffset: uriOffset,
       isExtensionThis: true,
       hasImmediatelyDeclaredDefaultValue: false,
     );

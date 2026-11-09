@@ -179,6 +179,30 @@ class B extends C  {
 ''');
   }
 
+  test_class_method_covariantInInterface() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @nonVirtual
+  void foo(int x) {}
+}
+
+abstract class I {
+  void foo(covariant num x);
+}
+
+class B extends A implements I {}
+
+class C extends B {
+  @override
+  void foo(int x) {}
+//     ^^^
+// [diag.invalidOverrideOfNonVirtualMember] The member 'foo' is declared non-virtual in 'A' and can't be overridden in subclasses.
+}
+''');
+  }
+
   test_class_setter() async {
     await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';

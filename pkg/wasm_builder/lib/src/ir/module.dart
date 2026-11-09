@@ -23,7 +23,7 @@ class Module implements Serializable {
   // module with the constitutents.
   bool _initialized = false;
 
-  late final String? _moduleName;
+  late final String _moduleName;
   late final Functions _functions;
   late final BaseFunction? _start;
   late final Tables _tables;
@@ -44,7 +44,7 @@ class Module implements Serializable {
   Module.uninitialized() : _initialized = false;
 
   void initialize(
-    String? moduleName,
+    String moduleName,
     Functions functions,
     BaseFunction? start,
     Tables tables,
@@ -82,7 +82,7 @@ class Module implements Serializable {
     this.debugInfoTables = debugInfoTables;
   }
 
-  String? get moduleName => _moduleName;
+  String get moduleName => _moduleName;
   Functions get functions => _functions;
   BaseFunction? get start => _start;
   Tables get tables => _tables;

@@ -75,10 +75,14 @@ final class Arm64StackFrame extends StackFrame {
   }
 
   @override
-  int spillSlotSizeInWords(RegisterClass registerClass) => 1;
+  int spillSlotSizeInWords(RegisterClass registerClass, bool isSimdValue) =>
+      isSimdValue ? 2 : 1;
 
   @override
-  int spillSlotAlignmentInWords(RegisterClass registerClass) => 1;
+  int spillSlotAlignmentInWords(
+    RegisterClass registerClass,
+    bool isSimdValue,
+  ) => isSimdValue ? 2 : 1;
 
   @override
   int argumentsStackSlots(Instruction instr) {
@@ -131,8 +135,13 @@ final class Arm64StackFrame extends StackFrame {
       case SubtypeCheck():
         return 6; // Result + 5 arguments for SubtypeCheck call.
       case BinaryIntOp(:var op)
-          when op == .truncatingDiv || op == .mod || op == .rem:
-        return 1; // Result for IntegerDivisionByZeroException runtime call.
+          when op == .truncatingDiv ||
+              op == .mod ||
+              op == .rem ||
+              op == .shiftLeft ||
+              op == .shiftRight ||
+              op == .unsignedShiftRight:
+        return 1; // Result for IntegerDivisionByZeroException/ArgumentErrorUnboxedInt64 runtime call.
       case UnaryDoubleOp(:var op)
           when op == .round || op == .floor || op == .ceil || op == .truncate:
         return 2; // Result + 1 argument for UnsupportedError runtime call.
@@ -140,6 +149,8 @@ final class Arm64StackFrame extends StackFrame {
         return 1; // Result for BoxInt runtime call.
       case BoxDouble():
         return 1; // Result for BoxDouble runtime call.
+      case BoxSimd():
+        return 1; // Result for BoxFloat32x4/BoxFloat64x2/BoxInt32x4 runtime call.
       default:
         return 0;
     }
@@ -151,7 +162,9 @@ final class Arm64StackFrame extends StackFrame {
   @override
   int offsetFromFP(StackLocation location) {
     assert(isFinalized);
-    return _slotOffsetFromFP(location.stackSlotIndex);
+    return _slotOffsetFromFP(
+      location.stackSlotIndex + (location is SimdSpillSlot ? 1 : 0),
+    );
   }
 
   @override

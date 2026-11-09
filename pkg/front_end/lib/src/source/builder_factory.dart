@@ -418,16 +418,12 @@ class BuilderFactory {
         TypeBuilder? augmentationSupertype = augmentation.supertype;
         if (augmentationSupertype != null) {
           if (supertypeBuilder != null) {
-            _problemReporting.addProblem(
+            _problemReporting.addProblem2(
               diag.augmentationExtendsClauseAlreadyPresent,
-              augmentationSupertype.charOffset!,
-              noLength,
-              augmentationSupertype.fileUri,
+              augmentationSupertype.uriOffset,
               context: [
-                diag.augmentationExtendsClassAlreadyPresentCause.withLocation(
-                  supertypeBuilder.fileUri!,
-                  supertypeBuilder.charOffset!,
-                  noLength,
+                diag.augmentationExtendsClassAlreadyPresentCause.withLocation2(
+                  supertypeBuilder.uriOffset,
                 ),
               ],
             );
@@ -1411,10 +1407,7 @@ class BuilderFactory {
 
     Reference? reference = _indexedLibrary?.lookupTypedef(fragment.name);
     SourceTypeAliasBuilder typedefBuilder = new SourceTypeAliasBuilder(
-      name: fragment.name,
       enclosingLibraryBuilder: _enclosingLibraryBuilder,
-      fileUri: fragment.fileUri,
-      fileOffset: fragment.nameOffset,
       fragment: fragment,
       reference: reference,
     );

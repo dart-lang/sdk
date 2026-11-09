@@ -678,7 +678,37 @@ class _HttpClientResponse extends _HttpInboundMessageListInt
           redirects,
         );
       }
-      url = Uri.parse(location);
+      // The Location header comes from the server. Report a URL that cannot
+      // be parsed or has an invalid scheme, host, or port as a
+      // RedirectException, not as a FormatException or ArgumentError.
+      var parsed = Uri.tryParse(location);
+      var resolved = parsed == null
+          ? null
+          : _httpRequest.uri.resolveUri(parsed);
+      var validPort = false;
+      if (resolved != null) {
+        try {
+          var port = resolved.port;
+          validPort = port >= 0 && port <= 0xFFFF;
+        } on FormatException {
+          validPort = false;
+        }
+      }
+      if (parsed == null ||
+          resolved == null ||
+          !validPort ||
+          (method != "CONNECT" &&
+              (resolved.host.isEmpty ||
+                  (_httpClient._connectionFactory == null &&
+                      !resolved.isScheme("http") &&
+                      !resolved.isScheme("https"))))) {
+        throw RedirectException(
+          "Server response has an invalid Location header for redirect: "
+          "$location",
+          redirects,
+        );
+      }
+      url = parsed;
     }
     if (followLoops != true) {
       for (var redirect in redirects) {

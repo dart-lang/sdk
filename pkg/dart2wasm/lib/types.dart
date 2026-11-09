@@ -251,7 +251,7 @@ class Types {
     } else if (s is NeverType) {
       return InterfaceType(
         coreTypes.futureClass,
-        Nullability.nonNullable,
+        type.declaredNullability,
         DartTypeList.never1,
       );
     } else if (s is NullType) {

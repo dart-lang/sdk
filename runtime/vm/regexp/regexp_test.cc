@@ -6,6 +6,7 @@
 
 #include "vm/isolate.h"
 #include "vm/object.h"
+#include "vm/regexp/regexp-bytecode-generator.h"
 #include "vm/regexp/regexp.h"
 #include "vm/symbols.h"
 #include "vm/unit_test.h"
@@ -46,6 +47,19 @@ ISOLATE_UNIT_TEST_CASE(RegExp_TwoByteString) {
   EXPECT_EQ(2, res.Length());
   EXPECT_EQ(1, res.GetInt32(0 * sizeof(int32_t)));
   EXPECT_EQ(3, res.GetInt32(1 * sizeof(int32_t)));
+}
+
+// The early bounds check for cp_offset + eats_at_least - 1 must not be emitted
+// if that offset doesn't fit into the CheckPosition offset operand.
+ISOLATE_UNIT_TEST_CASE(RegExp_LoadCurrentCharacterCheckPositionOffset) {
+  RegExpBytecodeGenerator generator(thread->isolate(), thread->zone(),
+                                    RegExpMacroAssembler::LATIN1);
+  V8Label on_failure;
+  generator.LoadCurrentCharacter(RegExpMacroAssembler::kMaxCPOffset - 1,
+                                 &on_failure, /*check_bounds=*/true,
+                                 /*characters=*/1, /*eats_at_least=*/100);
+  generator.Bind(&on_failure);
+  generator.Fail();
 }
 
 }  // namespace dart

@@ -794,6 +794,7 @@ gc
 gen
 gendir
 generation
+get's
 getable
 getable
 getables
@@ -1533,6 +1534,7 @@ reach
 reachabilities
 reachability
 react
+read's
 realign
 realise
 reanalyze
@@ -1930,6 +1932,7 @@ subtracting
 subtraction
 subtracts
 successive
+suffices
 suffixed
 suffixing
 sugared

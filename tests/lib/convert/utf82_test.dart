@@ -289,4 +289,103 @@ main() {
       check(expected, new Uint8List.fromList(bytes), 'Uint8List');
     }
   }
+
+  testLongInputs();
+}
+
+void testLongInputs() {
+  String decodeChunked(List<int> bytes, bool allowMalformed) {
+    final buffer = StringBuffer();
+    final sink = Utf8Decoder(allowMalformed: allowMalformed)
+        .startChunkedConversion(StringConversionSink.fromStringSink(buffer));
+    sink
+      ..add(bytes)
+      ..close();
+    return buffer.toString();
+  }
+
+  void checkLongMalformed(
+    String name,
+    List<int> bytes,
+    String expectedMalformed,
+  ) {
+    for (final input in [Uint8List.fromList(bytes), bytes]) {
+      Expect.throwsFormatException(() => utf8.decode(input), name);
+      Expect.equals(
+        expectedMalformed,
+        utf8.decode(input, allowMalformed: true),
+        name,
+      );
+      Expect.throwsFormatException(() => decodeChunked(input, false), name);
+      Expect.equals(expectedMalformed, decodeChunked(input, true), name);
+    }
+  }
+
+  // Unfinished trailing multi-byte sequences across 1024-byte chunk boundaries.
+  const tails = [
+    [0xC3],
+    [0xE2, 0x82],
+    [0xF0, 0x9F, 0x98],
+  ];
+  for (final prefixLength in [1, 1022, 1023, 1024, 1025, 2047, 2048, 4096]) {
+    for (final tail in tails) {
+      for (final prefixByte in [0x41, 0xE9]) {
+        final prefix = prefixByte == 0x41
+            ? 'A' * prefixLength
+            : '\u00e9' * (prefixLength ~/ 2 + 1);
+        final bytes = [...utf8.encode(prefix), ...tail];
+        final name = '${prefix.length} x U+${prefix.codeUnitAt(0)} + $tail';
+        for (final input in [Uint8List.fromList(bytes), bytes]) {
+          Expect.throwsFormatException(() => utf8.decode(input), name);
+          Expect.equals(
+            '$prefix\uFFFD',
+            utf8.decode(input, allowMalformed: true),
+            name,
+          );
+          final padded = [0x41, ...bytes, 0x41];
+          final paddedInput = input is Uint8List
+              ? Uint8List.fromList(padded)
+              : padded;
+          Expect.throwsFormatException(
+            () => utf8.decoder.convert(paddedInput, 1, padded.length - 1),
+            name,
+          );
+          Expect.equals(
+            '$prefix\uFFFD',
+            const Utf8Decoder(allowMalformed: true)
+                .convert(paddedInput, 1, padded.length - 1),
+            name,
+          );
+        }
+      }
+    }
+  }
+
+  // Invalid continuation/out-of-range bytes in >1024-byte inputs.
+  checkLongMalformed('A x 1500 + 80 + A x 10', [
+    ...List.filled(1500, 0x41),
+    0x80,
+    ...List.filled(10, 0x41),
+  ], '${'A' * 1500}\uFFFD${'A' * 10}');
+  for (final byte in [0xF5, 0xF8, 0xFF]) {
+    for (final count in [600, 1024, 3000]) {
+      checkLongMalformed(
+        '${byte.toRadixString(16)} x $count',
+        List.filled(count, byte),
+        '\uFFFD' * count,
+      );
+    }
+  }
+
+  // Runs of valid multi-byte lead bytes without continuation bytes (>512
+  // 4-byte lead bytes also exercise output-buffer sizing in 1024-byte chunks).
+  for (final lead in [0xC3, 0xE1, 0xF0, 0xF2, 0xF4]) {
+    for (final count in [600, 1024, 1025, 2000, 3000]) {
+      checkLongMalformed(
+        '${lead.toRadixString(16)} x $count',
+        List.filled(count, lead),
+        '\uFFFD' * count,
+      );
+    }
+  }
 }

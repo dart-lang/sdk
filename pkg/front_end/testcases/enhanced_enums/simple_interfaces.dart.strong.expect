@@ -5,7 +5,7 @@ library;
 // pkg/front_end/testcases/enhanced_enums/simple_interfaces.dart:24:20: Error: Can't implement 'I?' because it's nullable.
 // Try removing the question mark.
 // enum E3 implements I? { // Error.
-//                    ^^
+//                    ^
 //
 // pkg/front_end/testcases/enhanced_enums/simple_interfaces.dart:19:6: Error: The non-abstract class 'E2' is missing implementations for these members:
 //  - I.foo

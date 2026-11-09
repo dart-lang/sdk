@@ -28,10 +28,7 @@ class DescriptorInfo : public DescriptorInfoBase {
 
   intptr_t GetPollEvents();
 
-  virtual void Close() {
-    close(fd_);
-    fd_ = -1;
-  }
+  virtual void Close();
 
  private:
   DISALLOW_COPY_AND_ASSIGN(DescriptorInfo);

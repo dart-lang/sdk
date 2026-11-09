@@ -875,6 +875,7 @@ void f(Random _) {}
     await resolveFilesWithDiagnostics({
       a: r'''
 import 'dart:math';
+// [context 1][column 1][length 6] The previous import that is being duplicated.
 //     ^^^^^^^^^^^
 // [diag.unusedImport] Unused import: 'dart:math'.
 part 'b.dart';
@@ -882,6 +883,8 @@ part 'b.dart';
       b: r'''
 part of 'a.dart';
 import 'dart:math';
+//     ^^^^^^^^^^^
+// [diag.duplicateImportInPart][context 1] Duplicate of import in 'a.dart'.
 void f(Random _) {}
 ''',
     });

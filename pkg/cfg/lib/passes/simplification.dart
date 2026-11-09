@@ -356,10 +356,19 @@ final class Simplification extends Pass
   Instruction visitBoxDouble(BoxDouble instr) => instr;
 
   @override
+  Instruction visitBoxSimd(BoxSimd instr) => instr;
+
+  @override
   Instruction visitUnboxInt(UnboxInt instr) => instr;
 
   @override
   Instruction visitUnboxDouble(UnboxDouble instr) => instr;
+
+  @override
+  Instruction visitUnboxSimd(UnboxSimd instr) => instr;
+
+  @override
+  Instruction visitSimdOp(SimdOp instr) => instr; // TODO: SIMD constants
 
   @override
   Instruction visitReachabilityFence(ReachabilityFence instr) => instr;

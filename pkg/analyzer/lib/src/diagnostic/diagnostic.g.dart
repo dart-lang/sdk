@@ -4011,6 +4011,23 @@ deprecatedSubclass = DiagnosticWithArguments(
 );
 
 /// Parameters:
+/// String libraryName: the name of the deprecated web library
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String libraryName})
+>
+deprecatedWebConfiguration = DiagnosticWithArguments(
+  name: 'deprecated_web_configuration',
+  problemMessage:
+      "'dart:{0}' is deprecated and shouldn't be used as an import/export "
+      "configuration.",
+  correctionMessage: "Try using 'dart.library.js_interop' instead.",
+  type: DiagnosticType.STATIC_WARNING,
+  uniqueName: 'deprecated_web_configuration',
+  withArguments: _withArgumentsDeprecatedWebConfiguration,
+  expectedTypes: [ExpectedType.string],
+);
+
+/// Parameters:
 /// String fieldName: the name of the field whose type can't be inferred
 /// String getterType: the return type of the combined getter signature
 /// String setterType: the parameter type of the combined setter signature
@@ -4394,6 +4411,24 @@ const DiagnosticWithoutArguments duplicateExport =
       expectedTypes: [],
     );
 
+/// Duplicate exports.
+///
+/// Parameters:
+/// String fileName: the name of the file containing the duplicated export
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String fileName})
+>
+duplicateExportInPart = DiagnosticWithArguments(
+  name: 'duplicate_export',
+  problemMessage: "Duplicate of export in '{0}'.",
+  correctionMessage: "Try removing all but one export of the library.",
+  hasPublishedDocs: true,
+  type: DiagnosticType.STATIC_WARNING,
+  uniqueName: 'duplicate_export_in_part',
+  withArguments: _withArgumentsDuplicateExportInPart,
+  expectedTypes: [ExpectedType.string],
+);
+
 /// Parameters:
 /// String name: the name of the field
 const DiagnosticWithArguments<
@@ -4475,6 +4510,24 @@ const DiagnosticWithoutArguments duplicateImport =
       uniqueName: 'duplicate_import',
       expectedTypes: [],
     );
+
+/// Duplicate imports.
+///
+/// Parameters:
+/// String fileName: the name of the file containing the duplicated import
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String fileName})
+>
+duplicateImportInPart = DiagnosticWithArguments(
+  name: 'duplicate_import',
+  problemMessage: "Duplicate of import in '{0}'.",
+  correctionMessage: "Try removing all but one import of the library.",
+  hasPublishedDocs: true,
+  type: DiagnosticType.STATIC_WARNING,
+  uniqueName: 'duplicate_import_in_part',
+  withArguments: _withArgumentsDuplicateImportInPart,
+  expectedTypes: [ExpectedType.string],
+);
 
 /// Parameters:
 /// 0: the label that was duplicated
@@ -20604,6 +20657,14 @@ LocatableDiagnostic _withArgumentsDeprecatedSubclass({
   return LocatableDiagnosticImpl(diag.deprecatedSubclass, [typeName]);
 }
 
+LocatableDiagnostic _withArgumentsDeprecatedWebConfiguration({
+  required String libraryName,
+}) {
+  return LocatableDiagnosticImpl(diag.deprecatedWebConfiguration, [
+    libraryName,
+  ]);
+}
+
 LocatableDiagnostic _withArgumentsDifferentInheritedGetterAndSetterTypes({
   required String fieldName,
   required String getterType,
@@ -20712,6 +20773,12 @@ LocatableDiagnostic _withArgumentsDuplicateDefinition({required String name}) {
   return LocatableDiagnosticImpl(diag.duplicateDefinition, [name]);
 }
 
+LocatableDiagnostic _withArgumentsDuplicateExportInPart({
+  required String fileName,
+}) {
+  return LocatableDiagnosticImpl(diag.duplicateExportInPart, [fileName]);
+}
+
 LocatableDiagnostic _withArgumentsDuplicateFieldFormalParameter({
   required String name,
 }) {
@@ -20724,6 +20791,12 @@ LocatableDiagnostic _withArgumentsDuplicateFieldName({required String name}) {
 
 LocatableDiagnostic _withArgumentsDuplicateIgnore({required String name}) {
   return LocatableDiagnosticImpl(diag.duplicateIgnore, [name]);
+}
+
+LocatableDiagnostic _withArgumentsDuplicateImportInPart({
+  required String fileName,
+}) {
+  return LocatableDiagnosticImpl(diag.duplicateImportInPart, [fileName]);
 }
 
 LocatableDiagnostic _withArgumentsDuplicateNamedArgument({

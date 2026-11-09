@@ -1400,6 +1400,7 @@ const LinterLintWithoutArguments eolAtEndOfFileTooMany =
       problemMessage: "Too many newlines at the end of the file.",
       correctionMessage:
           "Try removing the extra newlines at the end of the file.",
+      hasPublishedDocs: true,
       uniqueName: 'eol_at_end_of_file_too_many',
       expectedTypes: [],
     );
@@ -4063,8 +4064,8 @@ const DiagnosticWithArguments<
 >
 useSuperParametersMultiple = LinterLintTemplate(
   name: 'use_super_parameters',
-  problemMessage: "Parameters '{0}' could be super parameters.",
-  correctionMessage: "Trying converting '{0}' to super parameters.",
+  problemMessage: "Parameters {0} could be super parameters.",
+  correctionMessage: "Try converting {0} to super parameters.",
   hasPublishedDocs: true,
   uniqueName: 'use_super_parameters_multiple',
   withArguments: _withArgumentsUseSuperParametersMultiple,
@@ -4079,7 +4080,7 @@ const DiagnosticWithArguments<
 useSuperParametersSingle = LinterLintTemplate(
   name: 'use_super_parameters',
   problemMessage: "Parameter '{0}' could be a super parameter.",
-  correctionMessage: "Trying converting '{0}' to a super parameter.",
+  correctionMessage: "Try converting '{0}' to a super parameter.",
   hasPublishedDocs: true,
   uniqueName: 'use_super_parameters_single',
   withArguments: _withArgumentsUseSuperParametersSingle,

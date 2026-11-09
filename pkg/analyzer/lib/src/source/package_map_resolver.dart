@@ -22,6 +22,17 @@ class PackageMapUriResolver extends UriResolver {
   /// The [ResourceProvider] for this resolver.
   final ResourceProvider resourceProvider;
 
+  /// The package names keyed by the paths of their folders.
+  ///
+  /// If several packages have the same folder, the first one wins.
+  late final Map<String, String> _folderPathToPackageName = () {
+    var result = <String, String>{};
+    for (var entry in packageMap.entries) {
+      result.putIfAbsent(entry.value.path, () => entry.key);
+    }
+    return result;
+  }();
+
   /// Create a new [PackageMapUriResolver].
   ///
   /// [packageMap] is a table mapping package names to the path of the
@@ -30,32 +41,23 @@ class PackageMapUriResolver extends UriResolver {
 
   @override
   Uri? pathToUri(String path) {
-    // TODO(jensj): There should be an index on this instead of trying all entries.
-    // When analyzing rwf-materials (562 contexts) with a filled cache this
-    // function is called 624,750 times and a combined 39,352,289 iterations
-    // are done in the loop below.
-    // See for instance https://github.com/dart-lang/package_config/pull/117
-    // for inspiration, but also, maybe just use package:package_config?
+    // Package folders can be nested, the deepest one wins.
     pathos.Context pathContext = resourceProvider.pathContext;
-    Uri? bestUri;
-    int bestLength = -1;
-    for (var packageEntry in packageMap.entries) {
-      String pkgName = packageEntry.key;
-      Folder pkgFolder = packageEntry.value;
-      String pkgFolderPath = pkgFolder.path;
-      if (path.length >= pkgFolderPath.length + pathContext.separator.length &&
-          path.startsWith(pkgFolderPath) &&
-          path.startsWith(pathContext.separator, pkgFolderPath.length)) {
-        if (pkgFolderPath.length > bestLength) {
-          String relPath = path.substring(pkgFolderPath.length + 1);
-          List<String> relPathComponents = pathContext.split(relPath);
-          String relUriPath = pathos.posix.joinAll(relPathComponents);
-          bestUri = uriCache.parse('$_packageScheme:$pkgName/$relUriPath');
-          bestLength = pkgFolderPath.length;
-        }
+    var separator = pathContext.separator;
+    for (
+      var end = path.lastIndexOf(separator);
+      end > 0;
+      end = path.lastIndexOf(separator, end - 1)
+    ) {
+      var pkgName = _folderPathToPackageName[path.substring(0, end)];
+      if (pkgName != null) {
+        String relPath = path.substring(end + 1);
+        List<String> relPathComponents = pathContext.split(relPath);
+        String relUriPath = pathos.posix.joinAll(relPathComponents);
+        return uriCache.parse('$_packageScheme:$pkgName/$relUriPath');
       }
     }
-    return bestUri;
+    return null;
   }
 
   @override

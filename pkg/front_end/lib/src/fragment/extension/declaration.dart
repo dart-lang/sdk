@@ -5,12 +5,16 @@
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 
+import '../../base/uri_offset.dart';
 import '../../builder/metadata_builder.dart';
 import '../../kernel/body_builder_context.dart';
 import '../../source/source_library_builder.dart';
 import '../fragment.dart';
 
 class ExtensionDeclaration(final ExtensionFragment _fragment) {
+  // Coverage-ignore(suite): Not run.
+  UriOffsetLength get uriOffset => _fragment.uriOffset;
+
   void buildOutlineExpressions({
     required SourceLibraryBuilder libraryBuilder,
     required Extension extension,

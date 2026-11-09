@@ -45,6 +45,15 @@ class AstBinaryReader {
     node.declaredFragment = fragment;
   }
 
+  DoubleLiteral _createDoubleLiteral(String lexeme, double value) {
+    var node = DoubleLiteralImpl(
+      literal: StringToken(TokenType.DOUBLE, lexeme, -1),
+      value: value,
+    );
+    _readExpressionResolution(node);
+    return node;
+  }
+
   IntegerLiteral _createIntegerLiteral(String lexeme, int value) {
     var node = IntegerLiteralImpl(
       // TODO(srawlins): TokenType.INT_WITH_SEPARATORS?
@@ -486,16 +495,14 @@ class AstBinaryReader {
 
   DoubleLiteral _readDoubleLiteral() {
     var value = _reader.readDouble();
-    var node = DoubleLiteralImpl(
-      literal: StringToken(
-        TokenType.STRING,
-        considerCanonicalizeString('$value'),
-        -1,
-      ),
-      value: value,
-    );
-    _readExpressionResolution(node);
-    return node;
+    var lexeme = considerCanonicalizeString('$value');
+    return _createDoubleLiteral(lexeme, value);
+  }
+
+  DoubleLiteral _readDoubleLiteralWithLexeme() {
+    var lexeme = _readStringReference();
+    var value = _reader.readDouble();
+    return _createDoubleLiteral(lexeme, value);
   }
 
   void _readExpressionResolution(ExpressionImpl node) {
@@ -1216,6 +1223,8 @@ class AstBinaryReader {
         return _readDottedName();
       case AstNodeTag.DoubleLiteral:
         return _readDoubleLiteral();
+      case AstNodeTag.DoubleLiteralWithLexeme:
+        return _readDoubleLiteralWithLexeme();
       case AstNodeTag.ExtensionOverride2:
         return _readExtensionOverride();
       case AstNodeTag.ForEachPartsWithDeclaration:

@@ -197,9 +197,7 @@ DEFINE_NATIVE_ENTRY(Developer_NativeRuntime_buildId, 0, 0) {
     const auto& build_id = OS::GetAppBuildId(instructions);
     if (build_id.data != nullptr) {
       ZoneTextBuffer buffer(zone);
-      for (intptr_t i = 0; i < build_id.len; i++) {
-        buffer.Printf("%2.2x", build_id.data[i]);
-      }
+      build_id.PrintTo(&buffer);
       return String::New(buffer.buffer());
     }
   }

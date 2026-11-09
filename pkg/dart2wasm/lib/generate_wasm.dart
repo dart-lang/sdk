@@ -78,9 +78,7 @@ Future<int> generateWasm(
   CompilationResult result = await compile(
     options,
     CompilerPhaseInputOutputManager(fileSystem, options),
-    (message) {
-      if (!options.dryRun) printDiagnosticMessage(message, errorPrinter);
-    },
+    (message) => printDiagnosticMessage(message, errorPrinter),
   );
 
   if (result is CompilationDryRunResult) {

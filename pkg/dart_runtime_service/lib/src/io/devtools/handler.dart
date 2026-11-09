@@ -22,6 +22,14 @@ import 'client.dart';
 
 const sseKeepAlive = Duration(seconds: 30);
 
+/// The `Sec-Fetch-Site` forbidden request header sent by browsers on requests
+/// to potentially trustworthy origins (loopback or HTTPS).
+const _secFetchSiteHeader = 'Sec-Fetch-Site';
+
+/// Allowed values for the `Sec-Fetch-Site` request header when `Origin` is
+/// omitted.
+const _allowedSecFetchSites = <String>{'same-origin', 'none'};
+
 /// Returns a [Handler] which handles serving DevTools and the DevTools server
 /// API.
 ///
@@ -162,8 +170,17 @@ FutureOr<Handler> defaultHandler({
         }
 
         // Origin header check for all api/* requests to prevent CSRF.
+        // Browsers omit Origin on no-CORS GET requests (e.g. <img>, <script>,
+        // fetch(mode: 'no-cors')), so fall back to Sec-Fetch-Site when Origin
+        // is absent.
         final origin = request.headers['Origin'];
-        if (origin != null && !_isAllowedOrigin(origin, allowedUris: uris)) {
+        if (origin != null) {
+          if (!_isAllowedOrigin(origin, allowedUris: uris)) {
+            return Response.forbidden('forbidden origin');
+          }
+        } else if (!_isAllowedSecFetchSite(
+          request.headers[_secFetchSiteHeader],
+        )) {
           return Response.forbidden('forbidden origin');
         }
       }
@@ -304,4 +321,27 @@ bool _isAllowedOrigin(String origin, {required List<Uri> allowedUris}) {
 
 bool _isAllowedHost(String hostHeader, {required List<Uri> allowedUris}) {
   return _isAllowedOrigin('http://$hostHeader', allowedUris: allowedUris);
+}
+
+/// Returns `true` if [secFetchSite] is allowed when the `Origin` header is
+/// omitted.
+///
+/// Browsers omit `Origin` on same-origin `GET` requests and on cross-origin
+/// no-CORS `GET` requests (`<img>`, `<script>`, `fetch(mode: 'no-cors')`),
+/// but attach `Sec-Fetch-Site` on requests to potentially trustworthy origins
+/// (`127.0.0.1`, `[::1]`, `localhost`, and HTTPS). Note that plain-HTTP
+/// non-loopback binds (e.g., `--host <LAN IP>`) are not potentially
+/// trustworthy origins and do not receive `Sec-Fetch-Site` on no-CORS `GET`
+/// requests.
+///
+/// When `Sec-Fetch-Site` is present, only `'same-origin'` (requests from the
+/// served DevTools frontend itself) and `'none'` (direct user navigation) are
+/// permitted. When `Sec-Fetch-Site` is absent (`null`), the request is from a
+/// non-browser HTTP client (or an untrustworthy non-loopback HTTP origin) and
+/// is permitted.
+bool _isAllowedSecFetchSite(String? secFetchSite) {
+  if (secFetchSite == null) {
+    return true;
+  }
+  return _allowedSecFetchSites.contains(secFetchSite.trim().toLowerCase());
 }

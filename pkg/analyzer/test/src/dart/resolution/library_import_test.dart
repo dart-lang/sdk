@@ -238,13 +238,13 @@ ImportDirective
     newFile('$testPackageLibPath/a_io.dart', 'class A {}');
 
     declaredVariables = {
-      'dart.library.html': 'false',
+      'dart.library.js_interop': 'false',
       'dart.library.io': 'false',
     };
 
     var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart'
-  if (dart.library.html) 'a_html.dart'
+  if (dart.library.js_interop) 'a_html.dart'
   if (dart.library.io) 'a_io.dart';
 
 var a = A();
@@ -268,7 +268,7 @@ CompilationUnit
               .
               library
               .
-              html
+              js_interop
           rightParenthesis: )
           uri: SimpleStringLiteral
             literal: 'a_html.dart'
@@ -311,7 +311,7 @@ CompilationUnit
               leftParenthesis: (
               rightParenthesis: )
             staticType: A
-          declaredFragment: <testLibraryFragment> a@96
+          declaredFragment: <testLibraryFragment> a@102
       semicolon: ;
   declarations(v1)
     TopLevelVariableDeclaration
@@ -332,7 +332,7 @@ CompilationUnit
                 leftParenthesis: (
                 rightParenthesis: )
               staticType: A
-            declaredFragment: <testLibraryFragment> a@96
+            declaredFragment: <testLibraryFragment> a@102
       semicolon: ;
       declaredFragment: <null>
 ''');
@@ -344,13 +344,13 @@ CompilationUnit
     newFile('$testPackageLibPath/a_io.dart', 'class A {}');
 
     declaredVariables = {
-      'dart.library.html': 'true',
+      'dart.library.js_interop': 'true',
       'dart.library.io': 'false',
     };
 
     var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart'
-  if (dart.library.html) 'a_html.dart'
+  if (dart.library.js_interop) 'a_html.dart'
   if (dart.library.io) 'a_io.dart';
 
 var a = A();
@@ -374,7 +374,7 @@ CompilationUnit
               .
               library
               .
-              html
+              js_interop
           rightParenthesis: )
           uri: SimpleStringLiteral
             literal: 'a_html.dart'
@@ -417,7 +417,7 @@ CompilationUnit
               leftParenthesis: (
               rightParenthesis: )
             staticType: A
-          declaredFragment: <testLibraryFragment> a@96
+          declaredFragment: <testLibraryFragment> a@102
       semicolon: ;
   declarations(v1)
     TopLevelVariableDeclaration
@@ -438,7 +438,7 @@ CompilationUnit
                 leftParenthesis: (
                 rightParenthesis: )
               staticType: A
-            declaredFragment: <testLibraryFragment> a@96
+            declaredFragment: <testLibraryFragment> a@102
       semicolon: ;
       declaredFragment: <null>
 ''');
@@ -560,13 +560,13 @@ Configuration
     newFile('$testPackageLibPath/a_io.dart', 'class A {}');
 
     declaredVariables = {
-      'dart.library.html': 'false',
+      'dart.library.js_interop': 'false',
       'dart.library.io': 'true',
     };
 
     var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart'
-  if (dart.library.html) 'a_html.dart'
+  if (dart.library.js_interop) 'a_html.dart'
   if (dart.library.io) 'a_io.dart';
 
 var a = A();
@@ -590,7 +590,7 @@ CompilationUnit
               .
               library
               .
-              html
+              js_interop
           rightParenthesis: )
           uri: SimpleStringLiteral
             literal: 'a_html.dart'
@@ -633,7 +633,7 @@ CompilationUnit
               leftParenthesis: (
               rightParenthesis: )
             staticType: A
-          declaredFragment: <testLibraryFragment> a@96
+          declaredFragment: <testLibraryFragment> a@102
       semicolon: ;
   declarations(v1)
     TopLevelVariableDeclaration
@@ -654,7 +654,7 @@ CompilationUnit
                 leftParenthesis: (
                 rightParenthesis: )
               staticType: A
-            declaredFragment: <testLibraryFragment> a@96
+            declaredFragment: <testLibraryFragment> a@102
       semicolon: ;
       declaredFragment: <null>
 ''');

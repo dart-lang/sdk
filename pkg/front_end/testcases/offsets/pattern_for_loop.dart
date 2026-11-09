@@ -10,3 +10,30 @@ method(List list) {
     print('$a, $b');
   }
 }
+
+void withContinue(List<(int, int)> list) {
+  for (final (x, y) in list) {
+    if (x == 0) continue;
+    print(x + y);
+  /*end*/}
+}
+
+void withLabeledContinue(List<(int, int)> list) {
+  outer:
+  for (final (x, y) in list) {
+    for (final z in list) {
+      if (z.$1 == x) continue outer;
+    }
+    print(y);
+  /*end*/}
+}
+
+void withoutContinue(List<(int, int)> list) {
+  for (final (x, y) in list) {
+    print(x + y);
+  }
+}
+
+void withExpressionBody(List<(int, int)> list) {
+  for (final (x, y) in list) print(x + y);
+}

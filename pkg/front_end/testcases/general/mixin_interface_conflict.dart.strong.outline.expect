@@ -5,7 +5,7 @@ library;
 // pkg/front_end/testcases/general/mixin_interface_conflict.dart:13:7: Error: Class 'B with C' inherits multiple members named 'n' with incompatible signatures.
 // Try adding a declaration of 'n' to 'B with C'.
 // mixin M on B, C {}
-//       ^^^^^^
+//       ^
 // pkg/front_end/testcases/general/mixin_interface_conflict.dart:6:11: Context: This is one of the overridden members.
 //   int get n => 1;
 //           ^

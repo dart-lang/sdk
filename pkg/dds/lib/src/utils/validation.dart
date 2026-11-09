@@ -72,3 +72,34 @@ bool isAllowedHost(
     allowedUris: allowedUris,
   );
 }
+
+/// The `Sec-Fetch-Site` forbidden request header sent by browsers on requests
+/// to potentially trustworthy origins (loopback or HTTPS).
+const secFetchSiteHeader = 'Sec-Fetch-Site';
+
+/// Allowed values for the `Sec-Fetch-Site` request header when `Origin` is
+/// omitted.
+const _allowedSecFetchSites = <String>{'same-origin', 'none'};
+
+/// Returns `true` if [secFetchSite] is allowed when the `Origin` header is
+/// omitted.
+///
+/// Browsers omit `Origin` on same-origin `GET` requests and on cross-origin
+/// no-CORS `GET` requests (`<img>`, `<script>`, `fetch(mode: 'no-cors')`),
+/// but attach `Sec-Fetch-Site` on requests to potentially trustworthy origins
+/// (`127.0.0.1`, `[::1]`, `localhost`, and HTTPS). Note that plain-HTTP
+/// non-loopback binds (e.g., `--host <LAN IP>`) are not potentially
+/// trustworthy origins and do not receive `Sec-Fetch-Site` on no-CORS `GET`
+/// requests.
+///
+/// When `Sec-Fetch-Site` is present, only `'same-origin'` (requests from the
+/// served DevTools frontend itself) and `'none'` (direct user navigation) are
+/// permitted. When `Sec-Fetch-Site` is absent (`null`), the request is from a
+/// non-browser HTTP client (or an untrustworthy non-loopback HTTP origin) and
+/// is permitted.
+bool isAllowedSecFetchSite(String? secFetchSite) {
+  if (secFetchSite == null) {
+    return true;
+  }
+  return _allowedSecFetchSites.contains(secFetchSite.trim().toLowerCase());
+}

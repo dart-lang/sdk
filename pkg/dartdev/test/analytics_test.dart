@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'dart:io' as io;
 
 import 'package:dartdev/dartdev.dart';
+import 'package:dartdev/src/commands/language_server.dart';
 import 'package:dartdev/src/unified_analytics.dart';
 import 'package:dartdev/src/vm_interop_handler.dart';
 import 'package:file/memory.dart';
@@ -81,6 +82,7 @@ void main() {
         Event.dartCliCommandExecuted(
           name: 'help',
           enabledExperiments: '',
+          exitCode: 0,
         ),
       ]);
     });
@@ -97,6 +99,7 @@ void main() {
         Event.dartCliCommandExecuted(
           name: 'create',
           enabledExperiments: '',
+          exitCode: 0,
           pubspecHasFlutterSdk: false,
           pubspecEnvironmentSdk: '^3.0.0',
         ),
@@ -120,6 +123,7 @@ void main() {
             Event.dartCliCommandExecuted(
               name: 'pub/get',
               enabledExperiments: '',
+              exitCode: 0,
               pubspecHasFlutterSdk: false,
               pubspecDependencies: const {'lints'},
               pubspecEnvironmentSdk: '^3.0.0',
@@ -143,6 +147,28 @@ void main() {
         Event.dartCliCommandExecuted(
           name: 'format',
           enabledExperiments: '',
+          exitCode: 0,
+        ),
+      ]);
+    });
+
+    test('format with a non-zero exit code', () async {
+      // dart format also sets the global `exitCode`, which would otherwise
+      // make this test process exit with 1.
+      final previousExitCode = io.exitCode;
+      addTearDown(() => io.exitCode = previousExitCode);
+      final p = project(mainSrc: 'void main( ) {}');
+      final analytics = await p.runLocalWithFakeAnalytics([
+        'format',
+        '--output=none',
+        '--set-exit-if-changed',
+        '.',
+      ]);
+      expect(analytics.sentEvents, [
+        Event.dartCliCommandExecuted(
+          name: 'format',
+          enabledExperiments: '',
+          exitCode: 1,
         ),
       ]);
     });
@@ -154,6 +180,7 @@ void main() {
         Event.dartCliCommandExecuted(
           name: 'info/dump',
           enabledExperiments: '',
+          exitCode: 0,
         ),
       ]);
     });
@@ -172,6 +199,7 @@ void main() {
           Event.dartCliCommandExecuted(
             name: 'run',
             enabledExperiments: '',
+            exitCode: 0,
             pubspecHasFlutterSdk: false,
             pubspecEnvironmentSdk: '^3.0.0',
           ),
@@ -195,6 +223,7 @@ void main() {
                   Event.dartCliCommandExecuted(
                     name: 'run',
                     enabledExperiments: '$no${experiment.name}',
+                    exitCode: 0,
                     pubspecHasFlutterSdk: false,
                     pubspecEnvironmentSdk: '^3.0.0',
                   ),
@@ -221,10 +250,76 @@ void main() {
         Event.dartCliCommandExecuted(
           name: 'compile/kernel',
           enabledExperiments: '',
+          exitCode: 0,
           pubspecHasFlutterSdk: false,
           pubspecEnvironmentSdk: '^3.0.0',
         ),
       ]);
+    });
+  });
+
+  group('Tool user properties:', () {
+    /// Runs `dart help` with a consented fake whose environment is
+    /// [environment], and returns the fake.
+    Future<FakeAnalytics> runHelp(Map<String, String> environment) async {
+      final fs = MemoryFileSystem.test(style: FileSystemStyle.posix);
+      FakeAnalytics createFake() => Analytics.fake(
+        tool: DashTool.dartTool,
+        homeDirectory: fs.directory('/'),
+        dartVersion: 'dartVersion',
+        fs: fs,
+        environment: environment,
+      );
+      createFake().clientShowedMessage();
+      final analytics = createFake();
+
+      final runner = DartdevRunner(['help'], analyticsOverride: analytics);
+      await runner.runCommand(runner.parse(['help']));
+      return analytics;
+    }
+
+    Map<String, Object?> toolProperties(FakeAnalytics analytics) {
+      final payload = analytics.userProperty.preparePayload();
+      return {
+        for (final key in ['tool', 'root_tool', 'leaf_tool'])
+          key: payload[key]?['value'],
+      };
+    }
+
+    test('no inherited DASH__TOOL', () async {
+      final analytics = await runHelp(const {});
+      expect(analytics.sentEvents, isNotEmpty);
+      expect(toolProperties(analytics), {
+        'tool': 'dart-tool',
+        'root_tool': 'dart-tool',
+        'leaf_tool': 'dart-tool',
+      });
+    });
+
+    test('inherited DASH__TOOL', () async {
+      // For example, `dart pub outdated` started by the analysis server from
+      // VS Code. See https://github.com/dart-lang/sdk/issues/64576.
+      final analytics = await runHelp({
+        DashEnvVar.tool.name: DashTool.vscodePlugins.label,
+      });
+      expect(analytics.sentEvents, isNotEmpty);
+      expect(toolProperties(analytics), {
+        'tool': 'dart-tool',
+        'root_tool': 'vscode-plugins',
+        'leaf_tool': 'dart-tool',
+      });
+    });
+
+    test('inherited DASH__TOOL naming a shared component', () async {
+      // Shared components can't be the root tool, so dartdev is.
+      final analytics = await runHelp({
+        DashEnvVar.tool.name: DashTool.analysisServer.label,
+      });
+      expect(toolProperties(analytics), {
+        'tool': 'dart-tool',
+        'root_tool': 'dart-tool',
+        'leaf_tool': 'dart-tool',
+      });
     });
   });
 
@@ -467,6 +562,100 @@ void main() {
         },
       );
     }
+
+    group('root tool', () {
+      final toolVar = DashEnvVar.tool.name;
+
+      /// A placeholder `DASH__TOOL` override, set before each run, that is
+      /// still there afterwards only if dartdev didn't touch `DASH__TOOL`.
+      const untouched = '<untouched>';
+
+      /// Runs dartdev with [args] and returns the `DASH__TOOL` override it
+      /// leaves for sub-tools: a label, `null` if it unset it, or [untouched].
+      Future<String?> runAndGetPropagatedTool(
+        Analytics analytics, {
+        required List<String> args,
+        Map<String, String> environment = const {},
+      }) async {
+        // `VmInteropHandler.environmentOverrides` is static, so this also
+        // replaces any value left by an earlier test.
+        await VmInteropHandler.setEnvironmentVariable(toolVar, untouched);
+        await runAndGetPropagatedValue(
+          analytics,
+          hasTerminal: true,
+          args: args,
+          environment: environment,
+        );
+        return VmInteropHandler.environmentOverrides[toolVar];
+      }
+
+      test('hasRootTool', () {
+        // Using the command's own name also checks that it matches the name
+        // `hasRootTool` looks for.
+        const ls = LanguageServerCommand.commandName;
+        const rows = [
+          (inherited: null, command: null, expected: true),
+          (inherited: null, command: 'analyze', expected: true),
+          (inherited: null, command: 'run', expected: true),
+          (inherited: null, command: ls, expected: false),
+          (inherited: 'dart-tool', command: ls, expected: true),
+          (inherited: 'vscode-plugins', command: ls, expected: true),
+        ];
+        for (final (:inherited, :command, :expected) in rows) {
+          expect(
+            hasRootTool(inheritedTool: inherited, commandName: command),
+            expected,
+            reason: 'inherited: $inherited, command: $command',
+          );
+        }
+      });
+
+      // `--help` keeps the command from running (and, for `language-server`,
+      // from looking for the analysis server snapshot), but dartdev still
+      // sets up the analytics environment and decides whether to report the
+      // command.
+
+      test('other commands set DASH__TOOL to dart-tool', () async {
+        final analytics = createConsentedFake();
+        final tool = await runAndGetPropagatedTool(
+          analytics,
+          args: const ['analyze', '--help'],
+        );
+        expect(tool, DashTool.dartTool.label);
+        expect(
+          analytics.sentEvents.single.eventName.label,
+          'dart_cli_command_executed',
+        );
+      });
+
+      test('language-server without an inherited root tool sets no root tool '
+          'and reports nothing', () async {
+        final analytics = createConsentedFake();
+        final tool = await runAndGetPropagatedTool(
+          analytics,
+          args: const ['language-server', '--help'],
+        );
+        // Unset, rather than left as is, so a stale value can't leak.
+        expect(tool, isNull);
+        expect(analytics.sentEvents, isEmpty);
+      });
+
+      test('language-server preserves an inherited root tool', () async {
+        final analytics = createConsentedFake();
+        final tool = await runAndGetPropagatedTool(
+          analytics,
+          args: const ['language-server', '--help'],
+          environment: {toolVar: DashTool.vscodePlugins.label},
+        );
+        // dartdev leaves an inherited value alone; sub-tools (such as the
+        // analysis server) read it from the environment.
+        expect(tool, untouched);
+        expect(
+          analytics.sentEvents.single.eventName.label,
+          'dart_cli_command_executed',
+        );
+      });
+    });
 
     group('internal builds (isExternal: false)', () {
       test('first run with a terminal does not suppress sub-tools', () async {

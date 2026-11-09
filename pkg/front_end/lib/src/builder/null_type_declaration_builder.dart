@@ -5,6 +5,7 @@
 import 'package:kernel/ast.dart' show DartType, Nullability;
 import 'package:kernel/class_hierarchy.dart';
 
+import '../base/uris.dart';
 import 'declaration_builders.dart';
 import 'library_builder.dart';
 import 'nullability_builder.dart';
@@ -12,8 +13,8 @@ import 'type_builder.dart';
 
 // TODO(johnniwinther): Remove this.
 class NullTypeDeclarationBuilder extends BuiltinTypeDeclarationBuilder {
-  new(DartType type, LibraryBuilder compilationUnit, int charOffset)
-    : super("Null", type, compilationUnit, charOffset);
+  new(DartType type, LibraryBuilder compilationUnit)
+    : super("Null", type, compilationUnit, dartCoreUriOffset);
 
   @override
   // Coverage-ignore(suite): Not run.

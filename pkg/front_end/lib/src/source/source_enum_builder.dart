@@ -142,19 +142,20 @@ class SourceEnumBuilder extends SourceClassBuilder {
       const PredefinedTypeName("Object"),
       const NullabilityBuilder.omitted(),
       instanceTypeParameterAccess: InstanceTypeParameterAccessState.Unexpected,
+      uriOffset: uriOffset,
     );
     selfType = new NamedTypeBuilderImpl(
       new SyntheticTypeName(name, fileOffset),
       const NullabilityBuilder.omitted(),
       instanceTypeParameterAccess: InstanceTypeParameterAccessState.Unexpected,
-      fileUri: fileUri,
-      charOffset: fileOffset,
+      uriOffset: uriOffset,
     );
     listType = new NamedTypeBuilderImpl(
       const PredefinedTypeName("List"),
       const NullabilityBuilder.omitted(),
       arguments: <TypeBuilder>[selfType],
       instanceTypeParameterAccess: InstanceTypeParameterAccessState.Unexpected,
+      uriOffset: uriOffset,
     );
   }
 
@@ -250,8 +251,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
             type: libraryBuilder.loader.target.stringType,
             name: "#name",
             nameOffset: null,
-            fileOffset: fileOffset,
-            fileUri: fileUri,
+            uriOffset: uriOffset,
             hasImmediatelyDeclaredDefaultValue: false,
           );
 
@@ -262,15 +262,15 @@ class SourceEnumBuilder extends SourceClassBuilder {
             type: libraryBuilder.loader.target.intType,
             name: "#index",
             nameOffset: null,
-            fileOffset: fileOffset,
-            fileUri: fileUri,
+            uriOffset: uriOffset,
             hasImmediatelyDeclaredDefaultValue: false,
           );
 
       ConstructorDeclaration constructorDeclaration =
           new DefaultEnumConstructorDeclaration(
             returnType: libraryBuilder.loader.inferableTypes.addInferableType(
-              InferenceDefaultType.Dynamic,
+              inferenceDefaultType: InferenceDefaultType.Dynamic,
+              uriOffset: uriOffset,
             ),
             formals: [indexFormalParameterBuilder, nameFormalParameterBuilder],
             fileUri: fileUri,
@@ -413,11 +413,9 @@ class SourceEnumBuilder extends SourceClassBuilder {
           // situation that can happen unless you start modifying the SDK
           // sources. (We should add a correct message. We no longer depend on
           // Object here.)
-          libraryBuilder.addProblem(
+          libraryBuilder.addProblem2(
             diag.noUnnamedConstructorInObject,
-            objectClass.fileOffset,
-            objectClass.name.length,
-            objectClass.fileUri,
+            objectClass.uriOffset,
           );
         } else {
           constructor.initializers.add(

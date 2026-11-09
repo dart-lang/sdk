@@ -127,6 +127,27 @@ class B {
 ''');
   }
 
+  test_combinedSignature_getter() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+abstract class A {
+  Future<dynamic> get foo;
+}
+
+class B {
+  @doNotStore
+  Future<void> get foo async {}
+}
+
+class C extends B implements A {}
+
+final v = C().foo;
+//        ^^^^^^^
+// [diag.assignmentOfDoNotStore] 'foo' is marked 'doNotStore' and shouldn't be assigned to a field or top-level variable.
+''');
+  }
+
   test_functionAssignment() async {
     await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';

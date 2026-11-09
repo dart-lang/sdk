@@ -558,6 +558,15 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
   }
 
   @override
+  void visitRelationalPattern(RelationalPattern node) {
+    names.add(switch (node.operator.type) {
+      TokenType.BANG_EQ => '==',
+      _ => node.operator.lexeme,
+    });
+    super.visitRelationalPattern(node);
+  }
+
+  @override
   void visitSetterDeclaration(covariant SetterDeclarationImpl node) {
     _visitMethodDeclaration(node, () => super.visitSetterDeclaration(node));
   }

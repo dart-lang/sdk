@@ -651,6 +651,8 @@ class FlowGraph : public ZoneObject {
                                       Value* array,
                                       classid_t cid);
 
+  void AllocateCatchEntryParameterLocations();
+
  private:
   friend class FlowGraphCompiler;  // TODO(ajcbik): restructure
   friend class FlowGraphChecker;

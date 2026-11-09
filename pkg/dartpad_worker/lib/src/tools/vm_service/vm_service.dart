@@ -126,7 +126,11 @@ final class _DartPadVmServiceBackend
   }
 
   @override
-  void onClientSubscribe(Client client, String streamId) {
+  void onClientSubscribe(
+    Client client,
+    String streamId, {
+    Map<String, Object?> params = const <String, Object?>{},
+  }) {
     _loggingRepository.sendHistoricalEvents(client, streamId);
   }
 

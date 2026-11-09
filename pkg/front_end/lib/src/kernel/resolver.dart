@@ -25,6 +25,7 @@ import '../base/messages.dart';
 import '../base/modifiers.dart';
 import '../base/problems.dart';
 import '../base/scope.dart';
+import '../base/uri_offset.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/member_builder.dart';
@@ -908,14 +909,14 @@ class Resolver {
       if (parameter == extensionThis) {
         internalExtensionThis = formal;
       }
+      UriOffsetLength uriOffset = new UriOffset(fileUri, formal.fileOffset);
       return new FormalParameterBuilder(
         kind: FormalParameterKind.requiredPositional,
         modifiers: Modifiers.empty,
-        type: const ImplicitTypeBuilder(),
+        type: new ImplicitTypeBuilder(uriOffset),
         name: formalName,
         nameOffset: null,
-        fileOffset: formal.fileOffset,
-        fileUri: fileUri,
+        uriOffset: uriOffset,
         hasImmediatelyDeclaredDefaultValue: false,
         wildcardIndex: wildcardIndex,
         variable: formal,
@@ -989,6 +990,7 @@ class Resolver {
         new DillNominalParameterBuilder(
           typeParameter,
           loader: libraryBuilder.loader,
+          uriOffset: new UriOffset(fileUri, typeParameter.fileOffset),
         ),
       );
     }

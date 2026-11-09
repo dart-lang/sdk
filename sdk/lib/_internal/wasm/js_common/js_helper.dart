@@ -29,7 +29,13 @@ class JSValue extends JSExternWrapper {
   static JSValue? box(WasmExternRef? ref) =>
       isDartNull(ref) ? null : JSValue(ref!);
 
-  static T boxT<T>(WasmExternRef? ref) => unsafeCastOpaque<T>(box(ref));
+  // `JSAny` and subtypes are extension types on `JSValue`, so we just need to
+  // check the `null` case.
+  static T boxT<T extends JSAny?>(WasmExternRef? ref) =>
+      isDartNull(ref) ? null as T : unsafeCastOpaque<T>(JSValue(ref!));
+
+  static T boxTUnchecked<T extends JSAny?>(WasmExternRef? ref) =>
+      unsafeCastOpaque<T>(box(ref));
 
   @pragma('wasm:prefer-inline')
   static WasmExternRef? unbox(JSValue? v) =>

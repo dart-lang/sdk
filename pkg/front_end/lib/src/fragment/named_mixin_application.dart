@@ -5,12 +5,8 @@
 part of 'fragment.dart';
 
 class NamedMixinApplicationFragment implements Fragment {
-  @override
-  final String name;
-
-  final Uri fileUri;
+  final UriOffsetName _uriOffsetName;
   final int startOffset;
-  final int nameOffset;
   final int endOffset;
   final Modifiers modifiers;
   final List<MetadataBuilder>? metadata;
@@ -25,21 +21,12 @@ class NamedMixinApplicationFragment implements Fragment {
 
   SourceClassBuilder? _builder;
 
-  @override
-  late final UriOffsetLength uriOffset = new UriOffsetLength(
-    fileUri,
-    nameOffset,
-    name.length,
-  );
-
   late final List<SourceNominalParameterBuilder>? typeParameterBuilders =
       typeParameters?.computeBuilderList;
 
   new({
-    required this.name,
-    required this.fileUri,
+    required this._uriOffsetName,
     required this.startOffset,
-    required this.nameOffset,
     required this.endOffset,
     required this.modifiers,
     required this.metadata,
@@ -52,6 +39,16 @@ class NamedMixinApplicationFragment implements Fragment {
     required this.enclosingScope,
     required this.enclosingCompilationUnit,
   });
+
+  Uri get fileUri => _uriOffsetName.fileUri;
+
+  @override
+  String get name => _uriOffsetName.name;
+
+  int get nameOffset => _uriOffsetName.nameOffset;
+
+  @override
+  UriOffsetLength get uriOffset => _uriOffsetName;
 
   @override
   // Coverage-ignore(suite): Not run.

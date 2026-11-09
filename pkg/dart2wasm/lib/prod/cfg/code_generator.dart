@@ -13,6 +13,7 @@ import 'package:cfg/passes/value_numbering.dart';
 import 'package:kernel/ast.dart';
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
+import '../../cfg/passes/lower_irreducible_control_flow.dart';
 import '../../code_generator.dart';
 import '../../intrinsics.dart';
 import '../../reference_extensions.dart';
@@ -22,17 +23,29 @@ import 'to_wasm.dart';
 
 bool mayUseCfgToCompileMember(Translator translator, Member member) {
   if (!translator.options.useCfg) return false;
-  if (member is! Procedure) return false;
-  if (member.function.asyncMarker != AsyncMarker.Sync) return false;
+
+  String? failureReason;
+  if (member is Procedure) {
+    if (member.function.asyncMarker != AsyncMarker.Sync) {
+      failureReason = 'async';
+    }
+    if (StaticIntrinsic.fromProcedure(translator.coreTypes, member) != null ||
+        MemberIntrinsic.fromProcedure(translator.coreTypes, member) != null) {
+      failureReason = 'an intrinsic';
+    }
+    if (member.isExternal) failureReason = 'external';
+  } else if (member is Field) {
+    if (!member.isInstanceMember) failureReason = 'static';
+  } else {
+    failureReason = 'not a procedure or field';
+  }
 
   final hasCfgPragma = hasWasmCfgPragma(translator.coreTypes, member);
-  if (member.isExternal ||
-      StaticIntrinsic.fromProcedure(translator.coreTypes, member) != null ||
-      MemberIntrinsic.fromProcedure(translator.coreTypes, member) != null) {
+
+  if (failureReason != null) {
     if (hasCfgPragma) {
       throw StateError(
-        'Member $member has @pragma("wasm:cfg") but is '
-        '${member.isExternal ? 'external' : 'an intrinsic'}.',
+        'Member $member has @pragma("wasm:cfg") but is $failureReason.',
       );
     }
     return false;
@@ -48,15 +61,15 @@ bool mayUseCfgToCompileMember(Translator translator, Member member) {
   return true;
 }
 
-class CfgProcedureCodeGenerator implements CodeGenerator {
-  final SynchronousProcedureCodeGenerator fallback;
+class CfgMemberCodeGenerator implements CodeGenerator {
+  final AstCodeGenerator fallback;
+  final Reference reference;
 
-  CfgProcedureCodeGenerator(this.fallback);
+  CfgMemberCodeGenerator(this.fallback, this.reference);
 
   Translator get translator => fallback.translator;
-  Procedure get member => fallback.member;
-  Reference get reference => fallback.reference;
-  EntryPoint get kind => fallback.kind;
+  Member get member => fallback.enclosingMember;
+  EntryPoint get kind => reference.entryKind;
 
   @override
   void generate(
@@ -87,8 +100,8 @@ class CfgProcedureCodeGenerator implements CodeGenerator {
   bool _tryGenerate(w.InstructionsBuilder b, List<w.Local> paramLocals) {
     final cFunction = translator.functionRegistry.getFunction(
       member,
-      isGetter: member.isGetter,
-      isSetter: member.isSetter,
+      isGetter: reference.isGetter,
+      isSetter: reference.isSetter,
     );
 
     final graph = AstToIr(
@@ -108,6 +121,7 @@ class CfgProcedureCodeGenerator implements CodeGenerator {
       SSAComputation(),
       ValueNumbering(simplification: Simplification()),
       ConstantPropagation(),
+      LowerIrreducibleControlFlow(),
       ControlFlowOptimizations(),
     ]);
 

@@ -30,7 +30,7 @@ class ConvertToGenericFunctionSyntax extends ParsedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    for (var node in this.node.withAncestors) {
+    for (var node in node.withAncestors) {
       if (node is FunctionTypeAlias) {
         return _convertFunctionTypeAlias(builder, node);
       } else if (node is FormalParameter && node.functionTypedSuffix != null) {
@@ -101,6 +101,7 @@ class ConvertToGenericFunctionSyntax extends ParsedCorrectionProducer {
     }
     var required = node.requiredKeyword != null ? 'required ' : '';
     var covariant = node.covariantKeyword != null ? 'covariant ' : '';
+    var declaringKeyword = _declaringKeyword(node);
     var returnTypeNode = node.type;
     var returnType = returnTypeNode != null
         ? '${utils.getNodeText(returnTypeNode)} '
@@ -122,11 +123,62 @@ class ConvertToGenericFunctionSyntax extends ParsedCorrectionProducer {
     var parameters = utils.getNodeText(functionTypedSuffix.formalParameters);
     var question = functionTypedSuffix.question != null ? '?' : '';
     var replacement =
-        '$required$covariant${returnType}Function'
+        '$required$covariant$declaringKeyword${returnType}Function'
         '$typeParameters$parameters$question $namePrefix$functionName';
 
+    // Leave the doc comment, annotations, and default value outside the edit.
+    // `range.node` covers those, and this rebuild does not.
     await builder.addDartFileEdit(file, (builder) {
-      builder.addSimpleReplacement(range.node(node), replacement);
+      builder.addSimpleReplacement(
+        range.startEnd(
+          node.firstTokenAfterCommentAndMetadata,
+          functionTypedSuffix,
+        ),
+        replacement,
+      );
     });
+  }
+
+  /// The `final` or `var` of a primary-constructor parameter, with a trailing
+  /// space, or empty.
+  ///
+  /// Those keywords make the parameter declaring. The function-type syntax
+  /// still accepts them there, so dropping them deletes the field. Elsewhere
+  /// `final` and `var` are already illegal on an old-style function-typed
+  /// parameter, and omitting them produces a valid parameter. `var` is also
+  /// illegal on an extension type representation field, which is implicitly
+  /// final.
+  String _declaringKeyword(FormalParameter node) {
+    if (node is! RegularFormalParameter) {
+      return '';
+    }
+    var keyword = node.finalKeyword ?? node.varKeyword;
+    var declaration = _primaryConstructorDeclaration(node);
+    if (keyword == null || declaration == null) {
+      return '';
+    }
+    if (keyword.lexeme == 'var' &&
+        declaration.parent is ExtensionTypeDeclaration) {
+      return '';
+    }
+    return '${keyword.lexeme} ';
+  }
+
+  /// The primary constructor containing [node], or `null` when [node] is nested
+  /// inside a function-typed suffix or is not in a primary constructor.
+  PrimaryConstructorDeclaration? _primaryConstructorDeclaration(
+    FormalParameter node,
+  ) {
+    var current = node.parent;
+    while (current != null) {
+      if (current is FunctionTypedFormalParameterSuffix) {
+        return null;
+      }
+      if (current is PrimaryConstructorDeclaration) {
+        return current;
+      }
+      current = current.parent;
+    }
+    return null;
   }
 }

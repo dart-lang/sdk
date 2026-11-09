@@ -6,17 +6,32 @@ import 'package:cfg/ir/types.dart';
 import 'package:kernel/ast.dart' as ast;
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
+import 'package:kernel/library_index.dart' show LibraryIndex;
 
 /// Translates Dart static types to corresponding CFG IR types.
 class AstToIrTypes
     with ast.DartTypeVisitorExperimentExclusionMixin<TypeKind>
     implements ast.DartTypeVisitor<TypeKind> {
   final CoreTypes coreTypes;
+  final LibraryIndex coreLibraries;
   final ClassHierarchy classHierarchy;
   final Map<ast.DartType, CType> _builtinTypes = {};
   final Map<ast.Class, TypeKind> _classTypeKinds = {};
 
-  AstToIrTypes(this.coreTypes, this.classHierarchy);
+  late final ast.Class? float32x4Class = coreLibraries.tryGetClass(
+    'dart:typed_data',
+    'Float32x4',
+  );
+  late final ast.Class? float64x2Class = coreLibraries.tryGetClass(
+    'dart:typed_data',
+    'Float64x2',
+  );
+  late final ast.Class? int32x4Class = coreLibraries.tryGetClass(
+    'dart:typed_data',
+    'Int32x4',
+  );
+
+  AstToIrTypes(this.coreTypes, this.coreLibraries, this.classHierarchy);
 
   /// Translate [node] static type to [CType].
   CType translate(ast.DartType node) {
@@ -30,6 +45,9 @@ class AstToIrTypes
       .doubleType => DoubleType(node),
       .boolType => BoolType(node),
       .stringType => StringType(node),
+      .float32x4Type => Float32x4Type(node),
+      .float64x2Type => Float64x2Type(node),
+      .int32x4Type => Int32x4Type(node),
       .recordType => RecordType(node as ast.RecordType),
       .objectType => ObjectType(node),
       .nullType => const NullType(),
@@ -60,6 +78,21 @@ class AstToIrTypes
     }
     if (classHierarchy.isSubInterfaceOf(cls, coreTypes.stringClass)) {
       return TypeKind.stringType;
+    }
+    final float32x4Class = this.float32x4Class;
+    if (float32x4Class != null &&
+        classHierarchy.isSubInterfaceOf(cls, float32x4Class)) {
+      return TypeKind.float32x4Type;
+    }
+    final float64x2Class = this.float64x2Class;
+    if (float64x2Class != null &&
+        classHierarchy.isSubInterfaceOf(cls, float64x2Class)) {
+      return TypeKind.float64x2Type;
+    }
+    final int32x4Class = this.int32x4Class;
+    if (int32x4Class != null &&
+        classHierarchy.isSubInterfaceOf(cls, int32x4Class)) {
+      return TypeKind.int32x4Type;
     }
     return TypeKind.otherDartType;
   }

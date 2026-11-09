@@ -22,6 +22,9 @@ import 'package:analyzer/src/dart/element/type_visitor.dart';
 import '../analyzer.dart';
 import '../diagnostic.dart' as diag;
 
+const String _dartAsyncUri = 'dart:async';
+const String _dartCollectionUri = 'dart:collection';
+const String _dartCoreUri = 'dart:core';
 const String _dartJsAnnotationsUri = 'dart:_js_annotations';
 const String _dartJsInteropUri = 'dart:js_interop';
 const String _dartJsUri = 'dart:js';
@@ -36,6 +39,36 @@ const Set<String> _sdkWebLibraries = {
   'dart:svg',
   'dart:web_audio',
   'dart:web_gl',
+};
+
+/// The `(libraryUri, className, memberName)` triples for SDK collection
+/// constructors and static `castFrom` methods that perform runtime element or
+/// entry casts.
+///
+/// `Set.unmodifiable` is intentionally omitted because it takes `Iterable<E>`
+/// and is statically type-checked, unlike `List.unmodifiable(Iterable)` and
+/// `Map.unmodifiable(Map)`.
+const Set<(String, String, String)> _staticSdkCollectionCastMembers = {
+  (_dartAsyncUri, 'Stream', 'castFrom'),
+  (_dartCollectionUri, 'DoubleLinkedQueue', 'from'),
+  (_dartCollectionUri, 'HashMap', 'from'),
+  (_dartCollectionUri, 'HashSet', 'from'),
+  (_dartCollectionUri, 'LinkedHashMap', 'from'),
+  (_dartCollectionUri, 'LinkedHashSet', 'from'),
+  (_dartCollectionUri, 'ListQueue', 'from'),
+  (_dartCollectionUri, 'Queue', 'castFrom'),
+  (_dartCollectionUri, 'Queue', 'from'),
+  (_dartCollectionUri, 'SplayTreeMap', 'from'),
+  (_dartCollectionUri, 'SplayTreeSet', 'from'),
+  (_dartCoreUri, 'Iterable', 'castFrom'),
+  (_dartCoreUri, 'List', 'castFrom'),
+  (_dartCoreUri, 'List', 'from'),
+  (_dartCoreUri, 'List', 'unmodifiable'),
+  (_dartCoreUri, 'Map', 'castFrom'),
+  (_dartCoreUri, 'Map', 'from'),
+  (_dartCoreUri, 'Map', 'unmodifiable'),
+  (_dartCoreUri, 'Set', 'castFrom'),
+  (_dartCoreUri, 'Set', 'from'),
 };
 
 /// Whether [type] is a type declared in `dart:js` or a type parameter that is
@@ -263,7 +296,11 @@ class InvalidRuntimeCheckWithJSInteropTypes extends MultiAnalysisRule {
     var visitor = _Visitor(this, context.typeSystem as TypeSystemImpl);
     registry.addAsExpression(this, visitor);
     registry.addCatchClause(this, visitor);
+    registry.addDotShorthandConstructorInvocation(this, visitor);
+    registry.addDotShorthandInvocation(this, visitor);
+    registry.addInstanceCreationExpression(this, visitor);
     registry.addIsExpression(this, visitor);
+    registry.addMethodInvocation(this, visitor);
   }
 }
 
@@ -299,7 +336,7 @@ class _Visitor(final MultiAnalysisRule rule, final TypeSystemImpl typeSystem)
   /// inconsistent. In order to determine if this test is valid, this function
   /// erases any interop types to its `dart:js_interop` equivalent and any other
   /// extension type to its erasure type. If there are nested types involved, it
-  /// nests as needed.
+  /// nests as needed, see [_nestedTypePairs].
   ///
   /// Let `l` be the positionally-equivalent type in [leftType] and `r` be the
   /// positionally-equivalent type in [rightType]. Let `le` be the
@@ -335,7 +372,11 @@ class _Visitor(final MultiAnalysisRule rule, final TypeSystemImpl typeSystem)
     required bool check,
   }) {
     DiagnosticCode? lintCode;
-    (TypeImpl, TypeImpl) eraseTypes(TypeImpl left, TypeImpl right) {
+
+    /// Checks the type test from [left] to [right], without nested types.
+    ///
+    /// Returns the erased types, to look for nested type pairs in them.
+    (TypeImpl, TypeImpl) checkTypes(TypeImpl left, TypeImpl right) {
       var erasedLeft = typeSystem.promoteToNonNull(
         eraseNonJsInteropTypes.perform(left),
       );
@@ -351,84 +392,86 @@ class _Visitor(final MultiAnalysisRule rule, final TypeSystemImpl typeSystem)
         _InteropTypeKind.dartJsInteropType,
       );
 
-      // If there's already an invalid check in this `canBeSubtypeOf` check, we
-      // are already going to lint, so only continue checking if we haven't
-      // found an issue.
-      if (lintCode == null) {
-        if (leftIsInteropType && _isDartJsType(erasedRight) ||
-            rightIsInteropType && _isDartJsType(erasedLeft)) {
-          lintCode = diag.invalidRuntimeCheckWithJsInteropTypesJsAndDartJs;
-        } else if (leftIsInteropType || rightIsInteropType) {
-          if (!_isWasmIncompatibleJsInterop(erasedLeft) &&
-              !_isWasmIncompatibleJsInterop(erasedRight)) {
-            var erasedLeftIsSubtype = typeSystem.isSubtypeOf(
-              erasedLeft,
-              erasedRight,
-            );
-            var erasedRightIsSubtype = typeSystem.isSubtypeOf(
-              erasedRight,
-              erasedLeft,
-            );
-            var erasedLeftIsDynamic = erasedLeft is DynamicType;
-            var erasedRightIsDynamic = erasedRight is DynamicType;
-            if (check) {
-              if (!erasedLeftIsSubtype && !erasedRightIsDynamic) {
-                if (leftIsInteropType && rightIsInteropType) {
-                  lintCode = diag
-                      .invalidRuntimeCheckWithJsInteropTypesJsIsInconsistentJs;
-                } else if (leftIsInteropType) {
-                  lintCode = diag.invalidRuntimeCheckWithJsInteropTypesJsIsDart;
-                } else {
-                  lintCode = diag.invalidRuntimeCheckWithJsInteropTypesDartIsJs;
-                }
-              } else if (erasedLeftIsSubtype &&
-                  leftIsInteropType &&
-                  rightIsInteropType) {
-                // Only report if the right type is a user JS interop type.
-                // Checks like `window is JSAny` are not confusing and not worth
-                // linting.
-                if (_isJsInteropType(
-                      right,
-                      _InteropTypeKind.userJsInteropType,
-                    ) &&
-                    !typeSystem.isSubtypeOf(
-                      eraseNonJsInteropTypes.perform(
-                        left,
-                        keepUserInteropTypes: true,
-                      ),
-                      eraseNonJsInteropTypes.perform(
-                        right,
-                        keepUserInteropTypes: true,
-                      ),
-                    )) {
-                  lintCode =
-                      diag.invalidRuntimeCheckWithJsInteropTypesJsIsUnrelatedJs;
-                }
+      if (leftIsInteropType && _isDartJsType(erasedRight) ||
+          rightIsInteropType && _isDartJsType(erasedLeft)) {
+        lintCode = diag.invalidRuntimeCheckWithJsInteropTypesJsAndDartJs;
+      } else if (leftIsInteropType || rightIsInteropType) {
+        if (!_isWasmIncompatibleJsInterop(erasedLeft) &&
+            !_isWasmIncompatibleJsInterop(erasedRight)) {
+          var erasedLeftIsSubtype = typeSystem.isSubtypeOf(
+            erasedLeft,
+            erasedRight,
+          );
+          var erasedRightIsSubtype = typeSystem.isSubtypeOf(
+            erasedRight,
+            erasedLeft,
+          );
+          var erasedLeftIsDynamic = erasedLeft is DynamicType;
+          var erasedRightIsDynamic = erasedRight is DynamicType;
+          if (check) {
+            if (!erasedLeftIsSubtype && !erasedRightIsDynamic) {
+              if (leftIsInteropType && rightIsInteropType) {
+                lintCode = diag
+                    .invalidRuntimeCheckWithJsInteropTypesJsIsInconsistentJs;
+              } else if (leftIsInteropType) {
+                lintCode = diag.invalidRuntimeCheckWithJsInteropTypesJsIsDart;
+              } else {
+                lintCode = diag.invalidRuntimeCheckWithJsInteropTypesDartIsJs;
               }
-            } else {
-              if (!erasedLeftIsSubtype &&
-                  !erasedRightIsSubtype &&
-                  !erasedLeftIsDynamic &&
-                  !erasedRightIsDynamic) {
-                if (leftIsInteropType && rightIsInteropType) {
-                  lintCode = diag
-                      .invalidRuntimeCheckWithJsInteropTypesJsAsIncompatibleJs;
-                } else if (leftIsInteropType) {
-                  lintCode = diag.invalidRuntimeCheckWithJsInteropTypesJsAsDart;
-                } else {
-                  lintCode = diag.invalidRuntimeCheckWithJsInteropTypesDartAsJs;
-                }
+            } else if (erasedLeftIsSubtype &&
+                leftIsInteropType &&
+                rightIsInteropType) {
+              // Only report if the right type is a user JS interop type.
+              // Checks like `window is JSAny` are not confusing and not worth
+              // linting.
+              if (_isJsInteropType(right, _InteropTypeKind.userJsInteropType) &&
+                  !typeSystem.isSubtypeOf(
+                    eraseNonJsInteropTypes.perform(
+                      left,
+                      keepUserInteropTypes: true,
+                    ),
+                    eraseNonJsInteropTypes.perform(
+                      right,
+                      keepUserInteropTypes: true,
+                    ),
+                  )) {
+                lintCode =
+                    diag.invalidRuntimeCheckWithJsInteropTypesJsIsUnrelatedJs;
+              }
+            }
+          } else {
+            if (!erasedLeftIsSubtype &&
+                !erasedRightIsSubtype &&
+                !erasedLeftIsDynamic &&
+                !erasedRightIsDynamic) {
+              if (leftIsInteropType && rightIsInteropType) {
+                lintCode = diag
+                    .invalidRuntimeCheckWithJsInteropTypesJsAsIncompatibleJs;
+              } else if (leftIsInteropType) {
+                lintCode = diag.invalidRuntimeCheckWithJsInteropTypesJsAsDart;
+              } else {
+                lintCode = diag.invalidRuntimeCheckWithJsInteropTypesDartAsJs;
               }
             }
           }
         }
       }
-      // The resulting types that are checked in `canBeSubtypeOf` are assumed to
-      // not be extension types, so erase the types if we avoided erasing them
-      // in `EraseNonJSInteropTypes` before continuing.
-      if (leftIsInteropType) erasedLeft = left.extensionTypeErasure;
-      if (rightIsInteropType) erasedRight = right.extensionTypeErasure;
       return (erasedLeft, erasedRight);
+    }
+
+    /// Checks the type test from [left] to [right], and then the nested type
+    /// pairs, until the first invalid type test.
+    void checkTypesDeep(TypeImpl left, TypeImpl right) {
+      var (erasedLeft, erasedRight) = checkTypes(left, right);
+      for (var (nestedLeft, nestedRight) in _nestedTypePairs(
+        erasedLeft,
+        erasedRight,
+      )) {
+        if (lintCode != null) {
+          return;
+        }
+        checkTypesDeep(nestedLeft, nestedRight);
+      }
     }
 
     // If there are no relevant interop types, exit early.
@@ -436,12 +479,7 @@ class _Visitor(final MultiAnalysisRule rule, final TypeSystemImpl typeSystem)
         !interopTypeChecker.hasInteropType(rightType)) {
       return lintCode;
     }
-    // Called here for the side effects of `eraseTypes`.
-    typeSystem.canBeSubtypeOf(
-      leftType as TypeImpl,
-      rightType as TypeImpl,
-      eraseTypes: eraseTypes,
-    );
+    checkTypesDeep(leftType as TypeImpl, rightType as TypeImpl);
     return lintCode;
   }
 
@@ -475,6 +513,27 @@ class _Visitor(final MultiAnalysisRule rule, final TypeSystemImpl typeSystem)
   }
 
   @override
+  void visitDotShorthandConstructorInvocation(
+    DotShorthandConstructorInvocation node,
+  ) {
+    _checkConstructorInvocation(node, node.element, node.argumentList);
+  }
+
+  @override
+  void visitDotShorthandInvocation(DotShorthandInvocation node) {
+    _checkMethodInvocation(node, node.memberName.element);
+  }
+
+  @override
+  void visitInstanceCreationExpression(InstanceCreationExpression node) {
+    _checkConstructorInvocation(
+      node,
+      node.constructorName.element,
+      node.argumentList,
+    );
+  }
+
+  @override
   void visitIsExpression(IsExpression node) {
     var leftType = node.expression.staticType;
     var rightType = node.type.type;
@@ -487,6 +546,269 @@ class _Visitor(final MultiAnalysisRule rule, final TypeSystemImpl typeSystem)
         diagnosticCode: code,
       );
     }
+  }
+
+  @override
+  void visitMethodInvocation(MethodInvocation node) {
+    _checkMethodInvocation(node, node.methodName.element);
+  }
+
+  void _checkCollectionTypeTest(
+    AstNode node,
+    DartType? sourceType,
+    DartType? targetType, {
+    required InterfaceElement collectionElement,
+    required bool check,
+  }) {
+    if (sourceType == null || targetType == null) return;
+    var sourceAsCollection = sourceType.asInstanceOf(collectionElement);
+    var targetAsCollection = targetType.asInstanceOf(collectionElement);
+    if (sourceAsCollection == null || targetAsCollection == null) return;
+    var sourceTypeArgs = sourceAsCollection.typeArguments;
+    var targetTypeArgs = targetAsCollection.typeArguments;
+    assert(sourceTypeArgs.length == targetTypeArgs.length);
+    for (var i = 0; i < sourceTypeArgs.length; i++) {
+      var leftType = sourceTypeArgs[i];
+      var rightType = targetTypeArgs[i];
+      var code = getInvalidJsInteropTypeTest(leftType, rightType, check: check);
+      if (code != null) {
+        rule.reportAtNode(
+          node,
+          arguments: [leftType, rightType],
+          diagnosticCode: code,
+        );
+      }
+    }
+  }
+
+  void _checkConstructorInvocation(
+    Expression node,
+    ConstructorElement? element,
+    ArgumentList argumentList,
+  ) {
+    if (element == null) return;
+    var collectionElement = _collectionElementFor(
+      element.enclosingElement,
+      element.name,
+      isStaticSdkMember: true,
+    );
+    if (collectionElement == null) return;
+    var sourceType = argumentList.arguments
+        .where((a) => a is! NamedArgument)
+        .firstOrNull
+        ?.argumentExpression
+        .staticType;
+    _checkCollectionTypeTest(
+      node,
+      sourceType,
+      node.staticType,
+      collectionElement: collectionElement,
+      check: false,
+    );
+  }
+
+  void _checkMethodInvocation(InvocationExpression node, Element? element) {
+    if (element is! MethodElement) return;
+    if (!element.isStatic &&
+        (node is! MethodInvocation || node.argumentList.arguments.isNotEmpty)) {
+      return;
+    }
+    var name = element.name;
+    var collectionElement = _collectionElementFor(
+      element.enclosingElement,
+      name,
+      isStaticSdkMember: element.isStatic,
+    );
+    if (collectionElement == null) return;
+    if (element.isStatic) {
+      var sourceType = node.argumentList.arguments
+          .where((a) => a is! NamedArgument)
+          .firstOrNull
+          ?.argumentExpression
+          .staticType;
+      if (sourceType is DynamicType) {
+        if (node.staticInvokeType case FunctionType(:var formalParameters)) {
+          sourceType = formalParameters
+              .where((p) => p.isPositional)
+              .firstOrNull
+              ?.type;
+        }
+      }
+      _checkCollectionTypeTest(
+        node,
+        sourceType,
+        node.staticType,
+        collectionElement: collectionElement,
+        check: false,
+      );
+    } else if (node is MethodInvocation) {
+      _checkCollectionTypeTest(
+        node,
+        _getTargetType(node),
+        node.staticType,
+        collectionElement: collectionElement,
+        check: name == 'whereType',
+      );
+    }
+  }
+
+  /// Returns the base collection interface (`Iterable`, `Map`, or `Stream`)
+  /// whose type arguments are tested by [memberName] on [enclosingElement], or
+  /// `null` if the member is not a tracked collection cast or `whereType` call.
+  ///
+  /// When [isStaticSdkMember] is `true` (for constructors and static methods,
+  /// which are not inherited through subtypes), `(libraryUri, className,
+  /// memberName)` must match [_staticSdkCollectionCastMembers]. When `false`
+  /// (for instance methods), [enclosingElement] must be a subtype of
+  /// `Iterable` (for `cast` or `whereType`), `Map` (for `cast`), or `Stream`
+  /// (for `cast`).
+  InterfaceElement? _collectionElementFor(
+    Element? enclosingElement,
+    String? memberName, {
+    required bool isStaticSdkMember,
+  }) {
+    if (enclosingElement is! InterfaceElement || memberName == null) {
+      return null;
+    }
+    if (isStaticSdkMember) {
+      if (memberName != 'from' &&
+          memberName != 'castFrom' &&
+          memberName != 'unmodifiable') {
+        return null;
+      }
+      var libraryUri = enclosingElement.library.uri.toString();
+      var className = enclosingElement.name;
+      if (!_staticSdkCollectionCastMembers.contains((
+        libraryUri,
+        className,
+        memberName,
+      ))) {
+        return null;
+      }
+    } else if (memberName != 'cast' && memberName != 'whereType') {
+      return null;
+    }
+    var typeProvider = typeSystem.typeProvider;
+    var thisType = enclosingElement.thisType;
+    if (thisType.asInstanceOf(typeProvider.iterableElement) != null) {
+      return typeProvider.iterableElement;
+    }
+    if (memberName == 'whereType') return null;
+    if (thisType.asInstanceOf(typeProvider.mapElement) != null) {
+      return typeProvider.mapElement;
+    }
+    if (thisType.asInstanceOf(typeProvider.streamElement) != null) {
+      return typeProvider.streamElement;
+    }
+    return null;
+  }
+
+  DartType? _getTargetType(MethodInvocation node) {
+    if (node.realTarget case var target?) {
+      return target.staticType;
+    }
+    for (
+      AstNode? child = node, parent = node.parent;
+      parent != null;
+      child = parent, parent = parent.parent
+    ) {
+      switch (parent) {
+        case IfStatement(
+              expression: IsExpression(
+                expression: ThisExpression(),
+                notOperator: null,
+                type: NamedType(:var type?),
+              ),
+              :var thenStatement,
+            )
+            when identical(child, thenStatement):
+          return type;
+        case ClassDeclaration(
+          declaredFragment: InterfaceFragment(:var element),
+        ):
+        case EnumDeclaration(declaredFragment: InterfaceFragment(:var element)):
+        case ExtensionTypeDeclaration(
+          declaredFragment: InterfaceFragment(:var element),
+        ):
+        case MixinDeclaration(
+          declaredFragment: InterfaceFragment(:var element),
+        ):
+          return element.thisType;
+        case ExtensionDeclaration(:var onClause?):
+          return onClause.extendedType.type;
+      }
+    }
+    return null;
+  }
+
+  /// Returns the pairs of types nested in [left] and [right] that a runtime
+  /// type test from [left] to [right] compares with each other.
+  ///
+  /// The type arguments of interface types are compared after aligning them to
+  /// the same element, so `List<A>` and `Iterable<B>` compare `A` and `B`.
+  /// Generics of `dart:js_interop` types are ignored, so they have no nested
+  /// type pairs.
+  List<(TypeImpl, TypeImpl)> _nestedTypePairs(TypeImpl left, TypeImpl right) {
+    if (_isJsInteropType(left, _InteropTypeKind.dartJsInteropType) ||
+        _isJsInteropType(right, _InteropTypeKind.dartJsInteropType)) {
+      return const [];
+    }
+
+    // `FutureOr<T>` is either `T` or `Future<T>`.
+    if (left.isDartAsyncFutureOr) {
+      var base = typeSystem.futureOrBase(left);
+      var future = typeSystem.typeProvider.futureType(base);
+      return [(base, right), (future, right)];
+    }
+    if (right.isDartAsyncFutureOr) {
+      var base = typeSystem.futureOrBase(right);
+      var future = typeSystem.typeProvider.futureType(base);
+      return [(left, base), (left, future)];
+    }
+
+    if (left is InterfaceTypeImpl && right is InterfaceTypeImpl) {
+      if (left.asInstanceOf(right.element) case var leftAsRight?) {
+        return _zipTypes(leftAsRight.typeArguments, right.typeArguments);
+      }
+      if (right.asInstanceOf(left.element) case var rightAsLeft?) {
+        return _zipTypes(left.typeArguments, rightAsLeft.typeArguments);
+      }
+      return const [];
+    }
+
+    if (left is RecordTypeImpl && right is RecordTypeImpl) {
+      var leftNamed = left.namedFields;
+      var rightNamed = right.namedFields;
+      if (left.positionalFields.length != right.positionalFields.length ||
+          leftNamed.length != rightNamed.length) {
+        return const [];
+      }
+      for (var i = 0; i < leftNamed.length; i++) {
+        if (leftNamed[i].name != rightNamed[i].name) {
+          return const [];
+        }
+      }
+      return [
+        ..._zipTypes(
+          [for (var field in left.positionalFields) field.type],
+          [for (var field in right.positionalFields) field.type],
+        ),
+        ..._zipTypes(
+          [for (var field in leftNamed) field.type],
+          [for (var field in rightNamed) field.type],
+        ),
+      ];
+    }
+
+    return const [];
+  }
+
+  static List<(TypeImpl, TypeImpl)> _zipTypes(
+    List<TypeImpl> left,
+    List<TypeImpl> right,
+  ) {
+    assert(left.length == right.length);
+    return [for (var i = 0; i < left.length; i++) (left[i], right[i])];
   }
 }
 

@@ -217,7 +217,7 @@ class InstanceMemberInferrer {
     if (setter != null) {
       var valueFormalParameter = setter.valueFormalParameter;
 
-      if (overriddenSetters.any((s) => _isCovariantSetter(s.baseElement))) {
+      if (overriddenSetters.any(_isCovariantSetter)) {
         valueFormalParameter.isCovariant = true;
       }
 
@@ -264,7 +264,7 @@ class InstanceMemberInferrer {
     if (field != null) {
       var setter = field.setter;
       if (setter != null) {
-        if (overriddenSetters.any((s) => _isCovariantSetter(s.baseElement))) {
+        if (overriddenSetters.any(_isCovariantSetter)) {
           setter.valueFormalParameter.isCovariant = true;
         }
       }
@@ -747,8 +747,8 @@ class InstanceMemberInferrer {
     return replaceTypeParameters(overriddenType, elementTypeParameters);
   }
 
-  static bool _isCovariantSetter(ExecutableElementImpl element) {
-    if (element is PropertyAccessorElementImpl) {
+  static bool _isCovariantSetter(InternalExecutableElement element) {
+    if (element is InternalPropertyAccessorElement) {
       var parameters = element.formalParameters;
       return parameters.isNotEmpty && parameters[0].isCovariant;
     }

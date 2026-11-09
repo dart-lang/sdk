@@ -4,7 +4,7 @@ library;
 //
 // pkg/front_end/testcases/general/import_conflicting_type_member.dart:6:1: Error: 'Foo' is imported from both 'pkg/front_end/testcases/general/import_conflicting_type_member_lib1.dart' and 'pkg/front_end/testcases/general/import_conflicting_type_member_lib2.dart'.
 // import 'import_conflicting_type_member_lib2.dart';
-// ^^^
+// ^
 //
 // pkg/front_end/testcases/general/import_conflicting_type_member.dart:12:3: Error: 'Foo' is imported from both 'pkg/front_end/testcases/general/import_conflicting_type_member_lib1.dart' and 'pkg/front_end/testcases/general/import_conflicting_type_member_lib2.dart'.
 //   Foo();

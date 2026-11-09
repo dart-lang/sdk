@@ -2804,6 +2804,10 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
 
   void writeNode(AstNode node) {
     _recordBottomUpV1Parents(node);
+    if (configuration.withCheckingTokenStream) {
+      _checkChildEntityRanges(node);
+      _checkTokenLinks(node);
+    }
     var view = node is AstNodeImpl && node.astNodeApi == AstNodeApi.v1
         ? _AstView.v1
         : _AstView.v2;
@@ -2822,36 +2826,51 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     }
   }
 
-  /// Writes [node] and its V1 compatibility view when the V2 root has a
-  /// distinct projection.
-  void writeNodeWithV1Projection(AstNode node) {
+  /// Writes [node], and returns its V1 view returned by [getV1], if it is a
+  /// different node, for the caller to write with [writeNode].
+  ///
+  /// [getV1] is invoked after the V1 parents of the shared nodes under [node]
+  /// are requested bottom-up, so that computing the V1 view does not establish
+  /// them first.
+  T? writeNodeBeforeV1<T extends AstNode>(AstNode node, T Function() getV1) {
     _recordBottomUpV1Parents(node);
-    AstNode? v1;
-    if (node case TopLevelDeclarationImpl declaration) {
-      // ignore: analyzer_v1_ast_use
-      v1 = V1Projection.toV1CompilationUnitMember(declaration);
-    } else if (node case MemberDeclarationImpl declaration) {
-      // ignore: analyzer_v1_ast_use
-      v1 = V1Projection.toV1ClassMember(declaration);
-    } else if (node case EnumConstantDeclaration2Impl declaration) {
-      // ignore: analyzer_v1_ast_use
-      v1 = declaration.v1Projection;
-    } else if (node case ExpressionImpl expression) {
-      // ignore: analyzer_v1_ast_use
-      v1 = V1Projection.toV1Expression(expression);
-    } else if (node case StatementImpl statement) {
-      // ignore: analyzer_v1_ast_use
-      v1 = V1Projection.toV1Statement(statement);
-    }
-
-    if (v1 == null || identical(v1, node)) {
+    var v1 = getV1();
+    if (identical(v1, node)) {
       writeNode(node);
-      return;
+      return null;
     }
 
     _withInlineV1ChildEntities(false, () => writeNode(node));
-    _sink.writeWithIndent('V1: ');
-    writeNode(v1);
+    return v1;
+  }
+
+  /// Writes [node] and its V1 compatibility view when the V2 root has a
+  /// distinct projection.
+  void writeNodeWithV1Projection(AstNode node) {
+    var v1 = writeNodeBeforeV1(node, () {
+      if (node case TopLevelDeclarationImpl declaration) {
+        // ignore: analyzer_v1_ast_use
+        return V1Projection.toV1CompilationUnitMember(declaration);
+      } else if (node case MemberDeclarationImpl declaration) {
+        // ignore: analyzer_v1_ast_use
+        return V1Projection.toV1ClassMember(declaration);
+      } else if (node case EnumConstantDeclaration2Impl declaration) {
+        // ignore: analyzer_v1_ast_use
+        return declaration.v1Projection;
+      } else if (node case ExpressionImpl expression) {
+        // ignore: analyzer_v1_ast_use
+        return V1Projection.toV1Expression(expression);
+      } else if (node case StatementImpl statement) {
+        // ignore: analyzer_v1_ast_use
+        return V1Projection.toV1Statement(statement);
+      }
+      return node;
+    });
+
+    if (v1 != null) {
+      _sink.writeWithIndent('V1: ');
+      writeNode(v1);
+    }
   }
 
   void _acceptInView(AstNode node) {
@@ -2869,6 +2888,36 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
       var declaredFragment = node.declaredFragment;
       var expected = _expectedFormalParameterElements(node);
       _assertHasIdenticalElement(expected, declaredFragment);
+    }
+  }
+
+  /// Check that each child entity under [root], in each view of [root], is
+  /// within the range of its parent.
+  ///
+  /// This reads V1 child entities, so it must follow
+  /// [_recordBottomUpV1Parents].
+  void _checkChildEntityRanges(AstNode root) {
+    void checkChildren(AstNode node) {
+      for (var entity in _viewChildEntities(node)) {
+        if (entity.offset < node.offset || entity.end > node.end) {
+          fail('''
+Child entity outside of its parent in ${_view.name}.
+Child: ${_describeEntity(entity)}
+Parent: ${_describeEntity(node)}
+''');
+        }
+        if (entity is AstNode) {
+          checkChildren(entity);
+        }
+      }
+    }
+
+    var api = (root as AstNodeImpl).astNodeApi;
+    if (api != AstNodeApi.v1) {
+      _withView(_AstView.v2, () => checkChildren(root));
+    }
+    if (api != AstNodeApi.v2) {
+      _withView(_AstView.v1, () => checkChildren(root));
     }
   }
 
@@ -2916,6 +2965,39 @@ Child: (${child.runtimeType}) $child
 Actual parent: (${actualParent.runtimeType}) $actualParent
 Expected parent: (${parent.runtimeType}) $parent
 ''');
+    }
+  }
+
+  /// Check that each token of [root], and the token after it, has the
+  /// previous token as its [Token.previous].
+  void _checkTokenLinks(AstNode root) {
+    var token = root.beginToken;
+    if (token case CommentToken(:var parent?)) {
+      // Comments are not in the token stream, they precede its tokens.
+      token = parent;
+    }
+    var visited = Set<Token>.identity();
+    while (!token.isEof) {
+      if (!visited.add(token)) {
+        fail('Token cycle.\nToken: ${_describeEntity(token)}');
+      }
+      var next = token.next;
+      if (next == null) {
+        fail('No next token.\nToken: ${_describeEntity(token)}');
+      }
+      if (!identical(next.previous, token)) {
+        var previous = next.previous;
+        fail('''
+Wrong previous token.
+Token: ${_describeEntity(next)}
+Actual previous: ${previous != null ? _describeEntity(previous) : null}
+Expected previous: ${_describeEntity(token)}
+''');
+      }
+      if (identical(token, root.endToken)) {
+        return;
+      }
+      token = next;
     }
   }
 
@@ -3679,6 +3761,11 @@ Expected parent: (${parent.runtimeType}) $parent
     fail('No $expected in $elements');
   }
 
+  static String _describeEntity(SyntacticEntity entity) {
+    var name = entity is Token ? "'${entity.lexeme}'" : '${entity.runtimeType}';
+    return '$name ${entity.offset}..${entity.end}';
+  }
+
   static Token _entityBeginToken(SyntacticEntity entity) {
     if (entity is Token) {
       return entity;
@@ -3762,6 +3849,16 @@ Expected parent: (${parent.runtimeType}) $parent
 
 class ResolvedNodeTextConfiguration {
   bool skipArgumentList = false;
+
+  /// If `true`, check that the printed AST is consistent with its token
+  /// stream: each child entity is within the range of its parent, and each
+  /// token is the [Token.previous] of its [Token.next]. This prints nothing;
+  /// use [withTokenPreviousNext] to print the links.
+  ///
+  /// This holds for parsed and resolved ASTs, but not for ASTs of the element
+  /// model: they are detached from the token stream, and some of their nodes
+  /// are synthesized.
+  bool withCheckingTokenStream = true;
 
   /// If `true`, elements of [InterfaceType] should be printed.
   bool withInterfaceTypeElements = false;

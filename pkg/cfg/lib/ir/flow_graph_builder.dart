@@ -920,6 +920,15 @@ class FlowGraphBuilder {
     return instr;
   }
 
+  /// Append [SimdOp] to the graph.
+  SimdOp addSimdOp(SimdOpcode op) {
+    final instr = SimdOp(graph, currentSourcePosition, op);
+    popInputs(instr, 0, instr.inputCount);
+    push(instr);
+    appendInstruction(instr);
+    return instr;
+  }
+
   /// Append [ReachabilityFence] to the graph.
   void addReachabilityFence() {
     final value = pop();

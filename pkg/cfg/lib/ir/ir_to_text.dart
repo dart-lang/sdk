@@ -230,6 +230,7 @@ final class IrToText extends VoidInstructionVisitor {
     BinaryDoubleOp() => 'BinaryDoubleOp ${instr.op.token}',
     UnaryDoubleOp() => 'UnaryDoubleOp ${instr.op.token}',
     UnaryBoolOp() => 'UnaryBoolOp ${instr.op.token}',
+    SimdOp() => 'SimdOp ${instr.op.name}',
     ParallelMove() => 'ParallelMove ${instr.stage.name}',
     AllocateArray() => 'AllocateArray ${instr.kind.name}',
     AllocateRecord() => 'AllocateRecord ${instr.type}',

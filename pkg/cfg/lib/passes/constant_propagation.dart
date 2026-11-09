@@ -662,12 +662,28 @@ final class ConstantPropagation extends Pass
   }
 
   @override
+  void visitBoxSimd(BoxSimd instr) {
+    _setNonConstant(instr);
+  }
+
+  @override
   void visitUnboxInt(UnboxInt instr) {
     _setNonConstant(instr);
   }
 
   @override
   void visitUnboxDouble(UnboxDouble instr) {
+    _setNonConstant(instr);
+  }
+
+  @override
+  void visitUnboxSimd(UnboxSimd instr) {
+    _setNonConstant(instr);
+  }
+
+  @override
+  void visitSimdOp(SimdOp instr) {
+    // TODO: SIMD constants
     _setNonConstant(instr);
   }
 

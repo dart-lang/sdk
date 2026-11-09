@@ -54,10 +54,10 @@ void main() {
         'jsonrpc': '2.0',
         'method': 'upload',
         'id': 2,
-        'params': {
+        'params': Map<String, Object?>.unmodifiable({
           // Uint8List is not JSON, but allowed by extension
           'bytes': Uint8List.fromList([1, 2, 3, 4, 5]),
-        },
+        }),
       });
 
       final received = await peer2.stream.first;
@@ -76,10 +76,10 @@ void main() {
       peer1.sink.add({
         'jsonrpc': '2.0',
         'method': 'connect',
-        'params': {
+        'params': Map<String, Object?>.unmodifiable({
           // We can only send ports in params.port and result.port
           'port': MessagePortExt.fromMessagePort(portToSend),
-        },
+        }),
         'id': 3,
       });
       final received = await peer2.stream.first as Map;

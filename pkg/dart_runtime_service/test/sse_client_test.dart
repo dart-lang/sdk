@@ -133,6 +133,9 @@ void main() {
       );
       expectAuthenticationCodesDisabled(service);
       await validateConnection(service);
+      // Connect a second time to verify sseClientHandler only subscribes to
+      // handler.connections.rest once rather than on every request.
+      await validateConnection(service);
     });
 
     test('SSE connection with authentication codes', () async {
@@ -140,6 +143,9 @@ void main() {
         config: config.copyWith(disableAuthCodes: false),
       );
       expectAuthenticationCodesEnabled(service);
+      await validateConnection(service);
+      // Connect a second time to verify sseClientHandler only subscribes to
+      // handler.connections.rest once rather than on every request.
       await validateConnection(service);
     });
   }, timeout: Timeout.none);

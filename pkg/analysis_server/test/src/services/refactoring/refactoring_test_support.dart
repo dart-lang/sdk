@@ -62,6 +62,7 @@ abstract class RefactoringTest extends AbstractLspAnalysisServerTest
     required String originalSource,
     required String expected,
     required String refactoringTitle,
+    List<Object?>? commandArguments,
     String? otherFilePath,
     String? otherFileContent,
     ProgressToken? commandWorkDoneToken,
@@ -78,6 +79,10 @@ abstract class RefactoringTest extends AbstractLspAnalysisServerTest
     await initializeServer();
 
     var action = await expectCodeActionWithTitle(refactoringTitle);
+    if (commandArguments != null) {
+      var arguments = getRefactorCommandArguments(action.command!.arguments);
+      arguments.setAll(0, commandArguments);
+    }
     await verifyCommandEdits(
       action.command!,
       expected,

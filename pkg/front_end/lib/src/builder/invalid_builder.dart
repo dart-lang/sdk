@@ -19,13 +19,17 @@ class InvalidBuilder extends TypeDeclarationBuilderImpl
 
   final LocatedMessage message;
 
+  @override
+  final UriOffsetLength uriOffset;
+
   final List<LocatedMessage>? context;
 
   final bool errorHasBeenReported;
 
   new(
     this.name,
-    this.message, {
+    this.message,
+    this.uriOffset, {
     this.context,
     this.errorHasBeenReported = true,
   });

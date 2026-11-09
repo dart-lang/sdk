@@ -76,6 +76,10 @@ abstract class WorkspacePackageImpl implements WorkspacePackage {
     'testing',
   };
 
+  /// The folders with [_testDirectoryNames] under the key root folder, cached
+  /// because they are checked for every analyzed file.
+  final Map<Folder, List<Folder>> _testFoldersByRoot = {};
+
   @override
   bool get canHavePublicApi => true;
 
@@ -125,9 +129,10 @@ abstract class WorkspacePackageImpl implements WorkspacePackage {
 
   @protected
   bool isInTestDirectoryUnder(Folder root, File file) {
-    return _testDirectoryNames.any((name) {
-      return root.getFolder(name).contains(file.path);
-    });
+    var testFolders = _testFoldersByRoot[root] ??= [
+      for (var name in _testDirectoryNames) root.getFolder(name),
+    ];
+    return testFolders.any((folder) => folder.contains(file.path));
   }
 
   /// Return a map from the names of packages to the absolute and normalized

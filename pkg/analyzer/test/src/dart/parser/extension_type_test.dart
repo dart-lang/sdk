@@ -1193,6 +1193,45 @@ V1: ExtensionTypeDeclaration
     );
   }
 
+  test_members_field_final_static() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+extension type E(int it) {
+  final static int x = 0;
+//      ^^^^^^
+// [diag.modifierOutOfOrder] The modifier 'static' should be before the modifier 'final'.
+}
+''');
+
+    var node = parseResult.findNode.singleFieldsDeclaration;
+    assertParsedNodeText(node, r'''
+FieldsDeclaration
+  staticKeyword: static
+  constFinalOrVarKeyword: final
+  type: NamedType
+    name: int
+  fields
+    Field
+      name: x
+      equals: =
+      initializer: IntegerLiteral
+        literal: 0
+  semicolon: ;
+V1: FieldDeclaration
+  staticKeyword: static
+  fields: VariableDeclarationList
+    keyword: final
+    type: NamedType
+      name: int
+    variables
+      VariableDeclaration
+        name: x
+        equals: =
+        initializer: IntegerLiteral
+          literal: 0
+  semicolon: ;
+''');
+  }
+
   test_members_field_instance() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type A(int it) {
@@ -1326,6 +1365,47 @@ V1: ExtensionTypeDeclaration
                 literal: 0
         semicolon: ;
     rightBracket: }
+''');
+  }
+
+  test_members_field_static_final_late() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+extension type E(int it) {
+  static final late int x = 0;
+//             ^^^^
+// [diag.modifierOutOfOrder] The modifier 'late' should be before the modifier 'final'.
+}
+''');
+
+    var node = parseResult.findNode.singleFieldsDeclaration;
+    assertParsedNodeText(node, r'''
+FieldsDeclaration
+  staticKeyword: static
+  lateKeyword: late
+  constFinalOrVarKeyword: final
+  type: NamedType
+    name: int
+  fields
+    Field
+      name: x
+      equals: =
+      initializer: IntegerLiteral
+        literal: 0
+  semicolon: ;
+V1: FieldDeclaration
+  staticKeyword: static
+  fields: VariableDeclarationList
+    lateKeyword: late
+    keyword: final
+    type: NamedType
+      name: int
+    variables
+      VariableDeclaration
+        name: x
+        equals: =
+        initializer: IntegerLiteral
+          literal: 0
+  semicolon: ;
 ''');
   }
 
@@ -4784,6 +4864,108 @@ V1: ExtensionTypeDeclaration
 ''', withOffsets: true);
   }
 
+  test_primaryConstructor_missing_hasTypeParameters() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+extension type E<T> {}
+//                ^
+// [diag.missingPrimaryConstructor] An extension type declaration must have a primary constructor declaration.
+''');
+
+    var node = parseResult.findNode.extensionTypeDeclaration('E');
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration2
+  extensionKeyword: extension @0
+  typeKeyword: type @10
+  namePart: PrimaryConstructorDeclaration
+    typeName: E @15
+    typeParameters: TypeParameterList
+      leftBracket: < @16
+      typeParameters
+        TypeParameter
+          name: T @17
+      rightBracket: > @18
+    formalParameters: FormalParameterList
+      leftParenthesis: ( @20 <synthetic>
+      rightParenthesis: ) @20 <synthetic>
+  body: BlockInstanceDeclarationBody
+    leftBracket: { @20
+    rightBracket: } @21
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension @0
+  typeKeyword: type @10
+  namePart: PrimaryConstructorDeclaration
+    typeName: E @15
+    typeParameters: TypeParameterList
+      leftBracket: < @16
+      typeParameters
+        TypeParameter
+          name: T @17
+      rightBracket: > @18
+    formalParameters: FormalParameterList
+      leftParenthesis: ( @20 <synthetic>
+      rightParenthesis: ) @20 <synthetic>
+  body: BlockClassBody
+    leftBracket: { @20
+    rightBracket: } @21
+''', withOffsets: true);
+  }
+
+  test_primaryConstructor_missing_hasTypeParameters_implementsClause() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+extension type E<T> implements B {}
+//                ^
+// [diag.missingPrimaryConstructor] An extension type declaration must have a primary constructor declaration.
+''');
+
+    var node = parseResult.findNode.extensionTypeDeclaration('E');
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration2
+  extensionKeyword: extension @0
+  typeKeyword: type @10
+  namePart: PrimaryConstructorDeclaration
+    typeName: E @15
+    typeParameters: TypeParameterList
+      leftBracket: < @16
+      typeParameters
+        TypeParameter
+          name: T @17
+      rightBracket: > @18
+    formalParameters: FormalParameterList
+      leftParenthesis: ( @20 <synthetic>
+      rightParenthesis: ) @20 <synthetic>
+  implementsClause: ImplementsClause
+    implementsKeyword: implements @20
+    interfaces
+      NamedType
+        name: B @31
+  body: BlockInstanceDeclarationBody
+    leftBracket: { @33
+    rightBracket: } @34
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension @0
+  typeKeyword: type @10
+  namePart: PrimaryConstructorDeclaration
+    typeName: E @15
+    typeParameters: TypeParameterList
+      leftBracket: < @16
+      typeParameters
+        TypeParameter
+          name: T @17
+      rightBracket: > @18
+    formalParameters: FormalParameterList
+      leftParenthesis: ( @20 <synthetic>
+      rightParenthesis: ) @20 <synthetic>
+  implementsClause: ImplementsClause
+    implementsKeyword: implements @20
+    interfaces
+      NamedType
+        name: B @31
+  body: BlockClassBody
+    leftBracket: { @33
+    rightBracket: } @34
+''', withOffsets: true);
+  }
+
   test_primaryConstructor_notConst_hasTypeParameters_named() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 extension type A<T, U>.named(int it) {}
@@ -4990,6 +5172,148 @@ V1: ExtensionTypeDeclaration
     leftBracket: {
     rightBracket: }
 ''');
+  }
+
+  test_primaryConstructor_notConst_typeName_periodName_noFormalParameters() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+extension type A.named {}
+//               ^^^^^
+// [diag.missingPrimaryConstructorParameters] A primary constructor declaration must have formal parameters.
+''');
+
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration2
+  extensionKeyword: extension @0
+  typeKeyword: type @10
+  namePart: PrimaryConstructorDeclaration
+    typeName: A @15
+    constructorName: PrimaryConstructorName
+      period: . @16
+      name: named @17
+    formalParameters: FormalParameterList
+      leftParenthesis: ( @23 <synthetic>
+      rightParenthesis: ) @23 <synthetic>
+  body: BlockInstanceDeclarationBody
+    leftBracket: { @23
+    rightBracket: } @24
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension @0
+  typeKeyword: type @10
+  namePart: PrimaryConstructorDeclaration
+    typeName: A @15
+    constructorName: PrimaryConstructorName
+      period: . @16
+      name: named @17
+    formalParameters: FormalParameterList
+      leftParenthesis: ( @23 <synthetic>
+      rightParenthesis: ) @23 <synthetic>
+  body: BlockClassBody
+    leftBracket: { @23
+    rightBracket: } @24
+''', withOffsets: true);
+  }
+
+  test_primaryConstructor_notConst_typeName_periodName_noFormalParameters_implementsClause() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+extension type A.named implements B {}
+//               ^^^^^
+// [diag.missingPrimaryConstructorParameters] A primary constructor declaration must have formal parameters.
+''');
+
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration2
+  extensionKeyword: extension @0
+  typeKeyword: type @10
+  namePart: PrimaryConstructorDeclaration
+    typeName: A @15
+    constructorName: PrimaryConstructorName
+      period: . @16
+      name: named @17
+    formalParameters: FormalParameterList
+      leftParenthesis: ( @23 <synthetic>
+      rightParenthesis: ) @23 <synthetic>
+  implementsClause: ImplementsClause
+    implementsKeyword: implements @23
+    interfaces
+      NamedType
+        name: B @34
+  body: BlockInstanceDeclarationBody
+    leftBracket: { @36
+    rightBracket: } @37
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension @0
+  typeKeyword: type @10
+  namePart: PrimaryConstructorDeclaration
+    typeName: A @15
+    constructorName: PrimaryConstructorName
+      period: . @16
+      name: named @17
+    formalParameters: FormalParameterList
+      leftParenthesis: ( @23 <synthetic>
+      rightParenthesis: ) @23 <synthetic>
+  implementsClause: ImplementsClause
+    implementsKeyword: implements @23
+    interfaces
+      NamedType
+        name: B @34
+  body: BlockClassBody
+    leftBracket: { @36
+    rightBracket: } @37
+''', withOffsets: true);
+  }
+
+  test_primaryConstructor_notConst_typeName_typeParameters_periodName_noFormalParameters() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+extension type A<T>.named {}
+//                  ^^^^^
+// [diag.missingPrimaryConstructorParameters] A primary constructor declaration must have formal parameters.
+''');
+
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration2
+  extensionKeyword: extension @0
+  typeKeyword: type @10
+  namePart: PrimaryConstructorDeclaration
+    typeName: A @15
+    typeParameters: TypeParameterList
+      leftBracket: < @16
+      typeParameters
+        TypeParameter
+          name: T @17
+      rightBracket: > @18
+    constructorName: PrimaryConstructorName
+      period: . @19
+      name: named @20
+    formalParameters: FormalParameterList
+      leftParenthesis: ( @26 <synthetic>
+      rightParenthesis: ) @26 <synthetic>
+  body: BlockInstanceDeclarationBody
+    leftBracket: { @26
+    rightBracket: } @27
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension @0
+  typeKeyword: type @10
+  namePart: PrimaryConstructorDeclaration
+    typeName: A @15
+    typeParameters: TypeParameterList
+      leftBracket: < @16
+      typeParameters
+        TypeParameter
+          name: T @17
+      rightBracket: > @18
+    constructorName: PrimaryConstructorName
+      period: . @19
+      name: named @20
+    formalParameters: FormalParameterList
+      leftParenthesis: ( @26 <synthetic>
+      rightParenthesis: ) @26 <synthetic>
+  body: BlockClassBody
+    leftBracket: { @26
+    rightBracket: } @27
+''', withOffsets: true);
   }
 
   test_primaryConstructorBody() {

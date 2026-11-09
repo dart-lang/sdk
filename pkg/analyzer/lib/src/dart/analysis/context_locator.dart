@@ -29,7 +29,9 @@ import 'package:path/path.dart';
 /// The [excludedPaths] are supplied by the client, for example from IDE
 /// settings, in addition to the `analyzer: exclude:` globs read from the
 /// analysis options files. Excluded folders are not searched for nested
-/// context roots.
+/// context roots. Each excluded path is recorded in every root that would
+/// otherwise analyze it, even if nothing exists at the path yet, for example
+/// a build output folder that is created later.
 ///
 /// If an [optionsFile] is specified, then it is assumed to be the path to the
 /// `analysis_options.yaml` file that should be used in place of the ones that
@@ -84,7 +86,7 @@ List<ContextRootImpl> locateContextRoots({
     resourceProvider: resourceProvider,
     defaultOptionsFile: defaultOptionsFile,
     defaultPackageConfigFile: defaultPackageConfigFile,
-    excludedFolders: excludedFolders.toSet(),
+    excludedByClient: {...excludedFolders, ...excludedFiles},
   )._locateRoots(
     includedFolders: includedFolders,
     includedFiles: includedFiles,
@@ -133,11 +135,15 @@ class _ContextLocator {
 
   final File? _defaultPackageConfigFile;
 
-  /// The folders explicitly excluded by the client.
+  /// The files and folders explicitly excluded by the client.
   ///
-  /// When the search reaches one of them, it is recorded as excluded in the
-  /// containing root, and not searched for nested context roots.
-  final Set<Folder> _excludedFolders;
+  /// A path that does not exist is represented as a [File], because there is
+  /// no way to know what will be created there.
+  ///
+  /// The search for nested context roots does not enter excluded folders.
+  /// After all roots are located, [_recordExcludedByClient] records each of
+  /// these in every root that would otherwise analyze it.
+  final Set<Resource> _excludedByClient;
 
   /// A parse session for one context-location operation.
   final AnalysisOptionsParseSession _analysisOptionsParseSession = .new();
@@ -165,7 +171,7 @@ class _ContextLocator {
     required ResourceProvider? resourceProvider,
     required this._defaultOptionsFile,
     required this._defaultPackageConfigFile,
-    required this._excludedFolders,
+    required this._excludedByClient,
   }) : _resourceProvider =
            resourceProvider ?? PhysicalResourceProvider.INSTANCE;
 
@@ -345,7 +351,7 @@ class _ContextLocator {
   /// of the file.
   ///
   /// For each directory within the given [folder] that is neither in
-  /// [_excludedFolders] nor excluded by the `containingRoot.excludedGlobs`,
+  /// [_excludedByClient] nor excluded by the `containingRoot.excludedGlobs`,
   /// recursively searches for nested context roots.
   ///
   /// Returns true if the folder was contained in the root and did not create a
@@ -450,7 +456,7 @@ class _ContextLocator {
   }
 
   /// For each directory within the given [folder] that is neither in
-  /// [_excludedFolders] nor excluded by the `containingRoot.excludedGlobs`,
+  /// [_excludedByClient] nor excluded by the `containingRoot.excludedGlobs`,
   /// recursively searches for nested context roots and add them to the list
   /// of [_roots].
   ///
@@ -494,9 +500,7 @@ class _ContextLocator {
 
     for (Resource child in children) {
       if (child is Folder) {
-        if (_excludedFolders.contains(child)) {
-          containingRoot.excluded.add(child);
-        } else if (!isExcluded(child)) {
+        if (!_excludedByClient.contains(child) && !isExcluded(child)) {
           _createContextRoots(
             visited,
             child,
@@ -820,9 +824,14 @@ class _ContextLocator {
         location: location,
       );
 
-      if (!root.isAnalyzed(folder.path)) {
-        root.included.add(folder);
+      // Included folders are sorted so that outer folders come first. So if
+      // the root already analyzes the folder, then the folder was already
+      // searched for nested context roots, as a part of another included
+      // folder. Searching it again would create duplicate context roots.
+      if (root.isAnalyzed(folder.path)) {
+        continue;
       }
+      root.included.add(folder);
 
       var rootEnabledLegacyPlugins = _getEnabledLegacyPlugins(
         location.workspace,
@@ -833,6 +842,7 @@ class _ContextLocator {
     }
 
     _addIncludedFiles(includedFiles);
+    _recordExcludedByClient();
     return _roots;
   }
 
@@ -846,6 +856,22 @@ class _ContextLocator {
     if (second == null) return first;
     var pathContext = _resourceProvider.pathContext;
     return pathContext.isWithin(first.root, second.root) ? second : first;
+  }
+
+  /// Records each of [_excludedByClient] in every root of [_roots] that would
+  /// otherwise analyze it.
+  ///
+  /// This is a separate pass, instead of recording excluded folders when the
+  /// search reaches them, because the search sees only existing folders, but
+  /// the client can also exclude files, and paths that will be created later.
+  void _recordExcludedByClient() {
+    for (var resource in _excludedByClient) {
+      for (var root in _roots) {
+        if (root.isAnalyzed(resource.path)) {
+          root.excluded.add(resource);
+        }
+      }
+    }
   }
 
   /// Returns an existing or newly created context root for [folder].

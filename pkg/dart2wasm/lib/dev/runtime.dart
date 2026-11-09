@@ -6,6 +6,7 @@ import 'package:wasm_builder/wasm_builder.dart' as w;
 
 const w.ValueType _jsString = w.RefType.extern(nullable: false);
 const w.ValueType _funcRef = w.RefType.func(nullable: false);
+const w.ValueType _eqRef = w.RefType.eq(nullable: false);
 
 /// The Wasm dev runtime (`pkg/wasm_dev_rt`) API for [module].
 class DevRuntime {
@@ -40,13 +41,18 @@ class DevRuntime {
     [_jsString],
     [w.NumType.i32],
   );
+  late final w.BaseFunction shapeId = _import(
+    'shapeId',
+    [_jsString],
+    [w.NumType.i32],
+  );
   late final w.BaseFunction startInstanceMemberDefinitions = _import(
     'startInstanceMemberDefinitions',
     [w.NumType.i32],
   );
   late final w.BaseFunction defineInstanceMember = _import(
     'defineInstanceMember',
-    [w.NumType.i32, w.NumType.i32, _funcRef],
+    [w.NumType.i32, w.NumType.i32, w.NumType.i32, _funcRef],
   );
   late final w.BaseFunction endInstanceMemberDefinitions = _import(
     'endInstanceMemberDefinitions',
@@ -54,8 +60,13 @@ class DevRuntime {
   );
   late final w.BaseFunction findTarget = _import(
     'findTarget',
-    [w.NumType.i32, w.NumType.i32],
+    [w.NumType.i32, w.NumType.i32, w.NumType.i32],
     [_funcRef],
+  );
+  late final w.BaseFunction defaultValueSentinel = _import(
+    'defaultValueSentinel',
+    [_eqRef],
+    [_eqRef],
   );
 
   DevRuntime(this.module);

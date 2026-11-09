@@ -1306,7 +1306,7 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
     unit.directives.accept2(this);
   }
 
-  /// Updates metadata and documentation for [_libraryBuilder].
+  /// Updates metadata for [_libraryBuilder].
   ///
   /// This method must be invoked after [buildDirectives].
   void buildLibraryMetadata(CompilationUnitImpl unit) {

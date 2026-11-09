@@ -9,20 +9,39 @@ import 'dart:isolate';
 
 import 'package:dart_runtime_service/dart_runtime_service.dart';
 import 'package:dart_runtime_service_dds/dart_runtime_service_dds.dart';
+import 'package:dart_runtime_service_dds/src/dds_cli_entrypoint.dart';
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
 import 'package:path/path.dart' as path;
+import 'package:test/fake.dart';
 import 'package:test/test.dart';
+import 'package:vm_service/utils.dart';
 import 'package:vm_service/vm_service.dart' as vm;
 import 'package:vm_service/vm_service_io.dart';
 import 'package:web_socket_channel/io.dart';
 
 const _collectedIsolateId = 'isolates/collected';
+const _localPackageUri = 'package:test/has_local.dart';
 const _runningIsolateId = 'isolates/1';
+const _sdkIoUri = 'org-dartlang-sdk:///sdk/lib/io/io.dart';
+const _startedState = 'started';
+const _stateKey = 'state';
 const _unresolvedUris = <String>[
   'dart:io',
-  'package:test/has_local.dart',
+  _localPackageUri,
   'package:does_not_exist/does_not_exist.dart',
 ];
+
+class _FakeStderr extends Fake implements Stdout {
+  final buffer = StringBuffer();
+
+  @override
+  void writeln([Object? object = '']) {
+    buffer.writeln(object);
+  }
+
+  @override
+  Future<void> close() async {}
+}
 
 class MockVmService {
   MockVmService._(this.server);
@@ -299,13 +318,12 @@ void main() {
             .join();
         final launchInfo =
             json.decode(stderrOutput.trim()) as Map<String, Object?>;
-        expect(launchInfo['state'], 'started');
+        expect(launchInfo[_stateKey], _startedState);
 
-        final ddsHttpUri = Uri.parse(launchInfo['ddsUri']! as String);
-        final ddsWsUri = ddsHttpUri.replace(
-          scheme: 'ws',
-          path: '${ddsHttpUri.path}ws',
+        final ddsHttpUri = Uri.parse(
+          launchInfo[DartRuntimeServiceDdsBackend.ddsUriKey]! as String,
         );
+        final ddsWsUri = convertToWebSocketUrl(serviceProtocolUrl: ddsHttpUri);
         ddsClient = await vmServiceConnectUri(ddsWsUri.toString());
 
         final result = await ddsClient!.lookupResolvedPackageUris(
@@ -332,5 +350,53 @@ void main() {
         ]);
       },
     );
+
+    test('runDartDevelopmentServiceFromCLI uses custom uriConverter when '
+        '--google3-workspace-root is omitted', () async {
+      final homeHasLocalPath = path.join(
+        path.rootPrefix(path.current),
+        'home',
+        'has_local.dart',
+      );
+      final fakeStderr = _FakeStderr();
+      await IOOverrides.runZoned(
+        () => runDartDevelopmentServiceFromCLI(
+          <String>[
+            '--${DartDevelopmentServiceOptions.vmServiceUriOption}='
+                '${mockVmService.uri}',
+          ],
+          uriConverter: (uri) =>
+              uri == _localPackageUri ? homeHasLocalPath : null,
+        ),
+        exit: (code) => fail(
+          'runDartDevelopmentServiceFromCLI exited with $code: '
+          '${fakeStderr.buffer}',
+        ),
+        stderr: () => fakeStderr,
+      );
+
+      final launchInfo =
+          json.decode(fakeStderr.buffer.toString().trim())
+              as Map<String, Object?>;
+      expect(launchInfo[_stateKey], _startedState);
+
+      final ddsHttpUri = Uri.parse(
+        launchInfo[DartRuntimeServiceDdsBackend.ddsUriKey]! as String,
+      );
+      final ddsWsUri = convertToWebSocketUrl(serviceProtocolUrl: ddsHttpUri);
+      ddsClient = await vmServiceConnectUri(ddsWsUri.toString());
+
+      final result = await ddsClient!.lookupResolvedPackageUris(
+        _runningIsolateId,
+        _unresolvedUris,
+        local: true,
+      );
+
+      expect(result.uris, <String?>[
+        _sdkIoUri,
+        Uri.file(homeHasLocalPath).toString(),
+        null,
+      ]);
+    });
   });
 }

@@ -52,9 +52,7 @@ class _DependencyTracker {
   SmallSet<_Invocation> _dependentInvocations = const SmallSet.empty();
 
   void addDependentInvocation(_Invocation invocation) {
-    if (!identical(invocation, this)) {
-      _dependentInvocations = _dependentInvocations.add(invocation);
-    }
+    _dependentInvocations = _dependentInvocations.add(invocation);
   }
 
   void invalidateDependentInvocations(_WorkList workList) {
@@ -101,42 +99,37 @@ abstract base class _Invocation extends _DependencyTracker
 
   Type process(TypeFlowAnalysis typeFlowAnalysis);
 
-  /// Returns result of this invocation if its available without
-  /// further analysis, or `null` if it's not available.
-  /// Used for recursive calls while this invocation is being processed.
-  Type? get resultForRecursiveInvocation => result;
-
   /// Use [type] as a current computed result of this invocation.
   /// If this invocation was invalidated, and the invalidated result is
   /// different, then invalidate all dependent invocations as well.
   /// Result type may be saturated if this invocation was invalidated
   /// too many times.
   void setResult(TypeFlowAnalysis typeFlowAnalysis, Type type) {
-    result = type;
-
     if (invalidatedResult != null) {
-      if (invalidatedResult != result) {
-        invalidateDependentInvocations(typeFlowAnalysis.workList);
-
+      if (invalidatedResult != type) {
         invalidationCounter++;
         Statistics.maxInvalidationsPerInvocation = max(
           Statistics.maxInvalidationsPerInvocation,
           invalidationCounter,
         );
-        // In rare cases, loops in dependencies and approximation of
-        // recursive invocations may cause infinite bouncing of result
-        // types. To prevent infinite looping and guarantee convergence of
-        // the analysis, result is saturated after invocation is invalidated
-        // certain number of times.
+        // In rare cases, loops in dependencies may cause repeated
+        // growth or bouncing of result types. To prevent infinite
+        // looping and guarantee convergence of the analysis, result is
+        // saturated after invocation is invalidated certain number of
+        // times.
         if (invalidationCounter > typeFlowAnalysis.config.invalidationLimit) {
-          result = result!.union(
+          type = type.union(
             invalidatedResult!,
             typeFlowAnalysis.hierarchyCache,
           );
         }
+        if (invalidatedResult != type) {
+          invalidateDependentInvocations(typeFlowAnalysis.workList);
+        }
       }
       invalidatedResult = null;
     }
+    result = type;
   }
 
   // Only take selector and args into account as _Invocation objects
@@ -434,20 +427,9 @@ final class _DirectInvocation extends _Invocation {
         );
         return (member is Constructor) ? args.receiver : result;
       }
-      final summary = typeFlowAnalysis.getSummary(member);
-      // If result type is known upfront (doesn't depend on the flow),
-      // set it eagerly so recursive invocations are able to use it.
-      final summaryResult = summary.result;
-      if (summaryResult is Type &&
-          !typeFlowAnalysis.workList._isPending(this)) {
-        assert(result == null || result == summaryResult);
-        setResult(typeFlowAnalysis, summaryResult);
-      }
-      return summary.apply(
-        args,
-        typeFlowAnalysis.hierarchyCache,
-        typeFlowAnalysis,
-      );
+      return typeFlowAnalysis
+          .getSummary(member)
+          .apply(args, typeFlowAnalysis.hierarchyCache, typeFlowAnalysis);
     } else {
       if (selector.callKind == CallKind.PropertyGet) {
         // Taking tear-off.
@@ -510,7 +492,6 @@ final class _DispatchableInvocation extends _Invocation {
   // Populated only if not polymorphic.
   SmallSet<Call> _callSites = const SmallSet.empty();
   Member? _monomorphicTarget;
-  _DirectInvocation? _monomorphicDirectInvocation;
 
   @override
   set typeChecksNeeded(bool value) {
@@ -611,12 +592,6 @@ final class _DispatchableInvocation extends _Invocation {
 
           final directInvocation = typeFlowAnalysis._invocationsCache
               .getInvocation(directSelector, directArgs);
-
-          if (!_isPolymorphic) {
-            assert(target == _monomorphicTarget);
-            _monomorphicDirectInvocation =
-                directInvocation as _DirectInvocation;
-          }
 
           type = typeFlowAnalysis.workList.processInvocation(directInvocation);
           if (kPrintTrace) {
@@ -974,18 +949,6 @@ final class _DispatchableInvocation extends _Invocation {
   /// polymorphism of this invocation.
   void _notifyCallSites() {
     _callSites.forEach(_notifyCallSite);
-  }
-
-  @override
-  Type? get resultForRecursiveInvocation {
-    if (result != null) {
-      return result;
-    }
-    final monomorphicDirectInvocation = _monomorphicDirectInvocation;
-    if (monomorphicDirectInvocation != null) {
-      return monomorphicDirectInvocation.resultForRecursiveInvocation;
-    }
-    return null;
   }
 }
 
@@ -2050,27 +2013,33 @@ class _WorkList {
       return result;
     } else {
       // Recursive invocation.
-      final result = invocation.resultForRecursiveInvocation;
-      if (result != null) {
+      // Note: Callers of processInvocation record the caller-to-callee
+      // dependency (via addDependentInvocation) upon return when the result is
+      // used.
+      final invalidatedResult = invocation.invalidatedResult;
+      if (invalidatedResult != null) {
         if (kPrintTrace) {
-          tracePrint("Already known type for recursive invocation: $result");
-          tracePrint('END PROCESSING $invocation, RESULT $result', -1);
+          tracePrint(
+            "Already invalidated recursive invocation: $invalidatedResult",
+          );
+          tracePrint(
+            'END PROCESSING $invocation, RESULT $invalidatedResult',
+            -1,
+          );
         }
-        return result;
+        return invalidatedResult;
       }
-      // Fall back to static type.
-      Statistics.recursiveInvocationsApproximated++;
-      final staticType = _typeFlowAnalysis.hierarchyCache.fromStaticType(
-        invocation.selector.staticReturnType,
-        true,
-      );
+      // If invocation is not invalidated yet, use empty type as a result for
+      // the recursive call. If the inferred result of the invocation ends up
+      // being non-empty, comparing it against invalidatedResult in setResult()
+      // will invalidate all dependent invocations (including recursive callers).
+      Statistics.recursiveInvocations++;
+      invocation.invalidatedResult = emptyType;
       if (kPrintTrace) {
-        tracePrint(
-          "Approximated recursive invocation with static type $staticType",
-        );
-        tracePrint('END PROCESSING $invocation, RESULT $staticType', -1);
+        tracePrint("Using empty type for recursive invocation.");
+        tracePrint('END PROCESSING $invocation, RESULT $emptyType', -1);
       }
-      return staticType;
+      return emptyType;
     }
   }
 }
@@ -2203,6 +2172,13 @@ class TypeFlowAnalysis
     }
   }
 
+  /// Returns true if analysis found that given local [function] could be
+  /// executed.
+  bool isLocalFunctionUsed(Member enclosingMember, LocalFunction function) {
+    final callMethod = _callMethodByClosure[Closure(enclosingMember, function)];
+    return callMethod != null && isMemberUsed(callMethod);
+  }
+
   /// Returns true if analysis found that initializer of the given [field]
   /// could be executed.
   bool isFieldInitializerUsed(Field field) {
@@ -2316,11 +2292,11 @@ class TypeFlowAnalysis
     // Enqueueing such invocations regresses the analysis time considerably.
 
     if (processImmediately) {
+      final result = workList.processInvocation(invocation);
       if (isResultUsed) {
         invocation.addDependentInvocation(currentInvocation);
       }
-
-      return workList.processInvocation(invocation);
+      return result;
     } else {
       assert(!isResultUsed);
 

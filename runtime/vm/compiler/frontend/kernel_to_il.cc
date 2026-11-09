@@ -1132,6 +1132,7 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kMathExp:
     case MethodRecognizer::kMathLog:
     case MethodRecognizer::kMathSqrt:
+    case MethodRecognizer::kDoubleAbs:
       return true;
     default:
       return false;
@@ -1860,6 +1861,10 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
     case MethodRecognizer::kMathSqrt: {
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
       body += UnaryDoubleOp(Token::kSQRT);
+    } break;
+    case MethodRecognizer::kDoubleAbs: {
+      body += LoadLocal(parsed_function_->RawParameterVariable(0));
+      body += UnaryDoubleOp(Token::kABS);
     } break;
     case MethodRecognizer::kFinalizerBase_setIsolate:
       ASSERT_EQUAL(function.NumParameters(), 1);

@@ -5,12 +5,8 @@
 part of 'fragment.dart';
 
 class GetterFragment implements Fragment, FunctionFragment {
-  @override
-  final String name;
-
-  final Uri fileUri;
+  final UriOffsetName _uriOffsetName;
   final int startOffset;
-  final int nameOffset;
   final int formalsOffset;
   final int endOffset;
   final bool isTopLevel;
@@ -63,13 +59,6 @@ class GetterFragment implements Fragment, FunctionFragment {
 
   GetterFragmentDeclaration? _declaration;
 
-  @override
-  late final UriOffsetLength uriOffset = new UriOffsetLength(
-    fileUri,
-    nameOffset,
-    name.length,
-  );
-
   late final List<SourceNominalParameterBuilder>?
   declaredTypeParameterBuilders = declaredTypeParameters
       // Coverage-ignore(suite): Not run.
@@ -80,10 +69,8 @@ class GetterFragment implements Fragment, FunctionFragment {
   bool _hasBuiltBody = false;
 
   new({
-    required this.name,
-    required this.fileUri,
+    required this._uriOffsetName,
     required this.startOffset,
-    required this.nameOffset,
     required this.formalsOffset,
     required this.endOffset,
     required this.isTopLevel,
@@ -101,6 +88,16 @@ class GetterFragment implements Fragment, FunctionFragment {
     required this.enclosingCompilationUnit,
     required this._bodyToken,
   });
+
+  Uri get fileUri => _uriOffsetName.fileUri;
+
+  @override
+  String get name => _uriOffsetName.name;
+
+  int get nameOffset => _uriOffsetName.nameOffset;
+
+  @override
+  UriOffsetLength get uriOffset => _uriOffsetName;
 
   @override
   SourcePropertyBuilder get builder {

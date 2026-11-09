@@ -1,0 +1,3 @@
+dependency_overrides:
+  my_dep:
+    path: ../dep_v3

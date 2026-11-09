@@ -923,9 +923,17 @@ class ManifestAnnotation {
     EncodeContext context,
     ElementAnnotationImpl annotation,
   ) {
-    return ManifestAnnotation(
-      ast: ManifestNode.encode(context, annotation.annotationAst),
-    );
+    var ast = annotation.annotationAst;
+    ManifestAnnotation encodeAst() {
+      return ManifestAnnotation(ast: ManifestNode.encode(context, ast));
+    }
+
+    if (ast.expression is UnqualifiedNameExpression) {
+      if (annotation.element case var element?) {
+        return context.encodeUnqualifiedNameAnnotation(element, encodeAst);
+      }
+    }
+    return encodeAst();
   }
 }
 

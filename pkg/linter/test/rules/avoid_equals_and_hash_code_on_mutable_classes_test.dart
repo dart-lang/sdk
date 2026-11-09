@@ -56,11 +56,6 @@ class A {
 ''');
   }
 
-  @FailingTest(
-    reason: '`augmented.metadata` is unimplemented',
-    issue: 'https://github.com/dart-lang/linter/issues/4932',
-  )
-  // TODO(scheglov): implement augmentation
   test_immutableClass_augmented() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part 'b.dart';

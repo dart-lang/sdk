@@ -97,6 +97,11 @@ class AddMissingSwitchCases extends ResolvedCorrectionProducer {
   /// Returns whether [element] with the given [name] references a type from
   /// within a `src/` library that is not from the current project.
   Future<bool> _isTypeInaccessible(Element element, String name) async {
+    if (element.library == libraryElement2) {
+      // [element] is declared in the same library so it is accessible even when
+      // private.
+      return false;
+    }
     var declarations = await getTopLevelDeclarations(name);
     if (!declarations.containsValue(element)) {
       return true;

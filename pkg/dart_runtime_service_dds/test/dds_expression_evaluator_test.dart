@@ -80,8 +80,21 @@ class MockVmService {
       peer.registerMethod('_buildExpressionEvaluationScope', (
         json_rpc.Parameters params,
       ) {
+        final isolateId = params['isolateId'].asString;
+        if (isolateId == 'isolates/exited') {
+          return vm.Sentinel(
+            kind: vm.SentinelKind.kCollected,
+            valueAsString: '<collected>',
+          ).toJson();
+        }
+        final targetId = params['targetId'].asStringOr('');
+        if (targetId == 'targets/invalid') {
+          RpcException.invalidParams.throwExceptionWithDetails(
+            details: 'Invalid targetId',
+          );
+        }
         return <String, Object?>{
-          'isolateId': params['isolateId'].asString,
+          'isolateId': isolateId,
           'klass': 'MyClass',
           'libraryUri': 'file:///test.dart',
           'param_names': <String>['x'],
@@ -254,6 +267,38 @@ void main() {
               (e) => e.sentinel.kind,
               'sentinel.kind',
               vm.SentinelKind.kExpired,
+            ),
+          ),
+        );
+      });
+
+      test(
+        'evaluate wraps buildScope RPCError in kExpressionCompilationError',
+        () async {
+          await expectLater(
+            ddsClient.evaluate('isolates/1', 'targets/invalid', '1 + 1'),
+            throwsA(
+              isA<vm.RPCError>()
+                  .having(
+                    (e) => e.code,
+                    'code',
+                    vm.RPCErrorKind.kExpressionCompilationError.code,
+                  )
+                  .having((e) => e.details, 'details', 'Invalid targetId'),
+            ),
+          );
+        },
+      );
+
+      test('evaluate returns Sentinel when buildScope throws '
+          'SentinelException for exited isolate', () async {
+        await expectLater(
+          ddsClient.evaluate('isolates/exited', 'targets/1', '1 + 1'),
+          throwsA(
+            isA<vm.SentinelException>().having(
+              (e) => e.sentinel.kind,
+              'sentinel.kind',
+              vm.SentinelKind.kCollected,
             ),
           ),
         );

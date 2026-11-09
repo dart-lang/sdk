@@ -68,6 +68,9 @@ class TestProject {
 
   String get pubCacheBinPath => path.join(pubCachePath, 'bin');
 
+  String get analyzerStateLocationPath =>
+      path.join(root.path, 'analyzer_state');
+
   String get mainPath => path.join(dirPath, relativeFilePath);
 
   Uri get mainUri => Uri.file(mainPath);
@@ -167,8 +170,13 @@ class TestProject {
   Future<ProcessResult> runAnalyze(
     List<String> arguments, {
     String? workingDir,
+    Map<String, String>? environment,
   }) async {
-    return run(['analyze', '--suppress-analytics', ...arguments]);
+    return run(
+      ['analyze', '--suppress-analytics', ...arguments],
+      workingDir: workingDir,
+      environment: environment,
+    );
   }
 
   Future<ProcessResult> runFix(
@@ -188,8 +196,13 @@ class TestProject {
   Future<ProcessResult> run(
     List<String> arguments, {
     String? workingDir,
+    Map<String, String>? environment,
   }) async {
-    final process = await start(arguments, workingDir: workingDir);
+    final process = await start(
+      arguments,
+      workingDir: workingDir,
+      environment: environment,
+    );
     final stdoutContents = process.stdout.transform(utf8.decoder).join();
     final stderrContents = process.stderr.transform(utf8.decoder).join();
     final code = await process.exitCode;
@@ -201,13 +214,21 @@ class TestProject {
     );
   }
 
-  Future<Process> start(List<String> arguments, {String? workingDir}) {
+  Future<Process> start(
+    List<String> arguments, {
+    String? workingDir,
+    Map<String, String>? environment,
+  }) {
     return Process.start(
       Platform.resolvedExecutable,
       [...arguments],
       workingDirectory: workingDir ?? dir.path,
       environment: {
+        'ANALYZER_STATE_LOCATION_OVERRIDE': analyzerStateLocationPath,
         'PUB_CACHE': pubCachePath,
+        // Don't implicitly enable CI behavior when tests run on a CI bot.
+        if (Platform.environment.containsKey('CI')) 'CI': '',
+        ...?environment,
       },
     )..then((p) => _process = p);
   }

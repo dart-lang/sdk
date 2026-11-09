@@ -4681,6 +4681,9 @@ void UnaryDoubleOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const VRegister result = locs()->out(0).fpu_reg();
   const VRegister value = locs()->in(0).fpu_reg();
   switch (op_kind()) {
+    case Token::kABS:
+      __ fabsd(result, value);
+      break;
     case Token::kNEGATE:
       __ fnegd(result, value);
       break;

@@ -17,7 +17,6 @@ import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
-import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:collection/collection.dart';
 
 /// An [AstVisitor2] that fills [UsedLocalElements].
@@ -211,21 +210,6 @@ class GatherUsedLocalElementsVisitor extends UnifyingAstVisitor2<void> {
   void visitFunctionExpression(FunctionExpression node) {
     usedElements.addElement(node.declaredFragment?.element);
     super.visitFunctionExpression(node);
-  }
-
-  @override
-  void visitGenericTypeAlias2(GenericTypeAlias2 node) {
-    if (!node.name.lexeme.isPrivateName) {
-      var type = node.type.type;
-      if (type is InterfaceTypeImpl) {
-        for (var constructor in type.constructors) {
-          if (!constructor.name!.isPrivateName) {
-            usedElements.addElement(constructor);
-          }
-        }
-      }
-    }
-    super.visitGenericTypeAlias2(node);
   }
 
   @override
@@ -710,6 +694,9 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor2<void> {
   /// The elements know to be used.
   final UsedLocalElements _usedElements;
 
+  /// The library being verified.
+  final LibraryElement _library;
+
   /// The URI of the library being verified.
   final Uri _libraryUri;
 
@@ -720,9 +707,20 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor2<void> {
   /// within a [PatternVariableDeclaration] are used.
   List<BindPatternVariableElement>? _patternVariableElements;
 
+  /// The constructors of private classes that other libraries can invoke
+  /// through a public alias of the class.
+  ///
+  /// A public type alias makes the constructors of the aliased class
+  /// available under the alias name. A public mixin application forwards the
+  /// constructors of its superclass, which might itself be a private mixin
+  /// application. Only constructors with public names are reachable this way.
+  late final Set<ConstructorElement> _constructorsExposedThroughAliases =
+      _computeConstructorsExposedThroughAliases();
+
   /// Create a new instance of the [UnusedLocalElementsVerifier].
   new(this._diagnosticReporter, this._usedElements, LibraryElement library)
-    : _libraryUri = library.uri,
+    : _library = library,
+      _libraryUri = library.uri,
       _wildCardVariablesEnabled = library.featureSet.isEnabled(
         Feature.wildcard_variables,
       );
@@ -993,6 +991,45 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor2<void> {
     super.visitTopLevelVariablesDeclaration(node);
   }
 
+  Set<ConstructorElement> _computeConstructorsExposedThroughAliases() {
+    var result = <ConstructorElement>{};
+
+    void addConstructorsOf(InterfaceElement element) {
+      for (var constructor in element.constructors) {
+        if (constructor.isPrivate) {
+          continue;
+        }
+        // A forwarding constructor of a mixin application invokes the
+        // superclass constructor with the same name, so that one is exposed
+        // too.
+        ConstructorElement? current = constructor;
+        while (current != null && result.add(current)) {
+          var enclosingElement = current.enclosingElement;
+          if (enclosingElement is ClassElement &&
+              enclosingElement.isMixinApplication) {
+            current = current.superConstructor?.baseElement;
+          } else {
+            current = null;
+          }
+        }
+      }
+    }
+
+    for (var class_ in _library.classes) {
+      if (class_.isPublic && class_.isMixinApplication) {
+        addConstructorsOf(class_);
+      }
+    }
+    for (var typeAlias in _library.typeAliases) {
+      if (typeAlias.isPublic) {
+        if (typeAlias.aliasedType case InterfaceTypeImpl(:var element)) {
+          addConstructorsOf(element);
+        }
+      }
+    }
+    return result;
+  }
+
   /// Returns the parameter element, if any, that corresponds to the given
   /// parameter in the overridden element.
   FormalParameterElement? _getCorrespondingParameter(
@@ -1053,7 +1090,10 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor2<void> {
     }
     if (enclosingElement is InterfaceElement) {
       if (enclosingElement.isPrivate) {
-        if (element.isStatic || element is ConstructorElement) {
+        if (element is ConstructorElement) {
+          return _constructorsExposedThroughAliases.contains(element);
+        }
+        if (element.isStatic) {
           return false;
         }
       }

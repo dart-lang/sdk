@@ -344,6 +344,22 @@ std::unique_ptr<wchar_t[]> Utf8ToWideChar(const char* path) {
   return result;
 }
 
+HANDLE OpenNul() {
+  SECURITY_ATTRIBUTES inherit_handle;
+  inherit_handle.nLength = sizeof(SECURITY_ATTRIBUTES);
+  inherit_handle.bInheritHandle = TRUE;
+  inherit_handle.lpSecurityDescriptor = nullptr;
+  HANDLE nul = CreateFile(L"NUL", GENERIC_READ | GENERIC_WRITE, 0,
+                          &inherit_handle, OPEN_EXISTING, 0, nullptr);
+  if (nul == INVALID_HANDLE_VALUE) {
+    int error = GetLastError();
+    char buffer[1024];
+    Syslog::PrintErr("CloseHandle failed %d (%s)\n", error,
+                     Utils::StrError(error, buffer, sizeof(buffer)));
+  }
+  return nul;
+}
+
 }  // namespace bin
 }  // namespace dart
 

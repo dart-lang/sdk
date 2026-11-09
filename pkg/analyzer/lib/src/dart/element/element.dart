@@ -758,14 +758,6 @@ class ClassFragmentImpl extends InterfaceFragmentImpl implements ClassFragment {
   }
 }
 
-// TODO(scheglov): remove this
-class ConstantInitializerImpl {
-  final VariableFragmentImpl fragment;
-  final ExpressionImpl expression;
-
-  new({required this.fragment, required this.expression});
-}
-
 @elementClass
 @GenerateElementFlags(flags: _ConstructorElementFlags.values)
 class ConstructorElementImpl extends ExecutableElementImpl
@@ -2100,10 +2092,12 @@ sealed class ElementDirectiveImpl implements ElementDirective {
   @override
   final DirectiveUri uri;
 
+  final bool isConditional;
+
   @override
   MetadataImpl metadata = MetadataImpl(const []);
 
-  new({required this.uri});
+  new({required this.uri, this.isConditional = false});
 
   /// Append a textual representation to the given [builder].
   void appendTo(ElementDisplayStringBuilder builder);
@@ -2117,6 +2111,71 @@ sealed class ElementDirectiveImpl implements ElementDirective {
   @override
   String toString() {
     return displayString();
+  }
+
+  /// Returns `true` if the non-URI components of the two directives are
+  /// identical and neither is conditional.
+  ///
+  /// Note: Configurations are not checked; if either directive is conditional,
+  /// they are not considered identical.
+  ///
+  /// URIs should be checked outside to see if they resolve to the same absolute
+  /// URI, so to the same library, regardless of the used syntax (absolute,
+  /// relative, not normalized).
+  static bool areIdenticalExceptUri(
+    ElementDirectiveImpl directive1,
+    ElementDirectiveImpl directive2,
+  ) {
+    if (directive1.isConditional || directive2.isConditional) {
+      return false;
+    }
+    List<NamespaceCombinator> combinators1;
+    List<NamespaceCombinator> combinators2;
+    if (directive1 is LibraryImportImpl && directive2 is LibraryImportImpl) {
+      if (directive1.prefix?.name != directive2.prefix?.name) {
+        return false;
+      }
+      if (directive1.prefix?.isDeferred != directive2.prefix?.isDeferred) {
+        return false;
+      }
+      combinators1 = directive1.combinators;
+      combinators2 = directive2.combinators;
+    } else if (directive1 is LibraryExportImpl &&
+        directive2 is LibraryExportImpl) {
+      combinators1 = directive1.combinators;
+      combinators2 = directive2.combinators;
+    } else {
+      return false;
+    }
+
+    if (combinators1.length != combinators2.length) {
+      return false;
+    }
+    for (var i = 0; i < combinators1.length; i++) {
+      var combinator1 = combinators1[i];
+      var combinator2 = combinators2[i];
+      if (combinator1 is HideElementCombinator &&
+          combinator2 is HideElementCombinator) {
+        if (!const ListEquality<String>().equals(
+          combinator1.hiddenNames,
+          combinator2.hiddenNames,
+        )) {
+          return false;
+        }
+      } else if (combinator1 is ShowElementCombinator &&
+          combinator2 is ShowElementCombinator) {
+        if (!const ListEquality<String>().equals(
+          combinator1.shownNames,
+          combinator2.shownNames,
+        )) {
+          return false;
+        }
+      } else {
+        return false;
+      }
+    }
+
+    return true;
   }
 }
 
@@ -5306,7 +5365,7 @@ sealed class InstanceElementImpl extends ElementImpl
   @override
   @trackedIncludedInId
   MetadataImpl get metadata {
-    return _firstFragment.metadata;
+    return _firstFragment.elementMetadata;
   }
 
   @override
@@ -5421,8 +5480,10 @@ sealed class InstanceElementImpl extends ElementImpl
     );
 
     return globalResultRequirements.alreadyRecorded(() {
-      for (var e in fields) {
-        if (e.name == name) return e;
+      var fields = this.fields;
+      for (var i = 0; i < fields.length; i++) {
+        var field = fields[i];
+        if (field.name == name) return field;
       }
       return null;
     });
@@ -5437,8 +5498,10 @@ sealed class InstanceElementImpl extends ElementImpl
     );
 
     return globalResultRequirements.alreadyRecorded(() {
-      for (var e in getters) {
-        if (e.name == name) return e;
+      var getters = this.getters;
+      for (var i = 0; i < getters.length; i++) {
+        var getter = getters[i];
+        if (getter.name == name) return getter;
       }
       return null;
     });
@@ -5476,8 +5539,10 @@ sealed class InstanceElementImpl extends ElementImpl
     );
 
     return globalResultRequirements.alreadyRecorded(() {
-      for (var e in methods) {
-        if (e.lookupName == name) return e;
+      var methods = this.methods;
+      for (var i = 0; i < methods.length; i++) {
+        var method = methods[i];
+        if (method.lookupName == name) return method;
       }
       return null;
     });
@@ -5492,7 +5557,12 @@ sealed class InstanceElementImpl extends ElementImpl
     );
 
     return globalResultRequirements.alreadyRecorded(() {
-      return setters.firstWhereOrNull((e) => e.name == name);
+      var setters = this.setters;
+      for (var i = 0; i < setters.length; i++) {
+        var setter = setters[i];
+        if (setter.name == name) return setter;
+      }
+      return null;
     });
   }
 
@@ -6093,8 +6163,10 @@ sealed class InterfaceElementImpl extends InstanceElementImpl
     );
 
     return globalResultRequirements.alreadyRecorded(() {
-      for (var e in constructors) {
-        if (e.name == name) return e;
+      var constructors = this.constructors;
+      for (var i = 0; i < constructors.length; i++) {
+        var constructor = constructors[i];
+        if (constructor.name == name) return constructor;
       }
       return null;
     });
@@ -7761,6 +7833,7 @@ class LibraryExportImpl extends ElementDirectiveImpl implements LibraryExport {
 
   new({
     required super.uri,
+    super.isConditional,
     required this.combinators,
     required this.exportKeywordOffset,
   });
@@ -8318,6 +8391,7 @@ class LibraryImportImpl extends ElementDirectiveImpl implements LibraryImport {
 
   new({
     required super.uri,
+    super.isConditional,
     required this.isSynthetic,
     required this.combinators,
     required this.importKeywordOffset,
@@ -11779,8 +11853,6 @@ class TypeParameterFragmentImpl extends FragmentImpl
 abstract class VariableElementImpl extends ElementImpl
     with InternalVariableElement
     implements ConstantEvaluationTarget {
-  ConstantInitializerImpl? _constantInitializerData;
-
   /// The result of evaluating [constantInitializer2].
   ///
   /// Is `null` if [constantInitializer2] is `null`, or if the value could not
@@ -11801,26 +11873,11 @@ abstract class VariableElementImpl extends ElementImpl
   @override
   @trackedIncludedInId
   ExpressionImpl? get constantInitializer2 {
-    return constantInitializerData?.expression;
-  }
-
-  // TODO(scheglov): remove this wrapper once fragment provenance is no longer
-  // needed by top-level inference and element text output.
-  @trackedIncludedInId
-  ConstantInitializerImpl? get constantInitializerData {
-    if (_constantInitializerData case var result?) {
-      return result;
-    }
-
     for (var fragment in _fragments.reversed) {
-      if (fragment.constantInitializer2 case ExpressionImpl expression) {
-        return _constantInitializerData = ConstantInitializerImpl(
-          fragment: fragment,
-          expression: expression,
-        );
+      if (fragment.constantInitializer2 case var expression?) {
+        return expression;
       }
     }
-
     return null;
   }
 
@@ -11938,11 +11995,6 @@ abstract class VariableElementImpl extends ElementImpl
     return null;
   }
 
-  @trackedInternal
-  void resetConstantInitializer() {
-    _constantInitializerData = null;
-  }
-
   @override
   @trackedDirectlyOpaque
   void visitChildren<T>(ElementVisitor2<T> visitor) {
@@ -12014,11 +12066,6 @@ abstract class VariableFragmentImpl extends FragmentImpl
   @generated
   set hasImplicitType(bool value) {
     setFlag(_FragmentStorageFlag.variableFragment_hasImplicitType, value);
-  }
-
-  // TODO(scheglov): remove this
-  ExpressionImpl? get initializer {
-    return constantInitializer2;
   }
 
   /// Whether the executable element is abstract.

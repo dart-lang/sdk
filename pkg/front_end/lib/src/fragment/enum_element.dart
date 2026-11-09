@@ -462,10 +462,7 @@ class EnumElementDeclaration
 class EnumElementFragment implements Fragment {
   final List<MetadataBuilder>? metadata;
 
-  @override
-  final String name;
-  final int nameOffset;
-  final Uri fileUri;
+  final UriOffsetName _uriOffsetName;
 
   final ConstructorReferenceBuilder? constructorReferenceBuilder;
 
@@ -479,28 +476,31 @@ class EnumElementFragment implements Fragment {
 
   EnumElementDeclaration? _declaration;
 
-  final TypeBuilder type = new InferableTypeBuilder(
-    InferenceDefaultType.Dynamic,
-  );
-
-  @override
-  late final UriOffsetLength uriOffset = new UriOffsetLength(
-    fileUri,
-    nameOffset,
-    name.length,
-  );
+  final TypeBuilder type;
 
   new({
     required this.metadata,
-    required this.name,
-    required this.nameOffset,
-    required this.fileUri,
+    required this._uriOffsetName,
     required this.constructorReferenceBuilder,
     required Token? argumentsBeginToken,
     required this.enclosingScope,
     required this.enclosingDeclaration,
     required this.enclosingCompilationUnit,
-  }) : _argumentsBeginToken = argumentsBeginToken;
+  }) : _argumentsBeginToken = argumentsBeginToken,
+       type = new InferableTypeBuilder(
+         inferenceDefaultType: InferenceDefaultType.Dynamic,
+         uriOffset: _uriOffsetName,
+       );
+
+  @override
+  String get name => _uriOffsetName.name;
+
+  int get nameOffset => _uriOffsetName.nameOffset;
+
+  Uri get fileUri => _uriOffsetName.fileUri;
+
+  @override
+  UriOffsetLength get uriOffset => _uriOffsetName;
 
   /// Returns the token for begin of the constructor arguments of this enum
   /// element, if any.

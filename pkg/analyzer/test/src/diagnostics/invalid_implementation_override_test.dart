@@ -77,6 +77,17 @@ class B	extends A {
 ''');
   }
 
+  test_class_method_abstractOverridesConcrete_expandedParameterType_covariantAbstract() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  int add(int a) => a;
+}
+class B extends A {
+  int add(covariant num a);
+}
+''');
+  }
+
   test_class_method_abstractOverridesConcrete_withOptional() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {
@@ -145,6 +156,26 @@ class D extends C implements I {}
 ''');
   }
 
+  test_class_method_covariant_inheritance_merge_subclass() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  void foo(int x) {}
+}
+
+abstract class I {
+  void foo(covariant num x);
+}
+
+abstract class J {
+  void foo(num x);
+}
+
+class B extends A implements J, I {}
+
+class C extends B {}
+''');
+  }
+
   test_class_setter_abstractOverridesConcrete() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {
@@ -155,6 +186,18 @@ class B extends A {
 //    ^
 // [diag.invalidImplementationOverrideSetter] The setter 'A.c' ('void Function(int)') isn't a valid concrete implementation of 'B.c' ('void Function(num)').
   set c(num i);
+}
+''');
+  }
+
+  test_class_setter_abstractOverridesConcrete_covariantAbstract() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  set c(int i) {}
+}
+
+class B extends A {
+  set c(covariant num i);
 }
 ''');
   }

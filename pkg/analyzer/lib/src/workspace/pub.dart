@@ -46,6 +46,14 @@ bool _isPackageBuildGeneratedPath(List<String> pathComponents, int startIndex) {
   return false;
 }
 
+/// Whether the file at [path] can be build generated.
+///
+/// Almost no file is, so URI resolvers use this cheap check to avoid the much
+/// more expensive path operations for all other files.
+bool _mayBeBuildGenerated(String path) {
+  return path.contains(file_paths.dotDartTool);
+}
+
 /// Instances of the class `PackageBuildFileUriResolver` resolve `file` URI's by
 /// first resolving file uri's in the expected way, and then by looking in the
 /// corresponding generated directories.
@@ -58,7 +66,8 @@ class PackageConfigFileUriResolver extends ResourceUriResolver {
   Uri pathToUri(String path) {
     var pathContext = workspace.provider.pathContext;
 
-    if (pathContext.isWithin(workspace.root, path)) {
+    if (_mayBeBuildGenerated(path) &&
+        pathContext.isWithin(workspace.root, path)) {
       var package = workspace.findPackageFor(path);
       if (package is PubPackage) {
         var relative = pathContext.relative(path, from: workspace.root);
@@ -112,7 +121,8 @@ class PackageConfigPackageUriResolver extends UriResolver {
 
   @override
   Uri? pathToUri(String path) {
-    if (_context.isWithin(_workspace.root, path)) {
+    if (_mayBeBuildGenerated(path) &&
+        _context.isWithin(_workspace.root, path)) {
       var uriParts = _restoreUriParts(path);
       if (uriParts != null) {
         return uriCache.parse('package:${uriParts[0]}/${uriParts[1]}');

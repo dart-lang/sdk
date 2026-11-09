@@ -108,6 +108,7 @@ class MethodDeclarationImpl
   UriOffsetLength get uriOffset => _fragment.uriOffset;
 
   @override
+  // Coverage-ignore(suite): Not run.
   Uri get fileUri => _fragment.fileUri;
 
   @override
@@ -256,9 +257,7 @@ class MethodDeclarationImpl
         _fragment.declaredFormals,
         overrideDependencies,
         name: _fragment.name,
-        fileUri: fileUri,
-        nameOffset: _fragment.nameOffset,
-        nameLength: _fragment.name.length,
+        uriOffset: uriOffset,
       );
     }
     _encoding.ensureTypes(

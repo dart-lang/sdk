@@ -42,6 +42,7 @@ aot_snapshot("dart2wasm_asserts_snapshot") {
 aot_snapshot("dart2wasm_product_snapshot") {
   main_dart = "../../pkg/dart2wasm/bin/dart2wasm.dart"
   name = "dart2wasm_product"
+  dill = "$target_gen_dir/dart2wasm_product.aot.dill"
   force_product_mode = true
 }
 

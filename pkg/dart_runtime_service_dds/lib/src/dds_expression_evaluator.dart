@@ -35,9 +35,11 @@ final class DdsExpressionEvaluator extends ExpressionEvaluator {
         scope: scope,
         targetId: targetId,
       );
+    } on vm.SentinelException catch (e) {
+      return e.sentinel.json!;
     } on vm.RPCError catch (e) {
       logger.warning('Failed to build scope: $e.');
-      throw json_rpc.RpcException(e.code, e.message, data: e.data);
+      RpcException.expressionCompilationError.throwException(data: e.data);
     }
   }
 

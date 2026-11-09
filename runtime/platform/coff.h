@@ -244,7 +244,21 @@ static constexpr uint16_t S_LPROC32 = 0x110F;
 static constexpr uint16_t S_COMPILE3 = 0x113C;
 static constexpr uint16_t S_GPROC32_ID = 0x1147;
 static constexpr uint16_t S_LPROC32_ID = 0x1146;
+static constexpr uint16_t S_INLINESITE = 0x114D;
+static constexpr uint16_t S_INLINESITE_END = 0x114E;
 static constexpr uint16_t S_PROC_ID_END = 0x114F;
+
+// Opcodes of the binary annotations in S_INLINESITE records (subset). The
+// opcodes and their operands are compressed (see the CodeView writer).
+static constexpr uint32_t BA_OP_ChangeCodeOffset = 3;
+static constexpr uint32_t BA_OP_ChangeCodeLength = 4;
+static constexpr uint32_t BA_OP_ChangeFile = 5;
+static constexpr uint32_t BA_OP_ChangeLineOffset = 6;
+static constexpr uint32_t BA_OP_ChangeColumnStart = 9;
+static constexpr uint32_t BA_OP_ChangeCodeOffsetAndLineOffset = 11;
+
+// Signature of DEBUG_S_INLINEELINES subsections without extra files.
+static constexpr uint32_t CV_INLINEE_SOURCE_LINE_SIGNATURE = 0;
 
 // Type record kinds (subset).
 static constexpr uint16_t LF_POINTER = 0x1002;
@@ -278,9 +292,11 @@ struct DebugSubsectionHeader {
 
 // Per-function block at the start of a DEBUG_S_LINES payload.
 struct CvLineSectionHeader {
+  static constexpr uint16_t kHaveColumns = 1;
+
   uint32_t Offset;    // SECREL relocation target
   uint16_t Section;   // SECTION relocation target (1-based section index)
-  uint16_t Flags;     // 0 (no columns) or 1 (with columns)
+  uint16_t Flags;     // 0 (no columns) or kHaveColumns
   uint32_t CodeSize;  // length of code described by this block
 };
 
@@ -301,6 +317,13 @@ struct CvLine {
 
   uint32_t Offset;  // byte offset from function start
   uint32_t Flags;
+};
+
+// Column entry. With CvLineSectionHeader::kHaveColumns, a line block's line
+// entries are followed by one column entry per line entry.
+struct CvColumn {
+  uint16_t StartColumn;
+  uint16_t EndColumn;  // 0 if unknown
 };
 
 // File checksum entry header in a DEBUG_S_FILECHKSMS subsection.

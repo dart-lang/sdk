@@ -204,6 +204,7 @@ class _FunctionTypeParameterType extends _Type {
     _FunctionTypeParameterType other = unsafeCast<_FunctionTypeParameterType>(
       o,
     );
+    if (isDeclaredNullable != other.isDeclaredNullable) return false;
     // References to different type parameters can have the same index and thus
     // sometimes compare equal even if they are not. However, this can only
     // happen if the containing types are different in other places, in which
@@ -630,6 +631,7 @@ class _RecordType extends _Type {
   bool operator ==(Object o) {
     if (ClassID.getID(o) != ClassID.cidRecordType) return false;
     _RecordType other = unsafeCast<_RecordType>(o);
+    if (isDeclaredNullable != other.isDeclaredNullable) return false;
 
     if (!_sameShape(other)) {
       return false;
@@ -647,6 +649,7 @@ class _RecordType extends _Type {
   @override
   int get hashCode {
     int hash = mix64(ClassID.cidRecordType.toIntSigned());
+    hash = mix64(hash ^ (isDeclaredNullable ? 1 : 0));
     for (int i = 0; i < names.length; i++) {
       hash = mix64(hash ^ names[i].hashCode);
     }
@@ -815,7 +818,10 @@ abstract class _TypeUniverse {
     WasmArray<_Type> substitutions,
     _FunctionType? rootFunction,
   ) {
-    if (type.isBottom || type.isTop) {
+    if (type.isBottom ||
+        type.isTop ||
+        type.isAbstractFunction ||
+        type.isAbstractRecord) {
       return type;
     } else if (type.isFutureOr) {
       return createNormalizedFutureOrType(
@@ -1428,8 +1434,8 @@ abstract class _TypeUniverse {
     // Left Promoted Variable does not apply at runtime.
 
     // Function Type / Function:
-    if (s.isFunction && t.isAbstractFunction) {
-      return true;
+    if (t.isAbstractFunction) {
+      return s.isFunction || s.isAbstractFunction;
     }
 
     if (s.isFunction && t.isFunction) {
@@ -1452,8 +1458,8 @@ abstract class _TypeUniverse {
     }
 
     // Records are subtypes of the `Record` type:
-    if (s.isRecord && t.isAbstractRecord) {
-      return true;
+    if (t.isAbstractRecord) {
+      return s.isRecord || s.isAbstractRecord;
     }
 
     // Interface Compositionality + Super-Interface:

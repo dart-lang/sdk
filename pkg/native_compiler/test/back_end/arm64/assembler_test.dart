@@ -2386,6 +2386,73 @@ void main() {
       });
     });
 
+    test('smov', () {
+      asm.smov(R3, VectorElement(V5, 1, .s32));
+      asm.smov(R0, VectorElement(V0, 5, .s8));
+      asm.smov(R1, VectorElement(V31, 0, .s16), .s32);
+      expectDisassembly(
+        'smovrd r3, v5[1]\n'
+        'smovrd r0, v0[5]\n'
+        'smovrs r1, v31[0]\n',
+      );
+      expectThrows(() {
+        asm.smov(SP, VectorElement(V5, 1, .s32));
+      });
+      expectThrows(() {
+        asm.smov(R3, VectorElement(V5, 1, .s8), .s16);
+      });
+      expectThrows(() {
+        asm.smov(R3, VectorElement(V5, 1, .s64));
+      });
+    });
+
+    test('ins', () {
+      asm.ins(VectorElement(V0, 0, .s64), VectorElement(V0, 1, .s64));
+      asm.ins(VectorElement(V1, 3, .s32), VectorElement(V0, 2, .s32));
+      asm.ins(VectorElement(V2, 0, .s32), R0);
+      asm.ins(VectorElement(V3, 1, .s64), ZR);
+      expectDisassembly(
+        'vinsd v0[0], v0[1]\n'
+        'vinss v1[3], v0[2]\n'
+        'vinss v2[0], r0\n'
+        'vinsd v3[1], zr\n',
+      );
+      expectThrows(() {
+        asm.ins(VectorElement(V0, 0, .s64), VectorElement(V0, 1, .s32));
+      });
+      expectThrows(() {
+        asm.ins(VectorElement(V0, 2, .s64), VectorElement(V0, 1, .s64));
+      });
+      expectThrows(() {
+        asm.ins(VectorElement(V0, 0, .simd128), VectorElement(V0, 0, .simd128));
+      });
+      expectThrows(() {
+        asm.ins(VectorElement(V0, 0, .s64), SP);
+      });
+    });
+
+    test('vorr', () {
+      asm.vorr(V0, V1, V2);
+      asm.vorr(V4, V0, V0);
+      // TODO: extend disassembler to handle 64-bit variant.
+      expectDisassembly(
+        'vorr v0, v1, v2\n'
+        'vorr v4, v0, v0\n',
+      );
+      expectThrows(() {
+        asm.vorr(V0, V1, V2, .s32);
+      });
+    });
+
+    test('vmov', () {
+      asm.vmov(V0, V31);
+      // TODO: extend disassembler to handle 64-bit variant.
+      expectDisassembly('vorr v0, v31, v31\n');
+      expectThrows(() {
+        asm.vmov(V0, V1, .s16);
+      });
+    });
+
     test('fabs', () {
       asm.fabs(V0, V1);
       asm.fabs(V31, V31);

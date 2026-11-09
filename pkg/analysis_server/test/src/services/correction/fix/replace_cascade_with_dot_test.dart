@@ -185,6 +185,56 @@ void f(String? s) {
 ''');
   }
 
+  Future<void> test_method_awaitTarget_normalCascade() async {
+    await resolveTestCode('''
+class C {
+  void m() {}
+}
+
+Future<C> getC() => Future.value(C());
+
+void f() async {
+  await getC()..m();
+}
+''');
+    await assertHasFix('''
+class C {
+  void m() {}
+}
+
+Future<C> getC() => Future.value(C());
+
+void f() async {
+  (await getC()).m();
+}
+''');
+  }
+
+  Future<void> test_method_awaitTarget_nullAwareCascade() async {
+    await resolveTestCode('''
+class C {
+  void m() {}
+}
+
+Future<C?> getC() => Future.value(C());
+
+void f() async {
+  await getC()?..m();
+}
+''');
+    await assertHasFix('''
+class C {
+  void m() {}
+}
+
+Future<C?> getC() => Future.value(C());
+
+void f() async {
+  (await getC())?.m();
+}
+''');
+  }
+
   Future<void> test_method_normalCascade() async {
     await resolveTestCode('''
 void f(String s) {

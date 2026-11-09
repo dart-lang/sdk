@@ -68,6 +68,50 @@ void main() {
         expect(response.statusCode, HttpStatus.forbidden);
         await response.drain();
       });
+
+      for (final (site, status) in [
+        ('cross-site', HttpStatus.forbidden),
+        ('same-site', HttpStatus.forbidden),
+        ('same-origin', HttpStatus.ok),
+        ('none', HttpStatus.ok),
+      ]) {
+        test(
+          'returns $status for GET request without Origin and with '
+          'Sec-Fetch-Site: $site to /api/ping',
+          () async {
+            final request = await client.getUrl(serverUri.resolve('api/ping'));
+            request.headers.set('Sec-Fetch-Site', site);
+            final response = await request.close();
+            expect(response.statusCode, status);
+            await response.drain();
+          },
+        );
+      }
+
+      test(
+        'forbids GET request without Origin and with cross-site '
+        'Sec-Fetch-Site header to /api/sse',
+        () async {
+          final request = await client.getUrl(serverUri.resolve('api/sse'));
+          request.headers.set('Sec-Fetch-Site', 'cross-site');
+          final response = await request.close();
+          expect(response.statusCode, HttpStatus.forbidden);
+          await response.drain();
+        },
+      );
+
+      test(
+        'allows GET request with loopback Origin and same-site '
+        'Sec-Fetch-Site header to /api/ping',
+        () async {
+          final request = await client.getUrl(serverUri.resolve('api/ping'));
+          request.headers.set('Origin', 'http://localhost:12345');
+          request.headers.set('Sec-Fetch-Site', 'same-site');
+          final response = await request.close();
+          expect(response.statusCode, HttpStatus.ok);
+          await response.drain();
+        },
+      );
     });
 
     group('Disable Origin Check', () {
@@ -115,6 +159,17 @@ void main() {
         expect(response.statusCode, isNot(HttpStatus.forbidden));
         await response.drain();
       });
+
+      test(
+        'allows cross-site Sec-Fetch-Site header without Origin to /api/ping',
+        () async {
+          final request = await client.getUrl(serverUri.resolve('api/ping'));
+          request.headers.set('Sec-Fetch-Site', 'cross-site');
+          final response = await request.close();
+          expect(response.statusCode, isNot(HttpStatus.forbidden));
+          await response.drain();
+        },
+      );
     });
   }, timeout: const Timeout.factor(10));
 }

@@ -80,9 +80,10 @@ class N {}
     await resolveTestCodeWithDiagnostics(r'''
 library L;
 export 'lib.dart';
+// [context 1][column 1][length 6] The previous export that is being duplicated.
 export 'lib.dart';
 //     ^^^^^^^^^^
-// [diag.duplicateExport] Duplicate export.
+// [diag.duplicateExport][context 1] Duplicate export.
 ''');
   }
 
@@ -1510,11 +1511,12 @@ test() {
     await resolveTestCodeWithDiagnostics(r'''
 library test;
 import 'lib.dart';
+// [context 1][column 1][length 6] The previous import that is being duplicated.
 //     ^^^^^^^^^^
 // [diag.unusedImport] Unused import: 'lib.dart'.
 import 'lib.dart';
 //     ^^^^^^^^^^
-// [diag.duplicateImport] Duplicate import.
+// [diag.duplicateImport][context 1] Duplicate import.
 // [diag.unusedImport] Unused import: 'lib.dart'.
 ''');
   }

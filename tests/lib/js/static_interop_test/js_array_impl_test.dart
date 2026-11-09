@@ -157,7 +157,15 @@ void modedTests<T extends JSAny?>(TestMode mode, {required bool testProxy}) {
 void nonModedTests<T extends JSAny?>({required bool testProxy}) {
   List<T> toJSList(List<num?> l) => l.toJSListT<T>(testProxy);
 
+  // A list whose type argument is non-nullable but contains null values.
+  // Reading a null value from it should throw.
+  List<JSNumber> toNonNullableJSList(List<JSNumber?> l) {
+    final arr = testProxy ? l.toJS : l.toJSProxyOrRef;
+    return (arr as JSArray<JSNumber>).toDart;
+  }
+
   var list = toJSList([1, 2, 3, 4]);
+  var nonNullableList = toNonNullableJSList([null]);
 
   // iteration
   var count = 0;
@@ -180,6 +188,25 @@ void nonModedTests<T extends JSAny?>({required bool testProxy}) {
   }
   Expect.equals(5, count);
 
+  final iterator = nonNullableList.iterator;
+  Expect.throwsTypeError(() => iterator.moveNext());
+
+  // The current element stays unchanged until the next moveNext call.
+  final iteratorList = toJSList([1, 2]);
+  final listIterator = iteratorList.iterator;
+  Expect.isTrue(listIterator.moveNext());
+  Expect.equals(1, listIterator.current?.toDouble);
+  iteratorList[0] = 99.toJS as T;
+  Expect.equals(1, listIterator.current?.toDouble);
+  Expect.isTrue(listIterator.moveNext());
+  Expect.equals(2, listIterator.current?.toDouble);
+  Expect.isFalse(listIterator.moveNext());
+
+  final nullIterator = toJSList([null]).iterator;
+  Expect.isTrue(nullIterator.moveNext());
+  Expect.isNull(nullIterator.current);
+  Expect.isFalse(nullIterator.moveNext());
+
   // length
   Expect.equals(4, list.length);
   list.length = 3;
@@ -187,6 +214,10 @@ void nonModedTests<T extends JSAny?>({required bool testProxy}) {
   Expect.listEquals([1, 2, 3], list.toListDouble);
   list.length = 4;
   Expect.listEquals([1, 2, 3, null], list.toListDouble);
+
+  nonNullableList = jsList<JSNumber>([1.toJS, 2.toJS], testProxy);
+  Expect.throwsTypeError(() => nonNullableList.length = 3);
+  Expect.equals(2, nonNullableList.length);
 
   // operators [], []=
   Expect.equals(1, list[0]?.toDouble);
@@ -219,6 +250,10 @@ void nonModedTests<T extends JSAny?>({required bool testProxy}) {
 
   list.fillRange(0, 4, 9.toJS as T);
   Expect.listEquals([9, 9, 9, 9], list.toListDouble);
+
+  final nonNullableFillList = jsList<JSNumber>([1.toJS], testProxy);
+  Expect.throwsTypeError(() => nonNullableFillList.fillRange(0, 0));
+  Expect.throwsTypeError(() => nonNullableFillList.fillRange(0, 0, null));
 
   // sort
   list.setRange(0, 4, toJSList([3, 2, 1, 0]));
@@ -265,6 +300,7 @@ void nonModedTests<T extends JSAny?>({required bool testProxy}) {
   Expect.equals(0, list.length);
   list.add(null as T);
   Expect.equals(null, list.removeLast());
+  Expect.throwsTypeError(() => toNonNullableJSList([null]).removeLast());
 
   // remove
   list = toJSList([1, 2, 3, 4, 4]);
@@ -297,6 +333,7 @@ void nonModedTests<T extends JSAny?>({required bool testProxy}) {
   Expect.listEquals([1, 0, 2], list.toListDouble);
   list.removeAt(1);
   Expect.listEquals([1, 2], list.toListDouble);
+  Expect.throwsTypeError(() => toNonNullableJSList([null]).removeAt(0));
 
   // reversed
   list = toJSList([1, 2, 3, 4, 5, 6]);
@@ -359,6 +396,8 @@ void nonModedTests<T extends JSAny?>({required bool testProxy}) {
       (a, b) => ((a as JSNumber).toDouble + (b as JSNumber).toDouble).toJS as T,
     ) as JSNumber).toDartDouble,
   );
+  nonNullableList = toNonNullableJSList([null]);
+  Expect.throwsTypeError(() => nonNullableList.reduce((a, b) => a));
 
   // fold
   Expect.equals(
@@ -380,6 +419,7 @@ void nonModedTests<T extends JSAny?>({required bool testProxy}) {
         )
         .toDouble,
   );
+  Expect.throwsTypeError(() => nonNullableList.firstWhere((_) => true));
 
   // lastWhere
   list = toJSList([1, 2, 3, 4]);
@@ -396,6 +436,7 @@ void nonModedTests<T extends JSAny?>({required bool testProxy}) {
         )
         .toDouble,
   );
+  Expect.throwsTypeError(() => nonNullableList.lastWhere((_) => true));
 
   // singleWhere
   Expect.equals(
@@ -414,6 +455,20 @@ void nonModedTests<T extends JSAny?>({required bool testProxy}) {
         )
         .toDouble,
   );
+  Expect.throwsTypeError(() => nonNullableList.singleWhere((_) => true));
+
+  // elementAt
+  Expect.equals(1, list.elementAt(0).toDouble);
+  Expect.equals(4, list.elementAt(3).toDouble);
+  Expect.throwsTypeError(() => nonNullableList.elementAt(0));
+
+  // first, last, single
+  Expect.equals(1, list.first.toDouble);
+  Expect.equals(4, list.last.toDouble);
+  Expect.equals(1, toJSList([1]).single.toDouble);
+  Expect.throwsTypeError(() => nonNullableList.first);
+  Expect.throwsTypeError(() => nonNullableList.last);
+  Expect.throwsTypeError(() => nonNullableList.single);
 
   // sublist
   Expect.listEquals([1, 2, 3, 4], list.sublist(0).toListDouble);

@@ -536,11 +536,7 @@ final class _ByteBuffer implements ByteBuffer {
   @pragma("vm:prefer-inline")
   Int8List asInt8List([int offsetInBytes = 0, int? length]) {
     length ??= (this.lengthInBytes - offsetInBytes) ~/ Int8List.bytesPerElement;
-    _rangeCheck(
-      this.lengthInBytes,
-      offsetInBytes,
-      length * Int8List.bytesPerElement,
-    );
+    _rangeCheck(this.lengthInBytes, offsetInBytes, length, elementSizeLog2: 0);
     return _Int8ArrayView._(this._data, offsetInBytes, length);
   }
 
@@ -548,11 +544,7 @@ final class _ByteBuffer implements ByteBuffer {
   Uint8List asUint8List([int offsetInBytes = 0, int? length]) {
     length ??=
         (this.lengthInBytes - offsetInBytes) ~/ Uint8List.bytesPerElement;
-    _rangeCheck(
-      this.lengthInBytes,
-      offsetInBytes,
-      length * Uint8List.bytesPerElement,
-    );
+    _rangeCheck(this.lengthInBytes, offsetInBytes, length, elementSizeLog2: 0);
     return _Uint8ArrayView._(this._data, offsetInBytes, length);
   }
 
@@ -561,11 +553,7 @@ final class _ByteBuffer implements ByteBuffer {
     length ??=
         (this.lengthInBytes - offsetInBytes) ~/
         Uint8ClampedList.bytesPerElement;
-    _rangeCheck(
-      this.lengthInBytes,
-      offsetInBytes,
-      length * Uint8ClampedList.bytesPerElement,
-    );
+    _rangeCheck(this.lengthInBytes, offsetInBytes, length, elementSizeLog2: 0);
     return _Uint8ClampedArrayView._(this._data, offsetInBytes, length);
   }
 
@@ -573,11 +561,7 @@ final class _ByteBuffer implements ByteBuffer {
   Int16List asInt16List([int offsetInBytes = 0, int? length]) {
     length ??=
         (this.lengthInBytes - offsetInBytes) ~/ Int16List.bytesPerElement;
-    _rangeCheck(
-      this.lengthInBytes,
-      offsetInBytes,
-      length * Int16List.bytesPerElement,
-    );
+    _rangeCheck(this.lengthInBytes, offsetInBytes, length, elementSizeLog2: 1);
     _offsetAlignmentCheck(offsetInBytes, Int16List.bytesPerElement);
     return _Int16ArrayView._(this._data, offsetInBytes, length);
   }
@@ -586,11 +570,7 @@ final class _ByteBuffer implements ByteBuffer {
   Uint16List asUint16List([int offsetInBytes = 0, int? length]) {
     length ??=
         (this.lengthInBytes - offsetInBytes) ~/ Uint16List.bytesPerElement;
-    _rangeCheck(
-      this.lengthInBytes,
-      offsetInBytes,
-      length * Uint16List.bytesPerElement,
-    );
+    _rangeCheck(this.lengthInBytes, offsetInBytes, length, elementSizeLog2: 1);
     _offsetAlignmentCheck(offsetInBytes, Uint16List.bytesPerElement);
     return _Uint16ArrayView._(this._data, offsetInBytes, length);
   }
@@ -599,11 +579,7 @@ final class _ByteBuffer implements ByteBuffer {
   Int32List asInt32List([int offsetInBytes = 0, int? length]) {
     length ??=
         (this.lengthInBytes - offsetInBytes) ~/ Int32List.bytesPerElement;
-    _rangeCheck(
-      this.lengthInBytes,
-      offsetInBytes,
-      length * Int32List.bytesPerElement,
-    );
+    _rangeCheck(this.lengthInBytes, offsetInBytes, length, elementSizeLog2: 2);
     _offsetAlignmentCheck(offsetInBytes, Int32List.bytesPerElement);
     return _Int32ArrayView._(this._data, offsetInBytes, length);
   }
@@ -612,11 +588,7 @@ final class _ByteBuffer implements ByteBuffer {
   Uint32List asUint32List([int offsetInBytes = 0, int? length]) {
     length ??=
         (this.lengthInBytes - offsetInBytes) ~/ Uint32List.bytesPerElement;
-    _rangeCheck(
-      this.lengthInBytes,
-      offsetInBytes,
-      length * Uint32List.bytesPerElement,
-    );
+    _rangeCheck(this.lengthInBytes, offsetInBytes, length, elementSizeLog2: 2);
     _offsetAlignmentCheck(offsetInBytes, Uint32List.bytesPerElement);
     return _Uint32ArrayView._(this._data, offsetInBytes, length);
   }
@@ -625,11 +597,7 @@ final class _ByteBuffer implements ByteBuffer {
   Int64List asInt64List([int offsetInBytes = 0, int? length]) {
     length ??=
         (this.lengthInBytes - offsetInBytes) ~/ Int64List.bytesPerElement;
-    _rangeCheck(
-      this.lengthInBytes,
-      offsetInBytes,
-      length * Int64List.bytesPerElement,
-    );
+    _rangeCheck(this.lengthInBytes, offsetInBytes, length, elementSizeLog2: 3);
     _offsetAlignmentCheck(offsetInBytes, Int64List.bytesPerElement);
     return _Int64ArrayView._(this._data, offsetInBytes, length);
   }
@@ -638,11 +606,7 @@ final class _ByteBuffer implements ByteBuffer {
   Uint64List asUint64List([int offsetInBytes = 0, int? length]) {
     length ??=
         (this.lengthInBytes - offsetInBytes) ~/ Uint64List.bytesPerElement;
-    _rangeCheck(
-      this.lengthInBytes,
-      offsetInBytes,
-      length * Uint64List.bytesPerElement,
-    );
+    _rangeCheck(this.lengthInBytes, offsetInBytes, length, elementSizeLog2: 3);
     _offsetAlignmentCheck(offsetInBytes, Uint64List.bytesPerElement);
     return _Uint64ArrayView._(this._data, offsetInBytes, length);
   }
@@ -651,11 +615,7 @@ final class _ByteBuffer implements ByteBuffer {
   Float32List asFloat32List([int offsetInBytes = 0, int? length]) {
     length ??=
         (this.lengthInBytes - offsetInBytes) ~/ Float32List.bytesPerElement;
-    _rangeCheck(
-      this.lengthInBytes,
-      offsetInBytes,
-      length * Float32List.bytesPerElement,
-    );
+    _rangeCheck(this.lengthInBytes, offsetInBytes, length, elementSizeLog2: 2);
     _offsetAlignmentCheck(offsetInBytes, Float32List.bytesPerElement);
     return _Float32ArrayView._(this._data, offsetInBytes, length);
   }
@@ -664,11 +624,7 @@ final class _ByteBuffer implements ByteBuffer {
   Float64List asFloat64List([int offsetInBytes = 0, int? length]) {
     length ??=
         (this.lengthInBytes - offsetInBytes) ~/ Float64List.bytesPerElement;
-    _rangeCheck(
-      this.lengthInBytes,
-      offsetInBytes,
-      length * Float64List.bytesPerElement,
-    );
+    _rangeCheck(this.lengthInBytes, offsetInBytes, length, elementSizeLog2: 3);
     _offsetAlignmentCheck(offsetInBytes, Float64List.bytesPerElement);
     return _Float64ArrayView._(this._data, offsetInBytes, length);
   }
@@ -677,11 +633,7 @@ final class _ByteBuffer implements ByteBuffer {
   Float32x4List asFloat32x4List([int offsetInBytes = 0, int? length]) {
     length ??=
         (this.lengthInBytes - offsetInBytes) ~/ Float32x4List.bytesPerElement;
-    _rangeCheck(
-      this.lengthInBytes,
-      offsetInBytes,
-      length * Float32x4List.bytesPerElement,
-    );
+    _rangeCheck(this.lengthInBytes, offsetInBytes, length, elementSizeLog2: 4);
     _offsetAlignmentCheck(offsetInBytes, Float32x4List.bytesPerElement);
     return _Float32x4ArrayView._(this._data, offsetInBytes, length);
   }
@@ -690,11 +642,7 @@ final class _ByteBuffer implements ByteBuffer {
   Int32x4List asInt32x4List([int offsetInBytes = 0, int? length]) {
     length ??=
         (this.lengthInBytes - offsetInBytes) ~/ Int32x4List.bytesPerElement;
-    _rangeCheck(
-      this.lengthInBytes,
-      offsetInBytes,
-      length * Int32x4List.bytesPerElement,
-    );
+    _rangeCheck(this.lengthInBytes, offsetInBytes, length, elementSizeLog2: 4);
     _offsetAlignmentCheck(offsetInBytes, Int32x4List.bytesPerElement);
     return _Int32x4ArrayView._(this._data, offsetInBytes, length);
   }
@@ -703,11 +651,7 @@ final class _ByteBuffer implements ByteBuffer {
   Float64x2List asFloat64x2List([int offsetInBytes = 0, int? length]) {
     length ??=
         (this.lengthInBytes - offsetInBytes) ~/ Float64x2List.bytesPerElement;
-    _rangeCheck(
-      this.lengthInBytes,
-      offsetInBytes,
-      length * Float64x2List.bytesPerElement,
-    );
+    _rangeCheck(this.lengthInBytes, offsetInBytes, length, elementSizeLog2: 4);
     _offsetAlignmentCheck(offsetInBytes, Float64x2List.bytesPerElement);
     return _Float64x2ArrayView._(this._data, offsetInBytes, length);
   }
@@ -1959,6 +1903,8 @@ final class _ExternalFloat64x2Array extends _TypedFloat64x2ListBase
 class Float32x4 {
   @patch
   @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  @pragma("vm:idempotent")
   @pragma("vm:exact-result-type", _Float32x4)
   @pragma("vm:external-name", "Float32x4_fromDoubles")
   external factory Float32x4(double x, double y, double z, double w);
@@ -1971,16 +1917,22 @@ class Float32x4 {
 
   @patch
   @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  @pragma("vm:idempotent")
   factory Float32x4.zero() => Float32x4(0.0, 0.0, 0.0, 0.0);
 
   @patch
   @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  @pragma("vm:idempotent")
   @pragma("vm:exact-result-type", _Float32x4)
   @pragma("vm:external-name", "Float32x4_fromInt32x4Bits")
   external factory Float32x4.fromInt32x4Bits(Int32x4 x);
 
   @patch
   @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  @pragma("vm:idempotent")
   factory Float32x4.fromFloat64x2(Float64x2 xy) =>
       Float32x4(xy.x, xy.y, 0.0, 0.0);
 }
@@ -1992,9 +1944,10 @@ final class _Float32x4 implements Float32x4 {
   Float32x4 operator +(Float32x4 other) =>
       Float32x4(x + other.x, y + other.y, z + other.z, w + other.w);
   @pragma("vm:recognized", "other")
-  @pragma("vm:exact-result-type", _Float32x4)
-  @pragma("vm:external-name", "Float32x4_negate")
-  external Float32x4 operator -();
+  @pragma("vm:prefer-inline")
+  Float32x4 operator -() => Float32x4.fromInt32x4Bits(
+    Int32x4.fromFloat32x4Bits(this) ^ Int32x4.splat(0x80000000),
+  );
   @pragma("vm:recognized", "graph-intrinsic")
   Float32x4 operator -(Float32x4 other) =>
       Float32x4(x - other.x, y - other.y, z - other.z, w - other.w);
@@ -2051,9 +2004,10 @@ final class _Float32x4 implements Float32x4 {
   @pragma("vm:external-name", "Float32x4_scale")
   external Float32x4 scale(double scale);
   @pragma("vm:recognized", "other")
-  @pragma("vm:exact-result-type", _Float32x4)
-  @pragma("vm:external-name", "Float32x4_abs")
-  external Float32x4 abs();
+  @pragma("vm:prefer-inline")
+  Float32x4 abs() => Float32x4.fromInt32x4Bits(
+    Int32x4.fromFloat32x4Bits(this) & Int32x4.splat(0x7FFFFFFF),
+  );
   @pragma("vm:prefer-inline")
   Float32x4 clamp(Float32x4 lowerLimit, Float32x4 upperLimit) =>
       min(upperLimit).max(lowerLimit);
@@ -2140,12 +2094,16 @@ final class _Float32x4 implements Float32x4 {
 class Int32x4 {
   @patch
   @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  @pragma("vm:idempotent")
   @pragma("vm:exact-result-type", _Int32x4)
   @pragma("vm:external-name", "Int32x4_fromInts")
   external factory Int32x4(int x, int y, int z, int w);
 
   @patch
   @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  @pragma("vm:idempotent")
   factory Int32x4.splat(int value) => Int32x4(value, value, value, value);
 
   @patch
@@ -2155,11 +2113,14 @@ class Int32x4 {
   @patch
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
+  @pragma("vm:idempotent")
   factory Int32x4.bool(bool x, bool y, bool z, bool w) =>
       Int32x4(x ? -1 : 0, y ? -1 : 0, z ? -1 : 0, w ? -1 : 0);
 
   @patch
   @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  @pragma("vm:idempotent")
   @pragma("vm:exact-result-type", _Int32x4)
   @pragma("vm:external-name", "Int32x4_fromFloat32x4Bits")
   external factory Int32x4.fromFloat32x4Bits(Float32x4 x);
@@ -2393,6 +2354,8 @@ final class _Int32x4 implements Int32x4 {
 class Float64x2 {
   @patch
   @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  @pragma("vm:idempotent")
   @pragma("vm:exact-result-type", _Float64x2)
   @pragma("vm:external-name", "Float64x2_fromDoubles")
   external factory Float64x2(double x, double y);
@@ -2400,14 +2363,19 @@ class Float64x2 {
   @patch
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
+  @pragma("vm:idempotent")
   factory Float64x2.splat(double v) => Float64x2(v, v);
 
   @patch
   @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  @pragma("vm:idempotent")
   factory Float64x2.zero() => Float64x2(0.0, 0.0);
 
   @patch
   @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  @pragma("vm:idempotent")
   @pragma("vm:exact-result-type", _Float64x2)
   @pragma("vm:external-name", "Float64x2_fromFloat32x4")
   external factory Float64x2.fromFloat32x4(Float32x4 v);
@@ -2429,9 +2397,7 @@ final class _Float64x2 implements Float64x2 {
   @pragma("vm:recognized", "other")
   Float64x2 scale(double s) => Float64x2(x * s, y * s);
   @pragma("vm:recognized", "other")
-  @pragma("vm:exact-result-type", _Float64x2)
-  @pragma("vm:external-name", "Float64x2_abs")
-  external Float64x2 abs();
+  Float64x2 abs() => Float64x2(x.abs(), y.abs());
   @pragma("vm:prefer-inline")
   Float64x2 clamp(Float64x2 lowerLimit, Float64x2 upperLimit) =>
       min(upperLimit).max(lowerLimit);
@@ -3320,15 +3286,26 @@ int _byteDataByteOffsetCheck(ByteData indexable, int byteOffset, int length) {
   return byteOffset;
 }
 
-void _rangeCheck(int listLength, int start, int length) {
+// Checks that [length] elements of `1 << elementSizeLog2` bytes each fit in
+// a list of [lengthInBytes] bytes from byte offset [offsetInBytes].
+//
+// The end offset in bytes, `offsetInBytes + (length << elementSizeLog2)`, is
+// not computed: it can wrap around and pass the check.
+@pragma("vm:prefer-inline")
+void _rangeCheck(
+  int lengthInBytes,
+  int offsetInBytes,
+  int length, {
+  int elementSizeLog2 = 0,
+}) {
   if (length < 0) {
     throw RangeError.value(length);
   }
-  if (start < 0) {
-    throw RangeError.value(start);
+  if (offsetInBytes < 0 || offsetInBytes > lengthInBytes) {
+    throw RangeError.value(offsetInBytes);
   }
-  if (start + length > listLength) {
-    throw RangeError.value(start + length);
+  if (length > (lengthInBytes - offsetInBytes) >> elementSizeLog2) {
+    throw RangeError.value(length);
   }
 }
 

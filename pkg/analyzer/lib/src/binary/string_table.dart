@@ -146,9 +146,7 @@ class StringTableBuilder {
     var lengths = Uint32List(length);
     var lengthsIndex = 0;
     for (var key in _index.keys) {
-      var stringStart = writer.offset;
-      _writeWtf8(writer, key);
-      lengths[lengthsIndex++] = writer.offset - stringStart;
+      lengths[lengthsIndex++] = writer.writeWtf8(key);
     }
 
     var resultOffset = writer.offset;
@@ -158,43 +156,5 @@ class StringTableBuilder {
     writer.writeUint30List(lengths);
 
     return resultOffset;
-  }
-
-  /// Write [source] string into [writer].
-  static void _writeWtf8(BinaryWriter writer, String source) {
-    var end = source.length;
-    if (end == 0) {
-      return;
-    }
-
-    int i = 0;
-    do {
-      var codeUnit = source.codeUnitAt(i++);
-      if (codeUnit < 128) {
-        // ASCII.
-        writer.writeByte(codeUnit);
-      } else if (codeUnit < 0x800) {
-        // Two-byte sequence (11-bit unicode value).
-        writer.writeByte(0xC0 | (codeUnit >> 6));
-        writer.writeByte(0x80 | (codeUnit & 0x3f));
-      } else if ((codeUnit & 0xFC00) == 0xD800 &&
-          i < end &&
-          (source.codeUnitAt(i) & 0xFC00) == 0xDC00) {
-        // Surrogate pair -> four-byte sequence (non-BMP unicode value).
-        int codeUnit2 = source.codeUnitAt(i++);
-        int unicode =
-            0x10000 + ((codeUnit & 0x3FF) << 10) + (codeUnit2 & 0x3FF);
-        writer.writeByte(0xF0 | (unicode >> 18));
-        writer.writeByte(0x80 | ((unicode >> 12) & 0x3F));
-        writer.writeByte(0x80 | ((unicode >> 6) & 0x3F));
-        writer.writeByte(0x80 | (unicode & 0x3F));
-      } else {
-        // Three-byte sequence (16-bit unicode value), including lone
-        // surrogates.
-        writer.writeByte(0xE0 | (codeUnit >> 12));
-        writer.writeByte(0x80 | ((codeUnit >> 6) & 0x3f));
-        writer.writeByte(0x80 | (codeUnit & 0x3f));
-      }
-    } while (i < end);
   }
 }

@@ -185,8 +185,7 @@ class ExtensionInstancePropertyEncodingStrategy
           fragment.enclosingDeclaration!.typeParameters,
       typeParameterFactory: typeParameterFactory,
       onTypeBuilder: declarationBuilder.onType,
-      fileUri: fragment.fileUri,
-      fileOffset: fragment.nameOffset,
+      uriOffset: fragment.uriOffset,
       isClosureContextLoweringEnabled:
           builder.libraryBuilder.loader.isClosureContextLoweringEnabled,
     );
@@ -211,8 +210,7 @@ class ExtensionInstancePropertyEncodingStrategy
           fragment.enclosingDeclaration!.typeParameters,
       typeParameterFactory: typeParameterFactory,
       onTypeBuilder: declarationBuilder.onType,
-      fileUri: fragment.fileUri,
-      fileOffset: fragment.nameOffset,
+      uriOffset: fragment.uriOffset,
       isClosureContextLoweringEnabled:
           builder.libraryBuilder.loader.isClosureContextLoweringEnabled,
     );
@@ -265,8 +263,7 @@ class ExtensionTypeInstancePropertyEncodingStrategy
           extensionTypeTypeParameters:
               fragment.enclosingDeclaration!.typeParameters,
           typeParameterFactory: typeParameterFactory,
-          fileUri: fragment.fileUri,
-          fileOffset: fragment.nameOffset,
+          uriOffset: fragment.uriOffset,
           isClosureContextLoweringEnabled:
               builder.libraryBuilder.loader.isClosureContextLoweringEnabled,
         );
@@ -291,8 +288,7 @@ class ExtensionTypeInstancePropertyEncodingStrategy
           extensionTypeTypeParameters:
               fragment.enclosingDeclaration!.typeParameters,
           typeParameterFactory: typeParameterFactory,
-          fileUri: fragment.fileUri,
-          fileOffset: fragment.nameOffset,
+          uriOffset: fragment.uriOffset,
           isClosureContextLoweringEnabled:
               builder.libraryBuilder.loader.isClosureContextLoweringEnabled,
         );

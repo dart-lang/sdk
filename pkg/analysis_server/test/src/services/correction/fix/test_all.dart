@@ -280,6 +280,8 @@ import 'replace_boolean_with_bool_test.dart' as replace_boolean_with_bool;
 import 'replace_cascade_with_dot_test.dart' as replace_cascade_with_dot;
 import 'replace_colon_with_equals_test.dart' as replace_colon_with_equals;
 import 'replace_colon_with_in_test.dart' as replace_colon_with_in;
+import 'replace_configuration_with_js_interop_test.dart'
+    as replace_configuration_with_js_interop;
 import 'replace_container_with_colored_box_test.dart'
     as replace_container_with_colored_box;
 import 'replace_container_with_sized_box_test.dart'
@@ -306,6 +308,7 @@ import 'replace_with_extension_name_test.dart' as replace_with_extension_name;
 import 'replace_with_identifier_test.dart' as replace_with_identifier;
 import 'replace_with_interpolation_test.dart' as replace_with_interpolation;
 import 'replace_with_is_empty_test.dart' as replace_with_is_empty;
+import 'replace_with_is_even_test.dart' as replace_with_is_even;
 import 'replace_with_is_nan_test.dart' as replace_with_is_nan;
 import 'replace_with_is_not_empty_test.dart' as replace_with_is_not_empty;
 import 'replace_with_is_test.dart' as replace_with_is;
@@ -576,6 +579,7 @@ void main() {
     replace_cascade_with_dot.main();
     replace_colon_with_equals.main();
     replace_colon_with_in.main();
+    replace_configuration_with_js_interop.main();
     replace_container_with_colored_box.main();
     replace_container_with_sized_box.main();
     replace_empty_amp_pattern.main();
@@ -600,6 +604,7 @@ void main() {
     replace_with_interpolation.main();
     replace_with_is.main();
     replace_with_is_empty.main();
+    replace_with_is_even.main();
     replace_with_is_nan.main();
     replace_with_is_not_empty.main();
     replace_with_named_constant.main();

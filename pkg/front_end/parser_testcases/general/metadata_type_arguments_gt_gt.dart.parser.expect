@@ -1,0 +1,15 @@
+NOTICE: Stream was rewritten by parser!
+
+(@A<List<int>>() int x, int y) x1;
+
+List<(@A<List<int>>() int, int)> x2;
+
+class C<@A<List<int>>() T> {}
+
+
+([BeginToken]@[SimpleToken]A[StringToken]<[BeginToken]List[StringToken]<[BeginToken]int[StringToken]>[SimpleToken]>[SimpleToken]([BeginToken])[SimpleToken] int[StringToken] x[StringToken],[SimpleToken] int[StringToken] y[StringToken])[SimpleToken] x1[StringToken];[SimpleToken]
+
+List[StringToken]<[BeginToken]([BeginToken]@[SimpleToken]A[StringToken]<[BeginToken]List[StringToken]<[BeginToken]int[StringToken]>[SimpleToken]>[SimpleToken]([BeginToken])[SimpleToken] int[StringToken],[SimpleToken] int[StringToken])[SimpleToken]>[SimpleToken] x2[StringToken];[SimpleToken]
+
+class[KeywordToken] C[StringToken]<[BeginToken]@[SimpleToken]A[StringToken]<[BeginToken]List[StringToken]<[BeginToken]int[StringToken]>[SimpleToken]>[SimpleToken]([BeginToken])[SimpleToken] T[StringToken]>[SimpleToken] {[BeginToken]}[SimpleToken]
+[SimpleToken]

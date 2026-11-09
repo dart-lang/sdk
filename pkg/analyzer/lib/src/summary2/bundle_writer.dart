@@ -571,6 +571,7 @@ class BundleWriter {
 
   void _writeLibraryExport(LibraryExportImpl element) {
     _resolutionSink._writeMetadata(element.metadata);
+    _sink.writeBool(element.isConditional);
     _sink.writeList(element.combinators, _writeNamespaceCombinator);
     _writeDirectiveUri(element.uri);
   }
@@ -606,6 +607,7 @@ class BundleWriter {
   void _writeLibraryImport(LibraryImportImpl element) {
     _resolutionSink._writeMetadata(element.metadata);
     _sink.writeBool(element.isSynthetic);
+    _sink.writeBool(element.isConditional);
     _sink.writeList(element.combinators, _writeNamespaceCombinator);
     _writeLibraryImportPrefixFragment(element.prefix);
     _writeDirectiveUri(element.uri);
@@ -953,11 +955,21 @@ class ResolutionSink extends BinaryWriter {
         var baseElement = element.baseElement;
         writeElement(baseElement);
 
-        var typeArguments = _enclosingClassTypeArguments(
-          baseElement,
+        var typeArguments = _instanceTypeArguments(
+          baseElement.enclosingElement,
           element.substitution.map,
         );
         _writeTypeList(typeArguments);
+      case CombinedExecutableElementImpl element:
+        // Views are not declared, so they have no reference to read back. The
+        // reader looks them up in the interface of the owner.
+        writeEnum(ElementTag.interfaceMember);
+        var owner = element.owner;
+        writeElement(owner);
+        var name = Name.forElement(element)!;
+        writeOptionalObject(name.libraryUri, writeUri);
+        writeStringReference(name.name);
+        _writeTypeList(_instanceTypeArguments(owner, element.substitution.map));
       case TypeParameterElementImpl():
         writeEnum(ElementTag.typeParameter);
         var localIndex = localElements[element];
@@ -1149,8 +1161,10 @@ class ResolutionSink extends BinaryWriter {
     });
   }
 
-  static List<DartType> _enclosingClassTypeArguments(
-    Element declaration,
+  /// Returns the values of the type parameters of [element] in
+  /// [substitution], if it is an [InstanceElement].
+  static List<DartType> _instanceTypeArguments(
+    Element? element,
     Map<TypeParameterElement, DartType> substitution,
   ) {
     // TODO(scheglov): Just keep it null in class Member?
@@ -1158,9 +1172,8 @@ class ResolutionSink extends BinaryWriter {
       return const [];
     }
 
-    var enclosing = declaration.enclosingElement;
-    if (enclosing is InstanceElement) {
-      var typeParameters = enclosing.typeParameters;
+    if (element is InstanceElement) {
+      var typeParameters = element.typeParameters;
       if (typeParameters.isEmpty) {
         return const <DartType>[];
       }

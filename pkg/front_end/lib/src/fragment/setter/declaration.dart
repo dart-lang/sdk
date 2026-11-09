@@ -286,9 +286,7 @@ class RegularSetterDeclaration
         _fragment.declaredFormals,
         setterOverrideDependencies,
         name: _fragment.name,
-        fileUri: _fragment.fileUri,
-        nameOffset: _fragment.nameOffset,
-        nameLength: _fragment.name.length,
+        uriOffset: uriOffset,
       );
     }
     _encoding.ensureTypes(libraryBuilder, membersBuilder.hierarchyBuilder);

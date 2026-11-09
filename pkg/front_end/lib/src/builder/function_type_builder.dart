@@ -18,22 +18,19 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/src/bounds_checks.dart' show VarianceCalculationValue;
 import 'package:kernel/src/unaliasing.dart';
 
-import '../codes/cfe_codes.dart' show noLength;
-import '../kernel/implicit_field_type.dart';
+import '../base/uri_offset.dart';
 import '../kernel/type_algorithms.dart';
-import '../source/source_library_builder.dart';
 import '../source/source_loader.dart';
 import '../source/source_type_parameter_builder.dart';
 import '../source/type_parameter_factory.dart';
 import 'declaration_builders.dart';
 import 'formal_parameter_builder.dart';
-import 'inferable_type_builder.dart';
 import 'library_builder.dart';
 import 'named_type_builder.dart';
 import 'nullability_builder.dart';
 import 'type_builder.dart';
 
-abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
+class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
   @override
   final TypeBuilder returnType;
   @override
@@ -43,73 +40,26 @@ abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
   @override
   final NullabilityBuilder nullabilityBuilder;
   @override
-  final Uri? fileUri;
-  @override
-  final int charOffset;
+  final UriOffsetLength uriOffset;
   @override
   final bool hasFunctionFormalParameterSyntax;
 
-  factory(
-    TypeBuilder returnType,
-    List<StructuralParameterBuilder>? typeParameters,
-    List<ParameterBuilder>? formals,
-    NullabilityBuilder nullabilityBuilder,
-    Uri? fileUri,
-    int charOffset, {
-    bool hasFunctionFormalParameterSyntax = false,
-  }) {
-    bool isExplicit = true;
-    if (!returnType.isExplicit) {
-      isExplicit = false;
-    }
-    if (isExplicit && formals != null) {
-      for (ParameterBuilder formal in formals) {
-        if (!formal.type.isExplicit) {
-          isExplicit = false;
-          break;
-        }
-      }
-    }
-    if (isExplicit && typeParameters != null) {
-      for (StructuralParameterBuilder typeParameter in typeParameters) {
-        if (!(typeParameter.bound?.isExplicit ?? true)) {
-          isExplicit = false;
-          break;
-        }
-      }
-    }
-    return isExplicit
-        ? new _ExplicitFunctionTypeBuilder(
-            returnType,
-            typeParameters,
-            formals,
-            nullabilityBuilder,
-            fileUri,
-            charOffset,
-            hasFunctionFormalParameterSyntax,
-          )
-        :
-          // Coverage-ignore(suite): Not run.
-          new _InferredFunctionTypeBuilder(
-            returnType,
-            typeParameters,
-            formals,
-            nullabilityBuilder,
-            fileUri,
-            charOffset,
-            hasFunctionFormalParameterSyntax,
-          );
-  }
-
-  new _(
+  new(
     this.returnType,
     this.typeParameters,
     this.formals,
     this.nullabilityBuilder,
-    this.fileUri,
-    this.charOffset,
-    this.hasFunctionFormalParameterSyntax,
-  );
+    this.uriOffset, {
+    this.hasFunctionFormalParameterSyntax = false,
+  });
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Uri get fileUri => uriOffset.fileUri;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  int get charOffset => uriOffset.fileOffset;
 
   @override
   TypeName? get typeName => null;
@@ -229,7 +179,7 @@ abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
 
   @override
   Supertype? buildSupertype(LibraryBuilder library, TypeUse typeUse) {
-    library.addProblem(diag.supertypeIsFunction, charOffset, noLength, fileUri);
+    library.addProblem2(diag.supertypeIsFunction, uriOffset);
     return null;
   }
 
@@ -247,8 +197,7 @@ abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
       typeParameters,
       formals,
       nullabilityBuilder,
-      fileUri,
-      charOffset,
+      uriOffset,
     );
   }
 
@@ -391,6 +340,7 @@ abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
                     const NullabilityBuilder.omitted(),
                     instanceTypeParameterAccess:
                         InstanceTypeParameterAccessState.Unexpected,
+                    uriOffset: newTypeParameterBuilder.uriOffset,
                   );
         }
       }
@@ -429,8 +379,7 @@ abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
         newTypeParameters ?? typeParameters,
         newFormals ?? formals,
         this.nullabilityBuilder,
-        this.fileUri,
-        this.charOffset,
+        this.uriOffset,
       );
     }
     return null;
@@ -488,30 +437,6 @@ abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
     }
     return typesAndDependencies;
   }
-}
-
-/// A function type that is defined without the need for type inference.
-///
-/// This is the normal function type whose return type or parameter types are
-/// either explicit or omitted.
-class _ExplicitFunctionTypeBuilder extends FunctionTypeBuilderImpl {
-  new(
-    TypeBuilder returnType,
-    List<StructuralParameterBuilder>? typeParameters,
-    List<ParameterBuilder>? formals,
-    NullabilityBuilder nullabilityBuilder,
-    Uri? fileUri,
-    int charOffset,
-    bool hasFunctionFormalParameterSyntax,
-  ) : super._(
-        returnType,
-        typeParameters,
-        formals,
-        nullabilityBuilder,
-        fileUri,
-        charOffset,
-        hasFunctionFormalParameterSyntax,
-      );
 
   @override
   bool get isExplicit => true;
@@ -525,56 +450,5 @@ class _ExplicitFunctionTypeBuilder extends FunctionTypeBuilderImpl {
     ClassHierarchyBase? hierarchy,
   }) {
     return _type ??= _buildInternal(library, typeUse, hierarchy);
-  }
-}
-
-// Coverage-ignore(suite): Not run.
-/// A function type that needs type inference to be fully defined.
-///
-/// This occurs through macros where return type or parameter types can be
-/// defined in terms of inferred types, making this type indirectly depend
-/// on type inference.
-class _InferredFunctionTypeBuilder extends FunctionTypeBuilderImpl
-    with InferableTypeBuilderMixin {
-  new(
-    TypeBuilder returnType,
-    List<StructuralParameterBuilder>? typeParameters,
-    List<ParameterBuilder>? formals,
-    NullabilityBuilder nullabilityBuilder,
-    Uri? fileUri,
-    int charOffset,
-    bool hasFunctionFormalParameterSyntax,
-  ) : super._(
-        returnType,
-        typeParameters,
-        formals,
-        nullabilityBuilder,
-        fileUri,
-        charOffset,
-        hasFunctionFormalParameterSyntax,
-      );
-
-  @override
-  bool get isExplicit => false;
-
-  @override
-  DartType build(
-    LibraryBuilder library,
-    TypeUse typeUse, {
-    ClassHierarchyBase? hierarchy,
-  }) {
-    if (hasType) {
-      return type;
-    } else if (hierarchy != null) {
-      return registerType(_buildInternal(library, typeUse, hierarchy));
-    } else {
-      InferableTypeUse inferableTypeUse = new InferableTypeUse(
-        library as SourceLibraryBuilder,
-        this,
-        typeUse,
-      );
-      library.loader.inferableTypes.registerInferableType(inferableTypeUse);
-      return new InferredType.fromInferableTypeUse(inferableTypeUse);
-    }
   }
 }

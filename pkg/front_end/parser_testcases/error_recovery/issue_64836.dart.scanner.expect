@@ -1,0 +1,5 @@
+typedef F<part T>=int;
+
+
+typedef[KeywordToken] F[StringToken]<[BeginToken]part[KeywordToken] T[StringToken]>=[SimpleToken]int[StringToken];[SimpleToken]
+[SimpleToken]

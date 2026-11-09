@@ -1,0 +1,58 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "named_mixin_application_lib1.dart" as nam;
+
+import "org-dartlang-testcase:///named_mixin_application_lib1.dart";
+
+class Super extends core::Object {
+  synthetic constructor •() → self::Super
+    : super core::Object::•()
+    ;
+  @#C1
+  method toString() → core::String
+    return "super";
+}
+class Class extends self::_Class&Super&NamedMixin {
+  synthetic constructor •() → self::Class
+    : super self::_Class&Super&NamedMixin::•()
+    ;
+}
+abstract class _Class&Super&NamedMixin extends self::Super implements nam::NamedMixin /*isAnonymousMixin,isEliminatedMixin*/  {
+  synthetic constructor •() → self::_Class&Super&NamedMixin
+    : super self::Super::•()
+    ;
+  @#C1
+  method /* from org-dartlang-testcase:///named_mixin_application_lib2.dart */ toString() → core::String
+    return "mixin:${super.{core::Object::toString}()}";
+}
+
+library;
+import self as nam;
+import "dart:core" as core;
+import "named_mixin_application_lib2.dart" as nam2;
+
+import "org-dartlang-testcase:///named_mixin_application_lib2.dart";
+
+mixin class NamedMixin extends core::Object implements nam2::Mixin /*isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → nam::NamedMixin
+    : super core::Object::•()
+    ;
+  @#C1
+  method /* from org-dartlang-testcase:///named_mixin_application_lib2.dart */ toString() → core::String
+    return "mixin:${super.{core::Object::toString}()}";
+}
+
+library;
+import self as nam2;
+import "dart:core" as core;
+
+abstract class Mixin extends core::Object /*isMixinDeclaration*/  {
+  @#C1
+  method toString() → core::String
+    return "mixin:${super.{core::Object::toString}()}";
+}
+
+constants  {
+  #C1 = core::_Override {}
+}

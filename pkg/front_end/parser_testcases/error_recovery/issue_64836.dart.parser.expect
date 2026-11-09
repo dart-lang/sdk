@@ -1,0 +1,7 @@
+NOTICE: Stream was rewritten by parser!
+
+typedef F<*synthetic*part T>=int;
+
+
+typedef[KeywordToken] F[StringToken]<[BeginToken][SyntheticStringToken]part[KeywordToken] T[StringToken]>[SimpleToken]=[SimpleToken]int[StringToken];[SimpleToken]
+[SimpleToken]

@@ -45,3 +45,13 @@ bool get isJSCommandLineConfiguration => _configuration.runtime.isJSCommandLine;
 
 bool get isWebConfiguration =>
     isDart2jsConfiguration || isDart2WasmConfiguration || isDdcConfiguration;
+
+/// Whether the code under test is compiled for 32-bit ARM.
+///
+/// Includes `arm_x64` and `simarm_x64`, where the compiler, or the VM with its
+/// simulator, is an x64 binary, but the generated code is still 32-bit ARM.
+bool get isArm32Configuration =>
+    _configuration.architecture == Architecture.arm ||
+    _configuration.architecture == Architecture.arm_x64 ||
+    _configuration.architecture == Architecture.simarm ||
+    _configuration.architecture == Architecture.simarm_x64;

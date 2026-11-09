@@ -1,0 +1,15 @@
+name: test_app
+version: 2.0.0
+publish_to: none
+
+environment:
+  sdk: ^3.8.0
+
+resolution: workspace
+
+executables:
+  test_app:
+
+dependencies:
+  my_dep: ^1.0.0
+  ws_sibling: ^1.0.0

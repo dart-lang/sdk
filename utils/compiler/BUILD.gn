@@ -59,6 +59,7 @@ aot_snapshot("dart2js_sdk_aot_product") {
   main_dart = "../../pkg/compiler/lib/src/dart2js.dart"
   gen_kernel_args = [ "-DbuildID=" + dart2js_version ]
   name = "dart2js_aot_product.dart"
+  dill = "$target_gen_dir/dart2js_aot_product.aot.dill"
   output = "$root_gen_dir/dart2js_aot_product.dart.snapshot"
 
   # dartaotruntime in the dart sdk has dart_product_config applied to it,

@@ -160,6 +160,11 @@ class PluginManager {
   /// The set of context root paths with no configured _new_ plugins.
   final contextRootsWithNoPlugins = <String>{};
 
+  /// Plugin folders whose `package_config.json` has already been resolved by
+  /// [resolvePackageConfig] and can skip a redundant `pub upgrade` in
+  /// [_computeFiles].
+  final Set<String> _resolvedPackageConfigFolders = {};
+
   /// Initializes a newly created plugin manager.
   ///
   /// The notifications from the running plugins will be handled by the given
@@ -464,6 +469,43 @@ class PluginManager {
     }
   }
 
+  /// Resolves and returns the `package_config.json` file for the plugin package
+  /// in [pluginFolder], or `null` if resolution fails.
+  File? resolvePackageConfig(Folder pluginFolder) {
+    var pubspecFile = pluginFolder.getFile(file_paths.pubspecYaml);
+    if (!pubspecFile.exists) {
+      var packageConfigFile = pluginFolder
+          .getFolder(file_paths.dotDartTool)
+          .getFile(file_paths.packageConfigJson);
+      return packageConfigFile.exists ? packageConfigFile : null;
+    }
+    var workspace = BlazeWorkspace.find(_resourceProvider, pluginFolder.path);
+    if (workspace != null) {
+      var packageConfigFile = pluginFolder
+          .getFolder(file_paths.dotDartTool)
+          .getFile(file_paths.packageConfigJson);
+      if (packageConfigFile.exists) {
+        return packageConfigFile;
+      }
+      return _createPackageConfigFile(
+        pluginFolder,
+        workspace.packageUriResolver,
+      );
+    }
+    var pubResult = _runPubCommand('upgrade', workingDirectory: pluginFolder);
+    if (pubResult.exitCode != 0) {
+      return null;
+    }
+    var packageConfigFile = pluginFolder
+        .getFolder(file_paths.dotDartTool)
+        .getFile(file_paths.packageConfigJson);
+    if (packageConfigFile.exists) {
+      _resolvedPackageConfigFolders.add(pluginFolder.path);
+      return packageConfigFile;
+    }
+    return null;
+  }
+
   /// Restart all currently running plugins.
   Future<void> restartPlugins() async {
     for (var plugin in _pluginMap.values.toList()) {
@@ -744,22 +786,25 @@ class PluginManager {
         .getFile(file_paths.packageConfigJson);
 
     if (pubCommand != null) {
-      var pubResult = _runPubCommand(
-        pubCommand,
-        workingDirectory: pluginFolder,
-      );
-      String? exceptionReason;
-      if (pubResult.exitCode != 0) {
-        var buffer = StringBuffer();
-        buffer.writeln(
-          'An error occurred while setting up the analyzer plugin package at '
-          "'${pluginFolder.path}'. The `dart pub $pubCommand` command failed:",
+      if (!_resolvedPackageConfigFolders.remove(pluginFolder.path) ||
+          !packageConfigFile.exists) {
+        var pubResult = _runPubCommand(
+          pubCommand,
+          workingDirectory: pluginFolder,
         );
-        buffer.writeln('  exitCode = ${pubResult.exitCode}');
-        buffer.writeln('  stdout = ${pubResult.stdout}');
-        buffer.writeln('  stderr = ${pubResult.stderr}');
-        throw PluginException(buffer.toString());
+        if (pubResult.exitCode != 0) {
+          var buffer = StringBuffer();
+          buffer.writeln(
+            'An error occurred while setting up the analyzer plugin package at '
+            "'${pluginFolder.path}'. The `dart pub $pubCommand` command failed:",
+          );
+          buffer.writeln('  exitCode = ${pubResult.exitCode}');
+          buffer.writeln('  stdout = ${pubResult.stdout}');
+          buffer.writeln('  stderr = ${pubResult.stderr}');
+          throw PluginException(buffer.toString());
+        }
       }
+      String? exceptionReason;
       if (!packageConfigFile.exists) {
         exceptionReason ??= 'File "${packageConfigFile.path}" does not exist.';
         throw PluginException(exceptionReason);

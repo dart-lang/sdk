@@ -46,16 +46,18 @@ class InformativeDataApplier {
     if (elementFactory.isApplyingInformativeData) {
       throw StateError('Unexpected recursion.');
     }
+
     elementFactory.isApplyingInformativeData = true;
-
-    for (var libraryFragment in libraryElement.internal.fragments) {
-      var uri = libraryFragment.source.uri;
-      if (unitsInformativeBytes[uri] case var infoBytes?) {
-        _applyFromBytes(libraryFragment, infoBytes);
+    try {
+      for (var libraryFragment in libraryElement.internal.fragments) {
+        var uri = libraryFragment.source.uri;
+        if (unitsInformativeBytes[uri] case var infoBytes?) {
+          _applyFromBytes(libraryFragment, infoBytes);
+        }
       }
+    } finally {
+      elementFactory.isApplyingInformativeData = false;
     }
-
-    elementFactory.isApplyingInformativeData = false;
   }
 
   void _applyFromBytes(
@@ -82,7 +84,7 @@ class InformativeDataApplier {
       _applyToPartIncludes(libraryFragment.parts, unitInfo);
     });
 
-    libraryFragment.deferConstantOffsets(unitInfo.libraryConstantOffsets, (
+    libraryFragment.deferConstantOffsets(unitInfo.directiveConstantOffsets, (
       applier,
     ) {
       applier.applyToImports(libraryFragment.libraryImports);
@@ -639,13 +641,16 @@ class _InfoBuilder {
       codeLength: unit.length,
       lineStarts: unit.lineInfo.lineStarts,
       libraryName: _buildLibraryName(firstLibraryDirective),
-      libraryConstantOffsets: _buildLibraryConstantOffsets(
-        unit.directives.firstOrNull,
-        rawImports,
-        rawExports,
-        rawParts,
+      libraryConstantOffsets: _buildConstantOffsets(
+        metadata:
+            (firstLibraryDirective ?? unit.directives.firstOrNull)?.metadata,
       ),
-      docComment: _getDocumentationComment(unit.directives.firstOrNull),
+      directiveConstantOffsets: _buildConstantOffsets(
+        importDirectives: rawImports,
+        exportDirectives: rawExports,
+        partDirectives: rawParts,
+      ),
+      docComment: _getDocumentationComment(firstLibraryDirective),
       imports: imports,
       exports: exports,
       parts: parts,
@@ -1023,20 +1028,6 @@ class _InfoBuilder {
           ),
         ...members.whereType<ConstructorDeclaration2>().map(_buildConstructor),
       ],
-    );
-  }
-
-  Uint32List _buildLibraryConstantOffsets(
-    Directive? firstDirective,
-    List<ImportDirective> imports,
-    List<ExportDirective> exports,
-    List<PartDirective> parts,
-  ) {
-    return _buildConstantOffsets(
-      metadata: firstDirective?.metadata,
-      importDirectives: imports,
-      exportDirectives: exports,
-      partDirectives: parts,
     );
   }
 
@@ -1668,7 +1659,19 @@ class _InfoUnit {
   final int codeLength;
   final List<int> lineStarts;
   final _InfoLibraryName libraryName;
+
+  /// The offsets of the tokens of the annotations of the library, which are
+  /// the annotations of the first `library` directive, or of the first
+  /// directive when there is no `library` directive.
   final Uint32List libraryConstantOffsets;
+
+  /// The offsets of the tokens of the annotations of imports, exports, and
+  /// parts.
+  ///
+  /// These are separate from [libraryConstantOffsets], because the library
+  /// and the library fragment apply their offsets independently, each from
+  /// the start of its own list.
+  final Uint32List directiveConstantOffsets;
   final String? docComment;
   final List<_InfoImport> imports;
   final List<_InfoExport> exports;
@@ -1691,6 +1694,7 @@ class _InfoUnit {
     required this.lineStarts,
     required this.libraryName,
     required this.libraryConstantOffsets,
+    required this.directiveConstantOffsets,
     required this.docComment,
     required this.imports,
     required this.exports,
@@ -1714,6 +1718,7 @@ class _InfoUnit {
       lineStarts = reader.readUint30List(),
       libraryName = _InfoLibraryName.read(reader),
       libraryConstantOffsets = reader.readUint30List(),
+      directiveConstantOffsets = reader.readUint30List(),
       docComment = reader.readOptionalStringUtf8(),
       imports = reader.readList(_InfoImport.read),
       exports = reader.readList(_InfoExport.read),
@@ -1736,6 +1741,7 @@ class _InfoUnit {
     writer.writeUint30List(lineStarts);
     libraryName.write(writer);
     writer.writeUint30List(libraryConstantOffsets);
+    writer.writeUint30List(directiveConstantOffsets);
     writer.writeOptionalStringUtf8(docComment);
     writer.writeList(imports, (v) => v.write(writer));
     writer.writeList(exports, (v) => v.write(writer));
@@ -2065,6 +2071,14 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
   @override
   void visitDoubleLiteral(DoubleLiteral node) {
     _tokenOrNull(node.literal);
+  }
+
+  @override
+  void visitExtensionOverride2(ExtensionOverride2 node) {
+    node.importPrefix?.accept2(this);
+    _tokenOrNull(node.name);
+    node.typeArguments?.accept2(this);
+    node.argumentList.accept2(this);
   }
 
   @override

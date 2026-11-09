@@ -265,8 +265,7 @@ class PrimaryConstructorFieldDeclaration
       isInstanceMember: !isStatic,
       hasSetter: hasSetter,
       isCovariantByDeclaration: false,
-      fileUri: fileUri,
-      fileOffset: nameOffset,
+      uriOffset: uriOffset,
     );
   }
 
@@ -412,9 +411,7 @@ class PrimaryConstructorFieldDeclaration
         typeBuilder,
         [...?getterOverrideDependencies, ...?setterOverrideDependencies],
         name: _fragment.name,
-        fileUri: fileUri,
-        nameOffset: nameOffset,
-        nameLength: _fragment.name.length,
+        uriOffset: uriOffset,
         isAssignable: hasSetter,
       );
     } else {
@@ -483,12 +480,7 @@ class PrimaryConstructorFieldDeclaration
 }
 
 class PrimaryConstructorFieldFragment implements Fragment {
-  @override
-  final String name;
-
-  final Uri fileUri;
-
-  final int nameOffset;
+  final UriOffsetName _uriOffsetName;
 
   final List<MetadataBuilder>? metadata;
 
@@ -506,17 +498,8 @@ class PrimaryConstructorFieldFragment implements Fragment {
   SourcePropertyBuilder? _builder;
   PrimaryConstructorFieldDeclaration? _declaration;
 
-  @override
-  late final UriOffsetLength uriOffset = new UriOffsetLength(
-    fileUri,
-    nameOffset,
-    name.length,
-  );
-
   new({
-    required this.name,
-    required this.fileUri,
-    required this.nameOffset,
+    required this._uriOffsetName,
     required this.metadata,
     required this.modifiers,
     required this.type,
@@ -525,6 +508,16 @@ class PrimaryConstructorFieldFragment implements Fragment {
     required this.enclosingCompilationUnit,
     required Token? defaultValueToken,
   }) : _defaultValueToken = defaultValueToken;
+
+  Uri get fileUri => _uriOffsetName.fileUri;
+
+  @override
+  String get name => _uriOffsetName.name;
+
+  int get nameOffset => _uriOffsetName.nameOffset;
+
+  @override
+  UriOffsetLength get uriOffset => _uriOffsetName;
 
   @override
   SourcePropertyBuilder get builder {

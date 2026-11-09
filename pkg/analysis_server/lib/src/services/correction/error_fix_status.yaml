@@ -2846,7 +2846,7 @@ use_function_type_syntax_for_parameters:
 use_if_null_to_convert_nulls_to_bools:
   status: hasFix
 use_is_even_rather_than_modulo:
-  status: needsFix
+  status: hasFix
 use_key_in_widget_constructors:
   status: hasFix
 use_late_for_private_fields_and_variables:
@@ -3812,6 +3812,8 @@ deprecated_optional:
   status: needsEvaluation
 deprecated_subclass:
   status: hasFix
+deprecated_web_configuration:
+  status: hasFix
 doc_directive_argument_wrong_format:
   status: noFix
 doc_directive_has_extra_arguments:
@@ -3853,6 +3855,10 @@ duplicate_export:
   status: needsFix
   notes: |-
     One fix is to remove the duplicated export.
+duplicate_export_in_part:
+  status: needsFix
+  notes: |-
+    One fix is to remove the duplicated export.
 duplicate_hidden_name:
   status: hasFix
 duplicate_ignore:
@@ -3861,6 +3867,10 @@ duplicate_ignore:
     One fix is to remove the duplicated error code.
 duplicate_import:
   status: hasFix
+duplicate_import_in_part:
+  status: needsFix
+  notes: |-
+    One fix is to remove the duplicated import.
 duplicate_shown_name:
   status: hasFix
 equal_elements_in_set:

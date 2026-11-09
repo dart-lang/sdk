@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -112,8 +113,8 @@ class AddNullCheck extends ResolvedCorrectionProducer {
       toType = parent.staticType;
     } else if (parent is VariableDeclaration && _target == parent.initializer) {
       toType = parent.declaredFragment!.element.type;
-    } else if (parent is ArgumentList) {
-      toType = _target.correspondingParameter?.type;
+    } else if (_target.argumentParameterType case var argumentType?) {
+      toType = argumentType;
     } else if (parent is IndexExpression) {
       toType = parent.realTarget.typeOrThrow;
     } else if (parent is ForEachPartsWithDeclaration) {

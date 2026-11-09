@@ -13,6 +13,10 @@ import '../scanner/scanner.dart' show Keyword, Token;
 import '../scanner/token.dart'
     show BeginToken, SimpleToken, SyntheticToken, TokenIsAExtension, TokenType;
 
+import 'parser_impl.dart' show Parser;
+
+import 'type_info.dart' show TypeParamOrArgInfo, computeTypeParamOrArg;
+
 /// Returns true if [token] is the symbol or keyword [value].
 bool optional(String value, Token token) {
   return identical(value, token.stringValue);
@@ -93,7 +97,17 @@ int lengthOfSpan(Token? begin, Token? end) {
   return end.offset + end.length - begin.offset;
 }
 
-Token skipMetadata(Token token) {
+/// Returns the last token of the annotation that follows [token].
+///
+/// Without [parser] this is lookahead, and the token stream is not modified.
+/// If the type arguments of the annotation end with a part of a compound
+/// closer, such as the first `>` of `>>`, then the returned token is not in
+/// the token stream, and can be used only to continue looking ahead.
+///
+/// With [parser] the type arguments are parsed, so compound closers are split
+/// in the token stream, and the returned token is always in it. The listener
+/// of [parser] receives the events of these type arguments.
+Token skipMetadata(Token token, {Parser? parser}) {
   token = token.next!;
   assert(token.isA(TokenType.AT));
   Token next = token.next!;
@@ -111,10 +125,11 @@ Token skipMetadata(Token token) {
       }
     }
     // Corresponds to 'computeTypeParamOrArg' in [parseMetadata].
-    if (next.isA(TokenType.LT) && !next.endGroup!.isSynthetic) {
-      token = next.endGroup!;
-      next = token.next!;
-    }
+    TypeParamOrArgInfo typeArguments = computeTypeParamOrArg(token);
+    token = parser != null
+        ? typeArguments.parseArguments(token, parser)
+        : typeArguments.skip(token);
+    next = token.next!;
 
     // The extra .identifier after arguments in [parseMetadata].
     if (next.isA(TokenType.PERIOD)) {

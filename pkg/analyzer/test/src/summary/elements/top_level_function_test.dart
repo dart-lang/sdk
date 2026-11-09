@@ -2883,7 +2883,7 @@ library
           formalParameters
             #F2 optionalNamed isFinal isOriginDeclaration this.a (nameOffset:17) (firstTokenOffset:8) (offset:17)
               element: <testLibrary>::@function::f::@formalParameter::a
-              initializer: expression_0
+              constantInitializer2: expression_0
                 IntegerLiteral
                   literal: 42 @20
                   staticType: int
@@ -2895,9 +2895,7 @@ library
         #E0 optionalNamed hasDefaultValue isFinal this.a
           firstFragment: #F2
           type: int
-          constantInitializer
-            fragment: #F2
-            expression: expression_0
+          constantInitializer2: expression_0
           field: <null>
       returnType: void
 ''');

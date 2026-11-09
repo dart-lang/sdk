@@ -4,7 +4,6 @@
 
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/instrumentation/noop_service.dart';
-import 'package:analyzer/instrumentation/plugin_data.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:telemetry/crash_reporting.dart';
 
@@ -52,19 +51,6 @@ class CrashReportingInstrumentation extends NoopInstrumentationService {
         attachments: crashReportAttachments,
       );
     }
-  }
-
-  @override
-  void logPluginException(
-    PluginData plugin,
-    Object exception,
-    StackTrace? stackTrace,
-  ) {
-    _sendServerReport(
-      exception,
-      stackTrace ?? StackTrace.current,
-      comment: 'plugin: ${plugin.name}',
-    );
   }
 
   void _sendServerReport(

@@ -1,0 +1,7 @@
+NOTICE: Stream was rewritten by parser!
+
+(@a*synthetic*< x, int y) z;
+
+
+([BeginToken]@[SimpleToken]a[StringToken][SyntheticStringToken]<[BeginToken] x[StringToken],[SimpleToken] int[StringToken] y[StringToken])[SimpleToken] z[StringToken];[SimpleToken]
+[SimpleToken]

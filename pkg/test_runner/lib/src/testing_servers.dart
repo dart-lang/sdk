@@ -46,6 +46,10 @@ class DispatchingServer {
 ///               directory (i.e. '$DartDirectory/X').
 /// /root_build/X: This will serve the corresponding file from the build
 ///                directory (i.e. '$BuildDirectory/X').
+/// /root_build/Y/dart-sdk/X: This will serve the corresponding file from the
+///      built SDK (i.e. '$BuildDirectory/dart-sdk/X'). Used for the SDK
+///      sources in the source maps of DDC's dart_sdk.js, which are
+///      "dart-sdk/lib/..." relative to the source map.
 /// /FOO/packages/PAZ/BAR: This will serve files from the packages listed in
 ///      the package spec .packages.  Supports a package
 ///      root or custom package spec, and uses $dart_dir/.packages
@@ -313,6 +317,11 @@ class TestingServers {
       return _packageConfig.resolve(packageUri);
     }
     if (pathSegments[0] == prefixBuildDir) {
+      // An SDK source requested through the source map of DDC's dart_sdk.js.
+      var sdkIndex = pathSegments.lastIndexOf('dart-sdk');
+      if (sdkIndex > 1) {
+        return _buildDirectory.resolve(pathSegments.skip(sdkIndex).join('/'));
+      }
       return _buildDirectory.resolve(pathSegments.skip(1).join('/'));
     }
     if (pathSegments[0] == prefixDartDir) {

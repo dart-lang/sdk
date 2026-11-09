@@ -7,13 +7,10 @@ part of 'fragment.dart';
 class TypedefFragment implements Fragment {
   final List<MetadataBuilder>? metadata;
 
-  @override
-  final String name;
+  final UriOffsetName _uriOffsetName;
 
   final List<TypeParameterFragment>? typeParameters;
   final TypeBuilder type;
-  final Uri fileUri;
-  final int nameOffset;
   final LookupScope typeParameterScope;
   final NominalParameterNameSpace nominalParameterNameSpace;
   final LookupScope enclosingScope;
@@ -21,28 +18,29 @@ class TypedefFragment implements Fragment {
 
   SourceTypeAliasBuilder? _builder;
 
-  @override
-  late final UriOffsetLength uriOffset = new UriOffsetLength(
-    fileUri,
-    nameOffset,
-    name.length,
-  );
-
   late final List<SourceNominalParameterBuilder>? typeParameterBuilders =
       typeParameters?.computeBuilderList;
 
   new({
     required this.metadata,
-    required this.name,
+    required this._uriOffsetName,
     required this.typeParameters,
     required this.type,
-    required this.fileUri,
-    required this.nameOffset,
     required this.typeParameterScope,
     required this.nominalParameterNameSpace,
     required this.enclosingScope,
     required this.enclosingCompilationUnit,
   });
+
+  Uri get fileUri => _uriOffsetName.fileUri;
+
+  @override
+  String get name => _uriOffsetName.name;
+
+  int get nameOffset => _uriOffsetName.nameOffset;
+
+  @override
+  UriOffsetLength get uriOffset => _uriOffsetName;
 
   @override
   // Coverage-ignore(suite): Not run.

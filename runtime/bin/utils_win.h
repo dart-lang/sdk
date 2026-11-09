@@ -85,6 +85,9 @@ class WideToUtf8Scope {
 
 std::unique_ptr<wchar_t[]> Utf8ToWideChar(const char* path);
 
+// Open an inheritable handle to NUL.
+HANDLE OpenNul();
+
 }  // namespace bin
 }  // namespace dart
 

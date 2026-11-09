@@ -123,8 +123,9 @@ class UseResultVerifier {
   }
 
   static ElementAnnotation? _getUseResultMetadata(Element element) {
-    // Implicit getters/setters.
-    if (element is PropertyAccessorElement && element.isOriginVariable) {
+    // Implicit getters/setters, also through combined member signatures.
+    if (element is PropertyAccessorElement &&
+        element.baseElement.isOriginVariable) {
       element = element.variable;
     }
 

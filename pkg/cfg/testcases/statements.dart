@@ -158,6 +158,28 @@ void tryWithThrowRethrow(bool c1, bool c2) {
   }
 }
 
+void sequentialTry() {
+  try {
+    print(1);
+  } catch (e) {
+    return;
+  }
+  try {
+    print(2);
+  } catch (e) {
+    return;
+  }
+}
+
+void throwAfterTry() {
+  try {
+    print(1);
+  } catch (e) {
+    return;
+  }
+  throw 'Done!';
+}
+
 void main() {
   print('hey');
 }

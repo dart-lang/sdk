@@ -2117,6 +2117,16 @@ abstract final class DartFixKind {
     DartFixKindPriority.inFile,
     "Replace ':' with 'in' in file",
   );
+  static const replaceConfigurationWithJsInterop = FixKind(
+    'dart.fix.replace.configurationWithJsInterop',
+    DartFixKindPriority.standard,
+    "Replace configuration with 'dart.library.js_interop'",
+  );
+  static const replaceConfigurationWithJsInteropMulti = FixKind(
+    'dart.fix.replace.configurationWithJsInterop.multi',
+    DartFixKindPriority.inFile,
+    "Replace configuration with 'dart.library.js_interop' in file",
+  );
   static const replaceContainerWithColoredBox = FixKind(
     'dart.fix.replace.containerWithColoredBox',
     DartFixKindPriority.standard,
@@ -2313,6 +2323,16 @@ abstract final class DartFixKind {
     DartFixKindPriority.inFile,
     "Replace with 'isEmpty' in file",
   );
+  static const replaceWithIsEven = FixKind(
+    'dart.fix.replace.withIsEven',
+    DartFixKindPriority.standard,
+    "Replace with 'isEven'",
+  );
+  static const replaceWithIsEvenOrOddMulti = FixKind(
+    'dart.fix.replace.withIsEvenOrOdd.multi',
+    DartFixKindPriority.inFile,
+    "Replace with 'isEven' or 'isOdd' in file",
+  );
   static const replaceWithIsNaN = FixKind(
     'dart.fix.replace.withIsNaN',
     DartFixKindPriority.standard,
@@ -2327,6 +2347,11 @@ abstract final class DartFixKind {
     'dart.fix.replace.withIsNotEmpty.multi',
     DartFixKindPriority.inFile,
     "Replace with 'isNotEmpty' in file",
+  );
+  static const replaceWithIsOdd = FixKind(
+    'dart.fix.replace.withIsOdd',
+    DartFixKindPriority.standard,
+    "Replace with 'isOdd'",
   );
   static const replaceWithNotNullAware = FixKind(
     'dart.fix.replace.withNotNullAware',

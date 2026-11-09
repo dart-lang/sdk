@@ -60,7 +60,11 @@ base class FakeDartRuntimeServiceBackend extends DartRuntimeServiceBackend
   FutureOr<void> onStreamCancel({required String streamId}) {}
 
   @override
-  void onClientSubscribe(Client client, String streamId) {}
+  void onClientSubscribe(
+    Client client,
+    String streamId, {
+    Map<String, Object?> params = const <String, Object?>{},
+  }) {}
 
   @override
   void onClientUnsubscribe(Client client, String streamId) {}

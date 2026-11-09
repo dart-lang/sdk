@@ -6,6 +6,7 @@ import 'package:front_end/src/codes/diagnostic.dart' as diag;
 
 import '../base/messages.dart';
 import '../base/scope.dart';
+import '../base/uri_offset.dart';
 import '../builder/declaration_builders.dart';
 import 'source_type_parameter_builder.dart';
 
@@ -29,19 +30,13 @@ class NominalParameterNameSpace {
           existing.parameter.name = '#${existing.name}';
           _typeParametersByName[tv.name] = tv;
         } else {
-          _problemReporting.addProblem(
+          _problemReporting.addProblem2(
             diag.typeParameterDuplicatedName,
-            tv.fileOffset,
-            tv.name.length,
-            tv.fileUri,
+            tv.uriOffset,
             context: [
               diag.typeParameterDuplicatedNameCause
                   .withArguments(typeVariableName: tv.name)
-                  .withLocation(
-                    existing.fileUri,
-                    existing.fileOffset,
-                    existing.name.length,
-                  ),
+                  .withLocation2(existing.uriOffset),
             ],
           );
         }
@@ -52,11 +47,9 @@ class NominalParameterNameSpace {
         // [#29555](https://github.com/dart-lang/sdk/issues/29555) and
         // [#54602](https://github.com/dart-lang/sdk/issues/54602).
         if (tv.name == ownerName && !allowNameConflict) {
-          _problemReporting.addProblem(
+          _problemReporting.addProblem2(
             diag.typeParameterSameNameAsEnclosing,
-            tv.fileOffset,
-            tv.name.length,
-            tv.fileUri,
+            tv.uriOffset,
           );
         }
       }

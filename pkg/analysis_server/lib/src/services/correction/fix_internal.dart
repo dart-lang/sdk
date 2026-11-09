@@ -216,6 +216,7 @@ import 'package:analysis_server/src/services/correction/dart/replace_boolean_wit
 import 'package:analysis_server/src/services/correction/dart/replace_cascade_with_dot.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_colon_with_equals.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_colon_with_in.dart';
+import 'package:analysis_server/src/services/correction/dart/replace_configuration_with_js_interop.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_container_with_colored_box.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_container_with_sized_box.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_empty_map_pattern.dart';
@@ -240,6 +241,7 @@ import 'package:analysis_server/src/services/correction/dart/replace_with_identi
 import 'package:analysis_server/src/services/correction/dart/replace_with_interpolation.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_is.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_is_empty.dart';
+import 'package:analysis_server/src/services/correction/dart/replace_with_is_even.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_is_nan.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_named_constant.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_not_null_aware.dart';
@@ -502,6 +504,7 @@ final _builtInLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   diag.useIfNullToConvertNullsToBools: [
     ConvertToIfNull.useToConvertNullsToBools,
   ],
+  diag.useIsEvenRatherThanModulo: [ReplaceWithIsEven.new],
   diag.useKeyInWidgetConstructors: [AddKeyToConstructors.new],
   diag.useNamedConstants: [ReplaceWithNamedConstant.new],
   diag.useNullAwareElements: [ConvertNullCheckToNullAwareElementOrEntry.new],
@@ -566,6 +569,7 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
     RemoveRequired.new,
   ],
   diag.deprecatedFactoryMethod: [AddReturnType.new],
+  diag.deprecatedWebConfiguration: [ReplaceConfigurationWithJsInterop.new],
   diag.emptyMapPattern: [
     ReplaceEmptyMapPattern.any,
     ReplaceEmptyMapPattern.empty,
@@ -1193,7 +1197,11 @@ final _builtInNonLintMultiGenerators = {
     DataDriven.new,
     ImportLibrary.forTypeOrMember,
   ],
-  diag.constWithNonType: [CreateClass.new, ImportLibrary.forTypeOrMember],
+  diag.constWithNonType: [
+    CreateClass.new,
+    DataDriven.new,
+    ImportLibrary.forTypeOrMember,
+  ],
   diag.extendsNonClass: [
     CreateClass.new,
     DataDriven.new,
@@ -1228,16 +1236,21 @@ final _builtInNonLintMultiGenerators = {
   ],
   diag.mixinWithNonClassSuperclass: [
     CreateClass.new,
+    DataDriven.new,
     ImportLibrary.forTypeOrMember,
   ],
-  diag.newWithNonType: [CreateClass.new, ImportLibrary.forTypeOrMember],
+  diag.newWithNonType: [
+    CreateClass.new,
+    DataDriven.new,
+    ImportLibrary.forTypeOrMember,
+  ],
   diag.newWithUndefinedConstructorDefault: [DataDriven.new],
   diag.noDefaultSuperConstructorExplicit: [AddSuperConstructorInvocation.new],
   diag.noDefaultSuperConstructorImplicit: [
     AddSuperConstructorInvocation.new,
     CreateConstructorSuper.new,
   ],
-  diag.nonTypeInCatchClause: [ImportLibrary.forTypeOrMember],
+  diag.nonTypeInCatchClause: [DataDriven.new, ImportLibrary.forTypeOrMember],
   diag.nonTypeAsTypeArgument: [
     CreateClass.new,
     CreateMixin.new,
@@ -1256,6 +1269,7 @@ final _builtInNonLintMultiGenerators = {
   diag.typeTestWithUndefinedName: [
     CreateClass.new,
     CreateMixin.new,
+    DataDriven.new,
     ImportLibrary.forTypeOrMember,
   ],
   diag.positionalSuperFormalParameterWithPositionalArgument: [
@@ -1309,6 +1323,7 @@ final _builtInNonLintMultiGenerators = {
     ImportLibrary.forExtension,
     ImportLibrary.forExtensionType,
     ImportLibrary.forFunction,
+    ImportLibrary.forTopLevelVariable,
     ImportLibrary.forTypeOrMember,
   ],
   diag.undefinedPrefixedNameReadNotFoundAnnotation: [
@@ -1321,6 +1336,7 @@ final _builtInNonLintMultiGenerators = {
     ImportLibrary.forExtension,
     ImportLibrary.forExtensionType,
     ImportLibrary.forFunction,
+    ImportLibrary.forTopLevelVariable,
     ImportLibrary.forTypeOrMember,
   ],
   diag.undefinedPrefixedNameWriteNotFound: [DataDriven.new],

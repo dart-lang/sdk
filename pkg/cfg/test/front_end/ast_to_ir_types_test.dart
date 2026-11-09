@@ -15,7 +15,7 @@ void main() {
   final component = readVmPlatformKernelFile();
   final coreTypes = CoreTypes(component);
   final classHierarchy = ClassHierarchy(component, coreTypes);
-  final astToIrTypes = AstToIrTypes(coreTypes, classHierarchy);
+  final astToIrTypes = AstToIrTypes(coreTypes, coreTypes.index, classHierarchy);
 
   test('int', () {
     expect(

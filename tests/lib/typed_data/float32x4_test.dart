@@ -313,54 +313,6 @@ void testShuffle() {
   }
 }
 
-void testMin() {
-  var m = Float32x4(1.0, 2.0, 3.0, 4.0);
-  var n = Float32x4(1.0, 0.0, 2.5, 5.0);
-  m = m.min(n);
-  checkEquals(1.0, m.x);
-  checkEquals(0.0, m.y);
-  checkEquals(2.5, m.z);
-  checkEquals(4.0, m.w);
-
-  var p = Float32x4(-0.0, -inf, -0.0, nan);
-  var q = Float32x4(0.0, -max, -min, 3.5);
-  var r = p.min(q);
-  checkOneOf([-0.0, 0.0], r.x);
-  checkEquals(-inf, r.y);
-  checkEquals(-min, r.z);
-  checkOneOf([nan, 3.5], r.w);
-
-  r = q.min(p);
-  checkOneOf([-0.0, 0.0], r.x);
-  checkEquals(-inf, r.y);
-  checkEquals(-min, r.z);
-  checkOneOf([nan, 3.5], r.w);
-}
-
-void testMax() {
-  var m = Float32x4(1.0, 2.0, 3.0, 4.0);
-  var n = Float32x4(1.0, 0.0, 2.5, 5.0);
-  m = m.max(n);
-  checkEquals(1.0, m.x);
-  checkEquals(2.0, m.y);
-  checkEquals(3.0, m.z);
-  checkEquals(5.0, m.w);
-
-  var p = Float32x4(-0.0, -inf, -0.0, nan);
-  var q = Float32x4(0.0, -max, -min, 3.5);
-  var r = p.max(q);
-  checkOneOf([-0.0, 0.0], r.x);
-  checkEquals(-max, r.y);
-  checkEquals(-0.0, r.z);
-  checkOneOf([nan, 3.5], r.w);
-
-  r = q.max(p);
-  checkOneOf([-0.0, 0.0], r.x);
-  checkEquals(-max, r.y);
-  checkEquals(-0.0, r.z);
-  checkOneOf([nan, 3.5], r.w);
-}
-
 void testSqrt() {
   var m = Float32x4(1.0, 4.0, 9.0, 16.0);
   m = m.sqrt();
@@ -653,8 +605,6 @@ void main() {
     testScale();
     testClamp();
     testAbs();
-    testMin();
-    testMax();
     testSqrt();
     testReciprocal();
     testReciprocalSqrt();

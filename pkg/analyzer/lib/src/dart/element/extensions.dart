@@ -131,6 +131,34 @@ extension ExecutableElement2Extension on ExecutableElement {
   }
 }
 
+extension FormalParameterElementListExtension<E extends FormalParameterElement>
+    on List<E> {
+  /// Returns the formal parameter in this list that corresponds to
+  /// [formalParameter] at [index] in another list, or `null` if none.
+  ///
+  /// Positional parameters correspond by position, named parameters by name.
+  E? correspondingFormalParameter(
+    FormalParameterElement formalParameter,
+    int index,
+  ) {
+    if (formalParameter.isPositional) {
+      if (index < length) {
+        var result = this[index];
+        if (result.isPositional) {
+          return result;
+        }
+      }
+    } else {
+      for (var result in this) {
+        if (result.isNamed && result.name == formalParameter.name) {
+          return result;
+        }
+      }
+    }
+    return null;
+  }
+}
+
 extension FormalParameterElementMixinExtension
     on InternalFormalParameterElement {
   /// Returns [FormalParameterElementImpl] with the specified properties

@@ -17,6 +17,10 @@ abstract class IDeclarationBuilder implements ITypeDeclarationBuilder {
   @override
   Uri get fileUri;
 
+  /// [UriOffsetLength] for the introductory declaration.
+  @override
+  UriOffsetLength get uriOffset;
+
   bool get isMixinClass;
 
   /// Lookup a member accessed statically through this declaration.

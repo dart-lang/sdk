@@ -73,6 +73,18 @@ def find_chrome_executable(sdk_root, platform):
             os.path.join(browsers_chrome_dir, 'chrome', 'google-chrome'),
             '/usr/bin/google-chrome',
         ]
+    elif platform == 'windows':
+        candidates = [
+            os.path.join(browsers_chrome_dir, 'chrome', 'Application',
+                         'chrome.exe'),
+            os.path.join(browsers_chrome_dir, 'chrome', 'chrome.exe'),
+        ]
+        for env_var in ['LOCALAPPDATA', 'PROGRAMFILES', 'PROGRAMFILES(X86)']:
+            prefix = os.environ.get(env_var)
+            if prefix:
+                candidates.append(
+                    os.path.join(prefix, 'Google', 'Chrome', 'Application',
+                                 'chrome.exe'))
 
     for candidate in candidates:
         if os.path.isfile(candidate):
@@ -83,6 +95,17 @@ def find_chrome_executable(sdk_root, platform):
         path = shutil.which(name)
         if path:
             return os.path.abspath(path)
+
+    if os.path.isdir(browsers_chrome_dir):
+        print(f'Debug: Chrome not found; searching {browsers_chrome_dir}:')
+        for root, dirs, files in os.walk(browsers_chrome_dir):
+            rel = os.path.relpath(root, browsers_chrome_dir)
+            depth = 0 if rel == '.' else rel.count(os.sep) + 1
+            chrome_files = [f for f in files if 'chrome' in f.lower()]
+            if depth <= 2 or chrome_files:
+                print(f'  {root}: dirs={dirs}, chrome_files={chrome_files}')
+    else:
+        print(f'Debug: {browsers_chrome_dir} does not exist.')
 
     return None
 
@@ -170,10 +193,6 @@ def main():
                 'devtools_extensions',
                 'devtools_shared',
         ]:
-            # TODO(srawlins): Enable devtools_extensions integration tests.
-            if platform == 'windows':
-                print('DevTools tests are currently skipped on Windows.')
-                return 0
             jobs.append({
                 'script': 'tool/ci/package_tests.sh',
                 'env': {
@@ -203,7 +222,7 @@ def main():
         'env': test_dart2js_env,
     })
 
-    if platform == 'macos':
+    if platform in ['linux', 'macos']:
         for bot in ['integration_dart2js', 'integration_dart2wasm']:
             for device in ['flutter', 'flutter-web', 'dart-cli']:
                 jobs.append({

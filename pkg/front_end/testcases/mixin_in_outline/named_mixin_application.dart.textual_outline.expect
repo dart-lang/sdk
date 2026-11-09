@@ -1,0 +1,8 @@
+import 'named_mixin_application_lib1.dart';
+
+class Super {
+  @override
+  String toString() => 'super';
+}
+
+class Class extends Super with NamedMixin;

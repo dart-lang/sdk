@@ -39,6 +39,18 @@ class IncrementalCompiler {
   IncrementalKernelGenerator get generator => _generator;
   IncrementalCompilerResult? get lastKnownGoodResult => _lastKnownGood;
 
+  // The result whose core types and class hierarchy describe the program:
+  // the last accepted one or, as compilers for expression compilation only
+  // never accept results, the latest compiled one.
+  IncrementalCompilerResult? get _latestResult =>
+      _lastKnownGood ?? _pendingDeltas.lastOrNull;
+
+  /// The core types of the program, or null if nothing was compiled yet.
+  CoreTypes? get coreTypes => _latestResult?.coreTypes;
+
+  /// The class hierarchy of the program, or null if nothing was compiled yet.
+  ClassHierarchy? get classHierarchy => _latestResult?.classHierarchy;
+
   IncrementalCompiler(
     this._compilerOptions,
     this._latestAcceptedEntryPoints, {

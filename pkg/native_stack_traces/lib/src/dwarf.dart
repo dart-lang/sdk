@@ -12,6 +12,7 @@ import 'dart:typed_data';
 import 'dwarf_container.dart';
 import 'elf.dart';
 import 'macho.dart';
+import 'pdb.dart';
 import 'reader.dart';
 
 const String _debugStringTableKey = 'debugStringTable';
@@ -1951,6 +1952,9 @@ class PCOffset {
 }
 
 // The DWARF debugging information for a given file.
+//
+// For PE/COFF snapshots, the debugging information is instead read from the
+// PDB file.
 abstract class Dwarf {
   /// Attempts to load the DWARF debugging information from the given bytes.
   ///
@@ -1980,7 +1984,7 @@ abstract class Dwarf {
     if (universalBinary != null) {
       return DwarfUniversalBinary.fromUniversalBinary(reader, universalBinary);
     }
-    return null;
+    return Pdb.fromReader(reader);
   }
 
   /// The build ID for the debugging information.

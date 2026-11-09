@@ -82,7 +82,6 @@ class ConstantInitializersResolver {
       // Resolution here or by TopLevelInference could rewrite the initializer.
       fragment.constantInitializer2 = node.initializer2;
     }
-    element.resetConstantInitializer();
   }
 }
 

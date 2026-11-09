@@ -313,13 +313,17 @@ sealed class TypeBuilder {
   // Coverage-ignore(suite): Not run.
   List<TypeBuilder>? get typeArguments => null;
 
-  /// Returns the Uri for the file in which this type annotation occurred, or
-  /// `null` if the type was synthesized.
-  Uri? get fileUri;
+  /// Returns the location at which this type annotation occurred.
+  // TODO(johnniwinther): Should this be split into one for the whole type and
+  // one for the name in case of [NamedTypeBuilder]?.
+  UriOffsetLength get uriOffset;
+
+  /// Returns the Uri for the file in which this type annotation occurred.
+  Uri get fileUri;
 
   /// Returns the character offset with [fileUri] at which this type annotation
-  /// occurred, or `null` if the type was synthesized.
-  int? get charOffset;
+  /// occurred.
+  int get charOffset;
 
   /// May return null, for example, for mixin applications.
   TypeName? get typeName;
@@ -552,12 +556,7 @@ abstract class NamedTypeBuilder extends TypeBuilder {
   @override
   TypeName get typeName;
 
-  void resolveIn(
-    LookupScope scope,
-    int charOffset,
-    Uri fileUri,
-    ProblemReporting problemReporting,
-  );
+  void resolveIn(LookupScope scope, ProblemReporting problemReporting);
   void bind(
     ProblemReporting problemReporting,
     TypeDeclarationBuilder declaration,
@@ -567,6 +566,7 @@ abstract class NamedTypeBuilder extends TypeBuilder {
 
   InvalidBuilder buildInvalidTypeDeclarationBuilder(
     LocatedMessage message, {
+    required UriOffsetLength uriOffset,
     List<LocatedMessage>? context,
   });
 }
@@ -671,9 +671,11 @@ class SyntheticTypeName implements TypeName {
   String get fullName => name;
 
   @override
+  // Coverage-ignore(suite): Not run.
   int get fullNameOffset => nameOffset;
 
   @override
+  // Coverage-ignore(suite): Not run.
   int get fullNameLength => noLength;
 }
 
@@ -729,10 +731,4 @@ class QualifiedTypeName implements TypeName {
 
   @override
   int get fullNameLength => nameOffset - qualifierOffset + name.length;
-}
-
-extension TypeBuilderExtension on TypeBuilder {
-  UriOffsetLength? get uriOffset => fileUri != null && charOffset != null
-      ? new UriOffset(fileUri!, charOffset!)
-      : null;
 }

@@ -83,7 +83,11 @@ abstract mixin class Stream<T> {
 
   factory Stream.value(T value) => throw 0;
 
+  static Stream<T> castFrom<S, T>(Stream<S> source) => throw 0;
+
   Future<T> get first;
+
+  Stream<R> cast<R>();
 
   StreamSubscription<T> listen(
     void onData(T event)?, {
@@ -214,6 +218,14 @@ abstract mixin class MapMixin<K, V> implements Map<K, V> { }
 abstract mixin class SetMixin<E> implements Set<E> { }
 
 abstract interface class Queue<E> implements Iterable<E> {
+  factory Queue.from(Iterable elements) => throw 0;
+
+  factory Queue.of(Iterable<E> elements) => throw 0;
+
+  static Queue<T> castFrom<S, T>(Queue<S> source) => throw 0;
+
+  Queue<R> cast<R>();
+
   bool remove(Object? value);
 }
 
@@ -533,6 +545,10 @@ abstract mixin class Iterable<E> {
 
   const factory Iterable.empty() = EmptyIterable<E>;
 
+  static Iterable<T> castFrom<S, T>(Iterable<S> source) => throw 0;
+
+  Iterable<R> cast<R>();
+
   bool contains(Object? element);
 
   Iterable<T> expand<T>(Iterable<T> toElements(E element));
@@ -581,6 +597,8 @@ abstract interface class List<E> implements Iterable<E> {
 
   external factory List.unmodifiable(Iterable elements);
 
+  static List<T> castFrom<S, T>(List<S> source) => throw 0;
+
   E get last => throw 0;
   set length(int newLength) {}
 
@@ -595,6 +613,8 @@ abstract interface class List<E> implements Iterable<E> {
   void addAll(Iterable<E> iterable);
 
   Map<int, E> asMap();
+
+  List<R> cast<R>();
 
   void clear();
 
@@ -626,6 +646,8 @@ abstract interface class Map<K, V> {
       LinkedHashMap<K, V>.fromIterables;
 
   factory Map.fromEntries(Iterable<MapEntry<K, V>> entries) => throw 0;
+
+  static Map<K2, V2> castFrom<K, V, K2, V2>(Map<K, V> source) => throw 0;
 
   Iterable<K> get keys;
 
@@ -792,6 +814,8 @@ abstract interface class Set<E> implements Iterable<E> {
   factory Set.from(Iterable elements) = LinkedHashSet<E>.from;
 
   factory Set.of(Iterable<E> elements) = LinkedHashSet<E>.of;
+
+  factory Set.unmodifiable(Iterable<E> elements) => throw 0;
 
   Set<R> cast<R>();
 

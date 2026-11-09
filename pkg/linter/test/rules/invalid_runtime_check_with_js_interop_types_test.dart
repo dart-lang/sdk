@@ -115,8 +115,8 @@ export 'dart:_js_annotations' show JS, staticInterop;
     await _testChecks([
       _IsCheck('Object', 'JSAny'),
       _IsCheck('dynamic', 'JSObject'),
-      // TODO(srujzs): These two checks should lint, but `canBeSubtypeOf`
-      // determines subtyping via a pairwise comparison. So, we never actually
+      // TODO(srujzs): These two checks should lint, but this lint compares
+      // nested types via a pairwise comparison. So, we never actually
       // check the JS interop type against anything, since the left type is not
       // generic.
       _IsCheck('Object', 'List<JSAny>', lint: false),
@@ -217,6 +217,190 @@ export 'dart:_js_annotations' show JS, staticInterop;
       ''');
   }
 
+  test_collectionCast_iterable() async {
+    await assertDiagnosticsFromMarkup(r'''
+      import 'dart:collection';
+      import 'dart:js';
+      import 'dart:js_interop';
+
+      typedef StringList = List<String>;
+
+      abstract class CustomIterable<E> extends Iterable<E> {
+        @override
+        Iterable<R> cast<R>() => throw 0;
+      }
+
+      abstract class CustomJsStringList extends CustomIterable<JSString> {
+        void testSuperAndImplicitThis() {
+          /*[0*/super.cast<String>()/*0]*/;
+          /*[1*/cast<String>()/*1]*/;
+          /*[2*/whereType<String>()/*2]*/;
+        }
+      }
+
+      extension on List<JSString> {
+        void testImplicitThis() {
+          /*[3*/cast<String>()/*3]*/;
+          /*[4*/whereType<String>()/*4]*/;
+        }
+      }
+
+      extension on Object {
+        void testPromotedThis() {
+          if (this is List<JSString>) {
+            /*[5*/cast<String>()/*5]*/;
+            /*[6*/whereType<String>()/*6]*/;
+          }
+        }
+      }
+
+      void test(
+        List<JSString> jsStrings,
+        List<JSAny> jsAnys,
+        List<JSObject> jsObjects,
+        List<String> dartStrings,
+        List<Object> objects,
+        Set<JSString> jsStringSet,
+        Queue<JSString> jsStringQueue,
+        List<List<JSString>> nestedJsStrings,
+        dynamic dynamicVar,
+      ) {
+        /*[7*/List<String>.from(jsStrings)/*7]*/;
+        /*[8*/List<String>.from(growable: false, jsStrings)/*8]*/;
+        /*[9*/StringList.from(jsStrings)/*9]*/;
+        /*[10*/List<JSString>.from(dartStrings)/*10]*/;
+        /*[11*/List<JSBoolean>.from(jsStrings)/*11]*/;
+        /*[12*/List<JsObject>.from(jsObjects)/*12]*/;
+        /*[13*/List<String>.unmodifiable(jsStrings)/*13]*/;
+        /*[14*/Set<String>.from(jsStrings)/*14]*/;
+        /*[15*/LinkedHashSet<String>.from(jsStrings)/*15]*/;
+        /*[16*/Queue<String>.from(jsStrings)/*16]*/;
+        /*[17*/jsStrings.cast<String>()/*17]*/;
+        jsStrings/*[18*/..cast<String>()/*18]*/;
+        /*[19*/dartStrings.cast<JSString>()/*19]*/;
+        /*[20*/jsStrings.cast<JSBoolean>()/*20]*/;
+        /*[21*/Iterable.castFrom<JSString, String>(jsStrings)/*21]*/;
+        /*[22*/List.castFrom<JSString, String>(jsStrings)/*22]*/;
+        /*[23*/List.castFrom<JSString, String>(dynamicVar)/*23]*/;
+        /*[24*/Set.castFrom<JSString, String>(jsStringSet)/*24]*/;
+        /*[25*/Set.castFrom<JSString, String>(
+          newSet: <R>() => <R>{},
+          jsStringSet,
+        )/*25]*/;
+        /*[26*/Queue.castFrom<JSString, String>(jsStringQueue)/*26]*/;
+        /*[27*/List<List<String>>.from(nestedJsStrings)/*27]*/;
+        List<String> _ = /*[28*/.from(jsStrings)/*28]*/;
+        List<String> _ = /*[29*/.unmodifiable(jsStrings)/*29]*/;
+        List<String> _ = /*[30*/.castFrom(jsStrings)/*30]*/;
+
+        List<JSAny>.from(jsStrings);
+        List<JSString>.from(jsAnys);
+        List<Object>.from(jsStrings);
+        List<JSString>.from(objects);
+        List<dynamic>.from(jsStrings);
+        List.from(jsStrings);
+        jsStrings.cast<JSAny>();
+        jsAnys.cast<JSString>();
+        List.castFrom<JSString, JSAny>(jsStrings);
+        List<String>.of(dartStrings);
+        Set<String>.unmodifiable(dartStrings);
+      }
+    ''');
+  }
+
+  test_collectionCast_map() async {
+    await assertDiagnosticsFromMarkup(r'''
+      import 'dart:collection';
+      import 'dart:js_interop';
+
+      void test(
+        Map<JSString, int> jsKeyMap,
+        Map<String, JSNumber> jsValueMap,
+        Map<JSString, JSNumber> jsBothMap,
+        Map<String, JSAny> jsAnyValueMap,
+      ) {
+        /*[0*/Map<String, int>.from(jsKeyMap)/*0]*/;
+        /*[1*/Map<String, int>.from(jsValueMap)/*1]*/;
+        /*[2*//*[3*/Map<String, int>.from(jsBothMap)/*2]*//*3]*/;
+        /*[4*/Map<String, int>.unmodifiable(jsValueMap)/*4]*/;
+        /*[5*/LinkedHashMap<String, int>.from(jsValueMap)/*5]*/;
+        /*[6*/HashMap<String, int>.from(jsValueMap)/*6]*/;
+        /*[7*/jsKeyMap.cast<String, int>()/*7]*/;
+        /*[8*/jsValueMap.cast<String, int>()/*8]*/;
+        /*[9*//*[10*/jsBothMap.cast<String, int>()/*9]*//*10]*/;
+        /*[11*/Map.castFrom<String, JSNumber, String, int>(jsValueMap)/*11]*/;
+        Map<String, int> _ = /*[12*/.from(jsValueMap)/*12]*/;
+        Map<String, int> _ = /*[13*/.unmodifiable(jsValueMap)/*13]*/;
+        Map<String, int> _ = /*[14*/.castFrom(jsValueMap)/*14]*/;
+
+        Map<JSAny, int>.from(jsKeyMap);
+        Map<String, JSNumber>.from(jsAnyValueMap);
+        jsKeyMap.cast<JSAny, int>();
+        Map.castFrom<JSString, int, JSAny, int>(jsKeyMap);
+      }
+    ''');
+  }
+
+  test_collectionCast_stream() async {
+    await assertDiagnosticsFromMarkup(r'''
+      import 'dart:async';
+      import 'dart:js_interop';
+
+      void test(
+        Stream<JSString> jsStream,
+        Stream<JSAny> jsAnyStream,
+        Stream<String> dartStream,
+      ) {
+        /*[0*/jsStream.cast<String>()/*0]*/;
+        /*[1*/dartStream.cast<JSString>()/*1]*/;
+        /*[2*/jsStream.cast<JSBoolean>()/*2]*/;
+        /*[3*/Stream.castFrom<JSString, String>(jsStream)/*3]*/;
+        Stream<String> _ = /*[4*/.castFrom(jsStream)/*4]*/;
+
+        jsStream.cast<JSAny>();
+        jsAnyStream.cast<JSString>();
+        Stream.castFrom<JSString, JSAny>(jsStream);
+      }
+    ''');
+  }
+
+  test_collectionWhereType() async {
+    await assertDiagnosticsFromMarkup(r'''
+      import 'dart:js';
+      import 'dart:js_interop';
+
+      extension type Window(JSObject _) implements JSObject {}
+      extension type SubWindow(Window _) implements Window {}
+
+      void test(
+        List<JSString> jsStrings,
+        List<JSAny> jsAnys,
+        List<JSObject> jsObjects,
+        List<Window> windows,
+        List<SubWindow> subWindows,
+        List<String> dartStrings,
+        List<Object> objects,
+        List<dynamic> dynamics,
+      ) {
+        /*[0*/jsStrings.whereType<String>()/*0]*/;
+        /*[1*/dartStrings.whereType<JSString>()/*1]*/;
+        /*[2*/objects.whereType<JSAny>()/*2]*/;
+        /*[3*/dynamics.whereType<JSObject>()/*3]*/;
+        /*[4*/jsAnys.whereType<JSString>()/*4]*/;
+        /*[5*/jsStrings.whereType<JSBoolean>()/*5]*/;
+        /*[6*/jsObjects.whereType<Window>()/*6]*/;
+        /*[7*/jsObjects.whereType<JsObject>()/*7]*/;
+        jsStrings/*[8*/..whereType<String>()/*8]*/;
+
+        jsStrings.whereType<JSAny>();
+        jsStrings.whereType<Object>();
+        jsStrings.whereType<dynamic>();
+        windows.whereType<JSObject>();
+        subWindows.whereType<Window>();
+      }
+    ''');
+  }
+
   test_cyclicGenericInterfaceType_as() async {
     await _testCasts(
       [_AsCast('Object', 'A<T>', lint: false)],
@@ -300,7 +484,7 @@ export 'dart:_js_annotations' show JS, staticInterop;
   }
 
   // TODO(srujzs): Some of the following type tests should result in an error,
-  // but `canBeSubtypeOf` doesn't nest for function types.
+  // but this lint doesn't nest for function types.
   test_functionTypesAs_function_type_with_js_types_as() async {
     await _testCasts([
       _AsCast(
@@ -329,7 +513,7 @@ export 'dart:_js_annotations' show JS, staticInterop;
   }
 
   // TODO(srujzs): Some of the following type tests should result in an error,
-  // but `canBeSubtypeOf` doesn't nest for function types.
+  // but this lint doesn't nest for function types.
   test_functionTypesIs_function_type_with_js_types_is() async {
     await _testChecks([
       _IsCheck(
@@ -458,12 +642,28 @@ export 'dart:_js_annotations' show JS, staticInterop;
       _AsCast('Iterable<JSArray>', 'List<JSObject>', lint: false),
       _AsCast('List<JSAny>', 'Iterable<JSBoolean>', lint: false),
       _AsCast('Iterable<JSObject>', 'List<JSArray>', lint: false),
-      // TODO(srujzs): These should be errors as there is a side cast within the
-      // generics, and you can't declare a class that subtypes both the left
-      // and right type, but `canBeSubtypeOf` doesn't nest in this case.
-      _AsCast('List<JSString>', 'Iterable<JSBoolean>', lint: false),
-      _AsCast('Iterable<JSBoolean>', 'List<JSString>', lint: false),
+      _AsCast('List<JSString>', 'Iterable<JSBoolean>'),
+      _AsCast('Iterable<JSBoolean>', 'List<JSString>'),
     ]);
+  }
+
+  test_genericTypesAs_js_type_generic_with_declared_supertype_as() async {
+    await _testCasts(
+      [
+        _AsCast('A', 'R<JSString>'),
+        _AsCast('B', 'R<JSString>'),
+        _AsCast('C<String>', 'R<JSString>'),
+        _AsCast('R<JSString>', 'D', lint: false),
+        _AsCast('R<JSBoolean>', 'D'),
+      ],
+      typeDeclarations: [
+        'class R<T> {}',
+        'class A extends R<String> {}',
+        'final class B extends R<String> {}',
+        'final class C<T> extends R<T> {}',
+        'class D extends R<JSString> {}',
+      ],
+    );
   }
 
   test_genericTypesAs_top_type_generic_as_js_type_generic() async {
@@ -597,15 +797,30 @@ export 'dart:_js_annotations' show JS, staticInterop;
         unnecessary: true,
       ),
       _IsCheck('Iterable<JSArray>', 'List<JSObject>', lint: false),
-      // TODO(srujzs): These should be errors as there is a subtype or unrelated
-      // check within the generics, and you can't declare a class that subtypes
-      // both the left and right type, but `canBeSubtypeOf` doesn't nest in this
-      // case.
-      _IsCheck('List<JSAny>', 'Iterable<JSBoolean>', lint: false),
-      _IsCheck('Iterable<JSObject>', 'List<JSArray>', lint: false),
-      _IsCheck('List<JSString>', 'Iterable<JSBoolean>', lint: false),
-      _IsCheck('Iterable<JSBoolean>', 'List<JSString>', lint: false),
+      _IsCheck('List<JSAny>', 'Iterable<JSBoolean>'),
+      _IsCheck('Iterable<JSObject>', 'List<JSArray>'),
+      _IsCheck('List<JSString>', 'Iterable<JSBoolean>'),
+      _IsCheck('Iterable<JSBoolean>', 'List<JSString>'),
     ]);
+  }
+
+  test_genericTypesIs_js_type_generic_with_declared_supertype_is() async {
+    await _testChecks(
+      [
+        _IsCheck('A', 'R<JSString>'),
+        _IsCheck('B', 'R<JSString>'),
+        _IsCheck('C<String>', 'R<JSString>'),
+        _IsCheck('R<JSString>', 'D', lint: false),
+        _IsCheck('R<JSBoolean>', 'D'),
+      ],
+      typeDeclarations: [
+        'class R<T> {}',
+        'class A extends R<String> {}',
+        'final class B extends R<String> {}',
+        'final class C<T> extends R<T> {}',
+        'class D extends R<JSString> {}',
+      ],
+    );
   }
 
   test_genericTypesIs_top_type_generic_is_js_type_generic() async {

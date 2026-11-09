@@ -122,10 +122,11 @@ class BodyInferenceContext implements SharedBodyInferenceContext {
       var requiredClass = isAsync
           ? _typeProvider.streamElement
           : _typeProvider.iterableElement;
-      var type = _argumentOf(expressionType, requiredClass);
-      if (type != null) {
-        _returnTypes.add(type);
-      }
+      // If the operand's type can't be viewed as an `Iterable` (or `Stream`),
+      // which happens when it's `dynamic` or `Never`, use the operand's type
+      // itself. This matches the CFE.
+      var type = _argumentOf(expressionType, requiredClass) ?? expressionType;
+      _returnTypes.add(type);
     }
   }
 

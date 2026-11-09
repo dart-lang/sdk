@@ -1,5 +1,5 @@
 name: dds_service_extensions
-version: 2.1.0
+version: 2.1.1-wip
 description: >-
   Extension methods for `package:vm_service`, used to make requests a
   Dart Development Service (DDS) instance.

@@ -9,6 +9,7 @@ import 'package:kernel/type_algebra.dart';
 
 import '../../api_prototype/lowering_predicates.dart';
 import '../../base/modifiers.dart';
+import '../../base/uri_offset.dart';
 import '../../builder/declaration_builders.dart';
 import '../../builder/formal_parameter_builder.dart';
 import '../../builder/function_signature.dart';
@@ -1135,8 +1136,7 @@ abstract class ConstructorEncodingStrategy {
   List<FormalParameterBuilder>? createFormals({
     required SourceLoader loader,
     required List<FormalParameterBuilder>? formals,
-    required Uri fileUri,
-    required int fileOffset,
+    required UriOffsetLength uriOffset,
   });
 
   List<SourceNominalParameterBuilder>? createTypeParameters({
@@ -1165,8 +1165,7 @@ class RegularConstructorEncodingStrategy
   List<FormalParameterBuilder>? createFormals({
     required SourceLoader loader,
     required List<FormalParameterBuilder>? formals,
-    required Uri fileUri,
-    required int fileOffset,
+    required UriOffsetLength uriOffset,
   }) {
     return formals;
   }
@@ -1197,8 +1196,7 @@ class EnumConstructorEncodingStrategy implements ConstructorEncodingStrategy {
   List<FormalParameterBuilder>? createFormals({
     required SourceLoader loader,
     required List<FormalParameterBuilder>? formals,
-    required Uri fileUri,
-    required int fileOffset,
+    required UriOffsetLength uriOffset,
   }) {
     return [
       new FormalParameterBuilder(
@@ -1206,9 +1204,8 @@ class EnumConstructorEncodingStrategy implements ConstructorEncodingStrategy {
         modifiers: Modifiers.empty,
         type: loader.target.intType,
         name: "#index",
-        fileOffset: fileOffset,
-        fileUri: fileUri,
         nameOffset: null,
+        uriOffset: uriOffset,
         hasImmediatelyDeclaredDefaultValue: false,
       ),
       new FormalParameterBuilder(
@@ -1216,9 +1213,8 @@ class EnumConstructorEncodingStrategy implements ConstructorEncodingStrategy {
         modifiers: Modifiers.empty,
         type: loader.target.stringType,
         name: "#name",
-        fileOffset: fileOffset,
-        fileUri: fileUri,
         nameOffset: null,
+        uriOffset: uriOffset,
         hasImmediatelyDeclaredDefaultValue: false,
       ),
       ...?formals,
@@ -1249,8 +1245,7 @@ class ExtensionConstructorEncodingStrategy
   List<FormalParameterBuilder>? createFormals({
     required SourceLoader loader,
     required List<FormalParameterBuilder>? formals,
-    required Uri fileUri,
-    required int fileOffset,
+    required UriOffsetLength uriOffset,
   }) {
     return formals;
   }
@@ -1290,8 +1285,7 @@ class ExtensionTypeConstructorEncodingStrategy
   List<FormalParameterBuilder>? createFormals({
     required SourceLoader loader,
     required List<FormalParameterBuilder>? formals,
-    required Uri fileUri,
-    required int fileOffset,
+    required UriOffsetLength uriOffset,
   }) {
     return formals;
   }

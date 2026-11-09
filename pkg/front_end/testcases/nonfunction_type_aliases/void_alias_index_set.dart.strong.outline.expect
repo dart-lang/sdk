@@ -5,17 +5,17 @@ library;
 // pkg/front_end/testcases/nonfunction_type_aliases/void_alias_index_set.dart:10:3: Error: The return type of the operator []= must be 'void'.
 // Try changing the return type to 'void'.
 //   int operator []=(Object key, Object value) {} // Error
-//   ^
+//   ^^^
 //
 // pkg/front_end/testcases/nonfunction_type_aliases/void_alias_index_set.dart:18:3: Error: The return type of the operator []= must be 'void'.
 // Try changing the return type to 'void'.
 //   int operator []=(Object key, Object value) {} // Error
-//   ^
+//   ^^^
 //
 // pkg/front_end/testcases/nonfunction_type_aliases/void_alias_index_set.dart:26:3: Error: The return type of the operator []= must be 'void'.
 // Try changing the return type to 'void'.
 //   int operator []=(Object key, Object value) {} // Error
-//   ^
+//   ^^^
 //
 import self as self;
 import "dart:core" as core;

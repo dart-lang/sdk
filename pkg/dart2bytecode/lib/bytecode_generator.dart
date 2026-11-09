@@ -2715,8 +2715,7 @@ class BytecodeGenerator extends RecursiveVisitor {
       case AsyncMarker.SyncStar:
         flags |= ClosureDeclaration.isSyncStarFlag;
         break;
-      default:
-        flags |= ClosureDeclaration.isDebuggableFlag;
+      case AsyncMarker.Sync:
         break;
     }
 

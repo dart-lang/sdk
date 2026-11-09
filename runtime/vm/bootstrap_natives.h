@@ -166,9 +166,7 @@ namespace dart {
   V(TypedDataView_typedData, 1)                                                \
   V(Float32x4_fromDoubles, 4)                                                  \
   V(Float32x4_fromInt32x4Bits, 1)                                              \
-  V(Float32x4_negate, 1)                                                       \
   V(Float32x4_scale, 2)                                                        \
-  V(Float32x4_abs, 1)                                                          \
   V(Float32x4_getX, 1)                                                         \
   V(Float32x4_getY, 1)                                                         \
   V(Float32x4_getZ, 1)                                                         \
@@ -184,7 +182,6 @@ namespace dart {
   V(Float32x4_reciprocalSqrt, 1)                                               \
   V(Float64x2_fromDoubles, 2)                                                  \
   V(Float64x2_fromFloat32x4, 1)                                                \
-  V(Float64x2_abs, 1)                                                          \
   V(Float64x2_getX, 1)                                                         \
   V(Float64x2_getY, 1)                                                         \
   V(Float64x2_getSignMask, 1)                                                  \

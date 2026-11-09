@@ -1043,14 +1043,12 @@ class _SanitizedMember {
                 .withLocation2(classMember.uriOffset),
           );
         }
-        extensionTypeDeclarationBuilder.libraryBuilder.addProblem(
+        extensionTypeDeclarationBuilder.libraryBuilder.addProblem2(
           diag.implementNonExtensionTypeAndExtensionTypeMember.withArguments(
             extensionTypeName: extensionTypeDeclarationBuilder.name,
             memberName: name.text,
           ),
-          extensionTypeDeclarationBuilder.fileOffset,
-          extensionTypeDeclarationBuilder.name.length,
-          extensionTypeDeclarationBuilder.fileUri,
+          extensionTypeDeclarationBuilder.uriOffset,
           context: context,
         );
       } else if (extensionTypeMemberDeclarations.length > 1) {
@@ -1062,14 +1060,12 @@ class _SanitizedMember {
             ),
           );
         }
-        extensionTypeDeclarationBuilder.libraryBuilder.addProblem(
+        extensionTypeDeclarationBuilder.libraryBuilder.addProblem2(
           diag.implementMultipleExtensionTypeMembers.withArguments(
             extensionTypeName: extensionTypeDeclarationBuilder.name,
             memberName: name.text,
           ),
-          extensionTypeDeclarationBuilder.fileOffset,
-          extensionTypeDeclarationBuilder.name.length,
-          extensionTypeDeclarationBuilder.fileUri,
+          extensionTypeDeclarationBuilder.uriOffset,
           context: context,
         );
       }

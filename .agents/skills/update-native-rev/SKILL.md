@@ -120,5 +120,5 @@ After all tests pass and formatting/analysis is clean:
 2. If confirmed, get the current date in `YYYYMMDD` format (e.g., `20260630`) and run:
    ```bash
    git new-branch roll-<YYYYMMDD>
-   git commit -a -m "[deps] Roll dart-lang/native"
+   git commit -a -m "[deps] Roll dart-lang/native" -m "Cq-Include-Trybots: luci.dart.try:pkg-linux-debug-try,pkg-linux-release-arm64-try,pkg-linux-release-try,pkg-mac-release-arm64-try,pkg-mac-release-try,pkg-win-release-try"
    ```

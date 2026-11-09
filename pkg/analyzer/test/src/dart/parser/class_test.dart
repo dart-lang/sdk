@@ -3763,34 +3763,34 @@ class const A.named {}
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
 ClassDeclaration2
-  classKeyword: class
+  classKeyword: class @0
   namePart: PrimaryConstructorDeclaration
-    constKeyword: const
-    typeName: A
+    constKeyword: const @6
+    typeName: A @12
     constructorName: PrimaryConstructorName
-      period: .
-      name: named
+      period: . @13
+      name: named @14
     formalParameters: FormalParameterList
-      leftParenthesis: ( <synthetic>
-      rightParenthesis: ) <synthetic>
+      leftParenthesis: ( @20 <synthetic>
+      rightParenthesis: ) @20 <synthetic>
   body: BlockInstanceDeclarationBody
-    leftBracket: {
-    rightBracket: }
+    leftBracket: { @20
+    rightBracket: } @21
 V1: ClassDeclaration
-  classKeyword: class
+  classKeyword: class @0
   namePart: PrimaryConstructorDeclaration
-    constKeyword: const
-    typeName: A
+    constKeyword: const @6
+    typeName: A @12
     constructorName: PrimaryConstructorName
-      period: .
-      name: named
+      period: . @13
+      name: named @14
     formalParameters: FormalParameterList
-      leftParenthesis: ( <synthetic>
-      rightParenthesis: ) <synthetic>
+      leftParenthesis: ( @20 <synthetic>
+      rightParenthesis: ) @20 <synthetic>
   body: BlockClassBody
-    leftBracket: {
-    rightBracket: }
-''');
+    leftBracket: { @20
+    rightBracket: } @21
+''', withOffsets: true);
   }
 
   test_primaryConstructor_declaringFormalParameter_default_namedOptional_final() {
@@ -5346,32 +5346,128 @@ class A.named {}
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
 ClassDeclaration2
-  classKeyword: class
+  classKeyword: class @0
   namePart: PrimaryConstructorDeclaration
-    typeName: A
+    typeName: A @6
     constructorName: PrimaryConstructorName
-      period: .
-      name: named
+      period: . @7
+      name: named @8
     formalParameters: FormalParameterList
-      leftParenthesis: ( <synthetic>
-      rightParenthesis: ) <synthetic>
+      leftParenthesis: ( @14 <synthetic>
+      rightParenthesis: ) @14 <synthetic>
   body: BlockInstanceDeclarationBody
-    leftBracket: {
-    rightBracket: }
+    leftBracket: { @14
+    rightBracket: } @15
 V1: ClassDeclaration
-  classKeyword: class
+  classKeyword: class @0
   namePart: PrimaryConstructorDeclaration
-    typeName: A
+    typeName: A @6
     constructorName: PrimaryConstructorName
-      period: .
-      name: named
+      period: . @7
+      name: named @8
     formalParameters: FormalParameterList
-      leftParenthesis: ( <synthetic>
-      rightParenthesis: ) <synthetic>
+      leftParenthesis: ( @14 <synthetic>
+      rightParenthesis: ) @14 <synthetic>
   body: BlockClassBody
-    leftBracket: {
-    rightBracket: }
+    leftBracket: { @14
+    rightBracket: } @15
+''', withOffsets: true);
+  }
+
+  test_primaryConstructor_notConst_typeName_periodName_noFormalParameters_extendsClause() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class A.named extends B {}
+//      ^^^^^
+// [diag.missingPrimaryConstructorParameters] A primary constructor declaration must have formal parameters.
 ''');
+
+    var node = parseResult.findNode.singleClassDeclaration;
+    assertParsedNodeText(node, r'''
+ClassDeclaration2
+  classKeyword: class @0
+  namePart: PrimaryConstructorDeclaration
+    typeName: A @6
+    constructorName: PrimaryConstructorName
+      period: . @7
+      name: named @8
+    formalParameters: FormalParameterList
+      leftParenthesis: ( @14 <synthetic>
+      rightParenthesis: ) @14 <synthetic>
+  extendsClause: ExtendsClause
+    extendsKeyword: extends @14
+    superclass: NamedType
+      name: B @22
+  body: BlockInstanceDeclarationBody
+    leftBracket: { @24
+    rightBracket: } @25
+V1: ClassDeclaration
+  classKeyword: class @0
+  namePart: PrimaryConstructorDeclaration
+    typeName: A @6
+    constructorName: PrimaryConstructorName
+      period: . @7
+      name: named @8
+    formalParameters: FormalParameterList
+      leftParenthesis: ( @14 <synthetic>
+      rightParenthesis: ) @14 <synthetic>
+  extendsClause: ExtendsClause
+    extendsKeyword: extends @14
+    superclass: NamedType
+      name: B @22
+  body: BlockClassBody
+    leftBracket: { @24
+    rightBracket: } @25
+''', withOffsets: true);
+  }
+
+  test_primaryConstructor_notConst_typeName_typeParameters_periodName_noFormalParameters() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class A<T>.named {}
+//         ^^^^^
+// [diag.missingPrimaryConstructorParameters] A primary constructor declaration must have formal parameters.
+''');
+
+    var node = parseResult.findNode.singleClassDeclaration;
+    assertParsedNodeText(node, r'''
+ClassDeclaration2
+  classKeyword: class @0
+  namePart: PrimaryConstructorDeclaration
+    typeName: A @6
+    typeParameters: TypeParameterList
+      leftBracket: < @7
+      typeParameters
+        TypeParameter
+          name: T @8
+      rightBracket: > @9
+    constructorName: PrimaryConstructorName
+      period: . @10
+      name: named @11
+    formalParameters: FormalParameterList
+      leftParenthesis: ( @17 <synthetic>
+      rightParenthesis: ) @17 <synthetic>
+  body: BlockInstanceDeclarationBody
+    leftBracket: { @17
+    rightBracket: } @18
+V1: ClassDeclaration
+  classKeyword: class @0
+  namePart: PrimaryConstructorDeclaration
+    typeName: A @6
+    typeParameters: TypeParameterList
+      leftBracket: < @7
+      typeParameters
+        TypeParameter
+          name: T @8
+      rightBracket: > @9
+    constructorName: PrimaryConstructorName
+      period: . @10
+      name: named @11
+    formalParameters: FormalParameterList
+      leftParenthesis: ( @17 <synthetic>
+      rightParenthesis: ) @17 <synthetic>
+  body: BlockClassBody
+    leftBracket: { @17
+    rightBracket: } @18
+''', withOffsets: true);
   }
 
   test_primaryConstructor_superFormalParameter_final_namedType() {

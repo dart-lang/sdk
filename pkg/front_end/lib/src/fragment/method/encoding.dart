@@ -13,6 +13,7 @@ import 'package:kernel/type_environment.dart';
 import '../../base/local_scope.dart';
 import '../../base/messages.dart';
 import '../../base/scope.dart';
+import '../../base/uri_offset.dart';
 import '../../builder/declaration_builders.dart';
 import '../../builder/formal_parameter_builder.dart';
 import '../../builder/omitted_type_builder.dart';
@@ -240,11 +241,9 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
       );
       if (_fragment.name == indexSetName.text) {
         if (returnType is! VoidType) {
-          problemReporting.addProblem(
+          problemReporting.addProblem2(
             diag.nonVoidReturnOperator,
-            _fragment.returnType.charOffset!,
-            noLength,
-            _fragment.fileUri,
+            _fragment.returnType.uriOffset,
           );
           returnType = const VoidType();
         }
@@ -293,6 +292,7 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
     sourceClassBuilder.checkVarianceInReturnType(
       typeEnvironment,
       function.returnType,
+      uriOffset: _fragment.uriOffset,
       fileOffset: _fragment.nameOffset,
       fileUri: _fragment.fileUri,
     );
@@ -582,11 +582,9 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
       );
       if (_fragment.name == indexSetName.text) {
         if (returnType is! VoidType) {
-          problemReporting.addProblem(
+          problemReporting.addProblem2(
             diag.nonVoidReturnOperator,
-            _fragment.returnType.charOffset!,
-            noLength,
-            _fragment.fileUri,
+            _fragment.returnType.uriOffset,
           );
           returnType = const VoidType();
         }
@@ -649,6 +647,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
     sourceClassBuilder.checkVarianceInReturnType(
       typeEnvironment,
       function.returnType,
+      uriOffset: _fragment.uriOffset,
       fileOffset: _fragment.nameOffset,
       fileUri: _fragment.fileUri,
     );
@@ -1022,8 +1021,7 @@ class const _ExtensionInstanceMethodStrategy()
           fragment.enclosingDeclaration!.typeParameters,
       typeParameterFactory: typeParameterFactory,
       onTypeBuilder: declarationBuilder.onType,
-      fileUri: fragment.fileUri,
-      fileOffset: fragment.nameOffset,
+      uriOffset: fragment.uriOffset,
       isClosureContextLoweringEnabled:
           builder.libraryBuilder.loader.isClosureContextLoweringEnabled,
     );
@@ -1148,8 +1146,7 @@ class _ExtensionTypeInstanceMethodStrategy implements MethodEncodingStrategy {
           extensionTypeTypeParameters:
               fragment.enclosingDeclaration!.typeParameters,
           typeParameterFactory: typeParameterFactory,
-          fileUri: fragment.fileUri,
-          fileOffset: fragment.nameOffset,
+          uriOffset: fragment.uriOffset,
           isClosureContextLoweringEnabled:
               builder.libraryBuilder.loader.isClosureContextLoweringEnabled,
         );

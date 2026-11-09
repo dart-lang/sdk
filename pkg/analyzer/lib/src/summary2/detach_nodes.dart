@@ -140,7 +140,6 @@ class _Visitor extends GeneralizingElementVisitor2<void> {
           ConstantContextForExpressionImpl(fragment, initializer);
         }
       }
-      element.resetConstantInitializer();
     }
   }
 

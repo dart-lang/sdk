@@ -8,18 +8,31 @@ import 'package:analyzer/src/binary/binary_reader.dart';
 import 'package:analyzer/src/binary/binary_writer.dart';
 import 'package:collection/collection.dart';
 
+/// The table of [ManifestItemId]s written by a [BinaryWriter].
+///
+/// IDs are deduplicated by identity, not by value, to avoid hash lookups.
+/// So the table can contain equal values more than once.
 class ManifestIdTableBuilder {
-  final Map<ManifestItemId, int> _map = {};
+  final _TableStamp _stamp = _TableStamp.next();
+
+  final List<ManifestItemId> _ids = [];
 
   int operator [](ManifestItemId id) {
-    return _map[id] ??= _map.length;
+    if (id._tableStamp == _stamp) {
+      return id._tableIndex;
+    }
+    var index = _ids.length;
+    _ids.add(id);
+    id._tableStamp = _stamp;
+    id._tableIndex = index;
+    return index;
   }
 
   int write(BinaryWriter writer) {
     var offset = writer.offset;
-    writer.writeUint30(_map.length);
-    for (var entry in _map.entries) {
-      var id = entry.key;
+    writer.writeUint30(_ids.length);
+    for (var i = 0; i < _ids.length; i++) {
+      var id = _ids[i];
       writer.writeUint32(id.hi32);
       writer.writeUint32(id.lo32);
     }
@@ -53,6 +66,14 @@ class ManifestItemId implements Comparable<ManifestItemId> {
 
   final int hi32;
   final int lo32;
+
+  /// The stamp of the last [ManifestIdTableBuilder] that this object was
+  /// added to, or [_TableStamp.none].
+  _TableStamp _tableStamp = _TableStamp.none;
+
+  /// The index of this object in the table of [ManifestIdTableBuilder] with
+  /// the stamp [_tableStamp].
+  int _tableIndex = 0;
 
   factory generate() {
     _nextLo32 = (_nextLo32 + 1) & _mask32;
@@ -141,6 +162,20 @@ class ManifestItemIdList {
 
   static ManifestItemIdList? readOptional(BinaryReader reader) {
     return reader.readOptionalObject(() => ManifestItemIdList.read(reader));
+  }
+}
+
+/// Identifies a [ManifestIdTableBuilder], so that the indexes that it
+/// remembers in [ManifestItemId]s are not used by other builders.
+extension type const _TableStamp._(int _value) {
+  /// Not equal to any stamp returned by [_TableStamp.next].
+  static const none = _TableStamp._(0);
+
+  static int _last = 0;
+
+  /// Returns a stamp that is not equal to any previously returned one.
+  factory next() {
+    return _TableStamp._(++_last);
   }
 }
 

@@ -112,9 +112,61 @@ testProtocolHandler() {
   });
 }
 
-void main() {
+Future<void> testBadUpgradeResponse() async {
+  for (final response in [
+    "HTTP/1.1 101 Switching Protocols\r\n"
+        "Connection: Upgrade\r\n\r\n",
+    "HTTP/1.1 101 Switching Protocols\r\n"
+        "Connection: Upgrade\r\n"
+        "Upgrade: websocket\r\n"
+        "Upgrade: websocket\r\n\r\n",
+    "HTTP/1.1 101 Switching Protocols\r\n"
+        "Connection: Upgrade\r\n"
+        "Upgrade: websocket\r\n"
+        "Sec-WebSocket-Accept: !!!not-base64!!!\r\n\r\n",
+    "HTTP/1.1 101 Switching Protocols\r\n"
+        "Connection: Upgrade\r\n"
+        "Upgrade: websocket\r\n"
+        "Sec-WebSocket-Accept: aGVsbG8=\r\n"
+        "Sec-WebSocket-Accept: aGVsbG8=\r\n\r\n",
+  ]) {
+    final server = await ServerSocket.bind(InternetAddress.loopbackIPv4, 0);
+    final accepted = <Socket>[];
+    server.listen((socket) {
+      accepted.add(socket);
+      final request = StringBuffer();
+      var sent = false;
+      socket.listen((chunk) {
+        request.write(String.fromCharCodes(chunk));
+        if (!sent && request.toString().contains("\r\n\r\n")) {
+          sent = true;
+          socket.add(response.codeUnits);
+        }
+      });
+    });
+    final client = HttpClient();
+    try {
+      await WebSocket.connect(
+        "ws://127.0.0.1:${server.port}/",
+        customClient: client,
+      );
+      Expect.fail("Connected despite malformed upgrade response");
+    } on WebSocketException {
+      // Expected.
+    } finally {
+      client.close(force: true);
+      for (final socket in accepted) {
+        socket.destroy();
+      }
+      await server.close();
+    }
+  }
+}
+
+void main() async {
   testEmptyProtocol();
   testProtocol(["v1.example.com", "v2.example.com"], "v1.example.com");
   testProtocol(["v1.example.com", "v2.example.com"], "v2.example.com");
   testProtocolHandler();
+  await testBadUpgradeResponse();
 }

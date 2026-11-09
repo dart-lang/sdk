@@ -175,24 +175,21 @@ class References implements shared.References {
       new DynamicTypeDeclarationBuilder(
         const DynamicType(),
         loader.coreLibrary,
-        -1,
       );
 
   late final NeverTypeDeclarationBuilder neverDeclaration =
       new NeverTypeDeclarationBuilder(
         const NeverType.nonNullable(),
         loader.coreLibrary,
-        -1,
       );
 
   late final NullTypeDeclarationBuilder nullDeclaration =
-      new NullTypeDeclarationBuilder(const NullType(), loader.coreLibrary, -1);
+      new NullTypeDeclarationBuilder(const NullType(), loader.coreLibrary);
 
   late final FutureOrTypeDeclarationBuilder futureOrDeclaration =
       new FutureOrTypeDeclarationBuilder(
         new FutureOrType(const DynamicType(), Nullability.nonNullable),
         loader.coreLibrary,
-        -1,
       );
 
   @override
