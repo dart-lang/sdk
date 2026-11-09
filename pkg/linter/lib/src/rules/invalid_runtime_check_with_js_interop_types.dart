@@ -609,6 +609,10 @@ class _Visitor(final MultiAnalysisRule rule, final TypeSystemImpl typeSystem)
 
   void _checkMethodInvocation(InvocationExpression node, Element? element) {
     if (element is! MethodElement) return;
+    if (!element.isStatic &&
+        (node is! MethodInvocation || node.argumentList.arguments.isNotEmpty)) {
+      return;
+    }
     var name = element.name;
     var collectionElement = _collectionElementFor(
       element.enclosingElement,
@@ -637,8 +641,7 @@ class _Visitor(final MultiAnalysisRule rule, final TypeSystemImpl typeSystem)
         collectionElement: collectionElement,
         check: false,
       );
-    } else if (node is MethodInvocation &&
-        node.argumentList.arguments.isEmpty) {
+    } else if (node is MethodInvocation) {
       _checkCollectionTypeTest(
         node,
         _getTargetType(node),
@@ -668,6 +671,11 @@ class _Visitor(final MultiAnalysisRule rule, final TypeSystemImpl typeSystem)
       return null;
     }
     if (isStaticSdkMember) {
+      if (memberName != 'from' &&
+          memberName != 'castFrom' &&
+          memberName != 'unmodifiable') {
+        return null;
+      }
       var libraryUri = enclosingElement.library.uri.toString();
       var className = enclosingElement.name;
       if (!_staticSdkCollectionCastMembers.contains((
@@ -677,23 +685,19 @@ class _Visitor(final MultiAnalysisRule rule, final TypeSystemImpl typeSystem)
       ))) {
         return null;
       }
+    } else if (memberName != 'cast' && memberName != 'whereType') {
+      return null;
     }
     var typeProvider = typeSystem.typeProvider;
     var thisType = enclosingElement.thisType;
     if (thisType.asInstanceOf(typeProvider.iterableElement) != null) {
-      if (!isStaticSdkMember &&
-          memberName != 'cast' &&
-          memberName != 'whereType') {
-        return null;
-      }
       return typeProvider.iterableElement;
     }
+    if (memberName == 'whereType') return null;
     if (thisType.asInstanceOf(typeProvider.mapElement) != null) {
-      if (!isStaticSdkMember && memberName != 'cast') return null;
       return typeProvider.mapElement;
     }
     if (thisType.asInstanceOf(typeProvider.streamElement) != null) {
-      if (!isStaticSdkMember && memberName != 'cast') return null;
       return typeProvider.streamElement;
     }
     return null;
@@ -703,9 +707,36 @@ class _Visitor(final MultiAnalysisRule rule, final TypeSystemImpl typeSystem)
     if (node.realTarget case var target?) {
       return target.staticType;
     }
-    if (node.root case CompilationUnit unit) {
-      // ignore: experimental_member_use
-      return unit.lookupThisType(offset: node.offset);
+    for (
+      AstNode? child = node, parent = node.parent;
+      parent != null;
+      child = parent, parent = parent.parent
+    ) {
+      switch (parent) {
+        case IfStatement(
+              expression: IsExpression(
+                expression: ThisExpression(),
+                notOperator: null,
+                type: NamedType(:var type?),
+              ),
+              :var thenStatement,
+            )
+            when identical(child, thenStatement):
+          return type;
+        case ClassDeclaration(
+          declaredFragment: InterfaceFragment(:var element),
+        ):
+        case EnumDeclaration(declaredFragment: InterfaceFragment(:var element)):
+        case ExtensionTypeDeclaration(
+          declaredFragment: InterfaceFragment(:var element),
+        ):
+        case MixinDeclaration(
+          declaredFragment: InterfaceFragment(:var element),
+        ):
+          return element.thisType;
+        case ExtensionDeclaration(:var onClause?):
+          return onClause.extendedType.type;
+      }
     }
     return null;
   }
