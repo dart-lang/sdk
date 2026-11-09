@@ -9,6 +9,7 @@ import 'package:analysis_server/src/session_logger/log_normalizer.dart';
 import 'package:analysis_server/src/session_logger/process_id.dart';
 import 'package:analysis_server/src/session_logger/session_logger_sink.dart';
 import 'package:analyzer/exception/exception.dart';
+import 'package:analyzer/instrumentation/instrumentation.dart';
 
 /// Used to write information about a session to a log.
 class SessionLogger {
@@ -64,7 +65,7 @@ class SessionLogger {
   void logException({
     required Object exception,
     StackTrace? stackTrace,
-    List<Object>? attachments,
+    List<InstrumentationServiceAttachment>? attachments,
   }) {
     // TODO(brianwilkerson): `InstrumentationService` is defined in the
     //  `analyzer` package and is used in several places to report exceptions.
@@ -78,7 +79,14 @@ class SessionLogger {
       key.kind: EntryKind.exception.name,
       key.message: exception.toString(),
       key.stackTrace: ?stackTrace?.toString(),
-      key.attachments: ?attachments,
+      key.attachments: ?attachments
+          ?.map(
+            (attachment) => {
+              'id': attachment.id,
+              'stringValue': attachment.stringValue,
+            },
+          )
+          .toList(),
       key.nestedException: ?_nestedException(exception),
     });
   }
