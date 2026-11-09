@@ -129,6 +129,12 @@ of 3.15 or greater. For more details, see
 
 [#64558]: https://github.com/dart-lang/sdk/issues/64558
 
+#### `dart:io`
+
+- A validation check is added to `domain` of class `Cookie`. Setting it to a
+  string containing characters other than ASCII letters, digits, `-` and `.`,
+  or to a string ending with `.`, now throws a `FormatException`.
+
 #### `dart:typed_data`
 
 - Added the multiplication operator `*` to `Int32x4`, a lane-wise 32-bit integer
