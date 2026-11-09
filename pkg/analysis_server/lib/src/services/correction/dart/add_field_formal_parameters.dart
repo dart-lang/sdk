@@ -145,7 +145,9 @@ class AddFieldFormalParameters extends ResolvedCorrectionProducer {
       var parametersAtCurly = getCodeStyleOptions(unitResult.file)
           .requiredNamedParametersFirst;
 
-      if (addCurlyBraces && !parametersAtCurly) {
+      // requiredNamedParametersFirst only orders parameters inside `{}`.
+      // The braces are still required when this creates a named section.
+      if (addCurlyBraces) {
         var curlyOpen = lastRequiredPositionalParameter == null ? '{' : ', {';
         builder.addSimpleInsertion(insertOffset, curlyOpen);
       }
@@ -160,13 +162,15 @@ class AddFieldFormalParameters extends ResolvedCorrectionProducer {
         }
       }
 
-      var mappedFields = fields.map(
-        (field) => (field, isRequired: _isFieldRequired(field)),
-      );
+      var mappedFields = [
+        for (var field in fields) (field, isRequired: _isFieldRequired(field)),
+      ];
       if (parametersAtCurly) {
-        mappedFields.sorted((r1, r2) {
-          return r1.isRequired == r2.isRequired ? 0 : (r1.isRequired ? -1 : 1);
-        });
+        // Keep source order inside each group. List.sort is not stable.
+        mappedFields = [
+          ...mappedFields.where((field) => field.isRequired),
+          ...mappedFields.where((field) => !field.isRequired),
+        ];
       }
 
       // The fields that have to be explicitly initialized in the constructor
