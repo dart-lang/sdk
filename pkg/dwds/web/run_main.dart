@@ -43,7 +43,8 @@ final HTMLElement Function() _createScript = (() {
 /// We do this so that we don't see user exceptions bubble up in our own error
 /// handling zone.
 void runMain() {
-  final scriptElement = _createScript()..innerHTML = r'window.$dartRunMain();';
+  final scriptElement = _createScript()
+    ..innerHTML = r'window.$dartRunMain();'.toJS;
   document.body!.append(scriptElement.jsify()!);
   // External tear-offs are not allowed.
   // ignore: unnecessary_lambdas
