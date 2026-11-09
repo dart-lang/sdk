@@ -99,7 +99,7 @@ abstract class _MixesInMixesInMixin&Object&MixesInMixin extends core::Object imp
     if(!iterator.{core::Iterator::moveNext}(){() → core::bool})
       return first;
     core::StringBuffer buffer = new core::StringBuffer::•(first);
-    if(separator == null || separator.{core::String::isEmpty}{core::bool}) {
+    if(separator.{core::String::isEmpty}{core::bool}) {
       do {
         buffer.{core::StringBuffer::write}(iterator.{core::Iterator::current}{core::int}.{core::Object::toString}{<object>}.(){() → core::String}){(core::Object?) → void};
       }
@@ -343,7 +343,7 @@ abstract mixin class MixesInMixin extends core::Object implements core::Iterable
     if(!iterator.{core::Iterator::moveNext}(){() → core::bool})
       return first;
     core::StringBuffer buffer = new core::StringBuffer::•(first);
-    if(separator == null || separator.{core::String::isEmpty}{core::bool}) {
+    if(separator.{core::String::isEmpty}{core::bool}) {
       do {
         buffer.{core::StringBuffer::write}(iterator.{core::Iterator::current}{core::int}.{core::Object::toString}{<object>}.(){() → core::String}){(core::Object?) → void};
       }

@@ -174,8 +174,7 @@ abstract mixin class SetBase<E> implements Set<E> {
     var first = iterator.current.toString();
     if (!iterator.moveNext()) return first;
     var buffer = StringBuffer(first);
-    // TODO(51681): Drop null check when de-supporting pre-2.12 code.
-    if (separator == null || separator.isEmpty) {
+    if (separator.isEmpty) {
       do {
         buffer.write(iterator.current);
       } while (iterator.moveNext());
