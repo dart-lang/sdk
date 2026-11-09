@@ -119,10 +119,9 @@ bool stringContainsUnchecked(
   if (other is String) {
     return stringContainsStringUnchecked(receiver, other, startIndex);
   } else if (other is JSSyntaxRegExp) {
-    return other.hasMatch(receiver.substring(startIndex));
+    return firstMatchAfter(other, receiver, startIndex) != null;
   } else {
-    var substr = receiver.substring(startIndex);
-    return other.allMatches(substr).isNotEmpty;
+    return other.allMatches(receiver, startIndex).isNotEmpty;
   }
 }
 

@@ -635,9 +635,9 @@ final class JSStringImpl extends js.JSExternWrapper
     if (other is String) {
       return indexOf(other, startIndex) >= 0;
     } else if (other is js.JSSyntaxRegExp) {
-      return other.hasMatch(substring(startIndex));
+      return js.firstMatchAfter(other, this.toJS, startIndex) != null;
     } else {
-      return other.allMatches(substring(startIndex)).isNotEmpty;
+      return other.allMatches(this, startIndex).isNotEmpty;
     }
   }
 
