@@ -313,14 +313,24 @@ _vm_builder(
 )
 _nightly_builder(
     "vm-aot-android-debug-x64c",
-    category = "vm|aot|android|d",
+    category = "vm|aot|android|dx",
     dimensions = [linux, kvm],
     properties = [android_deps],
 )
 _vm_builder(
     "vm-aot-android-release-x64c",
-    category = "vm|aot|android|r",
+    category = "vm|aot|android|rx",
     dimensions = [linux, kvm],
+    properties = [android_deps],
+)
+_nightly_builder(
+    "vm-aot-android-debug-riscv64",
+    category = "vm|aot|android|dv",
+    properties = [android_deps],
+)
+_nightly_builder(
+    "vm-aot-android-release-riscv64",
+    category = "vm|aot|android|rv",
     properties = [android_deps],
 )
 
