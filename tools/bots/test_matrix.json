@@ -858,6 +858,25 @@
     },
     {
       "builders": [
+        "vm-aot-android-debug-riscv64",
+        "vm-aot-android-release-riscv64"
+      ],
+      "meta": {
+        "description": "Build-only configuration."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "--os=android",
+            "android_bot"
+          ]
+        }
+      ]
+    },
+    {
+      "builders": [
         "vm-aot-android-debug-x64c",
         "vm-aot-android-release-x64c"
       ],
