@@ -22,7 +22,6 @@ const _helpFlag = 'help';
 const _stateKey = 'state';
 const _startedState = 'started';
 const _errorState = 'error';
-const _ddsUriKey = 'ddsUri';
 const _errorKey = 'error';
 const _stacktraceKey = 'stacktrace';
 const _ddsExceptionDetailsKey = 'ddsExceptionDetails';
@@ -37,7 +36,14 @@ const _nameKey = 'name';
 /// Parses [args], initializes the [DartRuntimeService] with a
 /// [DartRuntimeServiceDdsBackend], and emits a JSON status message to [stderr]
 /// once the service is listening or fails to start.
-Future<void> runDartDevelopmentServiceFromCLI(List<String> args) async {
+///
+/// If [uriConverter] is provided, it is used to resolve package or custom
+/// scheme URIs to local file paths when `--google3-workspace-root` is not
+/// specified.
+Future<void> runDartDevelopmentServiceFromCLI(
+  List<String> args, {
+  UriConverter? uriConverter,
+}) async {
   final parser = ArgParser()
     ..addOption(
       DartDevelopmentServiceOptions.vmServiceUriOption,
@@ -178,11 +184,6 @@ ${parser.usage}''');
   final google3WorkspaceRoot =
       argResults[DartDevelopmentServiceOptions.google3WorkspaceRootOption]
           as String?;
-  final uriConverter = google3WorkspaceRoot != null
-      ? BazelUriConverter(
-          path.normalize(path.absolute(google3WorkspaceRoot)),
-        ).uriToPath
-      : null;
 
   if (enableLogging) {
     Logger.root.level = Level.ALL;
@@ -209,7 +210,11 @@ ${parser.usage}''');
         devtoolsServerAddress: devToolsServerAddress,
         frontend: frontend,
         serveDevTools: serveDevTools,
-        uriConverter: uriConverter,
+        uriConverter: google3WorkspaceRoot != null
+            ? BazelUriConverter(
+                path.normalize(path.absolute(google3WorkspaceRoot)),
+              ).uriToPath
+            : uriConverter,
       ),
       config: DartRuntimeServiceOptions(
         disableAuthCodes: disableServiceAuthCodes,
@@ -219,6 +224,7 @@ ${parser.usage}''');
         host: bindAddress,
         port: bindPort,
         serveDevTools: serveDevTools,
+        sseHandlerPath: DartRuntimeServiceDdsBackend.kSseHandlerPath,
       ),
     );
 
@@ -228,7 +234,7 @@ ${parser.usage}''');
 
     stderr.writeln(
       json.encode(<String, Object?>{
-        _ddsUriKey: ddsService.httpUri.toString(),
+        DartRuntimeServiceDdsBackend.ddsUriKey: ddsService.httpUri.toString(),
         _stateKey: _startedState,
         if (devToolsUri != null) _devToolsUriKey: devToolsUri.toString(),
         if (dtd != null)
