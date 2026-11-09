@@ -18345,8 +18345,8 @@ LinterLintCode:
     parameters:
       Object p0: undocumented
     sharedName: useSuperParameters
-    problemMessage: "Parameters '#p0' could be super parameters."
-    correctionMessage: "Trying converting '#p0' to super parameters."
+    problemMessage: "Parameters #p0 could be super parameters."
+    correctionMessage: "Try converting #p0 to super parameters."
     state:
       experimental: "2.17"
     categories: [brevity]
@@ -18420,7 +18420,7 @@ LinterLintCode:
       Object p0: undocumented
     sharedName: useSuperParameters
     problemMessage: "Parameter '#p0' could be a super parameter."
-    correctionMessage: "Trying converting '#p0' to a super parameter."
+    correctionMessage: "Try converting '#p0' to a super parameter."
     hasPublishedDocs: true
   useTestThrowsMatchers:
     type: lint
