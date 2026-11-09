@@ -768,11 +768,11 @@ dependencies:
 name: test
 dependencies:
   x: any
-  a: any
+  y: any
 ''';
     updateTestPubspecFile(content);
 
-    await resolveTestCode("import 'package:a/a.dart';");
+    await resolveTestCode("import 'package:y/y.dart';");
     await assertFixPubspec(content, expected);
   }
 
@@ -786,11 +786,42 @@ dependencies:
 name: test
 dependencies:
   x: any
-  a: any
+  y: any
 ''';
     updateTestPubspecFile(content);
 
-    await resolveTestCode("import 'package:a/a.dart';");
+    await resolveTestCode("import 'package:y/y.dart';");
+    await assertFixPubspec(content, expected);
+  }
+
+  /// https://github.com/dart-lang/sdk/issues/64870
+  Future<void> test_existingSortedDependencies_insertsInOrder() async {
+    var content = '''
+name: test
+dependencies:
+  a: any
+  c: any
+
+dev_dependencies:
+  lints: any
+''';
+    var expected = '''
+name: test
+dependencies:
+  a: any
+  b: any
+  c: any
+
+dev_dependencies:
+  lints: any
+''';
+    updateTestPubspecFile(content);
+
+    await resolveTestCode('''
+import 'package:a/a.dart';
+import 'package:b/b.dart';
+import 'package:c/c.dart';
+''');
     await assertFixPubspec(content, expected);
   }
 
