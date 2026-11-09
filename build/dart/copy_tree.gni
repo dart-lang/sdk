@@ -2,8 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-import("../toolchain/siso.gni")
-
 _dart_root = rebase_path("../..")
 
 # copy_tree() copies a directory tree rooted at `source` to `dest`, which should
@@ -57,12 +55,10 @@ template("copy_tree") {
     }
 
     outputs = [ stampfile ]
-    if (!use_siso) {
-      # Siso tracks directory outputs in .siso_fs_state and invalidates them if
-      # subsequent build steps write additional files into the directory (e.g.
-      # copying platform .dill files into dart-sdk/lib/_internal).
-      outputs += [ dest ]
-    }
+
+    # TODO(64886): Resolve output collision in the SDK.
+    # outputs += [ dest ]
+
     script = "$_dart_root/tools/copy_tree.py"
     args = common_args
   }
