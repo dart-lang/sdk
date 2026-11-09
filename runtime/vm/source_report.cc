@@ -239,6 +239,7 @@ bool SourceReport::ShouldFiltersIncludeScript(const Script& script) {
   String& url = String::Handle(zone(), script.url());
   if (ShouldFiltersIncludeUrl(url)) return true;
   const Library& lib = Library::Handle(zone(), script.FindLibrary());
+  if (lib.IsNull()) return false;
   url ^= lib.url();
   return ShouldFiltersIncludeUrl(url);
 }

@@ -120,6 +120,51 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_Filters_empty) {
       buffer);
 }
 
+ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_Filters_unowned_script) {
+  // Regression test for the Linux ARM64 coverage SIGSEGV: a library whose
+  // loaded_scripts cache does not contain a script (observed in production as
+  // a stale empty cache primed before the kernel loader finished loading the
+  // library) makes Script::FindLibrary() return Library::null(). The coverage
+  // library-filter fallback must exclude such a script instead of
+  // dereferencing the null library's url.
+  //
+  // WARNING: This MUST be big enough for the serialized JSON string.
+  const int kBufferSize = 1024;
+  char buffer[kBufferSize];
+  const char* kScript =
+      "main() {\n"
+      "}";
+
+  Library& lib = Library::Handle();
+  lib ^= ExecuteScript(kScript);
+  ASSERT(!lib.IsNull());
+
+  // Simulate the stale-cache state: the library no longer lists the script
+  // that its own loaded functions reference.
+  const Array& empty_scripts = Array::Handle(Array::New(0));
+  lib.ptr()->untag()->set_loaded_scripts(empty_scripts.ptr());
+
+  GrowableObjectArray& filters =
+      GrowableObjectArray::Handle(GrowableObjectArray::New());
+  filters.Add(String::Handle(String::New("foo:bar/")));
+  SourceReport report(SourceReport::kCoverage, filters);
+  JSONStream js;
+  // Without a null-library guard this crashes in String::StartsWith.
+  report.PrintJSON(&js, Script::Handle(Script::null()));
+  const char* json_str = js.ToCString();
+  ASSERT(strlen(json_str) < kBufferSize);
+  ElideJSONSubstring("libraries", json_str, buffer);
+  EXPECT_STREQ(
+      "{\"type\":\"SourceReport\",\"ranges\":"
+
+      // No compiled range.
+      "[],"
+
+      // No script.
+      "\"scripts\":[]}",
+      buffer);
+}
+
 ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_SimpleCall) {
   // WARNING: This MUST be big enough for the serialized JSON string.
   const int kBufferSize = 1024;
