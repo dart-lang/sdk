@@ -439,6 +439,47 @@ Future<void> testAutoRedirectNoLocationHeader() async {
   client.close();
 }
 
+Future<void> testAutoRedirectInvalidLocationHeader() async {
+  for (final location in [
+    "file:///etc/passwd",
+    "javascript:alert(1)",
+    "http:///missing-host",
+    "http://[::1",
+    "http://127.0.0.1:99999/x",
+    "http://127.0.0.1:999999999999999999999999999/foo",
+  ]) {
+    final server = await ServerSocket.bind(InternetAddress.loopbackIPv4, 0);
+    final sockets = <Socket>[];
+    server.listen((socket) {
+      sockets.add(socket);
+      socket.listen((_) {
+        socket.add(
+          "HTTP/1.1 302 Found\r\n"
+                  "Location: $location\r\n"
+                  "Content-Length: 0\r\n"
+                  "Connection: close\r\n\r\n"
+              .codeUnits,
+        );
+      });
+    });
+    final client = HttpClient();
+    try {
+      final request = await client.get("127.0.0.1", server.port, "/start");
+      final response = await request.close();
+      await response.drain<void>();
+      Expect.fail("Expected RedirectException for Location: $location");
+    } on RedirectException catch (e) {
+      Expect.equals(0, e.redirects.length);
+    } finally {
+      client.close(force: true);
+      for (final socket in sockets) {
+        socket.destroy();
+      }
+      await server.close();
+    }
+  }
+}
+
 void testAutoRedirectZeroMaxRedirects() {
   setupServer().then((server) {
     HttpClient client = new HttpClient();
@@ -924,6 +965,7 @@ main() async {
   testManualRedirectWithHeaders();
   testAutoRedirect();
   await testAutoRedirectNoLocationHeader();
+  await testAutoRedirectInvalidLocationHeader();
   testAutoRedirectZeroMaxRedirects();
   testAutoRedirectWithHeaders();
   testShouldCopyHeadersOnRedirect();

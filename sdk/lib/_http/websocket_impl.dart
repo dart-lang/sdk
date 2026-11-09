@@ -1451,30 +1451,39 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
           }
 
           var connectionHeader = response.headers[HttpHeaders.connectionHeader];
+          var upgradeHeader = response.headers[HttpHeaders.upgradeHeader];
           if (response.statusCode != HttpStatus.switchingProtocols ||
               connectionHeader == null ||
               !connectionHeader.any(
                 (value) => value.toLowerCase() == "upgrade",
               ) ||
-              response.headers
-                      .value(HttpHeaders.upgradeHeader)!
-                      .toLowerCase() !=
-                  "websocket") {
+              upgradeHeader == null ||
+              upgradeHeader.length != 1 ||
+              upgradeHeader.first.toLowerCase() != "websocket") {
             return error(
               "Connection to '$uri' was not upgraded to websocket",
               response.statusCode,
             );
           }
-          String? accept = response.headers.value("Sec-WebSocket-Accept");
-          if (accept == null) {
+          var acceptHeader = response.headers["Sec-WebSocket-Accept"];
+          if (acceptHeader == null) {
             return error(
               "Response did not contain a 'Sec-WebSocket-Accept' header",
             );
           }
+          if (acceptHeader.length != 1) {
+            return error("Bad response 'Sec-WebSocket-Accept' header");
+          }
+          String accept = acceptHeader.first;
           _SHA1 sha1 = _SHA1();
           sha1.add("$nonce$_webSocketGUID".codeUnits);
           List<int> expectedAccept = sha1.close();
-          List<int> receivedAccept = base64Decode(accept);
+          List<int> receivedAccept;
+          try {
+            receivedAccept = base64Decode(accept);
+          } on FormatException {
+            return error("Bad response 'Sec-WebSocket-Accept' header");
+          }
           if (expectedAccept.length != receivedAccept.length) {
             return error(
               "Response header 'Sec-WebSocket-Accept' is the wrong length",

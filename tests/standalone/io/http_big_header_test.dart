@@ -2,7 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:expect/expect.dart';
 
@@ -75,7 +78,50 @@ Future<void> server() async {
   Expect.fail('An exception is expected');
 }
 
+Future<void> obsFoldAtLimit() async {
+  const limit = 1024 * 1024;
+  // "OK" (2) + "X" (1) + (limit - 4) 'a's = limit - 1 bytes in HEADER_VALUE,
+  // so the obs-fold space in HEADER_VALUE_FOLD_OR_END reaches `limit`.
+  const clientACount = limit - 4;
+  final respBytes =
+      (BytesBuilder(copy: false)
+            ..add(ascii.encode('HTTP/1.1 200 OK\r\nX: '))
+            ..add(Uint8List(clientACount)..fillRange(0, clientACount, 0x61))
+            ..add(ascii.encode('\r\n b\r\nContent-Length: 0\r\n\r\n')))
+          .takeBytes();
+
+  final accepted = <Socket>[];
+  final rawServer = await ServerSocket.bind(InternetAddress.loopbackIPv4, 0);
+  rawServer.listen((sock) {
+    accepted.add(sock);
+    var sent = false;
+    sock.listen((_) {
+      if (!sent) {
+        sent = true;
+        sock.done.ignore();
+        sock.add(respBytes);
+      }
+    });
+  });
+
+  final httpClient = HttpClient();
+  try {
+    final req = await httpClient.get('127.0.0.1', rawServer.port, '/');
+    await req.close();
+    Expect.fail('Expected HttpException');
+  } on HttpException catch (e) {
+    Expect.isTrue(e.toString().contains('size limit'));
+  } finally {
+    httpClient.close(force: true);
+    for (final s in accepted) {
+      s.destroy();
+    }
+    await rawServer.close();
+  }
+}
+
 Future<void> main() async {
   await client();
   await server();
+  await obsFoldAtLimit();
 }
