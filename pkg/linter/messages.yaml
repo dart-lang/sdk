@@ -2207,9 +2207,9 @@ LinterLintCode:
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when multiple variables are 
+      The analyzer produces this diagnostic when multiple variables are
       declared on a single line. Declaring variables on separate lines
-      improves code readability and makes debugging easier. 
+      improves code readability and makes debugging easier.
 
       #### Example
 
@@ -3988,6 +3988,60 @@ LinterLintCode:
       stable: "2.12"
     categories: [errorProne]
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when
+      an expression whose static type is nullable
+      is cast to a non-nullable type.
+      Casts of expressions whose static type is `dynamic` aren't reported.
+
+      A cast like this throws an exception at run time when the value is `null`,
+      so it hides a null check that is easy to overlook.
+
+      #### Examples
+
+      The following code produces this diagnostic because
+      the parameter `o` has the nullable type `Object?`,
+      but is cast to the non-nullable type `String`:
+
+      ```dart
+      String f(Object? o) => [!o as String!];
+      ```
+
+      The following code produces this diagnostic because
+      the parameter `s` has the nullable type `String?`,
+      but is cast to the non-nullable type `String`:
+
+      ```dart
+      String f(String? s) => [!s as String!];
+      ```
+
+      #### Common fixes
+
+      If the value is never expected to be `null`,
+      and the cast also changes the type,
+      then use the not-null assertion operator (`!`) before the cast
+      to make the null check explicit:
+
+      ```dart
+      String f(Object? o) => o! as String;
+      ```
+
+      If the value is never expected to be `null`,
+      and the type being cast to is the
+      non-nullable version of the expression's static type,
+      then replace the cast with the not-null assertion operator (`!`):
+
+      ```dart
+      String f(String? s) => s!;
+      ```
+
+      If the value can be `null`, then cast to a nullable type instead:
+
+      ```dart
+      String? f(Object? o) => o as String?;
+      ```
     deprecatedDetails: |-
       **DON'T** cast a nullable value to a non nullable type. This hides a null check
       and most of the time it is not what is expected.
@@ -8919,12 +8973,55 @@ LinterLintCode:
   nullClosures:
     type: lint
     parameters: none
-    problemMessage: "Closure can't be 'null' because it might be invoked."
+    problemMessage: "Don't pass 'null' as an argument where a closure is expected."
     correctionMessage: "Try providing a non-null closure."
     state:
       stable: "2.0"
     categories: [errorProne]
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the literal `null`
+      is passed as the argument for a parameter that expects a closure,
+      in an invocation of certain functions, constructors, and methods
+      in the `dart:async`, `dart:collection`, and `dart:core` libraries.
+      Examples include the `orElse` parameter of `Iterable.firstWhere` and
+      the `cleanUp` parameter of `Future.wait`.
+
+      When the parameter is nullable, its default value is typically `null`,
+      so passing `null` explicitly has the same effect as omitting the argument.
+
+      #### Example
+
+      The following code produces this diagnostic because
+      `null` is passed as the argument for the `orElse` parameter:
+
+      ```dart
+      int f(List<int> list) {
+        return list.firstWhere((e) => e.isEven, [!orElse: null!]);
+      }
+      ```
+
+      #### Common fixes
+
+      If you want the default behavior, then remove the argument.
+      For `Iterable.firstWhere`, the default is to
+      throw a `StateError` when no element matches:
+
+      ```dart
+      int f(List<int> list) {
+        return list.firstWhere((e) => e.isEven);
+      }
+      ```
+
+      If you need a fallback value, then pass a closure that returns it:
+
+      ```dart
+      int f(List<int> list) {
+        return list.firstWhere((e) => e.isEven, orElse: () => 0);
+      }
+      ```
     deprecatedDetails: |-
       **DON'T** pass `null` as an argument where a closure is expected.
 
@@ -11972,6 +12069,74 @@ LinterLintCode:
       stable: "2.14"
     categories: [brevity, style]
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when
+      a comparison with `null` (using the `!=` operator) is used to
+      guard the invocation of a nullable function,
+      and the function is invoked using the not-null assertion operator (`!`).
+
+      The diagnostic is only reported when
+      the comparison is the condition of either:
+
+      - An `if` statement that doesn't have an `else` clause and
+        whose body contains only the invocation.
+      - A conditional expression (using the `?:` operator)
+        whose then expression is the invocation and
+        whose else expression is `null`.
+
+      #### Examples
+
+      The following code produces this diagnostic because
+      the function `f` uses an `if` statement to check
+      that the top-level variable `g` isn't `null` before invoking it
+      using the not-null assertion operator (`!`):
+
+      ```dart
+      void Function()? g;
+
+      void f() {
+        if (g != null) {
+          [!g!()!];
+        }
+      }
+      ```
+
+      The following code produces this diagnostic because
+      the function `f` uses a conditional expression to check
+      that the top-level variable `g` isn't `null` before invoking it
+      using the not-null assertion operator (`!`):
+
+      ```dart
+      int Function()? g;
+
+      int? f() => g != null ? [!g!()!] : null;
+      ```
+
+      #### Common fixes
+
+      If the invocation is guarded by an `if` statement,
+      then replace the `if` statement with
+      a null-aware invocation of the `call` method:
+
+      ```dart
+      void Function()? g;
+
+      void f() {
+        g?.call();
+      }
+      ```
+
+      If the invocation is guarded by a conditional expression,
+      then replace the conditional expression with
+      a null-aware invocation of the `call` method:
+
+      ```dart
+      int Function()? g;
+
+      int? f() => g?.call();
+      ```
     deprecatedDetails: |-
       Instead of checking nullability of a function/method `f` before calling it,
       you can use `f?.call()`.
