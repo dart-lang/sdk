@@ -818,7 +818,10 @@ abstract class _TypeUniverse {
     WasmArray<_Type> substitutions,
     _FunctionType? rootFunction,
   ) {
-    if (type.isBottom || type.isTop) {
+    if (type.isBottom ||
+        type.isTop ||
+        type.isAbstractFunction ||
+        type.isAbstractRecord) {
       return type;
     } else if (type.isFutureOr) {
       return createNormalizedFutureOrType(
