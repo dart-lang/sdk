@@ -992,8 +992,12 @@ config("symbols") {
     cflags = [ "-g" ]
     asmflags = [ "-g" ]
     if (is_clang) {
-      cflags += [ "-gsplit-dwarf=single" ]
-      asmflags += [ "-gsplit-dwarf=single" ]
+      # On Android riscv64, -gsplit-dwarf is unsupported with RISC-V linker
+      # relaxation (-mrelax)
+      if (!is_android || current_cpu != "riscv64") {
+        cflags += [ "-gsplit-dwarf=single" ]
+        asmflags += [ "-gsplit-dwarf=single" ]
+      }
     } else {
       cflags += [ "-gsplit-dwarf" ]
       asmflags += [ "-gsplit-dwarf" ]
